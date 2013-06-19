@@ -1,8 +1,0 @@
-#! /bin/sh
-
-rm ./i
-rm -rf o
-mkdir o
-ln -s ../beamline/$1 i
-make o/madx.seq
-
