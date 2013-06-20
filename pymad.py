@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 # standard library
+import os
 import math
 
 # wxpython
@@ -24,19 +25,19 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 
 # pymad
+from cern import cpymad
 from cern import madx
 
 
 
-class MadFigure(madx.madx):
+class MadFigure:
     """
     """
 
-    def __init__(self, fname):
-        self.base = madx.madx
-        self.base.__init__(self)
+    def __init__(self, model):
+        self.model = model
+
         # load the input file
-        self.call(fname)
         import param
         self.param = param
         self.angle = param.rot_angle
@@ -49,7 +50,6 @@ class MadFigure(madx.madx):
         self.color = ('#8b1a0e','#5e9c36')
         self.yunit = {'label': 'mm', 'scale': 1e-3}
 
-
         # define onclick handler for graph
         def onclick(event):
             self.paint()
@@ -59,35 +59,18 @@ class MadFigure(madx.madx):
         # self.cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
 
 
-
-    def wrap(self, method, *args, **kwargs):
-        orig = self.base.__dict__[method]
-        def wrapper(*args2, **kwargs2):
-            combine_args = []
-            combine_args.extend(args)
-            combine_args.extend(args2)
-            combine_kwargs = {}
-            combine_kwargs.update(kwargs)
-            combine_kwargs.update(kwargs2)
-            return orig(self, *combine_args, **combine_kwargs)
-        self.__dict__[method] = wrapper
-
     def paint(self):
         """
         Recalculate TWISS paramaters and plot.
         """
 
         # data post processing
-        tw, summary = self.twiss()
+        tw, summary = self.model.twiss(
+                columns=['name','s', 'l','betx','bety','x','dx','y','dy'])
 
         s = tw.s
         dx = np.array([math.sqrt(betx*self.param.epsx) for betx in tw.betx])
         dy = np.array([math.sqrt(bety*self.param.epsy) for bety in tw.bety])
-
-        if self.angle > 0:
-            for i in range(len(s)):
-                if s[i] >= 5.44273196e+01:
-                    dx[i], dy[i] = dy[i], dx[i]
 
         # plot
         self.axes.cla()
@@ -159,19 +142,7 @@ class App(wx.App):
     def OnInit(self):
         """Create the main window and insert the custom frame."""
 
-        self.mad = MadFigure('pymad.madx')
-        twiss_init = {
-            'betx':'init_betx', 'bety':'init_bety',
-            'dx':'init_dx',     'dy':'init_dy',
-            'x':'init_x',       'y':'init_y',
-            'alfx':'init_alfx', 'alfy':'init_alfy',
-            'mux':'init_mux',   'muy':'init_muy',
-            'dpx':'init_dpx',   'dpy':'init_dpy',
-            'px':'init_px',     'py':'init_py'
-        }
-        twiss_columns = ['name','s', 'l','betx','bety','x','dx','y','dy']
-        self.mad.wrap('twiss',
-            'hht3', columns=twiss_columns, twiss_init=twiss_init)
+        self.mad = MadFigure(cpymad.model('hht3'))
 
         self.frame = Frame()
         self.frame.AddFigure(self.mad, "x, y")
@@ -182,5 +153,7 @@ class App(wx.App):
 
 # enter main business logic
 if __name__ == '__main__':
+    cpymad.listModels.modelpathes.append(
+            os.path.join(os.path.dirname(__file__), 'models'))
     app = App(0)
     app.MainLoop()

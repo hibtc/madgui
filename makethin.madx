@@ -1,7 +1,0 @@
-select, flag=makethin, class=quadrupole, slice=50;
-select, flag=makethin, class=sbend, slice=50;
-makethin, sequence=hht3, style=collim;
-save, sequence=hht3, file="o/thin.seq";
-use, sequence=hht3;
-
-! vim: ft=madx
