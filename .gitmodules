@@ -1,3 +1,6 @@
 [submodule "lib/pymad"]
 	path = lib/pymad
 	url = ./lib/pymad
+[submodule "models"]
+	path = models
+	url = ./models

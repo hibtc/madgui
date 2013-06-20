@@ -4,8 +4,11 @@
 from __future__ import print_function
 
 # standard library
-import os
+import inspect
 import math
+import os
+import sys
+from math import pi
 
 # wxpython
 import wxversion
@@ -38,9 +41,10 @@ class MadFigure:
         self.model = model
 
         # load the input file
-        import param
-        self.param = param
-        self.angle = param.rot_angle
+        import hht3
+        self.angle = hht3.rot_angle
+        self.ex = hht3.beam_ex
+        self.ey = hht3.beam_ey
 
         # create figure
         self.figure = mpl.figure.Figure()
@@ -69,8 +73,8 @@ class MadFigure:
                 columns=['name','s', 'l','betx','bety','x','dx','y','dy'])
 
         s = tw.s
-        dx = np.array([math.sqrt(betx*self.param.epsx) for betx in tw.betx])
-        dy = np.array([math.sqrt(bety*self.param.epsy) for bety in tw.bety])
+        dx = np.array([math.sqrt(betx*self.ex) for betx in tw.betx])
+        dy = np.array([math.sqrt(bety*self.ey) for bety in tw.bety])
 
         # plot
         self.axes.cla()
@@ -153,7 +157,13 @@ class App(wx.App):
 
 # enter main business logic
 if __name__ == '__main__':
-    cpymad.listModels.modelpathes.append(
-            os.path.join(os.path.dirname(__file__), '../models'))
+    here = os.path.realpath(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe()))))
+
+    cpymad.listModels.modelpathes.append(os.path.join(here, 'models'))
+
+    subm = os.path.join(here, 'models/resdata')
+    if subm not in sys.path:
+        sys.path.insert(0, subm)
+
     app = App(0)
     app.MainLoop()
