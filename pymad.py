@@ -154,6 +154,6 @@ class App(wx.App):
 # enter main business logic
 if __name__ == '__main__':
     cpymad.listModels.modelpathes.append(
-            os.path.join(os.path.dirname(__file__), 'models'))
+            os.path.join(os.path.dirname(__file__), '../models'))
     app = App(0)
     app.MainLoop()

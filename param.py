@@ -1,1 +1,1 @@
-i/madx.param
+../models/madx.param

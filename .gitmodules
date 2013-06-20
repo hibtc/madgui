@@ -1,6 +1,3 @@
 [submodule "lib/pymad"]
 	path = lib/pymad
 	url = ./lib/pymad
-[submodule "i"]
-	path = i
-	url = ./i
