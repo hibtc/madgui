@@ -93,18 +93,26 @@ class MadFigure:
         self.axes.cla()
 
         for elem in self.sequence:
-            if not ('type' in elem and "L" in elem and "at" in elem and
+            if not ('type' in elem and 'at' in elem and
                     elem['type'].lower() in self.elements):
                 continue
             elem_type = self.elements[elem['type'].lower()]
 
-            patch_w = float(elem['L'])
-            patch_x = float(elem['at']) - patch_w/2
-            self.axes.add_patch(
-                    mpl.patches.Rectangle(
-                        (patch_x, patch_y/self.yunit['scale']),
-                        patch_w, patch_h/self.yunit['scale'],
-                        alpha=0.5, color=elem_type['color']))
+            if 'L' in elem and float(elem['L']) != 0:
+                patch_w = float(elem['L'])
+                patch_x = float(elem['at']) - patch_w/2
+                self.axes.add_patch(
+                        mpl.patches.Rectangle(
+                            (patch_x, patch_y/self.yunit['scale']),
+                            patch_w, patch_h/self.yunit['scale'],
+                            alpha=0.5, color=elem_type['color']))
+            else:
+                patch_x = float(elem['at'])
+                self.axes.vlines(
+                        patch_x,
+                        patch_y/self.yunit['scale'],
+                        (patch_y+patch_h)/self.yunit['scale'],
+                        alpha=0.5, color=elem_type['color'])
 
         self.axes.plot(
                 tw.s, dx/self.yunit['scale'],
