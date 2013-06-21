@@ -88,8 +88,7 @@ class MadFigure:
         self.axes.set_ylabel("beam envelope [" + self.yunit['label'] + "]")
         self.axes.get_xaxis().set_minor_locator(MultipleLocator(2))
         self.axes.get_yaxis().set_minor_locator(MultipleLocator(0.002/self.yunit['scale']))
-        # plt.show()
-
+        self.axes.set_xlim(s[0], s[-1])
 
 
 class PlotPanel(wx.Panel):
