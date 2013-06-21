@@ -8,6 +8,7 @@ import inspect
 import math
 import os
 import sys
+import json
 from math import pi
 
 # wxpython
@@ -37,8 +38,9 @@ class MadFigure:
     """
     """
 
-    def __init__(self, model):
+    def __init__(self, model, sequence):
         self.model = model
+        self.sequence = sequence
 
         # load the input file
         import hht3
@@ -53,6 +55,12 @@ class MadFigure:
         # plot style
         self.color = ('#8b1a0e','#5e9c36')
         self.yunit = {'label': 'mm', 'scale': 1e-3}
+
+        #
+        self.elements = {
+            'quadrupole': {'color': '#ff0000'},
+            'multipole': {'color': '#00ff00'},
+            'sbend': {'color': '#0000ff'} }
 
         # define onclick handler for graph
         def onclick(event):
@@ -76,18 +84,45 @@ class MadFigure:
         dx = np.array([math.sqrt(betx*self.ex) for betx in tw.betx])
         dy = np.array([math.sqrt(bety*self.ey) for bety in tw.bety])
 
+        max_y = max(0, np.max(dx), np.max(dy))
+        min_y = min(0, np.min(dx), np.min(dy))
+        patch_y = 0.75 * min_y
+        patch_h = 0.75 * (max_y - min_y)
+
         # plot
         self.axes.cla()
 
-        self.axes.plot(tw.s, dx/self.yunit['scale'], "o-", color=self.color[0], fillstyle='none', label="$\Delta x$")
-        self.axes.plot(tw.s, dy/self.yunit['scale'], "o-", color=self.color[1], fillstyle='none', label="$\Delta y$")
+        for elem in self.sequence:
+            if not ('type' in elem and "L" in elem and "at" in elem and
+                    elem['type'].lower() in self.elements):
+                continue
+            elem_type = self.elements[elem['type'].lower()]
+
+            patch_w = float(elem['L'])
+            patch_x = float(elem['at']) - patch_w/2
+            self.axes.add_patch(
+                    mpl.patches.Rectangle(
+                        (patch_x, patch_y/self.yunit['scale']),
+                        patch_w, patch_h/self.yunit['scale'],
+                        alpha=0.5, color=elem_type['color']))
+
+        self.axes.plot(
+                tw.s, dx/self.yunit['scale'],
+                "o-", color=self.color[0], fillstyle='none',
+                label="$\Delta x$")
+        self.axes.plot(
+                tw.s, dy/self.yunit['scale'],
+                "o-", color=self.color[1], fillstyle='none',
+                label="$\Delta y$")
 
         self.axes.grid(True)
         self.axes.legend(loc='upper left')
         self.axes.set_xlabel("position $s$ [m]")
         self.axes.set_ylabel("beam envelope [" + self.yunit['label'] + "]")
-        self.axes.get_xaxis().set_minor_locator(MultipleLocator(2))
-        self.axes.get_yaxis().set_minor_locator(MultipleLocator(0.002/self.yunit['scale']))
+        self.axes.get_xaxis().set_minor_locator(
+                MultipleLocator(2))
+        self.axes.get_yaxis().set_minor_locator(
+                MultipleLocator(0.002/self.yunit['scale']))
         self.axes.set_xlim(s[0], s[-1])
 
 
@@ -145,7 +180,20 @@ class App(wx.App):
     def OnInit(self):
         """Create the main window and insert the custom frame."""
 
-        self.mad = MadFigure(cpymad.model('hht3'))
+        # here = absolute path of this file's directory
+        here = os.path.realpath(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe()))))
+
+        # add submodule folder for beam+twiss imports
+        subm = os.path.join(here, 'models', 'resdata')
+        if subm not in sys.path:
+            sys.path.insert(0, subm)
+
+        # add subfolder to model pathes and create model
+        cpymad.listModels.modelpathes.append(os.path.join(here, 'models'))
+        self.model = cpymad.model('hht3')
+        with open(os.path.join(subm, 'hht3', 'sequence.json')) as f:
+            self.sequence = json.load(f)
+        self.mad = MadFigure(self.model, self.sequence)
 
         self.frame = Frame()
         self.frame.AddFigure(self.mad, "x, y")
@@ -156,13 +204,5 @@ class App(wx.App):
 
 # enter main business logic
 if __name__ == '__main__':
-    here = os.path.realpath(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe()))))
-
-    cpymad.listModels.modelpathes.append(os.path.join(here, 'models'))
-
-    subm = os.path.join(here, 'models/resdata')
-    if subm not in sys.path:
-        sys.path.insert(0, subm)
-
     app = App(0)
     app.MainLoop()
