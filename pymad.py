@@ -28,6 +28,9 @@ mpl.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 
+from matplotlib.backends.backend_wx import _load_bitmap
+
+
 # pymad
 from cern import cpymad
 from cern import madx
@@ -39,6 +42,9 @@ class MadFigure:
     """
 
     def __init__(self, model, sequence):
+
+        self.cid = None
+        self.constraints = []
         self.model = model
         self.sequence = sequence
 
@@ -62,23 +68,58 @@ class MadFigure:
             'multipole': {'color': '#00ff00'},
             'sbend': {'color': '#0000ff'} }
 
-        # define onclick handler for graph
+    def startMatch(self):
         def onclick(event):
-            self.paint()
-            # print('button=%d, x=%d, y=%d, xdata=%f, ydata=%f'%(
-            #   event.button, event.x, event.y, event.xdata, event.ydata))
+            if event.button == 1: # left mouse
+                axis = 0
+            elif event.button == 3: # right mouse
+                axis = 1
+            else:
+                return
+            self._AddConstraint(axis, event.xdata, event.ydata)
 
-        # self.cid = self.figure.canvas.mpl_connect('button_press_event', onclick)
+        self.cid = self.figure.canvas.mpl_connect(
+                'button_press_event',
+                onclick)
+        self.constraints = []
+
+    def stopMatch(self):
+        self.figure.canvas.mpl_disconnect(self.cid)
+        self.cid = None
+        for axis,x,y,lines in self.constraints:
+            for l in lines:
+                l.remove()
+        self.constraints = []
+        self.figure.canvas.draw()
+
+    def _AddConstraint(self, axis, x, y):
+        lines = self._DrawConstraint(axis, x, y)
+        self.figure.canvas.draw()
+        self.constraints.append( (axis, x, y, lines) )
+
+    def _DrawConstraint(self, axis, x, y):
+        return self.axes.plot(
+                x, y, 's',
+                color=self.color[axis],
+                fillstyle='full', markersize=7)
 
 
-    def paint(self):
+    def match(self, vary, constraints):
+
+        # perform matching:
+        # self.model.command("match, vary")
+
+        # obtain new param:
+        pass
+
+    def plot(self):
         """
         Recalculate TWISS paramaters and plot.
         """
 
         # data post processing
         tw, summary = self.model.twiss(
-                columns=['name','s', 'l','betx','bety','x','dx','y','dy'])
+                columns=['name','s', 'l','betx','bety'])
 
         s = tw.s
         dx = np.array([math.sqrt(betx*self.ex) for betx in tw.betx])
@@ -105,7 +146,7 @@ class MadFigure:
                         mpl.patches.Rectangle(
                             (patch_x, patch_y/self.yunit['scale']),
                             patch_w, patch_h/self.yunit['scale'],
-                            alpha=0.5, color=elem_type['color']))
+                            alpha=0.25, color=elem_type['color']))
             else:
                 patch_x = float(elem['at'])
                 self.axes.vlines(
@@ -123,6 +164,12 @@ class MadFigure:
                 "o-", color=self.color[1], fillstyle='none',
                 label="$\Delta y$")
 
+        constraints = self.constraints
+        self.constraints = []
+        for axis,x,y,lines in constraints:
+            lines = self._DrawConstraint(axis, x, y)
+            self.constraints.append((axis, x, y, lines))
+
         self.axes.grid(True)
         self.axes.legend(loc='upper left')
         self.axes.set_xlabel("position $s$ [m]")
@@ -135,20 +182,45 @@ class MadFigure:
 
 
 class PlotPanel(wx.Panel):
-    def __init__(self, parent, figure, **kwargs):
+    """
+    Container panel for a beamline plot.
+    """
+
+    ON_MATCH = wx.NewId()
+
+    def __init__(self, parent, mad, **kwargs):
         super(PlotPanel, self).__init__(parent, **kwargs)
 
         # couple figure to backend
-        self.figure = figure
+        self.mad = mad
+        self.figure = mad.figure
         self.canvas = Canvas(self, -1, self.figure)
         self.toolbar = Toolbar(self.canvas)
         self.toolbar.Realize()
+
+        imgpath = os.path.join(os.path.dirname(__file__), 'res', 'cursor.xpm')
+        img = wx.Bitmap(imgpath)
+        self.toolbar.AddCheckTool(
+                self.ON_MATCH,
+                img, wx.NullBitmap,
+                'Beam matching',
+                'Match by specifying constraints for envelope x(s), y(s).')
+        wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
+
 
         # put element into sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.canvas, 1, wx.EXPAND)
         sizer.Add(self.toolbar, 0 , wx.LEFT | wx.EXPAND)
         self.SetSizer(sizer)
+
+    def OnMatchClick(self, event):
+        """
+        """
+        if event.IsChecked():
+            self.mad.startMatch()
+        else:
+            self.mad.stopMatch()
 
     def OnPaint(self, event):
         self.canvas.draw()
@@ -174,9 +246,9 @@ class Frame(wx.Frame):
 
     def AddFigure(self, figure, title):
         """Add plot as new page."""
-        panel = PlotPanel(self.notebook, figure.figure)
+        panel = PlotPanel(self.notebook, figure)
         self.notebook.AddPage(panel, title)
-        figure.paint()
+        figure.plot()
         return panel
 
 
@@ -188,16 +260,16 @@ class App(wx.App):
     def OnInit(self):
         """Create the main window and insert the custom frame."""
 
-        # here = absolute path of this file's directory
-        here = os.path.realpath(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe()))))
+        # path = absolute path of this file's directory
+        self.path = os.path.realpath(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe()))))
 
         # add submodule folder for beam+twiss imports
-        subm = os.path.join(here, 'models', 'resdata')
+        subm = os.path.join(self.path, 'models', 'resdata')
         if subm not in sys.path:
             sys.path.insert(0, subm)
 
         # add subfolder to model pathes and create model
-        cpymad.listModels.modelpathes.append(os.path.join(here, 'models'))
+        cpymad.listModels.modelpathes.append(os.path.join(self.path, 'models'))
         self.model = cpymad.model('hht3')
         with open(os.path.join(subm, 'hht3', 'sequence.json')) as f:
             self.sequence = json.load(f)
@@ -212,5 +284,6 @@ class App(wx.App):
 
 # enter main business logic
 if __name__ == '__main__':
-    app = App(0)
+    app = App()
     app.MainLoop()
+
