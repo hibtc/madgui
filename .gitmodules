@@ -4,3 +4,9 @@
 [submodule "models"]
 	path = models
 	url = ./models
+[submodule "lib/requests"]
+	path = lib/requests
+	url = ./lib/requests
+[submodule "lib/pydicti"]
+	path = lib/pydicti
+	url = ./lib/pydicti
