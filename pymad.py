@@ -131,8 +131,6 @@ class MadFigure:
             if float(v['at']) < max_s:
                 vary.append(v['vary'])
 
-        print(vary)
-
         constraints = []
         for axis,elem,envelope,lines in self.constraints:
             name = 'betx' if axis == 0 else 'bety'
@@ -147,8 +145,6 @@ class MadFigure:
                 constraints.append({
                     'range': elem['name'],
                     name: envelope*envelope/emittance})
-
-        print(constraints)
 
 
         self.model.match(vary=vary, constraints=constraints)
