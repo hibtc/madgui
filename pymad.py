@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 # standard library
+import copy
 import inspect
 import math
 import os
@@ -125,12 +126,21 @@ class MadFigure:
         return None
 
     def match(self):
+        # select variables: one for each constraint
         vary = []
-        max_s = max(float(elem['at']) for axis,elem,envelope,lines in self.constraints)
-        for v in self.variables:
-            if float(v['at']) < max_s:
+        allvars = copy.copy(self.variables)
+        for axis,elem,envelope,lines in self.constraints:
+            at = float(elem['at'])
+            allowed = (v for v in allvars if float(v['at']) < at)
+            try:
+                v = max(allowed, key=lambda v: float(v['at']))
                 vary.append(v['vary'])
+                allvars.remove(v)
+            except ValueError:
+                # No variable in range found! Ok.
+                pass
 
+        # select constraints
         constraints = []
         for axis,elem,envelope,lines in self.constraints:
             name = 'betx' if axis == 0 else 'bety'
@@ -150,6 +160,7 @@ class MadFigure:
         self.model.match(vary=vary, constraints=constraints)
         # recalculate twiss and update plot:
         self.plot()
+        self.figure.canvas.draw()
 
     def plot(self):
         """
@@ -300,7 +311,8 @@ class App(wx.App):
         """Create the main window and insert the custom frame."""
 
         # path = absolute path of this file's directory
-        self.path = os.path.realpath(os.path.abspath(os.path.dirname(inspect.getfile(inspect.currentframe()))))
+        _file = inspect.getfile(inspect.currentframe())
+        self.path = os.path.realpath(os.path.abspath(os.path.dirname(_file)))
 
         # add submodule folder for beam+twiss imports
         subm = os.path.join(self.path, 'models', 'resdata')
