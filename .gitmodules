@@ -1,6 +1,6 @@
 [submodule "models"]
 	path = models
-	url = ./models
+	url = ssh://git@bitbucket.org/coldfix/hit-beamline.git
 [submodule "lib"]
 	path = lib
-	url = ./lib
+	url = ssh://git@bitbucket.org/coldfix/hit-lib.git
