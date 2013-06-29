@@ -1,6 +1,6 @@
 [submodule "lib/pymad"]
 	path = lib/pymad
-	url = .//lib/pymad
+	url = ssh://git@github.com/coldfix/pymad.git
 [submodule "lib/pydicti"]
 	path = lib/pydicti
-	url = .//lib/pydicti
+	url = ssh://git@github.com/coldfix/pydicti.git
