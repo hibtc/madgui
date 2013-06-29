@@ -1,6 +1,6 @@
-[submodule "models"]
-	path = models
-	url = ssh://git@bitbucket.org/coldfix/hit-beamline.git
-[submodule "lib"]
-	path = lib
-	url = ssh://git@bitbucket.org/coldfix/hit-lib.git
+[submodule "lib/pymad"]
+	path = lib/pymad
+	url = .//lib/pymad
+[submodule "lib/pydicti"]
+	path = lib/pydicti
+	url = .//lib/pydicti
