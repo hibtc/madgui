@@ -156,8 +156,8 @@ class MadFigure:
                     'range': elem['name'],
                     name: envelope*envelope/emittance})
 
+        r,i=self.model.match(vary=vary, constraints=constraints)
 
-        self.model.match(vary=vary, constraints=constraints)
         # recalculate twiss and update plot:
         self.plot()
         self.figure.canvas.draw()
