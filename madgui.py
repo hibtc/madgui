@@ -320,7 +320,7 @@ class App(wx.App):
             sys.path.insert(0, subm)
 
         # add subfolder to model pathes and create model
-        cpymad.listModels.modelpathes.append(os.path.join(self.path, 'models'))
+        cpymad.listModels.modelpaths.append(os.path.join(self.path, 'models'))
         self.model = cpymad.model('hht3')
         with open(os.path.join(subm, 'hht3', 'sequence.json')) as f:
             self.sequence = json.load(f)
