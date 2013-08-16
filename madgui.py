@@ -37,24 +37,152 @@ from cern import cpymad
 from cern import madx
 
 
+def loadJSON(filename):
+    with open(filename) as f:
+        return json.load(f)
 
-class MadFigure:
+
+class MadModel:
     """
     """
 
-    def __init__(self, model, sequence, variables):
-
-        self.cid = None
+    def __init__(self, name, path=''):
         self.constraints = []
-        self.model = model
-        self.sequence = sequence
-        self.variables = variables
+        self.name = name
+
+        self.model = cpymad.model(name)
+        self.sequence = loadJSON(os.path.join(path, name, 'sequence.json'))
+        self.variables = loadJSON(os.path.join(path, name, 'vary.json'))
 
         # load the input file
         import hht3
         self.angle = hht3.rot_angle
         self.ex = hht3.beam_ex
         self.ey = hht3.beam_ey
+
+        self.update()
+
+    def element_by_position(self, pos):
+        for elem in self.sequence:
+            if 'at' not in elem:
+                continue
+            at = float(elem['at'])
+            L = float(elem.get('L', 0))
+            if pos >= at-L/2 and pos <= at+L/2:
+                return elem
+        return None
+
+    def update(self):
+        # data post processing
+        self.twiss, self.summary = self.model.twiss(
+                columns=['name','s', 'l','betx','bety'])
+
+        self.s = self.twiss.s
+        self.dx = np.array([math.sqrt(betx*self.ex) for betx in self.twiss.betx])
+        self.dy = np.array([math.sqrt(bety*self.ey) for bety in self.twiss.bety])
+
+
+    def match(self):
+        # select variables: one for each constraint
+        vary = []
+        allvars = copy.copy(self.variables)
+        for axis,elem,envelope in self.constraints:
+            at = float(elem['at'])
+            allowed = (v for v in allvars if float(v['at']) < at)
+            try:
+                v = max(allowed, key=lambda v: float(v['at']))
+                vary.append(v['vary'])
+                allvars.remove(v)
+            except ValueError:
+                # No variable in range found! Ok.
+                pass
+
+        # select constraints
+        constraints = []
+        for axis,elem,envelope in self.constraints:
+            name = 'betx' if axis == 0 else 'bety'
+            emittance = self.ex if axis == 0 else self.ey
+            if isinstance(envelope, tuple):
+                lower, upper = envelope
+                constraints.append([
+                    ('range', elem['name']),
+                    (name, '>', lower*lower/emittance),
+                    (name, '<', upper*upper/emittance) ])
+            else:
+                constraints.append({
+                    'range': elem['name'],
+                    name: envelope*envelope/emittance})
+
+        r,i = self.model.match(vary=vary, constraints=constraints)
+
+        self.update()
+
+    def _AddConstraint(self, axis, elem, envelope):
+        # TODO: two constraints on same element represent upper/lower bounds
+        #lines = self._DrawConstraint(axis, elem, envelope)##EVENT
+        #self.view.figure.canvas.draw()
+        self.constraints.append( (axis, elem, envelope) )
+        self.match()
+
+    def _ClearConstraints(self):
+        self.model.constraints = []
+
+
+
+class MadCtrl:
+    """
+    """
+
+    def __init__(self, model, viewpanel):
+        self.cid = None
+        wx.EVT_TOOL(viewpanel, viewpanel.ON_MATCH, self.OnMatchClick)
+        self.model = model
+        self.panel = viewpanel
+        self.view = viewpanel.view
+
+    def OnMatchClick(self, event):
+        """
+        """
+        if event.IsChecked():
+            self.startMatch()
+        else:
+            self.stopMatch()
+
+    def startMatch(self):
+        def onclick(event):
+            elem = self.model.element_by_position(event.xdata)
+            if elem is None or 'name' not in elem:
+                return
+
+            if event.button == 1: # left mouse
+                axis = 0
+            elif event.button == 3: # right mouse
+                axis = 1
+            elif even.button == 2:
+                # delete constraint
+                pass
+            else:
+                return
+            envelope = event.ydata*self.view.yunit['scale']
+            self.model._AddConstraint(axis, elem, envelope)
+
+        self.cid = self.view.figure.canvas.mpl_connect(
+                'button_press_event',
+                onclick)
+        self.constraints = []
+
+    def stopMatch(self):
+        self.view.figure.canvas.mpl_disconnect(self.cid)
+        self.cid = None
+        self.model._ClearConstraints()
+
+
+class MadView:
+    """
+    """
+
+    def __init__(self, model):
+        self.model = model
 
         # create figure
         self.figure = mpl.figure.Figure()
@@ -70,44 +198,8 @@ class MadFigure:
             'multipole': {'color': '#00ff00'},
             'sbend': {'color': '#0000ff'} }
 
-    def startMatch(self):
-        def onclick(event):
-            elem = self._findelem(event.xdata)
-            if elem is None or 'name' not in elem:
-                return
+        # model.match += self.plot
 
-            if event.button == 1: # left mouse
-                axis = 0
-            elif event.button == 3: # right mouse
-                axis = 1
-            elif even.button == 2:
-                # delete constraint
-                pass
-            else:
-                return
-            envelope = event.ydata*self.yunit['scale']
-            self._AddConstraint(axis, elem, envelope)
-
-        self.cid = self.figure.canvas.mpl_connect(
-                'button_press_event',
-                onclick)
-        self.constraints = []
-
-    def stopMatch(self):
-        self.figure.canvas.mpl_disconnect(self.cid)
-        self.cid = None
-        for axis,elem,envelope,lines in self.constraints:
-            for l in lines:
-                l.remove()
-        self.constraints = []
-        self.figure.canvas.draw()
-
-    def _AddConstraint(self, axis, elem, envelope):
-        # TODO: two constraints on same element represent upper/lower bounds
-        lines = self._DrawConstraint(axis, elem, envelope)
-        #self.figure.canvas.draw()
-        self.constraints.append( (axis, elem, envelope, lines) )
-        self.match()
 
     def _DrawConstraint(self, axis, elem, envelope):
         return self.axes.plot(
@@ -115,52 +207,17 @@ class MadFigure:
                 color=self.color[axis],
                 fillstyle='full', markersize=7)
 
-    def _findelem(self, pos):
-        for elem in self.sequence:
-            if 'at' not in elem:
-                continue
-            at = float(elem['at'])
-            L = float(elem.get('L', 0))
-            if pos > at-L/2 and pos < at+L/2:
-                return elem
-        return None
+    def _UpdateConstraints(self):
+        # UpdateConstraints
+        for lines in self.lines:
+            for l in lines:
+                l.remove()
+        for axis,elem,envelope in self.model.constraints:
+            lines = self._DrawConstraint(axis, elem, envelope)
+            self.lines.append(lines)
+        #self.view.figure.canvas.draw()
 
-    def match(self):
-        # select variables: one for each constraint
-        vary = []
-        allvars = copy.copy(self.variables)
-        for axis,elem,envelope,lines in self.constraints:
-            at = float(elem['at'])
-            allowed = (v for v in allvars if float(v['at']) < at)
-            try:
-                v = max(allowed, key=lambda v: float(v['at']))
-                vary.append(v['vary'])
-                allvars.remove(v)
-            except ValueError:
-                # No variable in range found! Ok.
-                pass
 
-        # select constraints
-        constraints = []
-        for axis,elem,envelope,lines in self.constraints:
-            name = 'betx' if axis == 0 else 'bety'
-            emittance = self.ex if axis == 0 else self.ey
-            if isinstance(envelope, tuple):
-                lower, upper = envelope
-                constraints.append([
-                    ('range', elem['name']),
-                    (name, '>', lower*lower/emittance),
-                    (name, '<', upper*upper/emittance) ])
-            else:
-                constraints.append({
-                    'range': elem['name'],
-                    name: envelope*envelope/emittance})
-
-        r,i=self.model.match(vary=vary, constraints=constraints)
-
-        # recalculate twiss and update plot:
-        self.plot()
-        self.figure.canvas.draw()
 
     def plot(self):
         """
@@ -168,12 +225,9 @@ class MadFigure:
         """
 
         # data post processing
-        tw, summary = self.model.twiss(
-                columns=['name','s', 'l','betx','bety'])
-
-        s = tw.s
-        dx = np.array([math.sqrt(betx*self.ex) for betx in tw.betx])
-        dy = np.array([math.sqrt(bety*self.ey) for bety in tw.bety])
+        s = self.model.s
+        dx = self.model.dx
+        dy = self.model.dy
 
         max_y = max(0, np.max(dx), np.max(dy))
         min_y = min(0, np.min(dx), np.min(dy))
@@ -183,7 +237,7 @@ class MadFigure:
         # plot
         self.axes.cla()
 
-        for elem in self.sequence:
+        for elem in self.model.sequence:
             if not ('type' in elem and 'at' in elem and
                     elem['type'].lower() in self.elements):
                 continue
@@ -206,19 +260,16 @@ class MadFigure:
                         alpha=0.5, color=elem_type['color'])
 
         self.axes.plot(
-                tw.s, dx/self.yunit['scale'],
+                s, dx/self.yunit['scale'],
                 "o-", color=self.color[0], fillstyle='none',
                 label="$\Delta x$")
         self.axes.plot(
-                tw.s, dy/self.yunit['scale'],
+                s, dy/self.yunit['scale'],
                 "o-", color=self.color[1], fillstyle='none',
                 label="$\Delta y$")
 
-        constraints = self.constraints
-        self.constraints = []
-        for axis,elem,envelope,lines in constraints:
-            lines = self._DrawConstraint(axis, elem, envelope)
-            self.constraints.append((axis, elem, envelope, lines))
+        self.lines = []
+        self._UpdateConstraints()
 
         self.axes.grid(True)
         self.axes.legend(loc='upper left')
@@ -230,21 +281,26 @@ class MadFigure:
                 MultipleLocator(0.002/self.yunit['scale']))
         self.axes.set_xlim(s[0], s[-1])
 
+        self.figure.canvas.draw()
 
-class PlotPanel(wx.Panel):
+
+
+class ViewPanel(wx.Panel):
     """
     Container panel for a beamline plot.
     """
 
     ON_MATCH = wx.NewId()
 
-    def __init__(self, parent, mad, **kwargs):
-        super(PlotPanel, self).__init__(parent, **kwargs)
+    def __init__(self, parent, view, **kwargs):
+        super(ViewPanel, self).__init__(parent, **kwargs)
+
+        self.view = view
 
         # couple figure to backend
-        self.mad = mad
-        self.figure = mad.figure
-        self.canvas = Canvas(self, -1, self.figure)
+        self.canvas = Canvas(self, -1, view.figure)
+        view.canvas = self.canvas
+
         self.toolbar = Toolbar(self.canvas)
         self.toolbar.Realize()
 
@@ -255,8 +311,6 @@ class PlotPanel(wx.Panel):
                 img, wx.NullBitmap,
                 'Beam matching',
                 'Match by specifying constraints for envelope x(s), y(s).')
-        wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
-
 
         # put element into sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -264,17 +318,9 @@ class PlotPanel(wx.Panel):
         sizer.Add(self.toolbar, 0 , wx.LEFT | wx.EXPAND)
         self.SetSizer(sizer)
 
-    def OnMatchClick(self, event):
-        """
-        """
-        if event.IsChecked():
-            self.mad.startMatch()
-        else:
-            self.mad.stopMatch()
 
     def OnPaint(self, event):
         self.canvas.draw()
-
 
 
 class Frame(wx.Frame):
@@ -284,7 +330,6 @@ class Frame(wx.Frame):
 
     def __init__(self):
         """Constructor."""
-
         super(Frame, self).__init__(parent=None, title='MadGUI')
 
         # add notebook
@@ -294,11 +339,11 @@ class Frame(wx.Frame):
         sizer.Add(self.notebook, 1, wx.EXPAND)
         self.panel.SetSizer(sizer)
 
-    def AddFigure(self, figure, title):
+    def AddView(self, view, title):
         """Add plot as new page."""
-        panel = PlotPanel(self.notebook, figure)
+        panel = ViewPanel(self.notebook, view)
         self.notebook.AddPage(panel, title)
-        figure.plot()
+        view.plot()
         return panel
 
 
@@ -321,15 +366,14 @@ class App(wx.App):
 
         # add subfolder to model pathes and create model
         cpymad.listModels.modelpaths.append(os.path.join(self.path, 'models'))
-        self.model = cpymad.model('hht3')
-        with open(os.path.join(subm, 'hht3', 'sequence.json')) as f:
-            self.sequence = json.load(f)
-        with open(os.path.join(subm, 'hht3', 'vary.json')) as f:
-            self.variables = json.load(f)
-        self.mad = MadFigure(self.model, self.sequence, self.variables)
 
         self.frame = Frame()
-        self.frame.AddFigure(self.mad, "x, y")
+
+        self.model = MadModel('hht3', path=subm)
+        self.view = MadView(self.model)
+        self.panel = self.frame.AddView(self.view, "x, y")
+        self.ctrl = MadCtrl(self.model, self.panel)
+
         self.frame.Show(True)
 
         return True
