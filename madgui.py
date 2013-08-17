@@ -32,9 +32,20 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 from matplotlib.backends.backend_wx import _load_bitmap
 
 
+# add local lib pathes
+_file = inspect.getfile(inspect.currentframe())
+_path = os.path.realpath(os.path.abspath(os.path.dirname(_file)))
+for lib in ['event']:
+    _subm = os.path.join(_path, 'lib', lib)
+    if _subm not in sys.path:
+        sys.path.insert(0, _subm)
+
 # pymad
 from cern import cpymad
 from cern import madx
+
+# other
+from event import event
 
 
 def loadJSON(filename):
@@ -81,7 +92,7 @@ class MadModel:
         self.dx = np.array([math.sqrt(betx*self.ex) for betx in self.twiss.betx])
         self.dy = np.array([math.sqrt(bety*self.ey) for bety in self.twiss.bety])
 
-
+    @event
     def match(self):
         # select variables: one for each constraint
         vary = []
@@ -114,7 +125,6 @@ class MadModel:
                     name: envelope*envelope/emittance})
 
         r,i = self.model.match(vary=vary, constraints=constraints)
-
         self.update()
 
     def _AddConstraint(self, axis, elem, envelope):
@@ -133,20 +143,18 @@ class MadCtrl:
     """
     """
 
-    def __init__(self, model, viewpanel):
+    def __init__(self, model, panel):
         self.cid = None
-        wx.EVT_TOOL(viewpanel, viewpanel.ON_MATCH, self.OnMatchClick)
         self.model = model
-        self.panel = viewpanel
-        self.view = viewpanel.view
+        self.panel = panel
+        self.view = panel.view
 
-    def OnMatchClick(self, event):
-        """
-        """
-        if event.IsChecked():
-            self.startMatch()
-        else:
-            self.stopMatch()
+        def toggleMatch(panel, event):
+            if event.IsChecked():
+                self.startMatch()
+            else:
+                self.stopMatch()
+        panel.OnMatchClick += toggleMatch
 
     def startMatch(self):
         def onclick(event):
@@ -198,7 +206,7 @@ class MadView:
             'multipole': {'color': '#00ff00'},
             'sbend': {'color': '#0000ff'} }
 
-        # model.match += self.plot
+        model.match += lambda model: self.plot()
 
 
     def _DrawConstraint(self, axis, elem, envelope):
@@ -215,8 +223,7 @@ class MadView:
         for axis,elem,envelope in self.model.constraints:
             lines = self._DrawConstraint(axis, elem, envelope)
             self.lines.append(lines)
-        #self.view.figure.canvas.draw()
-
+        # self.figure.canvas.draw()
 
 
     def plot(self):
@@ -311,6 +318,7 @@ class ViewPanel(wx.Panel):
                 img, wx.NullBitmap,
                 'Beam matching',
                 'Match by specifying constraints for envelope x(s), y(s).')
+        wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
 
         # put element into sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -318,6 +326,9 @@ class ViewPanel(wx.Panel):
         sizer.Add(self.toolbar, 0 , wx.LEFT | wx.EXPAND)
         self.SetSizer(sizer)
 
+    @event
+    def OnMatchClick(self, event):
+        pass
 
     def OnPaint(self, event):
         self.canvas.draw()
