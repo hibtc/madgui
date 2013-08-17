@@ -10,7 +10,6 @@ import math
 import os
 import sys
 import json
-from math import pi
 
 # wxpython
 import wxversion
@@ -28,7 +27,6 @@ from matplotlib.ticker import MultipleLocator
 mpl.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
-
 from matplotlib.backends.backend_wx import _load_bitmap
 
 
@@ -60,17 +58,10 @@ class MadModel:
     def __init__(self, name, path=''):
         self.constraints = []
         self.name = name
-
         self.model = cpymad.model(name)
         self.sequence = loadJSON(os.path.join(path, name, 'sequence.json'))
         self.variables = loadJSON(os.path.join(path, name, 'vary.json'))
-
-        # load the input file
-        import hht3
-        self.angle = hht3.rot_angle
-        self.ex = hht3.beam_ex
-        self.ey = hht3.beam_ey
-
+        self.beam = loadJSON(os.path.join(path, name, 'beam.json'))
         self.update()
 
     def element_by_position(self, pos):
@@ -89,8 +80,8 @@ class MadModel:
                 columns=['name','s', 'l','betx','bety'])
 
         self.s = self.twiss.s
-        self.dx = np.array([math.sqrt(betx*self.ex) for betx in self.twiss.betx])
-        self.dy = np.array([math.sqrt(bety*self.ey) for bety in self.twiss.bety])
+        self.dx = np.array([math.sqrt(betx*self.beam['ex']) for betx in self.twiss.betx])
+        self.dy = np.array([math.sqrt(bety*self.beam['ey']) for bety in self.twiss.bety])
 
     @event
     def match(self):
@@ -112,7 +103,7 @@ class MadModel:
         constraints = []
         for axis,elem,envelope in self.constraints:
             name = 'betx' if axis == 0 else 'bety'
-            emittance = self.ex if axis == 0 else self.ey
+            emittance = self.beam['ex'] if axis == 0 else self.beam['ey']
             if isinstance(envelope, tuple):
                 lower, upper = envelope
                 constraints.append([
@@ -311,7 +302,7 @@ class ViewPanel(wx.Panel):
         self.toolbar = Toolbar(self.canvas)
         self.toolbar.Realize()
 
-        imgpath = os.path.join(os.path.dirname(__file__), 'res', 'cursor.xpm')
+        imgpath = os.path.join(_path, 'res', 'cursor.xpm')
         img = wx.Bitmap(imgpath)
         self.toolbar.AddCheckTool(
                 self.ON_MATCH,
@@ -366,27 +357,16 @@ class App(wx.App):
     def OnInit(self):
         """Create the main window and insert the custom frame."""
 
-        # path = absolute path of this file's directory
-        _file = inspect.getfile(inspect.currentframe())
-        self.path = os.path.realpath(os.path.abspath(os.path.dirname(_file)))
-
-        # add submodule folder for beam+twiss imports
-        subm = os.path.join(self.path, 'models', 'resdata')
-        if subm not in sys.path:
-            sys.path.insert(0, subm)
-
         # add subfolder to model pathes and create model
-        cpymad.listModels.modelpaths.append(os.path.join(self.path, 'models'))
+        cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
 
         self.frame = Frame()
-
-        self.model = MadModel('hht3', path=subm)
+        self.model = MadModel('hht3', path=os.path.join(_path, 'models', 'resdata'))
         self.view = MadView(self.model)
         self.panel = self.frame.AddView(self.view, "x, y")
         self.ctrl = MadCtrl(self.model, self.panel)
 
         self.frame.Show(True)
-
         return True
 
 
