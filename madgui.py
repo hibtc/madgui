@@ -1,4 +1,7 @@
 #! /usr/bin/env python2
+"""
+Lightweight GUI application for a MAD model.
+"""
 
 # language features
 from __future__ import print_function
@@ -40,22 +43,31 @@ for lib in ['event']:
 
 # pymad
 from cern import cpymad
-from cern import madx
 
 # other
 from event import event
 
 
+
 def loadJSON(filename):
+    """Load json file into dictionary."""
     with open(filename) as f:
         return json.load(f)
 
 
 class MadModel:
     """
+    Model class for cern.cpymad.model
+
+    Improvements over cern.cpymad.model:
+
+     - knows sequence
+     - knows about variables => can perform matching
+
     """
 
     def __init__(self, name, path=''):
+        """Load meta data and compute twiss variables."""
         self.constraints = []
         self.name = name
         self.model = cpymad.model(name)
@@ -65,6 +77,7 @@ class MadModel:
         self.update()
 
     def element_by_position(self, pos):
+        """Find optics element by longitudinal position."""
         for elem in self.sequence:
             if 'at' not in elem:
                 continue
@@ -74,17 +87,19 @@ class MadModel:
                 return elem
         return None
 
+    @event
     def update(self):
-        # data post processing
+        """Recalculate TWISS parameters and perform post processing."""
         self.twiss, self.summary = self.model.twiss(
                 columns=['name','s', 'l','betx','bety'])
 
-        self.s = self.twiss.s
-        self.dx = np.array([math.sqrt(betx*self.beam['ex']) for betx in self.twiss.betx])
-        self.dy = np.array([math.sqrt(bety*self.beam['ey']) for bety in self.twiss.bety])
+        # data post processing
+        self.pos = self.twiss.s
+        self.envx = np.array([math.sqrt(betx*self.beam['ex']) for betx in self.twiss.betx])
+        self.envy = np.array([math.sqrt(bety*self.beam['ey']) for bety in self.twiss.bety])
 
-    @event
     def match(self):
+        """Perform matching according to current constraints."""
         # select variables: one for each constraint
         vary = []
         allvars = copy.copy(self.variables)
@@ -118,36 +133,41 @@ class MadModel:
         r,i = self.model.match(vary=vary, constraints=constraints)
         self.update()
 
-    def _AddConstraint(self, axis, elem, envelope):
+    def add_constraint(self, axis, elem, envelope):
+        """Add constraint and perform matching."""
         # TODO: two constraints on same element represent upper/lower bounds
-        #lines = self._DrawConstraint(axis, elem, envelope)##EVENT
+        #lines = self.draw_constraint(axis, elem, envelope)##EVENT
         #self.view.figure.canvas.draw()
         self.constraints.append( (axis, elem, envelope) )
         self.match()
 
-    def _ClearConstraints(self):
+    def clear_constraints(self):
+        """Remove all constraints."""
         self.model.constraints = []
 
 
 
 class MadCtrl:
     """
+    Controller class for a ViewPanel and MadModel
     """
 
     def __init__(self, model, panel):
+        """Initialize observer and Subscribe as observer for user events."""
         self.cid = None
         self.model = model
         self.panel = panel
         self.view = panel.view
 
-        def toggleMatch(panel, event):
+        def toggle_match(panel, event):
             if event.IsChecked():
-                self.startMatch()
+                self.start_match()
             else:
-                self.stopMatch()
-        panel.OnMatchClick += toggleMatch
+                self.stop_match()
+        panel.OnMatchClick += toggle_match
 
-    def startMatch(self):
+    def start_match(self):
+        """Start matching mode."""
         def onclick(event):
             elem = self.model.element_by_position(event.xdata)
             if elem is None or 'name' not in elem:
@@ -163,24 +183,30 @@ class MadCtrl:
             else:
                 return
             envelope = event.ydata*self.view.yunit['scale']
-            self.model._AddConstraint(axis, elem, envelope)
+            self.model.add_constraint(axis, elem, envelope)
 
         self.cid = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
                 onclick)
         self.constraints = []
 
-    def stopMatch(self):
+    def stop_match(self):
+        """Stop matching mode."""
         self.view.figure.canvas.mpl_disconnect(self.cid)
         self.cid = None
-        self.model._ClearConstraints()
+        self.model.clear_constraints()
 
 
 class MadView:
     """
+    Matplotlib figure view for a MadModel.
+
+    This is automatically updated when the model changes.
+
     """
 
     def __init__(self, model):
+        """Create a matplotlib figure and register as observer."""
         self.model = model
 
         # create figure
@@ -191,44 +217,43 @@ class MadView:
         self.color = ('#8b1a0e','#5e9c36')
         self.yunit = {'label': 'mm', 'scale': 1e-3}
 
-        #
+        # display colors for elements
         self.elements = {
             'quadrupole': {'color': '#ff0000'},
             'multipole': {'color': '#00ff00'},
             'sbend': {'color': '#0000ff'} }
 
-        model.match += lambda model: self.plot()
+        # subscribe for updates
+        model.update += lambda model: self.plot()
 
 
-    def _DrawConstraint(self, axis, elem, envelope):
+    def draw_constraint(self, axis, elem, envelope):
+        """Draw one constraint representation in the graph."""
         return self.axes.plot(
                 elem['at'], envelope/self.yunit['scale'], 's',
                 color=self.color[axis],
                 fillstyle='full', markersize=7)
 
-    def _UpdateConstraints(self):
-        # UpdateConstraints
+    def redraw_constraints(self):
+        """Draw all current constraints in the graph."""
         for lines in self.lines:
             for l in lines:
                 l.remove()
         for axis,elem,envelope in self.model.constraints:
-            lines = self._DrawConstraint(axis, elem, envelope)
+            lines = self.draw_constraint(axis, elem, envelope)
             self.lines.append(lines)
         # self.figure.canvas.draw()
 
 
     def plot(self):
-        """
-        Recalculate TWISS paramaters and plot.
-        """
-
+        """Plot figure and redraw canvas."""
         # data post processing
-        s = self.model.s
-        dx = self.model.dx
-        dy = self.model.dy
+        pos = self.model.pos
+        envx = self.model.envx
+        envy = self.model.envy
 
-        max_y = max(0, np.max(dx), np.max(dy))
-        min_y = min(0, np.min(dx), np.min(dy))
+        max_y = max(0, np.max(envx), np.max(envy))
+        min_y = min(0, np.min(envx), np.min(envy))
         patch_y = 0.75 * min_y
         patch_h = 0.75 * (max_y - min_y)
 
@@ -258,16 +283,16 @@ class MadView:
                         alpha=0.5, color=elem_type['color'])
 
         self.axes.plot(
-                s, dx/self.yunit['scale'],
+                pos, envx/self.yunit['scale'],
                 "o-", color=self.color[0], fillstyle='none',
                 label="$\Delta x$")
         self.axes.plot(
-                s, dy/self.yunit['scale'],
+                pos, envy/self.yunit['scale'],
                 "o-", color=self.color[1], fillstyle='none',
                 label="$\Delta y$")
 
         self.lines = []
-        self._UpdateConstraints()
+        self.redraw_constraints()
 
         self.axes.grid(True)
         self.axes.legend(loc='upper left')
@@ -277,7 +302,7 @@ class MadView:
                 MultipleLocator(2))
         self.axes.get_yaxis().set_minor_locator(
                 MultipleLocator(0.002/self.yunit['scale']))
-        self.axes.set_xlim(s[0], s[-1])
+        self.axes.set_xlim(pos[0], pos[-1])
 
         self.figure.canvas.draw()
 
@@ -285,12 +310,13 @@ class MadView:
 
 class ViewPanel(wx.Panel):
     """
-    Container panel for a beamline plot.
+    Display panel view for a MadView figure.
     """
 
     ON_MATCH = wx.NewId()
 
     def __init__(self, parent, view, **kwargs):
+        """Initialize panel and connect the view."""
         super(ViewPanel, self).__init__(parent, **kwargs)
 
         self.view = view
@@ -319,9 +345,11 @@ class ViewPanel(wx.Panel):
 
     @event
     def OnMatchClick(self, event):
+        """Invoked when user clicks Match-Button"""
         pass
 
     def OnPaint(self, event):
+        """Handle redraw by painting canvas."""
         self.canvas.draw()
 
 
@@ -331,10 +359,8 @@ class Frame(wx.Frame):
     """
 
     def __init__(self):
-        """Constructor."""
+        """Create notebook frame."""
         super(Frame, self).__init__(parent=None, title='MadGUI')
-
-        # add notebook
         self.panel = wx.Panel(self)
         self.notebook = wx.aui.AuiNotebook(self.panel)
         sizer = wx.BoxSizer()
@@ -342,7 +368,7 @@ class Frame(wx.Frame):
         self.panel.SetSizer(sizer)
 
     def AddView(self, view, title):
-        """Add plot as new page."""
+        """Add new notebook tab for the view."""
         panel = ViewPanel(self.notebook, view)
         self.notebook.AddPage(panel, title)
         view.plot()
@@ -359,13 +385,17 @@ class App(wx.App):
 
         # add subfolder to model pathes and create model
         cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
-
-        self.frame = Frame()
         self.model = MadModel('hht3', path=os.path.join(_path, 'models', 'resdata'))
-        self.view = MadView(self.model)
-        self.panel = self.frame.AddView(self.view, "x, y")
-        self.ctrl = MadCtrl(self.model, self.panel)
 
+        # setup view
+        self.frame = Frame()
+        view = MadView(self.model)
+        panel = self.frame.AddView(view, "x, y")
+
+        # create controller
+        self.ctrl = MadCtrl(self.model, panel)
+
+        # show frame and enter main loop
         self.frame.Show(True)
         return True
 
