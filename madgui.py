@@ -133,6 +133,7 @@ class MadModel:
         r,i = self.model.match(vary=vary, constraints=constraints)
         self.update()
 
+    @event
     def add_constraint(self, axis, elem, envelope):
         """Add constraint and perform matching."""
         # TODO: two constraints on same element represent upper/lower bounds
@@ -141,9 +142,15 @@ class MadModel:
         self.constraints.append( (axis, elem, envelope) )
         self.match()
 
+    @event
+    def remove_constraint(self, elem):
+        """Remove the constraint for elem."""
+        self.constraints = [c for c in self.constraints if c[1] != elem]
+
+    @event
     def clear_constraints(self):
         """Remove all constraints."""
-        self.model.constraints = []
+        self.constraints = []
 
 
 
@@ -168,27 +175,33 @@ class MadCtrl:
 
     def start_match(self):
         """Start matching mode."""
-        def onclick(event):
-            elem = self.model.element_by_position(event.xdata)
-            if elem is None or 'name' not in elem:
-                return
-
-            if event.button == 1: # left mouse
-                axis = 0
-            elif event.button == 3: # right mouse
-                axis = 1
-            elif even.button == 2:
-                # delete constraint
-                pass
-            else:
-                return
-            envelope = event.ydata*self.view.yunit['scale']
-            self.model.add_constraint(axis, elem, envelope)
 
         self.cid = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
-                onclick)
+                self.on_match)
         self.constraints = []
+
+    def on_match(self, event):
+        elem = self.model.element_by_position(event.xdata)
+        if elem is None or 'name' not in elem:
+            return
+
+        if event.button == 1: # left mouse
+            axis = 0
+        elif event.button == 3: # right mouse
+            axis = 1
+        elif event.button == 2:
+            self.model.remove_constraint(elem)
+            return
+        else:
+            return
+
+        orig_cursor = self.panel.GetCursor()
+        wait_cursor = wx.StockCursor(wx.CURSOR_WAIT)
+        self.panel.SetCursor(wait_cursor)
+        envelope = event.ydata*self.view.yunit['scale']
+        self.model.add_constraint(axis, elem, envelope)
+        self.panel.SetCursor(orig_cursor)
 
     def stop_match(self):
         """Stop matching mode."""
@@ -225,6 +238,7 @@ class MadView:
 
         # subscribe for updates
         model.update += lambda model: self.plot()
+        model.remove_constraint += lambda model, elem: self.redraw_constraints()
 
 
     def draw_constraint(self, axis, elem, envelope):
@@ -239,10 +253,11 @@ class MadView:
         for lines in self.lines:
             for l in lines:
                 l.remove()
+        self.lines = []
         for axis,elem,envelope in self.model.constraints:
             lines = self.draw_constraint(axis, elem, envelope)
             self.lines.append(lines)
-        # self.figure.canvas.draw()
+        self.figure.canvas.draw()
 
 
     def plot(self):
