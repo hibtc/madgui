@@ -74,7 +74,7 @@ class MadModel:
         self.sequence = loadJSON(os.path.join(path, name, 'sequence.json'))
         self.variables = loadJSON(os.path.join(path, name, 'vary.json'))
         self.beam = loadJSON(os.path.join(path, name, 'beam.json'))
-        self.update()
+        self.twiss()
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -87,16 +87,20 @@ class MadModel:
                 return elem
         return None
 
+    def twiss(self):
+        """Recalculate TWISS parameters."""
+        self.tw, self.summary = self.model.twiss(
+                columns=['name','s', 'l','betx','bety'])
+        self.update()
+
     @event
     def update(self):
-        """Recalculate TWISS parameters and perform post processing."""
-        self.twiss, self.summary = self.model.twiss(
-                columns=['name','s', 'l','betx','bety'])
+        """Perform post processing."""
 
         # data post processing
-        self.pos = self.twiss.s
-        self.envx = np.array([math.sqrt(betx*self.beam['ex']) for betx in self.twiss.betx])
-        self.envy = np.array([math.sqrt(bety*self.beam['ey']) for bety in self.twiss.bety])
+        self.pos = self.tw.s
+        self.envx = np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx])
+        self.envy = np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety])
 
     def match(self):
         """Perform matching according to current constraints."""
@@ -130,7 +134,7 @@ class MadModel:
                     'range': elem['name'],
                     name: envelope*envelope/emittance})
 
-        r,i = self.model.match(vary=vary, constraints=constraints)
+        self.tw, self.summary = self.model.match(vary=vary, constraints=constraints)
         self.update()
 
     @event
