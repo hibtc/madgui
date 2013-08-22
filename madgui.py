@@ -66,11 +66,11 @@ class MadModel:
 
     """
 
-    def __init__(self, name, path=''):
+    def __init__(self, name, path='', **kwargs):
         """Load meta data and compute twiss variables."""
         self.constraints = []
         self.name = name
-        self.model = cpymad.model(name)
+        self.model = cpymad.model(name, **kwargs)
         self.sequence = loadJSON(os.path.join(path, name, 'sequence.json'))
         self.variables = loadJSON(os.path.join(path, name, 'vary.json'))
         self.beam = loadJSON(os.path.join(path, name, 'beam.json'))
@@ -404,7 +404,9 @@ class App(wx.App):
 
         # add subfolder to model pathes and create model
         cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
-        self.model = MadModel('hht3', path=os.path.join(_path, 'models', 'resdata'))
+        self.model = MadModel('hht3',
+                path=os.path.join(_path, 'models', 'resdata'),
+                histfile="hist.madx")
 
         # setup view
         self.frame = Frame()
