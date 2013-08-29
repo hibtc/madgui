@@ -8,38 +8,40 @@ mingw-get install mingw32-pexports
 
 
 rem Build madx
-cd madx-5.01.02
-cmake -DBUILD_SHARED_LIBS:BOOL=ON -DMADX_STATIC:BOOL=ON -DCMAKE_INSTALL_PREFIX=..\madx-bin ../madX.r4251
-cd ..\madx-build
+cd madX.r4267
+
+rem Build dynamic version of the library
+mkdir build-shared
+cd build-shared
+cmake -G "MinGW Makefiles" -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_INSTALL_PREFIX=..\..\..\lib\madx-shared ..
 make install
 cd ..
 
-
+rem Build static version of the library
+mkdir build-static
+cd build-static
+cmake -G "MinGW Makefiles" -DMADX_STATIC:BOOL=ON -DCMAKE_INSTALL_PREFIX=..\..\..\lib\madx-static ..
+make install
 rem Convert static .a library files to dynamic .dll
-cd madx-bin
-move lib lib-orig
-mkdir lib
+cd ..\..\..\lib\madx-static\lib
+ar -x libptc.a
+gcc -shared *.obj -o libptc.dll -lgfortran
+pexports libptc.dll >libptc.def
+dlltool --dllname libptc.dll --def libptc.def --output-lib libptc.dll.a
+del *.obj libptc.def
 
-ar -x lib-orig\libptc.a
-gcc -shared *.obj -o lib\ptc.dll -lgfortran
-pexports lib\ptc.dll >lib\ptc.def
-dlltool --dllname ptc.dll --def lib\ptc.def --output-lib lib\libptc.a
-del *.obj
+ar -x libmadx.a
+gcc -shared *.obj -o libmadx.dll -L. -lptc.dll -lstdc++ -lgfortran
+pexports libmadx.dll >libmadx.def
+dlltool --dllname libmadx.dll --def libmadx.def --output-lib libmadx.dll.a
+del *.obj libmadx.def
 
-ar -x lib-orig\libmadx.a
-gcc -shared *.obj -o lib\madx.dll -Llib -lptc -lstdc++ -lgfortran
-pexports lib\madx.dll >lib\madx.def
-dlltool --dllname lib\madx.dll --def lib\madx.def --output-lib lib\libmadx.a
-del *.obj
-
-copy lib\ptc.dll ..\..
-copy lib\madx.dll ..\..
-cd ..
-
-
+copy libptc.dll ..\..\..
+copy libmadx.dll ..\..\..
+cd ..\..
 
 
 rem Build pymad
 cd pymad\src
-python setup.py build --madxdir=..\..\madx-bin
-cd ..
+python setup.py build --madxdir=..\..\madx-shared
+cd ..\..\..\setup
