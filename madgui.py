@@ -345,16 +345,16 @@ class ViewPanel(wx.Panel):
         view.canvas = self.canvas
 
         self.toolbar = Toolbar(self.canvas)
-        self.toolbar.Realize()
 
         imgpath = os.path.join(_path, 'res', 'cursor.xpm')
-        img = wx.Bitmap(imgpath)
+        img = wx.Bitmap(imgpath, wx.BITMAP_TYPE_XPM)
         self.toolbar.AddCheckTool(
                 self.ON_MATCH,
-                img, wx.NullBitmap,
-                'Beam matching',
-                'Match by specifying constraints for envelope x(s), y(s).')
+                bitmap=img,
+                shortHelp='Beam matching',
+                longHelp='Match by specifying constraints for envelope x(s), y(s).')
         wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
+        self.toolbar.Realize()
 
         # put element into sizer
         sizer = wx.BoxSizer(wx.VERTICAL)
