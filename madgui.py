@@ -379,7 +379,7 @@ class Frame(wx.Frame):
 
     def __init__(self):
         """Create notebook frame."""
-        super(Frame, self).__init__(parent=None, title='MadGUI')
+        super(Frame, self).__init__(parent=None, title='MadGUI', size=wx.Size(800,600))
         self.panel = wx.Panel(self)
         self.notebook = wx.aui.AuiNotebook(self.panel)
         sizer = wx.BoxSizer()
