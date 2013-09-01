@@ -96,7 +96,6 @@ class MadModel:
     @event
     def update(self):
         """Perform post processing."""
-
         # data post processing
         self.pos = self.tw.s
         self.envx = np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx])
@@ -179,7 +178,6 @@ class MadCtrl:
 
     def start_match(self):
         """Start matching mode."""
-
         self.cid = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
                 self.on_match)
@@ -243,6 +241,8 @@ class MadView:
         # subscribe for updates
         model.update += lambda model: self.plot()
         model.remove_constraint += lambda model, elem: self.redraw_constraints()
+        model.clear_constraints += lambda model: self.redraw_constraints()
+        model.add_constraint += lambda model, axis, elem, envelope: self.redraw_constraints()
 
 
     def draw_constraint(self, axis, elem, envelope):
