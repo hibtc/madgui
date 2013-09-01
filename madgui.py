@@ -137,18 +137,30 @@ class MadModel:
         self.update()
 
     @event
+    def find_constraint(self, elem, axis=None):
+        matched = [c for c in self.constraints if c[1] == elem]
+        if axis is not None:
+            matched = [c for c in matched if c[0] == axis]
+        return matched
+
+    @event
     def add_constraint(self, axis, elem, envelope):
         """Add constraint and perform matching."""
         # TODO: two constraints on same element represent upper/lower bounds
         #lines = self.draw_constraint(axis, elem, envelope)##EVENT
         #self.view.figure.canvas.draw()
+
+        existing = self.find_constraint(elem, axis)
+        if existing:
+            self.remove_constraint(elem, axis)
+
         self.constraints.append( (axis, elem, envelope) )
         self.match()
 
     @event
-    def remove_constraint(self, elem):
+    def remove_constraint(self, elem, axis=None):
         """Remove the constraint for elem."""
-        self.constraints = [c for c in self.constraints if c[1] != elem]
+        self.constraints = [c for c in self.constraints if c[1] != elem or (axis is not None and c[0] != axis)]
 
     @event
     def clear_constraints(self):
@@ -240,7 +252,7 @@ class MadView:
 
         # subscribe for updates
         model.update += lambda model: self.plot()
-        model.remove_constraint += lambda model, elem: self.redraw_constraints()
+        model.remove_constraint += lambda model, elem, axis: self.redraw_constraints()
         model.clear_constraints += lambda model: self.redraw_constraints()
         model.add_constraint += lambda model, axis, elem, envelope: self.redraw_constraints()
 
