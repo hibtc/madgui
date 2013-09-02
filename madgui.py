@@ -213,7 +213,7 @@ class MadCtrl:
         orig_cursor = self.panel.GetCursor()
         wait_cursor = wx.StockCursor(wx.CURSOR_WAIT)
         self.panel.SetCursor(wait_cursor)
-        envelope = event.ydata*self.view.yunit['scale']
+        envelope = event.ydata*self.view.unit['y']['scale']
         self.model.add_constraint(axis, elem, envelope)
         self.panel.SetCursor(orig_cursor)
 
@@ -242,7 +242,10 @@ class MadView:
 
         # plot style
         self.color = ('#8b1a0e','#5e9c36')
-        self.yunit = {'label': 'mm', 'scale': 1e-3}
+        self.unit = {
+            'x': {'label': 'm', 'scale': 1},
+            'y': {'label': 'mm', 'scale': 1e-3}
+        }
 
         # display colors for elements
         self.elements = {
@@ -260,7 +263,7 @@ class MadView:
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
         return self.axes.plot(
-                elem['at'], envelope/self.yunit['scale'], 's',
+                elem['at'], envelope/self.unit['y']['scale'], 's',
                 color=self.color[axis],
                 fillstyle='full', markersize=7)
 
@@ -302,23 +305,23 @@ class MadView:
                 patch_x = float(elem['at']) - patch_w/2
                 self.axes.add_patch(
                         mpl.patches.Rectangle(
-                            (patch_x, patch_y/self.yunit['scale']),
-                            patch_w, patch_h/self.yunit['scale'],
+                            (patch_x, patch_y/self.unit['y']['scale']),
+                            patch_w, patch_h/self.unit['y']['scale'],
                             alpha=0.25, color=elem_type['color']))
             else:
                 patch_x = float(elem['at'])
                 self.axes.vlines(
                         patch_x,
-                        patch_y/self.yunit['scale'],
-                        (patch_y+patch_h)/self.yunit['scale'],
+                        patch_y/self.unit['y']['scale'],
+                        (patch_y+patch_h)/self.unit['y']['scale'],
                         alpha=0.5, color=elem_type['color'])
 
         self.axes.plot(
-                pos, envx/self.yunit['scale'],
+                pos, envx/self.unit['y']['scale'],
                 "o-", color=self.color[0], fillstyle='none',
                 label="$\Delta x$")
         self.axes.plot(
-                pos, envy/self.yunit['scale'],
+                pos, envy/self.unit['y']['scale'],
                 "o-", color=self.color[1], fillstyle='none',
                 label="$\Delta y$")
 
@@ -328,11 +331,11 @@ class MadView:
         self.axes.grid(True)
         self.axes.legend(loc='upper left')
         self.axes.set_xlabel("position $s$ [m]")
-        self.axes.set_ylabel("beam envelope [" + self.yunit['label'] + "]")
+        self.axes.set_ylabel("beam envelope [" + self.unit['y']['label'] + "]")
         self.axes.get_xaxis().set_minor_locator(
                 MultipleLocator(2))
         self.axes.get_yaxis().set_minor_locator(
-                MultipleLocator(0.002/self.yunit['scale']))
+                MultipleLocator(0.002/self.unit['y']['scale']))
         self.axes.set_xlim(pos[0], pos[-1])
 
         self.figure.canvas.draw()
