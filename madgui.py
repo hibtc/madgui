@@ -111,8 +111,9 @@ class MadModel:
         """Perform post processing."""
         # data post processing
         self.pos = self.tw.s
-        self.envx = np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx])
-        self.envy = np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety])
+        self.env = (
+            np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx]),
+            np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety]) )
 
     def match(self):
         """Perform matching according to current constraints."""
@@ -296,8 +297,7 @@ class MadView:
         """Plot figure and redraw canvas."""
         # data post processing
         pos = self.model.pos
-        envx = self.model.envx
-        envy = self.model.envy
+        envx, envy = self.model.env
 
         max_y = max(0, np.max(envx), np.max(envy))
         min_y = min(0, np.min(envx), np.min(envy))
