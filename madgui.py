@@ -268,7 +268,7 @@ class MadView:
 
         # subscribe for updates
         model.update += lambda model: self.plot()
-        model.remove_constraint += lambda model, elem, axis: self.redraw_constraints()
+        model.remove_constraint += lambda model, elem, axis=None: self.redraw_constraints()
         model.clear_constraints += lambda model: self.redraw_constraints()
         model.add_constraint += lambda model, axis, elem, envelope: self.redraw_constraints()
 
