@@ -87,6 +87,19 @@ class MadModel:
                 return elem
         return None
 
+    def element_by_position_center(self, pos):
+        """Find next element by longitudinal center position."""
+        found_at = None
+        found_elem = None
+        for elem in self.sequence:
+            if 'at' not in elem:
+                continue
+            at = float(elem['at'])
+            if found_elem is None or abs(pos - at) < abs(pos - found_at):
+                found_at = at
+                found_elem = elem
+        return found_elem
+
     def twiss(self):
         """Recalculate TWISS parameters."""
         self.tw, self.summary = self.model.twiss(
@@ -196,7 +209,7 @@ class MadCtrl:
         self.constraints = []
 
     def on_match(self, event):
-        elem = self.model.element_by_position(event.xdata)
+        elem = self.model.element_by_position_center(event.xdata)
         if elem is None or 'name' not in elem:
             return
 
