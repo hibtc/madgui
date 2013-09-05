@@ -13,6 +13,7 @@ import math
 import os
 import sys
 import json
+import re
 
 # wxpython
 import wxversion
@@ -47,6 +48,12 @@ from cern import cpymad
 # other
 from event import event
 
+
+def rchop(thestring, ending):
+    """Remove substring at the end of a string."""
+    if thestring.endswith(ending):
+        return thestring[:-len(ending)]
+    return thestring
 
 
 def loadJSON(filename):
@@ -105,6 +112,26 @@ class MadModel:
         self.tw, self.summary = self.model.twiss(
                 columns=['name','s', 'l','betx','bety'])
         self.update()
+
+    def element_index(self, elem):
+        """Get element index by it name."""
+        pattern = re.compile(':\d+$')
+        name = elem.get('name').lower()
+        for i in range(len(self.tw.name)):
+            print(self.tw.name[i])
+            if pattern.sub("", self.tw.name[i]).lower() == name:
+                return i
+        return None
+
+    def get_envelope(self, elem, axis=None):
+        """Return beam envelope at center of element."""
+        i = self.element_index(elem)
+        if i is None:
+            return None
+        elif axis is None:
+            return (self.env[0][i], self.env[1][i])
+        else:
+            return self.env[axis][i]
 
     @event
     def update(self):
@@ -169,7 +196,6 @@ class MadModel:
             self.remove_constraint(elem, axis)
 
         self.constraints.append( (axis, elem, envelope) )
-        self.match()
 
     @event
     def remove_constraint(self, elem, axis=None):
@@ -227,8 +253,17 @@ class MadCtrl:
         orig_cursor = self.panel.GetCursor()
         wait_cursor = wx.StockCursor(wx.CURSOR_WAIT)
         self.panel.SetCursor(wait_cursor)
+
+        # add the clicked constraint
         envelope = event.ydata*self.view.unit['y']['scale']
         self.model.add_constraint(axis, elem, envelope)
+
+        # add another constraint to hold the orthogonal axis constant
+        orth_axis = 1-axis
+        orth_env = self.model.get_envelope(elem, orth_axis)
+        self.model.add_constraint(orth_axis, elem, orth_env)
+
+        self.model.match()
         self.panel.SetCursor(orig_cursor)
 
     def stop_match(self):
