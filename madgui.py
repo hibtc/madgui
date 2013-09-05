@@ -114,10 +114,10 @@ class MadModel:
     def twiss(self):
         """Recalculate TWISS parameters."""
         self.tw, self.summary = self.model.twiss(
-                columns=['name','s', 'l','betx','bety'])
+                columns=['name','s', 'l','betx','bety', 'angle', 'k1l'])
         self.update()
 
-    def element_index(self, elem):
+    def get_element_index(self, elem):
         """Get element index by it name."""
         pattern = re.compile(':\d+$')
         name = elem.get('name').lower()
@@ -128,7 +128,7 @@ class MadModel:
 
     def get_envelope(self, elem, axis=None):
         """Return beam envelope at element."""
-        i = self.element_index(elem)
+        i = self.get_element_index(elem)
         if i is None:
             return None
         elif axis is None:
@@ -138,7 +138,7 @@ class MadModel:
 
     def get_envelope_center(self, elem, axis=None):
         """Return beam envelope at center of element."""
-        i = self.element_index(elem)
+        i = self.get_element_index(elem)
         if i is None:
             return None
         prev = i - 1 if i != 0 else i
@@ -312,10 +312,13 @@ class MadView:
         }
 
         # display colors for elements
-        self.elements = {
-            'quadrupole': {'color': '#ff0000'},
-            'multipole': {'color': '#00ff00'},
-            'sbend': {'color': '#0000ff'} }
+        self.element_types = {
+            'f-quadrupole': {'color': '#ff0000'},
+            'd-quadrupole': {'color': '#0000ff'},
+            'f-sbend':      {'color': '#aa0000'},
+            'd-sbend':      {'color': '#0000aa'},
+            'multipole':    {'color': '#00ff00'}
+        }
 
         # subscribe for updates
         model.update += lambda model: self.plot()
@@ -342,6 +345,24 @@ class MadView:
             self.lines.append(lines)
         self.figure.canvas.draw()
 
+    def get_element_type(self, elem):
+        """Return the element type name used for properties like coloring."""
+        if 'type' not in elem or 'at' not in elem:
+            return None
+        type_name = elem['type'].lower()
+        focussing = None
+        if type_name == 'quadrupole':
+            i = self.model.get_element_index(elem)
+            focussing = self.model.tw.k1l[i] > 0
+        elif type_name == 'sbend':
+            i = self.model.get_element_index(elem)
+            focussing = self.model.tw.angle[i] > 0
+        if focussing is not None:
+            if focussing:
+                type_name = 'f-' + type_name
+            else:
+                type_name = 'd-' + type_name
+        return self.element_types.get(type_name)
 
     def plot(self):
         """Plot figure and redraw canvas."""
@@ -358,10 +379,9 @@ class MadView:
         self.axes.cla()
 
         for elem in self.model.sequence:
-            if not ('type' in elem and 'at' in elem and
-                    elem['type'].lower() in self.elements):
+            elem_type = self.get_element_type(elem)
+            if elem_type is None:
                 continue
-            elem_type = self.elements[elem['type'].lower()]
 
             if 'L' in elem and float(elem['L']) != 0:
                 patch_w = float(elem['L'])
@@ -370,7 +390,7 @@ class MadView:
                         mpl.patches.Rectangle(
                             (patch_x, patch_y/self.unit['y']['scale']),
                             patch_w, patch_h/self.unit['y']['scale'],
-                            alpha=0.25, color=elem_type['color']))
+                            alpha=0.5, color=elem_type['color']))
             else:
                 patch_x = float(elem['at'])
                 self.axes.vlines(
