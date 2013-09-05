@@ -3,17 +3,7 @@
 Lightweight GUI application for a MAD model.
 """
 
-# language features
-from __future__ import print_function
-
-# standard library
-import copy
-import inspect
-import math
-import os
-import sys
-import json
-import re
+from __future__ import absolute_import
 
 # wxpython
 import wxversion
@@ -22,10 +12,7 @@ import wx
 import wx.aui
 
 # scipy
-import numpy as np
 import matplotlib as mpl
-from matplotlib.figure import Figure
-from matplotlib.ticker import MultipleLocator
 
 # use wxAgg as backend:
 mpl.use('WXAgg')
@@ -33,6 +20,10 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 from matplotlib.backends.backend_wx import _load_bitmap
 
+# standard library
+import inspect
+import os
+import sys
 
 # add local lib pathes
 _file = inspect.getfile(inspect.currentframe())
@@ -45,385 +36,18 @@ for lib in ['event']:
 # pymad
 from cern import cpymad
 
+# app components
+from model import MadModel
+from view import MadView
+from controller import MadCtrl
+
 # other
 from event import event
 
 
-def rchop(thestring, ending):
-    """Remove substring at the end of a string."""
-    if thestring.endswith(ending):
-        return thestring[:-len(ending)]
-    return thestring
-
-
-def loadJSON(filename):
-    """Load json file into dictionary."""
-    with open(filename) as f:
-        return json.load(f)
-
-def axis_name(axis_num):
-    """Return readable name corresponding to axis number."""
-    return "xyz"[axis_num]
-
-
-class MadModel:
-    """
-    Model class for cern.cpymad.model
-
-    Improvements over cern.cpymad.model:
-
-     - knows sequence
-     - knows about variables => can perform matching
-
-    """
-
-    def __init__(self, name, path='', **kwargs):
-        """Load meta data and compute twiss variables."""
-        self.constraints = []
-        self.name = name
-        self.model = cpymad.model(name, **kwargs)
-        self.sequence = loadJSON(os.path.join(path, name, 'sequence.json'))
-        self.variables = loadJSON(os.path.join(path, name, 'vary.json'))
-        self.beam = loadJSON(os.path.join(path, name, 'beam.json'))
-        self.twiss()
-
-    def element_by_position(self, pos):
-        """Find optics element by longitudinal position."""
-        for elem in self.sequence:
-            if 'at' not in elem:
-                continue
-            at = float(elem['at'])
-            L = float(elem.get('L', 0))
-            if pos >= at-L/2 and pos <= at+L/2:
-                return elem
-        return None
-
-    def element_by_position_center(self, pos):
-        """Find next element by longitudinal center position."""
-        found_at = None
-        found_elem = None
-        for elem in self.sequence:
-            if 'at' not in elem:
-                continue
-            at = float(elem['at'])
-            if found_elem is None or abs(pos - at) < abs(pos - found_at):
-                found_at = at
-                found_elem = elem
-        return found_elem
-
-    def twiss(self):
-        """Recalculate TWISS parameters."""
-        self.tw, self.summary = self.model.twiss(
-                columns=['name','s', 'l','betx','bety', 'angle', 'k1l'])
-        self.update()
-
-    def get_element_index(self, elem):
-        """Get element index by it name."""
-        pattern = re.compile(':\d+$')
-        name = elem.get('name').lower()
-        for i in range(len(self.tw.name)):
-            if pattern.sub("", self.tw.name[i]).lower() == name:
-                return i
-        return None
-
-    def get_envelope(self, elem, axis=None):
-        """Return beam envelope at element."""
-        i = self.get_element_index(elem)
-        if i is None:
-            return None
-        elif axis is None:
-            return (self.env[0][i], self.env[1][i])
-        else:
-            return self.env[axis][i]
-
-    def get_envelope_center(self, elem, axis=None):
-        """Return beam envelope at center of element."""
-        i = self.get_element_index(elem)
-        if i is None:
-            return None
-        prev = i - 1 if i != 0 else i
-        if axis is None:
-            return ((self.env[0][i] + self.env[0][prev]) / 2,
-                    (self.env[1][i] + self.env[1][prev]) / 2)
-        else:
-            return (self.env[axis][i] + self.env[axis][prev]) / 2
-
-    @event
-    def update(self):
-        """Perform post processing."""
-        # data post processing
-        self.pos = self.tw.s
-        self.env = (
-            np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx]),
-            np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety]) )
-
-    def match(self):
-        """Perform matching according to current constraints."""
-        # select variables: one for each constraint
-        vary = []
-        allvars = copy.copy(self.variables)
-        for axis,elem,envelope in self.constraints:
-            at = float(elem['at'])
-            allowed = (v for v in allvars if float(v['at']) < at)
-            try:
-                v = max(allowed, key=lambda v: float(v['at']))
-                vary.append(v['vary'])
-                allvars.remove(v)
-            except ValueError:
-                # No variable in range found! Ok.
-                pass
-
-        # select constraints
-        constraints = []
-        for axis,elem,envelope in self.constraints:
-            name = 'betx' if axis == 0 else 'bety'
-            emittance = self.beam['ex'] if axis == 0 else self.beam['ey']
-            if isinstance(envelope, tuple):
-                lower, upper = envelope
-                constraints.append([
-                    ('range', elem['name']),
-                    (name, '>', lower*lower/emittance),
-                    (name, '<', upper*upper/emittance) ])
-            else:
-                constraints.append({
-                    'range': elem['name'],
-                    name: envelope*envelope/emittance})
-
-        self.tw, self.summary = self.model.match(vary=vary, constraints=constraints)
-        self.update()
-
-    @event
-    def find_constraint(self, elem, axis=None):
-        matched = [c for c in self.constraints if c[1] == elem]
-        if axis is not None:
-            matched = [c for c in matched if c[0] == axis]
-        return matched
-
-    @event
-    def add_constraint(self, axis, elem, envelope):
-        """Add constraint and perform matching."""
-        # TODO: two constraints on same element represent upper/lower bounds
-        #lines = self.draw_constraint(axis, elem, envelope)##EVENT
-        #self.view.figure.canvas.draw()
-
-        existing = self.find_constraint(elem, axis)
-        if existing:
-            self.remove_constraint(elem, axis)
-
-        self.constraints.append( (axis, elem, envelope) )
-
-    @event
-    def remove_constraint(self, elem, axis=None):
-        """Remove the constraint for elem."""
-        self.constraints = [c for c in self.constraints if c[1] != elem or (axis is not None and c[0] != axis)]
-
-    @event
-    def clear_constraints(self):
-        """Remove all constraints."""
-        self.constraints = []
-
-
-
-class MadCtrl:
-    """
-    Controller class for a ViewPanel and MadModel
-    """
-
-    def __init__(self, model, panel):
-        """Initialize observer and Subscribe as observer for user events."""
-        self.cid = None
-        self.model = model
-        self.panel = panel
-        self.view = panel.view
-
-        def toggle_match(panel, event):
-            if event.IsChecked():
-                self.start_match()
-            else:
-                self.stop_match()
-        panel.OnMatchClick += toggle_match
-
-    def start_match(self):
-        """Start matching mode."""
-        self.cid = self.view.figure.canvas.mpl_connect(
-                'button_press_event',
-                self.on_match)
-        self.constraints = []
-
-    def on_match(self, event):
-        elem = self.model.element_by_position_center(event.xdata)
-        if elem is None or 'name' not in elem:
-            return
-
-        if event.button == 1: # left mouse
-            axis = 0
-        elif event.button == 3: # right mouse
-            axis = 1
-        elif event.button == 2:
-            self.model.remove_constraint(elem)
-            return
-        else:
-            return
-
-        orig_cursor = self.panel.GetCursor()
-        wait_cursor = wx.StockCursor(wx.CURSOR_WAIT)
-        self.panel.SetCursor(wait_cursor)
-
-        # add the clicked constraint
-        envelope = event.ydata*self.view.unit['y']['scale']
-        self.model.add_constraint(axis, elem, envelope)
-
-        # add another constraint to hold the orthogonal axis constant
-        orth_axis = 1-axis
-        orth_env = self.model.get_envelope_center(elem, orth_axis)
-        self.model.add_constraint(orth_axis, elem, orth_env)
-
-        self.model.match()
-        self.panel.SetCursor(orig_cursor)
-
-    def stop_match(self):
-        """Stop matching mode."""
-        self.view.figure.canvas.mpl_disconnect(self.cid)
-        self.cid = None
-        self.model.clear_constraints()
-
-
-class MadView:
-    """
-    Matplotlib figure view for a MadModel.
-
-    This is automatically updated when the model changes.
-
-    """
-
-    def __init__(self, model):
-        """Create a matplotlib figure and register as observer."""
-        self.model = model
-
-        # create figure
-        self.figure = mpl.figure.Figure()
-        self.axes = self.figure.add_subplot(111)
-
-        # plot style
-        self.color = ('#8b1a0e','#5e9c36')
-        self.unit = {
-            'x': {'label': 'm', 'scale': 1},
-            'y': {'label': 'mm', 'scale': 1e-3}
-        }
-
-        # display colors for elements
-        self.element_types = {
-            'f-quadrupole': {'color': '#ff0000'},
-            'd-quadrupole': {'color': '#0000ff'},
-            'f-sbend':      {'color': '#aa0000'},
-            'd-sbend':      {'color': '#0000aa'},
-            'multipole':    {'color': '#00ff00'}
-        }
-
-        # subscribe for updates
-        model.update += lambda model: self.plot()
-        model.remove_constraint += lambda model, elem, axis=None: self.redraw_constraints()
-        model.clear_constraints += lambda model: self.redraw_constraints()
-        model.add_constraint += lambda model, axis, elem, envelope: self.redraw_constraints()
-
-
-    def draw_constraint(self, axis, elem, envelope):
-        """Draw one constraint representation in the graph."""
-        return self.axes.plot(
-                elem['at'], envelope/self.unit['y']['scale'], 's',
-                color=self.color[axis],
-                fillstyle='full', markersize=7)
-
-    def redraw_constraints(self):
-        """Draw all current constraints in the graph."""
-        for lines in self.lines:
-            for l in lines:
-                l.remove()
-        self.lines = []
-        for axis,elem,envelope in self.model.constraints:
-            lines = self.draw_constraint(axis, elem, envelope)
-            self.lines.append(lines)
-        self.figure.canvas.draw()
-
-    def get_element_type(self, elem):
-        """Return the element type name used for properties like coloring."""
-        if 'type' not in elem or 'at' not in elem:
-            return None
-        type_name = elem['type'].lower()
-        focussing = None
-        if type_name == 'quadrupole':
-            i = self.model.get_element_index(elem)
-            focussing = self.model.tw.k1l[i] > 0
-        elif type_name == 'sbend':
-            i = self.model.get_element_index(elem)
-            focussing = self.model.tw.angle[i] > 0
-        if focussing is not None:
-            if focussing:
-                type_name = 'f-' + type_name
-            else:
-                type_name = 'd-' + type_name
-        return self.element_types.get(type_name)
-
-    def plot(self):
-        """Plot figure and redraw canvas."""
-        # data post processing
-        pos = self.model.pos
-        envx, envy = self.model.env
-
-        max_y = max(0, np.max(envx), np.max(envy))
-        min_y = min(0, np.min(envx), np.min(envy))
-        patch_y = 0.75 * min_y
-        patch_h = 0.75 * (max_y - min_y)
-
-        # plot
-        self.axes.cla()
-
-        for elem in self.model.sequence:
-            elem_type = self.get_element_type(elem)
-            if elem_type is None:
-                continue
-
-            if 'L' in elem and float(elem['L']) != 0:
-                patch_w = float(elem['L'])
-                patch_x = float(elem['at']) - patch_w/2
-                self.axes.add_patch(
-                        mpl.patches.Rectangle(
-                            (patch_x, patch_y/self.unit['y']['scale']),
-                            patch_w, patch_h/self.unit['y']['scale'],
-                            alpha=0.5, color=elem_type['color']))
-            else:
-                patch_x = float(elem['at'])
-                self.axes.vlines(
-                        patch_x,
-                        patch_y/self.unit['y']['scale'],
-                        (patch_y+patch_h)/self.unit['y']['scale'],
-                        alpha=0.5, color=elem_type['color'])
-
-        self.axes.plot(
-                pos, envx/self.unit['y']['scale'],
-                "o-", color=self.color[0], fillstyle='none',
-                label="$\Delta x$")
-        self.axes.plot(
-                pos, envy/self.unit['y']['scale'],
-                "o-", color=self.color[1], fillstyle='none',
-                label="$\Delta y$")
-
-        self.lines = []
-        self.redraw_constraints()
-
-        self.axes.grid(True)
-        self.axes.legend(loc='upper left')
-        self.axes.set_xlabel("position $s$ [m]")
-        self.axes.set_ylabel("beam envelope [" + self.unit['y']['label'] + "]")
-        self.axes.get_xaxis().set_minor_locator(
-                MultipleLocator(2))
-        self.axes.get_yaxis().set_minor_locator(
-                MultipleLocator(0.002/self.unit['y']['scale']))
-        self.axes.set_xlim(pos[0], pos[-1])
-
-        self.figure.canvas.draw()
-
-
+#----------------------------------------
+# GUI classes
+#----------------------------------------
 
 class ViewPanel(wx.Panel):
     """
@@ -499,7 +123,6 @@ class App(wx.App):
 
     def OnInit(self):
         """Create the main window and insert the custom frame."""
-
         # add subfolder to model pathes and create model
         cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
         self.model = MadModel('hht3',
@@ -517,7 +140,6 @@ class App(wx.App):
         # show frame and enter main loop
         self.frame.Show(True)
         return True
-
 
 # enter main business logic
 if __name__ == '__main__':
