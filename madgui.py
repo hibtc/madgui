@@ -143,7 +143,7 @@ class App(wx.App):
         """Create the main window and insert the custom frame."""
         # add subfolder to model pathes and create model
         cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
-        self.model = self.load_model('hht3', histfile="hist.madx")
+        self.model = self.load_model('hht3', histfile="log/hist.madx")
 
         # setup view
         self.frame = Frame()
