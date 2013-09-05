@@ -61,6 +61,10 @@ def loadJSON(filename):
     with open(filename) as f:
         return json.load(f)
 
+def axis_name(axis_num):
+    """Return readable name corresponding to axis number."""
+    return "xyz"[axis_num]
+
 
 class MadModel:
     """
@@ -124,7 +128,7 @@ class MadModel:
         return None
 
     def get_envelope(self, elem, axis=None):
-        """Return beam envelope at center of element."""
+        """Return beam envelope at element."""
         i = self.element_index(elem)
         if i is None:
             return None
@@ -132,6 +136,18 @@ class MadModel:
             return (self.env[0][i], self.env[1][i])
         else:
             return self.env[axis][i]
+
+    def get_envelope_center(self, elem, axis=None):
+        """Return beam envelope at center of element."""
+        i = self.element_index(elem)
+        if i is None:
+            return None
+        prev = i - 1 if i != 0 else i
+        if axis is None:
+            return ((self.env[0][i] + self.env[0][prev]) / 2,
+                    (self.env[1][i] + self.env[1][prev]) / 2)
+        else:
+            return (self.env[axis][i] + self.env[axis][prev]) / 2
 
     @event
     def update(self):
@@ -260,7 +276,7 @@ class MadCtrl:
 
         # add another constraint to hold the orthogonal axis constant
         orth_axis = 1-axis
-        orth_env = self.model.get_envelope(elem, orth_axis)
+        orth_env = self.model.get_envelope_center(elem, orth_axis)
         self.model.add_constraint(orth_axis, elem, orth_env)
 
         self.model.match()
