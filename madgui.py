@@ -122,7 +122,6 @@ class MadModel:
         pattern = re.compile(':\d+$')
         name = elem.get('name').lower()
         for i in range(len(self.tw.name)):
-            print(self.tw.name[i])
             if pattern.sub("", self.tw.name[i]).lower() == name:
                 return i
         return None
