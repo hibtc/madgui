@@ -35,8 +35,8 @@ class MadView:
         self.element_types = {
             'f-quadrupole': {'color': '#ff0000'},
             'd-quadrupole': {'color': '#0000ff'},
-            'f-sbend':      {'color': '#aa0000'},
-            'd-sbend':      {'color': '#0000aa'},
+            'f-sbend':      {'color': '#770000'},
+            'd-sbend':      {'color': '#000077'},
             'multipole':    {'color': '#00ff00'}
         }
 
