@@ -25,11 +25,13 @@ class MadView:
         self.axes = self.figure.add_subplot(111)
 
         # plot style
-        self.color = ('#8b1a0e','#5e9c36')
         self.unit = {
             'x': {'label': 'm', 'scale': 1},
-            'y': {'label': 'mm', 'scale': 1e-3}
-        }
+            'y': {'label': 'mm', 'scale': 1e-3}}
+
+        self.curve = (
+            {'factor':  1, 'color': '#8b1a0e'},
+            {'factor': -1, 'color': '#5e9c36'})
 
         # display colors for elements
         self.element_types = {
@@ -50,8 +52,8 @@ class MadView:
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
         return self.axes.plot(
-                elem['at'], envelope/self.unit['y']['scale'], 's',
-                color=self.color[axis],
+                elem['at'], envelope/self.unit['y']['scale']*self.curve[axis]['factor'], 's',
+                color=self.curve[axis]['color'],
                 fillstyle='full', markersize=7)
 
     def redraw_constraints(self):
@@ -90,8 +92,12 @@ class MadView:
         pos = self.model.pos
         envx, envy = self.model.env
 
-        max_y = max(0, np.max(envx), np.max(envy))
-        min_y = min(0, np.min(envx), np.min(envy))
+        if self.curve[1]['factor'] < 0:
+            max_y = np.max(envx)
+            min_y = -np.max(envy)
+        else:
+            max_y = max(0, np.max(envx), np.max(envy))
+            min_y = min(0, np.min(envx), np.min(envy))
         patch_y = 0.75 * min_y
         patch_h = 0.75 * (max_y - min_y)
 
@@ -120,12 +126,12 @@ class MadView:
                         alpha=0.5, color=elem_type['color'])
 
         self.axes.plot(
-                pos, envx/self.unit['y']['scale'],
-                "o-", color=self.color[0], fillstyle='none',
+                pos, envx/self.unit['y']['scale']*self.curve[0]['factor'],
+                "o-", color=self.curve[0]['color'], fillstyle='none',
                 label="$\Delta x$")
         self.axes.plot(
-                pos, envy/self.unit['y']['scale'],
-                "o-", color=self.color[1], fillstyle='none',
+                pos, envy/self.unit['y']['scale']*self.curve[1]['factor'],
+                "o-", color=self.curve[1]['color'], fillstyle='none',
                 label="$\Delta y$")
 
         self.lines = []

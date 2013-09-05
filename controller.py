@@ -36,22 +36,31 @@ class MadCtrl:
         if elem is None or 'name' not in elem:
             return
 
-        if event.button == 1: # left mouse
-            axis = 0
-        elif event.button == 3: # right mouse
-            axis = 1
-        elif event.button == 2:
-            self.model.remove_constraint(elem)
-            return
+        if self.view.curve[1]['factor'] < 0:
+            if event.button == 1:
+                axis = event.ydata < 0
+            elif event.button == 2:
+                self.model.remove_constraint(elem)
+                return
+            else:
+                return
         else:
-            return
+            if event.button == 1: # left mouse
+                axis = 0
+            elif event.button == 3: # right mouse
+                axis = 1
+            elif event.button == 2:
+                self.model.remove_constraint(elem)
+                return
+            else:
+                return
 
         orig_cursor = self.panel.GetCursor()
         wait_cursor = wx.StockCursor(wx.CURSOR_WAIT)
         self.panel.SetCursor(wait_cursor)
 
         # add the clicked constraint
-        envelope = event.ydata*self.view.unit['y']['scale']
+        envelope = event.ydata*self.view.unit['y']['scale']*self.view.curve[axis]['factor']
         self.model.add_constraint(axis, elem, envelope)
 
         # add another constraint to hold the orthogonal axis constant
