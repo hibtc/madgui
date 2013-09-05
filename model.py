@@ -4,9 +4,7 @@ Model component for the MadGUI application.
 
 # standard library
 import copy
-import json
 import math
-import os
 import re
 
 # scipy
@@ -15,14 +13,6 @@ import numpy as np
 # other
 from event import event
 
-# pymad
-from cern import cpymad
-
-
-def _loadJSON(filename):
-    """Load json file into dictionary."""
-    with open(filename) as f:
-        return json.load(f)
 
 class MadModel:
     """
@@ -35,14 +25,14 @@ class MadModel:
 
     """
 
-    def __init__(self, name, path='', **kwargs):
+    def __init__(self, name, model, sequence, variables, beam):
         """Load meta data and compute twiss variables."""
         self.constraints = []
         self.name = name
-        self.model = cpymad.model(name, **kwargs)
-        self.sequence = _loadJSON(os.path.join(path, name, 'sequence.json'))
-        self.variables = _loadJSON(os.path.join(path, name, 'vary.json'))
-        self.beam = _loadJSON(os.path.join(path, name, 'beam.json'))
+        self.model = model
+        self.sequence = sequence
+        self.variables = variables
+        self.beam = beam
         self.twiss()
 
     def element_by_position(self, pos):

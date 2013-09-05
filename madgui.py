@@ -22,6 +22,7 @@ from matplotlib.backends.backend_wx import _load_bitmap
 
 # standard library
 import inspect
+import json
 import os
 import sys
 
@@ -43,6 +44,13 @@ from controller import MadCtrl
 
 # other
 from event import event
+
+
+
+def _loadJSON(filename):
+    """Load json file into dictionary."""
+    with open(filename) as f:
+        return json.load(f)
 
 
 #----------------------------------------
@@ -121,13 +129,21 @@ class App(wx.App):
     Highest level application logic.
     """
 
+    def load_model(self, name, **kwargs):
+        """Instanciate a new MadModel."""
+        path=os.path.join(_path, 'models', 'resdata')
+        return MadModel(
+            name=name,
+            model=cpymad.model(name, **kwargs),
+            sequence=_loadJSON(os.path.join(path, name, 'sequence.json')),
+            variables=_loadJSON(os.path.join(path, name, 'vary.json')),
+            beam=_loadJSON(os.path.join(path, name, 'beam.json')))
+
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # add subfolder to model pathes and create model
         cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
-        self.model = MadModel('hht3',
-                path=os.path.join(_path, 'models', 'resdata'),
-                histfile="hist.madx")
+        self.model = self.load_model('hht3', histfile="hist.madx")
 
         # setup view
         self.frame = Frame()
