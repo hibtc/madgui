@@ -26,7 +26,7 @@ class MadView:
 
         # plot style
         self.unit = {
-            'x': {'label': 'm', 'scale': 1},
+            'x': {'label': 'm',  'scale': 1},
             'y': {'label': 'mm', 'scale': 1e-3}}
 
         self.curve = (
