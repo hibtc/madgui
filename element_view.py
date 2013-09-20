@@ -3,12 +3,14 @@ Popup view component for displaying info for individual line elements.
 """
 import wx
 
-class MadElementPopup(wx.PopupWindow):
+class MadElementPopup(wx.Dialog):
     """
     View for a single element
     """
     def __init__(self, parent):
-        super(MadElementPopup, self).__init__(parent, flags=wx.SIMPLE_BORDER)
+        super(MadElementPopup, self).__init__(
+                parent=parent,
+                style=wx.DEFAULT_DIALOG_STYLE)
         self.panel = wx.Panel(self)
 
         sizer = wx.FlexGridSizer(rows=4, cols=2)
