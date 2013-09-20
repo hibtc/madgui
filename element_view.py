@@ -8,19 +8,22 @@ class MadElementPopup(wx.PopupWindow):
     View for a single element
     """
     def __init__(self, parent):
-        super(MadElementPopup, self).__init__(parent)
+        super(MadElementPopup, self).__init__(parent, flags=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self)
+
         sizer = wx.FlexGridSizer(rows=4, cols=2)
         sizer.SetFlexibleDirection(wx.HORIZONTAL)
         sizer.AddGrowableCol(1, 1)
         sizer.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
-        self.SetSizer(sizer)
-        sizer.Fit(self)
+        self.panel.SetSizer(sizer)
+
+        self.Centre()
         self.Layout()
 
     @property
     def rows(self):
         """Access the displayed rows."""
-        sizer = self.GetSizer()
+        sizer = self.panel.GetSizer()
         for row in range(sizer.Rows):
             if sizer.GetItem(2*row):
                 static = sizer.GetItem(2*row).Window
@@ -30,12 +33,11 @@ class MadElementPopup(wx.PopupWindow):
     @rows.setter
     def rows(self, rows):
         """Access the displayed rows."""
-        sizer = self.GetSizer()
+        sizer = self.panel.GetSizer()
         known = {k:i for i,(k,v) in zip(range(sizer.Rows), self.rows)}
         added = {}
         # Add/update fields
         for key, val in rows:
-            print("Add:", key, val)
             if key in known:
                 sizer.GetItem(2*row+1).Window.Value = val 
             else:

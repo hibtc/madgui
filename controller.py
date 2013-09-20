@@ -56,12 +56,19 @@ class MadCtrl:
             self.cid_match = None
         self.model.clear_constraints()
 
+    @property
+    def frame(self):
+        wnd = self.panel
+        while wnd.GetParent():
+            wnd = wnd.GetParent()
+        return wnd
+
     def on_select(self, event):
         """Display a popup window with info about the selected element."""
         elem = self.model.element_by_position_center(event.xdata)
         if elem is None or 'name' not in elem:
             return
-        popup = MadElementPopup(self.panel.GetGrandParent())
+        popup = MadElementPopup(self.frame)
         element_view = MadElementView(popup, self.model, elem['name'])
         popup.Show()
 
