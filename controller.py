@@ -12,7 +12,8 @@ class MadCtrl:
 
     def __init__(self, model, panel):
         """Initialize observer and Subscribe as observer for user events."""
-        self.cid = None
+        self.cid_match = None
+        self.cid_select = None
         self.model = model
         self.panel = panel
         self.view = panel.view
@@ -21,15 +22,40 @@ class MadCtrl:
             if event.IsChecked():
                 self.start_match()
             else:
-                self.stop_match()
+                self.start_select()
         panel.OnMatchClick += toggle_match
+        self.start_select()
+
+    def start_select(self):
+        """Start select mode."""
+        self.stop_match()
+        self.cid_select = self.view.figure.canvas.mpl_connect(
+                'button_press_event',
+                self.on_select)
+
+    def stop_select(self):
+        """Stop select mode."""
+        if self.cid_select is not None:
+            self.view.figure.canvas.mpl_disconnect(self.cid_select)
+            self.cid_select = None
 
     def start_match(self):
         """Start matching mode."""
-        self.cid = self.view.figure.canvas.mpl_connect(
+        self.stop_select()
+        self.cid_match = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
                 self.on_match)
         self.constraints = []
+
+    def stop_match(self):
+        """Stop matching mode."""
+        if self.cid_match is not None:
+            self.view.figure.canvas.mpl_disconnect(self.cid_match)
+            self.cid_match = None
+        self.model.clear_constraints()
+
+    def on_select(self, event):
+        pass
 
     def on_match(self, event):
         elem = self.model.element_by_position_center(event.xdata)
@@ -70,10 +96,4 @@ class MadCtrl:
 
         self.model.match()
         self.panel.SetCursor(orig_cursor)
-
-    def stop_match(self):
-        """Stop matching mode."""
-        self.view.figure.canvas.mpl_disconnect(self.cid)
-        self.cid = None
-        self.model.clear_constraints()
 
