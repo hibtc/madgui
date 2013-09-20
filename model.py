@@ -51,7 +51,7 @@ class MadModel:
         for elem in self.sequence:
             if 'name' not in elem:
                 continue
-            if elem.name.lower() == name.lower():
+            if elem['name'].lower() == name.lower():
                 return elem
         return None
 

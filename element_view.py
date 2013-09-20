@@ -3,34 +3,39 @@ Popup view component for displaying info for individual line elements.
 """
 import wx
 
-class MadElementPopup(wx.PopupDialog):
+class MadElementPopup(wx.PopupWindow):
     """
     View for a single element
     """
-    def __init__(self, event):
+    def __init__(self, parent):
+        super(MadElementPopup, self).__init__(parent)
         sizer = wx.FlexGridSizer(rows=4, cols=2)
         sizer.SetFlexibleDirection(wx.HORIZONTAL)
         sizer.AddGrowableCol(1, 1)
         sizer.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
         self.SetSizer(sizer)
+        sizer.Fit(self)
+        self.Layout()
 
     @property
     def rows(self):
         """Access the displayed rows."""
         sizer = self.GetSizer()
-        for row in range(self.Rows):
-            static = sizer.GetItem(2*row).Window
-            edit = sizer.GetItem(2*row+1).Window
-            yield static.LabelText, edit.Value
+        for row in range(sizer.Rows):
+            if sizer.GetItem(2*row):
+                static = sizer.GetItem(2*row).Window
+                edit = sizer.GetItem(2*row+1).Window
+                yield static.LabelText, edit.Value
 
-    @rows.set
+    @rows.setter
     def rows(self, rows):
         """Access the displayed rows."""
-        known = {k:i for i,(k,v) in zip(range(self.Rows), self.rows)}
-        added = {}
         sizer = self.GetSizer()
+        known = {k:i for i,(k,v) in zip(range(sizer.Rows), self.rows)}
+        added = {}
         # Add/update fields
         for key, val in rows:
+            print("Add:", key, val)
             if key in known:
                 sizer.GetItem(2*row+1).Window.Value = val 
             else:
@@ -39,11 +44,13 @@ class MadElementPopup(wx.PopupDialog):
             added[key] = True
         # Remove obsolete fields:
         for key in added:
-            del known[key]
+            if key in known:
+                del known[key]
         for key in sorted(known, key=lambda k: known[k], reverse=True):
             sizer.Remove(2*known[key]+1)
             sizer.Remove(2*known[key])
-        sizer.Layout()
+        sizer.Fit(self)
+        self.Layout()
 
 
 class MadElementView:
@@ -54,8 +61,9 @@ class MadElementView:
         self.model = model
         self.element_name = element_name
         self.popup = popup
+        self.update()
 
     def update(self):
         el = self.model.element_by_name(self.element_name)
-        self.popup.rows = [el.items()]
+        self.popup.rows = list(el.items())
 
