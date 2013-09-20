@@ -4,6 +4,8 @@ Controller component for the MadGUI application.
 
 # wxpython
 import wx
+from element_view import MadElementPopup, MadElementView
+
 
 class MadCtrl:
     """
@@ -55,7 +57,14 @@ class MadCtrl:
         self.model.clear_constraints()
 
     def on_select(self, event):
-        pass
+        """Display a popup window with info about the selected element."""
+        elem = self.model.element_by_position_center(event.xdata)
+        if elem is None or 'name' not in elem:
+            return
+        popup = MadElementPopup(self.panel.GetGrandParent())
+        element_view = MadElementView(popup, self.model, elem['name'])
+        popup.Show()
+
 
     def on_match(self, event):
         elem = self.model.element_by_position_center(event.xdata)
