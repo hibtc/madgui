@@ -43,8 +43,9 @@ class MadElementPopup(wx.Dialog):
             if key in known:
                 sizer.GetItem(2*row+1).Window.Value = val 
             else:
+                style = wx.TE_READONLY | wx.TE_RIGHT
                 sizer.Add(wx.StaticText(self, label=key))
-                sizer.Add(wx.TextCtrl(self, value=val))
+                sizer.Add(wx.TextCtrl(self, value=val, style=style))
             added[key] = True
         # Remove obsolete fields:
         for key in added:
