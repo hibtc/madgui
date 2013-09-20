@@ -39,7 +39,7 @@ from cern import cpymad
 
 # app components
 from model import MadModel
-from view import MadView
+from line_view import MadLineView
 from controller import MadCtrl
 
 # other
@@ -59,7 +59,7 @@ def _loadJSON(filename):
 
 class ViewPanel(wx.Panel):
     """
-    Display panel view for a MadView figure.
+    Display panel view for a MadLineView figure.
     """
 
     ON_MATCH = wx.NewId()
@@ -147,7 +147,7 @@ class App(wx.App):
 
         # setup view
         self.frame = Frame()
-        view = MadView(self.model)
+        view = MadLineView(self.model)
         panel = self.frame.AddView(view, "x, y")
 
         # create controller

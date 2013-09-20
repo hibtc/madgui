@@ -8,7 +8,7 @@ import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator
 
-class MadView:
+class MadLineView:
     """
     Matplotlib figure view for a MadModel.
 
