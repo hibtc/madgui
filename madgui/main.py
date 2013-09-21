@@ -1,4 +1,3 @@
-#! /usr/bin/env python2
 """
 Lightweight GUI application for a MAD model.
 """
@@ -21,30 +20,17 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 from matplotlib.backends.backend_wx import _load_bitmap
 
 # standard library
-import inspect
 import json
 import os
-import sys
 
-# add local lib pathes
-_file = inspect.getfile(inspect.currentframe())
-_path = os.path.realpath(os.path.abspath(os.path.dirname(_file)))
-for lib in ['event']:
-    _subm = os.path.join(_path, 'lib', lib)
-    if _subm not in sys.path:
-        sys.path.insert(0, _subm)
-
-# pymad
+# 3rdparty libraries
 from cern import cpymad
-
-# app components
-from model import MadModel
-from view import MadView
-from controller import MadCtrl
-
-# other
 from event import event
 
+# app components
+from .model import MadModel
+from .view import MadView
+from .controller import MadCtrl
 
 
 def _loadJSON(filename):
@@ -61,7 +47,6 @@ class ViewPanel(wx.Panel):
     """
     Display panel view for a MadView figure.
     """
-
     ON_MATCH = wx.NewId()
 
     def __init__(self, parent, view, **kwargs):
@@ -76,7 +61,7 @@ class ViewPanel(wx.Panel):
 
         self.toolbar = Toolbar(self.canvas)
 
-        imgpath = os.path.join(_path, 'res', 'cursor.xpm')
+        imgpath = os.path.join('res', 'cursor.xpm')
         img = wx.Bitmap(imgpath, wx.BITMAP_TYPE_XPM)
         self.toolbar.AddCheckTool(
                 self.ON_MATCH,
@@ -106,7 +91,6 @@ class Frame(wx.Frame):
     """
     Main window.
     """
-
     def __init__(self):
         """Create notebook frame."""
         super(Frame, self).__init__(parent=None, title='MadGUI', size=wx.Size(800,600))
@@ -128,10 +112,9 @@ class App(wx.App):
     """
     Highest level application logic.
     """
-
     def load_model(self, name, **kwargs):
         """Instanciate a new MadModel."""
-        path=os.path.join(_path, 'models', 'resdata')
+        path=os.path.join('models', 'resdata')
         return MadModel(
             name=name,
             model=cpymad.model(name, **kwargs),
@@ -142,7 +125,7 @@ class App(wx.App):
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # add subfolder to model pathes and create model
-        cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
+        cpymad.listModels.modelpaths.append(os.path.join('models'))
         self.model = self.load_model('hht3', histfile="log/hist.madx")
 
         # setup view
@@ -157,8 +140,8 @@ class App(wx.App):
         self.frame.Show(True)
         return True
 
-# enter main business logic
-if __name__ == '__main__':
+def main():
+    """Invoke GUI application."""
     app = App()
     app.MainLoop()
 
