@@ -35,5 +35,8 @@ setup(name='madgui',
     ],
     license=None,
     test_suite='nose.collector',
-    install_requires=['pydicti','PyMAD',],
+    install_requires=[
+        'pydicti',
+        'obsub',
+        'PyMAD',],
     )

@@ -25,7 +25,7 @@ import os
 
 # 3rdparty libraries
 from cern import cpymad
-from event import event
+from obsub import event
 
 # app components
 from .model import MadModel

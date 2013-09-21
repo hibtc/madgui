@@ -11,7 +11,7 @@ import re
 import numpy as np
 
 # other
-from event import event
+from obsub import event
 
 
 class MadModel:
