@@ -114,13 +114,13 @@ class App(wx.App):
     """
     def load_model(self, name, **kwargs):
         """Instanciate a new MadModel."""
-        path=os.path.join('models', 'resdata')
+        path=os.path.join('models', 'resdata', name)
         return MadModel(
             name=name,
             model=cpymad.model(name, **kwargs),
-            sequence=_loadJSON(os.path.join(path, name, 'sequence.json')),
-            variables=_loadJSON(os.path.join(path, name, 'vary.json')),
-            beam=_loadJSON(os.path.join(path, name, 'beam.json')))
+            sequence=_loadJSON(os.path.join(path, 'sequence.json')),
+            variables=_loadJSON(os.path.join(path, 'vary.json')),
+            beam=_loadJSON(os.path.join(path, 'beam.json')))
 
     def OnInit(self):
         """Create the main window and insert the custom frame."""
