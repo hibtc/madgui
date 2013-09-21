@@ -33,6 +33,8 @@ class MadView:
             {'factor':  1, 'color': '#8b1a0e'},
             {'factor': -1, 'color': '#5e9c36'})
 
+        self.clines = None, None
+
         # display colors for elements
         self.element_types = {
             'f-quadrupole': {'color': '#ff0000'},
@@ -43,7 +45,7 @@ class MadView:
         }
 
         # subscribe for updates
-        model.update += lambda model: self.plot()
+        model.update += lambda model: self.update()
         model.remove_constraint += lambda model, elem, axis=None: self.redraw_constraints()
         model.clear_constraints += lambda model: self.redraw_constraints()
         model.add_constraint += lambda model, axis, elem, envelope: self.redraw_constraints()
@@ -86,6 +88,16 @@ class MadView:
                 type_name = 'd-' + type_name
         return self.element_types.get(type_name)
 
+    def update(self):
+        lx, ly = self.clines
+        if lx is None or ly is None:
+            self.plot()
+            return
+        envx, envy = self.model.env
+        lx.set_ydata(envx/self.unit['y']['scale']*self.curve[0]['factor'])
+        ly.set_ydata(envy/self.unit['y']['scale']*self.curve[1]['factor'])
+        self.figure.canvas.draw()
+
     def plot(self):
         """Plot figure and redraw canvas."""
         # data post processing
@@ -125,14 +137,15 @@ class MadView:
                         (patch_y+patch_h)/self.unit['y']['scale'],
                         alpha=0.5, color=elem_type['color'])
 
-        self.axes.plot(
+        lx, = self.axes.plot(
                 pos, envx/self.unit['y']['scale']*self.curve[0]['factor'],
                 "o-", color=self.curve[0]['color'], fillstyle='none',
                 label="$\Delta x$")
-        self.axes.plot(
+        ly, = self.axes.plot(
                 pos, envy/self.unit['y']['scale']*self.curve[1]['factor'],
                 "o-", color=self.curve[1]['color'], fillstyle='none',
                 label="$\Delta y$")
+        self.clines = lx, ly
 
         self.lines = []
         self.redraw_constraints()
