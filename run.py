@@ -2,10 +2,6 @@
 """
 Run the MadGUI application.
 """
-import inspect
-import os
-import sys
-
 import madgui.main
 
 if __name__ == '__main__':
