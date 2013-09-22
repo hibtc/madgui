@@ -43,6 +43,7 @@ def _loadJSON(filename):
 # GUI classes
 #----------------------------------------
 
+assert issubclass(wx.Panel, object)  # we want new style classes!
 class ViewPanel(wx.Panel):
     """
     Display panel view for a MadView figure.
@@ -87,6 +88,7 @@ class ViewPanel(wx.Panel):
         self.canvas.draw()
 
 
+assert issubclass(wx.Frame, object)  # we want new style classes!
 class Frame(wx.Frame):
     """
     Main window.
@@ -108,6 +110,7 @@ class Frame(wx.Frame):
         return panel
 
 
+assert issubclass(wx.App, object)  # we want new style classes!
 class App(wx.App):
     """
     Highest level application logic.

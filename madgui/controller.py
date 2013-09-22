@@ -5,7 +5,7 @@ Controller component for the MadGUI application.
 # wxpython
 import wx
 
-class MadCtrl:
+class MadCtrl(object):
     """
     Controller class for a ViewPanel and MadModel
     """

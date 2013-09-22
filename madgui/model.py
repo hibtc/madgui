@@ -14,7 +14,7 @@ import numpy as np
 from obsub import event
 
 
-class MadModel:
+class MadModel(object):
     """
     Model class for cern.cpymad.model
 
