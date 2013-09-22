@@ -159,6 +159,6 @@ class App(wx.App):
 
 # enter main business logic
 if __name__ == '__main__':
-    app = App()
+    app = App(redirect=True, filename="log/errlog.txt")
     app.MainLoop()
 
