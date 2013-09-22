@@ -39,4 +39,9 @@ setup(name='madgui',
         'pydicti',
         'obsub',
         'PyMAD',],
+    entry_points={
+        'gui_scripts': [
+            'madgui = madgui.main:main'
+        ],
+    },
     )
