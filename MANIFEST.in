@@ -1,3 +1,2 @@
-include setup
-include res
-include models
+include setup/*
+include res/*
