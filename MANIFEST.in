@@ -1,2 +1,2 @@
-include setup/*
-include res/*
+graft setup
+graft madgui/resource

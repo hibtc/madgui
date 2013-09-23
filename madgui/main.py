@@ -33,9 +33,20 @@ from .view import MadView
 from .controller import MadCtrl
 
 
-def _loadJSON(filename):
+def _open_resource(filename, module=__name__, path="."):
+    try:
+        return open(os.path.join(path, filename))
+    except IOError:
+        import pkg_resources
+        return pkg_resources.resource_stream(module, filename)
+
+def _load_resource(filename, module=__name__, path="."):
+    with _open_resource(filename, module, path) as f:
+        return f.read()
+
+def _loadJSON(filename, module=__name__, path="."):
     """Load json file into dictionary."""
-    with open(filename) as f:
+    with _open_resource(filename) as f:
         return json.load(f)
 
 
@@ -62,11 +73,12 @@ class ViewPanel(wx.Panel):
 
         self.toolbar = Toolbar(self.canvas)
 
-        imgpath = os.path.join('res', 'cursor.xpm')
-        img = wx.Bitmap(imgpath, wx.BITMAP_TYPE_XPM)
+        with _open_resource(os.path.join('resource', 'cursor.xpm')) as xpm:
+            img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
+        bmp = wx.BitmapFromImage(img)
         self.toolbar.AddCheckTool(
                 self.ON_MATCH,
-                bitmap=img,
+                bitmap=bmp,
                 shortHelp='Beam matching',
                 longHelp='Match by specifying constraints for envelope x(s), y(s).')
         wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)

@@ -44,4 +44,7 @@ setup(name='madgui',
             'madgui = madgui.main:main'
         ],
     },
+    package_data={
+        'madgui': ['resource/*']
+        }
     )
