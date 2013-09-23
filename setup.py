@@ -14,7 +14,7 @@ except:
 
 
 setup(name='madgui',
-    version='0.0.1',
+    version='0.2',
     description='GUI for beam simulation using MadX via PyMad',
     long_description=long_description,
     author='Thomas Gläßle',
