@@ -11,13 +11,13 @@ import re
 import numpy as np
 
 # other
-from event import event
+from obsub import event
 
 cast = lambda type: lambda value: None if value is None else type(value)
 tofloat = cast(float)
 
 
-class MadModel:
+class MadModel(object):
     """
     Model class for cern.cpymad.model
 
