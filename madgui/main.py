@@ -26,28 +26,14 @@ import os
 # 3rdparty libraries
 from cern import cpymad
 from obsub import event
+from cern.resource.package import PackageResource
+from cern.cpymad.model_locator import MergedModelLocator
 
 # app components
 from .model import MadModel
 from .view import MadView
 from .controller import MadCtrl
 
-
-def _open_resource(filename, module=__name__, path="."):
-    try:
-        return open(os.path.join(path, filename))
-    except IOError:
-        import pkg_resources
-        return pkg_resources.resource_stream(module, filename)
-
-def _load_resource(filename, module=__name__, path="."):
-    with _open_resource(filename, module, path) as f:
-        return f.read()
-
-def _loadJSON(filename, module=__name__, path="."):
-    """Load json file into dictionary."""
-    with _open_resource(filename) as f:
-        return json.load(f)
 
 
 #----------------------------------------
@@ -73,7 +59,9 @@ class ViewPanel(wx.Panel):
 
         self.toolbar = Toolbar(self.canvas)
 
-        with _open_resource(os.path.join('resource', 'cursor.xpm')) as xpm:
+        res = PackageResource(__package__)
+
+        with res.open(['resource', 'cursor.xpm']) as xpm:
             img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
         bmp = wx.BitmapFromImage(img)
         self.toolbar.AddCheckTool(
@@ -127,20 +115,24 @@ class App(wx.App):
     """
     Highest level application logic.
     """
+    def __init__(self, model_locator, *args, **kwargs):
+        self.model_locator = model_locator
+        super(App, self).__init__(*args, **kwargs)
+
     def load_model(self, name, **kwargs):
         """Instanciate a new MadModel."""
-        path=os.path.join('models', 'resdata', name)
+        mdata = self.model_locator.get_model(name)
+        res = mdata.resource.get()
         return MadModel(
             name=name,
-            model=cpymad.model(name, **kwargs),
-            sequence=_loadJSON(os.path.join(path, 'sequence.json')),
-            variables=_loadJSON(os.path.join(path, 'vary.json')),
-            beam=_loadJSON(os.path.join(path, 'beam.json')))
+            model=cpymad.model(mdata, **kwargs),
+            sequence=res.json('sequence.json'),
+            variables=res.json('vary.json'),
+            beam=res.json('beam.json'))
 
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # add subfolder to model pathes and create model
-        cpymad.listModels.modelpaths.append(os.path.join('models'))
         self.model = self.load_model('hht3', histfile="log/hist.madx")
 
         # setup view
@@ -157,7 +149,13 @@ class App(wx.App):
 
 def main():
     """Invoke GUI application."""
-    app = App(redirect=True, filename="log/errlog.txt")
+    # TODO: add command line to specify package for hit_models
+    resource_provider = PackageResource('hit_models')
+    model_locator = MergedModelLocator(resource_provider)
+    app = App(
+            model_locator=model_locator,
+            redirect=True,
+            filename="log/errlog.txt")
     app.MainLoop()
 
 if __name__ == '__main__':
