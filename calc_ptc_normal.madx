@@ -1,0 +1,11 @@
+select, flag=ptc_twiss, clear;
+select, flag=ptc_twiss, column=name, s, betx, bety;
+ptc_create_universe;
+ptc_create_layout, model=1, method=6, nst=20, exact=true, closed_layout=false;
+
+select_ptc_normal, x, y, ex, ey;
+ptc_normal;
+write, table=normal_results, file=normal_results;
+ptc_end;
+
+! vim: ft=madx

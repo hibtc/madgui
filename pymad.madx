@@ -1,0 +1,14 @@
+option,-echo;
+
+title,"Synchrotron-Extraktion bis T3";
+
+call, file="i/madx.def";
+call, file="o/madx.seq";
+call, file="i/madx.param";
+call, file="i/madx.beam";
+use, sequence=hht3;
+
+! For some reason pymad seems to need the makethin call:
+call, file="makethin.madx";
+
+! vim: ft=madx

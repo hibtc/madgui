@@ -1,0 +1,3 @@
+[submodule "lib/pymad"]
+	path = lib/pymad
+	url = ./lib/pymad

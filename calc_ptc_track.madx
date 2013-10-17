@@ -1,0 +1,13 @@
+select, flag=ptc_twiss, clear;
+select, flag=ptc_twiss, column=name, s, x, y;
+ptc_create_universe;
+ptc_create_layout, model=1, method=6, nst=20, exact=true, closed_layout=false;
+
+ptc_start, x=x0, px=1e-7, y=y0, py=1e-7, pt=0.0, t=0.0015;
+// ptc_observe;
+ptc_track, radiation=true, closed_orbit=false, icase=6, beam_envelope=true, file="o/madx.track";
+
+ptc_track_end;
+ptc_end;
+
+! vim: ft=madx
