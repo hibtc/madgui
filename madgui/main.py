@@ -35,6 +35,14 @@ from .view import MadView
 from .controller import MadCtrl
 
 
+logfolder = os.path.join(os.path.expanduser('~'), '.madgui', 'log')
+try:
+    os.makedirs(logfolder)
+except OSError:
+    # directory already exists. the exist_ok parameter exists not until
+    # python3.2
+    pass
+
 
 #----------------------------------------
 # GUI classes
@@ -133,7 +141,9 @@ class App(wx.App):
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # add subfolder to model pathes and create model
-        self.model = self.load_model('hht3', histfile="log/hist.madx")
+        self.model = self.load_model(
+            'hht3',
+            histfile=os.path.join(logfolder, "hist.madx"))
 
         # setup view
         self.frame = Frame()
@@ -155,7 +165,7 @@ def main():
     app = App(
             model_locator=model_locator,
             redirect=True,
-            filename="log/errlog.txt")
+            filename=os.path.join(logfolder, 'errlog.txt'))
     app.MainLoop()
 
 if __name__ == '__main__':
