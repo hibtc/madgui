@@ -1,4 +1,3 @@
-#! /usr/bin/env python2
 """
 Lightweight GUI application for a MAD model.
 """
@@ -21,47 +20,31 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 from matplotlib.backends.backend_wx import _load_bitmap
 
 # standard library
-import inspect
 import json
 import os
-import sys
 
-# add local lib pathes
-_file = inspect.getfile(inspect.currentframe())
-_path = os.path.realpath(os.path.abspath(os.path.dirname(_file)))
-for lib in ['event']:
-    _subm = os.path.join(_path, 'lib', lib)
-    if _subm not in sys.path:
-        sys.path.insert(0, _subm)
-
-# pymad
+# 3rdparty libraries
 from cern import cpymad
+from obsub import event
+from cern.resource.package import PackageResource
+from cern.cpymad.model_locator import MergedModelLocator
 
 # app components
-from model import MadModel
-from line_view import MadLineView
-from controller import MadCtrl
+from .model import MadModel
+from .line_view import MadLineView
+from .controller import MadCtrl
 
-# other
-from event import event
-
-
-
-def _loadJSON(filename):
-    """Load json file into dictionary."""
-    with open(filename) as f:
-        return json.load(f)
 
 
 #----------------------------------------
 # GUI classes
 #----------------------------------------
 
+assert issubclass(wx.Panel, object)  # we want new style classes!
 class ViewPanel(wx.Panel):
     """
     Display panel view for a MadLineView figure.
     """
-
     ON_MATCH = wx.NewId()
 
     def __init__(self, parent, view, **kwargs):
@@ -76,11 +59,14 @@ class ViewPanel(wx.Panel):
 
         self.toolbar = Toolbar(self.canvas)
 
-        imgpath = os.path.join(_path, 'res', 'cursor.xpm')
-        img = wx.Bitmap(imgpath, wx.BITMAP_TYPE_XPM)
+        res = PackageResource(__package__)
+
+        with res.open(['resource', 'cursor.xpm']) as xpm:
+            img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
+        bmp = wx.BitmapFromImage(img)
         self.toolbar.AddCheckTool(
                 self.ON_MATCH,
-                bitmap=img,
+                bitmap=bmp,
                 shortHelp='Beam matching',
                 longHelp='Match by specifying constraints for envelope x(s), y(s).')
         wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
@@ -102,11 +88,11 @@ class ViewPanel(wx.Panel):
         self.canvas.draw()
 
 
+assert issubclass(wx.Frame, object)  # we want new style classes!
 class Frame(wx.Frame):
     """
     Main window.
     """
-
     def __init__(self):
         """Create notebook frame."""
         super(Frame, self).__init__(parent=None, title='MadGUI', size=wx.Size(800,600))
@@ -124,25 +110,29 @@ class Frame(wx.Frame):
         return panel
 
 
+assert issubclass(wx.App, object)  # we want new style classes!
 class App(wx.App):
     """
     Highest level application logic.
     """
+    def __init__(self, model_locator, *args, **kwargs):
+        self.model_locator = model_locator
+        super(App, self).__init__(*args, **kwargs)
 
     def load_model(self, name, **kwargs):
         """Instanciate a new MadModel."""
-        path=os.path.join(_path, 'models', 'resdata')
+        mdata = self.model_locator.get_model(name)
+        res = mdata.resource.get()
         return MadModel(
             name=name,
-            model=cpymad.model(name, **kwargs),
-            sequence=_loadJSON(os.path.join(path, name, 'sequence.json')),
-            variables=_loadJSON(os.path.join(path, name, 'vary.json')),
-            beam=_loadJSON(os.path.join(path, name, 'beam.json')))
+            model=cpymad.model(mdata, **kwargs),
+            sequence=res.json('sequence.json'),
+            variables=res.json('vary.json'),
+            beam=res.json('beam.json'))
 
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # add subfolder to model pathes and create model
-        cpymad.listModels.modelpaths.append(os.path.join(_path, 'models'))
         self.model = self.load_model('hht3', histfile="log/hist.madx")
 
         # setup view
@@ -157,8 +147,16 @@ class App(wx.App):
         self.frame.Show(True)
         return True
 
-# enter main business logic
-if __name__ == '__main__':
-    app = App()
+def main():
+    """Invoke GUI application."""
+    # TODO: add command line to specify package for hit_models
+    resource_provider = PackageResource('hit_models')
+    model_locator = MergedModelLocator(resource_provider)
+    app = App(
+            model_locator=model_locator,
+            redirect=True,
+            filename="log/errlog.txt")
     app.MainLoop()
 
+if __name__ == '__main__':
+    main()

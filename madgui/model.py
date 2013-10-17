@@ -11,10 +11,13 @@ import re
 import numpy as np
 
 # other
-from event import event
+from obsub import event
+
+cast = lambda type: lambda value: None if value is None else type(value)
+tofloat = cast(float)
 
 
-class MadModel:
+class MadModel(object):
     """
     Model class for cern.cpymad.model
 
@@ -37,11 +40,13 @@ class MadModel:
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
+        if pos is None:
+            return None
         for elem in self.sequence:
-            if 'at' not in elem:
+            at = tofloat(elem.get('at'))
+            L = tofloat(elem.get('L'))
+            if at is None or L is None:
                 continue
-            at = float(elem['at'])
-            L = float(elem.get('L', 0))
             if pos >= at-L/2 and pos <= at+L/2:
                 return elem
         return None
@@ -57,12 +62,14 @@ class MadModel:
 
     def element_by_position_center(self, pos):
         """Find next element by longitudinal center position."""
+        if pos is None:
+            return None
         found_at = None
         found_elem = None
         for elem in self.sequence:
-            if 'at' not in elem:
+            at = tofloat(elem.get('at'))
+            if at is None:
                 continue
-            at = float(elem['at'])
             if found_elem is None or abs(pos - at) < abs(pos - found_at):
                 found_at = at
                 found_elem = elem

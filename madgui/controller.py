@@ -4,10 +4,10 @@ Controller component for the MadGUI application.
 
 # wxpython
 import wx
-from element_view import MadElementPopup, MadElementView
+from .element_view import MadElementPopup, MadElementView
 
 
-class MadCtrl:
+class MadCtrl(object):
     """
     Controller class for a ViewPanel and MadModel
     """
