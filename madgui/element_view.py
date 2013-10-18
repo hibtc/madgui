@@ -67,6 +67,7 @@ class MadElementView:
         self.element_name = element_name
         self.popup = popup
         self.update()
+        model.update += lambda _: self.update()
 
     def update(self):
         el = self.model.element_by_name(self.element_name)
