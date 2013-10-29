@@ -37,8 +37,8 @@ class MadView(object):
             {'label': 'mm', 'scale': 1e-3})
 
         self.curve = Vector(
-            {'factor': 1, 'color': '#8b1a0e'},
-            {'factor': 1, 'color': '#5e9c36'})
+            {'color': '#8b1a0e'},
+            {'color': '#5e9c36'})
 
         self.clines = None, None
 
@@ -62,7 +62,7 @@ class MadView(object):
         """Draw one constraint representation in the graph."""
         return self.axes[axis].plot(
             elem['at'],
-            envelope/self.unit.y['scale']*self.curve[axis]['factor'],
+            envelope/self.unit.y['scale'],
             's',
             color=self.curve[axis]['color'],
             fillstyle='full',
@@ -104,8 +104,8 @@ class MadView(object):
             self.plot()
             return
         envx, envy = self.model.env
-        lx.set_ydata(envx/self.unit.y['scale']*self.curve.x['factor'])
-        ly.set_ydata(envy/self.unit.y['scale']*self.curve.y['factor'])
+        lx.set_ydata(envx/self.unit.y['scale'])
+        ly.set_ydata(envy/self.unit.y['scale'])
         self.figure.canvas.draw()
 
     def plot(self):
@@ -156,11 +156,11 @@ class MadView(object):
                         alpha=0.5, color=elem_type['color'])
 
         lx, = self.axes.x.plot(
-                pos, envx/self.unit.y['scale']*self.curve.x['factor'],
+                pos, envx/self.unit.y['scale'],
                 "o-", color=self.curve.x['color'], fillstyle='none',
                 label="$\Delta x$")
         ly, = self.axes.y.plot(
-                pos, envy/self.unit.y['scale']*self.curve.y['factor'],
+                pos, envy/self.unit.y['scale'],
                 "o-", color=self.curve.y['color'], fillstyle='none',
                 label="$\Delta y$")
         self.clines = lx, ly
