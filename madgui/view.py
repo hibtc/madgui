@@ -8,6 +8,9 @@ import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator
 
+from collections import namedtuple
+Vector = namedtuple('Vector', ['x', 'y'])
+
 class MadView(object):
     """
     Matplotlib figure view for a MadModel.
@@ -22,16 +25,20 @@ class MadView(object):
 
         # create figure
         self.figure = mpl.figure.Figure()
-        self.axes = self.figure.add_subplot(111)
+        self.figure.subplots_adjust(hspace=0.00)
+        axx = self.figure.add_subplot(211)
+        axy = self.figure.add_subplot(212, sharex=axx)
+        self.axes = Vector(axx, axy)
+
 
         # plot style
-        self.unit = {
-            'x': {'label': 'm',  'scale': 1},
-            'y': {'label': 'mm', 'scale': 1e-3}}
+        self.unit = Vector(
+            {'label': 'm',  'scale': 1},
+            {'label': 'mm', 'scale': 1e-3})
 
-        self.curve = (
-            {'factor':  1, 'color': '#8b1a0e'},
-            {'factor': -1, 'color': '#5e9c36'})
+        self.curve = Vector(
+            {'factor': 1, 'color': '#8b1a0e'},
+            {'factor': 1, 'color': '#5e9c36'})
 
         self.clines = None, None
 
@@ -53,10 +60,13 @@ class MadView(object):
 
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
-        return self.axes.plot(
-                elem['at'], envelope/self.unit['y']['scale']*self.curve[axis]['factor'], 's',
-                color=self.curve[axis]['color'],
-                fillstyle='full', markersize=7)
+        return self.axes[axis].plot(
+            elem['at'],
+            envelope/self.unit.y['scale']*self.curve[axis]['factor'],
+            's',
+            color=self.curve[axis]['color'],
+            fillstyle='full',
+            markersize=7)
 
     def redraw_constraints(self):
         """Draw all current constraints in the graph."""
@@ -94,8 +104,8 @@ class MadView(object):
             self.plot()
             return
         envx, envy = self.model.env
-        lx.set_ydata(envx/self.unit['y']['scale']*self.curve[0]['factor'])
-        ly.set_ydata(envy/self.unit['y']['scale']*self.curve[1]['factor'])
+        lx.set_ydata(envx/self.unit.y['scale']*self.curve.x['factor'])
+        ly.set_ydata(envy/self.unit.y['scale']*self.curve.y['factor'])
         self.figure.canvas.draw()
 
     def plot(self):
@@ -104,17 +114,17 @@ class MadView(object):
         pos = self.model.pos
         envx, envy = self.model.env
 
-        if self.curve[1]['factor'] < 0:
-            max_y = np.max(envx)
-            min_y = -np.max(envy)
-        else:
-            max_y = max(0, np.max(envx), np.max(envy))
-            min_y = min(0, np.min(envx), np.min(envy))
-        patch_y = 0.75 * min_y
-        patch_h = 0.75 * (max_y - min_y)
+        max_env = Vector(np.max(envx), np.max(envy))
+        patch_h = Vector(0.75*max_env.x, 0.75*max_env.y)
 
         # plot
-        self.axes.cla()
+        self.axes.x.cla()
+        self.axes.y.cla()
+
+        # disable labels on x-axis
+        for label in self.axes.x.xaxis.get_ticklabels():
+            label.set_visible(False)
+        self.axes.y.yaxis.get_ticklabels()[0].set_visible(False)
 
         for elem in self.model.sequence:
             elem_type = self.get_element_type(elem)
@@ -124,42 +134,56 @@ class MadView(object):
             if 'L' in elem and float(elem['L']) != 0:
                 patch_w = float(elem['L'])
                 patch_x = float(elem['at']) - patch_w/2
-                self.axes.add_patch(
+                self.axes.x.add_patch(
                         mpl.patches.Rectangle(
-                            (patch_x, patch_y/self.unit['y']['scale']),
-                            patch_w, patch_h/self.unit['y']['scale'],
+                            (patch_x, 0),
+                            patch_w, patch_h.x/self.unit.y['scale'],
+                            alpha=0.5, color=elem_type['color']))
+                self.axes.y.add_patch(
+                        mpl.patches.Rectangle(
+                            (patch_x, 0),
+                            patch_w, patch_h.y/self.unit.y['scale'],
                             alpha=0.5, color=elem_type['color']))
             else:
                 patch_x = float(elem['at'])
-                self.axes.vlines(
-                        patch_x,
-                        patch_y/self.unit['y']['scale'],
-                        (patch_y+patch_h)/self.unit['y']['scale'],
+                self.axes.x.vlines(
+                        patch_x, 0,
+                        patch_h.x/self.unit.y['scale'],
+                        alpha=0.5, color=elem_type['color'])
+                self.axes.y.vlines(
+                        patch_x, 0,
+                        patch_h.y/self.unit.y['scale'],
                         alpha=0.5, color=elem_type['color'])
 
-        lx, = self.axes.plot(
-                pos, envx/self.unit['y']['scale']*self.curve[0]['factor'],
-                "o-", color=self.curve[0]['color'], fillstyle='none',
+        lx, = self.axes.x.plot(
+                pos, envx/self.unit.y['scale']*self.curve.x['factor'],
+                "o-", color=self.curve.x['color'], fillstyle='none',
                 label="$\Delta x$")
-        ly, = self.axes.plot(
-                pos, envy/self.unit['y']['scale']*self.curve[1]['factor'],
-                "o-", color=self.curve[1]['color'], fillstyle='none',
+        ly, = self.axes.y.plot(
+                pos, envy/self.unit.y['scale']*self.curve.y['factor'],
+                "o-", color=self.curve.y['color'], fillstyle='none',
                 label="$\Delta y$")
         self.clines = lx, ly
 
         self.lines = []
         self.redraw_constraints()
 
-        self.axes.grid(True)
-        self.axes.legend(loc='upper left')
-        self.axes.set_xlabel("position $s$ [m]")
-        self.axes.set_ylabel("beam envelope [" + self.unit['y']['label'] + "]")
-        self.axes.get_xaxis().set_minor_locator(
-                MultipleLocator(2))
-        self.axes.get_yaxis().set_minor_locator(
-                MultipleLocator(0.002/self.unit['y']['scale']))
-        self.axes.set_xlim(pos[0], pos[-1])
+        # self.axes.legend(loc='upper left')
+        self.axes.y.set_xlabel("position $s$ [m]")
 
+        for axis_index, axis_name in enumerate(['x', 'y']):
+            self.axes[axis_index].grid(True)
+            self.axes[axis_index].get_xaxis().set_minor_locator(
+                MultipleLocator(2))
+            self.axes[axis_index].get_yaxis().set_minor_locator(
+                MultipleLocator(0.002/self.unit.y['scale']))
+            self.axes[axis_index].set_xlim(pos[0], pos[-1])
+            self.axes[axis_index].set_ylabel("$\Delta %s$ [%s]" % (
+                axis_name, self.unit.y['label']))
+            self.axes[axis_index].set_ylim(0)
+
+        # invert y-axis:
+        self.axes.y.set_ylim(self.axes.y.get_ylim()[::-1])
         self.figure.canvas.draw()
 
 
