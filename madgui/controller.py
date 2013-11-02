@@ -32,35 +32,27 @@ class MadCtrl(object):
         self.constraints = []
 
     def on_match(self, event):
+        axes = event.inaxes
+        if axes is None:
+            return
+        axis = 0 if axes is self.view.axes.x else 1
+
         elem = self.model.element_by_position_center(event.xdata)
         if elem is None or 'name' not in elem:
             return
 
-        if self.view.curve[1]['factor'] < 0:
-            if event.button == 1:
-                axis = event.ydata < 0
-            elif event.button == 2:
-                self.model.remove_constraint(elem)
-                return
-            else:
-                return
-        else:
-            if event.button == 1: # left mouse
-                axis = 0
-            elif event.button == 3: # right mouse
-                axis = 1
-            elif event.button == 2:
-                self.model.remove_constraint(elem)
-                return
-            else:
-                return
+        if event.button == 2:
+            self.model.remove_constraint(elem)
+            return
+        elif event.button != 1:
+            return
 
         orig_cursor = self.panel.GetCursor()
         wait_cursor = wx.StockCursor(wx.CURSOR_WAIT)
         self.panel.SetCursor(wait_cursor)
 
         # add the clicked constraint
-        envelope = event.ydata*self.view.unit['y']['scale']*self.view.curve[axis]['factor']
+        envelope = event.ydata*self.view.unit.y['scale']
         self.model.add_constraint(axis, elem, envelope)
 
         # add another constraint to hold the orthogonal axis constant
