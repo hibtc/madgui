@@ -10,9 +10,10 @@ class MadCtrl(object):
     Controller class for a ViewPanel and MadModel
     """
 
-    def __init__(self, model, panel):
+    def __init__(self, model, panel, mirko):
         """Initialize observer and Subscribe as observer for user events."""
         self.cid = None
+        self.mirko = mirko
         self.model = model
         self.panel = panel
         self.view = panel.view
@@ -23,6 +24,10 @@ class MadCtrl(object):
             else:
                 self.stop_match()
         panel.OnMatchClick += toggle_match
+
+        def toggle_mirko(panel, event):
+            self.mirko.visible = event.IsChecked()
+        panel.OnMirkoClick += toggle_mirko
 
     def start_match(self):
         """Start matching mode."""
@@ -68,4 +73,5 @@ class MadCtrl(object):
         self.view.figure.canvas.mpl_disconnect(self.cid)
         self.cid = None
         self.model.clear_constraints()
+
 

@@ -12,6 +12,7 @@ import wx.aui
 
 # scipy
 import matplotlib as mpl
+import numpy as np
 
 # use wxAgg as backend:
 mpl.use('WXAgg')
@@ -31,7 +32,7 @@ from cern.cpymad.model_locator import MergedModelLocator
 
 # app components
 from .model import MadModel
-from .view import MadView
+from .view import MadView, MirkoView, Vector
 from .controller import MadCtrl
 
 
@@ -54,6 +55,7 @@ class ViewPanel(wx.Panel):
     Display panel view for a MadView figure.
     """
     ON_MATCH = wx.NewId()
+    ON_MIRKO = wx.NewId()
 
     def __init__(self, parent, view, **kwargs):
         """Initialize panel and connect the view."""
@@ -78,6 +80,15 @@ class ViewPanel(wx.Panel):
                 shortHelp='Beam matching',
                 longHelp='Match by specifying constraints for envelope x(s), y(s).')
         wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
+
+        bmp = wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR)
+        self.toolbar.AddCheckTool(
+                self.ON_MIRKO,
+                bitmap=bmp,
+                shortHelp='Show MIRKO envelope',
+                longHelp='Show MIRKO envelope for comparison. The envelope is computed for the default parameters.')
+        wx.EVT_TOOL(self, self.ON_MIRKO, self.OnMirkoClick)
+
         self.toolbar.Realize()
 
         # put element into sizer
@@ -89,6 +100,11 @@ class ViewPanel(wx.Panel):
     @event
     def OnMatchClick(self, event):
         """Invoked when user clicks Match-Button"""
+        pass
+
+    @event
+    def OnMirkoClick(self, event):
+        """Invoked when user clicks Mirko-Button"""
         pass
 
     def OnPaint(self, event):
@@ -131,27 +147,40 @@ class App(wx.App):
         """Instanciate a new MadModel."""
         mdata = self.model_locator.get_model(name)
         res = mdata.resource.get()
-        return MadModel(
+        model = MadModel(
             name=name,
             model=cpymad.model(mdata, **kwargs),
             sequence=res.json('sequence.json'),
             variables=res.json('vary.json'),
             beam=res.json('beam.json'))
+        model.gendata = mdata.resource.provider().provider().get([
+            'gendata', name])
+        return model
 
-    def OnInit(self):
-        """Create the main window and insert the custom frame."""
-        # add subfolder to model pathes and create model
+    def show_model(self, name):
         self.model = self.load_model(
             'hht3',
             histfile=os.path.join(logfolder, "hist.madx"))
 
-        # setup view
-        self.frame = Frame()
         view = MadView(self.model)
         panel = self.frame.AddView(view, "x, y")
 
+        aenv = np.loadtxt(
+            self.model.gendata.open('envelope.txt'),
+            usecols=(0,1,2))/1000
+        mirko = MirkoView(self.model, view, Vector(
+            Vector(aenv[:,0], aenv[:,1]),
+            Vector(aenv[:,0], aenv[:,2])))
+
         # create controller
-        self.ctrl = MadCtrl(self.model, panel)
+        self.ctrl = MadCtrl(self.model, panel, mirko)
+
+    def OnInit(self):
+        """Create the main window and insert the custom frame."""
+        # setup view
+        self.frame = Frame()
+
+        self.show_model('hht3')
 
         # show frame and enter main loop
         self.frame.Show(True)
@@ -164,7 +193,7 @@ def main():
     model_locator = MergedModelLocator(resource_provider)
     app = App(
             model_locator=model_locator,
-            redirect=True,
+            redirect=False,
             filename=os.path.join(logfolder, 'errlog.txt'))
     app.MainLoop()
 
