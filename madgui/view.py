@@ -10,8 +10,8 @@ from matplotlib.ticker import MultipleLocator
 
 from obsub import event
 
-from collections import namedtuple
-Vector = namedtuple('Vector', ['x', 'y'])
+from model import Vector
+
 
 class MadView(object):
     """
@@ -42,7 +42,7 @@ class MadView(object):
             {'color': '#8b1a0e'},
             {'color': '#5e9c36'})
 
-        self.clines = None, None
+        self.clines = Vector(None, None)
 
         # display colors for elements
         self.element_types = {
@@ -160,11 +160,11 @@ class MadView(object):
             self.axes.x.plot(
                 pos, envx/self.unit.y['scale'],
                 "o-", color=self.curve.x['color'], fillstyle='none',
-                label="$\Delta x$"),
+                label="$\Delta x$")[0],
             self.axes.y.plot(
                 pos, envy/self.unit.y['scale'],
                 "o-", color=self.curve.y['color'], fillstyle='none',
-                label="$\Delta y$"))
+                label="$\Delta y$")[0])
 
         self.lines = []
         self.redraw_constraints()

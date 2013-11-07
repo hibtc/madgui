@@ -6,6 +6,7 @@ Model component for the MadGUI application.
 import copy
 import math
 import re
+from collections import namedtuple
 
 # scipy
 import numpy as np
@@ -16,6 +17,7 @@ from obsub import event
 cast = lambda type: lambda value: None if value is None else type(value)
 tofloat = cast(float)
 
+Vector = namedtuple('Vector', ['x', 'y'])
 
 class MadModel(object):
     """
@@ -87,7 +89,7 @@ class MadModel(object):
         if i is None:
             return None
         elif axis is None:
-            return (self.env[0][i], self.env[1][i])
+            return Vector(self.env.x[i], self.env.y[i])
         else:
             return self.env[axis][i]
 
@@ -98,8 +100,8 @@ class MadModel(object):
             return None
         prev = i - 1 if i != 0 else i
         if axis is None:
-            return ((self.env[0][i] + self.env[0][prev]) / 2,
-                    (self.env[1][i] + self.env[1][prev]) / 2)
+            return ((self.env.x[i] + self.env.x[prev]) / 2,
+                    (self.env.y[i] + self.env.y[prev]) / 2)
         else:
             return (self.env[axis][i] + self.env[axis][prev]) / 2
 
@@ -108,9 +110,9 @@ class MadModel(object):
         """Perform post processing."""
         # data post processing
         self.pos = self.tw.s
-        self.env = (
+        self.env = Vector(
             np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx]),
-            np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety]) )
+            np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety]))
 
     def match(self):
         """Perform matching according to current constraints."""
