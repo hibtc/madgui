@@ -12,6 +12,7 @@ import wx.aui
 
 # scipy
 import matplotlib as mpl
+import numpy as np
 
 # use wxAgg as backend:
 mpl.use('WXAgg')
@@ -31,7 +32,7 @@ from cern.cpymad.model_locator import MergedModelLocator
 
 # app components
 from .model import MadModel
-from .view import MadView
+from .view import MadView, MirkoView, Vector
 from .controller import MadCtrl
 
 
@@ -54,6 +55,8 @@ class ViewPanel(wx.Panel):
     Display panel view for a MadView figure.
     """
     ON_MATCH = wx.NewId()
+    ON_MIRKO = wx.NewId()
+    ON_OPEN = wx.NewId()
 
     def __init__(self, parent, view, **kwargs):
         """Initialize panel and connect the view."""
@@ -78,6 +81,24 @@ class ViewPanel(wx.Panel):
                 shortHelp='Beam matching',
                 longHelp='Match by specifying constraints for envelope x(s), y(s).')
         wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
+
+        bmp = wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR)
+        self.toolbar.AddCheckTool(
+                self.ON_MIRKO,
+                bitmap=bmp,
+                shortHelp='Show MIRKO envelope',
+                longHelp='Show MIRKO envelope for comparison. The envelope is computed for the default parameters.')
+        wx.EVT_TOOL(self, self.ON_MIRKO, self.OnMirkoClick)
+
+        # TODO: this should not be within the notebook page:
+        bmp = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_TOOLBAR)
+        self.toolbar.AddSimpleTool(
+            self.ON_OPEN,
+            bitmap=bmp,
+            shortHelpString='Open another model',
+            longHelpString='Open another model')
+        wx.EVT_TOOL(self, self.ON_OPEN, self.OnOpenClick)
+
         self.toolbar.Realize()
 
         # put element into sizer
@@ -90,6 +111,21 @@ class ViewPanel(wx.Panel):
     def OnMatchClick(self, event):
         """Invoked when user clicks Match-Button"""
         pass
+
+    @event
+    def OnMirkoClick(self, event):
+        """Invoked when user clicks Mirko-Button"""
+        pass
+
+    @event
+    def OnOpenClick(self, event):
+        """Invoked when user clicks Open-Model Button."""
+        from .openmodel import OpenModelDlg
+        dlg = OpenModelDlg(self.GetParent())
+        ret = dlg.ShowModal()
+        if ret == wx.ID_OK:
+            wx.GetApp().show_model(*dlg.data)
+
 
     def OnPaint(self, event):
         """Handle redraw by painting canvas."""
@@ -123,35 +159,47 @@ class App(wx.App):
     """
     Highest level application logic.
     """
-    def __init__(self, model_locator, *args, **kwargs):
-        self.model_locator = model_locator
-        super(App, self).__init__(*args, **kwargs)
-
-    def load_model(self, name, **kwargs):
+    def load_model(self, pkg_name, model_name, **kwargs):
         """Instanciate a new MadModel."""
-        mdata = self.model_locator.get_model(name)
+        resource_provider = PackageResource(pkg_name)
+        model_locator = MergedModelLocator(resource_provider)
+        mdata = model_locator.get_model(model_name)
         res = mdata.resource.get()
-        return MadModel(
-            name=name,
+        model = MadModel(
+            name=model_name,
             model=cpymad.model(mdata, **kwargs),
             sequence=res.json('sequence.json'),
             variables=res.json('vary.json'),
             beam=res.json('beam.json'))
+        model.gendata = mdata.resource.provider().provider().get([
+            'gendata', model_name])
+        return model
+
+    def show_model(self, pkg_name, model_name):
+        self.model = self.load_model(
+            pkg_name,
+            model_name,
+            histfile=os.path.join(logfolder, "%s.madx" % model_name))
+
+        view = MadView(self.model)
+        panel = self.frame.AddView(view, model_name)
+
+        aenv = np.loadtxt(
+            self.model.gendata.open('envelope.txt'),
+            usecols=(0,1,2))/1000
+        mirko = MirkoView(self.model, view, Vector(
+            Vector(aenv[:,0], aenv[:,1]),
+            Vector(aenv[:,0], aenv[:,2])))
+
+        # create controller
+        self.ctrl = MadCtrl(self.model, panel, mirko)
 
     def OnInit(self):
         """Create the main window and insert the custom frame."""
-        # add subfolder to model pathes and create model
-        self.model = self.load_model(
-            'hht3',
-            histfile=os.path.join(logfolder, "hist.madx"))
-
         # setup view
         self.frame = Frame()
-        view = MadView(self.model)
-        panel = self.frame.AddView(view, "x, y")
 
-        # create controller
-        self.ctrl = MadCtrl(self.model, panel)
+        self.show_model('hit_models', 'hht3')
 
         # show frame and enter main loop
         self.frame.Show(True)
@@ -159,13 +207,10 @@ class App(wx.App):
 
 def main():
     """Invoke GUI application."""
-    # TODO: add command line to specify package for hit_models
-    resource_provider = PackageResource('hit_models')
-    model_locator = MergedModelLocator(resource_provider)
+    # TODO: add command line options (via docopt!)
     app = App(
-            model_locator=model_locator,
-            redirect=True,
-            filename=os.path.join(logfolder, 'errlog.txt'))
+        redirect=False,
+        filename=os.path.join(logfolder, 'error.log'))
     app.MainLoop()
 
 if __name__ == '__main__':

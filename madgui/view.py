@@ -8,8 +8,10 @@ import matplotlib as mpl
 from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator
 
-from collections import namedtuple
-Vector = namedtuple('Vector', ['x', 'y'])
+from obsub import event
+
+from model import Vector
+
 
 class MadView(object):
     """
@@ -40,7 +42,7 @@ class MadView(object):
             {'color': '#8b1a0e'},
             {'color': '#5e9c36'})
 
-        self.clines = None, None
+        self.clines = Vector(None, None)
 
         # display colors for elements
         self.element_types = {
@@ -99,15 +101,14 @@ class MadView(object):
         return self.element_types.get(type_name)
 
     def update(self):
-        lx, ly = self.clines
-        if lx is None or ly is None:
+        if self.clines.x is None or self.clines.y is None:
             self.plot()
             return
-        envx, envy = self.model.env
-        lx.set_ydata(envx/self.unit.y['scale'])
-        ly.set_ydata(envy/self.unit.y['scale'])
+        self.clines.x.set_ydata(self.model.env.x/self.unit.y['scale'])
+        self.clines.y.set_ydata(self.model.env.y/self.unit.y['scale'])
         self.figure.canvas.draw()
 
+    @event
     def plot(self):
         """Plot figure and redraw canvas."""
         # data post processing
@@ -155,15 +156,15 @@ class MadView(object):
                         patch_h.y/self.unit.y['scale'],
                         alpha=0.5, color=elem_type['color'])
 
-        lx, = self.axes.x.plot(
+        self.clines = Vector(
+            self.axes.x.plot(
                 pos, envx/self.unit.y['scale'],
                 "o-", color=self.curve.x['color'], fillstyle='none',
-                label="$\Delta x$")
-        ly, = self.axes.y.plot(
+                label="$\Delta x$")[0],
+            self.axes.y.plot(
                 pos, envy/self.unit.y['scale'],
                 "o-", color=self.curve.y['color'], fillstyle='none',
-                label="$\Delta y$")
-        self.clines = lx, ly
+                label="$\Delta y$")[0])
 
         self.lines = []
         self.redraw_constraints()
@@ -186,4 +187,63 @@ class MadView(object):
         self.axes.y.set_ylim(self.axes.y.get_ylim()[::-1])
         self.figure.canvas.draw()
 
+class MirkoView(object):
+    """
+    View component to display mirko envelope for comparison.
+
+    Draws the mirko envelope into a MadView figure whenever that figure is
+    replotted.
+
+    """
+
+    def __init__(self, model, view, envdata):
+        """
+        Create a mirko envelope display component.
+
+        The envelope is NOT visible by default.
+
+        """
+        self.model = model
+        self.envdata = envdata
+        self.view = view
+        self.lines = None
+        def onplot(_):
+            if self.visible:
+                self._plot()
+        self.view.plot += onplot
+
+    @property
+    def visible(self):
+        """Visibility state of the envelope."""
+        return self.lines is not None
+
+    @visible.setter
+    def visible(self, value):
+        if value:
+            self._plot()
+        else:
+            self._remove()
+
+    def _plot(self):
+        """Plot the envelope into the figure."""
+        self.lines = Vector(
+            self.view.axes.x.plot(self.envdata.x.x/self.view.unit.x['scale'],
+                                  self.envdata.x.y/self.view.unit.y['scale'],
+                                  'k'),
+            self.view.axes.y.plot(self.envdata.y.x/self.view.unit.x['scale'],
+                                  self.envdata.y.y/self.view.unit.y['scale'],
+                                  'k'))
+        self.view.figure.canvas.draw()
+
+    def _remove(self):
+        """Remove the envelope from the figure."""
+        if self.lines:
+            # self.view.axes.x.lines.remove(self.lines.x)
+            # self.view.axes.y.lines.remove(self.lines.y)
+            for l in self.lines.x:
+                l.remove()
+            for l in self.lines.y:
+                l.remove()
+            self.lines = None
+            self.view.figure.canvas.draw()
 
