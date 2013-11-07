@@ -35,7 +35,7 @@ from .view import MadView
 from .controller import MadCtrl
 
 
-logfolder = os.path.join(os.path.expanduser('~'), '.madgui', 'log')
+logfolder = os.path.join(os.path.expanduser('~'), '.madgui')
 try:
     os.makedirs(logfolder)
 except OSError:
