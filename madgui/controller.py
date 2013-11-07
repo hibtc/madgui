@@ -8,10 +8,10 @@ import wx
 class MadCtrl(object):
     """
     Controller class for a ViewPanel and MadModel
-    """
 
+    """
     def __init__(self, model, panel, mirko):
-        """Initialize observer and Subscribe as observer for user events."""
+        """Initialize and subscribe as observer for user events."""
         self.cid = None
         self.mirko = mirko
         self.model = model
