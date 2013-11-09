@@ -120,12 +120,7 @@ class ViewPanel(wx.Panel):
     @event
     def OnOpenClick(self, event):
         """Invoked when user clicks Open-Model Button."""
-        from .openmodel import OpenModelDlg
-        dlg = OpenModelDlg(self.GetParent())
-        ret = dlg.ShowModal()
-        if ret == wx.ID_OK:
-            wx.GetApp().show_model(*dlg.data)
-
+        wx.GetApp().open_model(self.GetParent())
 
     def OnPaint(self, event):
         """Handle redraw by painting canvas."""
@@ -194,12 +189,18 @@ class App(wx.App):
         # create controller
         self.ctrl = MadCtrl(self.model, panel, mirko)
 
+    def open_model(self, parent=None):
+        from .openmodel import OpenModelDlg
+        dlg = OpenModelDlg(parent)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.show_model(*dlg.data)
+        dlg.Destroy()
+
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # setup view
         self.frame = Frame()
-
-        self.show_model('hit_models', 'hht3')
+        self.open_model()
 
         # show frame and enter main loop
         self.frame.Show(True)
