@@ -85,6 +85,7 @@ class OpenModelDlg(wx.Dialog):
         self.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
         self.Bind(wx.EVT_BUTTON, self.OnButtonOk, source=button_ok)
         self.Bind(wx.EVT_BUTTON, self.OnButtonCancel, source=button_cancel)
+        self.Bind(wx.EVT_UPDATE_UI, self.UpdateButtonOk, source=button_ok)
 
         # associate sizer and layout
         self.SetSizer(outer)
@@ -95,16 +96,17 @@ class OpenModelDlg(wx.Dialog):
         """Update model list when package name is changed."""
         self.UpdateModelList()
 
-    def UpdateModelList(self):
-        """Update displayed model list."""
+    def GetModelList(self):
+        """Get list of models in the package specified by the input field."""
         pkg_name = self.ctrl_pkg.GetValue()
         modellist = list_models(pkg_name)
-        if modellist is None:
-            self.ctrl_model.SetItems([])
-            self.ctrl_model.Enable(False)
-        else:
-            self.ctrl_model.SetItems(list(modellist))
-            self.ctrl_model.Enable(True)
+        return [] if modellist is None else list(modellist)
+
+    def UpdateModelList(self):
+        """Update displayed model list."""
+        modellist = self.GetModelList()
+        self.ctrl_model.SetItems(modellist)
+        self.ctrl_model.Enable(bool(modellist))
 
     # TODO: Use validators:
     # - Check the validity of the package/model name
@@ -120,6 +122,10 @@ class OpenModelDlg(wx.Dialog):
         self.ctrl_pkg.SetValue(self.data.pkg_name)
         self.UpdateModelList()
         self.ctrl_model.SetValue(self.data.model_name)
+
+    def UpdateButtonOk(self, event):
+        modellist = self.GetModelList()
+        event.Enable(bool(modellist))
 
     def OnButtonOk(self, event):
         self.TransferDataFromWindow()
