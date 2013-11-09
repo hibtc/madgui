@@ -13,7 +13,7 @@ from obsub import event
 from model import Vector
 
 
-class MadView(object):
+class MadLineView(object):
     """
     Matplotlib figure view for a MadModel.
 
@@ -192,8 +192,8 @@ class MirkoView(object):
     """
     View component to display mirko envelope for comparison.
 
-    Draws the mirko envelope into a MadView figure whenever that figure is
-    replotted.
+    Draws the mirko envelope into a MadLineView figure whenever that figure
+    is replotted.
 
     """
 

@@ -31,8 +31,8 @@ from cern.resource.package import PackageResource
 from cern.cpymad.model_locator import MergedModelLocator
 
 # app components
-from .model import MadModel
-from .view import MadView, MirkoView, Vector
+from .model import MadModel, Vector
+from .line_view import MadLineView, MirkoView
 from .controller import MadCtrl
 
 
@@ -52,7 +52,7 @@ except OSError:
 assert issubclass(wx.Panel, object)  # we want new style classes!
 class ViewPanel(wx.Panel):
     """
-    Display panel view for a MadView figure.
+    Display panel view for a MadLineView figure.
     """
     ON_MATCH = wx.NewId()
     ON_MIRKO = wx.NewId()
@@ -176,7 +176,7 @@ class App(wx.App):
             model_name,
             histfile=os.path.join(logfolder, "%s.madx" % model_name))
 
-        view = MadView(self.model)
+        view = MadLineView(self.model)
         panel = self.frame.AddView(view, model_name)
 
         aenv = np.loadtxt(

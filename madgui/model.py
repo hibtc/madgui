@@ -53,6 +53,15 @@ class MadModel(object):
                 return elem
         return None
 
+    def element_by_name(self, name):
+        """Find the element in the sequence list by its name."""
+        for elem in self.sequence:
+            if 'name' not in elem:
+                continue
+            if elem['name'].lower() == name.lower():
+                return elem
+        return None
+
     def element_by_position_center(self, pos):
         """Find next element by longitudinal center position."""
         if pos is None:
@@ -74,14 +83,17 @@ class MadModel(object):
                 columns=['name','s', 'l','betx','bety', 'angle', 'k1l'])
         self.update()
 
-    def get_element_index(self, elem):
-        """Get element index by it name."""
+    def element_index_by_name(self, name):
+        """Find the element index in the twiss array by its name."""
         pattern = re.compile(':\d+$')
-        name = elem.get('name').lower()
         for i in range(len(self.tw.name)):
-            if pattern.sub("", self.tw.name[i]).lower() == name:
+            if pattern.sub("", self.tw.name[i]).lower() == name.lower():
                 return i
         return None
+
+    def get_element_index(self, elem):
+        """Get element index by it name."""
+        return self.element_index_by_name(elem.get('name'))
 
     def get_envelope(self, elem, axis=None):
         """Return beam envelope at element."""
