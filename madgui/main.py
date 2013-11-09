@@ -149,7 +149,7 @@ class Frame(wx.Frame):
     def AddView(self, view, title):
         """Add new notebook tab for the view."""
         panel = ViewPanel(self.notebook, view)
-        self.notebook.AddPage(panel, title)
+        self.notebook.AddPage(panel, title, select=True)
         view.plot()
         return panel
 
