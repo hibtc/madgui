@@ -192,15 +192,18 @@ class App(wx.App):
     def open_model(self, parent=None):
         from .openmodel import OpenModelDlg
         dlg = OpenModelDlg(parent)
-        if dlg.ShowModal() == wx.ID_OK:
+        success = dlg.ShowModal() == wx.ID_OK
+        if success:
             self.show_model(*dlg.data)
         dlg.Destroy()
+        return success
 
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # setup view
         self.frame = Frame()
-        self.open_model()
+        if not self.open_model():
+            return False
 
         # show frame and enter main loop
         self.frame.Show(True)
