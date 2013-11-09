@@ -12,7 +12,7 @@ class MadElementPopup(wx.Dialog):
                 parent=parent,
                 style=wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER)
 
-        self.grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
+        self.grid = wx.FlexGridSizer(rows=0, cols=2, vgap=5, hgap=5)
         self.grid.SetFlexibleDirection(wx.HORIZONTAL)
         self.grid.AddGrowableCol(1, 1)
         self.grid.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
@@ -26,38 +26,33 @@ class MadElementPopup(wx.Dialog):
     @property
     def rows(self):
         """Access the displayed rows."""
-        sizer = self.grid
-        for row in range(sizer.Rows):
-            if sizer.GetItem(2*row):
-                static = sizer.GetItem(2*row).Window
-                edit = sizer.GetItem(2*row+1).Window
+        grid = self.grid
+        num_rows = grid.CalcRowsCols()[0]
+        for row in range(num_rows):
+            if grid.GetItem(2*row):
+                static = grid.GetItem(2*row).Window
+                edit = grid.GetItem(2*row+1).Window
                 yield static.LabelText, edit.Value
 
     @rows.setter
     def rows(self, rows):
         """Access the displayed rows."""
-        sizer = self.grid
-        known = {k:i for i,(k,v) in zip(range(sizer.Rows), self.rows)}
-        added = {}
-        # Add/update fields
-        for key, val in rows:
-            if key in known:
-                sizer.GetItem(2*row+1).Window.Value = val 
-            else:
+        grid = self.grid
+        num_rows = grid.CalcRowsCols()[0]
+        if len(rows) == num_rows:
+            for row, (key, val) in enumerate(rows):
+                grid.GetItem(2*row+0).Window.Value = key 
+                grid.GetItem(2*row+1).Window.Value = val 
+        else:
+            grid.Clear()
+            for key, val in rows:
                 style = wx.TE_READONLY | wx.TE_RIGHT
-                sizer.Add(wx.StaticText(self, label=key),
-                          flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-                sizer.Add(wx.TextCtrl(self, value=val, style=style),
-                          flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-            added[key] = True
-        # Remove obsolete fields:
-        for key in added:
-            if key in known:
-                del known[key]
-        for key in sorted(known, key=lambda k: known[k], reverse=True):
-            sizer.Remove(2*known[key]+1)
-            sizer.Remove(2*known[key])
-        self.Fit()
+                grid.Add(wx.StaticText(self, label=key),
+                         flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+                grid.Add(wx.TextCtrl(self, value=val, style=style),
+                         flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+
+            self.Fit()
 
 
 class MadElementView:
