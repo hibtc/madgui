@@ -10,22 +10,23 @@ class MadElementPopup(wx.Dialog):
     def __init__(self, parent):
         super(MadElementPopup, self).__init__(
                 parent=parent,
-                style=wx.DEFAULT_DIALOG_STYLE)
-        self.panel = wx.Panel(self)
+                style=wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER)
 
-        sizer = wx.FlexGridSizer(rows=4, cols=2)
-        sizer.SetFlexibleDirection(wx.HORIZONTAL)
-        sizer.AddGrowableCol(1, 1)
-        sizer.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
-        self.panel.SetSizer(sizer)
+        self.grid = wx.FlexGridSizer(rows=4, cols=2, vgap=5, hgap=5)
+        self.grid.SetFlexibleDirection(wx.HORIZONTAL)
+        self.grid.AddGrowableCol(1, 1)
+        self.grid.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
 
+        outer = wx.BoxSizer(wx.VERTICAL)
+        outer.Add(self.grid, flag=wx.ALL|wx.EXPAND, border=5)
+
+        self.SetSizer(outer)
         self.Centre()
-        self.Layout()
 
     @property
     def rows(self):
         """Access the displayed rows."""
-        sizer = self.panel.GetSizer()
+        sizer = self.grid
         for row in range(sizer.Rows):
             if sizer.GetItem(2*row):
                 static = sizer.GetItem(2*row).Window
@@ -35,7 +36,7 @@ class MadElementPopup(wx.Dialog):
     @rows.setter
     def rows(self, rows):
         """Access the displayed rows."""
-        sizer = self.panel.GetSizer()
+        sizer = self.grid
         known = {k:i for i,(k,v) in zip(range(sizer.Rows), self.rows)}
         added = {}
         # Add/update fields
@@ -44,8 +45,10 @@ class MadElementPopup(wx.Dialog):
                 sizer.GetItem(2*row+1).Window.Value = val 
             else:
                 style = wx.TE_READONLY | wx.TE_RIGHT
-                sizer.Add(wx.StaticText(self, label=key))
-                sizer.Add(wx.TextCtrl(self, value=val, style=style))
+                sizer.Add(wx.StaticText(self, label=key),
+                          flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+                sizer.Add(wx.TextCtrl(self, value=val, style=style),
+                          flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
             added[key] = True
         # Remove obsolete fields:
         for key in added:
@@ -54,8 +57,7 @@ class MadElementPopup(wx.Dialog):
         for key in sorted(known, key=lambda k: known[k], reverse=True):
             sizer.Remove(2*known[key]+1)
             sizer.Remove(2*known[key])
-        sizer.Fit(self)
-        self.Layout()
+        self.Fit()
 
 
 class MadElementView:
