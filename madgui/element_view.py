@@ -3,6 +3,12 @@ Popup view component for displaying info for individual line elements.
 """
 import wx
 
+class AutoSizedTextCtrl(wx.TextCtrl):
+    def SetValue(self, value):
+        minwidth = self.GetCharWidth() * len(value) * 1.2
+        self.SetMinSize(wx.Size(int(minwidth), -1)) 
+        return super(AutoSizedTextCtrl, self).SetValue(value)
+
 class MadElementPopup(wx.Dialog):
     """
     View for a single element
@@ -46,13 +52,16 @@ class MadElementPopup(wx.Dialog):
         else:
             grid.Clear()
             for key, val in rows:
-                style = wx.TE_READONLY | wx.TE_RIGHT
-                grid.Add(wx.StaticText(self, label=key),
-                         flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-                grid.Add(wx.TextCtrl(self, value=val, style=style),
-                         flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+                style = wx.TE_READONLY|wx.TE_RIGHT|wx.NO_BORDER
+                label = wx.StaticText(self, label=key)
+                text = AutoSizedTextCtrl(self, style=style)
+                text.SetValue(val)
+                grid.Add(label, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+                grid.Add(text, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
 
-            self.Fit()
+
+
+        self.Fit()
 
 
 class MadElementView:
