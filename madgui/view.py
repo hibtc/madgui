@@ -50,7 +50,8 @@ class MadView(object):
             'd-quadrupole': {'color': '#0000ff'},
             'f-sbend':      {'color': '#770000'},
             'd-sbend':      {'color': '#000077'},
-            'multipole':    {'color': '#00ff00'}
+            'multipole':    {'color': '#00ff00'},
+            'solenoid':     {'color': '#555555'},
         }
 
         # subscribe for updates
