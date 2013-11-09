@@ -77,5 +77,32 @@ class MadElementView:
 
     def update(self):
         el = self.model.element_by_name(self.element_name)
-        self.popup.rows = list(el.items())
+        rows = el.items()
+
+        # convert to title case:
+        rows = [(k.title(),v) for (k,v) in rows]
+
+        # substitute nicer names:
+        substitute = {'L': 'Length',
+                      'At': 'Position'}
+        rows = [(substitute.get(k,k),v) for (k,v) in rows]
+
+        # presort alphanumerically:
+        # (with some luck the order on the elements with equal key in the
+        # subsequent sort will be left invariant)
+        rows = sorted(rows)
+
+        # sort preferred elements to top:
+        order = ['Type',
+                 'Name',
+                 'Position',
+                 'Length']
+        order = dict(zip(order, range(-len(order), 0)))
+        rows = sorted(rows, key=lambda row: order.get(row[0], len(order)))
+
+        # add colon
+        rows = [(k+':',v) for (k,v) in rows]
+
+        # update view:
+        self.popup.rows = rows
 
