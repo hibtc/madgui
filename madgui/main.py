@@ -145,8 +145,17 @@ class Frame(wx.Frame):
         """Add new notebook tab for the view."""
         panel = ViewPanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
+        self.notebook.Bind(
+            wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSED,
+            self.OnPageClosed,
+            source=self.notebook)
         view.plot()
         return panel
+
+    def OnPageClosed(self, event):
+        """A page has been closed. If it was the last, close the frame."""
+        if self.notebook.GetPageCount() == 0:
+            self.Close()
 
 
 assert issubclass(wx.App, object)  # we want new style classes!
