@@ -25,17 +25,21 @@ class MadCtrl(object):
             if event.IsChecked():
                 self.start_match()
             else:
+                self.stop_match()
+        def toggle_select(panel, event):
+            if event.IsChecked():
                 self.start_select()
-        panel.OnMatchClick += toggle_match
-        self.start_select()
-
+            else:
+                self.stop_select()
         def toggle_mirko(panel, event):
             self.mirko.visible = event.IsChecked()
+
+        panel.OnMatchClick += toggle_match
+        panel.OnSelectClick += toggle_select
         panel.OnMirkoClick += toggle_mirko
 
     def start_select(self):
         """Start select mode."""
-        self.stop_match()
         self.cid_select = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
                 self.on_select)
@@ -48,7 +52,6 @@ class MadCtrl(object):
 
     def start_match(self):
         """Start matching mode."""
-        self.stop_select()
         self.cid_match = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
                 self.on_match)
