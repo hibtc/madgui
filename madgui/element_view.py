@@ -100,6 +100,15 @@ class MadElementView:
         order = dict(zip(order, range(-len(order), 0)))
         rows = sorted(rows, key=lambda row: order.get(row[0], len(order)))
 
+        # 
+        def evaluate(el):
+            key, val = el
+            if key == 'Angle':
+                return key, str(self.model.model.evaluate(val))
+            else:
+                return key, val
+        rows = map(evaluate, rows)
+
         # add colon
         rows = [(k+':',v) for (k,v) in rows]
 
