@@ -184,7 +184,6 @@ class App(wx.App):
             name=mdata.name,
             model=cpymad.model(mdata, **kwargs),
             sequence=res.json('sequence.json'),
-            variables=res.json('vary.json'),
             beam=res.json('beam.json'))
         return model
 

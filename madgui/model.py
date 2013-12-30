@@ -30,13 +30,12 @@ class MadModel(object):
 
     """
 
-    def __init__(self, name, model, sequence, variables, beam):
+    def __init__(self, name, model, sequence, beam):
         """Load meta data and compute twiss variables."""
         self.constraints = []
         self.name = name
         self.model = model
         self.sequence = sequence
-        self.variables = variables
         self.beam = beam
         self.twiss()
 
@@ -130,13 +129,14 @@ class MadModel(object):
         """Perform matching according to current constraints."""
         # select variables: one for each constraint
         vary = []
-        allvars = copy.copy(self.variables)
+        allvars = [elem for elem in self.sequence
+                   if elem.get('vary')]
         for axis,elem,envelope in self.constraints:
             at = float(elem['at'])
             allowed = (v for v in allvars if float(v['at']) < at)
             try:
                 v = max(allowed, key=lambda v: float(v['at']))
-                vary.append(v['vary'])
+                vary += v['vary']
                 allvars.remove(v)
             except ValueError:
                 # No variable in range found! Ok.
