@@ -11,22 +11,18 @@ from cern.cpymad.model_locator import MergedModelLocator
 import wx
 
 def list_locators():
-    return iter_entry_points('madgui.models')
+    return [(ep.name, ep.load()) for ep in iter_entry_points('madgui.models')]
 
 def get_locator(pkg_name):
     """List all models in the given package. Returns an iterable."""
     try:
-        return pkg_name.load()
-    except AttributeError:
-        try:
-            pkg = import_module(pkg_name)
-        except ValueError:
-            return None
-        except ImportError:
-            return None
-        resource_provider = PackageResource(pkg_name)
-        model_locator = MergedModelLocator(resource_provider)
-        return model_locator.list_models()
+        pkg = import_module(pkg_name)
+    except ValueError:
+        return None
+    except ImportError:
+        return None
+    resource_provider = PackageResource(pkg_name)
+    return MergedModelLocator(resource_provider)
 
 
 class OpenModelDlg(wx.Dialog):
@@ -46,10 +42,10 @@ class OpenModelDlg(wx.Dialog):
     def CreateControls(self):
         """Create subcontrols and layout."""
         # Create controls
-        label_pkg = wx.StaticText(self, label="Package:")
+        label_pkg = wx.StaticText(self, label="Source:")
         label_model = wx.StaticText(self, label="Model:")
-        self.ctrl_pkg = wx.ComboBox(self, wx.CB_DROPDOWN|wx.wx.CB_READONLY|wx.CB_SORT)
-        self.ctrl_model = wx.ComboBox(self, wx.CB_DROPDOWN|wx.wx.CB_READONLY|wx.CB_SORT)
+        self.ctrl_pkg = wx.ComboBox(self, wx.CB_DROPDOWN|wx.CB_SORT)
+        self.ctrl_model = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
 
         self.TransferDataToWindow() # needed?
 
@@ -98,8 +94,9 @@ class OpenModelDlg(wx.Dialog):
     def GetCurrentLocator(self):
         selection = self.ctrl_pkg.GetSelection()
         if selection == wx.NOT_FOUND:
-            return None
-        return get_locator(self.locators[selection])
+            return get_locator(self.ctrl_pkg.GetValue())
+        else:
+            return self.locators[selection][1]
 
     def GetModelList(self):
         """Get list of models in the package specified by the input field."""
@@ -107,8 +104,8 @@ class OpenModelDlg(wx.Dialog):
         return list(locator.list_models()) if locator else []
 
     def UpdateLocatorList(self):
-        self.locators = list(list_locators())
-        self.ctrl_pkg.SetItems(map(str, self.locators))
+        self.locators = list_locators()
+        self.ctrl_pkg.SetItems([l[0] for l in self.locators])
         self.ctrl_pkg.SetSelection(0)
         self.ctrl_pkg.Enable(bool(self.locators))
 
