@@ -57,6 +57,7 @@ class ViewPanel(wx.Panel):
     ON_MATCH = wx.NewId()
     ON_MIRKO = wx.NewId()
     ON_OPEN = wx.NewId()
+    ON_SELECT = wx.NewId()
 
     def __init__(self, parent, view, **kwargs):
         """Initialize panel and connect the view."""
@@ -81,6 +82,14 @@ class ViewPanel(wx.Panel):
                 shortHelp='Beam matching',
                 longHelp='Match by specifying constraints for envelope x(s), y(s).')
         wx.EVT_TOOL(self, self.ON_MATCH, self.OnMatchClick)
+
+        bmp = wx.ArtProvider.GetBitmap(wx.ART_TIP, wx.ART_TOOLBAR)
+        self.toolbar.AddCheckTool(
+                self.ON_SELECT,
+                bitmap=bmp,
+                shortHelp='Show info for individual elements',
+                longHelp='Show info for individual elements')
+        wx.EVT_TOOL(self, self.ON_SELECT, self.OnSelectClick)
 
         bmp = wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR)
         self.toolbar.AddCheckTool(
@@ -114,6 +123,11 @@ class ViewPanel(wx.Panel):
 
     @event
     def OnMirkoClick(self, event):
+        """Invoked when user clicks Mirko-Button"""
+        pass
+
+    @event
+    def OnSelectClick(self, event):
         """Invoked when user clicks Mirko-Button"""
         pass
 
