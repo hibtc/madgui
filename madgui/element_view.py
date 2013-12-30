@@ -5,6 +5,7 @@ import wx
 
 class AutoSizedTextCtrl(wx.TextCtrl):
     def SetValue(self, value):
+        value = str(value)
         minwidth = self.GetCharWidth() * len(value) * 1.2
         self.SetMinSize(wx.Size(int(minwidth), -1)) 
         return super(AutoSizedTextCtrl, self).SetValue(value)
