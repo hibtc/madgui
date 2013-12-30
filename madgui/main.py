@@ -163,47 +163,39 @@ class App(wx.App):
     """
     Highest level application logic.
     """
-    def load_model(self, pkg_name, model_name, **kwargs):
+    def load_model(self, mdata, **kwargs):
         """Instanciate a new MadModel."""
-        resource_provider = PackageResource(pkg_name)
-        model_locator = MergedModelLocator(resource_provider)
-        mdata = model_locator.get_model(model_name)
         res = mdata.resource.get()
         model = MadModel(
-            name=model_name,
+            name=mdata.name,
             model=cpymad.model(mdata, **kwargs),
             sequence=res.json('sequence.json'),
             variables=res.json('vary.json'),
             beam=res.json('beam.json'))
-        model.gendata = mdata.resource.provider().provider().get([
-            'gendata', model_name])
         return model
 
-    def show_model(self, pkg_name, model_name):
-        self.model = self.load_model(
-            pkg_name,
-            model_name,
-            histfile=os.path.join(logfolder, "%s.madx" % model_name))
-
-        view = MadLineView(self.model)
-        panel = self.frame.AddView(view, model_name)
+    def show_model(self, madmodel):
+        view = MadLineView(madmodel)
+        panel = self.frame.AddView(view, madmodel.name)
 
         aenv = np.loadtxt(
-            self.model.gendata.open('envelope.txt'),
+            madmodel.model.mdata.resource.open('envelope.txt'),
             usecols=(0,1,2))/1000
-        mirko = MirkoView(self.model, view, Vector(
+        mirko = MirkoView(madmodel, view, Vector(
             Vector(aenv[:,0], aenv[:,1]),
             Vector(aenv[:,0], aenv[:,2])))
 
         # create controller
-        self.ctrl = MadCtrl(self.model, panel, mirko)
+        MadCtrl(madmodel, panel, mirko)
 
     def open_model(self, parent=None):
         from .openmodel import OpenModelDlg
         dlg = OpenModelDlg(parent)
         success = dlg.ShowModal() == wx.ID_OK
         if success:
-            self.show_model(*dlg.data)
+            model = dlg.data
+            h = os.path.join(logfolder, "%s.madx" % model.name)
+            self.show_model(self.load_model(model, histfile=h))
         dlg.Destroy()
         return success
 

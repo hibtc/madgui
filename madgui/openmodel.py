@@ -3,27 +3,31 @@ Contains opendialog for models.
 """
 from importlib import import_module
 from collections import namedtuple
+from pkg_resources import iter_entry_points
 
 from cern.resource.package import PackageResource
 from cern.cpymad.model_locator import MergedModelLocator
 
 import wx
 
+def list_locators():
+    return iter_entry_points('madgui.models')
 
-def list_models(pkg_name):
-    """List all models in the given package. Returns an iteratable."""
+def get_locator(pkg_name):
+    """List all models in the given package. Returns an iterable."""
     try:
-        pkg = import_module(pkg_name)
-    except ValueError:
-        return None
-    except ImportError:
-        return None
-    resource_provider = PackageResource(pkg_name)
-    model_locator = MergedModelLocator(resource_provider)
-    return model_locator.list_models()
+        return pkg_name.load()
+    except AttributeError:
+        try:
+            pkg = import_module(pkg_name)
+        except ValueError:
+            return None
+        except ImportError:
+            return None
+        resource_provider = PackageResource(pkg_name)
+        model_locator = MergedModelLocator(resource_provider)
+        return model_locator.list_models()
 
-
-PackageModel = namedtuple('PackageModel', ['pkg_name', 'model_name'])
 
 class OpenModelDlg(wx.Dialog):
     """
@@ -33,13 +37,8 @@ class OpenModelDlg(wx.Dialog):
 
     """
     def __init__(self, *args, **kwargs):
-        """
-        Store the data and initialize the component.
-
-        :param PackageModel data: default package and model names.
-
-        """
-        self.data = PackageModel("hit_models", "hht3")
+        """Store the data and initialize the component."""
+        self.data = None
         super(OpenModelDlg, self).__init__(*args, **kwargs)
         self.CreateControls()
         self.Centre()
@@ -49,7 +48,7 @@ class OpenModelDlg(wx.Dialog):
         # Create controls
         label_pkg = wx.StaticText(self, label="Package:")
         label_model = wx.StaticText(self, label="Model:")
-        self.ctrl_pkg = wx.TextCtrl(self)
+        self.ctrl_pkg = wx.ComboBox(self, wx.CB_DROPDOWN|wx.wx.CB_READONLY|wx.CB_SORT)
         self.ctrl_model = wx.ComboBox(self, wx.CB_DROPDOWN|wx.wx.CB_READONLY|wx.CB_SORT)
 
         self.TransferDataToWindow() # needed?
@@ -96,16 +95,28 @@ class OpenModelDlg(wx.Dialog):
         """Update model list when package name is changed."""
         self.UpdateModelList()
 
+    def GetCurrentLocator(self):
+        selection = self.ctrl_pkg.GetSelection()
+        if selection == wx.NOT_FOUND:
+            return None
+        return get_locator(self.locators[selection])
+
     def GetModelList(self):
         """Get list of models in the package specified by the input field."""
-        pkg_name = self.ctrl_pkg.GetValue()
-        modellist = list_models(pkg_name)
-        return [] if modellist is None else list(modellist)
+        locator = self.GetCurrentLocator()
+        return list(locator.list_models()) if locator else []
+
+    def UpdateLocatorList(self):
+        self.locators = list(list_locators())
+        self.ctrl_pkg.SetItems(map(str, self.locators))
+        self.ctrl_pkg.SetSelection(0)
+        self.ctrl_pkg.Enable(bool(self.locators))
 
     def UpdateModelList(self):
         """Update displayed model list."""
         modellist = self.GetModelList()
         self.ctrl_model.SetItems(modellist)
+        self.ctrl_model.SetSelection(0)
         self.ctrl_model.Enable(bool(modellist))
 
     # TODO: Use validators:
@@ -113,15 +124,18 @@ class OpenModelDlg(wx.Dialog):
     # - disable Ok button
     def TransferDataFromWindow(self):
         """Get selected package and model name."""
-        self.data = PackageModel(
-            pkg_name=self.ctrl_pkg.GetValue(),
-            model_name=self.ctrl_model.GetValue())
+        locator = self.GetCurrentLocator()
+        if locator:
+            self.data = locator.get_model(self.ctrl_model.GetValue())
+        else:
+            self.data = None
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
-        self.ctrl_pkg.SetValue(self.data.pkg_name)
+        self.UpdateLocatorList()
         self.UpdateModelList()
-        self.ctrl_model.SetValue(self.data.model_name)
+        # self.ctrl_pkg.SetValue(self.data.pkg_name)
+        # self.ctrl_model.SetValue(self.data.model_name)
 
     def UpdateButtonOk(self, event):
         modellist = self.GetModelList()
