@@ -197,7 +197,7 @@ class MirkoView(object):
 
     """
 
-    def __init__(self, model, view, envdata):
+    def __init__(self, model, view):
         """
         Create a mirko envelope display component.
 
@@ -205,7 +205,6 @@ class MirkoView(object):
 
         """
         self.model = model
-        self.envdata = envdata
         self.view = view
         self.lines = None
         def onplot(_):
@@ -227,13 +226,23 @@ class MirkoView(object):
 
     def _plot(self):
         """Plot the envelope into the figure."""
+        model = self.model.model
+        optic = model._mdef['optics'][model._active['optic']]
+        if 'test' not in optic:
+            # TODO: log error
+            return
+
+        with model.mdata.get_by_dict(optic['test']).filename() as f:
+            aenv = np.loadtxt(f, usecols=(0,1,2))/1000
+        envdata = Vector(
+            Vector(aenv[:,0], aenv[:,1]),
+            Vector(aenv[:,0], aenv[:,2]))
+
         self.lines = Vector(
-            self.view.axes.x.plot(self.envdata.x.x/self.view.unit.x['scale'],
-                                  self.envdata.x.y/self.view.unit.y['scale'],
-                                  'k'),
-            self.view.axes.y.plot(self.envdata.y.x/self.view.unit.x['scale'],
-                                  self.envdata.y.y/self.view.unit.y['scale'],
-                                  'k'))
+            self.view.axes.x.plot(envdata.x.x/self.view.unit.x['scale'],
+                                  envdata.x.y/self.view.unit.y['scale'], 'k'),
+            self.view.axes.y.plot(envdata.y.x/self.view.unit.x['scale'],
+                                  envdata.y.y/self.view.unit.y['scale'], 'k'))
         self.view.figure.canvas.draw()
 
     def _remove(self):

@@ -21,7 +21,6 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 from matplotlib.backends.backend_wx import _load_bitmap
 
 # standard library
-import json
 import os
 
 # 3rdparty libraries
@@ -179,24 +178,17 @@ class App(wx.App):
     """
     def load_model(self, mdata, **kwargs):
         """Instanciate a new MadModel."""
-        res = mdata.resource.get()
+        res = mdata.repository.get()
         model = MadModel(
             name=mdata.name,
             model=cpymad.model(mdata, **kwargs),
-            sequence=res.json('sequence.json'),
-            beam=res.json('beam.json'))
+            sequence=res.json('sequence.json'))
         return model
 
     def show_model(self, madmodel):
         view = MadLineView(madmodel)
         panel = self.frame.AddView(view, madmodel.name)
-
-        aenv = np.loadtxt(
-            madmodel.model.mdata.resource.open('envelope.txt'),
-            usecols=(0,1,2))/1000
-        mirko = MirkoView(madmodel, view, Vector(
-            Vector(aenv[:,0], aenv[:,1]),
-            Vector(aenv[:,0], aenv[:,2])))
+        mirko = MirkoView(madmodel, view)
 
         # create controller
         MadCtrl(madmodel, panel, mirko)

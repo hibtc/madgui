@@ -30,14 +30,19 @@ class MadModel(object):
 
     """
 
-    def __init__(self, name, model, sequence, beam):
+    def __init__(self, name, model, sequence):
         """Load meta data and compute twiss variables."""
         self.constraints = []
         self.name = name
         self.model = model
         self.sequence = sequence
-        self.beam = beam
         self.twiss()
+
+    @property
+    def beam(self):
+        mdef = self.model._mdef
+        beam = mdef['sequences'][self.model._active['sequence']]['beam']
+        return mdef['beams'][beam]
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -121,9 +126,10 @@ class MadModel(object):
         """Perform post processing."""
         # data post processing
         self.pos = self.tw.s
+        beam = self.beam
         self.env = Vector(
-            np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx]),
-            np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety]))
+            np.array([math.sqrt(betx*beam['ex']) for betx in self.tw.betx]),
+            np.array([math.sqrt(bety*beam['ey']) for bety in self.tw.bety]))
 
     def match(self):
         """Perform matching according to current constraints."""
@@ -144,9 +150,10 @@ class MadModel(object):
 
         # select constraints
         constraints = []
+        beam = self.beam
         for axis,elem,envelope in self.constraints:
             name = 'betx' if axis == 0 else 'bety'
-            emittance = self.beam['ex'] if axis == 0 else self.beam['ey']
+            emittance = beam['ex'] if axis == 0 else beam['ey']
             if isinstance(envelope, tuple):
                 lower, upper = envelope
                 constraints.append([
