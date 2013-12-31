@@ -30,15 +30,19 @@ class MadModel(object):
 
     """
 
-    def __init__(self, name, model, sequence, variables, beam):
+    def __init__(self, name, model, sequence):
         """Load meta data and compute twiss variables."""
         self.constraints = []
         self.name = name
         self.model = model
         self.sequence = sequence
-        self.variables = variables
-        self.beam = beam
         self.twiss()
+
+    @property
+    def beam(self):
+        mdef = self.model._mdef
+        beam = mdef['sequences'][self.model._active['sequence']]['beam']
+        return mdef['beams'][beam]
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -122,21 +126,23 @@ class MadModel(object):
         """Perform post processing."""
         # data post processing
         self.pos = self.tw.s
+        beam = self.beam
         self.env = Vector(
-            np.array([math.sqrt(betx*self.beam['ex']) for betx in self.tw.betx]),
-            np.array([math.sqrt(bety*self.beam['ey']) for bety in self.tw.bety]))
+            np.array([math.sqrt(betx*beam['ex']) for betx in self.tw.betx]),
+            np.array([math.sqrt(bety*beam['ey']) for bety in self.tw.bety]))
 
     def match(self):
         """Perform matching according to current constraints."""
         # select variables: one for each constraint
         vary = []
-        allvars = copy.copy(self.variables)
+        allvars = [elem for elem in self.sequence
+                   if elem.get('vary')]
         for axis,elem,envelope in self.constraints:
             at = float(elem['at'])
             allowed = (v for v in allvars if float(v['at']) < at)
             try:
                 v = max(allowed, key=lambda v: float(v['at']))
-                vary.append(v['vary'])
+                vary += v['vary']
                 allvars.remove(v)
             except ValueError:
                 # No variable in range found! Ok.
@@ -144,9 +150,10 @@ class MadModel(object):
 
         # select constraints
         constraints = []
+        beam = self.beam
         for axis,elem,envelope in self.constraints:
             name = 'betx' if axis == 0 else 'bety'
-            emittance = self.beam['ex'] if axis == 0 else self.beam['ey']
+            emittance = beam['ex'] if axis == 0 else beam['ey']
             if isinstance(envelope, tuple):
                 lower, upper = envelope
                 constraints.append([
