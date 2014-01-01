@@ -60,8 +60,6 @@ class MadElementPopup(wx.Dialog):
                 grid.Add(label, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
                 grid.Add(text, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
 
-
-
         self.Fit()
 
 
@@ -100,15 +98,7 @@ class MadElementView:
                  'Length']
         order = dict(zip(order, range(-len(order), 0)))
         rows = sorted(rows, key=lambda row: order.get(row[0], len(order)))
-
-        # 
-        def evaluate(el):
-            key, val = el
-            if key == 'Angle':
-                return key, str(self.model.model.evaluate(val))
-            else:
-                return key, val
-        rows = map(evaluate, rows)
+        rows = filter(lambda row: row[0] not in ('Vary','Ksl','Knl'), rows)
 
         # add colon
         rows = [(k+':',v) for (k,v) in rows]

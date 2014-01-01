@@ -73,7 +73,8 @@ class MadCtrl(object):
 
     def on_select(self, event):
         """Display a popup window with info about the selected element."""
-        elem = self.model.element_by_position_center(event.xdata)
+        elem = self.model.element_by_position_center(
+            event.xdata * self.view.unit.x)
         if elem is None or 'name' not in elem:
             return
         popup = MadElementPopup(self.frame)
@@ -87,7 +88,8 @@ class MadCtrl(object):
             return
         axis = 0 if axes is self.view.axes.x else 1
 
-        elem = self.model.element_by_position_center(event.xdata)
+        elem = self.model.element_by_position_center(
+            event.xdata * self.view.unit.x)
         if elem is None or 'name' not in elem:
             return
 
@@ -102,7 +104,7 @@ class MadCtrl(object):
         self.panel.SetCursor(wait_cursor)
 
         # add the clicked constraint
-        envelope = event.ydata*self.view.unit.y['scale']
+        envelope = event.ydata*self.view.unit.y
         self.model.add_constraint(axis, elem, envelope)
 
         # add another constraint to hold the orthogonal axis constant
