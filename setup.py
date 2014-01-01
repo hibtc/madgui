@@ -30,6 +30,7 @@ setup(
         'pydicti',
         'obsub',
         'PyMAD',
+        'unum',
     ],
     entry_points={
         'gui_scripts': [
