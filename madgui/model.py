@@ -4,7 +4,6 @@ Model component for the MadGUI application.
 
 # standard library
 import copy
-import math
 import re
 from collections import namedtuple
 
@@ -14,8 +13,12 @@ import numpy as np
 # other
 from obsub import event
 
-cast = lambda type: lambda value: None if value is None else type(value)
-tofloat = cast(float)
+from .unit import units, madx as madunit
+
+try:
+    basestring
+except NameError:
+    basestring = str
 
 Vector = namedtuple('Vector', ['x', 'y'])
 
@@ -35,22 +38,22 @@ class MadModel(object):
         self.constraints = []
         self.name = name
         self.model = model
-        self.sequence = sequence
+        self.sequence = list(map(self.from_madx, sequence))
         self.twiss()
 
     @property
     def beam(self):
         mdef = self.model._mdef
         beam = mdef['sequences'][self.model._active['sequence']]['beam']
-        return mdef['beams'][beam]
+        return self.from_madx(mdef['beams'][beam])
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
         for elem in self.sequence:
-            at = tofloat(elem.get('at'))
-            L = tofloat(elem.get('L'))
+            at = elem.get('at')
+            L = elem.get('L')
             if at is None or L is None:
                 continue
             if pos >= at-L/2 and pos <= at+L/2:
@@ -73,7 +76,7 @@ class MadModel(object):
         found_at = None
         found_elem = None
         for elem in self.sequence:
-            at = tofloat(elem.get('at'))
+            at = elem.get('at')
             if at is None:
                 continue
             if found_elem is None or abs(pos - at) < abs(pos - found_at):
@@ -83,8 +86,9 @@ class MadModel(object):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
-        self.tw, self.summary = self.model.twiss(
+        tw, self.summary = self.model.twiss(
                 columns=['name','s', 'l','betx','bety', 'angle', 'k1l'])
+        self.tw = self.from_madx(tw)
         self.update()
 
     def element_index_by_name(self, name):
@@ -128,8 +132,8 @@ class MadModel(object):
         self.pos = self.tw.s
         beam = self.beam
         self.env = Vector(
-            np.array([math.sqrt(betx*beam['ex']) for betx in self.tw.betx]),
-            np.array([math.sqrt(bety*beam['ey']) for bety in self.tw.bety]))
+            (self.tw.betx * beam['ex'])**0.5,
+            (self.tw.bety * beam['ey'])**0.5)
 
     def match(self):
         """Perform matching according to current constraints."""
@@ -138,10 +142,10 @@ class MadModel(object):
         allvars = [elem for elem in self.sequence
                    if elem.get('vary')]
         for axis,elem,envelope in self.constraints:
-            at = float(elem['at'])
-            allowed = (v for v in allvars if float(v['at']) < at)
+            at = elem['at']
+            allowed = (v for v in allvars if v['at'] < at)
             try:
-                v = max(allowed, key=lambda v: float(v['at']))
+                v = max(allowed, key=lambda v: v['at'])
                 vary += v['vary']
                 allvars.remove(v)
             except ValueError:
@@ -158,14 +162,17 @@ class MadModel(object):
                 lower, upper = envelope
                 constraints.append([
                     ('range', elem['name']),
-                    (name, '>', lower*lower/emittance),
-                    (name, '<', upper*upper/emittance) ])
+                    (name, '>', self.value_to_madx(name, lower*lower/emittance)),
+                    (name, '<', self.value_to_madx(name, upper*upper/emittance)) ])
             else:
                 constraints.append({
                     'range': elem['name'],
-                    name: envelope*envelope/emittance})
+                    name: self.value_to_madx(name, envelope*envelope/emittance)})
 
-        self.tw, self.summary = self.model.match(vary=vary, constraints=constraints)
+        tw, self.summary = self.model.match(
+            vary=vary,
+            constraints=constraints)
+        self.tw = self.from_madx(tw)
         self.update()
 
     @event
@@ -198,4 +205,58 @@ class MadModel(object):
         """Remove all constraints."""
         self.constraints = []
 
+    def evaluate(self, expr):
+        return self.model.evaluate(expr)
+
+    def value_from_madx(self, name, value):
+        """Add units to a single number."""
+        if name in madunit:
+            if isinstance(value, basestring):
+                return SymbolicValue(self, value, madunit[name])
+            else:
+                return madunit[name] * value
+        else:
+            return value
+
+    def value_to_madx(self, name, value):
+        """Convert to madx units."""
+        return stripunit(value, madunit[name]) if name in madunit else value
+
+    def from_madx(self, obj):
+        """Add units to all elements in a dictionary."""
+        return obj.__class__({k: self.value_from_madx(k, obj[k])
+                              for k in obj})
+
+    def to_madx(self, obj):
+        """Remove units from all elements in a dictionary."""
+        return obj.__class__({k: self.value_to_madx(k, obj[k])
+                              for k in obj})
+
+
+class SymbolicValue(object):
+    def __init__(self, model, value, unit):
+        self._model = model
+        self._value = value
+        self._unit = unit
+
+    def __float__(self):
+        return self.asNumber()
+
+    def __str__(self):
+        return str(self._evaluate())
+
+    def __repr__(self):
+        return "%s(%r)" % (self.__class__.__name__, self._value)
+
+    def _evaluate(self):
+        return self._unit * self._model.evaluate(self._value)
+
+    def asNumber(self, unit=None):
+        return self._evaluate().asNumber(unit)
+
+    def asUnit(self, unit=None):
+        return self._evaluate().asUnit(unit)
+
+    def strUnit(self):
+        return self._unit.strUnit()
 

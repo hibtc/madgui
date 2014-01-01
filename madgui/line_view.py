@@ -10,7 +10,8 @@ from matplotlib.ticker import MultipleLocator
 
 from obsub import event
 
-from model import Vector
+from .model import Vector
+from .unit import units, stripunit, unit_label
 
 
 class MadLineView(object):
@@ -34,10 +35,7 @@ class MadLineView(object):
 
 
         # plot style
-        self.unit = Vector(
-            {'label': 'm',  'scale': 1},
-            {'label': 'mm', 'scale': 1e-3})
-
+        self.unit = Vector(units.m, units.mm)
         self.curve = Vector(
             {'color': '#8b1a0e'},
             {'color': '#5e9c36'})
@@ -64,8 +62,8 @@ class MadLineView(object):
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
         return self.axes[axis].plot(
-            elem['at'],
-            envelope/self.unit.y['scale'],
+            stripunit(elem['at'], self.unit.x),
+            stripunit(envelope, self.unit.y),
             's',
             color=self.curve[axis]['color'],
             fillstyle='full',
@@ -90,10 +88,10 @@ class MadLineView(object):
         focussing = None
         if type_name == 'quadrupole':
             i = self.model.get_element_index(elem)
-            focussing = self.model.tw.k1l[i] > 0
+            focussing = stripunit(self.model.tw.k1l[i]) > 0
         elif type_name == 'sbend':
             i = self.model.get_element_index(elem)
-            focussing = self.model.tw.angle[i] > 0
+            focussing = stripunit(self.model.tw.angle[i]) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
@@ -105,8 +103,8 @@ class MadLineView(object):
         if self.clines.x is None or self.clines.y is None:
             self.plot()
             return
-        self.clines.x.set_ydata(self.model.env.x/self.unit.y['scale'])
-        self.clines.y.set_ydata(self.model.env.y/self.unit.y['scale'])
+        self.clines.x.set_ydata(stripunit(self.model.env.x, self.unit.y))
+        self.clines.y.set_ydata(stripunit(self.model.env.y, self.unit.y))
         self.figure.canvas.draw()
 
     @event
@@ -117,7 +115,8 @@ class MadLineView(object):
         envx, envy = self.model.env
 
         max_env = Vector(np.max(envx), np.max(envy))
-        patch_h = Vector(0.75*max_env.x, 0.75*max_env.y)
+        patch_h = Vector(0.75*stripunit(max_env.x, self.unit.y),
+                         0.75*stripunit(max_env.y, self.unit.y))
 
         # plot
         self.axes.x.cla()
@@ -133,37 +132,37 @@ class MadLineView(object):
             if elem_type is None:
                 continue
 
-            if 'L' in elem and float(elem['L']) != 0:
-                patch_w = float(elem['L'])
-                patch_x = float(elem['at']) - patch_w/2
+            if 'L' in elem and stripunit(elem['L']) != 0:
+                patch_w = stripunit(elem['L'], self.unit.x)
+                patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
                 self.axes.x.add_patch(
                         mpl.patches.Rectangle(
                             (patch_x, 0),
-                            patch_w, patch_h.x/self.unit.y['scale'],
+                            patch_w, patch_h.x,
                             alpha=0.5, color=elem_type['color']))
                 self.axes.y.add_patch(
                         mpl.patches.Rectangle(
                             (patch_x, 0),
-                            patch_w, patch_h.y/self.unit.y['scale'],
+                            patch_w, patch_h.y,
                             alpha=0.5, color=elem_type['color']))
             else:
-                patch_x = float(elem['at'])
+                patch_x = stripunit(elem['at'], self.unit.x)
                 self.axes.x.vlines(
                         patch_x, 0,
-                        patch_h.x/self.unit.y['scale'],
+                        patch_h.x,
                         alpha=0.5, color=elem_type['color'])
                 self.axes.y.vlines(
                         patch_x, 0,
-                        patch_h.y/self.unit.y['scale'],
+                        patch_h.y,
                         alpha=0.5, color=elem_type['color'])
 
         self.clines = Vector(
             self.axes.x.plot(
-                pos, envx/self.unit.y['scale'],
+                stripunit(pos, self.unit.x), stripunit(envx, self.unit.y),
                 "o-", color=self.curve.x['color'], fillstyle='none',
                 label="$\Delta x$")[0],
             self.axes.y.plot(
-                pos, envy/self.unit.y['scale'],
+                stripunit(pos, self.unit.x), stripunit(envy, self.unit.y),
                 "o-", color=self.curve.y['color'], fillstyle='none',
                 label="$\Delta y$")[0])
 
@@ -178,10 +177,11 @@ class MadLineView(object):
             self.axes[axis_index].get_xaxis().set_minor_locator(
                 MultipleLocator(2))
             self.axes[axis_index].get_yaxis().set_minor_locator(
-                MultipleLocator(0.002/self.unit.y['scale']))
-            self.axes[axis_index].set_xlim(pos[0], pos[-1])
-            self.axes[axis_index].set_ylabel("$\Delta %s$ [%s]" % (
-                axis_name, self.unit.y['label']))
+                MultipleLocator(2))
+            self.axes[axis_index].set_xlim(stripunit(pos[0], self.unit.x),
+                                           stripunit(pos[-1], self.unit.x))
+            self.axes[axis_index].set_ylabel(r'$\Delta %s$ %s' % (
+                axis_name, unit_label(self.unit.y)))
             self.axes[axis_index].set_ylim(0)
 
         # invert y-axis:
@@ -233,16 +233,18 @@ class MirkoView(object):
             return
 
         with model.mdata.get_by_dict(optic['test']).filename() as f:
-            aenv = np.loadtxt(f, usecols=(0,1,2))/1000
+            aenv = units.mm * np.loadtxt(f, usecols=(0,1,2))
         envdata = Vector(
             Vector(aenv[:,0], aenv[:,1]),
             Vector(aenv[:,0], aenv[:,2]))
 
         self.lines = Vector(
-            self.view.axes.x.plot(envdata.x.x/self.view.unit.x['scale'],
-                                  envdata.x.y/self.view.unit.y['scale'], 'k'),
-            self.view.axes.y.plot(envdata.y.x/self.view.unit.x['scale'],
-                                  envdata.y.y/self.view.unit.y['scale'], 'k'))
+            self.view.axes.x.plot(stripunit(envdata.x.x, self.view.unit.x),
+                                  stripunit(envdata.x.y, self.view.unit.y),
+                                  'k'),
+            self.view.axes.y.plot(stripunit(envdata.y.x, self.view.unit.x),
+                                  stripunit(envdata.y.y, self.view.unit.y),
+                                  'k'))
         self.view.figure.canvas.draw()
 
     def _remove(self):
