@@ -27,15 +27,16 @@ setup(
     license=None,
     test_suite='nose.collector',
     install_requires=[
-        'pydicti',
-        'obsub',
-        'PyMAD',
-        'unum',
+        'matplotlib==1.3.1',
+        'numpy==1.8.0',
+        'obsub==0.1.1',
+        'pydicti==0.0.2',
+        'PyMAD==0.4',
+        'unum==4.1.3',
+        'wxPython==2.8.12.1',
     ],
     entry_points={
-        'gui_scripts': [
-            'madgui = madgui.main:main'
-        ],
+        'gui_scripts': ['madgui = madgui.main:main'],
     },
     package_data={
         'madgui': ['resource/*']
