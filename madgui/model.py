@@ -13,7 +13,7 @@ import numpy as np
 # other
 from obsub import event
 
-from .unit import units, madx as madunit
+from .unit import units, madx as madunit, stripunit
 
 try:
     basestring
