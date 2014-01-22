@@ -9,6 +9,7 @@ import wxversion
 wxversion.ensureMinimal('2.8')
 import wx
 import wx.aui
+from wx.py.crust import Crust
 
 # scipy
 import matplotlib as mpl
@@ -154,14 +155,19 @@ class Frame(wx.Frame):
         sizer.Add(self.notebook, 1, wx.EXPAND)
         self.panel.SetSizer(sizer)
 
-    def AddView(self, view, title):
-        """Add new notebook tab for the view."""
-        panel = ViewPanel(self.notebook, view)
-        self.notebook.AddPage(panel, title, select=True)
         self.notebook.Bind(
             wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSED,
             self.OnPageClosed,
             source=self.notebook)
+
+        # TODO: create a toolbar for this tab as well
+        # TODO: prevent this tab from being closed (?)
+        self.notebook.AddPage(Crust(self.notebook), "Command", select=True)
+
+    def AddView(self, view, title):
+        """Add new notebook tab for the view."""
+        panel = ViewPanel(self.notebook, view)
+        self.notebook.AddPage(panel, title, select=True)
         view.plot()
         return panel
 
