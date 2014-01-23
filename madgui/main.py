@@ -146,10 +146,24 @@ class Frame(wx.Frame):
     """
     Main window.
     """
+
+    ID_SHELL = wx.NewId()
+    ID_MODEL = wx.NewId()
+
     def __init__(self):
         """Create notebook frame."""
         super(Frame, self).__init__(parent=None, title='MadGUI', size=wx.Size(800,600))
+
+        # create and listen to events:
+        self.SetMenuBar(self._CreateMenu())
+        self.Bind(wx.EVT_MENU, self.OnOpenModel, id=self.ID_MODEL)
+        self.Bind(wx.EVT_MENU, self.OnNewShell, id=self.ID_SHELL)
+        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_EXIT)
+
+        # main panel
         self.panel = wx.Panel(self)
+
+        # create notebook
         self.notebook = wx.aui.AuiNotebook(self.panel)
         sizer = wx.BoxSizer()
         sizer.Add(self.notebook, 1, wx.EXPAND)
@@ -160,9 +174,21 @@ class Frame(wx.Frame):
             self.OnPageClosed,
             source=self.notebook)
 
-        # TODO: create a toolbar for this tab as well
-        # TODO: prevent this tab from being closed (?)
-        self.notebook.AddPage(Crust(self.notebook), "Command", select=True)
+        # Create a command tab
+        self.NewCommandTab()
+
+    def _CreateMenu(self):
+        """Create a menubar."""
+        # TODO: this needs to be done more dynamically. E.g. use resource
+        # files and/or a plugin system to add/enable/disable menu elements.
+        menubar = wx.MenuBar()
+        appmenu = wx.Menu()
+        appmenu.Append(self.ID_SHELL, '&New prompt\tCtrl+N', 'Open a new tab with a command prompt')
+        appmenu.Append(self.ID_MODEL, '&Open model\tCtrl+O', 'Open another model in a new tab')
+        appmenu.AppendSeparator()
+        appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
+        menubar.Append(appmenu, '&App')
+        return menubar
 
     def AddView(self, view, title):
         """Add new notebook tab for the view."""
@@ -176,12 +202,24 @@ class Frame(wx.Frame):
         if self.notebook.GetPageCount() == 0:
             self.Close()
 
+    def OnQuit(self, event):
+        self.Close()
 
-assert issubclass(wx.App, object)  # we want new style classes!
-class App(wx.App):
-    """
-    Highest level application logic.
-    """
+    #----------------------------------------
+    # New command tab
+    #----------------------------------------
+    def OnNewShell(self, event):
+        self.NewCommandTab()
+
+    def NewCommandTab(self):
+        # TODO: create a toolbar for this tab as well
+        # TODO: prevent this tab from being closed (?)
+        self.notebook.AddPage(Crust(self.notebook), "Command", select=True)
+
+
+    #----------------------------------------
+    # Open new model:
+    #----------------------------------------
     def load_model(self, mdata, **kwargs):
         """Instanciate a new MadModel."""
         res = mdata.repository.get()
@@ -193,15 +231,15 @@ class App(wx.App):
 
     def show_model(self, madmodel):
         view = MadLineView(madmodel)
-        panel = self.frame.AddView(view, madmodel.name)
+        panel = self.AddView(view, madmodel.name)
         mirko = MirkoView(madmodel, view)
 
         # create controller
         MadCtrl(madmodel, panel, mirko)
 
-    def open_model(self, parent=None):
+    def open_model(self):
         from .openmodel import OpenModelDlg
-        dlg = OpenModelDlg(parent)
+        dlg = OpenModelDlg(self)
         success = dlg.ShowModal() == wx.ID_OK
         if success:
             model = dlg.data
@@ -210,14 +248,19 @@ class App(wx.App):
         dlg.Destroy()
         return success
 
+    def OnOpenModel(self, event):
+        self.open_model()
+
+
+assert issubclass(wx.App, object)  # we want new style classes!
+class App(wx.App):
+    """
+    Highest level application logic.
+    """
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # setup view
         self.frame = Frame()
-        if not self.open_model():
-            return False
-
-        # show frame and enter main loop
         self.frame.Show(True)
         return True
 
