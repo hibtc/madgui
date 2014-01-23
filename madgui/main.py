@@ -57,7 +57,6 @@ def makedirs(path):
 # GUI classes
 #----------------------------------------
 
-assert issubclass(wx.Panel, object)  # we want new style classes!
 class ViewPanel(wx.Panel):
     """
     Display panel view for a MadLineView figure.
@@ -149,7 +148,6 @@ class ViewPanel(wx.Panel):
         self.canvas.draw()
 
 
-assert issubclass(wx.Frame, object)  # we want new style classes!
 class Frame(wx.Frame):
     """
     Main window.
@@ -262,7 +260,6 @@ class Frame(wx.Frame):
         self.open_model()
 
 
-assert issubclass(wx.App, object)  # we want new style classes!
 class App(wx.App):
     """
     Core application class.
