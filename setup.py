@@ -37,7 +37,7 @@ setup(
         'docopt',
     ],
     entry_points={
-        'gui_scripts': ['madgui = madgui.main:main'],
+        'gui_scripts': ['madgui = madgui.main:App.main'],
     },
     package_data={
         'madgui': ['resource/*']

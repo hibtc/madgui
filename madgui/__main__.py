@@ -1,8 +1,13 @@
 """
 Run the MadGUI application.
+
+This module is invoked when calling ``python -m madgui``.
+
+For more information on the command line parameters, see App.usage.
+
 """
-import madgui.main
+from __future__ import absolute_import
+from .main import App
 
 if __name__ == '__main__':
-    # start the application
-    madgui.main.main()
+    App.main()

@@ -265,6 +265,15 @@ class App(wx.App):
     """
     Highest level application logic.
     """
+    @classmethod
+    def main(cls, argv=None):
+        from docopt import docopt
+        docopt(__doc__, argv, version='madgui 0.2')
+        app = cls(
+            redirect=False,
+            filename=os.path.join(logfolder, 'error.log'))
+        app.MainLoop()
+
     def OnInit(self):
         """Create the main window and insert the custom frame."""
         # setup view
@@ -272,14 +281,5 @@ class App(wx.App):
         self.frame.Show(True)
         return True
 
-def main(argv=None):
-    from docopt import docopt
-    docopt(__doc__, argv, version='madgui 0.2')
-    app = App(
-        redirect=False,
-        filename=os.path.join(logfolder, 'error.log'))
-    app.MainLoop()
-main.__doc__ = __doc__
-
 if __name__ == '__main__':
-    main()
+    App.main()
