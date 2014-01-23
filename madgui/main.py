@@ -1,5 +1,13 @@
 """
-Lightweight GUI application for a MAD model.
+MadGUI - Interactive GUI cpymad.
+
+Usage:
+    madgui (--version | --help)
+
+Options:
+    -h, --help          Show this help
+    -v, --version       Show version information
+
 """
 
 from __future__ import absolute_import
@@ -264,13 +272,14 @@ class App(wx.App):
         self.frame.Show(True)
         return True
 
-def main():
-    """Invoke GUI application."""
-    # TODO: add command line options (via docopt!)
+def main(argv=None):
+    from docopt import docopt
+    docopt(__doc__, argv, version='madgui 0.2')
     app = App(
         redirect=False,
         filename=os.path.join(logfolder, 'error.log'))
     app.MainLoop()
+main.__doc__ = __doc__
 
 if __name__ == '__main__':
     main()

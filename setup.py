@@ -34,6 +34,7 @@ setup(
         'PyMAD==0.4',
         'unum>=4.0',
         'wxPython>=2.8',
+        'docopt',
     ],
     entry_points={
         'gui_scripts': ['madgui = madgui.main:main'],
