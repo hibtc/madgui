@@ -1,7 +1,16 @@
 """
-Lightweight GUI application for a MAD model.
-"""
+MadGUI - Interactive GUI cpymad.
 
+Usage:
+    madgui [-l <logs>]
+    madgui (--help | --version)
+
+Options:
+    -l <logs>, --log=<logs>     Set log directory (default is '~/.madgui')
+    -h, --help                  Show this help
+    -v, --version               Show version information
+
+"""
 from __future__ import absolute_import
 
 # wxpython
@@ -36,20 +45,18 @@ from .line_view import MadLineView, MirkoView
 from .controller import MadCtrl
 
 
-logfolder = os.path.join(os.path.expanduser('~'), '.madgui')
-try:
-    os.makedirs(logfolder)
-except OSError:
-    # directory already exists. the exist_ok parameter exists not until
-    # python3.2
-    pass
-
+def makedirs(path):
+    """Make sure 'path' exists. Like 'os.makedirs(path, exist_ok=True)'."""
+    try:
+        os.makedirs(path)
+    except OSError:
+        # directory already exists. 'exist_ok' cannot be used until python3.2
+        pass
 
 #----------------------------------------
 # GUI classes
 #----------------------------------------
 
-assert issubclass(wx.Panel, object)  # we want new style classes!
 class ViewPanel(wx.Panel):
     """
     Display panel view for a MadLineView figure.
@@ -141,7 +148,6 @@ class ViewPanel(wx.Panel):
         self.canvas.draw()
 
 
-assert issubclass(wx.Frame, object)  # we want new style classes!
 class Frame(wx.Frame):
     """
     Main window.
@@ -150,9 +156,11 @@ class Frame(wx.Frame):
     ID_SHELL = wx.NewId()
     ID_MODEL = wx.NewId()
 
-    def __init__(self):
+    def __init__(self, logfolder):
         """Create notebook frame."""
         super(Frame, self).__init__(parent=None, title='MadGUI', size=wx.Size(800,600))
+
+        self.logfolder = logfolder
 
         # create and listen to events:
         self.SetMenuBar(self._CreateMenu())
@@ -243,7 +251,7 @@ class Frame(wx.Frame):
         success = dlg.ShowModal() == wx.ID_OK
         if success:
             model = dlg.data
-            h = os.path.join(logfolder, "%s.madx" % model.name)
+            h = os.path.join(self.logfolder, "%s.madx" % model.name)
             self.show_model(self.load_model(model, histfile=h))
         dlg.Destroy()
         return success
@@ -252,25 +260,65 @@ class Frame(wx.Frame):
         self.open_model()
 
 
-assert issubclass(wx.App, object)  # we want new style classes!
 class App(wx.App):
     """
-    Highest level application logic.
+    Core application class.
+
+    Use App.main() to run the application.
+
+    :ivar mainframe: main window
+    :ivar argv: command line arguments
+
     """
+    version = '0.2'
+    usage = globals()['__doc__']
+
+    @classmethod
+    def main(cls, argv=None):
+        """
+        Create an application instance and run the MainLoop.
+
+        :param list argv: command line parameters, see App.usage for details.
+
+        NOTE: The application instance is stored in the global name ``app``.
+
+        """
+        global app
+        app = cls(argv)
+        app.MainLoop()
+
+    def __init__(self, argv=None):
+        """
+        Create an application instance.
+
+        :param list argv: command line parameters, see App.usage for details.
+
+        """
+        self.argv = argv
+        self.mainframe = None
+        super(App, self).__init__(redirect=False)
+
     def OnInit(self):
-        """Create the main window and insert the custom frame."""
-        # setup view
-        self.frame = Frame()
-        self.frame.Show(True)
+        """
+        Initialize the application.
+
+        Parse the command line parameters and create the main frame.
+
+        """
+        # parse command line
+        from docopt import docopt
+        args = docopt(self.usage, self.argv, version=self.version)
+        # create log directory
+        if args['--log']:
+            logfolder = args['--log']
+        else:
+            logfolder = os.path.join(os.path.expanduser('~'), '.madgui')
+        makedirs(logfolder)
+        # create main frame
+        self.mainframe = Frame(logfolder=logfolder)
+        self.mainframe.Show(True)
+        # signal wxwidgets to enter the main loop
         return True
 
-def main():
-    """Invoke GUI application."""
-    # TODO: add command line options (via docopt!)
-    app = App(
-        redirect=False,
-        filename=os.path.join(logfolder, 'error.log'))
-    app.MainLoop()
-
 if __name__ == '__main__':
-    main()
+    App.main()
