@@ -234,7 +234,7 @@ class Frame(wx.Frame):
         model = MadModel(
             name=mdata.name,
             model=cpymad.model(mdata, **kwargs),
-            sequence=res.json('sequence.json'))
+            sequence=res.yaml('sequence.yml'))
         return model
 
     def show_model(self, madmodel):

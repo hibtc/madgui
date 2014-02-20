@@ -31,7 +31,7 @@ setup(
         'numpy',
         'obsub>=0.1.1',
         'pydicti>=0.0.2',
-        'PyMAD==0.4',
+        'cern-pymad==0.6',
         'unum>=4.0',
         'wxPython>=2.8',
         'docopt',
