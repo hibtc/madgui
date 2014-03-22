@@ -37,12 +37,21 @@ setup(
         'docopt',
     ],
     entry_points="""
-    [gui_scripts]
-    madgui = madgui.main:App.main
+        [gui_scripts]
+        madgui = madgui.main:App.main
 
-    [madgui.app.init]
-    mainframe = madgui.mainframe:Frame.create
+        [madgui.app.init]
+        mainframe = madgui.mainframe:Frame.create
 
+        [madgui.viewpanel.init]
+        madctrl = madgui.line_view:MadCtrl.create
+        compare = madgui.line_view:MirkoView.connect_toolbar
+
+        [madgui.frame.menu]
+        openmodel = madgui.openmodel:OpenModelDlg.connect_menu
+
+        [madgui.model.show]
+        line_view = madgui.line_view:MadLineView.create
     """,
     package_data={
         'madgui': ['resource/*']

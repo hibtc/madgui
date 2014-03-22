@@ -1,14 +1,23 @@
 """
 Contains opendialog for models.
 """
+# standard library
 from importlib import import_module
 from collections import namedtuple
 from pkg_resources import iter_entry_points
+import os
 
+# GUI
+import wx
+
+# 3rd party
 from cern.resource.package import PackageResource
 from cern.cpymad.model_locator import MergedModelLocator
+from cern import cpymad
 
-import wx
+# internal
+from .model import MadModel
+
 
 def list_locators():
     return [(ep.name, ep.load()) for ep in iter_entry_points('madgui.models')]
@@ -26,16 +35,29 @@ def get_locator(pkg_name):
 
 
 class OpenModelDlg(wx.Dialog):
+
     """
     Open dialog for models contained in python packages.
-
-    Displays
-
     """
-    def __init__(self, *args, **kwargs):
+
+    @classmethod
+    def connect_menu(cls, frame, menubar):
+        def OnOpenModel(event):
+            dlg = cls(frame)
+            if dlg.ShowModal() == wx.ID_OK:
+                dlg.model.show(frame)
+            dlg.Destroy()
+        appmenu = menubar.Menus[0][0]
+        menuitem = appmenu.Append(wx.ID_ANY,
+                                  '&Open model\tCtrl+O',
+                                  'Open another model in a new tab')
+        menubar.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
+
+    def __init__(self, parent, *args, **kwargs):
         """Store the data and initialize the component."""
-        self.data = None
-        super(OpenModelDlg, self).__init__(*args, **kwargs)
+        self.model = None
+        super(OpenModelDlg, self).__init__(parent, *args, **kwargs)
+        self.logfolder = parent.logfolder
         self.CreateControls()
         self.Centre()
 
@@ -122,10 +144,16 @@ class OpenModelDlg(wx.Dialog):
     def TransferDataFromWindow(self):
         """Get selected package and model name."""
         locator = self.GetCurrentLocator()
-        if locator:
-            self.data = locator.get_model(self.ctrl_model.GetValue())
-        else:
-            self.data = None
+        if not locator:
+            self.model = None
+            return
+        mdata = locator.get_model(self.ctrl_model.GetValue())
+        histfile = os.path.join(self.logfolder, "%s.madx" % mdata.name)
+        res = mdata.repository.get()
+        self.model = MadModel(
+            name=mdata.name,
+            model=cpymad.model(mdata, histfile=histfile),
+            sequence=res.yaml('sequence.yml'))
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""

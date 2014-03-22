@@ -13,6 +13,7 @@ import numpy as np
 # other
 from obsub import event
 
+from .plugin import hookcollection
 from .unit import units, madx as madunit, stripunit
 
 try:
@@ -32,6 +33,10 @@ class MadModel(object):
      - knows about variables => can perform matching
 
     """
+    hook = hookcollection(
+        'madgui.model', [
+            'show'
+        ])
 
     def __init__(self, name, model, sequence):
         """Load meta data and compute twiss variables."""
@@ -40,6 +45,9 @@ class MadModel(object):
         self.model = model
         self.sequence = list(map(self.from_madx, sequence))
         self.twiss()
+
+    def show(self, frame):
+        self.hook.show(self, frame)
 
     @property
     def beam(self):
