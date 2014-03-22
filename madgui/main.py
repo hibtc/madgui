@@ -9,11 +9,12 @@ Options:
     -l <logs>, --log=<logs>     Set log directory (default is '~/.madgui')
     -h, --help                  Show this help
     -v, --version               Show version information
-
 """
+
+# Force new style imports
 from __future__ import absolute_import
 
-# wxpython
+# GUI components
 import wxversion
 wxversion.ensureMinimal('2.8')
 import wx
@@ -31,14 +32,15 @@ from .common import makedirs
 
 
 class App(wx.App):
+
     """
     Core application class.
 
     Use App.main() to run the application.
 
     :ivar argv: command line arguments
-
     """
+
     version = '0.2'
     usage = globals()['__doc__']
 
@@ -55,7 +57,6 @@ class App(wx.App):
         :param list argv: command line parameters, see App.usage for details.
 
         NOTE: The application instance is stored in the global name ``app``.
-
         """
         global app
         app = cls(argv)
@@ -66,7 +67,6 @@ class App(wx.App):
         Create an application instance.
 
         :param list argv: command line parameters, see App.usage for details.
-
         """
         self.argv = argv
         super(App, self).__init__(redirect=False)
@@ -76,7 +76,6 @@ class App(wx.App):
         Initialize the application.
 
         Parse the command line parameters and create the main frame.
-
         """
         # parse command line
         from docopt import docopt

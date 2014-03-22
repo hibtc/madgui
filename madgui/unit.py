@@ -1,19 +1,35 @@
 """
 Provides unit conversion.
 """
-__all__ = ['units', 'stripunit', 'tounit', 'unit_label']
 
+# Force new style imports
+from __future__ import absolute_import
+
+# 3rd party
 from unum import units
 from pydicti import dicti
 
+# public exports
+__all__ = ['units',
+           'stripunit',
+           'tounit',
+           'unit_label']
+
+
 def stripunit(quantity, unit=None):
+    """Convert the quantity to a plain float."""
     return quantity.asNumber(unit)
 
+
 def tounit(quantity, unit):
+    """Cast the quantity to a specific unit."""
     return quantity.asUnit(unit)
 
+
 def unit_label(quantity):
+    """Get name of the unit."""
     return quantity.strUnit()
+
 
 madx = dicti({
     'L': units.m,
@@ -38,4 +54,3 @@ madx = dicti({
     # 'ksl': None,            # varying units
     # 'vary': None,           # should be removed
 })
-

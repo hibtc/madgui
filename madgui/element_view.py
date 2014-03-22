@@ -1,7 +1,13 @@
 """
 Popup view component for displaying info for individual line elements.
 """
+
+# Force new style imports
+from __future__ import absolute_import
+
+# GUI components
 import wx
+
 
 class AutoSizedTextCtrl(wx.TextCtrl):
     def SetValue(self, value):
@@ -10,23 +16,24 @@ class AutoSizedTextCtrl(wx.TextCtrl):
         self.SetMinSize(wx.Size(int(minwidth), -1))
         return super(AutoSizedTextCtrl, self).SetValue(value)
 
+
 class MadElementPopup(wx.Dialog):
+
     """
     View for a single element
     """
-    def __init__(self, parent):
-        super(MadElementPopup, self).__init__(
-                parent=parent,
-                style=wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER)
 
+    def __init__(self, parent):
+        """Create an empty popup window."""
+        super(MadElementPopup, self).__init__(
+            parent=parent,
+            style=wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER)
         self.grid = wx.FlexGridSizer(rows=0, cols=2, vgap=5, hgap=5)
         self.grid.SetFlexibleDirection(wx.HORIZONTAL)
         self.grid.AddGrowableCol(1, 1)
         self.grid.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
-
         outer = wx.BoxSizer(wx.VERTICAL)
         outer.Add(self.grid, flag=wx.ALL|wx.EXPAND, border=5)
-
         self.SetSizer(outer)
         self.Centre()
 
@@ -63,11 +70,14 @@ class MadElementPopup(wx.Dialog):
         self.Fit()
 
 
-class MadElementView:
+class MadElementView(object):
+
     """
     This controls MadElementPopup element view.
     """
+
     def __init__(self, popup, model, element_name):
+        """Start to manage the popup window."""
         self.model = model
         self.element_name = element_name
         self.popup = popup
@@ -76,10 +86,16 @@ class MadElementView:
         self.popup.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def OnClose(self, event):
+        """Disconnect the manager, after the popup window was closed."""
         self.model.hook.update.disconnect(self.update)
         event.Skip()
 
     def update(self):
+
+        """
+        Update the contents of the managed popup window.
+        """
+
         el = self.model.element_by_name(self.element_name)
         rows = el.items()
 
@@ -110,4 +126,3 @@ class MadElementView:
 
         # update view:
         self.popup.rows = rows
-

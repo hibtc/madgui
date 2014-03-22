@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
+"""
+Installation script for MadGUI.
+
+Usage:
+    python setup.py install
+"""
 
 from setuptools import setup
 
@@ -24,7 +30,7 @@ setup(
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Scientific/Engineering :: Physics',
     ],
-    license=None,
+    license='MIT',
     test_suite='nose.collector',
     install_requires=[
         'matplotlib',
@@ -40,7 +46,7 @@ setup(
         madgui = madgui.main:App.main
 
         [madgui.app.init]
-        mainframe = madgui.mainframe:Frame.create
+        mainframe = madgui.mainframe:Frame
 
         [madgui.viewpanel.init]
         match = madgui.line_view:MadMatch

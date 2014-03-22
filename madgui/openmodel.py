@@ -1,13 +1,17 @@
 """
-Contains opendialog for models.
+Contains an open model dialog.
 """
+
+# Force new style imports
+from __future__ import absolute_import
+
 # standard library
 from importlib import import_module
 from collections import namedtuple
 from pkg_resources import iter_entry_points
 import os
 
-# GUI
+# GUI components
 import wx
 
 # 3rd party
@@ -20,7 +24,9 @@ from .model import MadModel
 
 
 def list_locators():
+    """Return list of all locators at the entrypoint madgui.models."""
     return [(ep.name, ep.load()) for ep in iter_entry_points('madgui.models')]
+
 
 def get_locator(pkg_name):
     """List all models in the given package. Returns an iterable."""
@@ -45,7 +51,7 @@ class OpenModelDlg(wx.Dialog):
         def OnOpenModel(event):
             dlg = cls(frame)
             if dlg.ShowModal() == wx.ID_OK:
-                dlg.model.show(frame)
+                dlg.model.hook.show(dlg.model, frame)
             dlg.Destroy()
         appmenu = menubar.Menus[0][0]
         menuitem = appmenu.Append(wx.ID_ANY,
@@ -62,7 +68,9 @@ class OpenModelDlg(wx.Dialog):
         self.Centre()
 
     def CreateControls(self):
+
         """Create subcontrols and layout."""
+
         # Create controls
         label_pkg = wx.StaticText(self, label="Source:")
         label_model = wx.StaticText(self, label="Model:")
@@ -108,12 +116,12 @@ class OpenModelDlg(wx.Dialog):
         self.SetSizer(outer)
         outer.Fit(self)
 
-
     def OnPackageChange(self, event):
         """Update model list when package name is changed."""
         self.UpdateModelList()
 
     def GetCurrentLocator(self):
+        """Get the currently selected locator."""
         selection = self.ctrl_pkg.GetSelection()
         if selection == wx.NOT_FOUND:
             return get_locator(self.ctrl_pkg.GetValue())
@@ -126,6 +134,7 @@ class OpenModelDlg(wx.Dialog):
         return list(locator.list_models()) if locator else []
 
     def UpdateLocatorList(self):
+        """Update the list of locators shown in the dialog."""
         self.locators = list_locators()
         self.ctrl_pkg.SetItems([l[0] for l in self.locators])
         self.ctrl_pkg.SetSelection(0)
@@ -163,13 +172,15 @@ class OpenModelDlg(wx.Dialog):
         # self.ctrl_model.SetValue(self.data.model_name)
 
     def UpdateButtonOk(self, event):
+        """Update the status of the OK button."""
         modellist = self.GetModelList()
         event.Enable(bool(modellist))
 
     def OnButtonOk(self, event):
+        """Confirm current selection and close dialog."""
         self.TransferDataFromWindow()
         self.EndModal(wx.ID_OK)
 
     def OnButtonCancel(self, event):
+        """Cancel the dialog."""
         self.EndModal(wx.ID_CANCEL)
-

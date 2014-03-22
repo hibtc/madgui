@@ -15,16 +15,21 @@ Short class overview:
 - :class:`EntryPoint` multicasts events to setuptools entry points.
 """
 
+# Force new style imports
 from __future__ import absolute_import
 
+# standard library
+import pkg_resources
+
+# internal
+from .common import cachedproperty
+
+
+# public exports
 __all__ = ['Hook',
            'Multicast',
            'List',
            'EntryPoint']
-
-import pkg_resources
-
-from .common import cachedproperty
 
 
 def Hook(name):

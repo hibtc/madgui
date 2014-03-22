@@ -1,5 +1,14 @@
+"""
+Common utilities.
+"""
+
+# Force new style imports
+from __future__ import absolute_import
+
+# standard library
 import os
 import functools
+
 
 def rchop(thestring, ending):
     """Remove substring at the end of a string."""

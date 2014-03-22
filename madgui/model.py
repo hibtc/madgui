@@ -2,6 +2,9 @@
 Model component for the MadGUI application.
 """
 
+# Force new style imports
+from __future__ import absolute_import
+
 # standard library
 import copy
 import re
@@ -11,23 +14,28 @@ from collections import namedtuple
 from .plugin import hookcollection
 from .unit import units, madx as madunit, stripunit
 
-try:
+
+# compatibility
+try:                    # python2
     basestring
-except NameError:
+except NameError:       # python3 (let's think about future...)
     basestring = str
+
 
 Vector = namedtuple('Vector', ['x', 'y'])
 
+
 class MadModel(object):
+
     """
-    Model class for cern.cpymad.model
+    Extended model class for cern.cpymad.model (extends by delegation).
 
     Improvements over cern.cpymad.model:
 
      - knows sequence
      - knows about variables => can perform matching
-
     """
+
     hook = hookcollection(
         'madgui.model', [
             'show',
@@ -45,11 +53,9 @@ class MadModel(object):
         self.sequence = list(map(self.from_madx, sequence))
         self.twiss()
 
-    def show(self, frame):
-        self.hook.show(self, frame)
-
     @property
     def beam(self):
+        """Get the beam parameter dictionary."""
         mdef = self.model._mdef
         beam = mdef['sequences'][self.model._active['sequence']]['beam']
         return self.from_madx(mdef['beams'][beam])
@@ -143,7 +149,9 @@ class MadModel(object):
         self.hook.update()
 
     def match(self):
+
         """Perform matching according to current constraints."""
+
         # select variables: one for each constraint
         vary = []
         allvars = [elem for elem in self.sequence
@@ -183,6 +191,7 @@ class MadModel(object):
         self.update()
 
     def find_constraint(self, elem, axis=None):
+        """Find and return the constraint for the specified element."""
         matched = [c for c in self.constraints if c[1] == elem]
         if axis is not None:
             matched = [c for c in matched if c[0] == axis]
@@ -210,6 +219,7 @@ class MadModel(object):
         self.hook.clear_constraints()
 
     def evaluate(self, expr):
+        """Evaluate a MADX expression and return the result as float."""
         return self.model.evaluate(expr)
 
     def value_from_madx(self, name, value):
@@ -238,29 +248,42 @@ class MadModel(object):
 
 
 class SymbolicValue(object):
+
+    """
+    Representation of a symbolic MADX expression.
+
+    Needs to be evaluated via model.evaluate.
+    """
+
     def __init__(self, model, value, unit):
+        """Store model, value and unit as instance variables."""
         self._model = model
         self._value = value
         self._unit = unit
 
     def __float__(self):
+        """Evaluate expression and return as pure float in the base unit."""
         return self.asNumber()
 
     def __str__(self):
+        """Evaluate expression and return with associated unit."""
         return str(self._evaluate())
 
     def __repr__(self):
+        """Return representation without evaluating the expression."""
         return "%s(%r)" % (self.__class__.__name__, self._value)
 
     def _evaluate(self):
         return self._unit * self._model.evaluate(self._value)
 
     def asNumber(self, unit=None):
+        """Evaluate expression and return as pure float."""
         return self._evaluate().asNumber(unit)
 
     def asUnit(self, unit=None):
+        """Evaluate expression and cast to the specified unit."""
         return self._evaluate().asUnit(unit)
 
     def strUnit(self):
+        """Return a string that describes the unit."""
         return self._unit.strUnit()
-

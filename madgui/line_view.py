@@ -2,13 +2,15 @@
 View component for the MadGUI application.
 """
 
-# GUI
+# Force new style imports
+from __future__ import absolute_import
+
+# GUI components
 import wx
 
 # scipy
 import numpy as np
 import matplotlib as mpl
-from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator
 
 # 3rd party
@@ -22,11 +24,11 @@ from .plugin import hookcollection
 
 
 class MadLineView(object):
+
     """
     Matplotlib figure view for a MadModel.
 
     This is automatically updated when the model changes.
-
     """
 
     hook = hookcollection(
@@ -387,10 +389,10 @@ class MadSelect(object):
         bmp = wx.ArtProvider.GetBitmap(wx.ART_TIP, wx.ART_TOOLBAR)
         self.toolbar = panel.toolbar
         self.tool = panel.toolbar.AddCheckTool(
-                wx.ID_ANY,
-                bitmap=bmp,
-                shortHelp='Show info for individual elements',
-                longHelp='Show info for individual elements')
+            wx.ID_ANY,
+            bitmap=bmp,
+            shortHelp='Show info for individual elements',
+            longHelp='Show info for individual elements')
         panel.Bind(wx.EVT_TOOL, self.OnSelectClick, self.tool)
 
         panel.hook.capture_mouse.connect(self.stop_select)
