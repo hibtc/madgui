@@ -73,6 +73,11 @@ class MadElementView:
         self.popup = popup
         self.update()
         model.hook.update.connect(self.update)
+        self.popup.Bind(wx.EVT_CLOSE, self.OnClose)
+
+    def OnClose(self, event):
+        self.model.hook.update.disconnect(self.update)
+        event.Skip()
 
     def update(self):
         el = self.model.element_by_name(self.element_name)
