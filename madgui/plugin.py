@@ -42,6 +42,20 @@ def Hook(name):
     return List([EntryPoint(name)])
 
 
+def hookproperty(name, doc=""):
+    """Return a property that associates a Hook to each instance."""
+    def signal(self):
+        try:
+            return self._events[name]
+        except AttributeError:
+            self._events = {}
+        except KeyError:
+            pass
+        hook = self._events[name] = Hook(name)
+        return hook
+    return property(signal, doc=doc or "Hook for {}".format(name))
+
+
 def _freeze(slot):
     """Return a frozen version of a single slot."""
     try:
@@ -58,7 +72,7 @@ class Multicast(object):
     Signal base class.
 
     Signals are responsible for multiplexing events to several clients.
-    Events can simply be understood as multicast function calls. 
+    Events can simply be understood as multicast function calls.
 
     This is an abstract base class. Concretizations need to supply the
     attribute :ivar:`slots`.
