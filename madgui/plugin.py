@@ -148,7 +148,7 @@ class List(Multicast):
 
     def connect(self, slot):
         """Register an event handler."""
-        return self.slots.add(slot)
+        return self.slots.append(slot)
 
     def disconnect(self, slot):
         """Remove an event handler."""
