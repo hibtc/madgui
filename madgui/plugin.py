@@ -152,7 +152,7 @@ class List(Multicast):
 
     def disconnect(self, slot):
         """Remove an event handler."""
-        self.slots.disconnect(slot)
+        self.slots.remove(slot)
 
 
 def iter_entry_points(group, name=None):
