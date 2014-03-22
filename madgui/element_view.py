@@ -7,7 +7,7 @@ class AutoSizedTextCtrl(wx.TextCtrl):
     def SetValue(self, value):
         value = str(value)
         minwidth = self.GetCharWidth() * len(value) * 1.2
-        self.SetMinSize(wx.Size(int(minwidth), -1)) 
+        self.SetMinSize(wx.Size(int(minwidth), -1))
         return super(AutoSizedTextCtrl, self).SetValue(value)
 
 class MadElementPopup(wx.Dialog):
@@ -48,8 +48,8 @@ class MadElementPopup(wx.Dialog):
         num_rows = grid.CalcRowsCols()[0]
         if len(rows) == num_rows:
             for row, (key, val) in enumerate(rows):
-                grid.GetItem(2*row+0).Window.Value = key 
-                grid.GetItem(2*row+1).Window.Value = val 
+                grid.GetItem(2*row+0).Window.Value = key
+                grid.GetItem(2*row+1).Window.SetValue(val)
         else:
             grid.Clear()
             for key, val in rows:
