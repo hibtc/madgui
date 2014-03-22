@@ -21,7 +21,8 @@ class ViewPanel(wx.Panel):
 
     hook = hookcollection(
         'madgui.viewpanel', [
-            'init'
+            'init',
+            'capture_mouse'
         ])
 
     def __init__(self, parent, view, **kwargs):

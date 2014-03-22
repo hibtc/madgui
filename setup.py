@@ -43,7 +43,8 @@ setup(
         mainframe = madgui.mainframe:Frame.create
 
         [madgui.viewpanel.init]
-        madctrl = madgui.line_view:MadCtrl.create
+        match = madgui.line_view:MadMatch
+        select = madgui.line_view:MadSelect
         compare = madgui.line_view:MirkoView.connect_toolbar
 
         [madgui.frame.menu]
