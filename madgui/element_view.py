@@ -10,7 +10,13 @@ import wx
 
 
 class AutoSizedTextCtrl(wx.TextCtrl):
+
+    """
+    Text control that adapts its minimum size to fit the text.
+    """
+
     def SetValue(self, value):
+        """Set text and update minimum size."""
         value = str(value)
         minwidth = self.GetCharWidth() * len(value) * 1.2
         self.SetMinSize(wx.Size(int(minwidth), -1))
@@ -66,7 +72,6 @@ class MadElementPopup(wx.Dialog):
                 text.SetValue(val)
                 grid.Add(label, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
                 grid.Add(text, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-
         self.Fit()
 
 
