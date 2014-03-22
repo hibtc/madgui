@@ -36,9 +36,14 @@ setup(
         'wxPython>=2.8',
         'docopt',
     ],
-    entry_points={
-        'gui_scripts': ['madgui = madgui.main:App.main'],
-    },
+    entry_points="""
+    [gui_scripts]
+    madgui = madgui.main:App.main
+
+    [madgui.app.init]
+    mainframe = madgui.mainframe:Frame.create
+
+    """,
     package_data={
         'madgui': ['resource/*']
     }

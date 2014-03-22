@@ -24,6 +24,8 @@ __all__ = ['Hook',
 
 import pkg_resources
 
+from .common import cachedproperty
+
 
 def Hook(name):
     """
@@ -54,6 +56,29 @@ def hookproperty(name, doc=""):
         hook = self._events[name] = Hook(name)
         return hook
     return property(signal, doc=doc or "Hook for {}".format(name))
+
+
+def hookcollection(prefix, suffixes):
+    def hook(self):
+        return HookCollection(prefix, suffixes)
+    hook.__name__ += '_' + prefix.replace('.', '_')
+    return cachedproperty(hook)
+
+
+class HookCollection(object):
+    def __init__(self, prefix, suffix):
+        self._prefix = prefix
+        self._suffix = suffix
+        self._cache = {}
+
+    def __getattr__(self, suffix):
+        try:
+            return self._cache[suffix]
+        except KeyError:
+            if self._suffix and suffix not in self._suffix:
+                raise
+            hook = self._cache[suffix] = Hook(self._prefix + '.' + suffix)
+            return hook
 
 
 def _freeze(slot):
