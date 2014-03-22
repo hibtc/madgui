@@ -12,13 +12,13 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator
 
 # 3rd party
-from obsub import event
 from cern.resource.package import PackageResource
 
 # internal
 from .model import Vector
 from .unit import units, stripunit, unit_label
 from .element_view import MadElementPopup, MadElementView
+from .plugin import hookcollection
 
 
 class MadLineView(object):
@@ -28,6 +28,11 @@ class MadLineView(object):
     This is automatically updated when the model changes.
 
     """
+
+    hook = hookcollection(
+        'madgui.line_view', [
+            'plot'
+        ])
 
     @classmethod
     def create(cls, model, frame):
@@ -66,11 +71,10 @@ class MadLineView(object):
         }
 
         # subscribe for updates
-        model.update += lambda model: self.update()
-        model.remove_constraint += lambda model, elem, axis=None: self.redraw_constraints()
-        model.clear_constraints += lambda model: self.redraw_constraints()
-        model.add_constraint += lambda model, axis, elem, envelope: self.redraw_constraints()
-
+        model.hook.update.connect(self.update)
+        model.hook.remove_constraint.connect(self.redraw_constraints)
+        model.hook.clear_constraints.connect(self.redraw_constraints)
+        model.hook.add_constraint.connect(self.redraw_constraints)
 
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
@@ -120,7 +124,6 @@ class MadLineView(object):
         self.clines.y.set_ydata(stripunit(self.model.env.y, self.unit.y))
         self.figure.canvas.draw()
 
-    @event
     def plot(self):
         """Plot figure and redraw canvas."""
         # data post processing
@@ -240,7 +243,7 @@ class MirkoView(object):
         def onplot(_):
             if self.visible:
                 self._plot()
-        self.view.plot += onplot
+        self.view.hook.plot.connect(onplot)
 
     @property
     def visible(self):

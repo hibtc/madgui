@@ -7,12 +7,7 @@ import copy
 import re
 from collections import namedtuple
 
-# scipy
-import numpy as np
-
-# other
-from obsub import event
-
+# internal
 from .plugin import hookcollection
 from .unit import units, madx as madunit, stripunit
 
@@ -35,7 +30,11 @@ class MadModel(object):
     """
     hook = hookcollection(
         'madgui.model', [
-            'show'
+            'show',
+            'update',
+            'add_constraint',
+            'remove_constraint',
+            'clear_constraints'
         ])
 
     def __init__(self, name, model, sequence):
@@ -133,7 +132,6 @@ class MadModel(object):
         else:
             return (self.env[axis][i] + self.env[axis][prev]) / 2
 
-    @event
     def update(self):
         """Perform post processing."""
         # data post processing
@@ -142,6 +140,7 @@ class MadModel(object):
         self.env = Vector(
             (self.tw.betx * beam['ex'])**0.5,
             (self.tw.bety * beam['ey'])**0.5)
+        self.hook.update()
 
     def match(self):
         """Perform matching according to current constraints."""
@@ -183,35 +182,32 @@ class MadModel(object):
         self.tw = self.from_madx(tw)
         self.update()
 
-    @event
     def find_constraint(self, elem, axis=None):
         matched = [c for c in self.constraints if c[1] == elem]
         if axis is not None:
             matched = [c for c in matched if c[0] == axis]
         return matched
 
-    @event
     def add_constraint(self, axis, elem, envelope):
         """Add constraint and perform matching."""
         # TODO: two constraints on same element represent upper/lower bounds
         #lines = self.draw_constraint(axis, elem, envelope)##EVENT
         #self.view.figure.canvas.draw()
-
         existing = self.find_constraint(elem, axis)
         if existing:
             self.remove_constraint(elem, axis)
-
         self.constraints.append( (axis, elem, envelope) )
+        self.hook.add_constraint()
 
-    @event
     def remove_constraint(self, elem, axis=None):
         """Remove the constraint for elem."""
         self.constraints = [c for c in self.constraints if c[1] != elem or (axis is not None and c[0] != axis)]
+        self.hook.remove_constraint()
 
-    @event
     def clear_constraints(self):
         """Remove all constraints."""
         self.constraints = []
+        self.hook.clear_constraints()
 
     def evaluate(self, expr):
         return self.model.evaluate(expr)
