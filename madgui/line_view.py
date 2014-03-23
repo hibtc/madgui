@@ -227,16 +227,17 @@ class MirkoView(object):
         self.model = panel.view.model
         self.view = panel.view
         self.lines = None
-        # connect to toolbar
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR)
-        tool = panel.toolbar.AddCheckTool(
-                wx.ID_ANY,
-                bitmap=bmp,
-                shortHelp='Show MIRKO envelope',
-                longHelp='Show MIRKO envelope for comparison. The envelope is computed for the default parameters.')
-        panel.Bind(wx.EVT_TOOL, self.OnMirkoClick, tool)
-        # subscribe to plotting
-        self.view.hook.plot.connect(self.redraw)
+        if self.test_file:
+            # connect to toolbar
+            bmp = wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR)
+            tool = panel.toolbar.AddCheckTool(
+                    wx.ID_ANY,
+                    bitmap=bmp,
+                    shortHelp='Show MIRKO envelope',
+                    longHelp='Show MIRKO envelope for comparison. The envelope is computed for the default parameters.')
+            panel.Bind(wx.EVT_TOOL, self.OnMirkoClick, tool)
+            # subscribe to plotting
+            self.view.hook.plot.connect(self.redraw)
 
     def OnMirkoClick(self, event):
         """Invoked when user clicks Mirko-Button"""
