@@ -12,7 +12,8 @@ import wx.aui
 from wx.py.crust import Crust
 
 # internal
-from madgui.util.plugin import hookcollection
+from madgui.util.common import ivar
+from madgui.util.plugin import HookCollection
 from madgui.core.figure import FigurePanel
 
 # exported symbols
@@ -25,12 +26,9 @@ class NotebookFrame(wx.Frame):
     Notebook window class for MadGUI (main window).
     """
 
-    hook = hookcollection(
-        'madgui.core.notebook', [
-            'init',
-            'term',
-            'menu'
-        ])
+    hook = ivar(HookCollection,
+                init='madgui.core.notebook.init',
+                menu='madgui.core.notebook.menu')
 
     def __init__(self, app, show=True):
 
