@@ -12,7 +12,8 @@ from matplotlib.ticker import MultipleLocator
 
 # internal
 import madgui.core
-from madgui.util.plugin import hookcollection
+from madgui.util.common import ivar
+from madgui.util.plugin import HookCollection
 from madgui.util.vector import Vector
 from madgui.util.unit import units, stripunit, unit_label
 
@@ -31,10 +32,8 @@ class LineView(object):
     This is automatically updated when the model changes.
     """
 
-    hook = hookcollection(
-        'madgui.component.lineview', [
-            'plot'
-        ])
+    hook = ivar(HookCollection,
+                plot=None)
 
     @classmethod
     def create(cls, model, frame):

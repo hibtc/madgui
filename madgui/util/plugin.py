@@ -6,12 +6,7 @@ Short class overview:
 
 - :func:`Hook` should be used for all named events (plugins).
 
-- :func:`hookproperty` creates an instance variable for Hooks
-
-- :func:`hookcollection` creates an instance variable for of HookCollections
-
-- :class:`HookCollection` gives attribute access to a set of hooks with a
-  common prefix name.
+- :class:`HookCollection` gives attribute access to a set of hooks.
 
 - :class:`Multicast` is an abstract base class. It only contains mixins and
   is missing the vital attribute ``slots``
@@ -26,16 +21,11 @@ Short class overview:
 from __future__ import absolute_import
 
 # standard library
-import pkg_resources
-
-# internal
-from .common import cachedproperty
+from pkg_resources import iter_entry_points
 
 
 # public exports
 __all__ = ['Hook',
-           'hookproperty',
-           'hookcollection',
            'HookCollection',
            'Multicast',
            'List',
@@ -56,49 +46,27 @@ def Hook(name):
     be a global state! There may be multiple instances being able to add or
     remove clients independently.
     """
-    return List([EntryPoint(name)])
-
-
-def hookproperty(name, doc=""):
-    """Return a property that associates a Hook to each instance."""
-    def signal(self):
-        try:
-            return self._events[name]
-        except AttributeError:
-            self._events = {}
-        except KeyError:
-            pass
-        hook = self._events[name] = Hook(name)
-        return hook
-    return property(signal, doc=doc or "Hook for {}".format(name))
-
-
-def hookcollection(prefix, suffixes):
-    """Create an instance variable that manages a collection of Hooks."""
-    def hook(self):
-        return HookCollection(prefix, suffixes)
-    hook.__name__ += '_' + prefix.replace('.', '_')
-    return cachedproperty(hook)
+    if name:
+        return List([EntryPoint(name)])
+    else:
+        return List()
 
 
 class HookCollection(object):
 
     """Manages a collection of Hooks."""
 
-    def __init__(self, prefix, suffix):
+    def __init__(self, **hooks):
         """Initialize empty collection for the given event names."""
-        self._prefix = prefix
-        self._suffix = suffix
+        self._hooks = hooks
         self._cache = {}
 
-    def __getattr__(self, suffix):
-        """Access the hook with the specified suffix."""
+    def __getattr__(self, name):
+        """Access the hook with the specified name."""
         try:
-            return self._cache[suffix]
+            return self._cache[name]
         except KeyError:
-            if self._suffix and suffix not in self._suffix:
-                raise
-            hook = self._cache[suffix] = Hook(self._prefix + '.' + suffix)
+            hook = self._cache[name] = Hook(self._hooks[name])
             return hook
 
 
@@ -176,12 +144,6 @@ class List(Multicast):
         self.slots.remove(slot)
 
 
-def iter_entry_points(group, name=None):
-    """Return an iterable over all relevant entry points."""
-    for ep in pkg_resources.iter_entry_points(group, name):
-        yield ep.load()
-
-
 class EntryPoint(Multicast):
 
     """
@@ -199,4 +161,4 @@ class EntryPoint(Multicast):
     @property
     def slots(self):
         """Return an iterable over all relevant entry points."""
-        return iter_entry_points(self._group, self._name)
+        return (ep.load() for ep in iter_entry_points(self._group, self._name))

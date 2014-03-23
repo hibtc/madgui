@@ -10,7 +10,8 @@ from __future__ import absolute_import
 import re
 
 # internal
-from madgui.util.plugin import hookcollection
+from madgui.util.common import ivar
+from madgui.util.plugin import HookCollection
 from madgui.util.unit import units, madx as madunit, stripunit
 from madgui.util.symbol import SymbolicValue
 from madgui.util.vector import Vector
@@ -37,14 +38,12 @@ class Model(object):
      - knows about variables => can perform matching
     """
 
-    hook = hookcollection(
-        'madgui.component.model', [
-            'show',
-            'update',
-            'add_constraint',
-            'remove_constraint',
-            'clear_constraints'
-        ])
+    hook = ivar(HookCollection,
+                show='madgui.component.model.show',
+                update=None,
+                add_constraint=None,
+                remove_constraint=None,
+                clear_constraints=None)
 
     def __init__(self, name, model, sequence):
         """Load meta data and compute twiss variables."""
