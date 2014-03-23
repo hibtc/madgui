@@ -38,6 +38,7 @@ class MadLineView(object):
 
     @classmethod
     def create(cls, model, frame):
+        """Create a new view panel as a page in the notebook frame."""
         view = cls(model)
         frame.AddView(view, model.name)
         return view
@@ -52,7 +53,6 @@ class MadLineView(object):
         axx = self.figure.add_subplot(211)
         axy = self.figure.add_subplot(212, sharex=axx)
         self.axes = Vector(axx, axy)
-
 
         # plot style
         self.unit = Vector(units.m, units.mm)
@@ -119,6 +119,7 @@ class MadLineView(object):
         return self.element_types.get(type_name)
 
     def update(self):
+        """Redraw the envelopes."""
         if self.clines.x is None or self.clines.y is None:
             self.plot()
             return
@@ -127,7 +128,9 @@ class MadLineView(object):
         self.figure.canvas.draw()
 
     def plot(self):
+
         """Plot figure and redraw canvas."""
+
         # data post processing
         pos = self.model.pos
         envx, envy = self.model.env
@@ -209,6 +212,7 @@ class MadLineView(object):
         # trigger event
         self.hook.plot()
 
+
 class MirkoView(object):
 
     """
@@ -275,7 +279,6 @@ class MirkoView(object):
         envdata = Vector(
             Vector(aenv[:,0], aenv[:,1]),
             Vector(aenv[:,0], aenv[:,2]))
-
         self.lines = Vector(
             self.view.axes.x.plot(stripunit(envdata.x.x, self.view.unit.x),
                                   stripunit(envdata.x.y, self.view.unit.y),
@@ -299,17 +302,18 @@ class MirkoView(object):
 
 
 class MadMatch(object):
+
     """
-    Controller class for a ViewPanel and MadModel
+    Controller that performs matching when clicking on an element.
     """
+
     def __init__(self, panel):
-        """Initialize and subscribe as observer for user events."""
+        """Add toolbar tool to panel and subscribe to capture events."""
         self.cid = None
         self.model = panel.view.model
         self.panel = panel
         self.view = panel.view
-
-        # match
+        # toolbar tool
         res = PackageResource(__package__)
         with res.open(['resource', 'cursor.xpm']) as xpm:
             img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
@@ -321,7 +325,7 @@ class MadMatch(object):
                 shortHelp='Beam matching',
                 longHelp='Match by specifying constraints for envelope x(s), y(s).')
         panel.Bind(wx.EVT_TOOL, self.OnMatchClick, self.tool)
-
+        # setup mouse capture
         panel.hook.capture_mouse.connect(self.stop_match)
 
     def OnMatchClick(self, event):
@@ -348,6 +352,13 @@ class MadMatch(object):
         self.model.clear_constraints()
 
     def on_match(self, event):
+
+        """
+        Draw new constraint and perform matching.
+
+        Invoked after the user clicks in matching mode.
+        """
+
         axes = event.inaxes
         if axes is None:
             return
@@ -380,15 +391,20 @@ class MadMatch(object):
         self.model.match()
         self.panel.SetCursor(orig_cursor)
 
+
 class MadSelect(object):
 
+    """
+    Controller that opens detail popups when clicking on an element.
+    """
+
     def __init__(self, panel):
+        """Add toolbar tool to panel and subscribe to capture events."""
         self.cid = None
         self.model = panel.view.model
         self.panel = panel
         self.view = panel.view
-
-        # select
+        # toolbar tool
         bmp = wx.ArtProvider.GetBitmap(wx.ART_TIP, wx.ART_TOOLBAR)
         self.toolbar = panel.toolbar
         self.tool = panel.toolbar.AddCheckTool(
@@ -397,7 +413,7 @@ class MadSelect(object):
             shortHelp='Show info for individual elements',
             longHelp='Show info for individual elements')
         panel.Bind(wx.EVT_TOOL, self.OnSelectClick, self.tool)
-
+        # setup mouse capture
         panel.hook.capture_mouse.connect(self.stop_select)
 
     def OnSelectClick(self, event):
@@ -433,6 +449,7 @@ class MadSelect(object):
 
     @property
     def frame(self):
+        """Return the frame this controller is associated to."""
         wnd = self.panel
         while wnd.GetParent():
             wnd = wnd.GetParent()
