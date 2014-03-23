@@ -1,104 +1,32 @@
+# encoding: utf-8
 """
-Main window component for MadGUI.
+Notebook window component for MadGUI (main window).
 """
 
-# Force new style imports
+# force new style imports
 from __future__ import absolute_import
 
 # GUI components
 import wx
 import wx.aui
 from wx.py.crust import Crust
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
-from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 
 # internal
-from .plugin import hookcollection
+from madgui.util.plugin import hookcollection
+from madgui.core.figure import FigurePanel
+
+# exported symbols
+__all__ = ['NotebookFrame']
 
 
-class ViewPanel(wx.Panel):
-
-    """
-    Display panel for a matplotlib figure.
-    """
-
-    hook = hookcollection(
-        'madgui.viewpanel', [
-            'init',
-            'capture_mouse'
-        ])
-
-    def __init__(self, parent, view, **kwargs):
-
-        """
-        Initialize panel and connect the view.
-
-        Extends wx.App.__init__.
-        """
-
-        super(ViewPanel, self).__init__(parent, **kwargs)
-
-        self.capturing = False
-        self.view = view
-
-        # couple figure to canvas
-        self.canvas = Canvas(self, -1, view.figure)
-        view.canvas = self.canvas
-
-        # create a toolbar
-        self.toolbar = Toolbar(self.canvas)
-        self.hook.init(self)
-        self.toolbar.Realize()
-
-        # put elements into sizer
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.canvas, 1, wx.EXPAND)
-        sizer.Add(self.toolbar, 0 , wx.LEFT | wx.EXPAND)
-        self.SetSizer(sizer)
-
-        # setup mouse capturing
-        self.hook.capture_mouse.connect(self.on_capture_mouse)
-        self.toolbar.Bind(wx.EVT_TOOL,
-                          self.on_zoom_or_pan,
-                          id=self.toolbar.wx_ids['Zoom'])
-        self.toolbar.Bind(wx.EVT_TOOL,
-                          self.on_zoom_or_pan,
-                          id=self.toolbar.wx_ids['Pan'])
-
-    def on_zoom_or_pan(self, event):
-        """Capture mouse, after Zoom/Pan tools were clicked."""
-        if event.IsChecked():
-            self.capturing = True
-            self.hook.capture_mouse()
-            self.capturing = False
-        event.Skip()
-
-    def on_capture_mouse(self):
-        """Disable Zoom/Pan tools when someone captures the mouse."""
-        if self.capturing:
-            return
-        zoom_id = self.toolbar.wx_ids['Zoom']
-        if self.toolbar.GetToolState(zoom_id):
-            self.toolbar.zoom()
-            self.toolbar.ToggleTool(zoom_id, False)
-        pan_id = self.toolbar.wx_ids['Pan']
-        if self.toolbar.GetToolState(pan_id):
-            self.toolbar.pan()
-            self.toolbar.ToggleTool(pan_id, False)
-
-    def OnPaint(self, event):
-        """Handle redraw by painting canvas."""
-        self.canvas.draw()
-
-
-class Frame(wx.Frame):
+class NotebookFrame(wx.Frame):
 
     """
-    Main window.
+    Notebook window class for MadGUI (main window).
     """
 
     hook = hookcollection(
-        'madgui.frame', [
+        'madgui.core.notebook', [
             'init',
             'term',
             'menu'
@@ -112,7 +40,7 @@ class Frame(wx.Frame):
         Extends wx.Frame.__init__.
         """
 
-        super(Frame, self).__init__(
+        super(NotebookFrame, self).__init__(
             parent=None,
             title='MadGUI',
             size=wx.Size(800, 600))
@@ -160,7 +88,7 @@ class Frame(wx.Frame):
     def AddView(self, view, title):
         """Add new notebook tab for the view."""
         # TODO: remove this method in favor of a event based approach?
-        panel = ViewPanel(self.notebook, view)
+        panel = FigurePanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
         view.plot()
         return panel

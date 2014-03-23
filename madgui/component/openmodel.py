@@ -1,8 +1,9 @@
+# encoding: utf-8
 """
-Contains an open model dialog.
+Dialog component to find/open a model.
 """
 
-# Force new style imports
+# force new style imports
 from __future__ import absolute_import
 
 # standard library
@@ -11,16 +12,14 @@ from collections import namedtuple
 from pkg_resources import iter_entry_points
 import os
 
-# GUI components
-import wx
-
 # 3rd party
 from cern.resource.package import PackageResource
 from cern.cpymad.model_locator import MergedModelLocator
 from cern import cpymad
 
 # internal
-from .model import MadModel
+from madgui.core import wx
+from madgui.component.model import Model
 
 
 def list_locators():
@@ -159,7 +158,7 @@ class OpenModelDlg(wx.Dialog):
         mdata = locator.get_model(self.ctrl_model.GetValue())
         histfile = os.path.join(self.logfolder, "%s.madx" % mdata.name)
         res = mdata.repository.get()
-        self.model = MadModel(
+        self.model = Model(
             name=mdata.name,
             model=cpymad.model(mdata, histfile=histfile),
             sequence=res.yaml('sequence.yml'))

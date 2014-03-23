@@ -2,12 +2,16 @@
 Common utilities.
 """
 
-# Force new style imports
+# force new style imports
 from __future__ import absolute_import
 
 # standard library
 import os
 import functools
+
+# exported symbols
+__all__ = ['makedirs',
+           'cachedproperty']
 
 
 def makedirs(path):

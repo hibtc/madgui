@@ -2,18 +2,19 @@
 Provides unit conversion.
 """
 
-# Force new style imports
+# force new style imports
 from __future__ import absolute_import
 
 # 3rd party
 from unum import units
 from pydicti import dicti
 
-# public exports
+# exported symbols
 __all__ = ['units',
            'stripunit',
            'tounit',
-           'unit_label']
+           'unit_label',
+           'madx']
 
 
 def stripunit(quantity, unit=None):

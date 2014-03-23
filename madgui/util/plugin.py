@@ -6,6 +6,13 @@ Short class overview:
 
 - :func:`Hook` should be used for all named events (plugins).
 
+- :func:`hookproperty` creates an instance variable for Hooks
+
+- :func:`hookcollection` creates an instance variable for of HookCollections
+
+- :class:`HookCollection` gives attribute access to a set of hooks with a
+  common prefix name.
+
 - :class:`Multicast` is an abstract base class. It only contains mixins and
   is missing the vital attribute ``slots``
 
@@ -15,7 +22,7 @@ Short class overview:
 - :class:`EntryPoint` multicasts events to setuptools entry points.
 """
 
-# Force new style imports
+# force new style imports
 from __future__ import absolute_import
 
 # standard library
@@ -27,6 +34,9 @@ from .common import cachedproperty
 
 # public exports
 __all__ = ['Hook',
+           'hookproperty',
+           'hookcollection',
+           'HookCollection',
            'Multicast',
            'List',
            'EntryPoint']
@@ -64,6 +74,7 @@ def hookproperty(name, doc=""):
 
 
 def hookcollection(prefix, suffixes):
+    """Create an instance variable that manages a collection of Hooks."""
     def hook(self):
         return HookCollection(prefix, suffixes)
     hook.__name__ += '_' + prefix.replace('.', '_')
@@ -71,12 +82,17 @@ def hookcollection(prefix, suffixes):
 
 
 class HookCollection(object):
+
+    """Manages a collection of Hooks."""
+
     def __init__(self, prefix, suffix):
+        """Initialize empty collection for the given event names."""
         self._prefix = prefix
         self._suffix = suffix
         self._cache = {}
 
     def __getattr__(self, suffix):
+        """Access the hook with the specified suffix."""
         try:
             return self._cache[suffix]
         except KeyError:

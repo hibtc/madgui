@@ -43,21 +43,21 @@ setup(
     ],
     entry_points="""
         [gui_scripts]
-        madgui = madgui.main:App.main
+        madgui = madgui.core.app:App.main
 
-        [madgui.app.init]
-        mainframe = madgui.mainframe:Frame
+        [madgui.core.app.init]
+        mainframe = madgui.core.notebook:NotebookFrame
 
-        [madgui.viewpanel.init]
-        match = madgui.line_view:MadMatch
-        select = madgui.line_view:MadSelect
-        compare = madgui.line_view:MirkoView
+        [madgui.core.figure.init]
+        matchtool = madgui.component.matchtool:MatchTool
+        selecttool = madgui.component.selecttool:SelectTool
+        comparetool = madgui.component.comparetool:CompareTool
 
-        [madgui.frame.menu]
-        openmodel = madgui.openmodel:OpenModelDlg.connect_menu
+        [madgui.core.notebook.menu]
+        openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
 
-        [madgui.model.show]
-        line_view = madgui.line_view:MadLineView.create
+        [madgui.component.model.show]
+        lineview = madgui.component.lineview:LineView.create
     """,
     package_data={
         'madgui': ['resource/*']

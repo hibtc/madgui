@@ -1,18 +1,22 @@
+# encoding: utf-8
 """
 Model component for the MadGUI application.
 """
 
-# Force new style imports
+# force new style imports
 from __future__ import absolute_import
 
 # standard library
-import copy
 import re
-from collections import namedtuple
 
 # internal
-from .plugin import hookcollection
-from .unit import units, madx as madunit, stripunit
+from madgui.util.plugin import hookcollection
+from madgui.util.unit import units, madx as madunit, stripunit
+from madgui.util.symbol import SymbolicValue
+from madgui.util.vector import Vector
+
+# exported symbols
+__all__ = ['Model']
 
 
 # compatibility
@@ -22,10 +26,7 @@ except NameError:       # python3 (let's think about future...)
     basestring = str
 
 
-Vector = namedtuple('Vector', ['x', 'y'])
-
-
-class MadModel(object):
+class Model(object):
 
     """
     Extended model class for cern.cpymad.model (extends by delegation).
@@ -37,7 +38,7 @@ class MadModel(object):
     """
 
     hook = hookcollection(
-        'madgui.model', [
+        'madgui.component.model', [
             'show',
             'update',
             'add_constraint',
@@ -245,45 +246,3 @@ class MadModel(object):
         """Remove units from all elements in a dictionary."""
         return obj.__class__({k: self.value_to_madx(k, obj[k])
                               for k in obj})
-
-
-class SymbolicValue(object):
-
-    """
-    Representation of a symbolic MADX expression.
-
-    Needs to be evaluated via model.evaluate.
-    """
-
-    def __init__(self, model, value, unit):
-        """Store model, value and unit as instance variables."""
-        self._model = model
-        self._value = value
-        self._unit = unit
-
-    def __float__(self):
-        """Evaluate expression and return as pure float in the base unit."""
-        return self.asNumber()
-
-    def __str__(self):
-        """Evaluate expression and return with associated unit."""
-        return str(self._evaluate())
-
-    def __repr__(self):
-        """Return representation without evaluating the expression."""
-        return "%s(%r)" % (self.__class__.__name__, self._value)
-
-    def _evaluate(self):
-        return self._unit * self._model.evaluate(self._value)
-
-    def asNumber(self, unit=None):
-        """Evaluate expression and return as pure float."""
-        return self._evaluate().asNumber(unit)
-
-    def asUnit(self, unit=None):
-        """Evaluate expression and cast to the specified unit."""
-        return self._evaluate().asUnit(unit)
-
-    def strUnit(self):
-        """Return a string that describes the unit."""
-        return self._unit.strUnit()
