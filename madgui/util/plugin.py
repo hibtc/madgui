@@ -6,8 +6,7 @@ Short class overview:
 
 - :func:`Hook` should be used for all named events (plugins).
 
-- :class:`HookCollection` gives attribute access to a set of hooks with a
-  common prefix name.
+- :class:`HookCollection` gives attribute access to a set of hooks.
 
 - :class:`Multicast` is an abstract base class. It only contains mixins and
   is missing the vital attribute ``slots``
