@@ -11,7 +11,7 @@ For more information on the command line parameters, see :attr:`App.usage`.
 from __future__ import absolute_import
 
 # internal
-from madgui.app import App
+from madgui.core.app import App
 
 # exported symbols
 __all__ = []
