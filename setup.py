@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
+"""
+Installation script for MadGUI.
+
+Usage:
+    python setup.py install
+"""
 
 from setuptools import setup
 
@@ -24,21 +30,35 @@ setup(
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Scientific/Engineering :: Physics',
     ],
-    license=None,
+    license='MIT',
     test_suite='nose.collector',
     install_requires=[
         'matplotlib',
         'numpy',
-        'obsub>=0.1.1',
         'pydicti>=0.0.2',
         'cern-pymad==0.6',
         'unum>=4.0',
         'wxPython>=2.8',
         'docopt',
     ],
-    entry_points={
-        'gui_scripts': ['madgui = madgui.main:App.main'],
-    },
+    entry_points="""
+        [gui_scripts]
+        madgui = madgui.core.app:App.main
+
+        [madgui.core.app.init]
+        mainframe = madgui.core.notebook:NotebookFrame
+
+        [madgui.core.figure.init]
+        matchtool = madgui.component.matchtool:MatchTool
+        selecttool = madgui.component.selecttool:SelectTool
+        comparetool = madgui.component.comparetool:CompareTool
+
+        [madgui.core.notebook.menu]
+        openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
+
+        [madgui.component.model.show]
+        lineview = madgui.component.lineview:LineView.create
+    """,
     package_data={
         'madgui': ['resource/*']
     }

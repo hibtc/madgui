@@ -1,38 +1,58 @@
+# encoding: utf-8
 """
 View component for the MadGUI application.
 """
 
+# force new style imports
+from __future__ import absolute_import
+
 # scipy
 import numpy as np
-import matplotlib as mpl
-from matplotlib.figure import Figure
 from matplotlib.ticker import MultipleLocator
 
-from obsub import event
+# internal
+import madgui.core
+from madgui.util.plugin import hookcollection
+from madgui.util.vector import Vector
+from madgui.util.unit import units, stripunit, unit_label
 
-from .model import Vector
-from .unit import units, stripunit, unit_label
+import matplotlib
+import matplotlib.figure
+
+# exported symbols
+__all__ = ['LineView']
 
 
-class MadLineView(object):
+class LineView(object):
+
     """
     Matplotlib figure view for a MadModel.
 
     This is automatically updated when the model changes.
-
     """
+
+    hook = hookcollection(
+        'madgui.component.lineview', [
+            'plot'
+        ])
+
+    @classmethod
+    def create(cls, model, frame):
+        """Create a new view panel as a page in the notebook frame."""
+        view = cls(model)
+        frame.AddView(view, model.name)
+        return view
 
     def __init__(self, model):
         """Create a matplotlib figure and register as observer."""
         self.model = model
 
         # create figure
-        self.figure = mpl.figure.Figure()
+        self.figure = matplotlib.figure.Figure()
         self.figure.subplots_adjust(hspace=0.00)
         axx = self.figure.add_subplot(211)
         axy = self.figure.add_subplot(212, sharex=axx)
         self.axes = Vector(axx, axy)
-
 
         # plot style
         self.unit = Vector(units.m, units.mm)
@@ -53,11 +73,10 @@ class MadLineView(object):
         }
 
         # subscribe for updates
-        model.update += lambda model: self.update()
-        model.remove_constraint += lambda model, elem, axis=None: self.redraw_constraints()
-        model.clear_constraints += lambda model: self.redraw_constraints()
-        model.add_constraint += lambda model, axis, elem, envelope: self.redraw_constraints()
-
+        model.hook.update.connect(self.update)
+        model.hook.remove_constraint.connect(self.redraw_constraints)
+        model.hook.clear_constraints.connect(self.redraw_constraints)
+        model.hook.add_constraint.connect(self.redraw_constraints)
 
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
@@ -100,6 +119,7 @@ class MadLineView(object):
         return self.element_types.get(type_name)
 
     def update(self):
+        """Redraw the envelopes."""
         if self.clines.x is None or self.clines.y is None:
             self.plot()
             return
@@ -107,9 +127,10 @@ class MadLineView(object):
         self.clines.y.set_ydata(stripunit(self.model.env.y, self.unit.y))
         self.figure.canvas.draw()
 
-    @event
     def plot(self):
+
         """Plot figure and redraw canvas."""
+
         # data post processing
         pos = self.model.pos
         envx, envy = self.model.env
@@ -136,12 +157,12 @@ class MadLineView(object):
                 patch_w = stripunit(elem['L'], self.unit.x)
                 patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
                 self.axes.x.add_patch(
-                        mpl.patches.Rectangle(
+                        matplotlib.patches.Rectangle(
                             (patch_x, 0),
                             patch_w, patch_h.x,
                             alpha=0.5, color=elem_type['color']))
                 self.axes.y.add_patch(
-                        mpl.patches.Rectangle(
+                        matplotlib.patches.Rectangle(
                             (patch_x, 0),
                             patch_w, patch_h.y,
                             alpha=0.5, color=elem_type['color']))
@@ -188,74 +209,5 @@ class MadLineView(object):
         self.axes.y.set_ylim(self.axes.y.get_ylim()[::-1])
         self.figure.canvas.draw()
 
-class MirkoView(object):
-    """
-    View component to display mirko envelope for comparison.
-
-    Draws the mirko envelope into a MadLineView figure whenever that figure
-    is replotted.
-
-    """
-
-    def __init__(self, model, view):
-        """
-        Create a mirko envelope display component.
-
-        The envelope is NOT visible by default.
-
-        """
-        self.model = model
-        self.view = view
-        self.lines = None
-        def onplot(_):
-            if self.visible:
-                self._plot()
-        self.view.plot += onplot
-
-    @property
-    def visible(self):
-        """Visibility state of the envelope."""
-        return self.lines is not None
-
-    @visible.setter
-    def visible(self, value):
-        if value:
-            self._plot()
-        else:
-            self._remove()
-
-    def _plot(self):
-        """Plot the envelope into the figure."""
-        model = self.model.model
-        optic = model._mdef['optics'][model._active['optic']]
-        if 'test' not in optic:
-            # TODO: log error
-            return
-
-        with model.mdata.get_by_dict(optic['test']).filename() as f:
-            aenv = units.mm * np.loadtxt(f, usecols=(0,1,2))
-        envdata = Vector(
-            Vector(aenv[:,0], aenv[:,1]),
-            Vector(aenv[:,0], aenv[:,2]))
-
-        self.lines = Vector(
-            self.view.axes.x.plot(stripunit(envdata.x.x, self.view.unit.x),
-                                  stripunit(envdata.x.y, self.view.unit.y),
-                                  'k'),
-            self.view.axes.y.plot(stripunit(envdata.y.x, self.view.unit.x),
-                                  stripunit(envdata.y.y, self.view.unit.y),
-                                  'k'))
-        self.view.figure.canvas.draw()
-
-    def _remove(self):
-        """Remove the envelope from the figure."""
-        if self.lines:
-            # self.view.axes.x.lines.remove(self.lines.x)
-            # self.view.axes.y.lines.remove(self.lines.y)
-            for l in self.lines.x:
-                l.remove()
-            for l in self.lines.y:
-                l.remove()
-            self.lines = None
-            self.view.figure.canvas.draw()
-
+        # trigger event
+        self.hook.plot()

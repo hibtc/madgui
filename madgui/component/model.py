@@ -1,37 +1,50 @@
+# encoding: utf-8
 """
 Model component for the MadGUI application.
 """
 
+# force new style imports
+from __future__ import absolute_import
+
 # standard library
-import copy
 import re
-from collections import namedtuple
 
-# scipy
-import numpy as np
+# internal
+from madgui.util.plugin import hookcollection
+from madgui.util.unit import units, madx as madunit, stripunit
+from madgui.util.symbol import SymbolicValue
+from madgui.util.vector import Vector
 
-# other
-from obsub import event
+# exported symbols
+__all__ = ['Model']
 
-from .unit import units, madx as madunit, stripunit
 
-try:
+# compatibility
+try:                    # python2
     basestring
-except NameError:
+except NameError:       # python3 (let's think about future...)
     basestring = str
 
-Vector = namedtuple('Vector', ['x', 'y'])
 
-class MadModel(object):
+class Model(object):
+
     """
-    Model class for cern.cpymad.model
+    Extended model class for cern.cpymad.model (extends by delegation).
 
     Improvements over cern.cpymad.model:
 
      - knows sequence
      - knows about variables => can perform matching
-
     """
+
+    hook = hookcollection(
+        'madgui.component.model', [
+            'show',
+            'update',
+            'add_constraint',
+            'remove_constraint',
+            'clear_constraints'
+        ])
 
     def __init__(self, name, model, sequence):
         """Load meta data and compute twiss variables."""
@@ -43,6 +56,7 @@ class MadModel(object):
 
     @property
     def beam(self):
+        """Get the beam parameter dictionary."""
         mdef = self.model._mdef
         beam = mdef['sequences'][self.model._active['sequence']]['beam']
         return self.from_madx(mdef['beams'][beam])
@@ -125,7 +139,6 @@ class MadModel(object):
         else:
             return (self.env[axis][i] + self.env[axis][prev]) / 2
 
-    @event
     def update(self):
         """Perform post processing."""
         # data post processing
@@ -134,9 +147,12 @@ class MadModel(object):
         self.env = Vector(
             (self.tw.betx * beam['ex'])**0.5,
             (self.tw.bety * beam['ey'])**0.5)
+        self.hook.update()
 
     def match(self):
+
         """Perform matching according to current constraints."""
+
         # select variables: one for each constraint
         vary = []
         allvars = [elem for elem in self.sequence
@@ -175,37 +191,36 @@ class MadModel(object):
         self.tw = self.from_madx(tw)
         self.update()
 
-    @event
     def find_constraint(self, elem, axis=None):
+        """Find and return the constraint for the specified element."""
         matched = [c for c in self.constraints if c[1] == elem]
         if axis is not None:
             matched = [c for c in matched if c[0] == axis]
         return matched
 
-    @event
     def add_constraint(self, axis, elem, envelope):
         """Add constraint and perform matching."""
         # TODO: two constraints on same element represent upper/lower bounds
         #lines = self.draw_constraint(axis, elem, envelope)##EVENT
         #self.view.figure.canvas.draw()
-
         existing = self.find_constraint(elem, axis)
         if existing:
             self.remove_constraint(elem, axis)
-
         self.constraints.append( (axis, elem, envelope) )
+        self.hook.add_constraint()
 
-    @event
     def remove_constraint(self, elem, axis=None):
         """Remove the constraint for elem."""
         self.constraints = [c for c in self.constraints if c[1] != elem or (axis is not None and c[0] != axis)]
+        self.hook.remove_constraint()
 
-    @event
     def clear_constraints(self):
         """Remove all constraints."""
         self.constraints = []
+        self.hook.clear_constraints()
 
     def evaluate(self, expr):
+        """Evaluate a MADX expression and return the result as float."""
         return self.model.evaluate(expr)
 
     def value_from_madx(self, name, value):
@@ -231,32 +246,3 @@ class MadModel(object):
         """Remove units from all elements in a dictionary."""
         return obj.__class__({k: self.value_to_madx(k, obj[k])
                               for k in obj})
-
-
-class SymbolicValue(object):
-    def __init__(self, model, value, unit):
-        self._model = model
-        self._value = value
-        self._unit = unit
-
-    def __float__(self):
-        return self.asNumber()
-
-    def __str__(self):
-        return str(self._evaluate())
-
-    def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self._value)
-
-    def _evaluate(self):
-        return self._unit * self._model.evaluate(self._value)
-
-    def asNumber(self, unit=None):
-        return self._evaluate().asNumber(unit)
-
-    def asUnit(self, unit=None):
-        return self._evaluate().asUnit(unit)
-
-    def strUnit(self):
-        return self._unit.strUnit()
-
