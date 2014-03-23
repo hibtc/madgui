@@ -28,20 +28,21 @@ class MatchTool(object):
         self.model = panel.view.model
         self.panel = panel
         self.view = panel.view
-        # toolbar tool
-        res = PackageResource('madgui.resource')
-        with res.open('cursor.xpm') as xpm:
-            img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
-        bmp = wx.BitmapFromImage(img)
-        self.toolbar = panel.toolbar
-        self.tool = panel.toolbar.AddCheckTool(
-                wx.ID_ANY,
-                bitmap=bmp,
-                shortHelp='Beam matching',
-                longHelp='Match by specifying constraints for envelope x(s), y(s).')
-        panel.Bind(wx.EVT_TOOL, self.OnMatchClick, self.tool)
-        # setup mouse capture
-        panel.hook.capture_mouse.connect(self.stop_match)
+        if getattr(self.model, 'can_match', False):
+            # toolbar tool
+            res = PackageResource('madgui.resource')
+            with res.open('cursor.xpm') as xpm:
+                img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
+            bmp = wx.BitmapFromImage(img)
+            self.toolbar = panel.toolbar
+            self.tool = panel.toolbar.AddCheckTool(
+                    wx.ID_ANY,
+                    bitmap=bmp,
+                    shortHelp='Beam matching',
+                    longHelp='Match by specifying constraints for envelope x(s), y(s).')
+            panel.Bind(wx.EVT_TOOL, self.OnMatchClick, self.tool)
+            # setup mouse capture
+            panel.hook.capture_mouse.connect(self.stop_match)
 
     def OnMatchClick(self, event):
         """Invoked when user clicks Match-Button"""

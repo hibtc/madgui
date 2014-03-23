@@ -36,6 +36,8 @@ class Model(object):
      - knows sequence
      - knows about variables => can perform matching
     """
+    can_match = True
+    can_select = True
 
     hook = hookcollection(
         'madgui.component.model', [

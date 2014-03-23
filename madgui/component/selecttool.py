@@ -27,17 +27,18 @@ class SelectTool(object):
         self.model = panel.view.model
         self.panel = panel
         self.view = panel.view
-        # toolbar tool
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_TIP, wx.ART_TOOLBAR)
-        self.toolbar = panel.toolbar
-        self.tool = panel.toolbar.AddCheckTool(
-            wx.ID_ANY,
-            bitmap=bmp,
-            shortHelp='Show info for individual elements',
-            longHelp='Show info for individual elements')
-        panel.Bind(wx.EVT_TOOL, self.OnSelectClick, self.tool)
-        # setup mouse capture
-        panel.hook.capture_mouse.connect(self.stop_select)
+        if getattr(self.model, 'can_select', False):
+            # toolbar tool
+            bmp = wx.ArtProvider.GetBitmap(wx.ART_TIP, wx.ART_TOOLBAR)
+            self.toolbar = panel.toolbar
+            self.tool = panel.toolbar.AddCheckTool(
+                wx.ID_ANY,
+                bitmap=bmp,
+                shortHelp='Show info for individual elements',
+                longHelp='Show info for individual elements')
+            panel.Bind(wx.EVT_TOOL, self.OnSelectClick, self.tool)
+            # setup mouse capture
+            panel.hook.capture_mouse.connect(self.stop_select)
 
     def OnSelectClick(self, event):
         """Invoked when user clicks Mirko-Button"""
