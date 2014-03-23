@@ -206,46 +206,49 @@ class MadLineView(object):
         self.axes.y.set_ylim(self.axes.y.get_ylim()[::-1])
         self.figure.canvas.draw()
 
+        # trigger event
+        self.hook.plot()
+
 class MirkoView(object):
+
     """
     View component to display mirko envelope for comparison.
 
     Draws the mirko envelope into a MadLineView figure whenever that figure
     is replotted.
-
     """
-    ON_MIRKO = wx.NewId()
 
-    @classmethod
-    def connect_toolbar(cls, panel):
-        view = panel.view
-        mirko = cls(view.model, view)
+    def __init__(self, panel):
+        """
+        Create a mirko envelope display component.
+
+        The envelope is NOT visible by default.
+        """
+        self.model = panel.view.model
+        self.view = panel.view
+        self.lines = None
+        # connect to toolbar
         bmp = wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR)
-        panel.toolbar.AddCheckTool(
-                cls.ON_MIRKO,
+        tool = panel.toolbar.AddCheckTool(
+                wx.ID_ANY,
                 bitmap=bmp,
                 shortHelp='Show MIRKO envelope',
                 longHelp='Show MIRKO envelope for comparison. The envelope is computed for the default parameters.')
-        wx.EVT_TOOL(panel, cls.ON_MIRKO, mirko.OnMirkoClick)
+        panel.Bind(wx.EVT_TOOL, self.OnMirkoClick, tool)
+        # subscribe to plotting
+        self.view.hook.plot.connect(self.redraw)
 
     def OnMirkoClick(self, event):
         """Invoked when user clicks Mirko-Button"""
         self.visible = event.IsChecked()
 
-    def __init__(self, model, view):
-        """
-        Create a mirko envelope display component.
-
-        The envelope is NOT visible by default.
-
-        """
-        self.model = model
-        self.view = view
-        self.lines = None
-        def onplot(_):
-            if self.visible:
-                self._plot()
-        self.view.hook.plot.connect(onplot)
+    @property
+    def test_file(self):
+        """Get the envelope file."""
+        model = self.model.model
+        optic = model._mdef['optics'][model._active['optic']]
+        if 'test' in optic:
+            return model.mdata.get_by_dict(optic['test'])
 
     @property
     def visible(self):
@@ -259,15 +262,14 @@ class MirkoView(object):
         else:
             self._remove()
 
+    def redraw(self):
+        """Redraw the envelope if set to visible."""
+        if self.visible:
+            self._plot()
+
     def _plot(self):
         """Plot the envelope into the figure."""
-        model = self.model.model
-        optic = model._mdef['optics'][model._active['optic']]
-        if 'test' not in optic:
-            # TODO: log error
-            return
-
-        with model.mdata.get_by_dict(optic['test']).filename() as f:
+        with self.test_file.filename() as f:
             aenv = units.mm * np.loadtxt(f, usecols=(0,1,2))
         envdata = Vector(
             Vector(aenv[:,0], aenv[:,1]),

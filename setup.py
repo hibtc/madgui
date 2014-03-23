@@ -51,7 +51,7 @@ setup(
         [madgui.viewpanel.init]
         match = madgui.line_view:MadMatch
         select = madgui.line_view:MadSelect
-        compare = madgui.line_view:MirkoView.connect_toolbar
+        compare = madgui.line_view:MirkoView
 
         [madgui.frame.menu]
         openmodel = madgui.openmodel:OpenModelDlg.connect_menu
