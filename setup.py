@@ -58,6 +58,9 @@ setup(
 
         [madgui.component.model.show]
         lineview = madgui.component.lineview:LineView.create
+
+        [madgui.models]
+        lhc = madgui.component.lhcmodels:locator
     """,
     package_data={
         'madgui': ['resource/*']
