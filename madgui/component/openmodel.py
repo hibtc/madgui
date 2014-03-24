@@ -157,11 +157,7 @@ class OpenModelDlg(wx.Dialog):
             return
         mdata = locator.get_model(self.ctrl_model.GetValue())
         histfile = os.path.join(self.logfolder, "%s.madx" % mdata.name)
-        res = mdata.repository.get()
-        self.model = Model(
-            name=mdata.name,
-            model=cpymad.model(mdata, histfile=histfile),
-            sequence=res.yaml('sequence.yml'))
+        self.model = Model(cpymad.model(mdata, histfile=histfile))
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""

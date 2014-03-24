@@ -127,6 +127,40 @@ class LineView(object):
         self.clines.y.set_ydata(stripunit(self.model.env.y, self.unit.y))
         self.figure.canvas.draw()
 
+    def _drawelements(self):
+        """Draw the elements into the canvas."""
+        envx, envy = self.model.env
+        max_env = Vector(np.max(envx), np.max(envy))
+        patch_h = Vector(0.75*stripunit(max_env.x, self.unit.y),
+                         0.75*stripunit(max_env.y, self.unit.y))
+        for elem in self.model.sequence:
+            elem_type = self.get_element_type(elem)
+            if elem_type is None:
+                continue
+            if 'L' in elem and stripunit(elem['L']) != 0:
+                patch_w = stripunit(elem['L'], self.unit.x)
+                patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
+                self.axes.x.add_patch(
+                    matplotlib.patches.Rectangle(
+                        (patch_x, 0),
+                        patch_w, patch_h.x,
+                        alpha=0.5, color=elem_type['color']))
+                self.axes.y.add_patch(
+                    matplotlib.patches.Rectangle(
+                        (patch_x, 0),
+                        patch_w, patch_h.y,
+                        alpha=0.5, color=elem_type['color']))
+            else:
+                patch_x = stripunit(elem['at'], self.unit.x)
+                self.axes.x.vlines(
+                    patch_x, 0,
+                    patch_h.x,
+                    alpha=0.5, color=elem_type['color'])
+                self.axes.y.vlines(
+                    patch_x, 0,
+                    patch_h.y,
+                    alpha=0.5, color=elem_type['color'])
+
     def plot(self):
 
         """Plot figure and redraw canvas."""
@@ -134,10 +168,6 @@ class LineView(object):
         # data post processing
         pos = self.model.pos
         envx, envy = self.model.env
-
-        max_env = Vector(np.max(envx), np.max(envy))
-        patch_h = Vector(0.75*stripunit(max_env.x, self.unit.y),
-                         0.75*stripunit(max_env.y, self.unit.y))
 
         # plot
         self.axes.x.cla()
@@ -148,34 +178,8 @@ class LineView(object):
             label.set_visible(False)
         self.axes.y.yaxis.get_ticklabels()[0].set_visible(False)
 
-        for elem in self.model.sequence:
-            elem_type = self.get_element_type(elem)
-            if elem_type is None:
-                continue
-
-            if 'L' in elem and stripunit(elem['L']) != 0:
-                patch_w = stripunit(elem['L'], self.unit.x)
-                patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
-                self.axes.x.add_patch(
-                        matplotlib.patches.Rectangle(
-                            (patch_x, 0),
-                            patch_w, patch_h.x,
-                            alpha=0.5, color=elem_type['color']))
-                self.axes.y.add_patch(
-                        matplotlib.patches.Rectangle(
-                            (patch_x, 0),
-                            patch_w, patch_h.y,
-                            alpha=0.5, color=elem_type['color']))
-            else:
-                patch_x = stripunit(elem['at'], self.unit.x)
-                self.axes.x.vlines(
-                        patch_x, 0,
-                        patch_h.x,
-                        alpha=0.5, color=elem_type['color'])
-                self.axes.y.vlines(
-                        patch_x, 0,
-                        patch_h.y,
-                        alpha=0.5, color=elem_type['color'])
+        if self.model.sequence:
+            self._drawelements()
 
         self.clines = Vector(
             self.axes.x.plot(

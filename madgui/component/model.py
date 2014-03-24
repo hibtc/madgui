@@ -10,6 +10,7 @@ from __future__ import absolute_import
 import re
 
 # internal
+from madgui.util.common import cachedproperty
 from madgui.util.plugin import hookcollection
 from madgui.util.unit import units, madx as madunit, stripunit
 from madgui.util.symbol import SymbolicValue
@@ -36,8 +37,6 @@ class Model(object):
      - knows sequence
      - knows about variables => can perform matching
     """
-    can_match = True
-    can_select = True
 
     hook = hookcollection(
         'madgui.component.model', [
@@ -48,13 +47,36 @@ class Model(object):
             'clear_constraints'
         ])
 
-    def __init__(self, name, model, sequence):
+    def __init__(self, model):
         """Load meta data and compute twiss variables."""
         self.constraints = []
-        self.name = name
         self.model = model
-        self.sequence = list(map(self.from_madx, sequence))
         self.twiss()
+
+    @cachedproperty
+    def sequence(self):
+        """Get the associated sequence data."""
+        try:
+            res = self.model.mdata.repository.get()
+            seq = res.yaml('sequence.yml')
+            return list(map(self.from_madx, seq))
+        except (AttributeError, IOError):
+            return None
+
+    @property
+    def can_match(self):
+        """Check whether matching can be performed"""
+        return self.sequence is not None
+
+    @property
+    def can_select(self):
+        """Check whether information about elements is available."""
+        return self.sequence is not None
+
+    @property
+    def name(self):
+        """Get the name of the model."""
+        return self.model.name
 
     @property
     def beam(self):
