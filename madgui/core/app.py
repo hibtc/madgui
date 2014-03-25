@@ -14,8 +14,8 @@ import wx
 
 # internal
 import madgui
-from madgui.util.plugin import hookcollection
-from madgui.util.common import makedirs
+from madgui.util.common import ivar, makedirs
+from madgui.util.plugin import HookCollection
 
 # exported symbols
 __all__ = ['App']
@@ -34,10 +34,8 @@ class App(wx.App):
     version = madgui.__version__
     usage = madgui.__doc__
 
-    hook = hookcollection(
-        'madgui.core.app', [
-            'init'
-        ])
+    hook = ivar(HookCollection,
+                init='madgui.core.app.init')
 
     @classmethod
     def main(cls, argv=None):
