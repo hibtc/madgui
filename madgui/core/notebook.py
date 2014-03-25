@@ -44,6 +44,7 @@ class NotebookFrame(wx.Frame):
             size=wx.Size(800, 600))
 
         self.logfolder = app.logfolder
+        self.vars = {'views': []}
 
         # create notebook
         self.panel = wx.Panel(self)
@@ -89,6 +90,7 @@ class NotebookFrame(wx.Frame):
         panel = FigurePanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
         view.plot()
+        self.vars['views'].append(view)
         return panel
 
     def OnPageClose(self, event):
@@ -100,6 +102,8 @@ class NotebookFrame(wx.Frame):
         """A page has been closed. If it was the last, close the frame."""
         if self.notebook.GetPageCount() == 0:
             self.Close()
+        else:
+            del self.vars['views'][event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
@@ -107,7 +111,8 @@ class NotebookFrame(wx.Frame):
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        # TODO: create a toolbar for this tab as well
-        # TODO: prevent the first command tab from being closed (?)
         # TODO: redirect output?
-        self.notebook.AddPage(Crust(self.notebook), "Command", select=True)
+        self.notebook.AddPage(
+            Crust(self.notebook, locals=self.vars),
+            "Command",
+            select=True)
