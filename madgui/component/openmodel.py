@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 # standard library
 from importlib import import_module
-from collections import namedtuple
 from pkg_resources import iter_entry_points
 import os
 
