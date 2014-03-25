@@ -55,12 +55,16 @@ class NotebookFrame(wx.Frame):
             wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSED,
             self.OnPageClosed,
             source=self.notebook)
+        self.notebook.Bind(
+            wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE,
+            self.OnPageClose,
+            source=self.notebook)
 
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
 
         # Create a command tab
-        self.NewCommandTab()
+        self._NewCommandTab()
 
         # show the frame
         self.Show(show)
@@ -73,10 +77,6 @@ class NotebookFrame(wx.Frame):
         appmenu = wx.Menu()
         menubar.Append(appmenu, '&App')
         # Create menu items
-        shellitem = appmenu.Append(wx.ID_ANY,
-                                   '&New prompt\tCtrl+N',
-                                   'Open a new tab with a command prompt')
-        self.Bind(wx.EVT_MENU, self.OnNewShell, shellitem)
         self.hook.menu(self, menubar)
         appmenu.AppendSeparator()
         appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
@@ -91,6 +91,11 @@ class NotebookFrame(wx.Frame):
         view.plot()
         return panel
 
+    def OnPageClose(self, event):
+        """Prevent the command tab from closing, if other tabs are open."""
+        if event.Selection == 0 and self.notebook.GetPageCount() > 1:
+            event.Veto()
+
     def OnPageClosed(self, event):
         """A page has been closed. If it was the last, close the frame."""
         if self.notebook.GetPageCount() == 0:
@@ -100,11 +105,7 @@ class NotebookFrame(wx.Frame):
         """Close the window."""
         self.Close()
 
-    def OnNewShell(self, event):
-        """Open a new command tab."""
-        self.NewCommandTab()
-
-    def NewCommandTab(self):
+    def _NewCommandTab(self):
         """Open a new command tab."""
         # TODO: create a toolbar for this tab as well
         # TODO: prevent the first command tab from being closed (?)
