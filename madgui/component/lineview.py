@@ -80,7 +80,7 @@ class LineView(object):
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
         return self.axes[axis].plot(
-            stripunit(elem['at'], self.unit.x),
+            stripunit(elem.at, self.unit.x),
             stripunit(envelope, self.unit.y),
             's',
             color=self.curve[axis]['color'],
@@ -102,14 +102,12 @@ class LineView(object):
         """Return the element type name used for properties like coloring."""
         if 'type' not in elem or 'at' not in elem:
             return None
-        type_name = elem['type'].lower()
+        type_name = elem.type.lower()
         focussing = None
         if type_name == 'quadrupole':
-            i = self.model.get_element_index(elem)
-            focussing = stripunit(self.model.tw.k1l[i]) > 0
+            focussing = stripunit(elem.k1) > 0
         elif type_name == 'sbend':
-            i = self.model.get_element_index(elem)
-            focussing = stripunit(self.model.tw.angle[i]) > 0
+            focussing = stripunit(elem.angle) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
@@ -132,11 +130,11 @@ class LineView(object):
         max_env = Vector(np.max(envx), np.max(envy))
         patch_h = Vector(0.75*stripunit(max_env.x, self.unit.y),
                          0.75*stripunit(max_env.y, self.unit.y))
-        for elem in self.model.sequence:
+        for elem in self.model.elements:
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue
-            if 'L' in elem and stripunit(elem['L']) != 0:
+            if stripunit(elem.L) != 0:
                 patch_w = stripunit(elem['L'], self.unit.x)
                 patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
                 self.axes.x.add_patch(
@@ -177,8 +175,7 @@ class LineView(object):
             label.set_visible(False)
         self.axes.y.yaxis.get_ticklabels()[0].set_visible(False)
 
-        if self.model.sequence:
-            self._drawelements()
+        self._drawelements()
 
         self.clines = Vector(
             self.axes.x.plot(
