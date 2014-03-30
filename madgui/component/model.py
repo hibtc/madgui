@@ -47,6 +47,7 @@ class Model(object):
 
     def __init__(self, model):
         """Load meta data and compute twiss variables."""
+        self._columns = ['name','s', 'l','betx','bety', 'angle', 'k1l']
         self.constraints = []
         self.model = model
         self.twiss()
@@ -122,9 +123,9 @@ class Model(object):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
-        tw, self.summary = self.model.twiss(
-                columns=['name','s', 'l','betx','bety', 'angle', 'k1l'])
-        self.tw = self.from_madx(tw)
+        results = self.model.twiss(columns=self._columns)
+        self.tw = self.from_madx(results.columns.freeze(self._columns))
+        self.summary = self.from_madx(results.summary)
         self.update()
 
     def element_index_by_name(self, name):
@@ -207,10 +208,9 @@ class Model(object):
                     'range': elem['name'],
                     name: self.value_to_madx(name, envelope*envelope/emittance)})
 
-        tw, self.summary = self.model.match(
-            vary=vary,
-            constraints=constraints)
-        self.tw = self.from_madx(tw)
+        results = self.model.match(vary=vary, constraints=constraints)
+        self.tw = self.from_madx(results.columns.freeze(self._columns))
+        self.summary = self.from_madx(results.summary)
         self.update()
 
     def find_constraint(self, elem, axis=None):
