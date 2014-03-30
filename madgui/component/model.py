@@ -80,9 +80,7 @@ class Model(object):
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        mdef = self.model._mdef
-        beam = mdef['sequences'][self.model._active['sequence']]['beam']
-        return self.from_madx(mdef['beams'][beam])
+        return self.from_madx(self.model.get_sequence().beam)
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -166,10 +164,9 @@ class Model(object):
         """Perform post processing."""
         # data post processing
         self.pos = self.tw.s
-        beam = self.beam
         self.env = Vector(
-            (self.tw.betx * beam['ex'])**0.5,
-            (self.tw.bety * beam['ey'])**0.5)
+            (self.tw.betx * self.summary.ex)**0.5,
+            (self.tw.bety * self.summary.ey)**0.5)
         self.hook.update()
 
     def match(self):
@@ -193,10 +190,10 @@ class Model(object):
 
         # select constraints
         constraints = []
-        beam = self.beam
+        ex, ey = self.summary.ex, self.summary.ey
         for axis,elem,envelope in self.constraints:
             name = 'betx' if axis == 0 else 'bety'
-            emittance = beam['ex'] if axis == 0 else beam['ey']
+            emittance = ex if axis == 0 else ey
             if isinstance(envelope, tuple):
                 lower, upper = envelope
                 constraints.append([
