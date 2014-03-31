@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 # scipy
 import numpy as np
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import AutoMinorLocator
 
 # internal
 import madgui.core
@@ -195,10 +195,8 @@ class LineView(object):
 
         for axis_index, axis_name in enumerate(['x', 'y']):
             self.axes[axis_index].grid(True)
-            self.axes[axis_index].get_xaxis().set_minor_locator(
-                MultipleLocator(2))
-            self.axes[axis_index].get_yaxis().set_minor_locator(
-                MultipleLocator(2))
+            self.axes[axis_index].get_xaxis().set_minor_locator(AutoMinorLocator())
+            self.axes[axis_index].get_yaxis().set_minor_locator(AutoMinorLocator())
             self.axes[axis_index].set_xlim(stripunit(pos[0], self.unit.x),
                                            stripunit(pos[-1], self.unit.x))
             self.axes[axis_index].set_ylabel(r'$\Delta %s$ %s' % (
