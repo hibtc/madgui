@@ -61,13 +61,6 @@ class App(wx.App):
 
         """Initialize the application and create main window."""
 
-        # create log directory
-        if self.args['--log']:
-            self.logfolder = self.args['--log']
-        else:
-            self.logfolder = os.path.join(os.path.expanduser('~'), '.madgui')
-        makedirs(self.logfolder)
-
         # allow plugin components to create stuff (frame!)
         self.hook.init(self)
 

@@ -61,7 +61,6 @@ class OpenModelDlg(wx.Dialog):
         """Store the data and initialize the component."""
         self.model = None
         super(OpenModelDlg, self).__init__(parent, *args, **kwargs)
-        self.logfolder = parent.logfolder
         self.CreateControls()
         self.Centre()
 
@@ -155,8 +154,8 @@ class OpenModelDlg(wx.Dialog):
             self.model = None
             return
         mdata = locator.get_model(self.ctrl_model.GetValue())
-        histfile = os.path.join(self.logfolder, "%s.madx" % mdata.name)
-        self.model = Model(cpymad.model(mdata, histfile=histfile))
+        # TODO: redirect history+output to frame!
+        self.model = Model(cpymad.model(mdata, histfile=None))
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""

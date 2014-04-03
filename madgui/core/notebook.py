@@ -43,7 +43,7 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
-        self.logfolder = app.logfolder
+        self.app = app
         self.vars = {'views': []}
 
         # create notebook
@@ -65,6 +65,7 @@ class NotebookFrame(wx.Frame):
         self.SetMenuBar(self._CreateMenu())
 
         # Create a command tab
+        # TODO: create a log tab/pane
         self._NewCommandTab()
 
         # show the frame
@@ -111,7 +112,6 @@ class NotebookFrame(wx.Frame):
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        # TODO: redirect output?
         self.notebook.AddPage(
             Crust(self.notebook, locals=self.vars),
             "Command",
