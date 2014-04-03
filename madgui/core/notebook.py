@@ -71,6 +71,21 @@ class NotebookFrame(wx.Frame):
         # show the frame
         self.Show(show)
 
+    def Reserve(self, **vars):
+        """
+        Return a frame with some global variables.
+
+        If the variables exist within the current frame, a new frame will be
+        created. Otherwise, the same frame may be returned.
+        """
+        for k in vars:
+            if k in self.vars:
+                frame = self.__class__(self.app)
+                frame.vars.update(vars)
+                return frame
+        self.vars.update(vars)
+        return self
+
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource

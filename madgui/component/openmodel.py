@@ -49,7 +49,9 @@ class OpenModelDlg(wx.Dialog):
         def OnOpenModel(event):
             dlg = cls(frame)
             if dlg.ShowModal() == wx.ID_OK:
-                dlg.model.hook.show(dlg.model, frame)
+                _frame = frame.Reserve(madx=dlg.model.model._madx,
+                                       model=dlg.model.model)
+                dlg.model.hook.show(dlg.model, _frame)
             dlg.Destroy()
         appmenu = menubar.Menus[0][0]
         menuitem = appmenu.Append(wx.ID_ANY,
