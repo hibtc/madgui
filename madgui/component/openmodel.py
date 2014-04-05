@@ -19,23 +19,50 @@ from cern import cpymad
 # internal
 from madgui.core import wx
 from madgui.component.model import Model
+from madgui.util.common import cachedproperty
 
 
-def list_locators():
-    """Return list of all locators at the entrypoint madgui.models."""
-    return [(ep.name, ep.load()) for ep in iter_entry_points('madgui.models')]
+class CachedLocator(object):
 
+    """
+    Cached Model locator.
+    """
 
-def get_locator(pkg_name):
-    """List all models in the given package. Returns an iterable."""
-    try:
-        pkg = import_module(pkg_name)
-    except ValueError:
-        return None
-    except ImportError:
-        return None
-    resource_provider = PackageResource(pkg_name)
-    return MergedModelLocator(resource_provider)
+    def __init__(self, name, locator):
+        """Store the name and raw (uncached) locator."""
+        self.name = name
+        self._locator = locator
+
+    @cachedproperty
+    def models(self):
+        """Cached list of model names."""
+        return list(self._locator.list_models())
+
+    def list_models(self):
+        """Return list of model names."""
+        return self.models
+
+    def get_model(self, model):
+        """Return a ModelData for the model name."""
+        return self._locator.get_model(model)
+
+    @classmethod
+    def discover(cls):
+        """Return list of all locators at the entrypoint madgui.models."""
+        return [cls(ep.name, ep.load())
+                for ep in iter_entry_points('madgui.models')]
+
+    @classmethod
+    def from_pkg(cls, pkg_name):
+        """List all models in the given package. Returns a Locator."""
+        try:
+            pkg = import_module(pkg_name)
+        except ValueError:
+            return None
+        except ImportError:
+            return None
+        resource_provider = PackageResource(pkg_name)
+        return cls(pkg_name, MergedModelLocator(resource_provider))
 
 
 class OpenModelDlg(wx.Dialog):
@@ -123,9 +150,9 @@ class OpenModelDlg(wx.Dialog):
         """Get the currently selected locator."""
         selection = self.ctrl_pkg.GetSelection()
         if selection == wx.NOT_FOUND:
-            return get_locator(self.ctrl_pkg.GetValue())
+            return CachedLocator.from_pkg(self.ctrl_pkg.GetValue())
         else:
-            return self.locators[selection][1]
+            return self.locators[selection]
 
     def GetModelList(self):
         """Get list of models in the package specified by the input field."""
@@ -134,8 +161,8 @@ class OpenModelDlg(wx.Dialog):
 
     def UpdateLocatorList(self):
         """Update the list of locators shown in the dialog."""
-        self.locators = list_locators()
-        self.ctrl_pkg.SetItems([l[0] for l in self.locators])
+        self.locators = CachedLocator.discover()
+        self.ctrl_pkg.SetItems([l.name for l in self.locators])
         self.ctrl_pkg.SetSelection(0)
         self.ctrl_pkg.Enable(bool(self.locators))
 

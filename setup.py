@@ -55,6 +55,7 @@ setup(
 
         [madgui.core.notebook.menu]
         openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
+        plainopen = madgui.component.plainopen:connect_menu
 
         [madgui.component.model.show]
         lineview = madgui.component.lineview:LineView.create
