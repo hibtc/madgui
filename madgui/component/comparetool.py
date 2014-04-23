@@ -56,6 +56,8 @@ class CompareTool(object):
     def test_file(self):
         """Get the envelope file."""
         model = self.model.model
+        if not model:
+            return None
         optic = model._mdef['optics'][model._active['optic']]
         if 'test' in optic:
             return model.mdata.get_by_dict(optic['test'])

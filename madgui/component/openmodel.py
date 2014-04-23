@@ -194,7 +194,8 @@ class OpenModelDlg(wx.Dialog):
         self.model = Model(cpymad_model._madx,
                            name=seqname,
                            twiss_args=cpymad_model._get_twiss_initial(),
-                           elements=seqobj.get_elements())
+                           elements=seqobj.get_elements(),
+                           model=cpymad_model)
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
