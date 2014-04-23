@@ -38,6 +38,10 @@ class Model(object):
 
      - knows sequence
      - knows about variables => can perform matching
+
+    :ivar Madx madx:
+    :ivar list elements:
+    :ivar dict twiss_args:
     """
 
     hook = ivar(HookCollection,
@@ -47,22 +51,33 @@ class Model(object):
                 remove_constraint=None,
                 clear_constraints=None)
 
-    def __init__(self, model):
-        """Load meta data and compute twiss variables."""
+    def __init__(self,
+                 madx,
+                 name=None,
+                 twiss_args=None,
+                 elements=None,
+                 model=None):
+        """
+        """
+        self.madx = madx
+        self.name = name
+        self.twiss_args = twiss_args
         self._columns = ['name','s', 'l','betx','bety', 'angle', 'k1l']
         self.constraints = []
+        self._update_elements(elements)
         self.model = model
-        self.twiss()
+        try:
+            seq = madx.get_active_sequence()
+            self._update_twiss(seq.twiss)
+        except (RuntimeError, ValueError):
+            # TODO: init members
+            pass
 
-    @property
-    def name(self):
-        """Get the name of the model."""
-        return self.model.name
 
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        return self.from_madx(self.model.get_sequence().beam)
+        return self.from_madx(self.madx.get_sequence(self.name).beam)
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -97,16 +112,25 @@ class Model(object):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
-        results = self.model.twiss(columns=self._columns)
+        results = self.madx.twiss(sequence=self.name,
+                                  columns=self._columns,
+                                  twiss_init=self.twiss_args)
         self._update_twiss(results)
 
     def _update_twiss(self, results):
         """Update TWISS results."""
-        sequence = self.model._madx.get_active_sequence()
         self.tw = self.from_madx(results.columns.freeze(self._columns))
         self.summary = self.from_madx(results.summary)
-        self.elements = list(map(self.from_madx, sequence.get_elements()))
         self.update()
+
+    def _update_elements(self, elements=None):
+        if elements is None:
+            try:
+                sequence = self.madx._madx.get_active_sequence()
+                elements = sequence.get_elements()
+            except RuntimeError:
+                return
+        self.elements = list(map(self.from_madx, elements))
 
     def element_index_by_name(self, name):
         """Find the element index in the twiss array by its name."""
@@ -191,8 +215,11 @@ class Model(object):
                     'range': el_name,
                     name: self.value_to_madx(name, envelope*envelope/emittance)})
 
-        results = self.model.match(vary=vary, constraints=constraints)
-        self._update_twiss(results)
+        self.madx.match(sequence=self.name,
+                        vary=vary,
+                        constraints=constraints,
+                        twiss_init=self.twiss_args)
+        self.twiss()
 
     def find_constraint(self, elem, axis=None):
         """Find and return the constraint for the specified element."""
@@ -226,7 +253,7 @@ class Model(object):
 
     def evaluate(self, expr):
         """Evaluate a MADX expression and return the result as float."""
-        return self.model.evaluate(expr)
+        return self.madx.evaluate(expr)
 
     def value_from_madx(self, name, value):
         """Add units to a single number."""

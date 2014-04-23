@@ -6,9 +6,6 @@ Dialog component to find/open a model.
 # force new style imports
 from __future__ import absolute_import
 
-# standard library
-import os
-
 # 3rd party
 from cern.cpymad.madx import Madx
 
@@ -28,11 +25,10 @@ def connect_menu(frame, menubar):
             model = Model(madx)
             model.call(dlg.Path)
             _frame = frame.Reserve(madx=madx,
-                                   control=model)
+                                   control=model,
+                                   model=model.model)
             try:
-                # TODO: detect active sequence (?) (should be done in cpymad!)
                 twiss = madx.get_active_sequence().twiss
-
             except (RuntimeError, ValueError):
                 pass
             else:

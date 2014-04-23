@@ -21,6 +21,8 @@ from madgui.core import wx
 from madgui.component.model import Model
 from madgui.util.common import cachedproperty
 
+# TODO: select sequence, optic, range
+
 
 class CachedLocator(object):
 
@@ -76,7 +78,8 @@ class OpenModelDlg(wx.Dialog):
         def OnOpenModel(event):
             dlg = cls(frame)
             if dlg.ShowModal() == wx.ID_OK:
-                _frame = frame.Reserve(madx=dlg.model.model._madx,
+                _frame = frame.Reserve(madx=dlg.model.madx,
+                                       control=dlg.model,
                                        model=dlg.model.model)
                 dlg.model.hook.show(dlg.model, _frame)
             dlg.Destroy()
@@ -184,7 +187,14 @@ class OpenModelDlg(wx.Dialog):
             return
         mdata = locator.get_model(self.ctrl_model.GetValue())
         # TODO: redirect history+output to frame!
-        self.model = Model(cpymad.model(mdata, histfile=None))
+        cpymad_model = cpymad.model(mdata, histfile=None)
+        cpymad_model.twiss()
+        seqname = cpymad_model._active['sequence']
+        seqobj = cpymad_model._madx.get_sequence(seqname)
+        self.model = Model(cpymad_model._madx,
+                           name=seqname,
+                           twiss_args=cpymad_model._get_twiss_initial(),
+                           elements=seqobj.get_elements())
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
