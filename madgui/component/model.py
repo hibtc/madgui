@@ -73,6 +73,13 @@ class Model(object):
             # TODO: init members
             pass
 
+    @property
+    def can_match(self):
+        return bool(self.twiss_args)
+
+    @property
+    def can_select(self):
+        return bool(self.elements)
 
     @property
     def beam(self):
