@@ -44,6 +44,29 @@ class Model(object):
     :ivar dict twiss_args:
     """
 
+    # TODO: separate into multipble components:
+    #
+    # - MadX
+    # - metadata (cpymad.model?)
+    # - Sequence (elements)
+    # - Matcher
+    #
+    # The MadX instance should be connected to a specific frame at
+    # construction time and log all output there in two separate places
+    # (panels?):
+    #   - logging.XXX
+    #   - MAD-X library output
+    #
+    # Some properties (like `elements` in particular) can not be determined
+    # at construction time and must be retrieved later on. Generally,
+    # `elements` can come from two sources:
+    # - MAD-X memory
+    # - metadata
+    # A reasonable mechanism is needed to resolve/update it.
+
+    # TODO: more logging
+    # TODO: automatically switch directories when CALLing files
+
     hook = ivar(HookCollection,
                 show='madgui.component.model.show',
                 update=None,
@@ -68,10 +91,12 @@ class Model(object):
         self.model = model
         try:
             seq = madx.get_active_sequence()
-            self._update_twiss(seq.twiss)
+            tw = seq.twiss
         except (RuntimeError, ValueError):
             # TODO: init members
             pass
+        else:
+            self._update_twiss(tw)
 
     @property
     def can_match(self):
@@ -133,9 +158,10 @@ class Model(object):
     def _update_elements(self, elements=None):
         if elements is None:
             try:
-                sequence = self.madx._madx.get_active_sequence()
+                sequence = self.madx.get_active_sequence()
                 elements = sequence.get_elements()
             except RuntimeError:
+                self.elements = []
                 return
         self.elements = list(map(self.from_madx, elements))
 
