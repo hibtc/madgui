@@ -43,7 +43,8 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
-        self.logfolder = app.logfolder
+        self.app = app
+        self.vars = {'views': []}
 
         # create notebook
         self.panel = wx.Panel(self)
@@ -55,15 +56,35 @@ class NotebookFrame(wx.Frame):
             wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSED,
             self.OnPageClosed,
             source=self.notebook)
+        self.notebook.Bind(
+            wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE,
+            self.OnPageClose,
+            source=self.notebook)
 
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
 
         # Create a command tab
-        self.NewCommandTab()
+        # TODO: create a log tab/pane
+        self._NewCommandTab()
 
         # show the frame
         self.Show(show)
+
+    def Reserve(self, **vars):
+        """
+        Return a frame with some global variables.
+
+        If the variables exist within the current frame, a new frame will be
+        created. Otherwise, the same frame may be returned.
+        """
+        for k in vars:
+            if k in self.vars:
+                frame = self.__class__(self.app)
+                frame.vars.update(vars)
+                return frame
+        self.vars.update(vars)
+        return self
 
     def _CreateMenu(self):
         """Create a menubar."""
@@ -73,10 +94,6 @@ class NotebookFrame(wx.Frame):
         appmenu = wx.Menu()
         menubar.Append(appmenu, '&App')
         # Create menu items
-        shellitem = appmenu.Append(wx.ID_ANY,
-                                   '&New prompt\tCtrl+N',
-                                   'Open a new tab with a command prompt')
-        self.Bind(wx.EVT_MENU, self.OnNewShell, shellitem)
         self.hook.menu(self, menubar)
         appmenu.AppendSeparator()
         appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
@@ -89,24 +106,28 @@ class NotebookFrame(wx.Frame):
         panel = FigurePanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
         view.plot()
+        self.vars['views'].append(view)
         return panel
+
+    def OnPageClose(self, event):
+        """Prevent the command tab from closing, if other tabs are open."""
+        if event.Selection == 0 and self.notebook.GetPageCount() > 1:
+            event.Veto()
 
     def OnPageClosed(self, event):
         """A page has been closed. If it was the last, close the frame."""
         if self.notebook.GetPageCount() == 0:
             self.Close()
+        else:
+            del self.vars['views'][event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
         self.Close()
 
-    def OnNewShell(self, event):
+    def _NewCommandTab(self):
         """Open a new command tab."""
-        self.NewCommandTab()
-
-    def NewCommandTab(self):
-        """Open a new command tab."""
-        # TODO: create a toolbar for this tab as well
-        # TODO: prevent the first command tab from being closed (?)
-        # TODO: redirect output?
-        self.notebook.AddPage(Crust(self.notebook), "Command", select=True)
+        self.notebook.AddPage(
+            Crust(self.notebook, locals=self.vars),
+            "Command",
+            select=True)

@@ -10,11 +10,13 @@ from __future__ import absolute_import
 import re
 
 # internal
-from madgui.util.common import ivar
+from madgui.util.common import ivar, cachedproperty
 from madgui.util.plugin import HookCollection
 from madgui.util.unit import units, madx as madunit, stripunit
 from madgui.util.symbol import SymbolicValue
 from madgui.util.vector import Vector
+
+from cern.cpymad.types import Expression
 
 # exported symbols
 __all__ = ['Model']
@@ -36,7 +38,34 @@ class Model(object):
 
      - knows sequence
      - knows about variables => can perform matching
+
+    :ivar Madx madx:
+    :ivar list elements:
+    :ivar dict twiss_args:
     """
+
+    # TODO: separate into multipble components:
+    #
+    # - MadX
+    # - metadata (cpymad.model?)
+    # - Sequence (elements)
+    # - Matcher
+    #
+    # The MadX instance should be connected to a specific frame at
+    # construction time and log all output there in two separate places
+    # (panels?):
+    #   - logging.XXX
+    #   - MAD-X library output
+    #
+    # Some properties (like `elements` in particular) can not be determined
+    # at construction time and must be retrieved later on. Generally,
+    # `elements` can come from two sources:
+    # - MAD-X memory
+    # - metadata
+    # A reasonable mechanism is needed to resolve/update it.
+
+    # TODO: more logging
+    # TODO: automatically switch directories when CALLing files
 
     hook = ivar(HookCollection,
                 show='madgui.component.model.show',
@@ -45,40 +74,57 @@ class Model(object):
                 remove_constraint=None,
                 clear_constraints=None)
 
-    def __init__(self, name, model, sequence):
-        """Load meta data and compute twiss variables."""
-        self.constraints = []
+    def __init__(self,
+                 madx,
+                 name=None,
+                 twiss_args=None,
+                 elements=None,
+                 model=None):
+        """
+        """
+        self.madx = madx
         self.name = name
+        self.twiss_args = twiss_args
+        self._columns = ['name','s', 'l','betx','bety', 'angle', 'k1l']
+        self.constraints = []
+        self._update_elements(elements)
         self.model = model
-        self.sequence = list(map(self.from_madx, sequence))
-        self.twiss()
+        try:
+            seq = madx.get_active_sequence()
+            tw = seq.twiss
+        except (RuntimeError, ValueError):
+            # TODO: init members
+            pass
+        else:
+            self._update_twiss(tw)
+
+    @property
+    def can_match(self):
+        return bool(self.twiss_args)
+
+    @property
+    def can_select(self):
+        return bool(self.elements)
 
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        mdef = self.model._mdef
-        beam = mdef['sequences'][self.model._active['sequence']]['beam']
-        return self.from_madx(mdef['beams'][beam])
+        return self.from_madx(self.madx.get_sequence(self.name).beam)
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
-        for elem in self.sequence:
-            at = elem.get('at')
-            L = elem.get('L')
-            if at is None or L is None:
-                continue
-            if pos >= at-L/2 and pos <= at+L/2:
+        for elem in self.elements:
+            at, L = elem.at, elem.L
+            if pos >= at and pos <= at+L:
                 return elem
         return None
 
     def element_by_name(self, name):
         """Find the element in the sequence list by its name."""
-        for elem in self.sequence:
-            if 'name' not in elem:
-                continue
-            if elem['name'].lower() == name.lower():
+        for elem in self.elements:
+            if elem.name.lower() == name.lower():
                 return elem
         return None
 
@@ -88,10 +134,9 @@ class Model(object):
             return None
         found_at = None
         found_elem = None
-        for elem in self.sequence:
-            at = elem.get('at')
-            if at is None:
-                continue
+        for elem in self.elements:
+            at, L = elem.at, elem.L
+            center = at + L/2
             if found_elem is None or abs(pos - at) < abs(pos - found_at):
                 found_at = at
                 found_elem = elem
@@ -99,22 +144,37 @@ class Model(object):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
-        tw, self.summary = self.model.twiss(
-                columns=['name','s', 'l','betx','bety', 'angle', 'k1l'])
-        self.tw = self.from_madx(tw)
+        results = self.madx.twiss(sequence=self.name,
+                                  columns=self._columns,
+                                  twiss_init=self.twiss_args)
+        self._update_twiss(results)
+
+    def _update_twiss(self, results):
+        """Update TWISS results."""
+        self.tw = self.from_madx(results.columns.freeze(self._columns))
+        self.summary = self.from_madx(results.summary)
         self.update()
+
+    def _update_elements(self, elements=None):
+        if elements is None:
+            try:
+                sequence = self.madx.get_active_sequence()
+                elements = sequence.get_elements()
+            except RuntimeError:
+                self.elements = []
+                return
+        self.elements = list(map(self.from_madx, elements))
 
     def element_index_by_name(self, name):
         """Find the element index in the twiss array by its name."""
-        pattern = re.compile(':\d+$')
         for i in range(len(self.tw.name)):
-            if pattern.sub("", self.tw.name[i]).lower() == name.lower():
+            if self.tw.name[i].lower() == name.lower():
                 return i
         return None
 
     def get_element_index(self, elem):
         """Get element index by it name."""
-        return self.element_index_by_name(elem.get('name'))
+        return self.element_index_by_name(elem.name)
 
     def get_envelope(self, elem, axis=None):
         """Return beam envelope at element."""
@@ -130,7 +190,7 @@ class Model(object):
         """Return beam envelope at center of element."""
         i = self.get_element_index(elem)
         if i is None:
-            return None
+            raise ValueError("Unknown element!")
         prev = i - 1 if i != 0 else i
         if axis is None:
             return ((self.env.x[i] + self.env.x[prev]) / 2,
@@ -142,10 +202,9 @@ class Model(object):
         """Perform post processing."""
         # data post processing
         self.pos = self.tw.s
-        beam = self.beam
         self.env = Vector(
-            (self.tw.betx * beam['ex'])**0.5,
-            (self.tw.bety * beam['ey'])**0.5)
+            (self.tw.betx * self.summary.ex)**0.5,
+            (self.tw.bety * self.summary.ey)**0.5)
         self.hook.update()
 
     def match(self):
@@ -154,14 +213,18 @@ class Model(object):
 
         # select variables: one for each constraint
         vary = []
-        allvars = [elem for elem in self.sequence
-                   if elem.get('vary')]
+        allvars = [elem for elem in self.elements
+                   if elem.type.lower() == 'quadrupole']
         for axis,elem,envelope in self.constraints:
-            at = elem['at']
-            allowed = (v for v in allvars if v['at'] < at)
+            at = elem.at
+            allowed = [v for v in allvars if v.at < at]
             try:
-                v = max(allowed, key=lambda v: v['at'])
-                vary += v['vary']
+                v = max(allowed, key=lambda v: v.at)
+                try:
+                    expr = v.k1._expression
+                except AttributeError:
+                    expr = v.name + +'->k1'
+                vary.append(dict(name=expr, step=1e-6))
                 allvars.remove(v)
             except ValueError:
                 # No variable in range found! Ok.
@@ -169,26 +232,27 @@ class Model(object):
 
         # select constraints
         constraints = []
-        beam = self.beam
+        ex, ey = self.summary.ex, self.summary.ey
         for axis,elem,envelope in self.constraints:
             name = 'betx' if axis == 0 else 'bety'
-            emittance = beam['ex'] if axis == 0 else beam['ey']
+            emittance = ex if axis == 0 else ey
+            el_name = re.sub(':\d+$', '', elem.name)
             if isinstance(envelope, tuple):
                 lower, upper = envelope
                 constraints.append([
-                    ('range', elem['name']),
+                    ('range', el_name),
                     (name, '>', self.value_to_madx(name, lower*lower/emittance)),
                     (name, '<', self.value_to_madx(name, upper*upper/emittance)) ])
             else:
                 constraints.append({
-                    'range': elem['name'],
+                    'range': el_name,
                     name: self.value_to_madx(name, envelope*envelope/emittance)})
 
-        tw, self.summary = self.model.match(
-            vary=vary,
-            constraints=constraints)
-        self.tw = self.from_madx(tw)
-        self.update()
+        self.madx.match(sequence=self.name,
+                        vary=vary,
+                        constraints=constraints,
+                        twiss_init=self.twiss_args)
+        self.twiss()
 
     def find_constraint(self, elem, axis=None):
         """Find and return the constraint for the specified element."""
@@ -210,7 +274,9 @@ class Model(object):
 
     def remove_constraint(self, elem, axis=None):
         """Remove the constraint for elem."""
-        self.constraints = [c for c in self.constraints if c[1] != elem or (axis is not None and c[0] != axis)]
+        self.constraints = [
+            c for c in self.constraints
+            if c[1].name != elem.name or (axis is not None and c[0] != axis)]
         self.hook.remove_constraint()
 
     def clear_constraints(self):
@@ -220,13 +286,13 @@ class Model(object):
 
     def evaluate(self, expr):
         """Evaluate a MADX expression and return the result as float."""
-        return self.model.evaluate(expr)
+        return self.madx.evaluate(expr)
 
     def value_from_madx(self, name, value):
         """Add units to a single number."""
         if name in madunit:
-            if isinstance(value, basestring):
-                return SymbolicValue(self, value, madunit[name])
+            if isinstance(value, (basestring, Expression)):
+                return SymbolicValue(self, str(value), madunit[name])
             else:
                 return madunit[name] * value
         else:

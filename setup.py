@@ -36,7 +36,7 @@ setup(
         'matplotlib',
         'numpy',
         'pydicti>=0.0.2',
-        'cern-pymad==0.6',
+        'cern-pymad==0.7',
         'unum>=4.0',
         'wxPython>=2.8',
         'docopt',
@@ -55,9 +55,13 @@ setup(
 
         [madgui.core.notebook.menu]
         openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
+        plainopen = madgui.component.plainopen:connect_menu
 
         [madgui.component.model.show]
         lineview = madgui.component.lineview:LineView.create
+
+        [madgui.models]
+        lhc = madgui.component.lhcmodels:locator
     """,
     package_data={
         'madgui': ['resource/*']

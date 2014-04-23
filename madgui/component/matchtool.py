@@ -40,8 +40,13 @@ class MatchTool(object):
                 shortHelp='Beam matching',
                 longHelp='Match by specifying constraints for envelope x(s), y(s).')
         panel.Bind(wx.EVT_TOOL, self.OnMatchClick, self.tool)
+        panel.Bind(wx.EVT_UPDATE_UI, self.UpdateTool, self.tool)
         # setup mouse capture
         panel.hook.capture_mouse.connect(self.stop_match)
+
+    def UpdateTool(self, event):
+        """Enable/disable toolbar tool."""
+        self.tool.Enable(self.model.can_match)
 
     def OnMatchClick(self, event):
         """Invoked when user clicks Match-Button"""
@@ -79,7 +84,7 @@ class MatchTool(object):
             return
         axis = 0 if axes is self.view.axes.x else 1
 
-        elem = self.model.element_by_position_center(
+        elem = self.model.element_by_position(
             event.xdata * self.view.unit.x)
         if elem is None or 'name' not in elem:
             return

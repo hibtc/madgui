@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 # scipy
 import numpy as np
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import AutoMinorLocator
 
 # internal
 import madgui.core
@@ -80,7 +80,7 @@ class LineView(object):
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
         return self.axes[axis].plot(
-            stripunit(elem['at'], self.unit.x),
+            stripunit(elem.at, self.unit.x),
             stripunit(envelope, self.unit.y),
             's',
             color=self.curve[axis]['color'],
@@ -102,14 +102,12 @@ class LineView(object):
         """Return the element type name used for properties like coloring."""
         if 'type' not in elem or 'at' not in elem:
             return None
-        type_name = elem['type'].lower()
+        type_name = elem.type.lower()
         focussing = None
         if type_name == 'quadrupole':
-            i = self.model.get_element_index(elem)
-            focussing = stripunit(self.model.tw.k1l[i]) > 0
+            focussing = stripunit(elem.k1) > 0
         elif type_name == 'sbend':
-            i = self.model.get_element_index(elem)
-            focussing = stripunit(self.model.tw.angle[i]) > 0
+            focussing = stripunit(elem.angle) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
@@ -126,6 +124,40 @@ class LineView(object):
         self.clines.y.set_ydata(stripunit(self.model.env.y, self.unit.y))
         self.figure.canvas.draw()
 
+    def _drawelements(self):
+        """Draw the elements into the canvas."""
+        envx, envy = self.model.env
+        max_env = Vector(np.max(envx), np.max(envy))
+        patch_h = Vector(0.75*stripunit(max_env.x, self.unit.y),
+                         0.75*stripunit(max_env.y, self.unit.y))
+        for elem in self.model.elements:
+            elem_type = self.get_element_type(elem)
+            if elem_type is None:
+                continue
+            if stripunit(elem.L) != 0:
+                patch_w = stripunit(elem['L'], self.unit.x)
+                patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
+                self.axes.x.add_patch(
+                    matplotlib.patches.Rectangle(
+                        (patch_x, 0),
+                        patch_w, patch_h.x,
+                        alpha=0.5, color=elem_type['color']))
+                self.axes.y.add_patch(
+                    matplotlib.patches.Rectangle(
+                        (patch_x, 0),
+                        patch_w, patch_h.y,
+                        alpha=0.5, color=elem_type['color']))
+            else:
+                patch_x = stripunit(elem['at'], self.unit.x)
+                self.axes.x.vlines(
+                    patch_x, 0,
+                    patch_h.x,
+                    alpha=0.5, color=elem_type['color'])
+                self.axes.y.vlines(
+                    patch_x, 0,
+                    patch_h.y,
+                    alpha=0.5, color=elem_type['color'])
+
     def plot(self):
 
         """Plot figure and redraw canvas."""
@@ -133,10 +165,6 @@ class LineView(object):
         # data post processing
         pos = self.model.pos
         envx, envy = self.model.env
-
-        max_env = Vector(np.max(envx), np.max(envy))
-        patch_h = Vector(0.75*stripunit(max_env.x, self.unit.y),
-                         0.75*stripunit(max_env.y, self.unit.y))
 
         # plot
         self.axes.x.cla()
@@ -147,34 +175,7 @@ class LineView(object):
             label.set_visible(False)
         self.axes.y.yaxis.get_ticklabels()[0].set_visible(False)
 
-        for elem in self.model.sequence:
-            elem_type = self.get_element_type(elem)
-            if elem_type is None:
-                continue
-
-            if 'L' in elem and stripunit(elem['L']) != 0:
-                patch_w = stripunit(elem['L'], self.unit.x)
-                patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
-                self.axes.x.add_patch(
-                        matplotlib.patches.Rectangle(
-                            (patch_x, 0),
-                            patch_w, patch_h.x,
-                            alpha=0.5, color=elem_type['color']))
-                self.axes.y.add_patch(
-                        matplotlib.patches.Rectangle(
-                            (patch_x, 0),
-                            patch_w, patch_h.y,
-                            alpha=0.5, color=elem_type['color']))
-            else:
-                patch_x = stripunit(elem['at'], self.unit.x)
-                self.axes.x.vlines(
-                        patch_x, 0,
-                        patch_h.x,
-                        alpha=0.5, color=elem_type['color'])
-                self.axes.y.vlines(
-                        patch_x, 0,
-                        patch_h.y,
-                        alpha=0.5, color=elem_type['color'])
+        self._drawelements()
 
         self.clines = Vector(
             self.axes.x.plot(
@@ -194,10 +195,8 @@ class LineView(object):
 
         for axis_index, axis_name in enumerate(['x', 'y']):
             self.axes[axis_index].grid(True)
-            self.axes[axis_index].get_xaxis().set_minor_locator(
-                MultipleLocator(2))
-            self.axes[axis_index].get_yaxis().set_minor_locator(
-                MultipleLocator(2))
+            self.axes[axis_index].get_xaxis().set_minor_locator(AutoMinorLocator())
+            self.axes[axis_index].get_yaxis().set_minor_locator(AutoMinorLocator())
             self.axes[axis_index].set_xlim(stripunit(pos[0], self.unit.x),
                                            stripunit(pos[-1], self.unit.x))
             self.axes[axis_index].set_ylabel(r'$\Delta %s$ %s' % (

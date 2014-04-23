@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 # standard library
 from importlib import import_module
-from collections import namedtuple
 from pkg_resources import iter_entry_points
 import os
 
@@ -20,23 +19,52 @@ from cern import cpymad
 # internal
 from madgui.core import wx
 from madgui.component.model import Model
+from madgui.util.common import cachedproperty
+
+# TODO: select sequence, optic, range
 
 
-def list_locators():
-    """Return list of all locators at the entrypoint madgui.models."""
-    return [(ep.name, ep.load()) for ep in iter_entry_points('madgui.models')]
+class CachedLocator(object):
 
+    """
+    Cached Model locator.
+    """
 
-def get_locator(pkg_name):
-    """List all models in the given package. Returns an iterable."""
-    try:
-        pkg = import_module(pkg_name)
-    except ValueError:
-        return None
-    except ImportError:
-        return None
-    resource_provider = PackageResource(pkg_name)
-    return MergedModelLocator(resource_provider)
+    def __init__(self, name, locator):
+        """Store the name and raw (uncached) locator."""
+        self.name = name
+        self._locator = locator
+
+    @cachedproperty
+    def models(self):
+        """Cached list of model names."""
+        return list(self._locator.list_models())
+
+    def list_models(self):
+        """Return list of model names."""
+        return self.models
+
+    def get_model(self, model):
+        """Return a ModelData for the model name."""
+        return self._locator.get_model(model)
+
+    @classmethod
+    def discover(cls):
+        """Return list of all locators at the entrypoint madgui.models."""
+        return [cls(ep.name, ep.load())
+                for ep in iter_entry_points('madgui.models')]
+
+    @classmethod
+    def from_pkg(cls, pkg_name):
+        """List all models in the given package. Returns a Locator."""
+        try:
+            pkg = import_module(pkg_name)
+        except ValueError:
+            return None
+        except ImportError:
+            return None
+        resource_provider = PackageResource(pkg_name)
+        return cls(pkg_name, MergedModelLocator(resource_provider))
 
 
 class OpenModelDlg(wx.Dialog):
@@ -50,7 +78,10 @@ class OpenModelDlg(wx.Dialog):
         def OnOpenModel(event):
             dlg = cls(frame)
             if dlg.ShowModal() == wx.ID_OK:
-                dlg.model.hook.show(dlg.model, frame)
+                _frame = frame.Reserve(madx=dlg.model.madx,
+                                       control=dlg.model,
+                                       model=dlg.model.model)
+                dlg.model.hook.show(dlg.model, _frame)
             dlg.Destroy()
         appmenu = menubar.Menus[0][0]
         menuitem = appmenu.Append(wx.ID_ANY,
@@ -62,7 +93,6 @@ class OpenModelDlg(wx.Dialog):
         """Store the data and initialize the component."""
         self.model = None
         super(OpenModelDlg, self).__init__(parent, *args, **kwargs)
-        self.logfolder = parent.logfolder
         self.CreateControls()
         self.Centre()
 
@@ -123,9 +153,9 @@ class OpenModelDlg(wx.Dialog):
         """Get the currently selected locator."""
         selection = self.ctrl_pkg.GetSelection()
         if selection == wx.NOT_FOUND:
-            return get_locator(self.ctrl_pkg.GetValue())
+            return CachedLocator.from_pkg(self.ctrl_pkg.GetValue())
         else:
-            return self.locators[selection][1]
+            return self.locators[selection]
 
     def GetModelList(self):
         """Get list of models in the package specified by the input field."""
@@ -134,8 +164,8 @@ class OpenModelDlg(wx.Dialog):
 
     def UpdateLocatorList(self):
         """Update the list of locators shown in the dialog."""
-        self.locators = list_locators()
-        self.ctrl_pkg.SetItems([l[0] for l in self.locators])
+        self.locators = CachedLocator.discover()
+        self.ctrl_pkg.SetItems([l.name for l in self.locators])
         self.ctrl_pkg.SetSelection(0)
         self.ctrl_pkg.Enable(bool(self.locators))
 
@@ -156,12 +186,16 @@ class OpenModelDlg(wx.Dialog):
             self.model = None
             return
         mdata = locator.get_model(self.ctrl_model.GetValue())
-        histfile = os.path.join(self.logfolder, "%s.madx" % mdata.name)
-        res = mdata.repository.get()
-        self.model = Model(
-            name=mdata.name,
-            model=cpymad.model(mdata, histfile=histfile),
-            sequence=res.yaml('sequence.yml'))
+        # TODO: redirect history+output to frame!
+        cpymad_model = cpymad.model(mdata, histfile=None)
+        cpymad_model.twiss()
+        seqname = cpymad_model._active['sequence']
+        seqobj = cpymad_model._madx.get_sequence(seqname)
+        self.model = Model(cpymad_model._madx,
+                           name=seqname,
+                           twiss_args=cpymad_model._get_twiss_initial(),
+                           elements=seqobj.get_elements(),
+                           model=cpymad_model)
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
