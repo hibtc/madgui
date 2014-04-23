@@ -36,7 +36,7 @@ setup(
         'matplotlib',
         'numpy',
         'pydicti>=0.0.2',
-        'cern-pymad==0.6',
+        'cern-pymad==0.7',
         'unum>=4.0',
         'wxPython>=2.8',
         'docopt',
