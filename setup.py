@@ -35,7 +35,7 @@ setup(
     install_requires=[
         'matplotlib',
         'numpy',
-        'pydicti>=0.0.2',
+        'pydicti>=0.0.4',
         'cern-pymad==0.7',
         'unum>=4.0',
         'wxPython>=2.8',
