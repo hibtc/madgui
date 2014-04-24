@@ -9,7 +9,6 @@ from __future__ import absolute_import
 # standard library
 from importlib import import_module
 from pkg_resources import iter_entry_points
-import os
 
 # 3rd party
 from cern.resource.package import PackageResource
@@ -19,9 +18,8 @@ from cern import cpymad
 # internal
 from madgui.core import wx
 from madgui.component.model import Model
+from madgui.component.modeldetail import ModelDetailDlg
 from madgui.util.common import cachedproperty
-
-# TODO: select sequence, optic, range
 
 
 class CachedLocator(object):
@@ -76,13 +74,48 @@ class OpenModelDlg(wx.Dialog):
     @classmethod
     def connect_menu(cls, frame, menubar):
         def OnOpenModel(event):
-            dlg = cls(frame)
-            if dlg.ShowModal() == wx.ID_OK:
-                _frame = frame.Reserve(madx=dlg.model.madx,
-                                       control=dlg.model,
-                                       model=dlg.model.model)
-                dlg.model.hook.show(dlg.model, _frame)
-            dlg.Destroy()
+            # select package, model:
+            select_model_dlg = cls(frame)
+            try:
+                if select_model_dlg.ShowModal() != wx.ID_OK:
+                    return
+                mdata = select_model_dlg.mdata
+                if not mdata:
+                    return
+                # select optic, sequence, beam, range, twiss:
+                select_detail_dlg = ModelDetailDlg(frame, mdata.model)
+                try:
+                    if select_detail_dlg.ShowModal() != wx.ID_OK:
+                        return
+                    detail = select_detail_dlg.data
+                    # TODO: redirect history+output to frame!
+                    cpymad_model = cpymad.model(mdata,
+                                                optics=[detail['optic']],
+                                                sequence=detail['sequence'],
+                                                histfile=None)
+
+                    madx = cpymad_model._madx
+                    madx.verbose(True)
+                    beam = cpymad_model.get_beam(detail['beam'])
+                    cpymad_model.set_beam(beam)
+                    cpymad_model.set_range(detail['range'])
+                    twiss_args = cpymad_model._get_twiss_initial(
+                        detail['sequence'],
+                        detail['range'],
+                        detail['twiss'])
+                    model = Model(madx,
+                                  name=detail['sequence'],
+                                  twiss_args=twiss_args,
+                                  model=cpymad_model)
+                    model.twiss()
+                    _frame = frame.Reserve(madx=madx,
+                                           control=model,
+                                           model=cpymad_model)
+                    model.hook.show(model, _frame)
+                finally:
+                    select_detail_dlg.Destroy()
+            finally:
+                select_model_dlg.Destroy()
         appmenu = menubar.Menus[0][0]
         menuitem = appmenu.Append(wx.ID_ANY,
                                   '&Open model\tCtrl+O',
@@ -91,8 +124,8 @@ class OpenModelDlg(wx.Dialog):
 
     def __init__(self, parent, *args, **kwargs):
         """Store the data and initialize the component."""
-        self.model = None
         super(OpenModelDlg, self).__init__(parent, *args, **kwargs)
+        self.mdata = None
         self.CreateControls()
         self.Centre()
 
@@ -101,11 +134,10 @@ class OpenModelDlg(wx.Dialog):
         """Create subcontrols and layout."""
 
         # Create controls
-        label_pkg = wx.StaticText(self, label="Source:")
+        label_pkg = wx.StaticText(self, label="Package:")
         label_model = wx.StaticText(self, label="Model:")
         self.ctrl_pkg = wx.ComboBox(self, wx.CB_DROPDOWN|wx.CB_SORT)
         self.ctrl_model = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-
         self.TransferDataToWindow() # needed?
 
         # Create box sizer
@@ -176,26 +208,13 @@ class OpenModelDlg(wx.Dialog):
         self.ctrl_model.SetSelection(0)
         self.ctrl_model.Enable(bool(modellist))
 
-    # TODO: Use validators:
-    # - Check the validity of the package/model name
-    # - disable Ok button
     def TransferDataFromWindow(self):
         """Get selected package and model name."""
         locator = self.GetCurrentLocator()
         if not locator:
-            self.model = None
+            self.mdata = None
             return
-        mdata = locator.get_model(self.ctrl_model.GetValue())
-        # TODO: redirect history+output to frame!
-        cpymad_model = cpymad.model(mdata, histfile=None)
-        cpymad_model.twiss()
-        seqname = cpymad_model._active['sequence']
-        seqobj = cpymad_model._madx.get_sequence(seqname)
-        self.model = Model(cpymad_model._madx,
-                           name=seqname,
-                           twiss_args=cpymad_model._get_twiss_initial(),
-                           elements=seqobj.get_elements(),
-                           model=cpymad_model)
+        self.mdata = locator.get_model(self.ctrl_model.GetValue())
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
