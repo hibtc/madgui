@@ -3,13 +3,13 @@
 MadGUI - interactive GUI application for MADX via cpymad.
 
 Usage:
-    madgui [-l <logs>]
+    madgui [--config <config>]
     madgui (--help | --version)
 
 Options:
-    -l <logs>, --log=<logs>     Set log directory (default is '~/.madgui')
-    -h, --help                  Show this help
-    -v, --version               Show version information
+    --config=<config>       Set config file
+    -h, --help              Show this help
+    -v, --version           Show version information
 
 Contact information:
 
