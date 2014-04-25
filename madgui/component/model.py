@@ -111,6 +111,10 @@ class Model(object):
         """Get the beam parameter dictionary."""
         return self.from_madx(self.madx.get_sequence(self.name).beam)
 
+    @beam.setter
+    def beam(self):
+        """Set beam from a parameter dictionary."""
+
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
         if pos is None:
