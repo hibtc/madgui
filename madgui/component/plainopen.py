@@ -21,21 +21,30 @@ def connect_menu(frame, menubar):
                             style=wx.FD_OPEN,
                             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
         if dlg.ShowModal() == wx.ID_OK:
-            name = dlg.Path
             madx = Madx()
-            madx.call(name)
+            madx.call(dlg.Path)
+
+            # TODO: just ask the user which one to use?
+            try:
+                name = madx.active_sequence
+            except RuntimeError:
+                for seq in madx.get_sequences():
+                    try:
+                        twiss = seq.twiss
+                    except (RuntimeError, ValueError):
+                        pass
+                    else:
+                        name = seq.name
+                        break
+                else:
+                    name = None
+
             model = Model(madx, name=name)
             _frame = frame.Reserve(madx=madx,
                                    control=model,
                                    model=None,
                                    name=name)
-            # TODO: iterate all available sequences (if there is no active
-            # sequence?) and ask the user which one to use.
-            try:
-                twiss = madx.get_active_sequence().twiss
-            except (RuntimeError, ValueError):
-                pass
-            else:
+            if name:
                 model.hook.show(model, _frame)
         dlg.Destroy()
     appmenu = menubar.Menus[0][0]
