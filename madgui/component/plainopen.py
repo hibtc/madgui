@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Dialog component to find/open a model.
+Dialog component to find/open a .madx file.
 """
 
 # force new style imports
@@ -14,7 +14,6 @@ from madgui.core import wx
 from madgui.component.model import Model
 
 
-
 def connect_menu(frame, menubar):
     def OnOpen(event):
         dlg = wx.FileDialog(frame,
@@ -23,22 +22,25 @@ def connect_menu(frame, menubar):
         if dlg.ShowModal() == wx.ID_OK:
             madx = Madx()
             madx.call(dlg.Path)
-
-            # TODO: just ask the user which one to use?
-            try:
-                name = madx.active_sequence
-            except RuntimeError:
-                for seq in madx.get_sequences():
-                    try:
-                        twiss = seq.twiss
-                    except (RuntimeError, ValueError):
-                        pass
-                    else:
-                        name = seq.name
-                        break
-                else:
-                    name = None
-
+            # look for sequences
+            sequences = madx.get_sequence_names()
+            if len(sequences) == 0:
+                # TODO: log
+                name = None
+            elif len(sequences) == 1:
+                name = sequences[0]
+            else:
+                # if there are multiple sequences - just ask the user which
+                # one to use rather than taking a wild guess based on twiss
+                # computation etc
+                dlg = wx.SingleChoiceDialog(parent=frame,
+                                            caption="Select sequence",
+                                            message="Select sequence:",
+                                            choices=sequences)
+                if dlg.ShowModal() != wx.ID_OK:
+                    return
+                name = dlg.GetStringSelection()
+            # now create the actual model object
             model = Model(madx, name=name)
             _frame = frame.Reserve(madx=madx,
                                    control=model,
