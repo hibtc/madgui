@@ -78,13 +78,15 @@ class TwissDialog(ParamDialog):
                 shortHelpString='Set TWISS initial conditions.',
                 longHelpString='Set TWISS initial conditions.')
         def OnClick(event):
-            dlg = cls(panel, model.twiss_args)
+            dlg = cls(panel,
+                      utool=model,
+                      data=model.twiss_args)
             if dlg.ShowModal() == wx.ID_OK:
                 model.twiss_args = dlg.data
                 model.twiss()
         panel.Bind(wx.EVT_TOOL, OnClick, tool)
 
-    def __init__(self, parent, data, readonly=False):
+    def __init__(self, parent, utool, data, readonly=False):
         """
         Create an empty popup window.
 
@@ -92,6 +94,7 @@ class TwissDialog(ParamDialog):
         """
         super(TwissDialog, self).__init__(
             parent=parent,
+            utool=utool,
             params=self.params,
             data=data,
             readonly=readonly)

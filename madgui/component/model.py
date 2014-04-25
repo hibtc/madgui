@@ -139,9 +139,10 @@ class Model(MadxUnits):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
+        twiss_args = self.dict_to_madx(self.twiss_args)
         results = self.madx.twiss(sequence=self.name,
                                   columns=self._columns,
-                                  twiss_init=self.twiss_args)
+                                  twiss_init=twiss_args)
         self._update_twiss(results)
 
     def _update_twiss(self, results):
@@ -243,10 +244,11 @@ class Model(MadxUnits):
                     'range': el_name,
                     name: self.value_to_madx(name, envelope*envelope/emittance)})
 
+        twiss_args = self.dict_to_madx(self.twiss_args)
         self.madx.match(sequence=self.name,
                         vary=vary,
                         constraints=constraints,
-                        twiss_init=self.twiss_args)
+                        twiss_init=twiss_args)
         self.twiss()
 
     def find_constraint(self, elem, axis=None):

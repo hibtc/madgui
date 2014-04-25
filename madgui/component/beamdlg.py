@@ -54,13 +54,15 @@ class BeamDialog(ParamDialog):
                 shortHelpString='Set BEAM.',
                 longHelpString='Set BEAM.')
         def OnClick(event):
-            dlg = cls(panel, model.beam)
+            dlg = cls(panel,
+                      utool=model,
+                      data=model.beam)
             if dlg.ShowModal() == wx.ID_OK:
                 model.beam = dlg.data
                 model.twiss()
         panel.Bind(wx.EVT_TOOL, OnClick, tool)
 
-    def __init__(self, parent, data, readonly=False):
+    def __init__(self, parent, utool, data, readonly=False):
         """
         Create an empty popup window.
 
@@ -68,6 +70,7 @@ class BeamDialog(ParamDialog):
         """
         super(BeamDialog, self).__init__(
             parent=parent,
+            utool=utool,
             params=self.params,
             data=data,
             readonly=readonly)

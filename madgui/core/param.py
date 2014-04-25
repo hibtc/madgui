@@ -42,7 +42,7 @@ class BaseControl(object):
 
     The following interface must be implemented:
 
-    :meth:`__init__` takes the parent window as its first argument
+    :meth:`__init__` arguments (parent, stripper)
     :ivar:`Value` property to access the value of the GUI element
     :ivar:`Control` the actual GUI element (can be used to bind events)
     """
@@ -162,11 +162,16 @@ class Matrix(Float):
         return self._layout
 
 
+# TODO: class Vector(Float)
+# unlike Matrix this represents a single MAD-X parameter of type ARRAY.
+
+
 class ParamDialog(ModalDialog):
 
     """
     Modal dialog to show and edit key-value pairs.
 
+    :ivar MadxUnits utool: tool to add/remove units from input values
     :ivar list params: all possible ParamGroups
     :ivar dict data: initial/final parameter values
     :ivar bool readonly: read-only dialog (TODO)
@@ -181,8 +186,9 @@ class ParamDialog(ModalDialog):
     :ivar wx.Choice _ctrl_add: choice box to add new groups
     """
 
-    def SetData(self, params, data, readonly=False):
+    def SetData(self, utool, params, data, readonly=False):
         """Implements ModalDialog.SetData."""
+        self.utool = utool
         self.params = params
         self.data = data or {}
         self.readonly = readonly
@@ -245,7 +251,7 @@ class ParamDialog(ModalDialog):
 
         Implements ParamDialog.TransferDataFromWindow.
         """
-        self.data = {name: ctrl.Value
+        self.data = {name: self.utool.value_from_madx(name, ctrl.Value)
                      for group in self._groups
                      for name,ctrl in group.items()}
 
@@ -273,7 +279,12 @@ class ParamDialog(ModalDialog):
         for i, param in enumerate(group.names()):
             row = row_offs + i/cols
             col = 2*(i%cols)
-            label = wx.StaticText(self, label=param+':')
+            unit_label = self.utool.unit_label(param)
+            if unit_label:
+                text = '{} {}: '.format(param, unit_label)
+            else:
+                text = '{}: '.format(param)
+            label = wx.StaticText(self, label=text)
             input = group.CreateControl(self)
             input.Value = group.default(param)
             self._grid.Add(label,
@@ -303,7 +314,7 @@ class ParamDialog(ModalDialog):
         :raises KeyError: if the parameter name is invalid
         """
         if value is not None:
-            self.AddParam(name).Value = value
+            self.AddParam(name).Value = self.utool.value_to_madx(name, value)
 
     def AddParam(self, param_name):
         """
