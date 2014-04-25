@@ -8,41 +8,45 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
+from madgui.core.input import ModalDialog
 
 
 # TODO: show+modify beam and twiss
 # TODO: add menu/toolbar for this dialog (?)
 
 
-class ModelDetailDlg(wx.Dialog):
+class ModelDetailDlg(ModalDialog):
 
-    def __init__(self, parent, mdef, data=None, **kwargs):
-        """Initialize component and create controls."""
+    def SetData(self, mdef, data=None):
         # The mdef dictionary is needed as long as the cpymad Model API is
         # insufficient. Hopefully, this will soon change with the drastical
         # simplifications to the Model/Madx components I have in mind.
         self.mdef = mdef
         self.data = data or {}
-        super(ModelDetailDlg, self).__init__(parent, **kwargs)
-        self.CreateControls()
-        self.Centre()
+
+
+    def _AddComboBox(self, sizer, label):
+        """
+        Insert combo box with a label into the sizer.
+
+        :param wx.FlexGridSizer sizer: 2-columns
+        :param str label: label to be shown to the left
+        :returns: the new control
+        :rtype: wx.ComboBox
+        """
+        label = wx.StaticText(self, label=label)
+        combo = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
+        sizer.Add(label,
+                  border=5,
+                  flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(combo,
+                  border=5,
+                  flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        return combo
 
     def CreateControls(self):
 
         """Create subcontrols and layout."""
-
-        # Create controls
-        label_optic = wx.StaticText(self, label="Optic:")
-        label_sequence = wx.StaticText(self, label="Sequence:")
-        label_beam = wx.StaticText(self, label="Beam:")
-        label_range = wx.StaticText(self, label="Range:")
-        label_twiss = wx.StaticText(self, label="Twiss:")
-        self.ctrl_optic = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-        self.ctrl_sequence = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-        self.ctrl_beam = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-        self.ctrl_range = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-        self.ctrl_twiss = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-        self.TransferDataToWindow() # needed?
 
         # Create box sizer
         controls = wx.FlexGridSizer(rows=5, cols=2)
@@ -51,41 +55,28 @@ class ModelDetailDlg(wx.Dialog):
         controls.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
 
         # insert items
-        size = dict(border=5)
-        left = dict(size, flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-        right = dict(size, flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        controls.Add(label_optic, **left)
-        controls.Add(self.ctrl_optic, **right)
-        controls.Add(label_sequence, **left)
-        controls.Add(self.ctrl_sequence, **right)
-        controls.Add(label_beam, **left)
-        controls.Add(self.ctrl_beam, **right)
-        controls.Add(label_range, **left)
-        controls.Add(self.ctrl_range, **right)
-        controls.Add(label_twiss, **left)
-        controls.Add(self.ctrl_twiss, **right)
-
-        # buttons
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
-        button_ok = wx.Button(self, wx.ID_OK)
-        button_cancel = wx.Button(self, wx.ID_CANCEL)
-        buttons.Add(button_ok)
-        buttons.Add(button_cancel)
+        self.ctrl_optic = self._AddComboBox(controls, 'Optic:')
+        self.ctrl_sequence = self._AddComboBox(controls, 'Sequence:')
+        self.ctrl_beam = self._AddComboBox(controls, 'Beam:')
+        self.ctrl_range = self._AddComboBox(controls, 'Range:')
+        self.ctrl_twiss = self._AddComboBox(controls, 'Twiss:')
+        self.TransferDataToWindow() # needed?
 
         # outer layout sizer
         outer = wx.BoxSizer(wx.VERTICAL)
-        outer.Add(controls, flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.ALL, **size)
-        outer.Add(buttons, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, **size)
+        outer.Add(controls,
+                  border=5,
+                  flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.ALL)
+        outer.Add(self.CreateButtonSizer(),
+                  border=5,
+                  flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL)
 
         # register for events
         self.Bind(wx.EVT_TEXT, self.OnSequenceChange, source=self.ctrl_sequence)
         self.Bind(wx.EVT_TEXT, self.OnRangeChange, source=self.ctrl_range)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonOk, source=button_ok)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonCancel, source=button_cancel)
 
         # associate sizer and layout
         self.SetSizer(outer)
-        outer.Fit(self)
 
     def OnSequenceChange(self, event):
         """Update default range+beam when sequence is changed."""
@@ -160,12 +151,3 @@ class ModelDetailDlg(wx.Dialog):
                      rdef['twiss-initial-conditions'].keys(), 
                      rdef['default-twiss'],
                      data.get('twiss'))
-
-    def OnButtonOk(self, event):
-        """Confirm current selection and close dialog."""
-        self.TransferDataFromWindow()
-        self.EndModal(wx.ID_OK)
-
-    def OnButtonCancel(self, event):
-        """Cancel the dialog."""
-        self.EndModal(wx.ID_CANCEL)

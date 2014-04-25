@@ -17,9 +17,11 @@ from cern import cpymad
 
 # internal
 from madgui.core import wx
+from madgui.core.input import ModalDialog
 from madgui.component.model import Model
 from madgui.component.modeldetail import ModelDetailDlg
 from madgui.util.common import cachedproperty
+from madgui.util.unit import MadxUnits
 
 
 class CachedLocator(object):
@@ -65,7 +67,7 @@ class CachedLocator(object):
         return cls(pkg_name, MergedModelLocator(resource_provider))
 
 
-class OpenModelDlg(wx.Dialog):
+class OpenModelDlg(ModalDialog):
 
     """
     Open dialog for models contained in python packages.
@@ -83,7 +85,7 @@ class OpenModelDlg(wx.Dialog):
                 if not mdata:
                     return
                 # select optic, sequence, beam, range, twiss:
-                select_detail_dlg = ModelDetailDlg(frame, mdata.model)
+                select_detail_dlg = ModelDetailDlg(frame, mdef=mdata.model)
                 try:
                     if select_detail_dlg.ShowModal() != wx.ID_OK:
                         return
@@ -99,13 +101,14 @@ class OpenModelDlg(wx.Dialog):
                     beam = cpymad_model.get_beam(detail['beam'])
                     cpymad_model.set_beam(beam)
                     cpymad_model.set_range(detail['range'])
+                    utool = MadxUnits(madx)
                     twiss_args = cpymad_model._get_twiss_initial(
                         detail['sequence'],
                         detail['range'],
                         detail['twiss'])
                     model = Model(madx,
                                   name=detail['sequence'],
-                                  twiss_args=twiss_args,
+                                  twiss_args=utool.dict_from_madx(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
                     _frame = frame.Reserve(madx=madx,
@@ -122,12 +125,9 @@ class OpenModelDlg(wx.Dialog):
                                   'Open another model in a new tab')
         menubar.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
 
-    def __init__(self, parent, *args, **kwargs):
+    def SetData(self):
         """Store the data and initialize the component."""
-        super(OpenModelDlg, self).__init__(parent, *args, **kwargs)
         self.mdata = None
-        self.CreateControls()
-        self.Centre()
 
     def CreateControls(self):
 
@@ -156,11 +156,7 @@ class OpenModelDlg(wx.Dialog):
         controls.Add(self.ctrl_model, flag=expand, **sizeargs)
 
         # buttons
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
-        button_ok = wx.Button(self, wx.ID_OK)
-        button_cancel = wx.Button(self, wx.ID_CANCEL)
-        buttons.Add(button_ok)
-        buttons.Add(button_cancel)
+        buttons = self.CreateButtonSizer()
 
         # outer layout sizer
         outer = wx.BoxSizer(wx.VERTICAL)
@@ -169,13 +165,9 @@ class OpenModelDlg(wx.Dialog):
 
         # register for events
         self.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonOk, source=button_ok)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonCancel, source=button_cancel)
-        self.Bind(wx.EVT_UPDATE_UI, self.UpdateButtonOk, source=button_ok)
 
         # associate sizer and layout
         self.SetSizer(outer)
-        outer.Fit(self)
 
     def OnPackageChange(self, event):
         """Update model list when package name is changed."""
@@ -223,16 +215,12 @@ class OpenModelDlg(wx.Dialog):
         # self.ctrl_pkg.SetValue(self.data.pkg_name)
         # self.ctrl_model.SetValue(self.data.model_name)
 
+    def CreateButtonOk(self):
+        button = super(OpenModelDlg, self).CreateOkButton()
+        self.Bind(wx.EVT_UPDATE_UI, self.UpdateButtonOk, source=button_ok)
+        return button
+
     def UpdateButtonOk(self, event):
         """Update the status of the OK button."""
         modellist = self.GetModelList()
         event.Enable(bool(modellist))
-
-    def OnButtonOk(self, event):
-        """Confirm current selection and close dialog."""
-        self.TransferDataFromWindow()
-        self.EndModal(wx.ID_OK)
-
-    def OnButtonCancel(self, event):
-        """Cancel the dialog."""
-        self.EndModal(wx.ID_CANCEL)
