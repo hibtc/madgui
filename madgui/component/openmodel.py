@@ -91,13 +91,13 @@ class OpenModelDlg(ModalDialog):
                         return
                     detail = select_detail_dlg.data
                     # TODO: redirect history+output to frame!
+                    madx = frame.vars['madx']
                     cpymad_model = cpymad.model(mdata,
                                                 optics=[detail['optic']],
                                                 sequence=detail['sequence'],
-                                                histfile=None)
+                                                histfile=None,
+                                                madx=madx)
 
-                    madx = cpymad_model._madx
-                    madx.verbose(True)
                     beam = cpymad_model.get_beam(detail['beam'])
                     cpymad_model.set_beam(beam)
                     cpymad_model.set_range(detail['range'])
@@ -111,8 +111,7 @@ class OpenModelDlg(ModalDialog):
                                   twiss_args=utool.dict_from_madx(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
-                    _frame = frame.Reserve(madx=madx,
-                                           control=model,
+                    _frame = frame.Reserve(control=model,
                                            model=cpymad_model)
                     model.hook.show(model, _frame)
                 finally:

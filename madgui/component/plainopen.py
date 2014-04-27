@@ -6,9 +6,6 @@ Dialog component to find/open a .madx file.
 # force new style imports
 from __future__ import absolute_import
 
-# 3rd party
-from cern.cpymad.madx import Madx
-
 # internal
 from madgui.core import wx
 from madgui.component.model import Model
@@ -20,7 +17,7 @@ def connect_menu(frame, menubar):
                             style=wx.FD_OPEN,
                             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
         if dlg.ShowModal() == wx.ID_OK:
-            madx = Madx()
+            madx = frame.vars['madx']
             madx.call(dlg.Path)
             # look for sequences
             sequences = madx.get_sequence_names()
@@ -42,8 +39,7 @@ def connect_menu(frame, menubar):
                 name = dlg.GetStringSelection()
             # now create the actual model object
             model = Model(madx, name=name)
-            _frame = frame.Reserve(madx=madx,
-                                   control=model,
+            _frame = frame.Reserve(control=model,
                                    model=None,
                                    name=name)
             if name:

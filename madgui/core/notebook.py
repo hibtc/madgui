@@ -11,6 +11,9 @@ import wx
 import wx.aui
 from wx.py.crust import Crust
 
+# 3rd party
+from cern.cpymad.madx import Madx
+
 # internal
 from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
@@ -43,8 +46,13 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
+        madx = Madx()
+        libmadx = madx._libmadx
+
         self.app = app
-        self.vars = {'views': []}
+        self.vars = {'views': [],
+                     'madx': madx,
+                     'libmadx': libmadx}
 
         # create notebook
         self.panel = wx.Panel(self)
