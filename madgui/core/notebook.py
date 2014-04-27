@@ -60,6 +60,7 @@ class NotebookFrame(wx.Frame):
             wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE,
             self.OnPageClose,
             source=self.notebook)
+        self.CreateStatusBar()
 
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
