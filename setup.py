@@ -52,12 +52,12 @@ setup(
         matchtool = madgui.component.matchtool:MatchTool
         selecttool = madgui.component.selecttool:SelectTool
         comparetool = madgui.component.comparetool:CompareTool
-        changetwiss = madgui.component.changetwiss:TwissDialog.connect_toolbar
-        beamdlg = madgui.component.beamdlg:BeamDialog.connect_toolbar
 
         [madgui.core.notebook.menu]
         openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
         plainopen = madgui.component.plainopen:connect_menu
+        changetwiss = madgui.component.changetwiss:TwissDialog.connect_menu
+        beamdlg = madgui.component.beamdlg:BeamDialog.connect_menu
 
         [madgui.component.model.show]
         lineview = madgui.component.lineview:LineView.create

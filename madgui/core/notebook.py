@@ -90,14 +90,17 @@ class NotebookFrame(wx.Frame):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
-        menubar = wx.MenuBar()
+        menubar = self.menubar = wx.MenuBar()
         appmenu = wx.Menu()
+        seqmenu = wx.Menu()
         menubar.Append(appmenu, '&App')
+        menubar.Append(seqmenu, '&Sequence')
         # Create menu items
         self.hook.menu(self, menubar)
         appmenu.AppendSeparator()
         appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
         self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
         return menubar
 
     def AddView(self, view, title):
@@ -124,6 +127,9 @@ class NotebookFrame(wx.Frame):
     def OnQuit(self, event):
         """Close the window."""
         self.Close()
+
+    def OnUpdateMenu(self, event):
+        self.menubar.EnableTop(1, 'control' in self.vars)
 
     def _NewCommandTab(self):
         """Open a new command tab."""

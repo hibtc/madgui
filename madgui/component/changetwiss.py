@@ -69,22 +69,22 @@ class TwissDialog(ParamDialog):
     ]
 
     @classmethod
-    def connect_toolbar(cls, panel):
-        model = panel.view.model
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_LIST_VIEW, wx.ART_TOOLBAR)
-        tool = panel.toolbar.AddSimpleTool(
-                wx.ID_ANY,
-                bitmap=bmp,
-                shortHelpString='Set TWISS initial conditions.',
-                longHelpString='Set TWISS initial conditions.')
+    def connect_menu(cls, notebook, menubar):
         def OnClick(event):
-            dlg = cls(panel,
+            model = notebook.vars['control']
+            dlg = cls(notebook,
                       utool=model,
                       data=model.twiss_args)
             if dlg.ShowModal() == wx.ID_OK:
                 model.twiss_args = dlg.data
                 model.twiss()
-        panel.Bind(wx.EVT_TOOL, OnClick, tool)
+        def OnUpdate(event):
+            event.Enable(bool(notebook.vars.get('control')))
+        seqmenu = menubar.Menus[1][0]
+        menuitem = seqmenu.Append(wx.ID_ANY, '&TWISS',
+                                  'Set TWISS initial conditions.')
+        menubar.Bind(wx.EVT_MENU, OnClick, menuitem)
+        menubar.Bind(wx.EVT_UPDATE_UI, OnUpdate, menuitem)
 
     def __init__(self, parent, utool, data, readonly=False):
         """
