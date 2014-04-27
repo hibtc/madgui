@@ -97,6 +97,9 @@ class NotebookFrame(wx.Frame):
             self._claimed = True
             return self
 
+    def IsClaimed(self):
+        return self._claimed
+
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
@@ -141,6 +144,7 @@ class NotebookFrame(wx.Frame):
 
     def OnUpdateMenu(self, event):
         self.menubar.EnableTop(1, 'control' in self.vars)
+        event.Skip()
 
     def _NewCommandTab(self):
         """Open a new command tab."""

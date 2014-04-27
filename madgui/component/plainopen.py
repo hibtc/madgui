@@ -47,8 +47,14 @@ def connect_menu(frame, menubar):
                 model.hook.show(model, _frame)
         dlg.Destroy()
     appmenu = menubar.Menus[0][0]
-    menuitem = appmenu.Append(wx.ID_ANY,
-                              'Load &MADX file\tCtrl+M',
-                              'Load a plain MADX file without any metadata.')
+    menuitem = appmenu.Append(wx.ID_ANY, 'Load &MAD-X file\tCtrl+M')
+    def OnUpdate(event):
+        if frame.IsClaimed():
+            menuitem.SetHelp('Open a .madx file in a new frame.')
+        else:
+            menuitem.SetHelp('Open a .madx file in this frame.')
+        # skip the event, so more UpdateUI handlers can be invoked:
+        event.Skip()
     menubar.Bind(wx.EVT_MENU, OnOpen, menuitem)
+    menubar.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
 

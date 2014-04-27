@@ -120,10 +120,16 @@ class OpenModelDlg(ModalDialog):
             finally:
                 select_model_dlg.Destroy()
         appmenu = menubar.Menus[0][0]
-        menuitem = appmenu.Append(wx.ID_ANY,
-                                  '&Open model\tCtrl+O',
-                                  'Open another model in a new tab')
+        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+O')
+        def OnUpdate(event):
+            if frame.IsClaimed():
+                menuitem.SetHelp('Open a model in a new frame.')
+            else:
+                menuitem.SetHelp('Open a model in this frame.')
+            # skip the event, so more UpdateUI handlers can be invoked:
+            event.Skip()
         menubar.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
+        menubar.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
 
     def SetData(self):
         """Store the data and initialize the component."""
