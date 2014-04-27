@@ -45,22 +45,18 @@ class BeamDialog(ParamDialog):
     ]
 
     @classmethod
-    def connect_toolbar(cls, panel):
-        model = panel.view.model
-        bmp = wx.ArtProvider.GetBitmap(wx.ART_HELP_SETTINGS, wx.ART_TOOLBAR)
-        tool = panel.toolbar.AddSimpleTool(
-                wx.ID_ANY,
-                bitmap=bmp,
-                shortHelpString='Set BEAM.',
-                longHelpString='Set BEAM.')
+    def connect_menu(cls, notebook, menubar):
         def OnClick(event):
-            dlg = cls(panel,
+            model = notebook.vars['control']
+            dlg = cls(notebook,
                       utool=model,
                       data=model.beam)
             if dlg.ShowModal() == wx.ID_OK:
                 model.beam = dlg.data
                 model.twiss()
-        panel.Bind(wx.EVT_TOOL, OnClick, tool)
+        seqmenu = menubar.Menus[1][0]
+        menuitem = seqmenu.Append(wx.ID_ANY, '&Beam', 'Set beam.')
+        menubar.Bind(wx.EVT_MENU, OnClick, menuitem)
 
     def __init__(self, parent, utool, data, readonly=False):
         """
