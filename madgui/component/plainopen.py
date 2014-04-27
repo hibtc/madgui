@@ -17,7 +17,8 @@ def connect_menu(frame, menubar):
                             style=wx.FD_OPEN,
                             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
         if dlg.ShowModal() == wx.ID_OK:
-            madx = frame.vars['madx']
+            _frame = frame.Claim()
+            madx = _frame.vars['madx']
             madx.call(dlg.Path)
             # look for sequences
             sequences = madx.get_sequence_names()
@@ -30,7 +31,7 @@ def connect_menu(frame, menubar):
                 # if there are multiple sequences - just ask the user which
                 # one to use rather than taking a wild guess based on twiss
                 # computation etc
-                dlg = wx.SingleChoiceDialog(parent=frame,
+                dlg = wx.SingleChoiceDialog(parent=_frame,
                                             caption="Select sequence",
                                             message="Select sequence:",
                                             choices=sequences)
@@ -39,9 +40,9 @@ def connect_menu(frame, menubar):
                 name = dlg.GetStringSelection()
             # now create the actual model object
             model = Model(madx, name=name)
-            _frame = frame.Reserve(control=model,
-                                   model=None,
-                                   name=name)
+            _frame.vars.update(control=model,
+                               model=None,
+                               name=name)
             if name:
                 model.hook.show(model, _frame)
         dlg.Destroy()

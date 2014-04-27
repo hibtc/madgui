@@ -46,6 +46,7 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
+        self._claimed = False
         madx = Madx()
         libmadx = madx._libmadx
 
@@ -80,20 +81,21 @@ class NotebookFrame(wx.Frame):
         # show the frame
         self.Show(show)
 
-    def Reserve(self, **vars):
+    def Claim(self):
         """
-        Return a frame with some global variables.
+        Claim ownership of a frame.
 
-        If the variables exist within the current frame, a new frame will be
-        created. Otherwise, the same frame may be returned.
+        If this frame is already claimed, returns a new frame. If this frame
+        is not claimed, sets the status to claimed and returns self.
+
+        This is used to prevent several models/files to be opened in the
+        same frame (using the same Madx instance) with the menu actions.
         """
-        for k in vars:
-            if k in self.vars:
-                frame = self.__class__(self.app)
-                frame.vars.update(vars)
-                return frame
-        self.vars.update(vars)
-        return self
+        if self._claimed:
+            return self.__class__(self.app).Claim()
+        else:
+            self._claimed = True
+            return self
 
     def _CreateMenu(self):
         """Create a menubar."""

@@ -91,7 +91,8 @@ class OpenModelDlg(ModalDialog):
                         return
                     detail = select_detail_dlg.data
                     # TODO: redirect history+output to frame!
-                    madx = frame.vars['madx']
+                    _frame = frame.Claim()
+                    madx = _frame.vars['madx']
                     cpymad_model = cpymad.model(mdata,
                                                 optics=[detail['optic']],
                                                 sequence=detail['sequence'],
@@ -111,8 +112,8 @@ class OpenModelDlg(ModalDialog):
                                   twiss_args=utool.dict_from_madx(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
-                    _frame = frame.Reserve(control=model,
-                                           model=cpymad_model)
+                    _frame.vars.update(control=model,
+                                       model=cpymad_model)
                     model.hook.show(model, _frame)
                 finally:
                     select_detail_dlg.Destroy()
