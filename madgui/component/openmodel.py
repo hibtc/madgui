@@ -91,13 +91,14 @@ class OpenModelDlg(ModalDialog):
                         return
                     detail = select_detail_dlg.data
                     # TODO: redirect history+output to frame!
+                    _frame = frame.Claim()
+                    madx = _frame.vars['madx']
                     cpymad_model = cpymad.model(mdata,
                                                 optics=[detail['optic']],
                                                 sequence=detail['sequence'],
-                                                histfile=None)
+                                                histfile=None,
+                                                madx=madx)
 
-                    madx = cpymad_model._madx
-                    madx.verbose(True)
                     beam = cpymad_model.get_beam(detail['beam'])
                     cpymad_model.set_beam(beam)
                     cpymad_model.set_range(detail['range'])
@@ -111,19 +112,24 @@ class OpenModelDlg(ModalDialog):
                                   twiss_args=utool.dict_from_madx(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
-                    _frame = frame.Reserve(madx=madx,
-                                           control=model,
-                                           model=cpymad_model)
+                    _frame.vars.update(control=model,
+                                       model=cpymad_model)
                     model.hook.show(model, _frame)
                 finally:
                     select_detail_dlg.Destroy()
             finally:
                 select_model_dlg.Destroy()
         appmenu = menubar.Menus[0][0]
-        menuitem = appmenu.Append(wx.ID_ANY,
-                                  '&Open model\tCtrl+O',
-                                  'Open another model in a new tab')
+        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+O')
+        def OnUpdate(event):
+            if frame.IsClaimed():
+                menuitem.SetHelp('Open a model in a new frame.')
+            else:
+                menuitem.SetHelp('Open a model in this frame.')
+            # skip the event, so more UpdateUI handlers can be invoked:
+            event.Skip()
         menubar.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
+        menubar.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
 
     def SetData(self):
         """Store the data and initialize the component."""

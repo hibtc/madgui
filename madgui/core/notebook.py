@@ -11,6 +11,9 @@ import wx
 import wx.aui
 from wx.py.crust import Crust
 
+# 3rd party
+from cern.cpymad.madx import Madx
+
 # internal
 from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
@@ -43,8 +46,14 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
+        self._claimed = False
+        madx = Madx()
+        libmadx = madx._libmadx
+
         self.app = app
-        self.vars = {'views': []}
+        self.vars = {'views': [],
+                     'madx': madx,
+                     'libmadx': libmadx}
 
         # create notebook
         self.panel = wx.Panel(self)
@@ -72,20 +81,24 @@ class NotebookFrame(wx.Frame):
         # show the frame
         self.Show(show)
 
-    def Reserve(self, **vars):
+    def Claim(self):
         """
-        Return a frame with some global variables.
+        Claim ownership of a frame.
 
-        If the variables exist within the current frame, a new frame will be
-        created. Otherwise, the same frame may be returned.
+        If this frame is already claimed, returns a new frame. If this frame
+        is not claimed, sets the status to claimed and returns self.
+
+        This is used to prevent several models/files to be opened in the
+        same frame (using the same Madx instance) with the menu actions.
         """
-        for k in vars:
-            if k in self.vars:
-                frame = self.__class__(self.app)
-                frame.vars.update(vars)
-                return frame
-        self.vars.update(vars)
-        return self
+        if self._claimed:
+            return self.__class__(self.app).Claim()
+        else:
+            self._claimed = True
+            return self
+
+    def IsClaimed(self):
+        return self._claimed
 
     def _CreateMenu(self):
         """Create a menubar."""
@@ -131,6 +144,7 @@ class NotebookFrame(wx.Frame):
 
     def OnUpdateMenu(self, event):
         self.menubar.EnableTop(1, 'control' in self.vars)
+        event.Skip()
 
     def _NewCommandTab(self):
         """Open a new command tab."""
