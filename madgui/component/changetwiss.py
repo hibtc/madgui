@@ -78,13 +78,10 @@ class TwissDialog(ParamDialog):
             if dlg.ShowModal() == wx.ID_OK:
                 model.twiss_args = dlg.data
                 model.twiss()
-        def OnUpdate(event):
-            event.Enable(bool(notebook.vars.get('control')))
         seqmenu = menubar.Menus[1][0]
         menuitem = seqmenu.Append(wx.ID_ANY, '&TWISS',
                                   'Set TWISS initial conditions.')
         menubar.Bind(wx.EVT_MENU, OnClick, menuitem)
-        menubar.Bind(wx.EVT_UPDATE_UI, OnUpdate, menuitem)
 
     def __init__(self, parent, utool, data, readonly=False):
         """
