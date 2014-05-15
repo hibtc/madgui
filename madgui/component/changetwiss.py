@@ -81,7 +81,7 @@ class TwissDialog(ParamDialog):
         seqmenu = menubar.Menus[1][0]
         menuitem = seqmenu.Append(wx.ID_ANY, '&TWISS',
                                   'Set TWISS initial conditions.')
-        menubar.Bind(wx.EVT_MENU, OnClick, menuitem)
+        notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
 
     def __init__(self, parent, utool, data, readonly=False):
         """
