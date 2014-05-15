@@ -143,7 +143,13 @@ class NotebookFrame(wx.Frame):
         self.Close()
 
     def OnUpdateMenu(self, event):
-        self.menubar.EnableTop(1, 'control' in self.vars)
+        idx = 1
+        enable = 'control' in self.vars
+        # we only want to call EnableTop() if the state is actually
+        # different from before, since otherwise this will cause very
+        # irritating flickering on windows:
+        if enable != self.menubar.IsEnabledTop(idx):
+            self.menubar.EnableTop(idx, enable)
         event.Skip()
 
     def _NewCommandTab(self):
