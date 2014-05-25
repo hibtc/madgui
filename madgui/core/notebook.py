@@ -6,6 +6,9 @@ Notebook window component for MadGUI (main window).
 # force new style imports
 from __future__ import absolute_import
 
+# standard library
+import logging
+
 # GUI components
 import wx
 import wx.aui
@@ -51,7 +54,8 @@ class NotebookFrame(wx.Frame):
         libmadx = madx._libmadx
 
         self.app = app
-        self.vars = {'views': [],
+        self.vars = {'frame': self,
+                     'views': [],
                      'madx': madx,
                      'libmadx': libmadx}
 
@@ -75,8 +79,8 @@ class NotebookFrame(wx.Frame):
         self.SetMenuBar(self._CreateMenu())
 
         # Create a command tab
-        # TODO: create a log tab/pane
         self._NewCommandTab()
+        self._NewLogTab()
 
         # show the frame
         self.Show(show)
@@ -128,12 +132,12 @@ class NotebookFrame(wx.Frame):
 
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
-        if event.Selection == 0 and self.notebook.GetPageCount() > 1:
+        if event.Selection <= 1 and self.notebook.GetPageCount() > 2:
             event.Veto()
 
     def OnPageClosed(self, event):
         """A page has been closed. If it was the last, close the frame."""
-        if self.notebook.GetPageCount() == 0:
+        if self.notebook.GetPageCount() == 1:
             self.Close()
         else:
             del self.vars['views'][event.Selection - 1]
@@ -152,3 +156,46 @@ class NotebookFrame(wx.Frame):
             Crust(self.notebook, locals=self.vars),
             "Command",
             select=True)
+
+    def _NewLogTab(self):
+        """Create a tab for logging."""
+        panel = wx.Panel(self.notebook, wx.ID_ANY)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        panel.SetSizer(sizer)
+        self._log_ctrl = wx.TextCtrl(panel, wx.ID_ANY,
+                               style=wx.TE_MULTILINE|wx.TE_READONLY)
+        sizer.Add(self._log_ctrl, 1, wx.EXPAND)
+        self.notebook.AddPage(panel, "Log", select=False)
+        self._basicConfig(logging.INFO,
+                          '%(asctime)s %(levelname)s %(name)s: %(message)s',
+                          '%H:%M:%S')
+
+    def _basicConfig(self, level, fmt, datefmt=None):
+        """Configure logging."""
+        stream = TextCtrlStream(self._log_ctrl)
+        root = logging.RootLogger(level)
+        manager = logging.Manager(root)
+        formatter = logging.Formatter(fmt, datefmt)
+        handler = logging.StreamHandler(stream)
+        handler.setFormatter(formatter)
+        root.addHandler(handler)
+        # store member variables:
+        self._log_manager = manager
+
+    def getLogger(self, name='root'):
+        return self._log_manager.getLogger(name)
+
+
+class TextCtrlStream(object):
+
+    """
+    Write to a text control.
+    """
+
+    def __init__(self, ctrl):
+        """Set text control."""
+        self._ctrl = ctrl
+
+    def write(self, text):
+        """Append text."""
+        wx.CallAfter(self._ctrl.WriteText, text)
