@@ -176,10 +176,16 @@ class NotebookFrame(wx.Frame):
         panel = wx.Panel(self.notebook, wx.ID_ANY)
         sizer = wx.BoxSizer(wx.VERTICAL)
         panel.SetSizer(sizer)
-        self._log_ctrl = wx.TextCtrl(panel, wx.ID_ANY,
+        textctrl = wx.TextCtrl(panel, wx.ID_ANY,
                                style=wx.TE_MULTILINE|wx.TE_READONLY)
-        sizer.Add(self._log_ctrl, 1, wx.EXPAND)
+        monospace = wx.Font(10,
+                            wx.FONTFAMILY_MODERN,
+                            wx.FONTSTYLE_NORMAL,
+                            wx.FONTWEIGHT_NORMAL)
+        textctrl.SetFont(monospace)
+        sizer.Add(textctrl, 1, wx.EXPAND)
         self.notebook.AddPage(panel, "Log", select=False)
+        self._log_ctrl = textctrl
         self._basicConfig(logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
                           '%H:%M:%S')
