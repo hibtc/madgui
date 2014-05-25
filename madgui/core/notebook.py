@@ -8,6 +8,8 @@ from __future__ import absolute_import
 
 # standard library
 import logging
+import subprocess
+import threading
 
 # GUI components
 import wx
@@ -16,6 +18,7 @@ from wx.py.crust import Crust
 
 # 3rd party
 from cern.cpymad.madx import Madx
+from cern.cpymad import _libmadx_rpc
 
 # internal
 from madgui.util.common import ivar
@@ -49,16 +52,32 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
-        self._claimed = False
-        madx = Madx()
-        libmadx = madx._libmadx
-
         self.app = app
-        self.vars = {'frame': self,
-                     'views': [],
-                     'madx': madx,
-                     'libmadx': libmadx}
+        self._claimed = False
+        self.vars = {}
 
+        self.CreateControls()
+
+        service, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=0)
+        threading.Thread(target=self._read_stream,
+                         args=(process.stdout,)).start()
+        libmadx = service.libmadx
+        madx = Madx(libmadx=libmadx)
+
+        self.vars.update({
+            'frame': self,
+            'views': [],
+            'madx': madx,
+            'libmadx': libmadx
+        })
+
+        # show the frame
+        self.Show(show)
+
+    def CreateControls(self):
         # create notebook
         self.panel = wx.Panel(self)
         self.notebook = wx.aui.AuiNotebook(self.panel)
@@ -74,16 +93,11 @@ class NotebookFrame(wx.Frame):
             self.OnPageClose,
             source=self.notebook)
         self.CreateStatusBar()
-
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
-
         # Create a command tab
         self._NewCommandTab()
         self._NewLogTab()
-
-        # show the frame
-        self.Show(show)
 
     def Claim(self):
         """
@@ -180,10 +194,19 @@ class NotebookFrame(wx.Frame):
         handler.setFormatter(formatter)
         root.addHandler(handler)
         # store member variables:
+        self._log_stream = stream
         self._log_manager = manager
 
     def getLogger(self, name='root'):
         return self._log_manager.getLogger(name)
+
+    def _read_stream(self, stream):
+        # The file iterator seems to be buffered:
+        for line in iter(stream.readline, b''):
+            try:
+                self._log_stream.write(line)
+            except:
+                break
 
 
 class TextCtrlStream(object):
