@@ -33,7 +33,7 @@ setup(
     license='MIT',
     test_suite='nose.collector',
     install_requires=[
-        'cern-pymad==0.7',
+        'cern-pymad==0.8',
         'docopt',
         'matplotlib',
         'numpy',
@@ -57,6 +57,8 @@ setup(
         [madgui.core.notebook.menu]
         openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
         plainopen = madgui.component.plainopen:connect_menu
+        changetwiss = madgui.component.changetwiss:TwissDialog.connect_menu
+        beamdlg = madgui.component.beamdlg:BeamDialog.connect_menu
 
         [madgui.component.model.show]
         lineview = madgui.component.lineview:LineView.create

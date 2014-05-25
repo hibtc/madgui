@@ -12,24 +12,14 @@ import re
 # internal
 from madgui.util.common import ivar, cachedproperty
 from madgui.util.plugin import HookCollection
-from madgui.util.unit import units, madx as madunit, stripunit
-from madgui.util.symbol import SymbolicValue
+from madgui.util.unit import MadxUnits
 from madgui.util.vector import Vector
-
-from cern.cpymad.types import Expression
 
 # exported symbols
 __all__ = ['Model']
 
 
-# compatibility
-try:                    # python2
-    basestring
-except NameError:       # python3 (let's think about future...)
-    basestring = str
-
-
-class Model(object):
+class Model(MadxUnits):
 
     """
     Extended model class for cern.cpymad.model (extends by delegation).
@@ -82,6 +72,7 @@ class Model(object):
                  model=None):
         """
         """
+        super(Model, self).__init__(madx)
         self.madx = madx
         self.name = name
         self.twiss_args = twiss_args
@@ -109,7 +100,11 @@ class Model(object):
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        return self.from_madx(self.madx.get_sequence(self.name).beam)
+        return self.dict_from_madx(self.madx.get_sequence(self.name).beam)
+
+    @beam.setter
+    def beam(self):
+        """Set beam from a parameter dictionary."""
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -144,15 +139,16 @@ class Model(object):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
+        twiss_args = self.dict_to_madx(self.twiss_args)
         results = self.madx.twiss(sequence=self.name,
                                   columns=self._columns,
-                                  twiss_init=self.twiss_args)
+                                  twiss_init=twiss_args)
         self._update_twiss(results)
 
     def _update_twiss(self, results):
         """Update TWISS results."""
-        self.tw = self.from_madx(results.columns.freeze(self._columns))
-        self.summary = self.from_madx(results.summary)
+        self.tw = self.dict_from_madx(results.columns.freeze(self._columns))
+        self.summary = self.dict_from_madx(results.summary)
         self.update()
 
     def _update_elements(self, elements=None):
@@ -163,7 +159,7 @@ class Model(object):
             except RuntimeError:
                 self.elements = []
                 return
-        self.elements = list(map(self.from_madx, elements))
+        self.elements = list(map(self.dict_from_madx, elements))
 
     def element_index_by_name(self, name):
         """Find the element index in the twiss array by its name."""
@@ -248,10 +244,11 @@ class Model(object):
                     'range': el_name,
                     name: self.value_to_madx(name, envelope*envelope/emittance)})
 
+        twiss_args = self.dict_to_madx(self.twiss_args)
         self.madx.match(sequence=self.name,
                         vary=vary,
                         constraints=constraints,
-                        twiss_init=self.twiss_args)
+                        twiss_init=twiss_args)
         self.twiss()
 
     def find_constraint(self, elem, axis=None):
@@ -288,26 +285,3 @@ class Model(object):
         """Evaluate a MADX expression and return the result as float."""
         return self.madx.evaluate(expr)
 
-    def value_from_madx(self, name, value):
-        """Add units to a single number."""
-        if name in madunit:
-            if isinstance(value, (basestring, Expression)):
-                return SymbolicValue(self, str(value), madunit[name])
-            else:
-                return madunit[name] * value
-        else:
-            return value
-
-    def value_to_madx(self, name, value):
-        """Convert to madx units."""
-        return stripunit(value, madunit[name]) if name in madunit else value
-
-    def from_madx(self, obj):
-        """Add units to all elements in a dictionary."""
-        return obj.__class__({k: self.value_from_madx(k, obj[k])
-                              for k in obj})
-
-    def to_madx(self, obj):
-        """Remove units from all elements in a dictionary."""
-        return obj.__class__({k: self.value_to_madx(k, obj[k])
-                              for k in obj})
