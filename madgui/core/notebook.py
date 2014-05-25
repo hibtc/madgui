@@ -58,13 +58,14 @@ class NotebookFrame(wx.Frame):
 
         self.CreateControls()
 
-        service, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
+        client, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             bufsize=0)
+        self._client = client
         threading.Thread(target=self._read_stream,
                          args=(process.stdout,)).start()
-        libmadx = service.libmadx
+        libmadx = client.libmadx
         madx = Madx(libmadx=libmadx)
 
         self.vars.update({
@@ -79,6 +80,7 @@ class NotebookFrame(wx.Frame):
 
     def CreateControls(self):
         # create notebook
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.panel = wx.Panel(self)
         self.notebook = wx.aui.AuiNotebook(self.panel)
         sizer = wx.BoxSizer()
@@ -143,6 +145,12 @@ class NotebookFrame(wx.Frame):
         view.plot()
         self.vars['views'].append(view)
         return panel
+
+    def OnClose(self, event):
+        # We want to terminate the remote session, otherwise _read_stream
+        # may hang:
+        self._client.close()
+        event.Skip()
 
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
