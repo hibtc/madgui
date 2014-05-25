@@ -38,13 +38,14 @@ class LineView(object):
     @classmethod
     def create(cls, model, frame):
         """Create a new view panel as a page in the notebook frame."""
-        view = cls(model)
+        view = cls(model, frame.app.conf)
         frame.AddView(view, model.name)
         return view
 
-    def __init__(self, model):
+    def __init__(self, model, config):
         """Create a matplotlib figure and register as observer."""
         self.model = model
+        self.config = config
 
         # create figure
         self.figure = matplotlib.figure.Figure()
@@ -55,9 +56,13 @@ class LineView(object):
 
         # plot style
         self.unit = Vector(units.m, units.mm)
-        self.curve = Vector(
-            {'color': '#8b1a0e'},
-            {'color': '#5e9c36'})
+        curve_color = config.get('curve_color', {})
+        if curve_color:
+            self.curve = Vector(curve_color['x'], curve_color['y'])
+        else:
+            self.curve = Vector(
+                {'color': '#8b1a0e'},
+                {'color': '#5e9c36'})
 
         self.clines = Vector(None, None)
 
@@ -70,6 +75,7 @@ class LineView(object):
             'multipole':    {'color': '#00ff00'},
             'solenoid':     {'color': '#555555'},
         }
+        self.element_types.update(config.get('element_color', {}))
 
         # subscribe for updates
         model.hook.update.connect(self.update)
