@@ -33,13 +33,14 @@ setup(
     license='MIT',
     test_suite='nose.collector',
     install_requires=[
+        'cern-pymad==0.8',
+        'docopt',
         'matplotlib',
         'numpy',
         'pydicti>=0.0.4',
-        'cern-pymad==0.8',
-        'unum>=4.0',
+        'PyYAML',
+        'Unum>=4.0',
         'wxPython>=2.8',
-        'docopt',
     ],
     entry_points="""
         [gui_scripts]
