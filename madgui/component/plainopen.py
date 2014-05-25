@@ -19,7 +19,7 @@ def connect_menu(frame, menubar):
         if dlg.ShowModal() == wx.ID_OK:
             _frame = frame.Claim()
             madx = _frame.vars['madx']
-            madx.call(dlg.Path)
+            madx.call(dlg.Path, True)
             # look for sequences
             sequences = madx.get_sequence_names()
             if len(sequences) == 0:
