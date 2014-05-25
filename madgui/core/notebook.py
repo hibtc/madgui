@@ -74,6 +74,11 @@ class NotebookFrame(wx.Frame):
             self.OnPageClose,
             source=self.notebook)
         self.CreateStatusBar()
+        monospace = wx.Font(10,
+                            wx.FONTFAMILY_MODERN,
+                            wx.FONTSTYLE_NORMAL,
+                            wx.FONTWEIGHT_NORMAL)
+        self.GetStatusBar().SetFont(monospace)
 
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
