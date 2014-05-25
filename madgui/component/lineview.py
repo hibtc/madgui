@@ -15,7 +15,7 @@ import madgui.core
 from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
 from madgui.util.vector import Vector
-from madgui.util.unit import units, stripunit, unit_label
+from madgui.util.unit import units, stripunit, unit_label, raw_label
 
 import matplotlib
 import matplotlib.figure
@@ -40,6 +40,21 @@ class LineView(object):
         """Create a new view panel as a page in the notebook frame."""
         view = cls(model, frame.app.conf)
         frame.AddView(view, model.name)
+        def on_mouse_move(event):
+            x, y = event.xdata, event.ydata
+            if x is None or y is None:
+                # outside of axes:
+                frame.GetStatusBar().SetStatusText("", 0)
+                return
+            unit = view.unit
+            elem = model.element_by_position(x*unit.x)
+            coord_fmt = "{0}={1:.6g}{2}".format
+            parts = [coord_fmt('x', x, raw_label(unit.x)),
+                     coord_fmt('y', y, raw_label(unit.y))]
+            if elem and 'name' in elem:
+                parts.append('elem={0}'.format(elem['name']))
+            frame.GetStatusBar().SetStatusText(', '.join(parts), 0)
+        view.figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
         return view
 
     def __init__(self, model, config):

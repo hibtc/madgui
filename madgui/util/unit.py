@@ -45,6 +45,11 @@ def unit_label(quantity):
     return quantity.strUnit()
 
 
+def raw_label(quantity):
+    """Get the name of the unit, without enclosing brackets."""
+    return quantity.strUnit().strip('[]')
+
+
 class MadxUnits(object):
 
     """
