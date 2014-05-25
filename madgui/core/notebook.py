@@ -99,7 +99,6 @@ class NotebookFrame(wx.Frame):
         self.SetMenuBar(self._CreateMenu())
         # Create a command tab
         self._NewCommandTab()
-        self._NewLogTab()
 
     def Claim(self):
         """
@@ -154,12 +153,12 @@ class NotebookFrame(wx.Frame):
 
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
-        if event.Selection <= 1 and self.notebook.GetPageCount() > 2:
+        if event.Selection == 0 and self.notebook.GetPageCount() > 1:
             event.Veto()
 
     def OnPageClosed(self, event):
         """A page has been closed. If it was the last, close the frame."""
-        if self.notebook.GetPageCount() == 1:
+        if self.notebook.GetPageCount() == 0:
             self.Close()
         else:
             del self.vars['views'][event.Selection - 1]
@@ -174,14 +173,11 @@ class NotebookFrame(wx.Frame):
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        self.notebook.AddPage(
-            Crust(self.notebook, locals=self.vars),
-            "Command",
-            select=True)
-
-    def _NewLogTab(self):
-        """Create a tab for logging."""
-        panel = wx.Panel(self.notebook, wx.ID_ANY)
+        crust = Crust(self.notebook, locals=self.vars)
+        self.notebook.AddPage(crust, "Command", select=True)
+        # Create a tab for logging
+        nb = crust.notebook
+        panel = wx.Panel(nb, wx.ID_ANY)
         sizer = wx.BoxSizer(wx.VERTICAL)
         panel.SetSizer(sizer)
         textctrl = wx.TextCtrl(panel, wx.ID_ANY,
@@ -192,7 +188,7 @@ class NotebookFrame(wx.Frame):
                             wx.FONTWEIGHT_NORMAL)
         textctrl.SetFont(monospace)
         sizer.Add(textctrl, 1, wx.EXPAND)
-        self.notebook.AddPage(panel, "Log", select=False)
+        nb.AddPage(panel, "Log", select=True)
         self._log_ctrl = textctrl
         self._basicConfig(logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
