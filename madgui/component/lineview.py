@@ -48,7 +48,9 @@ class LineView(object):
                 return
             unit = view.unit
             elem = model.element_by_position(x*unit.x)
-            coord_fmt = "{0}={1:.6g}{2}".format
+            # TODO: in some cases, it might be necessary to adjust the
+            # precision to the displayed xlim/ylim.
+            coord_fmt = "{0}={1:.6f}{2}".format
             parts = [coord_fmt('x', x, raw_label(unit.x)),
                      coord_fmt('y', y, raw_label(unit.y))]
             if elem and 'name' in elem:
