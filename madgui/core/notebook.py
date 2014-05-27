@@ -29,6 +29,14 @@ from madgui.core.figure import FigurePanel
 __all__ = ['NotebookFrame']
 
 
+def monospace(pt_size):
+    """Return a monospace font."""
+    return wx.Font(pt_size,
+                   wx.FONTFAMILY_MODERN,
+                   wx.FONTSTYLE_NORMAL,
+                   wx.FONTWEIGHT_NORMAL)
+
+
 class NotebookFrame(wx.Frame):
 
     """
@@ -94,7 +102,9 @@ class NotebookFrame(wx.Frame):
             wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE,
             self.OnPageClose,
             source=self.notebook)
-        self.CreateStatusBar()
+        statusbar = self.CreateStatusBar()
+        statusbar.SetFont(monospace(10))
+
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
         # Create a command tab
@@ -182,11 +192,7 @@ class NotebookFrame(wx.Frame):
         panel.SetSizer(sizer)
         textctrl = wx.TextCtrl(panel, wx.ID_ANY,
                                style=wx.TE_MULTILINE|wx.TE_READONLY)
-        monospace = wx.Font(10,
-                            wx.FONTFAMILY_MODERN,
-                            wx.FONTSTYLE_NORMAL,
-                            wx.FONTWEIGHT_NORMAL)
-        textctrl.SetFont(monospace)
+        textctrl.SetFont(monospace(10))
         sizer.Add(textctrl, 1, wx.EXPAND)
         nb.AddPage(panel, "Log", select=True)
         self._log_ctrl = textctrl
