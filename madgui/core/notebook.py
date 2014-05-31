@@ -8,6 +8,8 @@ from __future__ import absolute_import
 
 # standard library
 import logging
+import subprocess
+import threading
 
 # GUI components
 import wx
@@ -16,6 +18,7 @@ from wx.py.crust import Crust
 
 # 3rd party
 from cern.cpymad.madx import Madx
+from cern.cpymad import _libmadx_rpc
 
 # internal
 from madgui.util.common import ivar
@@ -24,6 +27,14 @@ from madgui.core.figure import FigurePanel
 
 # exported symbols
 __all__ = ['NotebookFrame']
+
+
+def monospace(pt_size):
+    """Return a monospace font."""
+    return wx.Font(pt_size,
+                   wx.FONTFAMILY_MODERN,
+                   wx.FONTSTYLE_NORMAL,
+                   wx.FONTWEIGHT_NORMAL)
 
 
 class NotebookFrame(wx.Frame):
@@ -49,17 +60,35 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
-        self._claimed = False
-        madx = Madx()
-        libmadx = madx._libmadx
-
         self.app = app
-        self.vars = {'frame': self,
-                     'views': [],
-                     'madx': madx,
-                     'libmadx': libmadx}
+        self._claimed = False
+        self.vars = {}
 
+        self.CreateControls()
+
+        client, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=0)
+        self._client = client
+        threading.Thread(target=self._read_stream,
+                         args=(process.stdout,)).start()
+        libmadx = client.libmadx
+        madx = Madx(libmadx=libmadx)
+
+        self.vars.update({
+            'frame': self,
+            'views': [],
+            'madx': madx,
+            'libmadx': libmadx
+        })
+
+        # show the frame
+        self.Show(show)
+
+    def CreateControls(self):
         # create notebook
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.panel = wx.Panel(self)
         self.notebook = wx.aui.AuiNotebook(self.panel)
         sizer = wx.BoxSizer()
@@ -73,22 +102,13 @@ class NotebookFrame(wx.Frame):
             wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE,
             self.OnPageClose,
             source=self.notebook)
-        self.CreateStatusBar()
-        monospace = wx.Font(10,
-                            wx.FONTFAMILY_MODERN,
-                            wx.FONTSTYLE_NORMAL,
-                            wx.FONTWEIGHT_NORMAL)
-        self.GetStatusBar().SetFont(monospace)
+        statusbar = self.CreateStatusBar()
+        statusbar.SetFont(monospace(10))
 
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
-
         # Create a command tab
         self._NewCommandTab()
-        self._NewLogTab()
-
-        # show the frame
-        self.Show(show)
 
     def Claim(self):
         """
@@ -135,14 +155,20 @@ class NotebookFrame(wx.Frame):
         self.vars['views'].append(view)
         return panel
 
+    def OnClose(self, event):
+        # We want to terminate the remote session, otherwise _read_stream
+        # may hang:
+        self._client.close()
+        event.Skip()
+
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
-        if event.Selection <= 1 and self.notebook.GetPageCount() > 2:
+        if event.Selection == 0 and self.notebook.GetPageCount() > 1:
             event.Veto()
 
     def OnPageClosed(self, event):
         """A page has been closed. If it was the last, close the frame."""
-        if self.notebook.GetPageCount() == 1:
+        if self.notebook.GetPageCount() == 0:
             self.Close()
         else:
             del self.vars['views'][event.Selection - 1]
@@ -157,20 +183,19 @@ class NotebookFrame(wx.Frame):
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        self.notebook.AddPage(
-            Crust(self.notebook, locals=self.vars),
-            "Command",
-            select=True)
-
-    def _NewLogTab(self):
-        """Create a tab for logging."""
-        panel = wx.Panel(self.notebook, wx.ID_ANY)
+        crust = Crust(self.notebook, locals=self.vars)
+        self.notebook.AddPage(crust, "Command", select=True)
+        # Create a tab for logging
+        nb = crust.notebook
+        panel = wx.Panel(nb, wx.ID_ANY)
         sizer = wx.BoxSizer(wx.VERTICAL)
         panel.SetSizer(sizer)
-        self._log_ctrl = wx.TextCtrl(panel, wx.ID_ANY,
+        textctrl = wx.TextCtrl(panel, wx.ID_ANY,
                                style=wx.TE_MULTILINE|wx.TE_READONLY)
-        sizer.Add(self._log_ctrl, 1, wx.EXPAND)
-        self.notebook.AddPage(panel, "Log", select=False)
+        textctrl.SetFont(monospace(10))
+        sizer.Add(textctrl, 1, wx.EXPAND)
+        nb.AddPage(panel, "Log", select=True)
+        self._log_ctrl = textctrl
         self._basicConfig(logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
                           '%H:%M:%S')
@@ -185,10 +210,19 @@ class NotebookFrame(wx.Frame):
         handler.setFormatter(formatter)
         root.addHandler(handler)
         # store member variables:
+        self._log_stream = stream
         self._log_manager = manager
 
     def getLogger(self, name='root'):
         return self._log_manager.getLogger(name)
+
+    def _read_stream(self, stream):
+        # The file iterator seems to be buffered:
+        for line in iter(stream.readline, b''):
+            try:
+                self._log_stream.write(line)
+            except:
+                break
 
 
 class TextCtrlStream(object):
