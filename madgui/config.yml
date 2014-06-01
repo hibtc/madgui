@@ -1,6 +1,12 @@
 line_view:
 
-  # keyword arguments to matplotlib.axes.plot()
+  # name of a unit in ``unum.units``
+  unit:
+    s: "m"
+    x: "mm"
+    y: "mm"
+
+  # keyword arguments to ``matplotlib.axes.plot()``
   curve_style:
     x:
       color: "#8b1a0e"
@@ -16,8 +22,8 @@ line_view:
       fillstyle: "none"
       linestyle: "-"
 
-  # keyword arguments to matplotlib.patches.Rectangle() and
-  # matplotlib.axes.vlines():
+  # keyword arguments to ``matplotlib.patches.Rectangle()`` and
+  # ``matplotlib.axes.vlines()``:
   element_style:
     f-quadrupole: {color: "#ff0000", alpha: 0.5}
     d-quadrupole: {color: "#0000ff", alpha: 0.5}

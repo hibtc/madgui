@@ -73,9 +73,11 @@ class LineView(object):
                      'y': axy}
 
         # plot style
-        self.unit = {'s': units.m,
-                     'x': units.mm,
-                     'y': units.mm}
+        self.unit = {
+            's': getattr(units, line_view_config['unit']['s']),
+            'x': getattr(units, line_view_config['unit']['x']),
+            'y': getattr(units, line_view_config['unit']['y']),
+        }
         self.curve_style = line_view_config['curve_style']
 
         self.clines = {'x': None,
