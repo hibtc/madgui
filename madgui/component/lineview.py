@@ -151,25 +151,21 @@ class LineView(object):
                     matplotlib.patches.Rectangle(
                         (patch_x, 0),
                         patch_w, patch_h.x,
-                        alpha=0.5,
                         **elem_type))
                 self.axes.y.add_patch(
                     matplotlib.patches.Rectangle(
                         (patch_x, 0),
                         patch_w, patch_h.y,
-                        alpha=0.5,
                         **elem_type))
             else:
                 patch_x = stripunit(elem['at'], self.unit.x)
                 self.axes.x.vlines(
                     patch_x, 0,
                     patch_h.x,
-                    alpha=0.5,
                     **elem_type)
                 self.axes.y.vlines(
                     patch_x, 0,
                     patch_h.y,
-                    alpha=0.5,
                     **elem_type)
 
     def plot(self):
@@ -193,14 +189,12 @@ class LineView(object):
 
         self.clines = Vector(
             self.axes.x.plot(
-                stripunit(pos, self.unit.x), stripunit(envx, self.unit.y),
-                "o-", fillstyle='none',
-                label="$\Delta x$",
+                stripunit(pos, self.unit.x),
+                stripunit(envx, self.unit.y),
                 **self.curve_style.x)[0],
             self.axes.y.plot(
-                stripunit(pos, self.unit.x), stripunit(envy, self.unit.y),
-                "o-", fillstyle='none',
-                label="$\Delta y$",
+                stripunit(pos, self.unit.x),
+                stripunit(envy, self.unit.y),
                 **self.curve_style.y)[0])
 
         self.lines = []
