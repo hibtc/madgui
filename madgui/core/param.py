@@ -273,6 +273,9 @@ class ParamDialog(ModalDialog):
         """
         rows, cols = group.layout()
         row_offs = self._grid.GetRows()
+        # on windows, this doesn't happen automatically, when adding
+        # new items to the grid:
+        self._grid.SetRows(row_offs + rows)
         # create and insert individual controls
         controls = {}
         self._groups.append(controls)

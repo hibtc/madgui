@@ -55,6 +55,6 @@ def connect_menu(frame, menubar):
             menuitem.SetHelp('Open a .madx file in this frame.')
         # skip the event, so more UpdateUI handlers can be invoked:
         event.Skip()
-    menubar.Bind(wx.EVT_MENU, OnOpen, menuitem)
-    menubar.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
+    frame.Bind(wx.EVT_MENU, OnOpen, menuitem)
+    frame.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
 

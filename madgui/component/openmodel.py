@@ -128,8 +128,8 @@ class OpenModelDlg(ModalDialog):
                 menuitem.SetHelp('Open a model in this frame.')
             # skip the event, so more UpdateUI handlers can be invoked:
             event.Skip()
-        menubar.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
-        menubar.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
+        frame.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
+        frame.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
 
     def SetData(self):
         """Store the data and initialize the component."""

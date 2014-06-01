@@ -56,7 +56,7 @@ class BeamDialog(ParamDialog):
                 model.twiss()
         seqmenu = menubar.Menus[1][0]
         menuitem = seqmenu.Append(wx.ID_ANY, '&Beam', 'Set beam.')
-        menubar.Bind(wx.EVT_MENU, OnClick, menuitem)
+        notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
 
     def __init__(self, parent, utool, data, readonly=False):
         """
