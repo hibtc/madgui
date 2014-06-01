@@ -115,6 +115,7 @@ class NotebookFrame(wx.Frame):
         appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
         self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_EXIT)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
+        self._IsEnabledTop_Control = True
         return menubar
 
     def AddView(self, view, title):
@@ -147,9 +148,12 @@ class NotebookFrame(wx.Frame):
         enable = 'control' in self.vars
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
-        # irritating flickering on windows:
-        if enable != self.menubar.IsEnabledTop(idx):
+        # irritating flickering on windows. Because menubar.IsEnabledTop is
+        # bugged on windows, we need to keep track ourself:
+        # if enable != self.menubar.IsEnabledTop(idx):
+        if enable != self._IsEnabledTop_Control:
             self.menubar.EnableTop(idx, enable)
+            self._IsEnabledTop_Control = enable
         event.Skip()
 
     def _NewCommandTab(self):
