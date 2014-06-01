@@ -11,7 +11,6 @@ import numpy as np
 
 # internal
 from madgui.core import wx
-from madgui.util.vector import Vector
 from madgui.util.unit import units, stripunit
 
 # exported symbols
@@ -83,26 +82,31 @@ class CompareTool(object):
         """Plot the envelope into the figure."""
         with self.test_file.filename() as f:
             aenv = units.mm * np.loadtxt(f, usecols=(0,1,2))
-        envdata = Vector(
-            Vector(aenv[:,0], aenv[:,1]),
-            Vector(aenv[:,0], aenv[:,2]))
-        self.lines = Vector(
-            self.view.axes.x.plot(stripunit(envdata.x.x, self.view.unit.x),
-                                  stripunit(envdata.x.y, self.view.unit.y),
-                                  'k'),
-            self.view.axes.y.plot(stripunit(envdata.y.x, self.view.unit.x),
-                                  stripunit(envdata.y.y, self.view.unit.y),
-                                  'k'))
+        envdata = {
+            's': aenv[:,0],
+            'x': aenv[:,1],
+            'y': aenv[:,2]
+        }
+        self.lines = {
+            'x': self.view.axes['x'].plot(
+                stripunit(envdata['s'], self.view.unit['s']),
+                stripunit(envdata['x'], self.view.unit['x']),
+                'k'),
+            'y': self.view.axes['y'].plot(
+                stripunit(envdata['s'], self.view.unit['s']),
+                stripunit(envdata['y'], self.view.unit['y']),
+                'k')
+        }
         self.view.figure.canvas.draw()
 
     def _remove(self):
         """Remove the envelope from the figure."""
         if self.lines:
-            # self.view.axes.x.lines.remove(self.lines.x)
-            # self.view.axes.y.lines.remove(self.lines.y)
-            for l in self.lines.x:
+            # self.view.axes['x'].lines.remove(self.lines['x'])
+            # self.view.axes['y'].lines.remove(self.lines['y'])
+            for l in self.lines['x']:
                 l.remove()
-            for l in self.lines.y:
+            for l in self.lines['y']:
                 l.remove()
             self.lines = None
             self.view.figure.canvas.draw()

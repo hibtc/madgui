@@ -14,7 +14,6 @@ from matplotlib.ticker import AutoMinorLocator
 import madgui.core
 from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
-from madgui.util.vector import Vector
 from madgui.util.unit import units, stripunit, unit_label, raw_label
 
 import matplotlib
@@ -46,13 +45,14 @@ class LineView(object):
                 # outside of axes:
                 frame.GetStatusBar().SetStatusText("", 0)
                 return
+            axis = 'x' if event.inaxes is view.axes['x'] else 'y'
             unit = view.unit
-            elem = model.element_by_position(x*unit.x)
+            elem = model.element_by_position(x*unit['s'])
             # TODO: in some cases, it might be necessary to adjust the
             # precision to the displayed xlim/ylim.
             coord_fmt = "{0}={1:.6f}{2}".format
-            parts = [coord_fmt('x', x, raw_label(unit.x)),
-                     coord_fmt('y', y, raw_label(unit.y))]
+            parts = [coord_fmt('s', x, raw_label(unit['s'])),
+                     coord_fmt(axis, y, raw_label(unit[axis]))]
             if elem and 'name' in elem:
                 parts.append('elem={0}'.format(elem['name']))
             frame.GetStatusBar().SetStatusText(', '.join(parts), 0)
@@ -69,14 +69,17 @@ class LineView(object):
         self.figure.subplots_adjust(hspace=0.00)
         axx = self.figure.add_subplot(211)
         axy = self.figure.add_subplot(212, sharex=axx)
-        self.axes = Vector(axx, axy)
+        self.axes = {'x': axx,
+                     'y': axy}
 
         # plot style
-        self.unit = Vector(units.m, units.mm)
-        self.curve_style = Vector(line_view_config['curve_style']['x'],
-                                  line_view_config['curve_style']['y'])
+        self.unit = {'s': units.m,
+                     'x': units.mm,
+                     'y': units.mm}
+        self.curve_style = line_view_config['curve_style']
 
-        self.clines = Vector(None, None)
+        self.clines = {'x': None,
+                       'y': None}
 
         # display colors for elements
         self.element_style = line_view_config['element_style']
@@ -90,8 +93,8 @@ class LineView(object):
     def draw_constraint(self, axis, elem, envelope):
         """Draw one constraint representation in the graph."""
         return self.axes[axis].plot(
-            stripunit(elem.at, self.unit.x),
-            stripunit(envelope, self.unit.y),
+            stripunit(elem.at, self.unit['s']),
+            stripunit(envelope, self.unit[axis]),
             's',
             fillstyle='full',
             markersize=7,
@@ -127,45 +130,47 @@ class LineView(object):
 
     def update(self):
         """Redraw the envelopes."""
-        if self.clines.x is None or self.clines.y is None:
+        if self.clines['x'] is None or self.clines['y'] is None:
             self.plot()
             return
-        self.clines.x.set_ydata(stripunit(self.model.env.x, self.unit.y))
-        self.clines.y.set_ydata(stripunit(self.model.env.y, self.unit.y))
+        self.clines['x'].set_ydata(stripunit(self.model.env['x'],
+                                             self.unit['x']))
+        self.clines['y'].set_ydata(stripunit(self.model.env['y'],
+                                             self.unit['y']))
         self.figure.canvas.draw()
 
     def _drawelements(self):
         """Draw the elements into the canvas."""
-        envx, envy = self.model.env
-        max_env = Vector(np.max(envx), np.max(envy))
-        patch_h = Vector(0.75*stripunit(max_env.x, self.unit.y),
-                         0.75*stripunit(max_env.y, self.unit.y))
+        max_env = {'x': np.max(self.model.env['x']),
+                   'y': np.max(self.model.env['y'])}
+        patch_h = {'x': 0.75*stripunit(max_env['x'], self.unit['x']),
+                   'y': 0.75*stripunit(max_env['y'], self.unit['y'])}
         for elem in self.model.elements:
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue
             if stripunit(elem.L) != 0:
-                patch_w = stripunit(elem['L'], self.unit.x)
-                patch_x = stripunit(elem['at'], self.unit.x) - patch_w/2
-                self.axes.x.add_patch(
+                patch_w = stripunit(elem['L'], self.unit['s'])
+                patch_x = stripunit(elem['at'], self.unit['s']) - patch_w/2
+                self.axes['x'].add_patch(
                     matplotlib.patches.Rectangle(
                         (patch_x, 0),
-                        patch_w, patch_h.x,
+                        patch_w, patch_h['x'],
                         **elem_type))
-                self.axes.y.add_patch(
+                self.axes['y'].add_patch(
                     matplotlib.patches.Rectangle(
                         (patch_x, 0),
-                        patch_w, patch_h.y,
+                        patch_w, patch_h['y'],
                         **elem_type))
             else:
-                patch_x = stripunit(elem['at'], self.unit.x)
-                self.axes.x.vlines(
+                patch_x = stripunit(elem['at'], self.unit['s'])
+                self.axes['x'].vlines(
                     patch_x, 0,
-                    patch_h.x,
+                    patch_h['x'],
                     **elem_type)
-                self.axes.y.vlines(
+                self.axes['y'].vlines(
                     patch_x, 0,
-                    patch_h.y,
+                    patch_h['y'],
                     **elem_type)
 
     def plot(self):
@@ -174,47 +179,50 @@ class LineView(object):
 
         # data post processing
         pos = self.model.pos
-        envx, envy = self.model.env
+        env = self.model.env
 
         # plot
-        self.axes.x.cla()
-        self.axes.y.cla()
+        self.axes['x'].cla()
+        self.axes['y'].cla()
 
         # disable labels on x-axis
-        for label in self.axes.x.xaxis.get_ticklabels():
+        for label in self.axes['x'].xaxis.get_ticklabels():
             label.set_visible(False)
-        self.axes.y.yaxis.get_ticklabels()[0].set_visible(False)
+        self.axes['y'].yaxis.get_ticklabels()[0].set_visible(False)
 
         self._drawelements()
 
-        self.clines = Vector(
-            self.axes.x.plot(
-                stripunit(pos, self.unit.x),
-                stripunit(envx, self.unit.y),
-                **self.curve_style.x)[0],
-            self.axes.y.plot(
-                stripunit(pos, self.unit.x),
-                stripunit(envy, self.unit.y),
-                **self.curve_style.y)[0])
+        self.clines = {
+            'x': self.axes['x'].plot(
+                stripunit(pos, self.unit['s']),
+                stripunit(env['x'], self.unit['x']),
+                **self.curve_style['x'])[0],
+            'y': self.axes['y'].plot(
+                stripunit(pos, self.unit['s']),
+                stripunit(env['y'], self.unit['y']),
+                **self.curve_style['y'])[0]
+        }
 
         self.lines = []
         self.redraw_constraints()
 
         # self.axes.legend(loc='upper left')
-        self.axes.y.set_xlabel("position $s$ [m]")
+        self.axes['y'].set_xlabel("position $s$ [m]")
 
-        for axis_index, axis_name in enumerate(['x', 'y']):
-            self.axes[axis_index].grid(True)
-            self.axes[axis_index].get_xaxis().set_minor_locator(AutoMinorLocator())
-            self.axes[axis_index].get_yaxis().set_minor_locator(AutoMinorLocator())
-            self.axes[axis_index].set_xlim(stripunit(pos[0], self.unit.x),
-                                           stripunit(pos[-1], self.unit.x))
-            self.axes[axis_index].set_ylabel(r'$\Delta %s$ %s' % (
-                axis_name, unit_label(self.unit.y)))
-            self.axes[axis_index].set_ylim(0)
+        for axis in ('x', 'y'):
+            ax = self.axes[axis]
+            ax.grid(True)
+            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
+            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
+            ax.set_xlim(stripunit(pos[0], self.unit['s']),
+                        stripunit(pos[-1], self.unit['s']))
+            ax.set_ylabel(r'$\Delta %s$ %s' % (axis,
+                                               unit_label(self.unit[axis])))
+            ax.set_ylim(0)
 
         # invert y-axis:
-        self.axes.y.set_ylim(self.axes.y.get_ylim()[::-1])
+        axy = self.axes['y']
+        axy.set_ylim(axy.get_ylim()[::-1])
         self.figure.canvas.draw()
 
         # trigger event

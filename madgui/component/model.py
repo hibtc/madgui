@@ -13,7 +13,6 @@ import re
 from madgui.util.common import ivar, cachedproperty
 from madgui.util.plugin import HookCollection
 from madgui.util.unit import MadxUnits
-from madgui.util.vector import Vector
 
 # exported symbols
 __all__ = ['Model']
@@ -178,7 +177,8 @@ class Model(MadxUnits):
         if i is None:
             return None
         elif axis is None:
-            return Vector(self.env.x[i], self.env.y[i])
+            return {'x': self.env['x'][i],
+                    'y': self.env['y'][i]}
         else:
             return self.env[axis][i]
 
@@ -189,8 +189,8 @@ class Model(MadxUnits):
             raise ValueError("Unknown element!")
         prev = i - 1 if i != 0 else i
         if axis is None:
-            return ((self.env.x[i] + self.env.x[prev]) / 2,
-                    (self.env.y[i] + self.env.y[prev]) / 2)
+            return ((self.env['x'][i] + self.env['x'][prev]) / 2,
+                    (self.env['y'][i] + self.env['y'][prev]) / 2)
         else:
             return (self.env[axis][i] + self.env[axis][prev]) / 2
 
@@ -198,9 +198,8 @@ class Model(MadxUnits):
         """Perform post processing."""
         # data post processing
         self.pos = self.tw.s
-        self.env = Vector(
-            (self.tw.betx * self.summary.ex)**0.5,
-            (self.tw.bety * self.summary.ey)**0.5)
+        self.env = {'x': (self.tw.betx * self.summary.ex)**0.5,
+                    'y': (self.tw.bety * self.summary.ey)**0.5}
         self.hook.update()
 
     def match(self):
@@ -230,8 +229,8 @@ class Model(MadxUnits):
         constraints = []
         ex, ey = self.summary.ex, self.summary.ey
         for axis,elem,envelope in self.constraints:
-            name = 'betx' if axis == 0 else 'bety'
-            emittance = ex if axis == 0 else ey
+            name = 'betx' if axis == 'x' else 'bety'
+            emittance = ex if axis == 'x' else ey
             el_name = re.sub(':\d+$', '', elem.name)
             if isinstance(envelope, tuple):
                 lower, upper = envelope
