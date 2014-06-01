@@ -12,24 +12,15 @@ import sys
 
 # not so standard 3rdparty dependencies
 import wx
-import yaml
 
 # internal
 import madgui
+import madgui.config
 from madgui.util.common import ivar, makedirs
 from madgui.util.plugin import HookCollection
 
 # exported symbols
 __all__ = ['App']
-
-
-def _load_config(filename):
-    """Load a YAML configuration file."""
-    if filename:
-        with open(filename) as f:
-            return yaml.safe_load(f)
-    else:
-        return {}
 
 
 class App(wx.App):
@@ -57,13 +48,7 @@ class App(wx.App):
         """
         from docopt import docopt
         args = docopt(cls.usage, argv, version=cls.version)
-        config_file = args['--config']
-        if config_file is None:
-            config_file = os.path.join(os.path.expanduser('~'),
-                                       '.madgui', 'config.yml')
-            if os.path.exists(config_file):
-                config_file = None
-        conf = _load_config(config_file)
+        conf = madgui.config.load_config(args['--config'])
         cls(args, conf).MainLoop()
 
     def __init__(self, args=None, conf=None):
