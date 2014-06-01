@@ -62,7 +62,7 @@ class LineView(object):
     def __init__(self, model, config):
         """Create a matplotlib figure and register as observer."""
         self.model = model
-        self.config = config
+        self.config = line_view_config = config['line_view']
 
         # create figure
         self.figure = matplotlib.figure.Figure()
@@ -73,26 +73,13 @@ class LineView(object):
 
         # plot style
         self.unit = Vector(units.m, units.mm)
-        curve_color = config.get('curve_color', {})
-        if curve_color:
-            self.curve = Vector(curve_color['x'], curve_color['y'])
-        else:
-            self.curve = Vector(
-                {'color': '#8b1a0e'},
-                {'color': '#5e9c36'})
+        self.curve_style = Vector(line_view_config['curve_style']['x'],
+                                  line_view_config['curve_style']['y'])
 
         self.clines = Vector(None, None)
 
         # display colors for elements
-        self.element_types = {
-            'f-quadrupole': {'color': '#ff0000'},
-            'd-quadrupole': {'color': '#0000ff'},
-            'f-sbend':      {'color': '#770000'},
-            'd-sbend':      {'color': '#000077'},
-            'multipole':    {'color': '#00ff00'},
-            'solenoid':     {'color': '#555555'},
-        }
-        self.element_types.update(config.get('element_color', {}))
+        self.element_style = line_view_config['element_style']
 
         # subscribe for updates
         model.hook.update.connect(self.update)
@@ -106,9 +93,9 @@ class LineView(object):
             stripunit(elem.at, self.unit.x),
             stripunit(envelope, self.unit.y),
             's',
-            color=self.curve[axis]['color'],
             fillstyle='full',
-            markersize=7)
+            markersize=7,
+            color=self.curve_style[axis]['color'])
 
     def redraw_constraints(self):
         """Draw all current constraints in the graph."""
@@ -136,7 +123,7 @@ class LineView(object):
                 type_name = 'f-' + type_name
             else:
                 type_name = 'd-' + type_name
-        return self.element_types.get(type_name)
+        return self.element_style.get(type_name)
 
     def update(self):
         """Redraw the envelopes."""
@@ -164,22 +151,26 @@ class LineView(object):
                     matplotlib.patches.Rectangle(
                         (patch_x, 0),
                         patch_w, patch_h.x,
-                        alpha=0.5, color=elem_type['color']))
+                        alpha=0.5,
+                        **elem_type))
                 self.axes.y.add_patch(
                     matplotlib.patches.Rectangle(
                         (patch_x, 0),
                         patch_w, patch_h.y,
-                        alpha=0.5, color=elem_type['color']))
+                        alpha=0.5,
+                        **elem_type))
             else:
                 patch_x = stripunit(elem['at'], self.unit.x)
                 self.axes.x.vlines(
                     patch_x, 0,
                     patch_h.x,
-                    alpha=0.5, color=elem_type['color'])
+                    alpha=0.5,
+                    **elem_type)
                 self.axes.y.vlines(
                     patch_x, 0,
                     patch_h.y,
-                    alpha=0.5, color=elem_type['color'])
+                    alpha=0.5,
+                    **elem_type)
 
     def plot(self):
 
@@ -203,12 +194,14 @@ class LineView(object):
         self.clines = Vector(
             self.axes.x.plot(
                 stripunit(pos, self.unit.x), stripunit(envx, self.unit.y),
-                "o-", color=self.curve.x['color'], fillstyle='none',
-                label="$\Delta x$")[0],
+                "o-", fillstyle='none',
+                label="$\Delta x$",
+                **self.curve_style.x)[0],
             self.axes.y.plot(
                 stripunit(pos, self.unit.x), stripunit(envy, self.unit.y),
-                "o-", color=self.curve.y['color'], fillstyle='none',
-                label="$\Delta y$")[0])
+                "o-", fillstyle='none',
+                label="$\Delta y$",
+                **self.curve_style.y)[0])
 
         self.lines = []
         self.redraw_constraints()

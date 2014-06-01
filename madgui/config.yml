@@ -1,0 +1,13 @@
+line_view:
+
+  curve_style:
+    x: {color: "#8b1a0e"}
+    y: {color: "#5e9c36"}
+
+  element_style:
+    f-quadrupole: {color: "#ff0000"}
+    d-quadrupole: {color: "#0000ff"}
+    f-sbend:      {color: "#770000"}
+    d-sbend:      {color: "#000077"}
+    multipole:    {color: "#00ff00"}
+    solenoid:     {color: "#555555"}
