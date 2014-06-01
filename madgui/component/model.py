@@ -220,7 +220,7 @@ class Model(MadxUnits):
                     expr = v.k1._expression
                 except AttributeError:
                     expr = v.name + +'->k1'
-                vary.append(dict(name=expr, step=1e-6))
+                vary.append(expr)
                 allvars.remove(v)
             except ValueError:
                 # No variable in range found! Ok.
