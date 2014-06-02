@@ -39,24 +39,6 @@ class LineView(object):
         """Create a new view panel as a page in the notebook frame."""
         view = cls(model, frame.app.conf)
         frame.AddView(view, model.name)
-        def on_mouse_move(event):
-            x, y = event.xdata, event.ydata
-            if x is None or y is None:
-                # outside of axes:
-                frame.GetStatusBar().SetStatusText("", 0)
-                return
-            axis = 'x' if event.inaxes is view.axes['x'] else 'y'
-            unit = view.unit
-            elem = model.element_by_position(x*unit['s'])
-            # TODO: in some cases, it might be necessary to adjust the
-            # precision to the displayed xlim/ylim.
-            coord_fmt = "{0}={1:.6f}{2}".format
-            parts = [coord_fmt('s', x, raw_label(unit['s'])),
-                     coord_fmt(axis, y, raw_label(unit[axis]))]
-            if elem and 'name' in elem:
-                parts.append('elem={0}'.format(elem['name']))
-            frame.GetStatusBar().SetStatusText(', '.join(parts), 0)
-        view.figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
         return view
 
     def __init__(self, model, config):
@@ -215,3 +197,51 @@ class LineView(object):
 
         # trigger event
         self.hook.plot()
+
+
+class UpdateStatusBar(object):
+
+    """
+    Update utility for status bars.
+    """
+
+    def __init__(self, panel):
+        """Connect mouse event handler."""
+        self._frame = panel.GetTopLevelParent()
+        self._view = view = panel.view
+        view.figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
+
+    def on_mouse_move(self, event):
+        """Update statusbar text."""
+        xdata, ydata = event.xdata, event.ydata
+        if xdata is None or ydata is None:
+            # outside of axes:
+            self.status_text = ""
+            return
+        axis = 'x' if event.inaxes is self._view.axes['x'] else 'y'
+        unit = self._view.unit
+        model = self._view.model
+        elem = model.element_by_position(xdata * unit['s'])
+        # TODO: in some cases, it might be necessary to adjust the
+        # precision to the displayed xlim/ylim.
+        coord_fmt = "{0}={1:.6f}{2}".format
+        parts = [coord_fmt('s', xdata, raw_label(unit['s'])),
+                 coord_fmt(axis, ydata, raw_label(unit[axis]))]
+        if elem and 'name' in elem:
+            parts.append('elem={0}'.format(elem['name']))
+        self.status_text = ', '.join(parts)
+
+    @property
+    def status_text(self):
+        """Get the statusbar text."""
+        return self.statusbar.GetStatusText(0)
+
+    @status_text.setter
+    def status_text(self, text):
+        """Set the statusbar text."""
+        self.statusbar.SetStatusText(text, 0)
+
+    @property
+    def statusbar(self):
+        """Get the statusbar."""
+        return self._frame.GetStatusBar()

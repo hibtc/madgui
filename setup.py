@@ -53,6 +53,7 @@ setup(
         matchtool = madgui.component.matchtool:MatchTool
         selecttool = madgui.component.selecttool:SelectTool
         comparetool = madgui.component.comparetool:CompareTool
+        statusbar = madgui.component.lineview:UpdateStatusBar
 
         [madgui.core.notebook.menu]
         openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
