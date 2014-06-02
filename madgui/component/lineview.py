@@ -63,6 +63,8 @@ class LineView(object):
         """Create a matplotlib figure and register as observer."""
         self.model = model
         self.config = line_view_config = config['line_view']
+        self.clines = {'x': None, 'y': None}
+        self.lines = []
 
         # create figure
         self.figure = matplotlib.figure.Figure()
@@ -79,9 +81,6 @@ class LineView(object):
             'y': getattr(units, line_view_config['unit']['y']),
         }
         self.curve_style = line_view_config['curve_style']
-
-        self.clines = {'x': None,
-                       'y': None}
 
         # display colors for elements
         self.element_style = line_view_config['element_style']
@@ -179,52 +178,39 @@ class LineView(object):
 
         """Plot figure and redraw canvas."""
 
-        # data post processing
-        pos = self.model.pos
-        env = self.model.env
-
-        # plot
-        self.axes['x'].cla()
-        self.axes['y'].cla()
-
-        # disable labels on x-axis
-        for label in self.axes['x'].xaxis.get_ticklabels():
-            label.set_visible(False)
-        self.axes['y'].yaxis.get_ticklabels()[0].set_visible(False)
-
-        self._drawelements()
-
-        self.clines = {
-            'x': self.axes['x'].plot(
-                stripunit(pos, self.unit['s']),
-                stripunit(env['x'], self.unit['x']),
-                **self.curve_style['x'])[0],
-            'y': self.axes['y'].plot(
-                stripunit(pos, self.unit['s']),
-                stripunit(env['y'], self.unit['y']),
-                **self.curve_style['y'])[0]
-        }
-
-        self.lines = []
-        self.redraw_constraints()
-
-        # self.axes.legend(loc='upper left')
-        self.axes['y'].set_xlabel("position $s$ [m]")
-
         for axis in ('x', 'y'):
+            # clear plot + set style
             ax = self.axes[axis]
+            ax.cla()
             ax.grid(True)
             ax.get_xaxis().set_minor_locator(AutoMinorLocator())
             ax.get_yaxis().set_minor_locator(AutoMinorLocator())
-            ax.set_xlim(stripunit(pos[0], self.unit['s']),
-                        stripunit(pos[-1], self.unit['s']))
-            ax.set_ylabel(r'$\Delta %s$ %s' % (axis,
-                                               unit_label(self.unit[axis])))
+            label = r'$\Delta %s$ %s' % (axis, unit_label(self.unit[axis]))
+            ax.set_ylabel(label)
+            # main pot
+            abscissa = stripunit(self.model.pos, self.unit['s'])
+            ordinate = stripunit(self.model.env[axis], self.unit[axis])
+            curve_style = self.curve_style[axis]
+            ax.set_xlim(abscissa[0], abscissa[-1])
+            self.clines[axis] = ax.plot(abscissa, ordinate, **curve_style)[0]
             ax.set_ylim(0)
 
-        # invert y-axis:
+        # components that should be externalized:
+        self._drawelements()
+        self.redraw_constraints()
+
+        axx = self.axes['x']
         axy = self.axes['y']
+
+        # disable x-labels in upper axes
+        for label in axx.xaxis.get_ticklabels():
+            label.set_visible(False)
+        axy.set_xlabel("position $s$ [m]")
+        # disable the y=0 label in the lower axes
+        axy.yaxis.get_ticklabels()[0].set_visible(False)
+        # invert y-axis in lower axes:
         axy.set_ylim(axy.get_ylim()[::-1])
+
         self.figure.canvas.draw()
 
         # trigger event
