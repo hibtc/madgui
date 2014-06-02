@@ -208,8 +208,12 @@ class UpdateStatusBar(object):
     def __init__(self, panel):
         """Connect mouse event handler."""
         self._frame = panel.GetTopLevelParent()
-        self._view = view = panel.view
-        view.figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
+        self._view = panel.view
+        # Just passing self.on_mouse_move to mpl_connect does not keep the
+        # self object alive. The closure does the job, though:
+        def on_mouse_move(event):
+            self.on_mouse_move(event)
+        panel.canvas.mpl_connect('motion_notify_event', on_mouse_move)
 
     def on_mouse_move(self, event):
         """Update statusbar text."""
