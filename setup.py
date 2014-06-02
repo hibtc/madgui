@@ -54,6 +54,7 @@ setup(
         selecttool = madgui.component.selecttool:SelectTool
         comparetool = madgui.component.comparetool:CompareTool
         statusbar = madgui.component.lineview:UpdateStatusBar
+        drawelements = madgui.component.lineview:DrawLineElements
 
         [madgui.core.notebook.menu]
         openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu

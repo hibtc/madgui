@@ -64,9 +64,6 @@ class LineView(object):
         }
         self.curve_style = line_view_config['curve_style']
 
-        # display colors for elements
-        self.element_style = line_view_config['element_style']
-
         # subscribe for updates
         model.hook.update.connect(self.update)
         model.hook.remove_constraint.connect(self.redraw_constraints)
@@ -94,23 +91,6 @@ class LineView(object):
             self.lines.append(lines)
         self.figure.canvas.draw()
 
-    def get_element_type(self, elem):
-        """Return the element type name used for properties like coloring."""
-        if 'type' not in elem or 'at' not in elem:
-            return None
-        type_name = elem.type.lower()
-        focussing = None
-        if type_name == 'quadrupole':
-            focussing = stripunit(elem.k1) > 0
-        elif type_name == 'sbend':
-            focussing = stripunit(elem.angle) > 0
-        if focussing is not None:
-            if focussing:
-                type_name = 'f-' + type_name
-            else:
-                type_name = 'd-' + type_name
-        return self.element_style.get(type_name)
-
     def update(self):
         """Redraw the envelopes."""
         if self.clines['x'] is None or self.clines['y'] is None:
@@ -122,39 +102,13 @@ class LineView(object):
                                              self.unit['y']))
         self.figure.canvas.draw()
 
-    def _drawelements(self):
-        """Draw the elements into the canvas."""
-        max_env = {'x': np.max(self.model.env['x']),
-                   'y': np.max(self.model.env['y'])}
-        patch_h = {'x': 0.75*stripunit(max_env['x'], self.unit['x']),
-                   'y': 0.75*stripunit(max_env['y'], self.unit['y'])}
-        for elem in self.model.elements:
-            elem_type = self.get_element_type(elem)
-            if elem_type is None:
-                continue
-            if stripunit(elem.L) != 0:
-                patch_w = stripunit(elem['L'], self.unit['s'])
-                patch_x = stripunit(elem['at'], self.unit['s']) - patch_w/2
-                self.axes['x'].add_patch(
-                    matplotlib.patches.Rectangle(
-                        (patch_x, 0),
-                        patch_w, patch_h['x'],
-                        **elem_type))
-                self.axes['y'].add_patch(
-                    matplotlib.patches.Rectangle(
-                        (patch_x, 0),
-                        patch_w, patch_h['y'],
-                        **elem_type))
-            else:
-                patch_x = stripunit(elem['at'], self.unit['s'])
-                self.axes['x'].vlines(
-                    patch_x, 0,
-                    patch_h['x'],
-                    **elem_type)
-                self.axes['y'].vlines(
-                    patch_x, 0,
-                    patch_h['y'],
-                    **elem_type)
+    def get_abscissa(self):
+        """Get the abcissa values."""
+        return stripunit(self.model.pos, self.unit['s'])
+
+    def get_ordinate(self, axis):
+        """Get the ordinate values."""
+        return stripunit(self.model.env[axis], self.unit[axis])
 
     def plot(self):
 
@@ -170,15 +124,14 @@ class LineView(object):
             label = r'$\Delta %s$ %s' % (axis, unit_label(self.unit[axis]))
             ax.set_ylabel(label)
             # main pot
-            abscissa = stripunit(self.model.pos, self.unit['s'])
-            ordinate = stripunit(self.model.env[axis], self.unit[axis])
+            abscissa = self.get_abscissa()
+            ordinate = self.get_ordinate(axis)
             curve_style = self.curve_style[axis]
             ax.set_xlim(abscissa[0], abscissa[-1])
             self.clines[axis] = ax.plot(abscissa, ordinate, **curve_style)[0]
             ax.set_ylim(0)
 
         # components that should be externalized:
-        self._drawelements()
         self.redraw_constraints()
 
         axx = self.axes['x']
@@ -193,10 +146,12 @@ class LineView(object):
         # invert y-axis in lower axes:
         axy.set_ylim(axy.get_ylim()[::-1])
 
-        self.figure.canvas.draw()
-
         # trigger event
         self.hook.plot()
+
+        # draw canvas *after* event has been triggered, because there can be
+        # event handlers that add elements to the plot:
+        self.figure.canvas.draw()
 
 
 class UpdateStatusBar(object):
@@ -249,3 +204,69 @@ class UpdateStatusBar(object):
     def statusbar(self):
         """Get the statusbar."""
         return self._frame.GetStatusBar()
+
+
+class DrawLineElements(object):
+
+    def __init__(self, panel):
+        self._view = view = panel.view
+        self._model = view.model
+
+        def on_plot():
+            self.drawelements()
+        view.hook.plot.connect(on_plot)
+
+        # display colors for elements
+        self.element_style = view.config['element_style']
+
+    def get_element_type(self, elem):
+        """Return the element type name used for properties like coloring."""
+        if 'type' not in elem or 'at' not in elem:
+            return None
+        type_name = elem.type.lower()
+        focussing = None
+        if type_name == 'quadrupole':
+            focussing = stripunit(elem.k1) > 0
+        elif type_name == 'sbend':
+            focussing = stripunit(elem.angle) > 0
+        if focussing is not None:
+            if focussing:
+                type_name = 'f-' + type_name
+            else:
+                type_name = 'd-' + type_name
+        return self.element_style.get(type_name)
+
+    def drawelements(self):
+        """Draw the elements into the canvas."""
+        view = self._view
+        max_env = {'x': np.max(view.model.env['x']),
+                   'y': np.max(view.model.env['y'])}
+        patch_h = {'x': 0.75*stripunit(max_env['x'], view.unit['x']),
+                   'y': 0.75*stripunit(max_env['y'], view.unit['y'])}
+        for elem in view.model.elements:
+            elem_type = self.get_element_type(elem)
+            if elem_type is None:
+                continue
+            if stripunit(elem.L) != 0:
+                patch_w = stripunit(elem['L'], view.unit['s'])
+                patch_x = stripunit(elem['at'], view.unit['s']) - patch_w/2
+                view.axes['x'].add_patch(
+                    matplotlib.patches.Rectangle(
+                        (patch_x, 0),
+                        patch_w, patch_h['x'],
+                        **elem_type))
+                view.axes['y'].add_patch(
+                    matplotlib.patches.Rectangle(
+                        (patch_x, 0),
+                        patch_w, patch_h['y'],
+                        **elem_type))
+            else:
+                patch_x = stripunit(elem['at'], view.unit['s'])
+                view.axes['x'].vlines(
+                    patch_x, 0,
+                    patch_h['x'],
+                    **elem_type)
+                view.axes['y'].vlines(
+                    patch_x, 0,
+                    patch_h['y'],
+                    **elem_type)
