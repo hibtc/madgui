@@ -93,11 +93,12 @@ class OpenModelDlg(ModalDialog):
                     # TODO: redirect history+output to frame!
                     _frame = frame.Claim()
                     madx = _frame.vars['madx']
-                    cpymad_model = cpymad.model(mdata,
-                                                optics=[detail['optic']],
-                                                sequence=detail['sequence'],
-                                                histfile=None,
-                                                madx=madx)
+                    cpymad_model = cpymad.model.Model(
+                        mdata,
+                        optics=[detail['optic']],
+                        sequence=detail['sequence'],
+                        histfile=None,
+                        madx=madx)
 
                     beam = cpymad_model.get_beam(detail['beam'])
                     cpymad_model.set_beam(beam)
