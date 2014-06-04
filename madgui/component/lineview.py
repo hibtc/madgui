@@ -46,7 +46,6 @@ class LineView(object):
         self.model = model
         self.config = line_view_config = config['line_view']
         self.clines = {'x': None, 'y': None}
-        self.lines = []
 
         # create figure
         self.figure = matplotlib.figure.Figure()
@@ -66,40 +65,14 @@ class LineView(object):
 
         # subscribe for updates
         model.hook.update.connect(self.update)
-        model.hook.remove_constraint.connect(self.redraw_constraints)
-        model.hook.clear_constraints.connect(self.redraw_constraints)
-        model.hook.add_constraint.connect(self.redraw_constraints)
-
-    def draw_constraint(self, axis, elem, envelope):
-        """Draw one constraint representation in the graph."""
-        return self.axes[axis].plot(
-            stripunit(elem.at, self.unit['s']),
-            stripunit(envelope, self.unit[axis]),
-            's',
-            fillstyle='full',
-            markersize=7,
-            color=self.curve_style[axis]['color'])
-
-    def redraw_constraints(self):
-        """Draw all current constraints in the graph."""
-        for lines in self.lines:
-            for l in lines:
-                l.remove()
-        self.lines = []
-        for axis,elem,envelope in self.model.constraints:
-            lines = self.draw_constraint(axis, elem, envelope)
-            self.lines.append(lines)
-        self.figure.canvas.draw()
 
     def update(self):
         """Redraw the envelopes."""
         if self.clines['x'] is None or self.clines['y'] is None:
             self.plot()
             return
-        self.clines['x'].set_ydata(stripunit(self.model.env['x'],
-                                             self.unit['x']))
-        self.clines['y'].set_ydata(stripunit(self.model.env['y'],
-                                             self.unit['y']))
+        self.clines['x'].set_ydata(self.get_ordinate('x'))
+        self.clines['y'].set_ydata(self.get_ordinate('y'))
         self.figure.canvas.draw()
 
     def get_abscissa(self):
@@ -131,9 +104,6 @@ class LineView(object):
             self.clines[axis] = ax.plot(abscissa, ordinate, **curve_style)[0]
             ax.set_ylim(0)
 
-        # components that should be externalized:
-        self.redraw_constraints()
-
         axx = self.axes['x']
         axy = self.axes['y']
 
@@ -152,6 +122,43 @@ class LineView(object):
         # draw canvas *after* event has been triggered, because there can be
         # event handlers that add elements to the plot:
         self.figure.canvas.draw()
+
+
+# TODO: Store the constraints with a Match object, rather than "globally"
+# with the model.
+class DrawConstraints(object):
+
+    def __init__(self, panel):
+        self.view = view = panel.view
+        self.model = model = view.model
+        self.lines = []
+        def redraw():
+            self.redraw_constraints()
+        model.hook.remove_constraint.connect(redraw)
+        model.hook.clear_constraints.connect(redraw)
+        model.hook.add_constraint.connect(redraw)
+
+    def draw_constraint(self, axis, elem, envelope):
+        """Draw one constraint representation in the graph."""
+        view = self.view
+        return view.axes[axis].plot(
+            stripunit(elem.at, view.unit['s']),
+            stripunit(envelope, view.unit[axis]),
+            's',
+            fillstyle='full',
+            markersize=7,
+            color=view.curve_style[axis]['color'])
+
+    def redraw_constraints(self):
+        """Draw all current constraints in the graph."""
+        for lines in self.lines:
+            for l in lines:
+                l.remove()
+        self.lines = []
+        for axis,elem,envelope in self.model.constraints:
+            lines = self.draw_constraint(axis, elem, envelope)
+            self.lines.append(lines)
+        self.view.figure.canvas.draw()
 
 
 class UpdateStatusBar(object):
