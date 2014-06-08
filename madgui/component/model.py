@@ -146,7 +146,8 @@ class Model(MadxUnits):
 
     def _update_twiss(self, results):
         """Update TWISS results."""
-        self.tw = self.dict_from_madx(results.columns.freeze(self._columns))
+        data = results.columns.freeze(self._columns)._data
+        self.tw = self.dict_from_madx(data)
         self.summary = self.dict_from_madx(results.summary)
         self.update()
 
@@ -162,10 +163,8 @@ class Model(MadxUnits):
 
     def element_index_by_name(self, name):
         """Find the element index in the twiss array by its name."""
-        for i in range(len(self.tw.name)):
-            if self.tw.name[i].lower() == name.lower():
-                return i
-        return None
+        ln = name.lower()
+        return next(i for i,v in enumerate(self.tw['name']) if v.lower() == ln)
 
     def get_element_index(self, elem):
         """Get element index by it name."""
@@ -177,10 +176,10 @@ class Model(MadxUnits):
         if i is None:
             return None
         elif axis is None:
-            return {'x': self.env['x'][i],
-                    'y': self.env['y'][i]}
+            return {'x': self.tw['envx'][i],
+                    'y': self.tw['envy'][i]}
         else:
-            return self.env[axis][i]
+            return self.tw['env'+axis][i]
 
     def get_envelope_center(self, elem, axis=None):
         """Return beam envelope at center of element."""
@@ -189,17 +188,17 @@ class Model(MadxUnits):
             raise ValueError("Unknown element!")
         prev = i - 1 if i != 0 else i
         if axis is None:
-            return ((self.env['x'][i] + self.env['x'][prev]) / 2,
-                    (self.env['y'][i] + self.env['y'][prev]) / 2)
+            return ((self.tw['envx'][i] + self.tw['envx'][prev]) / 2,
+                    (self.tw['envy'][i] + self.tw['envy'][prev]) / 2)
         else:
-            return (self.env[axis][i] + self.env[axis][prev]) / 2
+            return (self.tw['env'+axis][i] + self.tw['env'+axis][prev]) / 2
 
     def update(self):
         """Perform post processing."""
         # data post processing
-        self.pos = self.tw.s
-        self.env = {'x': (self.tw.betx * self.summary.ex)**0.5,
-                    'y': (self.tw.bety * self.summary.ey)**0.5}
+        self.pos = self.tw['s']
+        self.tw['envx'] = (self.tw['betx'] * self.summary['ex'])**0.5
+        self.tw['envy'] = (self.tw['bety'] * self.summary['ey'])**0.5
         self.hook.update()
 
     def match(self):

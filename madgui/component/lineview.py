@@ -81,7 +81,7 @@ class LineView(object):
 
     def get_ordinate(self, axis):
         """Get the ordinate values."""
-        return stripunit(self.model.env[axis], self.unit[axis])
+        return stripunit(self.model.tw['env'+axis], self.unit[axis])
 
     def plot(self):
 
@@ -246,8 +246,8 @@ class DrawLineElements(object):
     def drawelements(self):
         """Draw the elements into the canvas."""
         view = self._view
-        max_env = {'x': np.max(view.model.env['x']),
-                   'y': np.max(view.model.env['y'])}
+        max_env = {'x': np.max(view.model.tw['envx']),
+                   'y': np.max(view.model.tw['envy'])}
         patch_h = {'x': 0.75*stripunit(max_env['x'], view.unit['x']),
                    'y': 0.75*stripunit(max_env['y'], view.unit['y'])}
         for elem in view.model.elements:
