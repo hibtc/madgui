@@ -170,28 +170,15 @@ class Model(MadxUnits):
         """Get element index by it name."""
         return self.element_index_by_name(elem.name)
 
-    def get_envelope(self, elem, axis=None):
+    def get_twiss(self, elem, name):
         """Return beam envelope at element."""
-        i = self.get_element_index(elem)
-        if i is None:
-            return None
-        elif axis is None:
-            return {'x': self.tw['envx'][i],
-                    'y': self.tw['envy'][i]}
-        else:
-            return self.tw['env'+axis][i]
+        return self.tw[name][self.get_element_index(elem)]
 
-    def get_envelope_center(self, elem, axis=None):
+    def get_twiss_center(self, elem, name):
         """Return beam envelope at center of element."""
         i = self.get_element_index(elem)
-        if i is None:
-            raise ValueError("Unknown element!")
         prev = i - 1 if i != 0 else i
-        if axis is None:
-            return ((self.tw['envx'][i] + self.tw['envx'][prev]) / 2,
-                    (self.tw['envy'][i] + self.tw['envy'][prev]) / 2)
-        else:
-            return (self.tw['env'+axis][i] + self.tw['env'+axis][prev]) / 2
+        return (self.tw[name][i] + self.tw[name][prev]) / 2
 
     def update(self):
         """Perform post processing."""
@@ -228,8 +215,8 @@ class Model(MadxUnits):
         constraints = []
         ex, ey = self.summary.ex, self.summary.ey
         for axis,elem,envelope in self.constraints:
-            name = 'betx' if axis == 'x' else 'bety'
-            emittance = ex if axis == 'x' else ey
+            name = 'betx' if axis == 'envx' else 'bety'
+            emittance = ex if axis == 'envx' else ey
             el_name = re.sub(':\d+$', '', elem.name)
             if isinstance(envelope, tuple):
                 lower, upper = envelope

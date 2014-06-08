@@ -3,21 +3,24 @@ line_view:
   # name of a unit in ``unum.units``
   unit:
     s: "m"
-    x: "mm"
-    y: "mm"
+    envx: "mm"
+    envy: "mm"
+
+  label:
+    s: "position $s$"
+    envx: "$\\Delta x$"
+    envy: "$\\Delta y$"
 
   # keyword arguments to ``matplotlib.axes.plot()``
   curve_style:
     x:
       color: "#8b1a0e"
-      label: "$\\Delta x$"
       marker: "o"
       fillstyle: "none"
       linestyle: "-"
 
     y:
       color: "#5e9c36"
-      label: "$\\Delta y$"
       marker: "o"
       fillstyle: "none"
       linestyle: "-"

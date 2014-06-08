@@ -82,8 +82,8 @@ class MatchTool(object):
         axes = event.inaxes
         if axes is None:
             return
-        axis = 'x' if axes is self.view.axes['x'] else 'y'
-        orth = 'y' if axis == 'x' else 'x'
+        name = self.view.get_axes_name(axes)
+        conj = self.view.get_conjugate(name)
 
         elem = self.model.element_by_position(
             event.xdata * self.view.unit['s'])
@@ -101,12 +101,12 @@ class MatchTool(object):
         self.panel.SetCursor(wait_cursor)
 
         # add the clicked constraint
-        envelope = event.ydata * self.view.unit[axis]
-        self.model.add_constraint(axis, elem, envelope)
+        envelope = event.ydata * self.view.unit[name]
+        self.model.add_constraint(name, elem, envelope)
 
         # add another constraint to hold the orthogonal axis constant
-        orth_env = self.model.get_envelope_center(elem, orth)
-        self.model.add_constraint(orth, elem, orth_env)
+        orth_env = self.model.get_twiss_center(elem, conj)
+        self.model.add_constraint(conj, elem, orth_env)
 
         self.model.match()
         self.panel.SetCursor(orig_cursor)

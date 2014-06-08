@@ -53,8 +53,8 @@ setup(
         matchtool = madgui.component.matchtool:MatchTool
         selecttool = madgui.component.selecttool:SelectTool
         comparetool = madgui.component.comparetool:CompareTool
-        statusbar = madgui.component.lineview:UpdateStatusBar
-        drawelements = madgui.component.lineview:DrawLineElements
+        statusbar = madgui.component.lineview:UpdateStatusBar.create
+        drawelements = madgui.component.lineview:DrawLineElements.create
         drawconstraints = madgui.component.lineview:DrawConstraints
 
         [madgui.core.notebook.menu]
@@ -64,7 +64,7 @@ setup(
         beamdlg = madgui.component.beamdlg:BeamDialog.connect_menu
 
         [madgui.component.model.show]
-        lineview = madgui.component.lineview:LineView.create
+        lineview = madgui.component.lineview:TwissView.create
 
         [madgui.models]
         lhc = madgui.component.lhcmodels:locator
