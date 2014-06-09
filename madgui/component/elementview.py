@@ -56,8 +56,8 @@ class ElementView(object):
         rows = sorted(rows)
 
         # sort preferred elements to top:
-        order = ['Type',
-                 'Name',
+        order = ['Name',
+                 'Type',
                  'Position',
                  'Length']
         order = dict(zip(order, range(-len(order), 0)))
