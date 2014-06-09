@@ -123,6 +123,25 @@ class MatchTool(object):
         self.panel.SetCursor(orig_cursor)
 
 
+class MatchTransform(object):
+
+    def __init__(self, model):
+        self._ex = model.summary.ex
+        self._ey = model.summary.ey
+
+    def envx(self, val):
+        return 'betx', val*val/self._ex
+
+    def envy(self, val):
+        return 'bety', val*val/self._ey
+
+    def x(self, val):
+        return 'x', val
+
+    def y(self, val):
+        return 'y', val
+
+
 class Matching(object):
 
     hook = ivar(HookCollection,
@@ -164,16 +183,17 @@ class Matching(object):
                 # No variable in range found! Ok.
                 pass
 
+        trans = MatchTransform(model)
+
         # select constraints
         constraints = []
         ex, ey = model.summary.ex, model.summary.ey
         for axis,elem,envelope in self.constraints:
-            name = 'betx' if axis == 'envx' else 'bety'
-            emittance = ex if axis == 'envx' else ey
+            name, val = getattr(trans, axis)(envelope)
             el_name = re.sub(':\d+$', '', elem.name)
             constraints.append({
                 'range': el_name,
-                name: model.value_to_madx(name, envelope*envelope/emittance)})
+                name: model.value_to_madx(name, val)})
 
         twiss_args = model.dict_to_madx(model.twiss_args)
         model.madx.match(sequence=model.name,
