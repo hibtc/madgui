@@ -92,20 +92,10 @@ class Multicast(object):
     attribute :ivar:`slots`.
     """
 
-    def _reduce(self, iterable):
-        """Default reduce mechanism: use the very last result or ``None``."""
-        result = None
-        for result in iterable:
-            pass
-        return result
-
-    def _map(self, *args, **kwargs):
-        """Return an iterable that calls the slots when iterated over."""
-        return (slot(*args, **kwargs) for slot in self.slots)
-
     def __call__(self, *args, **kwargs):
         """Call all slots and return reduced result."""
-        return self._reduce(self._map(*args, **kwargs))
+        for slot in self.slots:
+            slot(*args, **kwargs)
 
     def freeze(self):
         """Return new signal with all connected slots."""
