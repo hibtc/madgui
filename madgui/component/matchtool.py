@@ -171,16 +171,9 @@ class Matching(object):
             name = 'betx' if axis == 'envx' else 'bety'
             emittance = ex if axis == 'envx' else ey
             el_name = re.sub(':\d+$', '', elem.name)
-            if isinstance(envelope, tuple):
-                lower, upper = envelope
-                constraints.append([
-                    ('range', el_name),
-                    (name, '>', model.value_to_madx(name, lower*lower/emittance)),
-                    (name, '<', model.value_to_madx(name, upper*upper/emittance)) ])
-            else:
-                constraints.append({
-                    'range': el_name,
-                    name: model.value_to_madx(name, envelope*envelope/emittance)})
+            constraints.append({
+                'range': el_name,
+                name: model.value_to_madx(name, envelope*envelope/emittance)})
 
         twiss_args = model.dict_to_madx(model.twiss_args)
         model.madx.match(sequence=model.name,
@@ -198,9 +191,6 @@ class Matching(object):
 
     def add_constraint(self, axis, elem, envelope):
         """Add constraint and perform matching."""
-        # TODO: two constraints on same element represent upper/lower bounds
-        #lines = self.draw_constraint(axis, elem, envelope)##EVENT
-        #self.view.figure.canvas.draw()
         existing = self.find_constraint(elem, axis)
         if existing:
             self.remove_constraint(elem, axis)
