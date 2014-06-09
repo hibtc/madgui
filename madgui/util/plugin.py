@@ -92,8 +92,10 @@ class Multicast(object):
     attribute :ivar:`slots`.
     """
 
-    def __call__(self, *args, **kwargs):
+    def __call__(*self__args, **kwargs):
         """Call all slots and return reduced result."""
+        self = self__args[0]
+        args = self__args[1:]
         for slot in self.slots:
             slot(*args, **kwargs)
 
