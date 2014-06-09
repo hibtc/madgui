@@ -6,11 +6,16 @@ Matching tool for a :class:`LineView` instance.
 # force new style imports
 from __future__ import absolute_import
 
+# standard library
+import re
+
 # 3rd party
 from cern.resource.package import PackageResource
 
 # internal
 from madgui.core import wx
+from madgui.util.common import ivar
+from madgui.util.plugin import HookCollection
 
 # exported symbols
 __all__ = ['MatchTool']
@@ -22,12 +27,17 @@ class MatchTool(object):
     Controller that performs matching when clicking on an element.
     """
 
+    hook = ivar(HookCollection,
+                start='madgui.component.matching.start')
+
+
     def __init__(self, panel):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.cid = None
         self.model = panel.view.model
         self.panel = panel
         self.view = panel.view
+        self.matcher = None
         # toolbar tool
         res = PackageResource('madgui.resource')
         with res.open('cursor.xpm') as xpm:
@@ -61,7 +71,8 @@ class MatchTool(object):
         self.cid = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
                 self.on_match)
-        self.constraints = []
+        self.matcher = Matching(self.model)
+        self.hook.start(self.matcher, self.view)
 
     def stop_match(self):
         """Stop matching mode."""
@@ -69,7 +80,7 @@ class MatchTool(object):
             self.view.figure.canvas.mpl_disconnect(self.cid)
             self.cid = None
             self.toolbar.ToggleTool(self.tool.Id, False)
-        self.model.clear_constraints()
+            self.matcher.stop()
 
     def on_match(self, event):
 
@@ -91,7 +102,7 @@ class MatchTool(object):
             return
 
         if event.button == 2:
-            self.model.remove_constraint(elem)
+            self.matcher.remove_constraint(elem)
             return
         elif event.button != 1:
             return
@@ -102,12 +113,108 @@ class MatchTool(object):
 
         # add the clicked constraint
         envelope = event.ydata * self.view.unit[name]
-        self.model.add_constraint(name, elem, envelope)
+        self.matcher.add_constraint(name, elem, envelope)
 
         # add another constraint to hold the orthogonal axis constant
         orth_env = self.model.get_twiss_center(elem, conj)
-        self.model.add_constraint(conj, elem, orth_env)
+        self.matcher.add_constraint(conj, elem, orth_env)
 
-        self.model.match()
+        self.matcher.match()
         self.panel.SetCursor(orig_cursor)
 
+
+class Matching(object):
+
+    hook = ivar(HookCollection,
+                stop=None,
+                add_constraint=None,
+                remove_constraint=None,
+                clear_constraints=None)
+
+    def __init__(self, model):
+        self.model = model
+        self.constraints = []
+
+    def stop(self):
+        self.clear_constraints()
+        self.hook.stop()
+
+    def match(self):
+
+        """Perform matching according to current constraints."""
+
+        model = self.model
+
+        # select variables: one for each constraint
+        vary = []
+        allvars = [elem for elem in model.elements
+                   if elem.type.lower() == 'quadrupole']
+        for axis,elem,envelope in self.constraints:
+            at = elem.at
+            allowed = [v for v in allvars if v.at < at]
+            try:
+                v = max(allowed, key=lambda v: v.at)
+                try:
+                    expr = v.k1._expression
+                except AttributeError:
+                    expr = v.name + +'->k1'
+                vary.append(expr)
+                allvars.remove(v)
+            except ValueError:
+                # No variable in range found! Ok.
+                pass
+
+        # select constraints
+        constraints = []
+        ex, ey = model.summary.ex, model.summary.ey
+        for axis,elem,envelope in self.constraints:
+            name = 'betx' if axis == 'envx' else 'bety'
+            emittance = ex if axis == 'envx' else ey
+            el_name = re.sub(':\d+$', '', elem.name)
+            if isinstance(envelope, tuple):
+                lower, upper = envelope
+                constraints.append([
+                    ('range', el_name),
+                    (name, '>', model.value_to_madx(name, lower*lower/emittance)),
+                    (name, '<', model.value_to_madx(name, upper*upper/emittance)) ])
+            else:
+                constraints.append({
+                    'range': el_name,
+                    name: model.value_to_madx(name, envelope*envelope/emittance)})
+
+        twiss_args = model.dict_to_madx(model.twiss_args)
+        model.madx.match(sequence=model.name,
+                         vary=vary,
+                         constraints=constraints,
+                         twiss_init=twiss_args)
+        model.twiss()
+
+    def find_constraint(self, elem, axis=None):
+        """Find and return the constraint for the specified element."""
+        matched = [c for c in self.constraints if c[1] == elem]
+        if axis is not None:
+            matched = [c for c in matched if c[0] == axis]
+        return matched
+
+    def add_constraint(self, axis, elem, envelope):
+        """Add constraint and perform matching."""
+        # TODO: two constraints on same element represent upper/lower bounds
+        #lines = self.draw_constraint(axis, elem, envelope)##EVENT
+        #self.view.figure.canvas.draw()
+        existing = self.find_constraint(elem, axis)
+        if existing:
+            self.remove_constraint(elem, axis)
+        self.constraints.append( (axis, elem, envelope) )
+        self.hook.add_constraint()
+
+    def remove_constraint(self, elem, axis=None):
+        """Remove the constraint for elem."""
+        self.constraints = [
+            c for c in self.constraints
+            if c[1].name != elem.name or (axis is not None and c[0] != axis)]
+        self.hook.remove_constraint()
+
+    def clear_constraints(self):
+        """Remove all constraints."""
+        self.constraints = []
+        self.hook.clear_constraints()

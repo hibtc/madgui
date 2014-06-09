@@ -194,15 +194,23 @@ class XYView(TwissView):
 # with the model.
 class DrawConstraints(object):
 
-    def __init__(self, panel):
-        self.view = view = panel.view
-        self.model = model = view.model
+    def __init__(self, matching, view):
+        self.view = view
+        self.matching = matching
         self.lines = []
-        def redraw():
-            self.redraw_constraints()
-        model.hook.remove_constraint.connect(redraw)
-        model.hook.clear_constraints.connect(redraw)
-        model.hook.add_constraint.connect(redraw)
+        redraw = self.redraw_constraints
+        matching.hook.remove_constraint.connect(redraw)
+        matching.hook.clear_constraints.connect(redraw)
+        matching.hook.add_constraint.connect(redraw)
+        matching.hook.stop.connect(self.on_stop)
+
+    def on_stop(self):
+        matching = self.matching
+        redraw = self.redraw_constraints
+        matching.hook.remove_constraint.disconnect(redraw)
+        matching.hook.clear_constraints.disconnect(redraw)
+        matching.hook.add_constraint.disconnect(redraw)
+        matching.hook.stop.disconnect(self.on_stop)
 
     def draw_constraint(self, name, elem, envelope):
         """Draw one constraint representation in the graph."""
@@ -228,7 +236,7 @@ class DrawConstraints(object):
             for l in lines:
                 l.remove()
         self.lines = []
-        for name,elem,envelope in self.model.constraints:
+        for name,elem,envelope in self.matching.constraints:
             lines = self.draw_constraint(name, elem, envelope)
             if lines:
                 self.lines.append(lines)

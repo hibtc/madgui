@@ -6,9 +6,6 @@ Model component for the MadGUI application.
 # force new style imports
 from __future__ import absolute_import
 
-# standard library
-import re
-
 # internal
 from madgui.util.common import ivar, cachedproperty
 from madgui.util.plugin import HookCollection
@@ -22,11 +19,6 @@ class Model(MadxUnits):
 
     """
     Extended model class for cern.cpymad.model (extends by delegation).
-
-    Improvements over cern.cpymad.model:
-
-     - knows sequence
-     - knows about variables => can perform matching
 
     :ivar Madx madx:
     :ivar list elements:
@@ -58,10 +50,7 @@ class Model(MadxUnits):
 
     hook = ivar(HookCollection,
                 show='madgui.component.model.show',
-                update=None,
-                add_constraint=None,
-                remove_constraint=None,
-                clear_constraints=None)
+                update=None)
 
     def __init__(self,
                  madx,
@@ -79,7 +68,6 @@ class Model(MadxUnits):
                          's',
                          'x', 'y',
                          'betx','bety']
-        self.constraints = []
         self._update_elements(elements)
         self.model = model
         try:
@@ -190,84 +178,6 @@ class Model(MadxUnits):
         self.tw['envx'] = (self.tw['betx'] * self.summary['ex'])**0.5
         self.tw['envy'] = (self.tw['bety'] * self.summary['ey'])**0.5
         self.hook.update()
-
-    def match(self):
-
-        """Perform matching according to current constraints."""
-
-        # select variables: one for each constraint
-        vary = []
-        allvars = [elem for elem in self.elements
-                   if elem.type.lower() == 'quadrupole']
-        for axis,elem,envelope in self.constraints:
-            at = elem.at
-            allowed = [v for v in allvars if v.at < at]
-            try:
-                v = max(allowed, key=lambda v: v.at)
-                try:
-                    expr = v.k1._expression
-                except AttributeError:
-                    expr = v.name + +'->k1'
-                vary.append(expr)
-                allvars.remove(v)
-            except ValueError:
-                # No variable in range found! Ok.
-                pass
-
-        # select constraints
-        constraints = []
-        ex, ey = self.summary.ex, self.summary.ey
-        for axis,elem,envelope in self.constraints:
-            name = 'betx' if axis == 'envx' else 'bety'
-            emittance = ex if axis == 'envx' else ey
-            el_name = re.sub(':\d+$', '', elem.name)
-            if isinstance(envelope, tuple):
-                lower, upper = envelope
-                constraints.append([
-                    ('range', el_name),
-                    (name, '>', self.value_to_madx(name, lower*lower/emittance)),
-                    (name, '<', self.value_to_madx(name, upper*upper/emittance)) ])
-            else:
-                constraints.append({
-                    'range': el_name,
-                    name: self.value_to_madx(name, envelope*envelope/emittance)})
-
-        twiss_args = self.dict_to_madx(self.twiss_args)
-        self.madx.match(sequence=self.name,
-                        vary=vary,
-                        constraints=constraints,
-                        twiss_init=twiss_args)
-        self.twiss()
-
-    def find_constraint(self, elem, axis=None):
-        """Find and return the constraint for the specified element."""
-        matched = [c for c in self.constraints if c[1] == elem]
-        if axis is not None:
-            matched = [c for c in matched if c[0] == axis]
-        return matched
-
-    def add_constraint(self, axis, elem, envelope):
-        """Add constraint and perform matching."""
-        # TODO: two constraints on same element represent upper/lower bounds
-        #lines = self.draw_constraint(axis, elem, envelope)##EVENT
-        #self.view.figure.canvas.draw()
-        existing = self.find_constraint(elem, axis)
-        if existing:
-            self.remove_constraint(elem, axis)
-        self.constraints.append( (axis, elem, envelope) )
-        self.hook.add_constraint()
-
-    def remove_constraint(self, elem, axis=None):
-        """Remove the constraint for elem."""
-        self.constraints = [
-            c for c in self.constraints
-            if c[1].name != elem.name or (axis is not None and c[0] != axis)]
-        self.hook.remove_constraint()
-
-    def clear_constraints(self):
-        """Remove all constraints."""
-        self.constraints = []
-        self.hook.clear_constraints()
 
     def evaluate(self, expr):
         """Evaluate a MADX expression and return the result as float."""

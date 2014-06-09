@@ -55,6 +55,8 @@ setup(
         comparetool = madgui.component.comparetool:CompareTool
         statusbar = madgui.component.lineview:UpdateStatusBar.create
         drawelements = madgui.component.lineview:DrawLineElements.create
+
+        [madgui.component.matching.start]
         drawconstraints = madgui.component.lineview:DrawConstraints
 
         [madgui.core.notebook.menu]
