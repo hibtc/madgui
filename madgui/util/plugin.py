@@ -70,16 +70,6 @@ class HookCollection(object):
             return hook
 
 
-def _freeze(slot):
-    """Return a frozen version of a single slot."""
-    try:
-        slots = slot.freeze
-    except AttributeError:
-        return slot
-    else:
-        return freeze()
-
-
 class Multicast(object):
 
     """
@@ -98,10 +88,6 @@ class Multicast(object):
         args = self__args[1:]
         for slot in self.slots:
             slot(*args, **kwargs)
-
-    def freeze(self):
-        """Return new signal with all connected slots."""
-        return List([_freeze(slot) for slot in self.slots])
 
 
 class List(Multicast):
