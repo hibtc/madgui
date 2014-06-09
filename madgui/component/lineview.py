@@ -114,8 +114,10 @@ class TwissView(object):
                 plot_ax=None)
 
     @classmethod
-    def create(cls, model, frame, basename='env'):
+    def create(cls, model, frame, basename=None):
         """Create a new view panel as a page in the notebook frame."""
+        if basename is None:
+            basename = cls.basename
         view = cls(model, basename, frame.app.conf['line_view'])
         frame.AddView(view, model.name)
         return view
@@ -176,6 +178,14 @@ class TwissView(object):
 
     def get_conjugate(self, name):
         return self._conjugate[name]
+
+
+class EnvView(TwissView):
+    basename = 'env'
+
+
+class XYView(TwissView):
+    basename = ''
 
 
 # TODO: Store the constraints with a Match object, rather than "globally"

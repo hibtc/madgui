@@ -75,7 +75,10 @@ class Model(MadxUnits):
         self.madx = madx
         self.name = name
         self.twiss_args = twiss_args
-        self._columns = ['name','s', 'l','betx','bety', 'angle', 'k1l']
+        self._columns = ['name', 'l', 'angle', 'k1l',
+                         's',
+                         'x', 'y',
+                         'betx','bety']
         self.constraints = []
         self._update_elements(elements)
         self.model = model

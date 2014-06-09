@@ -5,11 +5,15 @@ line_view:
     s: "m"
     envx: "mm"
     envy: "mm"
+    x: "mm"
+    y: "mm"
 
   label:
     s: "position $s$"
     envx: "$\\Delta x$"
     envy: "$\\Delta y$"
+    x: "$x$"
+    y: "$y$"
 
   # keyword arguments to ``matplotlib.axes.plot()``
   curve_style:

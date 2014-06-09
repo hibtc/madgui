@@ -64,7 +64,8 @@ setup(
         beamdlg = madgui.component.beamdlg:BeamDialog.connect_menu
 
         [madgui.component.model.show]
-        lineview = madgui.component.lineview:TwissView.create
+        lineview = madgui.component.lineview:EnvView.create
+        xyview = madgui.component.lineview:XYView.create
 
         [madgui.models]
         lhc = madgui.component.lhcmodels:locator
