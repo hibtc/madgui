@@ -215,14 +215,7 @@ class DrawConstraints(object):
     def draw_constraint(self, name, elem, envelope):
         """Draw one constraint representation in the graph."""
         view = self.view
-        # In the current setup, this function is called for any constraint,
-        # i.e. even constraints that are not to be drawn into the associated
-        # figure. Therefore, the constraint names needs to be checked:
-        try:
-            ax = view.axes[name]
-        except KeyError:
-            return
-        return ax.plot(
+        return view.axes[name].plot(
             stripunit(elem.at, view.unit[view.sname]),
             stripunit(envelope, view.unit[name]),
             's',
@@ -238,8 +231,7 @@ class DrawConstraints(object):
         self.lines = []
         for name,elem,envelope in self.matching.constraints:
             lines = self.draw_constraint(name, elem, envelope)
-            if lines:
-                self.lines.append(lines)
+            self.lines.append(lines)
         self.view.figure.draw()
 
 
