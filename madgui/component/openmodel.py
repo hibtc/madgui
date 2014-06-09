@@ -77,7 +77,7 @@ class OpenModelDlg(ModalDialog):
     def connect_menu(cls, frame, menubar):
         def OnOpenModel(event):
             # select package, model:
-            select_model_dlg = cls(frame)
+            select_model_dlg = cls(frame, title="Select model")
             try:
                 if select_model_dlg.ShowModal() != wx.ID_OK:
                     return
@@ -85,7 +85,9 @@ class OpenModelDlg(ModalDialog):
                 if not mdata:
                     return
                 # select optic, sequence, beam, range, twiss:
-                select_detail_dlg = ModelDetailDlg(frame, mdef=mdata.model)
+                title = "Select model configuration"
+                select_detail_dlg = ModelDetailDlg(frame, mdef=mdata.model,
+                                                   title=title)
                 try:
                     if select_detail_dlg.ShowModal() != wx.ID_OK:
                         return
