@@ -43,7 +43,7 @@ class FigurePanel(wx.Panel):
         self.view = view
 
         # couple figure to canvas
-        self.canvas = Canvas(self, -1, view.figure)
+        self.canvas = Canvas(self, -1, view.figure.figure)
         view.canvas = self.canvas
 
         # create a toolbar

@@ -66,6 +66,8 @@ class MadxUnits(object):
         'lrad': units.m,
         'at': units.m,
         's': units.m,
+        'x': units.m,
+        'y': units.m,
         'betx': units.m,
         'bety': units.m,
         'angle': units.rad,

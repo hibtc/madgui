@@ -88,13 +88,13 @@ class CompareTool(object):
             'y': aenv[:,2]
         }
         self.lines = {
-            'x': self.view.axes['x'].plot(
+            'x': self.view.axes['envx'].plot(
                 stripunit(envdata['s'], self.view.unit['s']),
-                stripunit(envdata['x'], self.view.unit['x']),
+                stripunit(envdata['x'], self.view.unit['envx']),
                 'k'),
-            'y': self.view.axes['y'].plot(
+            'y': self.view.axes['envy'].plot(
                 stripunit(envdata['s'], self.view.unit['s']),
-                stripunit(envdata['y'], self.view.unit['y']),
+                stripunit(envdata['y'], self.view.unit['envy']),
                 'k')
         }
         self.view.figure.canvas.draw()
