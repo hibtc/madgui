@@ -24,7 +24,7 @@ line_view:
       linestyle: "-"
 
     y:
-      color: "#5e9c36"
+      color: "#005000"
       marker: "o"
       fillstyle: "none"
       linestyle: "-"
