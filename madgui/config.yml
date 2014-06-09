@@ -36,9 +36,9 @@ line_view:
   # keyword arguments to ``matplotlib.patches.Rectangle()`` and
   # ``matplotlib.axes.vlines()``:
   element_style:
-    f-quadrupole: {color: "#ff0000", alpha: 0.5}
-    d-quadrupole: {color: "#0000ff", alpha: 0.5}
-    f-sbend:      {color: "#770000", alpha: 0.5}
-    d-sbend:      {color: "#000077", alpha: 0.5}
-    multipole:    {color: "#00ff00", alpha: 0.5}
-    solenoid:     {color: "#555555", alpha: 0.5}
+    f-quadrupole: {color: "#ff0000", alpha: 0.3}
+    d-quadrupole: {color: "#0000ff", alpha: 0.3}
+    f-sbend:      {color: "#770000", alpha: 0.3}
+    d-sbend:      {color: "#000077", alpha: 0.3}
+    multipole:    {color: "#00ff00", alpha: 0.3}
+    solenoid:     {color: "#555555", alpha: 0.3}
