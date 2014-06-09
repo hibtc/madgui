@@ -46,7 +46,6 @@ class FigurePair(object):
         self.figure = figure = matplotlib.figure.Figure()
         self.axx = axx = figure.add_subplot(211)
         self.axy = axy = figure.add_subplot(212, sharex=axx)
-        figure.subplots_adjust(hspace=0.00)
 
     @property
     def canvas(self):
@@ -65,18 +64,6 @@ class FigurePair(object):
         """Start a fresh plot."""
         _clear_ax(self.axx)
         _clear_ax(self.axy)
-
-    def finish_plot(self):
-        """
-        Perform some post-plotting theming operations.
-
-        This method should be called exactly once after calling start_plot.
-        """
-        # disable x-labels on upper axes:
-        for label in self.axx.xaxis.get_ticklabels():
-            label.set_visible(False)
-        # disable the y=0 label in the lower axes
-        self.axy.yaxis.get_ticklabels()[0].set_visible(False)
 
 
 class TwissCurve(object):
@@ -107,7 +94,6 @@ class TwissCurve(object):
         ordinate = self.get_float_data(name)
         axes.set_xlim(abscissa[0], abscissa[-1])
         self._clines[name] = axes.plot(abscissa, ordinate, **style)[0]
-        axes.set_ylim(0)
 
     def update_ax(self, axes, name):
         """Update the y values for one subplot."""
@@ -182,10 +168,7 @@ class TwissView(object):
         self.hook.plot_ax(axx, xname)
         self.hook.plot_ax(axy, yname)
         self.hook.plot()
-        # invert y-axis in lower axes:
-        axy.set_ylim(axy.get_ylim()[::-1])
         # finish and draw:
-        fig.finish_plot()
         fig.draw()
 
     def get_axes_name(self, axes):
