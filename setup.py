@@ -68,6 +68,7 @@ setup(
         [madgui.component.model.show]
         lineview = madgui.component.lineview:EnvView.create
         xyview = madgui.component.lineview:XYView.create
+        settitle = madgui.core.notebook:set_frame_title
 
         [madgui.models]
         lhc = madgui.component.lhcmodels:locator

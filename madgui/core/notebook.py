@@ -235,6 +235,15 @@ class NotebookFrame(wx.Frame):
                 break
 
 
+def set_frame_title(model, frame):
+    """
+    Set the frame title to the model name.
+
+    This is invoked as a hook from ``model.hook.show(frame)``.
+    """
+    frame.SetTitle(model.name)
+
+
 class TextCtrlStream(object):
 
     """
