@@ -101,17 +101,10 @@ class List(Multicast):
 
     def __init__(self, slots=None):
         """Initialize with an externally created list of slots."""
-        if slots is not None:
-            self._slots = slots
-
-    @property
-    def slots(self):
-        """Return an iterable over all event handlers."""
-        try:
-            return self._slots
-        except AttributeError:
-            slots = self._slots = []
-            return slots
+        if slots is None:
+            self.slots = []
+        else:
+            self.slots = slots
 
     def connect(self, slot):
         """Register an event handler."""
