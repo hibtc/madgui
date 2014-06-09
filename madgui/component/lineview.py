@@ -288,8 +288,10 @@ class DrawLineElements(object):
     def plot_ax(self, axes, name):
         """Draw the elements into the canvas."""
         view = self._view
-        max_env = np.max(view.model.tw[name])
-        patch_h = 0.75*stripunit(max_env, view.unit[name])
+        data = stripunit(view.model.tw[name], view.unit[name])
+        max_val = np.max(data)
+        min_val = np.min(data)
+        patch_h = max_val - min_val
         unit_s = view.unit[view.sname]
         for elem in view.model.elements:
             elem_type = self.get_element_type(elem)
@@ -300,12 +302,12 @@ class DrawLineElements(object):
                 patch_x = stripunit(elem['at'], unit_s) - patch_w/2
                 axes.add_patch(
                     matplotlib.patches.Rectangle(
-                        (patch_x, 0),
+                        (patch_x, min_val),
                         patch_w, patch_h,
                         **elem_type))
             else:
                 patch_x = stripunit(elem['at'], unit_s)
-                axes.vlines(patch_x, 0, patch_h, **elem_type)
+                axes.vlines(patch_x, min_val, max_val, **elem_type)
 
     def get_element_type(self, elem):
         """Return the element type name used for properties like coloring."""
