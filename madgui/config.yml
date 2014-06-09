@@ -15,6 +15,10 @@ line_view:
     x: "$x$"
     y: "$y$"
 
+  title:
+    "": "beam position"
+    env: "beam envelope"
+
   # keyword arguments to ``matplotlib.axes.plot()``
   curve_style:
     x:

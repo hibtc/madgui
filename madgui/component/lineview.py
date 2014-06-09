@@ -119,7 +119,7 @@ class TwissView(object):
         if basename is None:
             basename = cls.basename
         view = cls(model, basename, frame.app.conf['line_view'])
-        frame.AddView(view, model.name)
+        frame.AddView(view, view.title)
         return view
 
     def __init__(self, model, basename, line_view_config):
@@ -128,6 +128,8 @@ class TwissView(object):
         self.figure = figure = FigurePair()
         self.model = model
         self.config = line_view_config
+
+        self.title = line_view_config['title'][basename]
 
         self.sname = sname = 's'
         self.xname = xname = basename + 'x'
