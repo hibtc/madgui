@@ -70,16 +70,6 @@ class HookCollection(object):
             return hook
 
 
-def _freeze(slot):
-    """Return a frozen version of a single slot."""
-    try:
-        slots = slot.freeze
-    except AttributeError:
-        return slot
-    else:
-        return freeze()
-
-
 class Multicast(object):
 
     """
@@ -92,24 +82,12 @@ class Multicast(object):
     attribute :ivar:`slots`.
     """
 
-    def _reduce(self, iterable):
-        """Default reduce mechanism: use the very last result or ``None``."""
-        result = None
-        for result in iterable:
-            pass
-        return result
-
-    def _map(self, *args, **kwargs):
-        """Return an iterable that calls the slots when iterated over."""
-        return (slot(*args, **kwargs) for slot in self.slots)
-
-    def __call__(self, *args, **kwargs):
+    def __call__(*self__args, **kwargs):
         """Call all slots and return reduced result."""
-        return self._reduce(self._map(*args, **kwargs))
-
-    def freeze(self):
-        """Return new signal with all connected slots."""
-        return List([_freeze(slot) for slot in self.slots])
+        self = self__args[0]
+        args = self__args[1:]
+        for slot in self.slots:
+            slot(*args, **kwargs)
 
 
 class List(Multicast):
@@ -123,17 +101,10 @@ class List(Multicast):
 
     def __init__(self, slots=None):
         """Initialize with an externally created list of slots."""
-        if slots is not None:
-            self._slots = slots
-
-    @property
-    def slots(self):
-        """Return an iterable over all event handlers."""
-        try:
-            return self._slots
-        except AttributeError:
-            slots = self._slots = []
-            return slots
+        if slots is None:
+            self.slots = []
+        else:
+            self.slots = slots
 
     def connect(self, slot):
         """Register an event handler."""
