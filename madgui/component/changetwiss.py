@@ -73,7 +73,7 @@ class TwissDialog(ParamDialog):
         def OnClick(event):
             model = notebook.vars['control']
             dlg = cls(notebook,
-                      utool=model,
+                      utool=model.utool,
                       data=model.twiss_args)
             if dlg.ShowModal() == wx.ID_OK:
                 model.twiss_args = dlg.data

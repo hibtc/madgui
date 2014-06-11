@@ -21,7 +21,6 @@ from madgui.core.input import ModalDialog
 from madgui.component.model import Model
 from madgui.component.modeldetail import ModelDetailDlg
 from madgui.util.common import cachedproperty
-from madgui.util.unit import MadxUnits
 
 
 class CachedLocator(object):
@@ -105,14 +104,15 @@ class OpenModelDlg(ModalDialog):
                     beam = cpymad_model.get_beam(detail['beam'])
                     cpymad_model.set_beam(beam)
                     cpymad_model.set_range(detail['range'])
-                    utool = MadxUnits(madx)
+                    utool = _frame.madx_units
                     twiss_args = cpymad_model._get_twiss_initial(
                         detail['sequence'],
                         detail['range'],
                         detail['twiss'])
                     model = Model(madx,
+                                  utool=utool,
                                   name=detail['sequence'],
-                                  twiss_args=utool.dict_from_madx(twiss_args),
+                                  twiss_args=utool.dict_add_unit(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
                     _frame.vars.update(control=model,

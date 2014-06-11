@@ -9,13 +9,12 @@ from __future__ import absolute_import
 # internal
 from madgui.util.common import ivar, cachedproperty
 from madgui.util.plugin import HookCollection
-from madgui.util.unit import MadxUnits
 
 # exported symbols
 __all__ = ['Model']
 
 
-class Model(MadxUnits):
+class Model(object):
 
     """
     Extended model class for cern.cpymad.model (extends by delegation).
@@ -54,14 +53,15 @@ class Model(MadxUnits):
 
     def __init__(self,
                  madx,
+                 utool,
                  name=None,
                  twiss_args=None,
                  elements=None,
                  model=None):
         """
         """
-        super(Model, self).__init__(madx)
         self.madx = madx
+        self.utool = utool
         self.name = name
         self.twiss_args = twiss_args
         self._columns = ['name', 'l', 'angle', 'k1l',
@@ -90,7 +90,8 @@ class Model(MadxUnits):
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        return self.dict_from_madx(self.madx.get_sequence(self.name).beam)
+        beam = self.madx.get_sequence(self.name).beam
+        return self.utool.dict_add_unit(beam)
 
     @beam.setter
     def beam(self):
@@ -129,7 +130,7 @@ class Model(MadxUnits):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
-        twiss_args = self.dict_to_madx(self.twiss_args)
+        twiss_args = self.utool.dict_strip_unit(self.twiss_args)
         results = self.madx.twiss(sequence=self.name,
                                   columns=self._columns,
                                   twiss_init=twiss_args)
@@ -138,8 +139,8 @@ class Model(MadxUnits):
     def _update_twiss(self, results):
         """Update TWISS results."""
         data = results.columns.freeze(self._columns)._data
-        self.tw = self.dict_from_madx(data)
-        self.summary = self.dict_from_madx(results.summary)
+        self.tw = self.utool.dict_add_unit(data)
+        self.summary = self.utool.dict_add_unit(results.summary)
         self.update()
 
     def _update_elements(self, elements=None):
@@ -150,7 +151,7 @@ class Model(MadxUnits):
             except RuntimeError:
                 self.elements = []
                 return
-        self.elements = list(map(self.dict_from_madx, elements))
+        self.elements = list(map(self.utool.dict_add_unit, elements))
 
     def element_index_by_name(self, name):
         """Find the element index in the twiss array by its name."""

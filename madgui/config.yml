@@ -2,11 +2,11 @@ line_view:
 
   # name of a unit in ``unum.units``
   unit:
-    s: "m"
-    envx: "mm"
-    envy: "mm"
-    x: "mm"
-    y: "mm"
+    s   :   m
+    envx:   mm
+    envy:   mm
+    x:      mm
+    y:      mm
 
   label:
     s: "position $s$"
@@ -42,3 +42,26 @@ line_view:
     d-sbend:      {color: "#000077", alpha: 0.3}
     multipole:    {color: "#00ff00", alpha: 0.3}
     solenoid:     {color: "#555555", alpha: 0.3}
+
+
+madx_units:
+  L:        m
+  lrad:     m
+  at:       m
+  s:        m
+  x:        m
+  y:        m
+  betx:     m
+  bety:     m
+  angle:    rad
+  k1:       {m: -2}
+  k1l:      {m: -2}
+  ex:       m
+  ey:       m
+  tilt:     rad
+  hgap:     m
+  h:        {rad: 1, m: -1}
+  fint:     1
+  fintx:    1
+  e1:       rad
+  e2:       rad

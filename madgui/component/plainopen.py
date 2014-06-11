@@ -39,7 +39,7 @@ def connect_menu(frame, menubar):
                     return
                 name = dlg.GetStringSelection()
             # now create the actual model object
-            model = Model(madx, name=name)
+            model = Model(madx, utool=_frame.madx_units, name=name)
             _frame.vars.update(control=model,
                                model=None,
                                name=name)

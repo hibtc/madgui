@@ -6,7 +6,7 @@ Provides unit conversion.
 from __future__ import absolute_import
 
 # 3rd party
-from unum import units
+from unum import Unum, units
 from pydicti import dicti
 from cern.cpymad.types import Expression
 
@@ -15,12 +15,14 @@ from madgui.util.symbol import SymbolicValue
 
 
 # exported symbols
-__all__ = ['units',
-           'stripunit',
+__all__ = ['units',     # unum.units module
+           'strip_unit',
            'tounit',
-           'unit_label',
-           'madx',
-           'MadxUnits']
+           'get_unit_label',
+           'get_raw_label',
+           'from_config',
+           'from_config_dict',
+           'UnitConverter']
 
 
 # compatibility
@@ -30,7 +32,7 @@ except NameError:       # python3 (let's think about future...)
     basestring = str
 
 
-def stripunit(quantity, unit=None):
+def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
     return quantity.asNumber(unit)
 
@@ -40,84 +42,80 @@ def tounit(quantity, unit):
     return quantity.asUnit(unit)
 
 
-def unit_label(quantity):
+def get_unit_label(quantity):
     """Get name of the unit."""
     return quantity.strUnit()
 
 
-def raw_label(quantity):
+def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
     return quantity.strUnit().strip('[]')
 
 
-class MadxUnits(object):
+def from_config(unit):
+    """
+    Convert a config entry for a unit to a :class:`unum.Unum` instance.
+
+    Possible types for ``unit`` are:
+
+    - :class:`str`: name of a unit found in :module:`unum.units`.
+    - :class:`dict`: dictionary {unit name: exponent}
+    - the number ``1`` (dimensionless)
+    """
+    if isinstance(unit, dict):
+        return Unum(unit)
+    elif isinstance(unit, int):
+        return unit
+    else:
+        return getattr(units, unit)
+
+
+def from_config_dict(conf_dict):
+    """Convert a config dict of units to their in-memory representation."""
+    return {k: from_config(v) for k,v in conf_dict.items()}
+
+
+class UnitConverter(object):
 
     """
     Quantity converter.
 
     Used to add and remove units from quanitities and evaluate expressions.
 
-    :ivar Madx _madx: madx instance used to evaluate expressions
+    :ivar _evaluate: callable used to evaluate expressions
     :cvar dict _units: unit dictionary
     """
 
-    _units = dicti({
-        'L': units.m,
-        'lrad': units.m,
-        'at': units.m,
-        's': units.m,
-        'x': units.m,
-        'y': units.m,
-        'betx': units.m,
-        'bety': units.m,
-        'angle': units.rad,
-        'k1': units.m**-2,
-        'k1l': units.m**-2,
-        'ex': units.m,
-        'ey': units.m,
-        'tilt': units.rad,
-        'hgap': units.m,
-        'h': units.rad/units.m,
-        'fint': 1,            # dimenisonless
-        'fintx': 1,           # dimenisonless
-        'e1': units.rad,
-        'e2': units.rad,
-        # 'knl': None,            # varying units
-        # 'ksl': None,            # varying units
-        # 'vary': None,           # should be removed
-    })
-
-    def __init__(self, madx):
+    def __init__(self, units, evaluate):
         """Store Madx instance for later use."""
-        self._madx = madx
+        self._units = dicti(units)
+        self._evaluate = evaluate
 
-    def unit_label(self, name):
+    def get_unit_label(self, name):
         """Get the name of the unit for the specified parameter name."""
         units = self._units
-        return unit_label(units[name]) if name in units else ''
+        return get_unit_label(units[name]) if name in units else ''
 
-    def value_from_madx(self, name, value):
+    def add_unit(self, name, value):
         """Add units to a single number."""
         units = self._units
         if name in units:
             if isinstance(value, (basestring, Expression)):
-                return SymbolicValue(self._madx, str(value), units[name])
+                return SymbolicValue(self._evaluate, str(value), units[name])
             else:
                 return units[name] * value
         else:
             return value
 
-    def value_to_madx(self, name, value):
+    def strip_unit(self, name, value):
         """Convert to madx units."""
         units = self._units
-        return stripunit(value, units[name]) if name in units else value
+        return strip_unit(value, units[name]) if name in units else value
 
-    def dict_from_madx(self, obj):
+    def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
-        return obj.__class__({k: self.value_from_madx(k, obj[k])
-                              for k in obj})
+        return obj.__class__({k: self.add_unit(k, obj[k]) for k in obj})
 
-    def dict_to_madx(self, obj):
+    def dict_strip_unit(self, obj):
         """Remove units from all elements in a dictionary."""
-        return obj.__class__({k: self.value_to_madx(k, obj[k])
-                              for k in obj})
+        return obj.__class__({k: self.strip_unit(k, obj[k]) for k in obj})

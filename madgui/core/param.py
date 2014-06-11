@@ -171,7 +171,7 @@ class ParamDialog(ModalDialog):
     """
     Modal dialog to show and edit key-value pairs.
 
-    :ivar MadxUnits utool: tool to add/remove units from input values
+    :ivar UnitConverter utool: tool to add/remove units from input values
     :ivar list params: all possible ParamGroups
     :ivar dict data: initial/final parameter values
     :ivar bool readonly: read-only dialog (TODO)
@@ -251,7 +251,7 @@ class ParamDialog(ModalDialog):
 
         Implements ParamDialog.TransferDataFromWindow.
         """
-        self.data = {name: self.utool.value_from_madx(name, ctrl.Value)
+        self.data = {name: self.utool.add_unit(name, ctrl.Value)
                      for group in self._groups
                      for name,ctrl in group.items()}
 
@@ -282,7 +282,7 @@ class ParamDialog(ModalDialog):
         for i, param in enumerate(group.names()):
             row = row_offs + i/cols
             col = 2*(i%cols)
-            unit_label = self.utool.unit_label(param)
+            unit_label = self.utool.get_unit_label(param)
             if unit_label:
                 text = '{} {}: '.format(param, unit_label)
             else:
@@ -317,7 +317,7 @@ class ParamDialog(ModalDialog):
         :raises KeyError: if the parameter name is invalid
         """
         if value is not None:
-            self.AddParam(name).Value = self.utool.value_to_madx(name, value)
+            self.AddParam(name).Value = self.utool.strip_unit(name, value)
 
     def AddParam(self, param_name):
         """
