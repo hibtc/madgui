@@ -57,7 +57,7 @@ class UnitConverter(object):
 
     Used to add and remove units from quanitities and evaluate expressions.
 
-    :ivar Madx _madx: madx instance used to evaluate expressions
+    :ivar _evaluate: callable used to evaluate expressions
     :cvar dict _units: unit dictionary
     """
 
@@ -87,9 +87,9 @@ class UnitConverter(object):
         # 'vary': None,           # should be removed
     })
 
-    def __init__(self, madx):
+    def __init__(self, evaluate):
         """Store Madx instance for later use."""
-        self._madx = madx
+        self._evaluate = evaluate
 
     def get_unit_label(self, name):
         """Get the name of the unit for the specified parameter name."""
@@ -101,7 +101,7 @@ class UnitConverter(object):
         units = self._units
         if name in units:
             if isinstance(value, (basestring, Expression)):
-                return SymbolicValue(self._madx, str(value), units[name])
+                return SymbolicValue(self._evaluate, str(value), units[name])
             else:
                 return units[name] * value
         else:

@@ -18,9 +18,9 @@ class SymbolicValue(object):
     Needs to be evaluated via model.evaluate.
     """
 
-    def __init__(self, madx_instance, expression, unit):
+    def __init__(self, evaluate, expression, unit):
         """Store model, expression and unit as instance variables."""
-        self._madx_instance = madx_instance
+        self._evaluate = evaluate
         self._expression = expression
         self._unit = unit
 
@@ -30,22 +30,22 @@ class SymbolicValue(object):
 
     def __str__(self):
         """Evaluate expression and return with associated unit."""
-        return str(self._evaluate())
+        return str(self._get())
 
     def __repr__(self):
         """Return representation without evaluating the expression."""
         return "%s(%r)" % (self.__class__.__name__, self._expression)
 
-    def _evaluate(self):
-        return self._unit * self._madx_instance.evaluate(self._expression)
+    def _get(self):
+        return self._unit * self._evaluate(self._expression)
 
     def asNumber(self, unit=None):
         """Evaluate expression and return as pure float."""
-        return self._evaluate().asNumber(unit)
+        return self._get().asNumber(unit)
 
     def asUnit(self, unit=None):
         """Evaluate expression and cast to the specified unit."""
-        return self._evaluate().asUnit(unit)
+        return self._get().asUnit(unit)
 
     def strUnit(self):
         """Return a string that describes the unit."""
