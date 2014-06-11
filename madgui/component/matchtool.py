@@ -113,6 +113,13 @@ class MatchTool(object):
         wait_cursor = wx.StockCursor(wx.CURSOR_WAIT)
         self.panel.SetCursor(wait_cursor)
 
+        # By default, the list of constraints will be reset. The shift/alt
+        # keys are used to add more constraints.
+        pressed_keys = event.key or ''
+        add_keys = ['shift', 'control']
+        if not any(add_key in pressed_keys for add_key in add_keys):
+            self.matcher.clear_constraints()
+
         # add the clicked constraint
         envelope = event.ydata * self.view.unit[name]
         self.matcher.add_constraint(name, elem, envelope)
