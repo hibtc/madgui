@@ -49,7 +49,7 @@ class BeamDialog(ParamDialog):
         def OnClick(event):
             model = notebook.vars['control']
             dlg = cls(notebook,
-                      utool=model,
+                      utool=model.utool,
                       data=model.beam)
             if dlg.ShowModal() == wx.ID_OK:
                 model.beam = dlg.data

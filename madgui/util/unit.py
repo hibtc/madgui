@@ -19,7 +19,7 @@ __all__ = ['units',
            'stripunit',
            'tounit',
            'unit_label',
-           'madx',
+           'raw_label',
            'MadxUnits']
 
 
