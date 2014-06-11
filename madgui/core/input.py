@@ -32,10 +32,11 @@ class ModalDialog(wx.Dialog):
 
     Style = wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, title, **kwargs):
         """Initialize dialog and create GUI elements."""
         super(ModalDialog, self).__init__(
             parent=parent,
+            title=title,
             style=self.Style)
         self.SetData(**kwargs)
         self.CreateControls()
