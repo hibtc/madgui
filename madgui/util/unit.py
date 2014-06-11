@@ -15,12 +15,12 @@ from madgui.util.symbol import SymbolicValue
 
 
 # exported symbols
-__all__ = ['units',
-           'stripunit',
+__all__ = ['units',     # unum.units module
+           'strip_unit',
            'tounit',
-           'unit_label',
-           'raw_label',
-           'MadxUnits']
+           'get_unit_label',
+           'get_raw_label',
+           'UnitConverter']
 
 
 # compatibility
@@ -30,7 +30,7 @@ except NameError:       # python3 (let's think about future...)
     basestring = str
 
 
-def stripunit(quantity, unit=None):
+def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
     return quantity.asNumber(unit)
 
@@ -40,17 +40,17 @@ def tounit(quantity, unit):
     return quantity.asUnit(unit)
 
 
-def unit_label(quantity):
+def get_unit_label(quantity):
     """Get name of the unit."""
     return quantity.strUnit()
 
 
-def raw_label(quantity):
+def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
     return quantity.strUnit().strip('[]')
 
 
-class MadxUnits(object):
+class UnitConverter(object):
 
     """
     Quantity converter.
@@ -91,12 +91,12 @@ class MadxUnits(object):
         """Store Madx instance for later use."""
         self._madx = madx
 
-    def unit_label(self, name):
+    def get_unit_label(self, name):
         """Get the name of the unit for the specified parameter name."""
         units = self._units
-        return unit_label(units[name]) if name in units else ''
+        return get_unit_label(units[name]) if name in units else ''
 
-    def value_from_madx(self, name, value):
+    def add_unit(self, name, value):
         """Add units to a single number."""
         units = self._units
         if name in units:
@@ -107,17 +107,15 @@ class MadxUnits(object):
         else:
             return value
 
-    def value_to_madx(self, name, value):
+    def strip_unit(self, name, value):
         """Convert to madx units."""
         units = self._units
-        return stripunit(value, units[name]) if name in units else value
+        return strip_unit(value, units[name]) if name in units else value
 
-    def dict_from_madx(self, obj):
+    def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
-        return obj.__class__({k: self.value_from_madx(k, obj[k])
-                              for k in obj})
+        return obj.__class__({k: self.add_unit(k, obj[k]) for k in obj})
 
-    def dict_to_madx(self, obj):
+    def dict_strip_unit(self, obj):
         """Remove units from all elements in a dictionary."""
-        return obj.__class__({k: self.value_to_madx(k, obj[k])
-                              for k in obj})
+        return obj.__class__({k: self.strip_unit(k, obj[k]) for k in obj})

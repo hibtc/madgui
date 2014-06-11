@@ -112,7 +112,7 @@ class OpenModelDlg(ModalDialog):
                     model = Model(madx,
                                   utool=utool,
                                   name=detail['sequence'],
-                                  twiss_args=utool.dict_from_madx(twiss_args),
+                                  twiss_args=utool.dict_add_unit(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
                     _frame.vars.update(control=model,

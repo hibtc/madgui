@@ -24,7 +24,7 @@ from cern.cpymad import _libmadx_rpc
 from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
 from madgui.core.figure import FigurePanel
-from madgui.util.unit import MadxUnits
+from madgui.util.unit import UnitConverter
 
 # exported symbols
 __all__ = ['NotebookFrame']
@@ -77,7 +77,7 @@ class NotebookFrame(wx.Frame):
         libmadx = client.libmadx
         madx = Madx(libmadx=libmadx)
 
-        self.madx_units = MadxUnits(madx)
+        self.madx_units = UnitConverter(madx)
 
         self.vars.update({
             'frame': self,

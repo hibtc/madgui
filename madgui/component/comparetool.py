@@ -11,7 +11,7 @@ import numpy as np
 
 # internal
 from madgui.core import wx
-from madgui.util.unit import units, stripunit
+from madgui.util.unit import units, strip_unit
 
 # exported symbols
 __all__ = ['CompareTool']
@@ -89,12 +89,12 @@ class CompareTool(object):
         }
         self.lines = {
             'x': self.view.axes['envx'].plot(
-                stripunit(envdata['s'], self.view.unit['s']),
-                stripunit(envdata['x'], self.view.unit['envx']),
+                strip_unit(envdata['s'], self.view.unit['s']),
+                strip_unit(envdata['x'], self.view.unit['envx']),
                 'k'),
             'y': self.view.axes['envy'].plot(
-                stripunit(envdata['s'], self.view.unit['s']),
-                stripunit(envdata['y'], self.view.unit['envy']),
+                strip_unit(envdata['s'], self.view.unit['s']),
+                strip_unit(envdata['y'], self.view.unit['envy']),
                 'k')
         }
         self.view.figure.canvas.draw()

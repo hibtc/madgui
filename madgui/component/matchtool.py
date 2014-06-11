@@ -193,9 +193,9 @@ class Matching(object):
             el_name = re.sub(':\d+$', '', elem.name)
             constraints.append({
                 'range': el_name,
-                name: model.utool.value_to_madx(name, val)})
+                name: model.utool.strip_unit(name, val)})
 
-        twiss_args = model.utool.dict_to_madx(model.twiss_args)
+        twiss_args = model.utool.dict_strip_unit(model.twiss_args)
         model.madx.match(sequence=model.name,
                          vary=vary,
                          constraints=constraints,

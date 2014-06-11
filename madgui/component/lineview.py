@@ -14,7 +14,7 @@ from matplotlib.ticker import AutoMinorLocator
 import madgui.core
 from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
-from madgui.util.unit import units, stripunit, unit_label, raw_label
+from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
 
 import matplotlib
 import matplotlib.figure
@@ -101,7 +101,7 @@ class TwissCurve(object):
 
     def get_float_data(self, name):
         """Get a float data vector."""
-        return stripunit(self._model.tw[name], self._unit[name])
+        return strip_unit(self._model.tw[name], self._unit[name])
 
 
 class TwissView(object):
@@ -156,7 +156,7 @@ class TwissView(object):
         self.figure.draw()
 
     def get_label(self, name):
-        return self._label[name] + ' ' + unit_label(self.unit[name])
+        return self._label[name] + ' ' + get_unit_label(self.unit[name])
 
     def plot(self):
         fig = self.figure
@@ -216,8 +216,8 @@ class DrawConstraints(object):
         """Draw one constraint representation in the graph."""
         view = self.view
         return view.axes[name].plot(
-            stripunit(elem.at, view.unit[view.sname]),
-            stripunit(envelope, view.unit[name]),
+            strip_unit(elem.at, view.unit[view.sname]),
+            strip_unit(envelope, view.unit[name]),
             's',
             fillstyle='full',
             markersize=7,
@@ -273,8 +273,8 @@ class UpdateStatusBar(object):
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format
-        parts = [coord_fmt('s', xdata, raw_label(unit['s'])),
-                 coord_fmt(name, ydata, raw_label(unit[name]))]
+        parts = [coord_fmt('s', xdata, get_raw_label(unit['s'])),
+                 coord_fmt(name, ydata, get_raw_label(unit[name]))]
         if elem and 'name' in elem:
             parts.append('elem={0}'.format(elem['name']))
         self._set_status_text(', '.join(parts))
@@ -298,7 +298,7 @@ class DrawLineElements(object):
     def plot_ax(self, axes, name):
         """Draw the elements into the canvas."""
         view = self._view
-        data = stripunit(view.model.tw[name], view.unit[name])
+        data = strip_unit(view.model.tw[name], view.unit[name])
         max_val = np.max(data)
         min_val = np.min(data)
         patch_h = max_val - min_val
@@ -307,16 +307,16 @@ class DrawLineElements(object):
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue
-            if stripunit(elem.L) != 0:
-                patch_w = stripunit(elem['L'], unit_s)
-                patch_x = stripunit(elem['at'], unit_s) - patch_w/2
+            if strip_unit(elem.L) != 0:
+                patch_w = strip_unit(elem['L'], unit_s)
+                patch_x = strip_unit(elem['at'], unit_s) - patch_w/2
                 axes.add_patch(
                     matplotlib.patches.Rectangle(
                         (patch_x, min_val),
                         patch_w, patch_h,
                         **elem_type))
             else:
-                patch_x = stripunit(elem['at'], unit_s)
+                patch_x = strip_unit(elem['at'], unit_s)
                 axes.vlines(patch_x, min_val, max_val, **elem_type)
 
     def get_element_type(self, elem):
@@ -326,9 +326,9 @@ class DrawLineElements(object):
         type_name = elem.type.lower()
         focussing = None
         if type_name == 'quadrupole':
-            focussing = stripunit(elem.k1) > 0
+            focussing = strip_unit(elem.k1) > 0
         elif type_name == 'sbend':
-            focussing = stripunit(elem.angle) > 0
+            focussing = strip_unit(elem.angle) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
