@@ -72,3 +72,16 @@ madx_units:
   fintx:    1
   e1:       rad
   e2:       rad
+
+
+# Select which elements+paramters can be varied when matching a TWISS
+# function:
+matching:
+  betx:
+    quadrupole: k1
+  bety:
+    quadrupole: k1
+  x:
+    quadrupole: k1
+  y:
+    quadrupole: k1

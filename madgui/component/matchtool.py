@@ -71,7 +71,8 @@ class MatchTool(object):
         self.cid = self.view.figure.canvas.mpl_connect(
                 'button_press_event',
                 self.on_match)
-        self.matcher = Matching(self.model)
+        app = self.panel.GetTopLevelParent().app
+        self.matcher = Matching(self.model, app.conf['matching'])
         self.hook.start(self.matcher, self.view)
 
     def stop_match(self):
@@ -151,49 +152,75 @@ class Matching(object):
                 remove_constraint=None,
                 clear_constraints=None)
 
-    def __init__(self, model):
+    def __init__(self, model, rules):
         self.model = model
+        self.rules = rules
         self.constraints = {}
+        self._elements = model.elements
+        self._rules = rules
+        self._variable_parameters = {}
 
     def stop(self):
         self.clear_constraints()
         self.hook.stop()
+
+    def _allvars(self, axis):
+        try:
+            allvars = self._variable_parameters[axis]
+        except KeyError:
+            # filter element list for usable types:
+            param_spec = self._rules.get(axis, {})
+            allvars = [(elem, param_spec[elem.type])
+                       for elem in self._elements
+                       if elem.type in param_spec]
+            self._variable_parameters[axis] = allvars
+        return allvars
 
     def match(self):
 
         """Perform matching according to current constraints."""
 
         model = self.model
-
-        # select variables: one for each constraint
-        vary = []
-        allvars = [elem for elem in model.elements
-                   if elem.type.lower() == 'quadrupole']
-
-        for axis, constr in self.constraints.items():
-            for elem, envelope in constr:
-                at = elem.at
-                allowed = [v for v in allvars if v.at < at]
-                try:
-                    v = max(allowed, key=lambda v: v.at)
-                    try:
-                        expr = v.k1._expression
-                    except AttributeError:
-                        expr = v.name + +'->k1'
-                    vary.append(expr)
-                    allvars.remove(v)
-                except ValueError:
-                    # No variable in range found! Ok.
-                    pass
-
         trans = MatchTransform(model)
 
-        # select constraints
-        constraints = []
-        ex, ey = model.summary.ex, model.summary.ey
+        # transform constraints (envx => betx, etc)
+        trans_constr = {}
         for axis, constr in self.constraints.items():
+            for elem, value in constr:
+                trans_name, trans_value = getattr(trans, axis)(value)
+                this_constr = trans_constr.setdefault(trans_name, [])
+                this_constr.append((elem, trans_value))
+
+        # The following uses a greedy algorithm to select all elements that
+        # can be used for varying. This means that for advanced matching it
+        # will most probably not work.
+        # Copy all needed variable lists (for later modification):
+        allvars = {axis: self._allvars(axis)[:]
+                   for axis in trans_constr}
+        vary = []
+        for axis, constr in trans_constr.items():
             for elem, envelope in constr:
-                name, val = getattr(trans, axis)(envelope)
+                at = elem.at
+                allowed = [v for v in allvars[axis] if v[0].at < at]
+                if not allowed:
+                    # No variable in range found! Ok.
+                    continue
+                v = max(allowed, key=lambda v: v[0].at)
+                try:
+                    expr = getattr(v[0], v[1])._expression
+                except AttributeError:
+                    expr = v[0].name + '->' + v[1]
+                vary.append(expr)
+                for c in allvars.values():
+                    try:
+                        c.remove(v)
+                    except ValueError:
+                        pass
+
+        # create constraints list to be passed to Madx.match
+        constraints = []
+        for name, constr in trans_constr.items():
+            for elem, val in constr:
                 el_name = re.sub(':\d+$', '', elem.name)
                 constraints.append({
                     'range': el_name,
