@@ -229,9 +229,10 @@ class DrawConstraints(object):
             for l in lines:
                 l.remove()
         self.lines = []
-        for name,elem,envelope in self.matching.constraints:
-            lines = self.draw_constraint(name, elem, envelope)
-            self.lines.append(lines)
+        for name, constr in self.matching.constraints.items():
+            for elem,envelope in constr:
+                lines = self.draw_constraint(name, elem, envelope)
+                self.lines.append(lines)
         self.view.figure.draw()
 
 

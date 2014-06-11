@@ -102,7 +102,8 @@ class MatchTool(object):
             return
 
         if event.button == 2:
-            self.matcher.remove_constraint(elem)
+            self.matcher.remove_constraint(name, elem)
+            self.matcher.remove_constraint(conj, elem)
             return
         elif event.button != 1:
             return
@@ -152,7 +153,7 @@ class Matching(object):
 
     def __init__(self, model):
         self.model = model
-        self.constraints = []
+        self.constraints = {}
 
     def stop(self):
         self.clear_constraints()
@@ -168,32 +169,35 @@ class Matching(object):
         vary = []
         allvars = [elem for elem in model.elements
                    if elem.type.lower() == 'quadrupole']
-        for axis,elem,envelope in self.constraints:
-            at = elem.at
-            allowed = [v for v in allvars if v.at < at]
-            try:
-                v = max(allowed, key=lambda v: v.at)
+
+        for axis, constr in self.constraints.items():
+            for elem, envelope in constr:
+                at = elem.at
+                allowed = [v for v in allvars if v.at < at]
                 try:
-                    expr = v.k1._expression
-                except AttributeError:
-                    expr = v.name + +'->k1'
-                vary.append(expr)
-                allvars.remove(v)
-            except ValueError:
-                # No variable in range found! Ok.
-                pass
+                    v = max(allowed, key=lambda v: v.at)
+                    try:
+                        expr = v.k1._expression
+                    except AttributeError:
+                        expr = v.name + +'->k1'
+                    vary.append(expr)
+                    allvars.remove(v)
+                except ValueError:
+                    # No variable in range found! Ok.
+                    pass
 
         trans = MatchTransform(model)
 
         # select constraints
         constraints = []
         ex, ey = model.summary.ex, model.summary.ey
-        for axis,elem,envelope in self.constraints:
-            name, val = getattr(trans, axis)(envelope)
-            el_name = re.sub(':\d+$', '', elem.name)
-            constraints.append({
-                'range': el_name,
-                name: model.utool.strip_unit(name, val)})
+        for axis, constr in self.constraints.items():
+            for elem, envelope in constr:
+                name, val = getattr(trans, axis)(envelope)
+                el_name = re.sub(':\d+$', '', elem.name)
+                constraints.append({
+                    'range': el_name,
+                    name: model.utool.strip_unit(name, val)})
 
         twiss_args = model.utool.dict_strip_unit(model.twiss_args)
         model.madx.match(sequence=model.name,
@@ -202,29 +206,37 @@ class Matching(object):
                          twiss_init=twiss_args)
         model.twiss()
 
-    def find_constraint(self, elem, axis=None):
+    def _gconstr(self, axis):
+        return self.constraints.get(axis, [])
+
+    def _sconstr(self, axis):
+        return self.constraints.setdefault(axis, [])
+
+    def find_constraint(self, axis, elem):
         """Find and return the constraint for the specified element."""
-        matched = [c for c in self.constraints if c[1] == elem]
-        if axis is not None:
-            matched = [c for c in matched if c[0] == axis]
-        return matched
+        return [c for c in self._gconstr(axis) if c[0] == elem]
 
     def add_constraint(self, axis, elem, envelope):
         """Add constraint and perform matching."""
-        existing = self.find_constraint(elem, axis)
-        if existing:
-            self.remove_constraint(elem, axis)
-        self.constraints.append( (axis, elem, envelope) )
+        self.remove_constraint(axis, elem)
+        self._sconstr(axis).append( (elem, envelope) )
         self.hook.add_constraint()
 
-    def remove_constraint(self, elem, axis=None):
+    def remove_constraint(self, axis, elem):
         """Remove the constraint for elem."""
-        self.constraints = [
-            c for c in self.constraints
-            if c[1].name != elem.name or (axis is not None and c[0] != axis)]
-        self.hook.remove_constraint()
+        try:
+            orig = self.constraints[axis]
+        except KeyError:
+            return
+        filtered = [c for c in orig if c[0].name != elem.name]
+        if filtered:
+            self.constraints[axis] = filtered
+        else:
+            del self.constraints[axis]
+        if len(filtered) < len(orig):
+            self.hook.remove_constraint()
 
     def clear_constraints(self):
         """Remove all constraints."""
-        self.constraints = []
+        self.constraints = {}
         self.hook.clear_constraints()
