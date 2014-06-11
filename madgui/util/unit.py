@@ -6,7 +6,7 @@ Provides unit conversion.
 from __future__ import absolute_import
 
 # 3rd party
-from unum import units
+from unum import Unum, units
 from pydicti import dicti
 from cern.cpymad.types import Expression
 
@@ -20,6 +20,8 @@ __all__ = ['units',     # unum.units module
            'tounit',
            'get_unit_label',
            'get_raw_label',
+           'from_config',
+           'from_config_dict',
            'UnitConverter']
 
 
@@ -50,6 +52,29 @@ def get_raw_label(quantity):
     return quantity.strUnit().strip('[]')
 
 
+def from_config(unit):
+    """
+    Convert a config entry for a unit to a :class:`unum.Unum` instance.
+
+    Possible types for ``unit`` are:
+
+    - :class:`str`: name of a unit found in :module:`unum.units`.
+    - :class:`dict`: dictionary {unit name: exponent}
+    - the number ``1`` (dimensionless)
+    """
+    if isinstance(unit, dict):
+        return Unum(unit)
+    elif isinstance(unit, int):
+        return unit
+    else:
+        return getattr(units, unit)
+
+
+def from_config_dict(conf_dict):
+    """Convert a config dict of units to their in-memory representation."""
+    return {k: from_config(v) for k,v in conf_dict.items()}
+
+
 class UnitConverter(object):
 
     """
@@ -61,34 +86,9 @@ class UnitConverter(object):
     :cvar dict _units: unit dictionary
     """
 
-    _units = dicti({
-        'L': units.m,
-        'lrad': units.m,
-        'at': units.m,
-        's': units.m,
-        'x': units.m,
-        'y': units.m,
-        'betx': units.m,
-        'bety': units.m,
-        'angle': units.rad,
-        'k1': units.m**-2,
-        'k1l': units.m**-2,
-        'ex': units.m,
-        'ey': units.m,
-        'tilt': units.rad,
-        'hgap': units.m,
-        'h': units.rad/units.m,
-        'fint': 1,            # dimenisonless
-        'fintx': 1,           # dimenisonless
-        'e1': units.rad,
-        'e2': units.rad,
-        # 'knl': None,            # varying units
-        # 'ksl': None,            # varying units
-        # 'vary': None,           # should be removed
-    })
-
-    def __init__(self, evaluate):
+    def __init__(self, units, evaluate):
         """Store Madx instance for later use."""
+        self._units = dicti(units)
         self._evaluate = evaluate
 
     def get_unit_label(self, name):
