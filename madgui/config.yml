@@ -19,7 +19,7 @@ line_view:
     "": "beam position"
     env: "beam envelope"
 
-  # keyword arguments to ``matplotlib.axes.plot()``
+  # keyword arguments to ``matplotlib.axes.Axes.plot()``
   curve_style:
     x:
       color: "#8b1a0e"
@@ -42,6 +42,13 @@ line_view:
     d-sbend:      {color: "#000077", alpha: 0.3}
     multipole:    {color: "#00ff00", alpha: 0.3}
     solenoid:     {color: "#555555", alpha: 0.3}
+
+  # keyword arguments to ``matplotlib.axes.Axes.plot()``
+  constraint_style:
+    marker: "s"
+    fillstyle: "full"
+    markersize: 7
+    color: 'black'
 
 
 madx_units:

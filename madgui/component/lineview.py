@@ -197,6 +197,7 @@ class DrawConstraints(object):
     def __init__(self, matching, view):
         self.view = view
         self.matching = matching
+        self._style = view.config['constraint_style']
         self.lines = []
         redraw = self.redraw_constraints
         matching.hook.remove_constraint.connect(redraw)
@@ -218,10 +219,7 @@ class DrawConstraints(object):
         return view.axes[name].plot(
             strip_unit(elem.at, view.unit[view.sname]),
             strip_unit(envelope, view.unit[name]),
-            's',
-            fillstyle='full',
-            markersize=7,
-            color='black')
+            **self._style)
 
     def redraw_constraints(self):
         """Draw all current constraints in the graph."""
