@@ -19,7 +19,7 @@ line_view:
     "": "beam position"
     env: "beam envelope"
 
-  # keyword arguments to ``matplotlib.axes.plot()``
+  # keyword arguments to ``matplotlib.axes.Axes.plot()``
   curve_style:
     x:
       color: "#8b1a0e"
@@ -43,6 +43,13 @@ line_view:
     multipole:    {color: "#00ff00", alpha: 0.3}
     solenoid:     {color: "#555555", alpha: 0.3}
 
+  # keyword arguments to ``matplotlib.axes.Axes.plot()``
+  constraint_style:
+    marker: "s"
+    fillstyle: "full"
+    markersize: 7
+    color: 'black'
+
 
 madx_units:
   L:        m
@@ -55,6 +62,7 @@ madx_units:
   bety:     m
   angle:    rad
   k1:       {m: -2}
+  k1s:      {m: -2}
   k1l:      {m: -2}
   ex:       m
   ey:       m
@@ -65,3 +73,16 @@ madx_units:
   fintx:    1
   e1:       rad
   e2:       rad
+
+
+# Select which elements+paramters can be varied when matching a TWISS
+# function:
+matching:
+  betx:
+    quadrupole: [k1, k1s]
+  bety:
+    quadrupole: [k1, k1s]
+  x:
+    quadrupole: [k1, k1s]
+  y:
+    quadrupole: [k1, k1s]
