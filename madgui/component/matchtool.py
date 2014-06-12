@@ -14,8 +14,8 @@ from cern.resource.package import PackageResource
 
 # internal
 from madgui.core import wx
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
 from madgui.util.unit import strip_unit
 
 # exported symbols

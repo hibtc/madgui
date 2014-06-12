@@ -2,7 +2,7 @@
 """
 GUI package containing some view components.
 
-To make sure that wxwidgets is initialized correctly, you should always
+To make sure that wxWidgets is initialized correctly, you should always
 import this module before importing :mod:`wx` or :mod:`matplotlib`. The
 best way to do this is:
 
@@ -10,7 +10,7 @@ best way to do this is:
 
     from madgui.core import wx, matplotlib
 
-The exception being the modules within this very package don't need to
+The exception being that the modules within this very package don't need to
 adhere to this rule: The package setup code is always executed before the
 module.
 """

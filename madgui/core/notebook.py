@@ -21,9 +21,9 @@ from cern.cpymad.madx import Madx
 from cern.cpymad import _libmadx_rpc
 
 # internal
-from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
 from madgui.core.figure import FigurePanel
+from madgui.core.plugin import HookCollection
+from madgui.util.common import ivar
 from madgui.util import unit
 
 # exported symbols

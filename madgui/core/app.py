@@ -11,9 +11,9 @@ import wx
 
 # internal
 import madgui
-import madgui.config
+from madgui.core.config import load_config
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
 
 # exported symbols
 __all__ = ['App']
@@ -44,7 +44,7 @@ class App(wx.App):
         """
         from docopt import docopt
         args = docopt(cls.usage, argv, version=cls.version)
-        conf = madgui.config.load_config(args['--config'])
+        conf = load_config(args['--config'])
         cls(args, conf).MainLoop()
 
     def __init__(self, args=None, conf=None):

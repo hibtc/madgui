@@ -12,8 +12,8 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 
 # internal
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
 
 # exported symbols
 __all__ = ['FigurePanel']

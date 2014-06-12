@@ -12,8 +12,8 @@ from matplotlib.ticker import AutoMinorLocator
 
 # internal
 import madgui.core
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
 
 import matplotlib
