@@ -8,7 +8,7 @@ best way to do this is:
 
 .. code:: python
 
-    from madgui.gui import wx, matplotlib
+    from madgui.core import wx, matplotlib
 
 The exception being the modules within this very package don't need to
 adhere to this rule: The package setup code is always executed before the
@@ -18,9 +18,18 @@ module.
 # force new style imports
 from __future__ import absolute_import
 
-# ensure a minimal version of wxwidgets
-import wxversion
-wxversion.ensureMinimal('2.8')
+# standard library
+import sys
+
+# Make sure that the the following 'import wx' statement yields a suitable
+# version of wxWidgets.
+# If making a bundle with a tool like py2exe or PyInstaller then wxversion
+# must not be used, since it inspects the global, rather than the bundled
+# environment, the program will then simply fail.
+# See: http://www.wxpython.org/docs/api/wxversion-module.html
+if not hasattr(sys, 'frozen'):
+    import wxversion
+    wxversion.ensureMinimal('2.8')
 
 # `wx` must be imported **after** wxversion.ensureMinimal
 import wx
