@@ -22,14 +22,17 @@ from __future__ import absolute_import
 import sys
 
 # Make sure that the the following 'import wx' statement yields a suitable
-# version of wxWidgets.
-# If making a bundle with a tool like py2exe or PyInstaller then wxversion
-# must not be used, since it inspects the global, rather than the bundled
-# environment, the program will then simply fail.
-# See: http://www.wxpython.org/docs/api/wxversion-module.html
-if not hasattr(sys, 'frozen'):
-    import wxversion
-    wxversion.ensureMinimal('2.8')
+# version of wxWidgets. This works only if 'wx' has not been imported yet.
+# If it has been imported (assuming madgui is imported from another program),
+# we will trust the user to have imported the correct version:
+if 'wx' not in sys.modules:
+    # If making a bundle with a tool like py2exe or PyInstaller then wxversion
+    # must not be used, since it inspects the global, rather than the bundled
+    # environment, the program will then simply fail. See:
+    # http://www.wxpython.org/docs/api/wxversion-module.html
+    if not hasattr(sys, 'frozen'):
+        import wxversion
+        wxversion.ensureMinimal('2.8')
 
 # `wx` must be imported **after** wxversion.ensureMinimal
 import wx
