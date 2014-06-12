@@ -1,2 +1,2 @@
-graft madgui/resource
-include README.rst
+include README.rst LICENSE
+include requirements.txt

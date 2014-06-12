@@ -19,7 +19,13 @@ setup(
     maintainer='Thomas Gläßle',
     maintainer_email='t_glaessle@gmx.de',
     url='https://github.com/coldfix/madgui',
-    packages=['madgui'],
+    packages=[
+        'madgui',
+        'madgui.component',
+        'madgui.core',
+        'madgui.resource',
+        'madgui.util',
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
@@ -74,6 +80,9 @@ setup(
         lhc = madgui.component.lhcmodels:locator
     """,
     package_data={
-        'madgui': ['resource/*']
+        'madgui': [
+            'config.yml',
+            'resource/*.xpm'
+        ]
     }
 )
