@@ -227,7 +227,6 @@ class Matching(object):
                     continue
                 v = max(allowed, key=lambda v: v[0].at)
                 expr = _get_any_elem_param(v[0], v[1])
-                print("expr:", expr)
                 if expr is None:
                     allvars[axis].remove(v)
                 else:
