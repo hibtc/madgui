@@ -16,6 +16,7 @@ from cern.resource.package import PackageResource
 from madgui.core import wx
 from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
+from madgui.util.unit import strip_unit
 
 # exported symbols
 __all__ = ['MatchTool']
@@ -151,6 +152,18 @@ class MatchTransform(object):
         return 'y', val
 
 
+def _get_any_elem_param(elem, params):
+    for param in params:
+        try:
+            return elem[param]._expression
+        except KeyError:
+            pass
+        except AttributeError:
+            if strip_unit(elem[param]) != 0.0:
+                return elem['name'] + '->' + param
+    raise ValueError()
+
+
 class Matching(object):
 
     hook = ivar(HookCollection,
@@ -213,16 +226,17 @@ class Matching(object):
                     # No variable in range found! Ok.
                     continue
                 v = max(allowed, key=lambda v: v[0].at)
-                try:
-                    expr = getattr(v[0], v[1])._expression
-                except AttributeError:
-                    expr = v[0].name + '->' + v[1]
-                vary.append(expr)
-                for c in allvars.values():
-                    try:
-                        c.remove(v)
-                    except ValueError:
-                        pass
+                expr = _get_any_elem_param(v[0], v[1])
+                print("expr:", expr)
+                if expr is None:
+                    allvars[axis].remove(v)
+                else:
+                    vary.append(expr)
+                    for c in allvars.values():
+                        try:
+                            c.remove(v)
+                        except ValueError:
+                            pass
 
         # create constraints list to be passed to Madx.match
         constraints = []

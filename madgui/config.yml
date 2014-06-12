@@ -62,6 +62,7 @@ madx_units:
   bety:     m
   angle:    rad
   k1:       {m: -2}
+  k1s:      {m: -2}
   k1l:      {m: -2}
   ex:       m
   ey:       m
@@ -78,10 +79,10 @@ madx_units:
 # function:
 matching:
   betx:
-    quadrupole: k1
+    quadrupole: [k1, k1s]
   bety:
-    quadrupole: k1
+    quadrupole: [k1, k1s]
   x:
-    quadrupole: k1
+    quadrupole: [k1, k1s]
   y:
-    quadrupole: k1
+    quadrupole: [k1, k1s]
