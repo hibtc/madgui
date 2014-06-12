@@ -7,7 +7,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.core.param import Bool, String, Float, ParamDialog
+from madgui.widget.param import Bool, String, Float, ParamDialog
 
 
 class BeamDialog(ParamDialog):

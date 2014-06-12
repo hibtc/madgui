@@ -53,9 +53,9 @@ setup(
         madgui = madgui.core.app:App.main
 
         [madgui.core.app.init]
-        mainframe = madgui.core.notebook:NotebookFrame
+        mainframe = madgui.widget.notebook:NotebookFrame
 
-        [madgui.core.figure.init]
+        [madgui.widget.figure.init]
         matchtool = madgui.component.matchtool:MatchTool
         selecttool = madgui.component.selecttool:SelectTool
         comparetool = madgui.component.comparetool:CompareTool
@@ -65,7 +65,7 @@ setup(
         [madgui.component.matching.start]
         drawconstraints = madgui.component.lineview:DrawConstraints
 
-        [madgui.core.notebook.menu]
+        [madgui.widget.notebook.menu]
         openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
         plainopen = madgui.component.plainopen:connect_menu
         changetwiss = madgui.component.changetwiss:TwissDialog.connect_menu
@@ -74,7 +74,7 @@ setup(
         [madgui.component.model.show]
         lineview = madgui.component.lineview:EnvView.create
         xyview = madgui.component.lineview:XYView.create
-        settitle = madgui.core.notebook:set_frame_title
+        settitle = madgui.widget.notebook:set_frame_title
 
         [madgui.models]
         lhc = madgui.component.lhcmodels:locator

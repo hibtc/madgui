@@ -6,7 +6,7 @@ Popup view component for displaying table data.
 from __future__ import absolute_import
 
 # GUI components
-import wx
+from madgui.core import wx
 
 
 class AutoSizedTextCtrl(wx.TextCtrl):
