@@ -8,10 +8,11 @@ Usage:
 """
 
 from setuptools import setup
+import madgui
 
 setup(
     name='madgui',
-    version='0.2',
+    version=madgui.__version__,
     description='GUI for beam simulation using MadX via PyMad',
     long_description=open('README.rst').read(),
     author='Thomas Gläßle',
