@@ -86,7 +86,3 @@ class FigurePanel(wx.Panel):
         if self.toolbar.GetToolState(pan_id):
             self.toolbar.pan()
             self.toolbar.ToggleTool(pan_id, False)
-
-    def OnPaint(self, event):
-        """Handle redraw by painting canvas."""
-        self.canvas.draw()
