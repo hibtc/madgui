@@ -6,17 +6,13 @@ Core application component.
 # force new style imports
 from __future__ import absolute_import
 
-# standard library
-import os
-import sys
-
 # not so standard 3rdparty dependencies
 import wx
 
 # internal
 import madgui
 import madgui.config
-from madgui.util.common import ivar, makedirs
+from madgui.util.common import ivar
 from madgui.util.plugin import HookCollection
 
 # exported symbols
