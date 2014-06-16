@@ -34,7 +34,8 @@ class CompareTool(object):
         """
         self.model = panel.view.model
         self.view = panel.view
-        self.lines = None
+        self.lines = {}
+        self._visible = False
         if self.test_file:
             # connect to toolbar
             bmp = wx.ArtProvider.GetBitmap(wx.ART_GO_HOME, wx.ART_TOOLBAR)
@@ -45,7 +46,7 @@ class CompareTool(object):
                     longHelp='Show MIRKO envelope for comparison. The envelope is computed for the default parameters.')
             panel.Bind(wx.EVT_TOOL, self.OnMirkoClick, tool)
             # subscribe to plotting
-            self.view.hook.plot.connect(self.redraw)
+            self.view.hook.plot_ax.connect(self.plot_ax)
 
     def OnMirkoClick(self, event):
         """Invoked when user clicks Mirko-Button"""
@@ -64,50 +65,46 @@ class CompareTool(object):
     @property
     def visible(self):
         """Visibility state of the envelope."""
-        return self.lines is not None
+        return self._visible
 
     @visible.setter
-    def visible(self, value):
-        if value:
-            self._plot()
+    def visible(self, visible):
+        self._visible = visible
+        view = self.view
+        xname = view.xname
+        yname = view.yname
+        if visible:
+            self.plot_ax(view.axes[xname], xname)
+            self.plot_ax(view.axes[yname], yname)
         else:
-            self._remove()
-
-    def redraw(self):
-        """Redraw the envelope if set to visible."""
-        if self.visible:
-            self._plot()
-
-    def _plot(self):
-        """Plot the envelope into the figure."""
-        with self.test_file.filename() as f:
-            aenv = units.mm * np.loadtxt(f, usecols=(0,1,2))
-        envdata = {
-            's': aenv[:,0],
-            'x': aenv[:,1],
-            'y': aenv[:,2]
-        }
-        self.lines = {
-            'x': self.view.axes['envx'].plot(
-                strip_unit(envdata['s'], self.view.unit['s']),
-                strip_unit(envdata['x'], self.view.unit['envx']),
-                'k'),
-            'y': self.view.axes['envy'].plot(
-                strip_unit(envdata['s'], self.view.unit['s']),
-                strip_unit(envdata['y'], self.view.unit['envy']),
-                'k')
-        }
+            self._remove_ax(xname)
+            self._remove_ax(yname)
         self.view.figure.canvas.draw()
 
-    def _remove(self):
-        """Remove the envelope from the figure."""
-        if self.lines:
-            # self.view.axes['x'].lines.remove(self.lines['x'])
-            # self.view.axes['y'].lines.remove(self.lines['y'])
-            for l in self.lines['x']:
-                l.remove()
-            for l in self.lines['y']:
-                l.remove()
-            self.lines = None
-            self.view.figure.canvas.draw()
+    def load_data(self):
+        with self.test_file.filename() as f:
+            aenv = units.mm * np.loadtxt(f, usecols=(0,1,2))
+        view = self.view
+        return {
+            view.sname: aenv[:,0],
+            view.xname: aenv[:,1],
+            view.yname: aenv[:,2]
+        }
 
+    def plot_ax(self, axes, name):
+        """Plot the envelope into the figure."""
+        if not self.visible:
+            return
+        self._remove_ax(name)
+        view = self.view
+        envdata = self.load_data()
+        sname = view.sname
+        self.lines[name] = axes.plot(
+            strip_unit(envdata[sname], self.view.unit[sname]),
+            strip_unit(envdata[name], self.view.unit[name]),
+            'k')
+
+    def _remove_ax(self, name):
+        """Remove the envelope from the figure."""
+        for l in self.lines.pop(name, []):
+            l.remove()
