@@ -12,7 +12,7 @@ import subprocess
 import threading
 
 # GUI components
-import wx
+from madgui.core import wx
 import wx.aui
 from wx.py.crust import Crust
 
@@ -21,9 +21,9 @@ from cern.cpymad.madx import Madx
 from cern.cpymad import _libmadx_rpc
 
 # internal
+from madgui.widget.figure import FigurePanel
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
-from madgui.core.figure import FigurePanel
 from madgui.util import unit
 
 # exported symbols
@@ -45,8 +45,8 @@ class NotebookFrame(wx.Frame):
     """
 
     hook = ivar(HookCollection,
-                init='madgui.core.notebook.init',
-                menu='madgui.core.notebook.menu')
+                init='madgui.widget.notebook.init',
+                menu='madgui.widget.notebook.menu')
 
     def __init__(self, app, show=True):
 

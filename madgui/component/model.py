@@ -7,8 +7,8 @@ Model component for the MadGUI application.
 from __future__ import absolute_import
 
 # internal
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar, cachedproperty
-from madgui.util.plugin import HookCollection
 
 # exported symbols
 __all__ = ['Model']

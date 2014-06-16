@@ -1,18 +1,17 @@
 # encoding: utf-8
 """
-GUI package containing some view components.
+MadGUI core components.
 
-To make sure that wxwidgets is initialized correctly, you should always
-import this module before importing :mod:`wx` or :mod:`matplotlib`. The
-best way to do this is:
+This package provides the back-bone of MadGUI. When imported, it configures
+matplotlib for use with a suitable version of wxWidgets.
+
+To make sure that wxWidgets is initialized correctly, you should import this
+module before importing :mod:`wx` or :mod:`matplotlib`. The best way to do
+this is:
 
 .. code:: python
 
     from madgui.core import wx, matplotlib
-
-The exception being the modules within this very package don't need to
-adhere to this rule: The package setup code is always executed before the
-module.
 """
 
 # force new style imports

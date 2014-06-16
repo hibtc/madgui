@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.core.input import ModalDialog
+from madgui.widget.input import ModalDialog
 
 
 # TODO: show+modify beam and twiss

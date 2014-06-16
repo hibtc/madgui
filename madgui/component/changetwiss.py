@@ -7,7 +7,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.core.param import ParamDialog, Bool, String, Float, Matrix
+from madgui.widget.param import ParamDialog, Bool, String, Float, Matrix
 
 
 __all__ = ['TwissDialog']

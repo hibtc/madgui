@@ -10,10 +10,10 @@ from __future__ import absolute_import
 from collections import OrderedDict
 
 # GUI components
-import wx
+from madgui.core import wx
 
 # internal
-from madgui.core.input import ModalDialog
+from madgui.widget.input import ModalDialog
 
 
 __all__ = ['truncate',

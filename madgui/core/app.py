@@ -1,26 +1,45 @@
 # encoding: utf-8
 """
-Core application component.
+MadGUI - interactive GUI application for MAD-X via cpymad.
+
+Usage:
+    madgui [--config <config>]
+    madgui (--help | --version)
+
+Options:
+    --config=<config>       Set config file
+    -h, --help              Show this help
+    -v, --version           Show version information
+
+Contact information:
+
+    Thomas Gläßle <t_glaessle@gmx.de>
+
+Website:
+
+    https://github.com/coldfix/madgui
 """
 
 # force new style imports
 from __future__ import absolute_import
 
-# standard library
-import os
-import sys
-
 # not so standard 3rdparty dependencies
 import wx
 
 # internal
-import madgui
-import madgui.config
-from madgui.util.common import ivar, makedirs
-from madgui.util.plugin import HookCollection
+from madgui import __version__
+from madgui.core.config import load_config
+from madgui.core.plugin import HookCollection
+from madgui.util.common import ivar
 
 # exported symbols
 __all__ = ['App']
+
+
+# Alias for later use inside App, where __doc__ means App.__doc__. There is no
+# need to set _version here, but it looks much nicer:
+_version = __version__
+_usage = __doc__
 
 
 class App(wx.App):
@@ -33,8 +52,8 @@ class App(wx.App):
     :ivar args: command line arguments
     """
 
-    version = madgui.__version__
-    usage = madgui.__doc__
+    version = _version
+    usage = _usage
 
     hook = ivar(HookCollection,
                 init='madgui.core.app.init')
@@ -48,7 +67,7 @@ class App(wx.App):
         """
         from docopt import docopt
         args = docopt(cls.usage, argv, version=cls.version)
-        conf = madgui.config.load_config(args['--config'])
+        conf = load_config(args['--config'])
         cls(args, conf).MainLoop()
 
     def __init__(self, args=None, conf=None):
@@ -62,11 +81,8 @@ class App(wx.App):
         super(App, self).__init__(redirect=False)
 
     def OnInit(self):
-
         """Initialize the application and create main window."""
-
         # allow plugin components to create stuff (frame!)
         self.hook.init(self)
-
         # signal wxwidgets to enter the main loop
         return True

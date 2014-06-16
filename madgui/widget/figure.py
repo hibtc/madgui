@@ -7,13 +7,13 @@ Matplotlib figure panel component.
 from __future__ import absolute_import
 
 # GUI components
-import wx
+from madgui.core import wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as Canvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 
 # internal
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
 
 # exported symbols
 __all__ = ['FigurePanel']
@@ -26,7 +26,7 @@ class FigurePanel(wx.Panel):
     """
 
     hook = ivar(HookCollection,
-                init='madgui.core.figure.init',
+                init='madgui.widget.figure.init',
                 capture_mouse=None)
 
     def __init__(self, parent, view, **kwargs):
@@ -86,7 +86,3 @@ class FigurePanel(wx.Panel):
         if self.toolbar.GetToolState(pan_id):
             self.toolbar.pan()
             self.toolbar.ToggleTool(pan_id, False)
-
-    def OnPaint(self, event):
-        """Handle redraw by painting canvas."""
-        self.canvas.draw()

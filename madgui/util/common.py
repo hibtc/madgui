@@ -6,22 +6,11 @@ Common utilities.
 from __future__ import absolute_import
 
 # standard library
-import os
 import functools
 
 # exported symbols
-__all__ = ['makedirs',
-           'cachedproperty',
+__all__ = ['cachedproperty',
            'ivar']
-
-
-def makedirs(path):
-    """Make sure 'path' exists. Like 'os.makedirs(path, exist_ok=True)'."""
-    try:
-        os.makedirs(path)
-    except OSError:
-        # directory already exists. 'exist_ok' cannot be used until python3.2
-        pass
 
 
 def cachedproperty(func):

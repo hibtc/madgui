@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 # standard library
 import os
+from pkg_resources import resource_string
 
 # 3rd party dependencies
 import yaml
@@ -16,12 +17,12 @@ import yaml
 __all__ = ['load_config']
 
 
-def default_base_config_path():
-    """Return the default path of the base config."""
-    return os.path.join(os.path.dirname(__file__), 'config.yml')
+def get_base_config():
+    """Return the builtin base configuration."""
+    return yaml.safe_load(resource_string('madgui', 'config.yml'))
 
 
-def default_user_config_path():
+def get_default_user_config_path():
     """Return the default path of the user config."""
     return os.path.join(os.path.expanduser('~'), '.madgui', 'config.yml')
 
@@ -44,15 +45,15 @@ def recursive_merge(a, b):
     return a
 
 
-def load_config(cls, path_user=None, path_base=None):
+def load_config(cls, path_user=None):
     """Read config file and recursively merge it with a base config file."""
-    base_config = _load_file(path_base or default_base_config_path())
+    base_config = get_base_config()
     user_config = {}
     if path_user:
         user_config = _load_file(path_user)
     else:
         try:
-            user_config = _load_file(default_user_config_path())
+            user_config = _load_file(get_default_user_config_path())
         except IOError:
             pass
     return recursive_merge(base_config, user_config)

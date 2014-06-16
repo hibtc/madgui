@@ -14,8 +14,8 @@ from cern.resource.package import PackageResource
 
 # internal
 from madgui.core import wx
+from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
-from madgui.util.plugin import HookCollection
 from madgui.util.unit import strip_unit
 
 # exported symbols
@@ -227,7 +227,6 @@ class Matching(object):
                     continue
                 v = max(allowed, key=lambda v: v[0].at)
                 expr = _get_any_elem_param(v[0], v[1])
-                print("expr:", expr)
                 if expr is None:
                     allvars[axis].remove(v)
                 else:

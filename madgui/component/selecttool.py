@@ -8,8 +8,8 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.core.table import TableDialog
 from madgui.component.elementview import ElementView
+from madgui.widget.table import TableDialog
 
 # exported symbols
 __all__ = ['SelectTool']

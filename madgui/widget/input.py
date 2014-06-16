@@ -7,7 +7,7 @@ Generic utilities for input dialogs.
 from __future__ import absolute_import
 
 # GUI components
-import wx
+from madgui.core import wx
 
 # exported symbols
 __all__ = ['ModalDialog']

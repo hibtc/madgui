@@ -17,10 +17,10 @@ from cern import cpymad
 
 # internal
 from madgui.core import wx
-from madgui.core.input import ModalDialog
 from madgui.component.model import Model
 from madgui.component.modeldetail import ModelDetailDlg
 from madgui.util.common import cachedproperty
+from madgui.widget.input import ModalDialog
 
 
 class CachedLocator(object):
