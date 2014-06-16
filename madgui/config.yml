@@ -1,13 +1,31 @@
+# This is the default config file for MadGUI. The file format is YAML, which
+# is fairly intuitive to read and write. To customize settings you should NOT
+# modify this file, but rather put your values in a separate config file in
+# $HOME/.madgui/config.yml (or %USER%\.madgui\config.yml). The values from
+# both files will be merged.
+#
+# NOTE: Use lower-case keys, unless there is a special reason.
+
+
+# Settings for beam line and TWISS function display (component.TwissView and
+# subcomponents):
 line_view:
 
-  # name of a unit in ``unum.units``
+  # Displayed unit for TWISS functions.
+  # The following two formats are accepted for units:
+  #
+  #   func-name: unit name
+  #   func-name: dictionary of {unit name: power}
+  #
+  # Valid unit names are from ``unum.units``.
   unit:
-    s   :   m
+    s:      m
     envx:   mm
     envy:   mm
     x:      mm
     y:      mm
 
+  # Label to be put on the axis (``matplotlib.axes.Axes.set_xlabel``, etc.)
   label:
     s: "position $s$"
     envx: "$\\Delta x$"
@@ -15,26 +33,29 @@ line_view:
     x: "$x$"
     y: "$y$"
 
+  # Tab title for views. The key is the common prefix, e.g. "env" expands to
+  # "envx", "envy". The empty string "" expands to "x", "y".
   title:
     "": "beam position"
     env: "beam envelope"
 
-  # keyword arguments to ``matplotlib.axes.Axes.plot()``
+  # Plot style for the TWISS curve. The key is the suffix, e.g. "x" for the
+  # "envx" curve. Any keyword argument to ``matplotlib.axes.Axes.plot`` is
+  # allowed:
   curve_style:
     x:
       color: "#8b1a0e"
       marker: "o"
       fillstyle: "none"
       linestyle: "-"
-
     y:
       color: "#005000"
       marker: "o"
       fillstyle: "none"
       linestyle: "-"
 
-  # keyword arguments to ``matplotlib.patches.Rectangle()`` and
-  # ``matplotlib.axes.vlines()``:
+  # Plot style for the element indicators. Supports common keyword arguments
+  # for ``matplotlib.patches.Rectangle()`` and ``matplotlib.axes.vlines()``:
   element_style:
     f-quadrupole: {color: "#ff0000", alpha: 0.3}
     d-quadrupole: {color: "#0000ff", alpha: 0.3}
@@ -43,7 +64,8 @@ line_view:
     multipole:    {color: "#00ff00", alpha: 0.3}
     solenoid:     {color: "#555555", alpha: 0.3}
 
-  # keyword arguments to ``matplotlib.axes.Axes.plot()``
+  # Style for the constraint markers. Can contain any keyword arguments to
+  # ``matplotlib.axes.Axes.plot()``:
   constraint_style:
     marker: "s"
     fillstyle: "full"
@@ -51,8 +73,9 @@ line_view:
     color: 'black'
 
 
+# Units of the quantities spit-out and accepted by MAD-X:
 madx_units:
-  L:        m
+  l:        m
   lrad:     m
   at:       m
   s:        m
@@ -75,10 +98,12 @@ madx_units:
   e2:       rad
 
 
-# Select which elements+paramters can be varied when matching a TWISS
-# function:
+# Select which element paramters can be varied when matching a TWISS function:
 matching:
+  # MAD-X doesn't know about envelopes. This means matching envx and envy is
+  # translated to betx a matching on betx, bety by MadGUI.
   betx:
+    # Use only quadrupole.k1, quadrupole.k1s for matching betx:
     quadrupole: [k1, k1s]
   bety:
     quadrupole: [k1, k1s]
