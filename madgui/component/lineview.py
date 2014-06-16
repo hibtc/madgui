@@ -217,7 +217,7 @@ class DrawConstraints(object):
         """Draw one constraint representation in the graph."""
         view = self.view
         return view.axes[name].plot(
-            strip_unit(elem.at, view.unit[view.sname]),
+            strip_unit(elem.at + elem.l/2, view.unit[view.sname]),
             strip_unit(envelope, view.unit[name]),
             **self._style)
 
@@ -308,7 +308,7 @@ class DrawLineElements(object):
                 continue
             if strip_unit(elem.L) != 0:
                 patch_w = strip_unit(elem['L'], unit_s)
-                patch_x = strip_unit(elem['at'], unit_s) - patch_w/2
+                patch_x = strip_unit(elem['at'], unit_s)
                 axes.add_patch(
                     matplotlib.patches.Rectangle(
                         (patch_x, min_val),
