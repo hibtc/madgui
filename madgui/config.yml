@@ -22,21 +22,21 @@ line_view:
     s:      m
     envx:   mm
     envy:   mm
-    x:      mm
-    y:      mm
+    posx:   mm
+    posy:   mm
 
   # Label to be put on the axis (``matplotlib.axes.Axes.set_xlabel``, etc.)
   label:
     s: "position $s$"
     envx: "$\\Delta x$"
     envy: "$\\Delta y$"
-    x: "$x$"
-    y: "$y$"
+    posx: "$x$"
+    posy: "$y$"
 
   # Tab title for views. The key is the common prefix, e.g. "env" expands to
   # "envx", "envy". The empty string "" expands to "x", "y".
   title:
-    "": "beam position"
+    pos: "beam position"
     env: "beam envelope"
 
   # Plot style for the TWISS curve. The key is the suffix, e.g. "x" for the
