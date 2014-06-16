@@ -148,8 +148,12 @@ class MatchTransform(object):
     def x(self, val):
         return 'x', val
 
+    posx = x
+
     def y(self, val):
         return 'y', val
+
+    posy = y
 
 
 def _get_any_elem_param(elem, params):

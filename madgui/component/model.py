@@ -178,6 +178,11 @@ class Model(object):
         self.pos = self.tw['s']
         self.tw['envx'] = (self.tw['betx'] * self.summary['ex'])**0.5
         self.tw['envy'] = (self.tw['bety'] * self.summary['ey'])**0.5
+        # Create aliases for x,y that have non-empty common prefix. The goal
+        # is to make the config file entries less awkward that hold this
+        # prefix:
+        self.tw['posx'] = self.tw['x']
+        self.tw['posy'] = self.tw['y']
         self.hook.update()
 
     def evaluate(self, expr):

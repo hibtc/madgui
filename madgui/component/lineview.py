@@ -187,7 +187,7 @@ class EnvView(TwissView):
 
 
 class XYView(TwissView):
-    basename = ''
+    basename = 'pos'
 
 
 # TODO: Store the constraints with a Match object, rather than "globally"
