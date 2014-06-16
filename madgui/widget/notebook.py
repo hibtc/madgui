@@ -164,7 +164,11 @@ class NotebookFrame(wx.Frame):
     def OnClose(self, event):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
-        self._client.close()
+        try:
+            self._client.close()
+        except IOError:
+            # The connection may already be terminated in case MAD-X crashed.
+            pass
         event.Skip()
 
     def OnPageClose(self, event):
