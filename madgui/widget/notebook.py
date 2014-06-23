@@ -173,7 +173,10 @@ class NotebookFrame(wx.Frame):
 
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
-        if event.Selection == 0 and self.notebook.GetPageCount() > 1:
+        page = self.notebook.GetPage(event.Selection)
+        print(page)
+        print(self._command_tab)
+        if page is self._command_tab and self.notebook.GetPageCount() > 1:
             event.Veto()
 
     def OnPageClosed(self, event):
@@ -204,6 +207,7 @@ class NotebookFrame(wx.Frame):
         """Open a new command tab."""
         crust = Crust(self.notebook, locals=self.vars)
         self.notebook.AddPage(crust, "Command", select=True)
+        self._command_tab = crust
         # Create a tab for logging
         nb = crust.notebook
         panel = wx.Panel(nb, wx.ID_ANY)
