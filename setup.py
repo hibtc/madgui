@@ -71,10 +71,11 @@ setup(
         plainopen = madgui.component.plainopen:connect_menu
         changetwiss = madgui.component.changetwiss:TwissDialog.connect_menu
         beamdlg = madgui.component.beamdlg:BeamDialog.connect_menu
+        lineview = madgui.component.lineview:EnvView.connect_menu
+        xyview = madgui.component.lineview:XYView.connect_menu
 
         [madgui.component.model.show]
         lineview = madgui.component.lineview:EnvView.create
-        xyview = madgui.component.lineview:XYView.create
         settitle = madgui.widget.notebook:set_frame_title
 
         [madgui.models]

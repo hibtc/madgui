@@ -12,6 +12,7 @@ from matplotlib.ticker import AutoMinorLocator
 
 # internal
 import madgui.core
+from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.common import ivar
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
@@ -114,6 +115,16 @@ class TwissView(object):
                 plot_ax=None)
 
     @classmethod
+    def connect_menu(cls, notebook, menubar):
+        def OnClick(event):
+            model = notebook.vars['control']
+            if model:
+                cls.create(model, notebook)
+        seqmenu = menubar.Menus[1][0]
+        menuitem = seqmenu.Append(wx.ID_ANY, cls.action, cls.description)
+        notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
+
+    @classmethod
     def create(cls, model, frame, basename=None):
         """Create a new view panel as a page in the notebook frame."""
         if basename is None:
@@ -184,10 +195,14 @@ class TwissView(object):
 
 class EnvView(TwissView):
     basename = 'env'
+    action = 'Beam &envelope'
+    description = 'Open new tab with beam envelopes.'
 
 
 class XYView(TwissView):
     basename = 'pos'
+    action = 'Beam &position'
+    description = 'Open new tab with beam position.'
 
 
 # TODO: Store the constraints with a Match object, rather than "globally"
