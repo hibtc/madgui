@@ -7,12 +7,14 @@ Usage:
     python setup.py install
 """
 
+
 from setuptools import setup
-import madgui
+from madgui import __version__
+
 
 setup(
     name='madgui',
-    version=madgui.__version__,
+    version=__version__,
     description='GUI for beam simulation using MadX via PyMad',
     long_description=open('README.rst').read(),
     author='Thomas Gläßle',
