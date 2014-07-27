@@ -66,6 +66,13 @@ class FigurePanel(wx.Panel):
                           self.on_zoom_or_pan,
                           id=self.get_pan_id())
 
+        # get notified when frame is destroyed
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.on_destroy)
+
+    def on_destroy(self, event):
+        """Invoked when C++ window is destroyed."""
+        self.view.destroy()
+
     def on_zoom_or_pan(self, event):
         """Capture mouse, after Zoom/Pan tools were clicked."""
         if event.IsChecked():

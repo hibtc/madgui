@@ -161,6 +161,9 @@ class TwissView(object):
         # subscribe for updates
         model.hook.update.connect(self.update)
 
+    def destroy(self):
+        self.model.hook.update.disconnect(self.update)
+
     def update(self):
         self.hook.update_ax(self.figure.axx, self.xname)
         self.hook.update_ax(self.figure.axy, self.yname)
