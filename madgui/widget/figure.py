@@ -61,10 +61,10 @@ class FigurePanel(wx.Panel):
         self.hook.capture_mouse.connect(self.on_capture_mouse)
         self.toolbar.Bind(wx.EVT_TOOL,
                           self.on_zoom_or_pan,
-                          id=self.toolbar.wx_ids['Zoom'])
+                          id=self.get_zoom_id())
         self.toolbar.Bind(wx.EVT_TOOL,
                           self.on_zoom_or_pan,
-                          id=self.toolbar.wx_ids['Pan'])
+                          id=self.get_pan_id())
 
     def on_zoom_or_pan(self, event):
         """Capture mouse, after Zoom/Pan tools were clicked."""
@@ -78,11 +78,23 @@ class FigurePanel(wx.Panel):
         """Disable Zoom/Pan tools when someone captures the mouse."""
         if self.capturing:
             return
-        zoom_id = self.toolbar.wx_ids['Zoom']
+        zoom_id = self.get_zoom_id()
         if self.toolbar.GetToolState(zoom_id):
             self.toolbar.zoom()
             self.toolbar.ToggleTool(zoom_id, False)
-        pan_id = self.toolbar.wx_ids['Pan']
+        pan_id = self.get_pan_id()
         if self.toolbar.GetToolState(pan_id):
             self.toolbar.pan()
             self.toolbar.ToggleTool(pan_id, False)
+
+    def get_pan_id(self):
+        try:
+            return self.toolbar.wx_ids['Pan']
+        except AttributeError:
+            return self.toolbar._NTB2_PAN
+
+    def get_zoom_id(self):
+        try:
+            return self.toolbar.wx_ids['Zoom']
+        except AttributeError:
+            return self.toolbar._NTB2_ZOOM
