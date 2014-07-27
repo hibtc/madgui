@@ -94,6 +94,7 @@ madx_units:
   fintx:    1
   e1:       rad
   e2:       rad
+  ks:       {m: -1}
 
 
 # Select which element paramters can be varied when matching a TWISS function:
