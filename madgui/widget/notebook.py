@@ -174,8 +174,6 @@ class NotebookFrame(wx.Frame):
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
         page = self.notebook.GetPage(event.Selection)
-        print(page)
-        print(self._command_tab)
         if page is self._command_tab and self.notebook.GetPageCount() > 1:
             event.Veto()
 
