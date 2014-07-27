@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 # standard library
 import logging
+import os
 import subprocess
 import threading
 
@@ -67,10 +68,13 @@ class NotebookFrame(wx.Frame):
 
         self.CreateControls()
 
-        client, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            bufsize=0)
+        # stdin=None leads to an error on windows when STDIN is broken
+        with open(os.devnull, 'r') as devnull:
+            client, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=devnull,
+                bufsize=0)
         self._client = client
         threading.Thread(target=self._read_stream,
                          args=(process.stdout,)).start()
