@@ -74,6 +74,8 @@ line_view:
   # arguments to ``matplotlib.axes.axvline()``:
   select_style:
     color: "#000000"
+    ymin: 0
+    ymax: 1
 
 
 # Units of the quantities spit-out and accepted by MAD-X:
