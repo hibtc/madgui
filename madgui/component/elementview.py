@@ -60,7 +60,7 @@ class ElementMarker(object):
         unit_s = line_view.unit[line_view.sname]
         line_style = line_view.config['select_style']
         patch_x = strip_unit(self.element['at'], unit_s)
-        self._lines.append(axes.axvline(patch_x, 0, 1, **line_style))
+        self._lines.append(axes.axvline(patch_x, **line_style))
 
 
 class ElementView(object):
