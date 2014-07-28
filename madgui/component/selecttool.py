@@ -96,6 +96,10 @@ class SelectTool(object):
             view = ElementView(dialog, self.model, elem['name'])
             dialog.Show()
             self._last_view = view
+            # Set focus to parent window, so left/right cursor buttons can be
+            # used immediately. This also makes the window realized if the
+            # shift button is released:
+            self.frame.Raise()
 
     def on_key(self, event):
         view = self._last_view
