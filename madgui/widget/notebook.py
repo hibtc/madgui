@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 # standard library
 import logging
+import os
 import subprocess
 import threading
 
@@ -67,10 +68,13 @@ class NotebookFrame(wx.Frame):
 
         self.CreateControls()
 
-        client, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            bufsize=0)
+        # stdin=None leads to an error on windows when STDIN is broken
+        with open(os.devnull, 'r') as devnull:
+            client, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=devnull,
+                bufsize=0)
         self._client = client
         threading.Thread(target=self._read_stream,
                          args=(process.stdout,)).start()
@@ -174,8 +178,6 @@ class NotebookFrame(wx.Frame):
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
         page = self.notebook.GetPage(event.Selection)
-        print(page)
-        print(self._command_tab)
         if page is self._command_tab and self.notebook.GetPageCount() > 1:
             event.Veto()
 

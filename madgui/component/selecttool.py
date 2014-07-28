@@ -67,6 +67,8 @@ class SelectTool(object):
 
     def on_select(self, event):
         """Display a popup window with info about the selected element."""
+        if event.inaxes is None:
+            return
         elem = self.model.element_by_position(
             event.xdata * self.view.unit['s'])
         if elem is None or 'name' not in elem:

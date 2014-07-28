@@ -74,7 +74,7 @@ class TwissDialog(ParamDialog):
             model = notebook.vars['control']
             dlg = cls(notebook,
                       utool=model.utool,
-                      data=model.twiss_args)
+                      data=model.twiss_args or {})
             if dlg.ShowModal() == wx.ID_OK:
                 model.twiss_args = dlg.data
                 model.twiss()
@@ -91,6 +91,7 @@ class TwissDialog(ParamDialog):
         """
         super(TwissDialog, self).__init__(
             parent=parent,
+            title="Set TWISS values",
             utool=utool,
             params=self.params,
             data=data,

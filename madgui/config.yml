@@ -46,12 +46,10 @@ line_view:
     x:
       color: "#8b1a0e"
       marker: "o"
-      fillstyle: "none"
       linestyle: "-"
     y:
       color: "#005000"
       marker: "o"
-      fillstyle: "none"
       linestyle: "-"
 
   # Plot style for the element indicators. Supports common keyword arguments
@@ -96,6 +94,7 @@ madx_units:
   fintx:    1
   e1:       rad
   e2:       rad
+  ks:       {m: -1}
 
 
 # Select which element paramters can be varied when matching a TWISS function:

@@ -99,6 +99,8 @@ class TwissCurve(object):
     def update_ax(self, axes, name):
         """Update the y values for one subplot."""
         self._clines[name].set_ydata(self.get_float_data(name))
+        axes.relim()
+        axes.autoscale_view()
 
     def get_float_data(self, name):
         """Get a float data vector."""
@@ -160,6 +162,9 @@ class TwissView(object):
 
         # subscribe for updates
         model.hook.update.connect(self.update)
+
+    def destroy(self):
+        self.model.hook.update.disconnect(self.update)
 
     def update(self):
         self.hook.update_ax(self.figure.axx, self.xname)
