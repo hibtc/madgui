@@ -24,6 +24,7 @@ class ElementView(object):
         self.model = model
         self.element_name = element_name
         self.popup = popup
+        self._closed = False
         self.update()
         model.hook.update.connect(self.update)
         self.popup.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -31,7 +32,12 @@ class ElementView(object):
     def OnClose(self, event):
         """Disconnect the manager, after the popup window was closed."""
         self.model.hook.update.disconnect(self.update)
+        self._closed = True
         event.Skip()
+
+    def __nonzero__(self):
+        return not self._closed
+    __bool__ = __nonzero__
 
     def update(self):
 

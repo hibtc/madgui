@@ -39,6 +39,7 @@ class SelectTool(object):
         panel.Bind(wx.EVT_UPDATE_UI, self.UpdateTool, self.tool)
         # setup mouse capture
         panel.hook.capture_mouse.connect(self.stop_select)
+        self._last_view = None
 
     def UpdateTool(self, event):
         """Enable/disable toolbar tool."""
@@ -73,9 +74,24 @@ class SelectTool(object):
             event.xdata * self.view.unit['s'])
         if elem is None or 'name' not in elem:
             return
-        popup = TableDialog(self.frame)
-        element_view = ElementView(popup, self.model, elem['name'])
-        popup.Show()
+
+        # By default, show info in an existing dialog. The shift/ctrl keys
+        # are used to open more dialogs:
+        view = self._last_view
+        if view:
+            pressed_keys = event.key or ''
+            add_keys = ['shift', 'control']
+            if any(add_key in pressed_keys for add_key in add_keys):
+                view = None
+            else:
+                view.element_name = elem['name']
+                view.update()
+
+        if not view:
+            dialog = TableDialog(self.frame)
+            view = ElementView(dialog, self.model, elem['name'])
+            dialog.Show()
+            self._last_view = view
 
     @property
     def frame(self):
