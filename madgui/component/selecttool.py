@@ -8,8 +8,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.component.elementview import ElementView
-from madgui.util.unit import strip_unit
+from madgui.component.elementview import ElementView, ElementMarker
 from madgui.widget.table import TableDialog
 
 # exported symbols
@@ -41,9 +40,7 @@ class SelectTool(object):
         # setup mouse capture
         panel.hook.capture_mouse.connect(self.stop_select)
         # element marker
-        self._marker_lines = []
         self._last_view = None
-        self.view.hook.plot_ax.connect(self.plot_ax)
 
 
     def UpdateTool(self, event):
@@ -86,27 +83,25 @@ class SelectTool(object):
 
         # By default, show info in an existing dialog. The shift/ctrl keys
         # are used to open more dialogs:
-        view = self._last_view
-        if view:
+        elem_view = self._last_view
+        if elem_view:
             pressed_keys = event.key or ''
             add_keys = ['shift', 'control']
             if any(add_key in pressed_keys for add_key in add_keys):
-                view = None
+                elem_view = None
             else:
-                view.element_name = elem['name']
-                view.update()
+                elem_view.element_name = elem['name']
 
-        if not view:
+        if not elem_view:
             dialog = TableDialog(self.frame)
-            view = ElementView(dialog, self.model, elem['name'])
+            elem_view = ElementView(dialog, self.model, elem['name'])
+            ElementMarker(self.view, elem_view)
             dialog.Show()
-            self._last_view = view
+            self._last_view = elem_view
             # Set focus to parent window, so left/right cursor buttons can be
             # used immediately. This also makes the window realized if the
             # shift button is released:
             self.frame.Raise()
-
-        self._update_marker()
 
     def on_key(self, event):
         view = self._last_view
@@ -123,8 +118,6 @@ class SelectTool(object):
         elements = self.model.elements
         new_elem = elements[new_index % len(elements)]
         view.element_name = new_elem['name']
-        view.update()
-        self._update_marker()
 
     @property
     def frame(self):
@@ -133,23 +126,3 @@ class SelectTool(object):
         while wnd.GetParent():
             wnd = wnd.GetParent()
         return wnd
-
-    def _update_marker(self):
-        for line in self._marker_lines:
-            line.remove()
-        self._marker_lines = []
-        view = self.view
-        self.plot_ax(view.axes[view.xname], view.xname)
-        self.plot_ax(view.axes[view.yname], view.yname)
-        view.figure.draw()
-
-    def plot_ax(self, axes, name):
-        """Draw the elements into the canvas."""
-        if not self._last_view:
-            return
-        view = self.view
-        unit_s = view.unit[view.sname]
-        elem = self.model.element_by_name(self._last_view.element_name)
-        line_style = view.config['select_style']
-        patch_x = strip_unit(elem['at'], unit_s)
-        self._marker_lines.append(axes.axvline(patch_x, 0, 1, **line_style))

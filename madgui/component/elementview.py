@@ -8,9 +8,59 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
+from madgui.core.plugin import HookCollection
+from madgui.util.common import ivar
+from madgui.util.unit import strip_unit
 
 # exported symbols
 __all__ = ['ElementView']
+
+
+# TODO: change style for active/inactive element markers
+
+
+class ElementMarker(object):
+
+    def __init__(self, line_view, elem_view):
+        self._line_view = line_view
+        self._elem_view = elem_view
+        self._model = line_view.model
+        self._lines = []
+        self._elem_view.hook.set_element.connect(self.update)
+        self._elem_view.hook.close.connect(self.remove)
+        self.update()
+        line_view.hook.plot_ax.connect(self.plot_ax)
+
+    def update(self):
+        self._clear()
+        line_view = self._line_view
+        self.plot_ax(line_view.axes[line_view.xname], line_view.xname)
+        self.plot_ax(line_view.axes[line_view.yname], line_view.yname)
+        line_view.figure.draw()
+
+    def _clear(self):
+        for line in self._lines:
+            line.remove()
+        self._lines = []
+
+    def remove(self):
+        self._clear()
+        self._line_view.hook.plot_ax.disconnect(self.plot_ax)
+        self._line_view.figure.draw()
+        self._elem_view.hook.set_element.disconnect(self.update)
+        self._elem_view.hook.close.disconnect(self.remove)
+
+    @property
+    def element(self):
+        return self._elem_view.element
+
+    def plot_ax(self, axes, name):
+        """Draw the elements into the canvas."""
+        line_view = self._line_view
+        unit_s = line_view.unit[line_view.sname]
+        line_style = line_view.config['select_style']
+        patch_x = strip_unit(self.element['at'], unit_s)
+        self._lines.append(axes.axvline(patch_x, 0, 1, **line_style))
 
 
 class ElementView(object):
@@ -19,25 +69,44 @@ class ElementView(object):
     Control class for filling a TableDialog with beam line element details.
     """
 
+    hook = ivar(HookCollection,
+                set_element=None,
+                close=None)
+
     def __init__(self, popup, model, element_name):
         """Start to manage the popup window."""
         self.model = model
-        self.element_name = element_name
         self.popup = popup
         self._closed = False
-        self.update()
         model.hook.update.connect(self.update)
         self.popup.Bind(wx.EVT_CLOSE, self.OnClose)
+        # this comes last, as it implies an update
+        self.element_name = element_name
 
     def OnClose(self, event):
         """Disconnect the manager, after the popup window was closed."""
         self.model.hook.update.disconnect(self.update)
         self._closed = True
+        self.hook.close()
         event.Skip()
 
     def __nonzero__(self):
         return not self._closed
     __bool__ = __nonzero__
+
+    @property
+    def element_name(self):
+        return self._element_name
+
+    @element_name.setter
+    def element_name(self, name):
+        self._element_name = name
+        self.hook.set_element()
+        self.update()
+
+    @property
+    def element(self):
+        return self.model.element_by_name(self.element_name)
 
     def update(self):
 
