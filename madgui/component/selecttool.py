@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.component.elementview import ElementView
+from madgui.component.elementview import ElementView, ElementMarker
 from madgui.widget.table import TableDialog
 
 # exported symbols
@@ -39,6 +39,9 @@ class SelectTool(object):
         panel.Bind(wx.EVT_UPDATE_UI, self.UpdateTool, self.tool)
         # setup mouse capture
         panel.hook.capture_mouse.connect(self.stop_select)
+        # element marker
+        self._last_view = None
+
 
     def UpdateTool(self, event):
         """Enable/disable toolbar tool."""
@@ -55,13 +58,17 @@ class SelectTool(object):
         """Start select mode."""
         self.panel.hook.capture_mouse()
         self.cid = self.view.figure.canvas.mpl_connect(
-                'button_press_event',
-                self.on_select)
+            'button_press_event',
+            self.on_select)
+        self._cid_key = self.view.figure.canvas.mpl_connect(
+            'key_press_event',
+            self.on_key)
 
     def stop_select(self):
         """Stop select mode."""
         if self.cid is not None:
             self.view.figure.canvas.mpl_disconnect(self.cid)
+            self.view.figure.canvas.mpl_disconnect(self._cid_key)
             self.cid = None
             self.toolbar.ToggleTool(self.tool.Id, False)
 
@@ -73,9 +80,44 @@ class SelectTool(object):
             event.xdata * self.view.unit['s'])
         if elem is None or 'name' not in elem:
             return
-        popup = TableDialog(self.frame)
-        element_view = ElementView(popup, self.model, elem['name'])
-        popup.Show()
+
+        # By default, show info in an existing dialog. The shift/ctrl keys
+        # are used to open more dialogs:
+        elem_view = self._last_view
+        if elem_view:
+            pressed_keys = event.key or ''
+            add_keys = ['shift', 'control']
+            if any(add_key in pressed_keys for add_key in add_keys):
+                elem_view = None
+            else:
+                elem_view.element_name = elem['name']
+
+        if not elem_view:
+            dialog = TableDialog(self.frame)
+            elem_view = ElementView(dialog, self.model, elem['name'])
+            ElementMarker(self.view, elem_view)
+            dialog.Show()
+            self._last_view = elem_view
+            # Set focus to parent window, so left/right cursor buttons can be
+            # used immediately. This also makes the window realized if the
+            # shift button is released:
+            self.frame.Raise()
+
+    def on_key(self, event):
+        view = self._last_view
+        if not view:
+            return
+        if 'left' in event.key:
+            move_step = -1
+        elif 'right' in event.key:
+            move_step = 1
+        else:
+            return
+        old_index = self.model.element_index_by_name(view.element_name)
+        new_index = old_index + move_step
+        elements = self.model.elements
+        new_elem = elements[new_index % len(elements)]
+        view.element_name = new_elem['name']
 
     @property
     def frame(self):

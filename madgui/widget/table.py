@@ -79,7 +79,7 @@ class TableDialog(wx.Dialog):
                 grid.GetItem(2*row+1).Window.SetValue(val)
         else:
             # (re-)generate grid
-            grid.Clear()
+            grid.Clear(deleteWindows=True)
             for key, val in rows:
                 style = wx.TE_READONLY|wx.TE_RIGHT|wx.NO_BORDER
                 label = wx.StaticText(self, label=key)
