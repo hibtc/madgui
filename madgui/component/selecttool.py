@@ -56,13 +56,17 @@ class SelectTool(object):
         """Start select mode."""
         self.panel.hook.capture_mouse()
         self.cid = self.view.figure.canvas.mpl_connect(
-                'button_press_event',
-                self.on_select)
+            'button_press_event',
+            self.on_select)
+        self._cid_key = self.view.figure.canvas.mpl_connect(
+            'key_press_event',
+            self.on_key)
 
     def stop_select(self):
         """Stop select mode."""
         if self.cid is not None:
             self.view.figure.canvas.mpl_disconnect(self.cid)
+            self.view.figure.canvas.mpl_disconnect(self._cid_key)
             self.cid = None
             self.toolbar.ToggleTool(self.tool.Id, False)
 
@@ -92,6 +96,23 @@ class SelectTool(object):
             view = ElementView(dialog, self.model, elem['name'])
             dialog.Show()
             self._last_view = view
+
+    def on_key(self, event):
+        view = self._last_view
+        if not view:
+            return
+        if 'left' in event.key:
+            move_step = -1
+        elif 'right' in event.key:
+            move_step = 1
+        else:
+            return
+        old_index = self.model.element_index_by_name(view.element_name)
+        new_index = old_index + move_step
+        elements = self.model.elements
+        new_elem = elements[new_index % len(elements)]
+        view.element_name = new_elem['name']
+        view.update()
 
     @property
     def frame(self):
