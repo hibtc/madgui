@@ -145,8 +145,10 @@ class NotebookFrame(wx.Frame):
         menubar = self.menubar = wx.MenuBar()
         appmenu = wx.Menu()
         seqmenu = wx.Menu()
+        helpmenu = wx.Menu()
         menubar.Append(appmenu, '&App')
         menubar.Append(seqmenu, '&Sequence')
+        menubar.Append(helpmenu, '&Help')
         # Create menu items
         self.hook.menu(self, menubar)
         appmenu.AppendSeparator()
