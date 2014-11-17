@@ -19,8 +19,7 @@ def show_about_dialog(parent):
     info.SetDescription(madgui.__summary__)
     info.SetCopyright(madgui.__copyright__)
     info.SetWebSite(madgui.__uri__)
-    # For now, 'license' is retrieved by the 'site' module:
-    info.SetLicence(str(license))
+    info.SetLicence(madgui.get_license_text())
     info.AddDeveloper(madgui.__author__)
     wx.AboutBox(info, parent=parent)
 

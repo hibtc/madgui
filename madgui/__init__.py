@@ -22,3 +22,8 @@ __email__ = 't_glaessle@gmx.de'
 
 __license__ = 'MIT'
 __copyright__ = '(C) 2013 - 2014 HIT Betriebs GmbH'
+
+
+def get_license_text():
+    from pkg_resources import resource_string
+    return resource_string('madgui', 'LICENSE')
