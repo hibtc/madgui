@@ -99,6 +99,8 @@ class TwissCurve(object):
     def update_ax(self, axes, name):
         """Update the y values for one subplot."""
         self._clines[name].set_ydata(self.get_float_data(name))
+        axes.relim()
+        axes.autoscale_view()
 
     def get_float_data(self, name):
         """Get a float data vector."""
@@ -160,6 +162,9 @@ class TwissView(object):
 
         # subscribe for updates
         model.hook.update.connect(self.update)
+
+    def destroy(self):
+        self.model.hook.update.disconnect(self.update)
 
     def update(self):
         self.hook.update_ax(self.figure.axx, self.xname)
@@ -312,26 +317,17 @@ class DrawLineElements(object):
     def plot_ax(self, axes, name):
         """Draw the elements into the canvas."""
         view = self._view
-        data = strip_unit(view.model.tw[name], view.unit[name])
-        max_val = np.max(data)
-        min_val = np.min(data)
-        patch_h = max_val - min_val
         unit_s = view.unit[view.sname]
         for elem in view.model.elements:
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue
+            patch_x = strip_unit(elem['at'], unit_s)
             if strip_unit(elem.L) != 0:
                 patch_w = strip_unit(elem['L'], unit_s)
-                patch_x = strip_unit(elem['at'], unit_s)
-                axes.add_patch(
-                    matplotlib.patches.Rectangle(
-                        (patch_x, min_val),
-                        patch_w, patch_h,
-                        **elem_type))
+                axes.axvspan(patch_x, patch_x + patch_w, **elem_type)
             else:
-                patch_x = strip_unit(elem['at'], unit_s)
-                axes.vlines(patch_x, min_val, max_val, **elem_type)
+                axes.vlines(patch_x, **elem_type)
 
     def get_element_type(self, elem):
         """Return the element type name used for properties like coloring."""
