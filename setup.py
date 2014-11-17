@@ -28,6 +28,7 @@ setup(
         'madgui.core',
         'madgui.resource',
         'madgui.util',
+        'madgui.widget',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
