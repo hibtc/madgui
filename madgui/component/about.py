@@ -14,14 +14,14 @@ from madgui.core import wx
 def show_about_dialog(parent):
     """Show the about dialog."""
     info = wx.AboutDialogInfo()
-    info.SetName('MadGUI')
+    info.SetName(madgui.__title__)
     info.SetVersion(madgui.__version__)
-    info.SetDescription("MadGUI is a python GUI for accelerator simulations using MAD-X.")
-    info.SetCopyright('(C) 2013 - 2014 HIT Betriebs GmbH')
-    info.SetWebSite('http://github.com/coldfix/madgui')
+    info.SetDescription(madgui.__summary__)
+    info.SetCopyright(madgui.__copyright__)
+    info.SetWebSite(madgui.__uri__)
     # For now, 'license' is retrieved by the 'site' module:
     info.SetLicence(str(license))
-    info.AddDeveloper('Thomas Gläßle')
+    info.AddDeveloper(madgui.__author__)
     wx.AboutBox(info, parent=parent)
 
 

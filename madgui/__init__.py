@@ -11,7 +11,7 @@ or simply:
 
 from __future__ import unicode_literals
 
-__title__ = 'madgui'
+__title__ = 'MadGUI'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
 __uri__ = 'https://github.com/coldfix/madgui'
 
