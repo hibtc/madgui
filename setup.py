@@ -17,19 +17,28 @@ except ImportError:
     use_setuptools()
 
 from setuptools import setup
-from madgui import __version__
+from distutils.util import convert_path
+
+
+def exec_file(path):
+    """Execute a python file and return the `globals` dictionary."""
+    namespace = {}
+    with open(convert_path(path)) as f:
+        exec(f.read(), namespace, namespace)
+    return namespace
+
+
+meta = exec_file('madgui/__init__.py')
 
 
 setup(
     name='madgui',
-    version=__version__,
-    description='GUI for beam simulation using MadX via PyMad',
+    version=meta['__version__'],
+    description=meta['__summary__'],
     long_description=open('README.rst').read(),
-    author='Thomas Gläßle',
-    author_email='t_glaessle@gmx.de',
-    maintainer='Thomas Gläßle',
-    maintainer_email='t_glaessle@gmx.de',
-    url='https://github.com/coldfix/madgui',
+    author=meta['__author__'],
+    author_email=meta['__email__'],
+    url=meta['__uri__'],
     packages=[
         'madgui',
         'madgui.component',
@@ -48,7 +57,7 @@ setup(
         'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Scientific/Engineering :: Physics',
     ],
-    license='MIT',
+    license=meta['__license__'],
     test_suite='nose.collector',
     install_requires=[
         'cern-cpymad==0.9',
