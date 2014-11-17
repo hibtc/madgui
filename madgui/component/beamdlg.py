@@ -66,6 +66,7 @@ class BeamDialog(ParamDialog):
         """
         super(BeamDialog, self).__init__(
             parent=parent,
+            title="Beam properties",
             utool=utool,
             params=self.params,
             data=data,
