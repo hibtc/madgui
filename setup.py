@@ -105,7 +105,8 @@ setup(
     package_data={
         'madgui': [
             'config.yml',
-            'resource/*.xpm'
+            'resource/*.xpm',
+            'LICENSE',
         ]
     }
 )
