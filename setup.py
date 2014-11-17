@@ -42,7 +42,7 @@ setup(
     license='MIT',
     test_suite='nose.collector',
     install_requires=[
-        'cern-cpymad==0.8',
+        'cern-cpymad==0.9',
         'docopt',
         'matplotlib',
         'numpy',
