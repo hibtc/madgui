@@ -39,6 +39,10 @@ class SymbolicValue(object):
     def _get(self):
         return self._unit * self._evaluate(self._expression)
 
+    @property
+    def value(self):
+        return self._get()
+
     def asNumber(self, unit=None):
         """Evaluate expression and return as pure float."""
         return self._get().asNumber(unit)

@@ -7,12 +7,14 @@ Usage:
     python setup.py install
 """
 
+
 from setuptools import setup
-import madgui
+from madgui import __version__
+
 
 setup(
     name='madgui',
-    version=madgui.__version__,
+    version=__version__,
     description='GUI for beam simulation using MadX via PyMad',
     long_description=open('README.rst').read(),
     author='Thomas Gläßle',
@@ -26,6 +28,7 @@ setup(
         'madgui.core',
         'madgui.resource',
         'madgui.util',
+        'madgui.widget',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -40,7 +43,7 @@ setup(
     license='MIT',
     test_suite='nose.collector',
     install_requires=[
-        'cern-pymad==0.8',
+        'cern-cpymad==0.9',
         'docopt',
         'matplotlib',
         'numpy',
