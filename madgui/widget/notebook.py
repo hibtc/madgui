@@ -18,8 +18,8 @@ import wx.aui
 from wx.py.crust import Crust
 
 # 3rd party
-from cern.cpymad.madx import Madx
-from cern.cpymad import _libmadx_rpc
+from cpymad.madx import Madx
+from cpymad import _rpc
 
 # internal
 from madgui.widget.figure import FigurePanel
@@ -70,7 +70,7 @@ class NotebookFrame(wx.Frame):
 
         # stdin=None leads to an error on windows when STDIN is broken
         with open(os.devnull, 'r') as devnull:
-            client, process = _libmadx_rpc.LibMadxClient.spawn_subprocess(
+            client, process = _rpc.LibMadxClient.spawn_subprocess(
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 stdin=devnull,

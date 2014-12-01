@@ -17,7 +17,7 @@ __all__ = ['Model']
 class Model(object):
 
     """
-    Extended model class for cern.cpymad.model (extends by delegation).
+    Extended model class for cpymad.model (extends by delegation).
 
     :ivar Madx madx:
     :ivar list elements:

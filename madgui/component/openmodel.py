@@ -11,9 +11,8 @@ from importlib import import_module
 from pkg_resources import iter_entry_points
 
 # 3rd party
-from cern.resource.package import PackageResource
-from cern.cpymad.model_locator import MergedModelLocator
-from cern import cpymad
+from cpymad.resource.package import PackageResource
+from cpymad.model import Locator, Model as CPModel
 
 # internal
 from madgui.core import wx
@@ -63,7 +62,7 @@ class CachedLocator(object):
         except ImportError:
             return None
         resource_provider = PackageResource(pkg_name)
-        return cls(pkg_name, MergedModelLocator(resource_provider))
+        return cls(pkg_name, Locator(resource_provider))
 
 
 class OpenModelDlg(ModalDialog):
@@ -94,7 +93,7 @@ class OpenModelDlg(ModalDialog):
                     # TODO: redirect history+output to frame!
                     _frame = frame.Claim()
                     madx = _frame.vars['madx']
-                    cpymad_model = cpymad.model.Model(
+                    cpymad_model = CPModel(
                         mdata,
                         optics=[detail['optic']],
                         sequence=detail['sequence'],
