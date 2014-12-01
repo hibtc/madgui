@@ -63,7 +63,7 @@ class CompareTool(object):
         if not cpymad_model:
             return
 
-        all_metadata = cpymad_model.mdef['review']
+        all_metadata = cpymad_model._data['review']
         col_names = [view.sname, view.xname, view.yname]
         try:
             metadata = match_metadata(all_metadata, model.name, col_names)
@@ -89,7 +89,7 @@ class CompareTool(object):
     @property
     def test_file(self):
         """Get the envelope file."""
-        return self._model.model.mdata.get_by_dict(self._metadata['file'])
+        return self._model.model._repo.get(self._metadata['file'])
 
     @property
     def visible(self):

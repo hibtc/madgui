@@ -17,11 +17,9 @@ from madgui.widget.input import ModalDialog
 
 class ModelDetailDlg(ModalDialog):
 
-    def SetData(self, mdef, data=None):
-        # The mdef dictionary is needed as long as the cpymad Model API is
-        # insufficient. Hopefully, this will soon change with the drastical
-        # simplifications to the Model/Madx components I have in mind.
-        self.mdef = mdef
+    def SetData(self, model, data=None):
+        """Needs a cpymad model and a data dictionary."""
+        self.model = model
         self.data = data or {}
 
 
@@ -114,40 +112,40 @@ class ModelDetailDlg(ModalDialog):
             ctrl.SetSelection(index)
 
     def UpdateOptics(self):
-        mdef, data = self.mdef, self.data
+        model, data = self.model, self.data
         self._Update(self.ctrl_optic,
-                     mdef['optics'].keys(), 
-                     mdef['default-optic'],
+                     model.optics.keys(),
+                     model.default_optic.name,
                      data.get('optic'))
 
     def UpdateSequences(self):
-        mdef, data = self.mdef, self.data
+        model, data = self.model, self.data
         self._Update(self.ctrl_sequence,
-                     mdef['sequences'].keys(), 
-                     mdef['default-sequence'],
+                     model.sequences.keys(),
+                     model.default_sequence.name,
                      data.get('sequence'))
 
     def UpdateBeams(self):
-        mdef, data = self.mdef, self.data
-        sdef = mdef['sequences'][self.ctrl_sequence.GetValue()]
+        model, data = self.model, self.data
+        sequence = model.sequences[self.ctrl_sequence.GetValue()]
         self._Update(self.ctrl_beam,
-                     mdef['beams'].keys(), 
-                     sdef['beam'],
-                     data.get('sequence'))
+                     model.beams.keys(),
+                     sequence.beam.name,
+                     data.get('beam'))
 
     def UpdateRanges(self):
-        mdef, data = self.mdef, self.data
-        sdef = mdef['sequences'][self.ctrl_sequence.GetValue()]
+        model, data = self.model, self.data
+        sequence = model.sequences[self.ctrl_sequence.GetValue()]
         self._Update(self.ctrl_range,
-                     sdef['ranges'].keys(), 
-                     sdef['default-range'],
+                     sequence.ranges.keys(),
+                     sequence.default_range.name,
                      data.get('range'))
 
     def UpdateTwiss(self):
-        mdef, data = self.mdef, self.data
-        sdef = mdef['sequences'][self.ctrl_sequence.GetValue()]
-        rdef = sdef['ranges'][self.ctrl_range.GetValue()]
+        model, data = self.model, self.data
+        sequence = model.sequences[self.ctrl_sequence.GetValue()]
+        range = sequence.ranges[self.ctrl_range.GetValue()]
         self._Update(self.ctrl_twiss,
-                     rdef['twiss-initial-conditions'].keys(), 
-                     rdef['default-twiss'],
+                     range.initial_conditions.keys(),
+                     range.data['default-twiss'],
                      data.get('twiss'))

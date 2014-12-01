@@ -42,9 +42,12 @@ class CachedLocator(object):
         """Return list of model names."""
         return self.models
 
-    def get_model(self, model):
-        """Return a ModelData for the model name."""
-        return self._locator.get_model(model)
+    def get_definition(self, model):
+        """Return a model definition for the model name."""
+        return self._locator.get_definition(model)
+
+    def get_repository(self, definition):
+        return self._locator.get_repository(definition)
 
     @classmethod
     def discover(cls):
@@ -80,11 +83,15 @@ class OpenModelDlg(ModalDialog):
                 if select_model_dlg.ShowModal() != wx.ID_OK:
                     return
                 mdata = select_model_dlg.mdata
+                repo = select_model_dlg.repo
                 if not mdata:
                     return
                 # select optic, sequence, beam, range, twiss:
                 title = "Select model configuration"
-                select_detail_dlg = ModelDetailDlg(frame, mdef=mdata.model,
+
+                # Create a temporary model for convenience:
+                cpymad_model = CPModel(data=mdata, repo=repo, madx=None)
+                select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
                                                    title=title)
                 try:
                     if select_detail_dlg.ShowModal() != wx.ID_OK:
@@ -93,21 +100,21 @@ class OpenModelDlg(ModalDialog):
                     # TODO: redirect history+output to frame!
                     _frame = frame.Claim()
                     madx = _frame.vars['madx']
-                    cpymad_model = CPModel(
-                        mdata,
-                        optics=[detail['optic']],
-                        sequence=detail['sequence'],
-                        histfile=None,
-                        madx=madx)
+                    cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
+                    cpymad_model.optics[detail['optic']].init()
 
-                    beam = cpymad_model.get_beam(detail['beam'])
-                    cpymad_model.set_beam(beam)
-                    cpymad_model.set_range(detail['range'])
+                    cpymad_model.beams[detail['beam']].init()
                     utool = _frame.madx_units
-                    twiss_args = cpymad_model._get_twiss_initial(
-                        detail['sequence'],
-                        detail['range'],
-                        detail['twiss'])
+                    twiss_args = cpymad_model.sequences[
+                            detail['sequence']
+                        ].ranges[
+                            detail['range']
+                        ].initial_conditions[
+                            detail['twiss']
+                        ]
+
+                    # TODO: forward range/sequence to Model
+                    # range is currently not used at all
                     model = Model(madx,
                                   utool=utool,
                                   name=detail['sequence'],
@@ -136,6 +143,7 @@ class OpenModelDlg(ModalDialog):
     def SetData(self):
         """Store the data and initialize the component."""
         self.mdata = None
+        self.repo = None
 
     def CreateControls(self):
 
@@ -213,8 +221,10 @@ class OpenModelDlg(ModalDialog):
         locator = self.GetCurrentLocator()
         if not locator:
             self.mdata = None
+            self.repo = None
             return
-        self.mdata = locator.get_model(self.ctrl_model.GetValue())
+        self.mdata = locator.get_definition(self.ctrl_model.GetValue())
+        self.repo = locator.get_repository(self.mdata)
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
