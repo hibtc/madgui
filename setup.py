@@ -98,9 +98,6 @@ setup(
         [madgui.component.model.show]
         lineview = madgui.component.lineview:EnvView.create
         settitle = madgui.widget.notebook:set_frame_title
-
-        [madgui.models]
-        lhc = madgui.component.lhcmodels:locator
     """,
     package_data={
         'madgui': [
