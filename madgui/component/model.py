@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar, cachedproperty
 
 # exported symbols
 __all__ = ['Model']
@@ -17,7 +16,7 @@ __all__ = ['Model']
 class Model(object):
 
     """
-    Extended model class for cern.cpymad.model (extends by delegation).
+    Extended model class for cpymad.model (extends by delegation).
 
     :ivar Madx madx:
     :ivar list elements:
@@ -47,10 +46,6 @@ class Model(object):
     # TODO: more logging
     # TODO: automatically switch directories when CALLing files
 
-    hook = ivar(HookCollection,
-                show='madgui.component.model.show',
-                update=None)
-
     def __init__(self,
                  madx,
                  utool,
@@ -60,6 +55,10 @@ class Model(object):
                  model=None):
         """
         """
+        self.hook = HookCollection(
+            show='madgui.component.model.show',
+            update=None)
+
         self.madx = madx
         self.utool = utool
         self.name = name
@@ -102,7 +101,7 @@ class Model(object):
         if pos is None:
             return None
         for elem in self.elements:
-            at, L = elem.at, elem.L
+            at, L = elem['at'], elem['l']
             if pos >= at and pos <= at+L:
                 return elem
         return None
@@ -110,7 +109,7 @@ class Model(object):
     def element_by_name(self, name):
         """Find the element in the sequence list by its name."""
         for elem in self.elements:
-            if elem.name.lower() == name.lower():
+            if elem['name'].lower() == name.lower():
                 return elem
         return None
 
@@ -121,7 +120,7 @@ class Model(object):
         found_at = None
         found_elem = None
         for elem in self.elements:
-            at, L = elem.at, elem.L
+            at, L = elem['at'], elem['l']
             center = at + L/2
             if found_elem is None or abs(pos - at) < abs(pos - found_at):
                 found_at = at
@@ -138,7 +137,7 @@ class Model(object):
 
     def _update_twiss(self, results):
         """Update TWISS results."""
-        data = results.columns.freeze(self._columns)._data
+        data = results.copy()
         self.tw = self.utool.dict_add_unit(data)
         self.summary = self.utool.dict_add_unit(results.summary)
         self.update()
@@ -160,7 +159,7 @@ class Model(object):
 
     def get_element_index(self, elem):
         """Get element index by it name."""
-        return self.element_index_by_name(elem.name)
+        return self.element_index_by_name(elem['name'])
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""

@@ -8,7 +8,7 @@ from __future__ import absolute_import
 # 3rd party
 from unum import Unum, units
 from pydicti import dicti
-from cern.cpymad.types import Expression
+from cpymad.types import Expression
 
 # internal
 from madgui.util.symbol import SymbolicValue

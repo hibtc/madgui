@@ -60,7 +60,7 @@ setup(
     license=meta['__license__'],
     test_suite='nose.collector',
     install_requires=[
-        'cern-cpymad==0.9',
+        'cpymad==0.10.0',
         'docopt',
         'matplotlib',
         'numpy',
@@ -98,9 +98,6 @@ setup(
         [madgui.component.model.show]
         lineview = madgui.component.lineview:EnvView.create
         settitle = madgui.widget.notebook:set_frame_title
-
-        [madgui.models]
-        lhc = madgui.component.lhcmodels:locator
     """,
     package_data={
         'madgui': [

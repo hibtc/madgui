@@ -9,7 +9,6 @@ from __future__ import absolute_import
 # internal
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar
 from madgui.util.unit import strip_unit
 
 # exported symbols
@@ -69,12 +68,12 @@ class ElementView(object):
     Control class for filling a TableDialog with beam line element details.
     """
 
-    hook = ivar(HookCollection,
-                set_element=None,
-                close=None)
-
     def __init__(self, popup, model, element_name):
         """Start to manage the popup window."""
+        self.hook = HookCollection(
+            set_element=None,
+            close=None)
+
         self.model = model
         self.popup = popup
         self._closed = False
@@ -115,7 +114,7 @@ class ElementView(object):
         """
 
         el = self.model.element_by_name(self.element_name)
-        rows = list(el._data.items())
+        rows = list(el.items())
 
         # convert to title case:
         rows = [(k.title(),v) for (k,v) in rows]

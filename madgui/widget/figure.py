@@ -13,7 +13,6 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 
 # internal
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar
 
 # exported symbols
 __all__ = ['FigurePanel']
@@ -25,10 +24,6 @@ class FigurePanel(wx.Panel):
     Display panel for a matplotlib figure.
     """
 
-    hook = ivar(HookCollection,
-                init='madgui.widget.figure.init',
-                capture_mouse=None)
-
     def __init__(self, parent, view, **kwargs):
 
         """
@@ -36,6 +31,10 @@ class FigurePanel(wx.Panel):
 
         Extends wx.App.__init__.
         """
+
+        self.hook = HookCollection(
+            init='madgui.widget.figure.init',
+            capture_mouse=None)
 
         super(FigurePanel, self).__init__(parent, **kwargs)
 
