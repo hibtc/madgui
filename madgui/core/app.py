@@ -30,7 +30,6 @@ import wx
 from madgui import __version__
 from madgui.core.config import load_config
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar
 
 # exported symbols
 __all__ = ['App']
@@ -55,9 +54,6 @@ class App(wx.App):
     version = _version
     usage = _usage
 
-    hook = ivar(HookCollection,
-                init='madgui.core.app.init')
-
     @classmethod
     def main(cls, argv=None):
         """
@@ -76,6 +72,8 @@ class App(wx.App):
 
         :param dict args: preprocessed command line parameters
         """
+        self.hook = HookCollection(
+            init='madgui.core.app.init')
         self.args = args
         self.conf = conf
         super(App, self).__init__(redirect=False)

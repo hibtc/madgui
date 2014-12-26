@@ -15,7 +15,6 @@ from cern.resource.package import PackageResource
 # internal
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar
 from madgui.util.unit import strip_unit
 
 # exported symbols
@@ -28,12 +27,10 @@ class MatchTool(object):
     Controller that performs matching when clicking on an element.
     """
 
-    hook = ivar(HookCollection,
-                start='madgui.component.matching.start')
-
-
     def __init__(self, panel):
         """Add toolbar tool to panel and subscribe to capture events."""
+        self.hook = HookCollection(
+            start='madgui.component.matching.start')
         self.cid = None
         self.model = panel.view.model
         self.panel = panel
@@ -170,13 +167,13 @@ def _get_any_elem_param(elem, params):
 
 class Matching(object):
 
-    hook = ivar(HookCollection,
-                stop=None,
-                add_constraint=None,
-                remove_constraint=None,
-                clear_constraints=None)
 
     def __init__(self, model, rules):
+        self.hook = HookCollection(
+            stop=None,
+            add_constraint=None,
+            remove_constraint=None,
+            clear_constraints=None)
         self.model = model
         self.rules = rules
         self.constraints = {}

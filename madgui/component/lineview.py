@@ -14,7 +14,6 @@ from matplotlib.ticker import AutoMinorLocator
 import madgui.core
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
 
 import matplotlib
@@ -111,11 +110,6 @@ class TwissView(object):
 
     """Instanciate an FigurePair + XYCurve(Envelope)."""
 
-    hook = ivar(HookCollection,
-                plot=None,
-                update_ax=None,
-                plot_ax=None)
-
     @classmethod
     def connect_menu(cls, notebook, menubar):
         def OnClick(event):
@@ -136,6 +130,11 @@ class TwissView(object):
         return view
 
     def __init__(self, model, basename, line_view_config):
+
+        self.hook = HookCollection(
+            plot=None,
+            update_ax=None,
+            plot_ax=None)
 
         # create figure
         self.figure = figure = FigurePair()

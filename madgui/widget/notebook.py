@@ -24,7 +24,6 @@ from cpymad import _rpc
 # internal
 from madgui.widget.figure import FigurePanel
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar
 from madgui.util import unit
 
 # exported symbols
@@ -45,10 +44,6 @@ class NotebookFrame(wx.Frame):
     Notebook window class for MadGUI (main window).
     """
 
-    hook = ivar(HookCollection,
-                init='madgui.widget.notebook.init',
-                menu='madgui.widget.notebook.menu')
-
     def __init__(self, app, show=True):
 
         """
@@ -56,6 +51,10 @@ class NotebookFrame(wx.Frame):
 
         Extends wx.Frame.__init__.
         """
+
+        self.hook = HookCollection(
+            init='madgui.widget.notebook.init',
+            menu='madgui.widget.notebook.menu')
 
         super(NotebookFrame, self).__init__(
             parent=None,

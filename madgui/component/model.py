@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core.plugin import HookCollection
-from madgui.util.common import ivar, cachedproperty
 
 # exported symbols
 __all__ = ['Model']
@@ -47,10 +46,6 @@ class Model(object):
     # TODO: more logging
     # TODO: automatically switch directories when CALLing files
 
-    hook = ivar(HookCollection,
-                show='madgui.component.model.show',
-                update=None)
-
     def __init__(self,
                  madx,
                  utool,
@@ -60,6 +55,10 @@ class Model(object):
                  model=None):
         """
         """
+        self.hook = HookCollection(
+            show='madgui.component.model.show',
+            update=None)
+
         self.madx = madx
         self.utool = utool
         self.name = name
