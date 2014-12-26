@@ -62,7 +62,6 @@ class NotebookFrame(wx.Frame):
             size=wx.Size(800, 600))
 
         self.app = app
-        self._claimed = False
         self.vars = {}
 
         self.CreateControls()
@@ -117,25 +116,6 @@ class NotebookFrame(wx.Frame):
         self.SetMenuBar(self._CreateMenu())
         # Create a command tab
         self._NewCommandTab()
-
-    def Claim(self):
-        """
-        Claim ownership of a frame.
-
-        If this frame is already claimed, returns a new frame. If this frame
-        is not claimed, sets the status to claimed and returns self.
-
-        This is used to prevent several models/files to be opened in the
-        same frame (using the same Madx instance) with the menu actions.
-        """
-        if self._claimed:
-            return self.__class__(self.app).Claim()
-        else:
-            self._claimed = True
-            return self
-
-    def IsClaimed(self):
-        return self._claimed
 
     def _CreateMenu(self):
         """Create a menubar."""

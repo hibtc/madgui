@@ -17,8 +17,7 @@ def connect_menu(frame, menubar):
                             style=wx.FD_OPEN,
                             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
         if dlg.ShowModal() == wx.ID_OK:
-            _frame = frame.Claim()
-            madx = _frame.vars['madx']
+            madx = frame.vars['madx']
             madx.call(dlg.Path, True)
             # look for sequences
             sequences = madx.get_sequence_names()
@@ -31,7 +30,7 @@ def connect_menu(frame, menubar):
                 # if there are multiple sequences - just ask the user which
                 # one to use rather than taking a wild guess based on twiss
                 # computation etc
-                dlg = wx.SingleChoiceDialog(parent=_frame,
+                dlg = wx.SingleChoiceDialog(parent=frame,
                                             caption="Select sequence",
                                             message="Select sequence:",
                                             choices=sequences)
@@ -39,22 +38,14 @@ def connect_menu(frame, menubar):
                     return
                 name = dlg.GetStringSelection()
             # now create the actual model object
-            model = Model(madx, utool=_frame.madx_units, name=name)
-            _frame.vars.update(control=model,
+            model = Model(madx, utool=frame.madx_units, name=name)
+            frame.vars.update(control=model,
                                model=None,
                                name=name)
             if name:
-                model.hook.show(model, _frame)
+                model.hook.show(model, frame)
         dlg.Destroy()
     appmenu = menubar.Menus[0][0]
-    menuitem = appmenu.Append(wx.ID_ANY, 'Load &MAD-X file\tCtrl+M')
-    def OnUpdate(event):
-        if frame.IsClaimed():
-            menuitem.SetHelp('Open a .madx file in a new frame.')
-        else:
-            menuitem.SetHelp('Open a .madx file in this frame.')
-        # skip the event, so more UpdateUI handlers can be invoked:
-        event.Skip()
+    menuitem = appmenu.Append(wx.ID_ANY, 'Load &MAD-X file\tCtrl+M',
+                              'Open a .madx file in this frame.')
     frame.Bind(wx.EVT_MENU, OnOpen, menuitem)
-    frame.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
-

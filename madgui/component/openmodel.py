@@ -98,13 +98,12 @@ class OpenModelDlg(ModalDialog):
                         return
                     detail = select_detail_dlg.data
                     # TODO: redirect history+output to frame!
-                    _frame = frame.Claim()
-                    madx = _frame.vars['madx']
+                    madx = frame.vars['madx']
                     cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
                     cpymad_model.optics[detail['optic']].init()
 
                     cpymad_model.beams[detail['beam']].init()
-                    utool = _frame.madx_units
+                    utool = frame.madx_units
                     twiss_args = cpymad_model.sequences[
                             detail['sequence']
                         ].ranges[
@@ -121,24 +120,17 @@ class OpenModelDlg(ModalDialog):
                                   twiss_args=utool.dict_add_unit(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
-                    _frame.vars.update(control=model,
-                                       model=cpymad_model)
-                    model.hook.show(model, _frame)
+                    frame.vars.update(control=model,
+                                      model=cpymad_model)
+                    model.hook.show(model, frame)
                 finally:
                     select_detail_dlg.Destroy()
             finally:
                 select_model_dlg.Destroy()
         appmenu = menubar.Menus[0][0]
-        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+O')
-        def OnUpdate(event):
-            if frame.IsClaimed():
-                menuitem.SetHelp('Open a model in a new frame.')
-            else:
-                menuitem.SetHelp('Open a model in this frame.')
-            # skip the event, so more UpdateUI handlers can be invoked:
-            event.Skip()
+        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+O',
+                                  'Open a model in this frame.')
         frame.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
-        frame.Bind(wx.EVT_UPDATE_UI, OnUpdate, menubar)
 
     def SetData(self):
         """Store the data and initialize the component."""
