@@ -62,11 +62,27 @@ class NotebookFrame(wx.Frame):
             size=wx.Size(800, 600))
 
         self.app = app
-        self.vars = {}
+        self.vars = {
+            'frame': self,
+            'views': [],
+            'madx': None,
+            'libmadx': None,
+        }
 
         self.CreateControls()
+        self.InitMadx()
+        self.Show(show)
 
-        # stdin=None leads to an error on windows when STDIN is broken
+    def InitMadx(self, command_log=None):
+
+        """
+        Start a MAD-X interpreter and associate with this frame.
+        """
+
+        # TODO: close old client + shutdown _read_stream thread.
+
+        # stdin=None leads to an error on windows when STDIN is broken.
+        # therefore, we need use stdin=os.devnull:
         with open(os.devnull, 'r') as devnull:
             client, process = _rpc.LibMadxClient.spawn_subprocess(
                 stdout=subprocess.PIPE,
@@ -77,21 +93,17 @@ class NotebookFrame(wx.Frame):
         threading.Thread(target=self._read_stream,
                          args=(process.stdout,)).start()
         libmadx = client.libmadx
-        madx = Madx(libmadx=libmadx)
+        madx = Madx(libmadx=libmadx, command_log=command_log)
 
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']),
             madx.evaluate)
 
         self.vars.update({
-            'frame': self,
-            'views': [],
             'madx': madx,
             'libmadx': libmadx
         })
 
-        # show the frame
-        self.Show(show)
 
     def CreateControls(self):
         # create notebook
