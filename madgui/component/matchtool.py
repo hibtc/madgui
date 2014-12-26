@@ -10,7 +10,7 @@ from __future__ import absolute_import
 import re
 
 # 3rd party
-from cern.resource.package import PackageResource
+from cpymad.resource.package import PackageResource
 
 # internal
 from madgui.core import wx
@@ -133,8 +133,8 @@ class MatchTool(object):
 class MatchTransform(object):
 
     def __init__(self, model):
-        self._ex = model.summary.ex
-        self._ey = model.summary.ey
+        self._ex = model.summary['ex']
+        self._ey = model.summary['ey']
 
     def envx(self, val):
         return 'betx', val*val/self._ex
@@ -191,9 +191,9 @@ class Matching(object):
         except KeyError:
             # filter element list for usable types:
             param_spec = self._rules.get(axis, {})
-            allvars = [(elem, param_spec[elem.type])
+            allvars = [(elem, param_spec[elem['type']])
                        for elem in self._elements
-                       if elem.type in param_spec]
+                       if elem['type'] in param_spec]
             self._variable_parameters[axis] = allvars
         return allvars
 
@@ -221,12 +221,12 @@ class Matching(object):
         vary = []
         for axis, constr in trans_constr.items():
             for elem, envelope in constr:
-                at = elem.at
-                allowed = [v for v in allvars[axis] if v[0].at < at]
+                at = elem['at']
+                allowed = [v for v in allvars[axis] if v[0]['at'] < at]
                 if not allowed:
                     # No variable in range found! Ok.
                     continue
-                v = max(allowed, key=lambda v: v[0].at)
+                v = max(allowed, key=lambda v: v[0]['at'])
                 expr = _get_any_elem_param(v[0], v[1])
                 if expr is None:
                     allvars[axis].remove(v)
@@ -242,7 +242,7 @@ class Matching(object):
         constraints = []
         for name, constr in trans_constr.items():
             for elem, val in constr:
-                el_name = re.sub(':\d+$', '', elem.name)
+                el_name = re.sub(':\d+$', '', elem['name'])
                 constraints.append({
                     'range': el_name,
                     name: model.utool.strip_unit(name, val)})
@@ -276,7 +276,7 @@ class Matching(object):
             orig = self.constraints[axis]
         except KeyError:
             return
-        filtered = [c for c in orig if c[0].name != elem.name]
+        filtered = [c for c in orig if c[0]['name'] != elem['name']]
         if filtered:
             self.constraints[axis] = filtered
         else:

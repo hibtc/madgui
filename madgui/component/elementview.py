@@ -114,7 +114,7 @@ class ElementView(object):
         """
 
         el = self.model.element_by_name(self.element_name)
-        rows = list(el._data.items())
+        rows = list(el.items())
 
         # convert to title case:
         rows = [(k.title(),v) for (k,v) in rows]

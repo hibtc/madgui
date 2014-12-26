@@ -101,7 +101,7 @@ class Model(object):
         if pos is None:
             return None
         for elem in self.elements:
-            at, L = elem.at, elem.L
+            at, L = elem['at'], elem['l']
             if pos >= at and pos <= at+L:
                 return elem
         return None
@@ -109,7 +109,7 @@ class Model(object):
     def element_by_name(self, name):
         """Find the element in the sequence list by its name."""
         for elem in self.elements:
-            if elem.name.lower() == name.lower():
+            if elem['name'].lower() == name.lower():
                 return elem
         return None
 
@@ -120,7 +120,7 @@ class Model(object):
         found_at = None
         found_elem = None
         for elem in self.elements:
-            at, L = elem.at, elem.L
+            at, L = elem['at'], elem['l']
             center = at + L/2
             if found_elem is None or abs(pos - at) < abs(pos - found_at):
                 found_at = at
@@ -137,7 +137,7 @@ class Model(object):
 
     def _update_twiss(self, results):
         """Update TWISS results."""
-        data = results.columns.freeze(self._columns)._data
+        data = results.copy()
         self.tw = self.utool.dict_add_unit(data)
         self.summary = self.utool.dict_add_unit(results.summary)
         self.update()
@@ -159,7 +159,7 @@ class Model(object):
 
     def get_element_index(self, elem):
         """Get element index by it name."""
-        return self.element_index_by_name(elem.name)
+        return self.element_index_by_name(elem['name'])
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""

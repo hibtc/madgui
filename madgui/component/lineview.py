@@ -236,7 +236,7 @@ class DrawConstraints(object):
         """Draw one constraint representation in the graph."""
         view = self.view
         return view.axes[name].plot(
-            strip_unit(elem.at + elem.l/2, view.unit[view.sname]),
+            strip_unit(elem['at'] + elem['l']/2, view.unit[view.sname]),
             strip_unit(envelope, view.unit[name]),
             **self._style)
 
@@ -322,8 +322,8 @@ class DrawLineElements(object):
             if elem_type is None:
                 continue
             patch_x = strip_unit(elem['at'], unit_s)
-            if strip_unit(elem.L) != 0:
-                patch_w = strip_unit(elem['L'], unit_s)
+            if strip_unit(elem['l']) != 0:
+                patch_w = strip_unit(elem['l'], unit_s)
                 axes.axvspan(patch_x, patch_x + patch_w, **elem_type)
             else:
                 axes.vlines(patch_x, **elem_type)
@@ -332,12 +332,12 @@ class DrawLineElements(object):
         """Return the element type name used for properties like coloring."""
         if 'type' not in elem or 'at' not in elem:
             return None
-        type_name = elem.type.lower()
+        type_name = elem['type'].lower()
         focussing = None
         if type_name == 'quadrupole':
-            focussing = strip_unit(elem.k1) > 0
+            focussing = strip_unit(elem['k1']) > 0
         elif type_name == 'sbend':
-            focussing = strip_unit(elem.angle) > 0
+            focussing = strip_unit(elem['angle']) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
