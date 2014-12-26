@@ -149,6 +149,9 @@ class NotebookFrame(wx.Frame):
         menubar.Append(seqmenu, '&Sequence')
         menubar.Append(helpmenu, '&Help')
         # Create menu items
+        new_window = appmenu.Append(wx.ID_ANY, '&New window\tCtrl+N',
+                                    'Open a new window')
+        self.Bind(wx.EVT_MENU, self.OnNewWindow, new_window)
         self.hook.menu(self, menubar)
         appmenu.AppendSeparator()
         appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
@@ -156,6 +159,10 @@ class NotebookFrame(wx.Frame):
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
         self._IsEnabledTop_Control = True
         return menubar
+
+    def OnNewWindow(self, event):
+        """Open a new frame."""
+        self.__class__(self.app)
 
     def AddView(self, view, title):
         """Add new notebook tab for the view."""
