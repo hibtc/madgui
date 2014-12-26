@@ -142,20 +142,21 @@ class NotebookFrame(wx.Frame):
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
         menubar = self.menubar = wx.MenuBar()
-        appmenu = wx.Menu()
+        winmenu = wx.Menu()
         seqmenu = wx.Menu()
         helpmenu = wx.Menu()
-        menubar.Append(appmenu, '&App')
+        menubar.Append(winmenu, '&Window')
         menubar.Append(seqmenu, '&Sequence')
         menubar.Append(helpmenu, '&Help')
         # Create menu items
-        new_window = appmenu.Append(wx.ID_ANY, '&New window\tCtrl+N',
+        new_window = winmenu.Append(wx.ID_ANY, '&New\tCtrl+N',
                                     'Open a new window')
-        self.Bind(wx.EVT_MENU, self.OnNewWindow, new_window)
+        winmenu.AppendSeparator()
         self.hook.menu(self, menubar)
-        appmenu.AppendSeparator()
-        appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
-        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_EXIT)
+        winmenu.AppendSeparator()
+        winmenu.Append(wx.ID_CLOSE, '&Close', 'Close window')
+        self.Bind(wx.EVT_MENU, self.OnNewWindow, new_window)
+        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_CLOSE)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
         self._IsEnabledTop_Control = True
         return menubar
