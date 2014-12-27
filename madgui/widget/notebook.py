@@ -62,12 +62,27 @@ class NotebookFrame(wx.Frame):
             size=wx.Size(800, 600))
 
         self.app = app
-        self._claimed = False
-        self.vars = {}
+        self.vars = {
+            'frame': self,
+            'views': [],
+            'madx': None,
+            'libmadx': None,
+        }
 
         self.CreateControls()
+        self.InitMadx()
+        self.Show(show)
 
-        # stdin=None leads to an error on windows when STDIN is broken
+    def InitMadx(self, command_log=None):
+
+        """
+        Start a MAD-X interpreter and associate with this frame.
+        """
+
+        # TODO: close old client + shutdown _read_stream thread.
+
+        # stdin=None leads to an error on windows when STDIN is broken.
+        # therefore, we need use stdin=os.devnull:
         with open(os.devnull, 'r') as devnull:
             client, process = _rpc.LibMadxClient.spawn_subprocess(
                 stdout=subprocess.PIPE,
@@ -78,21 +93,17 @@ class NotebookFrame(wx.Frame):
         threading.Thread(target=self._read_stream,
                          args=(process.stdout,)).start()
         libmadx = client.libmadx
-        madx = Madx(libmadx=libmadx)
+        madx = Madx(libmadx=libmadx, command_log=command_log)
 
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']),
             madx.evaluate)
 
         self.vars.update({
-            'frame': self,
-            'views': [],
             'madx': madx,
             'libmadx': libmadx
         })
 
-        # show the frame
-        self.Show(show)
 
     def CreateControls(self):
         # create notebook
@@ -118,44 +129,33 @@ class NotebookFrame(wx.Frame):
         # Create a command tab
         self._NewCommandTab()
 
-    def Claim(self):
-        """
-        Claim ownership of a frame.
-
-        If this frame is already claimed, returns a new frame. If this frame
-        is not claimed, sets the status to claimed and returns self.
-
-        This is used to prevent several models/files to be opened in the
-        same frame (using the same Madx instance) with the menu actions.
-        """
-        if self._claimed:
-            return self.__class__(self.app).Claim()
-        else:
-            self._claimed = True
-            return self
-
-    def IsClaimed(self):
-        return self._claimed
-
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
         menubar = self.menubar = wx.MenuBar()
-        appmenu = wx.Menu()
+        winmenu = wx.Menu()
         seqmenu = wx.Menu()
         helpmenu = wx.Menu()
-        menubar.Append(appmenu, '&App')
+        menubar.Append(winmenu, '&Window')
         menubar.Append(seqmenu, '&Sequence')
         menubar.Append(helpmenu, '&Help')
         # Create menu items
+        new_window = winmenu.Append(wx.ID_ANY, '&New\tCtrl+N',
+                                    'Open a new window')
+        winmenu.AppendSeparator()
         self.hook.menu(self, menubar)
-        appmenu.AppendSeparator()
-        appmenu.Append(wx.ID_EXIT, '&Quit', 'Quit application')
-        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_EXIT)
+        winmenu.AppendSeparator()
+        winmenu.Append(wx.ID_CLOSE, '&Close', 'Close window')
+        self.Bind(wx.EVT_MENU, self.OnNewWindow, new_window)
+        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_CLOSE)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
         self._IsEnabledTop_Control = True
         return menubar
+
+    def OnNewWindow(self, event):
+        """Open a new frame."""
+        self.__class__(self.app)
 
     def AddView(self, view, title):
         """Add new notebook tab for the view."""
