@@ -46,6 +46,6 @@ def connect_menu(frame, menubar):
                 model.hook.show(model, frame)
         dlg.Destroy()
     appmenu = menubar.Menus[0][0]
-    menuitem = appmenu.Append(wx.ID_ANY, 'Load &MAD-X file\tCtrl+M',
+    menuitem = appmenu.Append(wx.ID_ANY, 'Load &MAD-X file\tCtrl+O',
                               'Open a .madx file in this frame.')
     frame.Bind(wx.EVT_MENU, OnOpen, menuitem)

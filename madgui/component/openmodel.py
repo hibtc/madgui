@@ -128,7 +128,7 @@ class OpenModelDlg(ModalDialog):
             finally:
                 select_model_dlg.Destroy()
         appmenu = menubar.Menus[0][0]
-        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+O',
+        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+M',
                                   'Open a model in this frame.')
         frame.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
 
