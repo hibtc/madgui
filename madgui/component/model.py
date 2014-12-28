@@ -146,7 +146,7 @@ class Model(object):
         if elements is None:
             try:
                 sequence = self.madx.get_active_sequence()
-                elements = sequence.get_elements()
+                elements = sequence.elements
             except RuntimeError:
                 self.elements = []
                 return
