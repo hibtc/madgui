@@ -105,7 +105,9 @@ class ElementView(object):
 
     @property
     def element(self):
-        return self.model.element_by_name(self.element_name)
+        elements = self.model.madx.get_active_sequence().elements
+        raw_element = elements[self.element_name]
+        return self.model.utool.dict_add_unit(raw_element)
 
     def update(self):
 
@@ -113,7 +115,7 @@ class ElementView(object):
         Update the contents of the managed popup window.
         """
 
-        el = self.model.element_by_name(self.element_name)
+        el = self.element
         rows = list(el.items())
 
         # convert to title case:

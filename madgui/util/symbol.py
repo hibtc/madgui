@@ -18,10 +18,10 @@ class SymbolicValue(object):
     Needs to be evaluated via model.evaluate.
     """
 
-    def __init__(self, evaluate, expression, unit):
+    def __init__(self, expression, value, unit):
         """Store model, expression and unit as instance variables."""
-        self._evaluate = evaluate
         self._expression = expression
+        self._value = value
         self._unit = unit
 
     def __float__(self):
@@ -37,7 +37,7 @@ class SymbolicValue(object):
         return "%s(%r)" % (self.__class__.__name__, self._expression)
 
     def _get(self):
-        return self._unit * self._evaluate(self._expression)
+        return self._unit * self._value
 
     @property
     def value(self):

@@ -96,8 +96,7 @@ class NotebookFrame(wx.Frame):
         madx = Madx(libmadx=libmadx, command_log=command_log)
 
         self.madx_units = unit.UnitConverter(
-            unit.from_config_dict(self.app.conf['madx_units']),
-            madx.evaluate)
+            unit.from_config_dict(self.app.conf['madx_units']))
 
         self.vars.update({
             'madx': madx,
