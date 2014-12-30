@@ -118,7 +118,7 @@ class MatchTool(object):
         self.matcher.add_constraint(name, elem, envelope)
 
         # add another constraint to hold the orthogonal axis constant
-        orth_env = self.model.get_twiss_center(elem, conj)
+        orth_env = self.model.get_twiss(elem, conj)
         self.matcher.add_constraint(conj, elem, orth_env)
 
         self.matcher.match()

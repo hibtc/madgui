@@ -51,7 +51,6 @@ class Model(object):
                  utool,
                  name=None,
                  twiss_args=None,
-                 elements=None,
                  model=None):
         """
         """
@@ -67,16 +66,11 @@ class Model(object):
                          's',
                          'x', 'y',
                          'betx','bety']
-        self._update_elements(elements)
+        self._update_elements()
         self.model = model
-        try:
-            seq = madx.get_active_sequence()
-            tw = seq.twiss
-        except (RuntimeError, ValueError):
-            # TODO: init members
-            pass
-        else:
-            self._update_twiss(tw)
+        seq = madx.active_sequence
+        if seq is not None:
+            self._update_twiss(seq.twiss_table)
 
     @property
     def beam(self):
@@ -105,20 +99,6 @@ class Model(object):
                 return elem
         return None
 
-    def element_by_position_center(self, pos):
-        """Find next element by longitudinal center position."""
-        if pos is None:
-            return None
-        found_at = None
-        found_elem = None
-        for elem in self.elements:
-            at, L = elem['at'], elem['l']
-            center = at + L/2
-            if found_elem is None or abs(pos - at) < abs(pos - found_at):
-                found_at = at
-                found_elem = elem
-        return found_elem
-
     def twiss(self):
         """Recalculate TWISS parameters."""
         twiss_args = self.utool.dict_strip_unit(self.twiss_args)
@@ -134,20 +114,17 @@ class Model(object):
         self.summary = self.utool.dict_add_unit(results.summary)
         self.update()
 
-    def _update_elements(self, elements=None):
-        if elements is None:
-            try:
-                sequence = self.madx.get_active_sequence()
-                elements = sequence.elements
-            except RuntimeError:
-                self.elements = []
-                return
-        self.elements = list(map(self.utool.dict_add_unit, elements))
+    @property
+    def sequence(self):
+        return self.madx.active_sequence
+
+    def _update_elements(self):
+        raw_elements = self.sequence.elements
+        self.elements = list(map(self.utool.dict_add_unit, raw_elements))
 
     def element_index_by_name(self, name):
         """Find the element index in the twiss array by its name."""
-        ln = name.lower()
-        return next(i for i,v in enumerate(self.tw['name']) if v.lower() == ln)
+        return self.sequence.elements.index(name)
 
     def get_element_index(self, elem):
         """Get element index by it name."""
@@ -156,12 +133,6 @@ class Model(object):
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
         return self.tw[name][self.get_element_index(elem)]
-
-    def get_twiss_center(self, elem, name):
-        """Return beam envelope at center of element."""
-        i = self.get_element_index(elem)
-        prev = i - 1 if i != 0 else i
-        return (self.tw[name][i] + self.tw[name][prev]) / 2
 
     def update(self):
         """Perform post processing."""
