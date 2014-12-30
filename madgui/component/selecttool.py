@@ -36,16 +36,10 @@ class SelectTool(object):
             shortHelp='Show info for individual elements',
             longHelp='Show info for individual elements')
         panel.Bind(wx.EVT_TOOL, self.OnSelectClick, self.tool)
-        panel.Bind(wx.EVT_UPDATE_UI, self.UpdateTool, self.tool)
         # setup mouse capture
         panel.hook.capture_mouse.connect(self.stop_select)
         # element marker
         self._last_view = None
-
-
-    def UpdateTool(self, event):
-        """Enable/disable toolbar tool."""
-        self.tool.Enable(self.model.can_select)
 
     def OnSelectClick(self, event):
         """Invoked when user clicks Mirko-Button"""

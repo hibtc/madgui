@@ -79,14 +79,6 @@ class Model(object):
             self._update_twiss(tw)
 
     @property
-    def can_match(self):
-        return bool(self.twiss_args)
-
-    @property
-    def can_select(self):
-        return bool(self.elements)
-
-    @property
     def beam(self):
         """Get the beam parameter dictionary."""
         beam = self.madx.get_sequence(self.name).beam
