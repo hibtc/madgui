@@ -113,7 +113,7 @@ class TwissView(object):
     @classmethod
     def connect_menu(cls, notebook, menubar):
         def OnClick(event):
-            model = notebook.vars['control']
+            model = notebook.env['control']
             if model:
                 cls.create(model, notebook)
         seqmenu = menubar.Menus[1][0]

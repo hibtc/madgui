@@ -98,7 +98,7 @@ class OpenModelDlg(ModalDialog):
                         return
                     detail = select_detail_dlg.data
                     # TODO: redirect history+output to frame!
-                    madx = frame.vars['madx']
+                    madx = frame.env['madx']
                     cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
                     cpymad_model.optics[detail['optic']].init()
 
@@ -120,8 +120,8 @@ class OpenModelDlg(ModalDialog):
                                   twiss_args=utool.dict_add_unit(twiss_args),
                                   model=cpymad_model)
                     model.twiss()
-                    frame.vars.update(control=model,
-                                      model=cpymad_model)
+                    frame.env.update(control=model,
+                                     model=cpymad_model)
                     model.hook.show(model, frame)
                 finally:
                     select_detail_dlg.Destroy()

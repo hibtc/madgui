@@ -62,7 +62,7 @@ class NotebookFrame(wx.Frame):
             size=wx.Size(800, 600))
 
         self.app = app
-        self.vars = {
+        self.env = {
             'frame': self,
             'views': [],
             'madx': None,
@@ -98,7 +98,7 @@ class NotebookFrame(wx.Frame):
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
 
-        self.vars.update({
+        self.env.update({
             'madx': madx,
             'libmadx': libmadx
         })
@@ -162,7 +162,7 @@ class NotebookFrame(wx.Frame):
         panel = FigurePanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
         view.plot()
-        self.vars['views'].append(view)
+        self.env['views'].append(view)
         return panel
 
     def OnClose(self, event):
@@ -186,7 +186,7 @@ class NotebookFrame(wx.Frame):
         if self.notebook.GetPageCount() == 0:
             self.Close()
         else:
-            del self.vars['views'][event.Selection - 1]
+            del self.env['views'][event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
@@ -194,7 +194,7 @@ class NotebookFrame(wx.Frame):
 
     def OnUpdateMenu(self, event):
         idx = 1
-        enable = 'control' in self.vars
+        enable = 'control' in self.env
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is
@@ -207,7 +207,7 @@ class NotebookFrame(wx.Frame):
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        crust = Crust(self.notebook, locals=self.vars)
+        crust = Crust(self.notebook, locals=self.env)
         self.notebook.AddPage(crust, "Command", select=True)
         self._command_tab = crust
         # Create a tab for logging

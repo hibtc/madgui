@@ -17,7 +17,7 @@ def connect_menu(frame, menubar):
                             style=wx.FD_OPEN,
                             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
         if dlg.ShowModal() == wx.ID_OK:
-            madx = frame.vars['madx']
+            madx = frame.env['madx']
             madx.call(dlg.Path, True)
             # look for sequences
             sequences = madx.get_sequence_names()
@@ -39,9 +39,9 @@ def connect_menu(frame, menubar):
                 name = dlg.GetStringSelection()
             # now create the actual model object
             model = Model(madx, utool=frame.madx_units, name=name)
-            frame.vars.update(control=model,
-                               model=None,
-                               name=name)
+            frame.env.update(control=model,
+                             model=None,
+                             name=name)
             if name:
                 model.hook.show(model, frame)
         dlg.Destroy()

@@ -71,7 +71,7 @@ class TwissDialog(ParamDialog):
     @classmethod
     def connect_menu(cls, notebook, menubar):
         def OnClick(event):
-            model = notebook.vars['control']
+            model = notebook.env['control']
             dlg = cls(notebook,
                       utool=model.utool,
                       data=model.twiss_args or {})
