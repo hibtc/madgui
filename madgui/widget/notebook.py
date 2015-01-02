@@ -26,7 +26,7 @@ from cpymad import _rpc
 # internal
 from madgui.widget.figure import FigurePanel
 from madgui.core.plugin import HookCollection
-from madgui.component.model import Simulator
+from madgui.component.model import Simulator, Segment
 from madgui.util import unit
 
 # exported symbols
@@ -174,10 +174,62 @@ class NotebookFrame(wx.Frame):
         # Create a command tab
         self._NewCommandTab()
 
+    def _LoadMadxFile(self):
+        """
+        Dialog component to find/open a .madx file.
+        """
+        dlg = wx.FileDialog(
+            self,
+            style=wx.FD_OPEN,
+            wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
+        try:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            path = dlg.Path
+        finally:
+            dlg.Destroy()
+
+        madx = frame.env['madx']
+        madx.call(path, True)
+        # look for sequences
+        sequences = madx.get_sequence_names()
+        if len(sequences) == 0:
+            # TODO: log
+            name = None
+        elif len(sequences) == 1:
+            name = sequences[0]
+        else:
+            # if there are multiple sequences - just ask the user which
+            # one to use rather than taking a wild guess based on twiss
+            # computation etc
+            dlg = wx.SingleChoiceDialog(parent=frame,
+                                        caption="Select sequence",
+                                        message="Select sequence:",
+                                        choices=sequences)
+            try:
+                if dlg.ShowModal() != wx.ID_OK:
+                    return
+                name = dlg.GetStringSelection()
+            finally:
+                dlg.Destroy()
+        # now create the actual model object
+        model = Segment(madx, utool=frame.madx_units, name=name)
+        frame.env.update(control=model,
+                            model=None,
+                            name=name)
+        if name:
+            model.hook.show(model, frame)
+
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
+        from madgui.component.about import show_about_dialog
+        from madgui.component.beamdlg import BeamDialog
+        from madgui.component.changetwiss import TwissDialog
+        from madgui.component.lineview import TwissView
+        from madgui.component.openmodel import OpenModelDlg
+
         menubar = self.menubar = wx.MenuBar()
         extend_menu(self, menubar, [
             Menu('&Window', [
@@ -185,15 +237,41 @@ class NotebookFrame(wx.Frame):
                          'Open a new window',
                          self.OnNewWindow),
                 Separator,
-                # ...
+                MenuItem('Load &MAD-X file\tCtrl+O',
+                         'Open a .madx file in this frame.',
+                         lambda _: self._LoadMadxFile()),
+                MenuItem('&Open model\tCtrl+M',
+                         'Open a model in this frame.',
+                         lambda _: OpenModelDlg.create(self)),
                 Separator,
                 MenuItem('&Close',
                          'Close window',
                          self.OnQuit,
-                         wx.ID_CLOSE)
+                         wx.ID_CLOSE),
             ]),
-            Menu('&View', []),
-            Menu('&Help', []),
+            Menu('&View', [
+                MenuItem('Beam &envelope',
+                         'Open new tab with beam envelopes.',
+                         lambda _: TwissView.create(self.env['control'], self,
+                                                    basename='env')),
+                MenuItem('Beam &position',
+                         'Open new tab with beam position.',
+                         lambda _: TwissView.create(self.env['control'], self,
+                                                    basename='pos')),
+            ]),
+            Menu('&Tab', [
+                MenuItem('&TWISS',
+                         'Set TWISS initial conditions.',
+                         lambda _: TwissDialog.create(self)),
+                MenuItem('&Beam',
+                         'Set beam.',
+                         lambda _: BeamDialog.create(self)),
+            ]),
+            Menu('&Help', [
+                MenuItem('&About',
+                         'Show about dialog.',
+                         lambda _: show_about_dialog(self)),
+            ]),
         ])
 
         # Create menu items

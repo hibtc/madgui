@@ -74,53 +74,50 @@ class OpenModelDlg(ModalDialog):
     """
 
     @classmethod
-    def connect_menu(cls, frame, menubar):
-        def OnOpenModel(event):
-            # select package, model:
-            select_model_dlg = cls(frame, title="Select model")
-            try:
-                if select_model_dlg.ShowModal() != wx.ID_OK:
-                    return
-                mdata = select_model_dlg.mdata
-                repo = select_model_dlg.repo
-                if not mdata:
-                    return
-                # select optic, sequence, beam, range, twiss:
-                title = "Select model configuration"
+    def create(cls, frame):
+        # select package, model:
+        select_model_dlg = cls(frame, title="Select model")
+        try:
+            if select_model_dlg.ShowModal() != wx.ID_OK:
+                return
+            mdata = select_model_dlg.mdata
+            repo = select_model_dlg.repo
+        finally:
+            select_model_dlg.Destroy()
 
-                # Create a temporary model for convenience:
-                cpymad_model = CPModel(data=mdata, repo=repo, madx=None)
-                optics = list(cpymad_model.optics)
-                select_detail_dlg = wx.SingleChoiceDialog(
-                    frame,
-                    'Select optic:',
-                    'Select optic',
-                    optics)
-                select_detail_dlg.SetSelection(
-                    optics.index(cpymad_model.default_optic.name))
-                try:
-                    if select_detail_dlg.ShowModal() != wx.ID_OK:
-                        return
-                    optic = select_detail_dlg.GetStringSelection()
-                    # TODO: redirect history+output to frame!
-                    madx = frame.env['madx']
-                    cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
-                    cpymad_model.optics[optic].init()
+        if not mdata:
+            return
+        # select optic, sequence, beam, range, twiss:
+        title = "Select model configuration"
 
-                    utool = frame.madx_units
+        # Create a temporary model for convenience:
+        cpymad_model = CPModel(data=mdata, repo=repo, madx=None)
+        optics = list(cpymad_model.optics)
+        select_detail_dlg = wx.SingleChoiceDialog(
+            frame,
+            'Select optic:',
+            'Select optic',
+            optics)
+        select_detail_dlg.SetSelection(
+            optics.index(cpymad_model.default_optic.name))
+        try:
+            if select_detail_dlg.ShowModal() != wx.ID_OK:
+                return
+            optic = select_detail_dlg.GetStringSelection()
+        finally:
+            select_detail_dlg.Destroy()
+        # TODO: redirect history+output to frame!
+        madx = frame.env['madx']
+        cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
+        cpymad_model.optics[optic].init()
 
-                    # TODO: forward range/sequence to Model
-                    # range is currently not used at all
-                    frame.env['model'] = cpymad_model
-                    frame.env['control'].model = cpymad_model
-                finally:
-                    select_detail_dlg.Destroy()
-            finally:
-                select_model_dlg.Destroy()
-        appmenu = menubar.Menus[0][0]
-        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+M',
-                                  'Open a model in this frame.')
-        frame.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
+        utool = frame.madx_units
+
+        # TODO: forward range/sequence to Model
+        # range is currently not used at all
+        frame.env['model'] = cpymad_model
+        frame.env['control'].model = cpymad_model
+
 
     def SetData(self):
         """Store the data and initialize the component."""

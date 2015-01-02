@@ -112,18 +112,8 @@ class TwissView(object):
     """Instanciate an FigurePair + XYCurve(Envelope)."""
 
     @classmethod
-    def connect_menu(cls, notebook, menubar):
-        def OnClick(event):
-            cls.create(notebook.env['control'], notebook)
-        seqmenu = menubar.Menus[1][0]
-        menuitem = seqmenu.Append(wx.ID_ANY, cls.action, cls.description)
-        notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
-
-    @classmethod
-    def create(cls, model, frame, basename=None):
+    def create(cls, model, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        if basename is None:
-            basename = cls.basename
         cpymad_model = model.model
         if not cpymad_model:
             return
@@ -222,18 +212,6 @@ class TwissView(object):
 
     def get_conjugate(self, name):
         return self._conjugate[name]
-
-
-class EnvView(TwissView):
-    basename = 'env'
-    action = 'Beam &envelope'
-    description = 'Open new tab with beam envelopes.'
-
-
-class XYView(TwissView):
-    basename = 'pos'
-    action = 'Beam &position'
-    description = 'Open new tab with beam position.'
 
 
 # TODO: Store the constraints with a Match object, rather than "globally"

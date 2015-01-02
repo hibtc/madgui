@@ -45,18 +45,14 @@ class BeamDialog(ParamDialog):
     ]
 
     @classmethod
-    def connect_menu(cls, notebook, menubar):
-        def OnClick(event):
-            model = notebook.env['control']
-            dlg = cls(notebook,
-                      utool=model.utool,
-                      data=model.beam)
-            if dlg.ShowModal() == wx.ID_OK:
-                model.beam = dlg.data
-                model.twiss()
-        seqmenu = menubar.Menus[1][0]
-        menuitem = seqmenu.Append(wx.ID_ANY, '&Beam', 'Set beam.')
-        notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
+    def create(cls, frame):
+        model = frame.env['control']
+        dlg = cls(frame,
+                  utool=model.utool,
+                  data=model.beam)
+        if dlg.ShowModal() == wx.ID_OK:
+            model.beam = dlg.data
+            model.twiss()
 
     def __init__(self, parent, utool, data, readonly=False):
         """

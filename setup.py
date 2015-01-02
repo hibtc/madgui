@@ -85,15 +85,6 @@ setup(
 
         [madgui.component.matching.start]
         drawconstraints = madgui.component.lineview:DrawConstraints
-
-        [madgui.widget.notebook.menu]
-        openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
-        plainopen = madgui.component.plainopen:connect_menu
-        changetwiss = madgui.component.changetwiss:TwissDialog.connect_menu
-        beamdlg = madgui.component.beamdlg:BeamDialog.connect_menu
-        lineview = madgui.component.lineview:EnvView.connect_menu
-        xyview = madgui.component.lineview:XYView.connect_menu
-        about = madgui.component.about:connect_menu
     """,
     package_data={
         'madgui': [
