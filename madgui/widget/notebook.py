@@ -7,6 +7,7 @@ Notebook window component for MadGUI (main window).
 from __future__ import absolute_import
 
 # standard library
+import collections
 import logging
 import os
 import subprocess
@@ -38,6 +39,46 @@ def monospace(pt_size):
                    wx.FONTFAMILY_MODERN,
                    wx.FONTSTYLE_NORMAL,
                    wx.FONTWEIGHT_NORMAL)
+
+
+class MenuItem(object):
+
+    def __init__(self, title, description, action, id=wx.ID_ANY):
+        self.title = title
+        self.action = action
+        self.description = description
+        self.id = id
+
+    def append_to(self, menu, evt_handler):
+        item = menu.Append(self.id, self.title, self.description)
+        evt_handler.Bind(wx.EVT_MENU, self.action, item)
+
+
+class Menu(object):
+
+    def __init__(self, title, items):
+        self.title = title
+        self.items = items
+
+    def append_to(self, menu, evt_handler):
+        submenu = wx.Menu()
+        menu.Append(submenu, self.title)
+        extend_menu(evt_handler, submenu, self.items)
+
+
+class Separator(object):
+
+    @classmethod
+    def append_to(cls, menu, evt_handler):
+        menu.AppendSeparator()
+
+
+def extend_menu(evt_handler, menu, items):
+    """
+    Append menu items to menu.
+    """
+    for item in items:
+        item.append_to(menu, evt_handler)
 
 
 class NotebookFrame(wx.Frame):
@@ -138,21 +179,25 @@ class NotebookFrame(wx.Frame):
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
         menubar = self.menubar = wx.MenuBar()
-        winmenu = wx.Menu()
-        seqmenu = wx.Menu()
-        helpmenu = wx.Menu()
-        menubar.Append(winmenu, '&Window')
-        menubar.Append(seqmenu, '&Sequence')
-        menubar.Append(helpmenu, '&Help')
+        extend_menu(self, menubar, [
+            Menu('&Window', [
+                MenuItem('&New\tCtrl+N',
+                         'Open a new window',
+                         self.OnNewWindow),
+                Separator,
+                # ...
+                Separator,
+                MenuItem('&Close',
+                         'Close window',
+                         self.OnQuit,
+                         wx.ID_CLOSE)
+            ]),
+            Menu('&View', []),
+            Menu('&Help', []),
+        ])
+
         # Create menu items
-        new_window = winmenu.Append(wx.ID_ANY, '&New\tCtrl+N',
-                                    'Open a new window')
-        winmenu.AppendSeparator()
         self.hook.menu(self, menubar)
-        winmenu.AppendSeparator()
-        winmenu.Append(wx.ID_CLOSE, '&Close', 'Close window')
-        self.Bind(wx.EVT_MENU, self.OnNewWindow, new_window)
-        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_CLOSE)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
         self._IsEnabledTop_Control = True
         return menubar
