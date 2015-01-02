@@ -83,11 +83,12 @@ class ModalDialog(wx.Dialog):
 
         Use this method from within :meth:`CreateControls`
         """
-        buttons = wx.BoxSizer(wx.HORIZONTAL)
+        buttons = wx.StdDialogButtonSizer()
         ok_button = self.CreateOkButton()
-        buttons.Add(ok_button)
+        buttons.AddButton(ok_button)
         ok_button.SetDefault()
-        buttons.Add(self.CreateCancelButton())
+        buttons.AddButton(self.CreateCancelButton())
+        buttons.Realize()
         return buttons
 
     def CreateOkButton(self):
