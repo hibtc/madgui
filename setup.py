@@ -94,10 +94,6 @@ setup(
         lineview = madgui.component.lineview:EnvView.connect_menu
         xyview = madgui.component.lineview:XYView.connect_menu
         about = madgui.component.about:connect_menu
-
-        [madgui.component.model.show]
-        lineview = madgui.component.lineview:EnvView.create
-        settitle = madgui.widget.notebook:set_frame_title
     """,
     package_data={
         'madgui': [

@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Model component for the MadGUI application.
+Simulator component for the MadGUI application.
 """
 
 # force new style imports
@@ -10,13 +10,35 @@ from __future__ import absolute_import
 from madgui.core.plugin import HookCollection
 
 # exported symbols
-__all__ = ['Model']
+__all__ = [
+    'Simulator',
+    'Segment',
+]
 
 
-class Model(object):
+class Simulator(object):
 
     """
-    Extended model class for cpymad.model (extends by delegation).
+    Contains the whole global state of a MAD-X instance and (possibly) loaded
+    metadata.
+
+    :ivar Madx madx: MAD-X interpreter instance
+    :ivar Model model: associated metadata or None
+    :ivar list simulations: active simulations
+    """
+
+    def __init__(self, madx, model, utool):
+        """Initialize with (Madx, Model)."""
+        self.madx = madx
+        self.model = model
+        self.utool = utool
+        self.simulations = []
+
+
+class Segment(object):
+
+    """
+    Simulate one fixed segment, i.e. sequence + range.
 
     :ivar Madx madx:
     :ivar list elements:
@@ -47,17 +69,20 @@ class Model(object):
     # TODO: automatically switch directories when CALLing files
 
     def __init__(self,
+                 sequence,
+                 range,
                  madx,
                  utool,
                  name=None,
-                 twiss_args=None,
-                 model=None):
+                 twiss_args=None):
         """
         """
         self.hook = HookCollection(
             show='madgui.component.model.show',
             update=None)
 
+        self._sequence = sequence
+        self.range = range
         self.madx = madx
         self.utool = utool
         self.name = name
@@ -67,10 +92,7 @@ class Model(object):
                          'x', 'y',
                          'betx','bety']
         self._update_elements()
-        self.model = model
-        seq = madx.active_sequence
-        if seq is not None:
-            self._update_twiss(seq.twiss_table)
+        self.twiss()
 
     @property
     def beam(self):
@@ -102,7 +124,8 @@ class Model(object):
     def twiss(self):
         """Recalculate TWISS parameters."""
         twiss_args = self.utool.dict_strip_unit(self.twiss_args)
-        results = self.madx.twiss(sequence=self.name,
+        results = self.madx.twiss(sequence=self.sequence,
+                                  range=self.range,
                                   columns=self._columns,
                                   twiss_init=twiss_args)
         self._update_twiss(results)
@@ -116,7 +139,7 @@ class Model(object):
 
     @property
     def sequence(self):
-        return self.madx.active_sequence
+        return self.madx.sequences[self._sequence]
 
     def _update_elements(self):
         raw_elements = self.sequence.elements

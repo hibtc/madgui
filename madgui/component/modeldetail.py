@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Dialog component to select optic/sequence/range/beam in a model.
+Dialog component to select sequence/range/beam in a model.
 """
 
 # force new style imports
@@ -53,7 +53,6 @@ class ModelDetailDlg(ModalDialog):
         controls.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
 
         # insert items
-        self.ctrl_optic = self._AddComboBox(controls, 'Optic:')
         self.ctrl_sequence = self._AddComboBox(controls, 'Sequence:')
         self.ctrl_beam = self._AddComboBox(controls, 'Beam:')
         self.ctrl_range = self._AddComboBox(controls, 'Range:')
@@ -88,7 +87,6 @@ class ModelDetailDlg(ModalDialog):
     def TransferDataFromWindow(self):
         """Get selected package and model name."""
         self.data = dict(
-            optic=self.ctrl_optic.GetValue(),
             sequence=self.ctrl_sequence.GetValue(),
             beam=self.ctrl_beam.GetValue(),
             range=self.ctrl_range.GetValue(),
@@ -96,7 +94,6 @@ class ModelDetailDlg(ModalDialog):
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
-        self.UpdateOptics()
         self.UpdateSequences()
         self.UpdateBeams()
         self.UpdateRanges()
@@ -110,13 +107,6 @@ class ModelDetailDlg(ModalDialog):
             index = items.index(default)
         finally:
             ctrl.SetSelection(index)
-
-    def UpdateOptics(self):
-        model, data = self.model, self.data
-        self._Update(self.ctrl_optic,
-                     model.optics.keys(),
-                     model.default_optic.name,
-                     data.get('optic'))
 
     def UpdateSequences(self):
         model, data = self.model, self.data

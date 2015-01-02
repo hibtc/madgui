@@ -11,7 +11,8 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-import madgui.core
+from madgui.component.model import Segment
+from madgui.component.modeldetail import ModelDetailDlg
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
@@ -113,9 +114,7 @@ class TwissView(object):
     @classmethod
     def connect_menu(cls, notebook, menubar):
         def OnClick(event):
-            model = notebook.env['control']
-            if model:
-                cls.create(model, notebook)
+            cls.create(notebook.env['control'], notebook)
         seqmenu = menubar.Menus[1][0]
         menuitem = seqmenu.Append(wx.ID_ANY, cls.action, cls.description)
         notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
@@ -125,7 +124,35 @@ class TwissView(object):
         """Create a new view panel as a page in the notebook frame."""
         if basename is None:
             basename = cls.basename
-        view = cls(model, basename, frame.app.conf['line_view'])
+        cpymad_model = model.model
+        if not cpymad_model:
+            return
+
+        select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
+                                           title=cpymad_model.name)
+        try:
+            if select_detail_dlg.ShowModal() != wx.ID_OK:
+                return
+        finally:
+            select_detail_dlg.Destroy()
+
+        detail = select_detail_dlg.data
+
+        sequence = cpymad_model.sequences[detail['sequence']]
+        range = sequence.ranges[detail['range']]
+        twiss_args = range.initial_conditions[detail['twiss']]
+        range.init()
+
+        segment = Segment(
+            sequence=detail['sequence'],
+            range=range.bounds,
+            madx=frame.env['madx'],
+            utool=frame.madx_units,
+            twiss_args=twiss_args,
+        )
+        segment.model = cpymad_model
+
+        view = cls(segment, basename, frame.app.conf['line_view'])
         frame.AddView(view, view.title)
         return view
 

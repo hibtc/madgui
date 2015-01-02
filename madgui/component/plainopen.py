@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.component.model import Model
+from madgui.component.model import Segment
 
 
 def connect_menu(frame, menubar):
@@ -38,7 +38,7 @@ def connect_menu(frame, menubar):
                     return
                 name = dlg.GetStringSelection()
             # now create the actual model object
-            model = Model(madx, utool=frame.madx_units, name=name)
+            model = Segment(madx, utool=frame.madx_units, name=name)
             frame.env.update(control=model,
                              model=None,
                              name=name)

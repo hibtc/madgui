@@ -10,6 +10,7 @@ from __future__ import absolute_import
 import logging
 import os
 import subprocess
+import sys
 import threading
 
 # GUI components
@@ -18,12 +19,13 @@ import wx.aui
 from wx.py.crust import Crust
 
 # 3rd party
-from cpymad.madx import Madx
+from cpymad.madx import Madx, CommandLog
 from cpymad import _rpc
 
 # internal
 from madgui.widget.figure import FigurePanel
 from madgui.core.plugin import HookCollection
+from madgui.component.model import Simulator
 from madgui.util import unit
 
 # exported symbols
@@ -70,7 +72,7 @@ class NotebookFrame(wx.Frame):
         }
 
         self.CreateControls()
-        self.InitMadx()
+        self.InitMadx(command_log=CommandLog(sys.stdout))
         self.Show(show)
 
     def InitMadx(self, command_log=None):
@@ -98,7 +100,10 @@ class NotebookFrame(wx.Frame):
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
 
+        # TODO: create and store 'Simulator' instance here
+
         self.env.update({
+            'control': Simulator(madx, model=None, utool=self.madx_units),
             'madx': madx,
             'libmadx': libmadx
         })

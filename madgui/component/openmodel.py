@@ -16,8 +16,7 @@ from cpymad.model import Locator, Model as CPModel
 
 # internal
 from madgui.core import wx
-from madgui.component.model import Model
-from madgui.component.modeldetail import ModelDetailDlg
+from madgui.component.model import Simulator
 from madgui.util.common import cachedproperty
 from madgui.widget.input import ModalDialog
 
@@ -91,38 +90,29 @@ class OpenModelDlg(ModalDialog):
 
                 # Create a temporary model for convenience:
                 cpymad_model = CPModel(data=mdata, repo=repo, madx=None)
-                select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
-                                                   title=title)
+                optics = list(cpymad_model.optics)
+                select_detail_dlg = wx.SingleChoiceDialog(
+                    frame,
+                    'Select optic:',
+                    'Select optic',
+                    optics)
+                select_detail_dlg.SetSelection(
+                    optics.index(cpymad_model.default_optic.name))
                 try:
                     if select_detail_dlg.ShowModal() != wx.ID_OK:
                         return
-                    detail = select_detail_dlg.data
+                    optic = select_detail_dlg.GetStringSelection()
                     # TODO: redirect history+output to frame!
                     madx = frame.env['madx']
                     cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
-                    cpymad_model.optics[detail['optic']].init()
+                    cpymad_model.optics[optic].init()
 
-                    cpymad_model.beams[detail['beam']].init()
                     utool = frame.madx_units
-                    twiss_args = cpymad_model.sequences[
-                            detail['sequence']
-                        ].ranges[
-                            detail['range']
-                        ].initial_conditions[
-                            detail['twiss']
-                        ]
 
                     # TODO: forward range/sequence to Model
                     # range is currently not used at all
-                    model = Model(madx,
-                                  utool=utool,
-                                  name=detail['sequence'],
-                                  twiss_args=utool.dict_add_unit(twiss_args),
-                                  model=cpymad_model)
-                    model.twiss()
-                    frame.env.update(control=model,
-                                     model=cpymad_model)
-                    model.hook.show(model, frame)
+                    frame.env['model'] = cpymad_model
+                    frame.env['control'].model = cpymad_model
                 finally:
                     select_detail_dlg.Destroy()
             finally:
