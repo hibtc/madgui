@@ -225,9 +225,9 @@ class OpenModelDlg(ModalDialog):
         # self.ctrl_pkg.SetValue(self.data.pkg_name)
         # self.ctrl_model.SetValue(self.data.model_name)
 
-    def CreateButtonOk(self):
+    def CreateOkButton(self):
         button = super(OpenModelDlg, self).CreateOkButton()
-        self.Bind(wx.EVT_UPDATE_UI, self.UpdateButtonOk, source=button_ok)
+        self.Bind(wx.EVT_UPDATE_UI, self.UpdateButtonOk, source=button)
         return button
 
     def UpdateButtonOk(self, event):
