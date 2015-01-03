@@ -7,21 +7,13 @@ Notebook window component for MadGUI (main window).
 from __future__ import absolute_import
 
 # standard library
-import collections
 import logging
-import os
-import subprocess
-import sys
 import threading
 
 # GUI components
 from madgui.core import wx
 import wx.aui
 from wx.py.crust import Crust
-
-# 3rd party
-from cpymad.madx import Madx, CommandLog
-from cpymad import _rpc
 
 # internal
 from madgui.widget.figure import FigurePanel
@@ -113,40 +105,24 @@ class NotebookFrame(wx.Frame):
         }
 
         self.CreateControls()
-        self.InitMadx(command_log=CommandLog(sys.stdout))
+        self.InitMadx()
         self.Show(show)
 
-    def InitMadx(self, command_log=None):
-
+    def InitMadx(self):
         """
         Start a MAD-X interpreter and associate with this frame.
         """
-
         # TODO: close old client + shutdown _read_stream thread.
-
-        # stdin=None leads to an error on windows when STDIN is broken.
-        # therefore, we need use stdin=os.devnull:
-        with open(os.devnull, 'r') as devnull:
-            client, process = _rpc.LibMadxClient.spawn_subprocess(
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                stdin=devnull,
-                bufsize=0)
-        self._client = client
-        threading.Thread(target=self._read_stream,
-                         args=(process.stdout,)).start()
-        libmadx = client.libmadx
-        madx = Madx(libmadx=libmadx, command_log=command_log)
-
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
-
-        # TODO: create and store 'Simulator' instance here
-
+        simulator = Simulator(self.madx_units)
+        self._simulator = simulator
+        threading.Thread(target=self._read_stream,
+                         args=(simulator.remote_process.stdout,)).start()
         self.env.update({
-            'control': Simulator(madx, model=None, utool=self.madx_units),
-            'madx': madx,
-            'libmadx': libmadx
+            'control': simulator,
+            'madx': simulator.madx,
+            'libmadx': simulator.libmadx
         })
 
 
@@ -297,7 +273,7 @@ class NotebookFrame(wx.Frame):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self._client.close()
+            self._simulator.rpc_client.close()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass

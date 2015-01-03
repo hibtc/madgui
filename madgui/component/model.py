@@ -6,6 +6,15 @@ Simulator component for the MadGUI application.
 # force new style imports
 from __future__ import absolute_import
 
+# standard library
+import os
+import subprocess
+import sys
+
+# 3rd party
+from cpymad.madx import Madx, CommandLog
+from cpymad import _rpc
+
 # internal
 from madgui.core.plugin import HookCollection
 
@@ -27,10 +36,24 @@ class Simulator(object):
     :ivar list simulations: active simulations
     """
 
-    def __init__(self, madx, model, utool):
+    def __init__(self, utool):
         """Initialize with (Madx, Model)."""
-        self.madx = madx
-        self.model = model
+
+        # stdin=None leads to an error on windows when STDIN is broken.
+        # therefore, we need use stdin=os.devnull:
+        with open(os.devnull, 'r') as devnull:
+            client, process = _rpc.LibMadxClient.spawn_subprocess(
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                stdin=devnull,
+                bufsize=0)
+        self.rpc_client = client
+        self.remote_process = process
+        self.libmadx = client.libmadx
+        self.madx = Madx(libmadx=self.libmadx,
+                         command_log=CommandLog(sys.stdout))
+
+        self.model = None
         self.utool = utool
         self.simulations = []
 
