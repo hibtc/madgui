@@ -186,6 +186,19 @@ class ParamDialog(ModalDialog):
     :ivar wx.Choice _ctrl_add: choice box to add new groups
     """
 
+    @classmethod
+    def show_modal(cls, parent, utool, data=None, readonly=False):
+        dlg = cls(parent=parent,
+                  title=cls.title,
+                  utool=utool,
+                  params=cls.params,
+                  data=data,
+                  readonly=readonly)
+        if dlg.ShowModal() == wx.ID_OK:
+            return dlg.data
+        else:
+            return None
+
     def SetData(self, utool, params, data, readonly=False):
         """Implements ModalDialog.SetData."""
         self.utool = utool

@@ -120,7 +120,7 @@ class NotebookFrame(wx.Frame):
         threading.Thread(target=self._read_stream,
                          args=(simulator.remote_process.stdout,)).start()
         self.env.update({
-            'control': simulator,
+            'simulator': simulator,
             'madx': simulator.madx,
             'libmadx': simulator.libmadx
         })
@@ -178,6 +178,23 @@ class NotebookFrame(wx.Frame):
         from madgui.component.lineview import TwissView
         from madgui.component.openmodel import OpenModelDlg
 
+        def set_twiss(event):
+            # TODO: get initial segment for current TAB
+            segment = None
+            twiss_args = TwissDialog.show_modal(self, self.madx_units,
+                                                segment.twiss_args)
+            if twiss_args is not None:
+                segment.twiss_args = twiss_args
+                segment.twiss()
+
+        def set_beam(event):
+            # TODO: get initial segment for current TAB
+            segment = None
+            beam = BeamDialog.show_modal(self, self.madx_units, segment.beam)
+            if beam_args is not None:
+                segment.beam = beam
+                segment.twiss()
+
         menubar = self.menubar = wx.MenuBar()
         extend_menu(self, menubar, [
             Menu('&Window', [
@@ -200,20 +217,20 @@ class NotebookFrame(wx.Frame):
             Menu('&View', [
                 MenuItem('Beam &envelope',
                          'Open new tab with beam envelopes.',
-                         lambda _: TwissView.create(self.env['control'], self,
-                                                    basename='env')),
+                         lambda _: TwissView.create(self.env['simulator'],
+                                                    self, basename='env')),
                 MenuItem('Beam &position',
                          'Open new tab with beam position.',
-                         lambda _: TwissView.create(self.env['control'], self,
-                                                    basename='pos')),
+                         lambda _: TwissView.create(self.env['simulator'],
+                                                    self, basename='pos')),
             ]),
             Menu('&Tab', [
                 MenuItem('&TWISS',
                          'Set TWISS initial conditions.',
-                         lambda _: TwissDialog.create(self)),
+                         set_twiss),
                 MenuItem('&Beam',
                          'Set beam.',
-                         lambda _: BeamDialog.create(self)),
+                         set_beam),
             ]),
             Menu('&Help', [
                 MenuItem('&About',
@@ -270,7 +287,8 @@ class NotebookFrame(wx.Frame):
 
     def OnUpdateMenu(self, event):
         idx = 1
-        enable = 'control' in self.env
+        enable = bool(self.env['madx'].sequences
+                      or self.env['simulator'].model)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is

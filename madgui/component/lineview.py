@@ -182,12 +182,9 @@ class TwissView(object):
         twiss_args = TwissDialog.create(frame, frame.madx_units, None)
 
         # now create the actual model object
-        model = Segment(madx, utool=frame.madx_units, name=name)
-        frame.env.update(control=model,
-                         model=None,
-                         name=name)
-        if name:
-            model.hook.show(model, frame)
+        # TODO: insert segment into simulator
+        # TODO: show segment
+        segment = Segment(madx, utool=frame.madx_units, name=name)
 
     def __init__(self, model, basename, line_view_config):
 

@@ -120,7 +120,7 @@ class OpenModelDlg(ModalDialog):
         # TODO: forward range/sequence to Model
         # range is currently not used at all
         frame.env['model'] = cpymad_model
-        frame.env['control'].model = cpymad_model
+        frame.env['simulator'].model = cpymad_model
 
 
     def SetData(self):

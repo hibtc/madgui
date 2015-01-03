@@ -19,6 +19,8 @@ class TwissDialog(ParamDialog):
     Dialog to show key-value pairs.
     """
 
+    title = "Set TWISS values"
+
     # TODO:
     # - exclude more parameters (for most of these parameters, I actually
     #   don't know whether it makes sense to include them here)
@@ -67,27 +69,3 @@ class TwissDialog(ParamDialog):
         String(deltap=""),
         #Bool(notable=True),    # madgui always needs table
     ]
-
-    @classmethod
-    def create(cls, frame, utool, twiss_args):
-        dlg = cls(frame,
-                  utool=model.utool,
-                  data=twiss_args or {})
-        if dlg.ShowModal() == wx.ID_OK:
-            return dlg.data
-        else:
-            return None
-
-    def __init__(self, parent, utool, data, readonly=False):
-        """
-        Create an empty popup window.
-
-        Extends wx.Dialog.__init__.
-        """
-        super(TwissDialog, self).__init__(
-            parent=parent,
-            title="Set TWISS values",
-            utool=utool,
-            params=self.params,
-            data=data,
-            readonly=readonly)
