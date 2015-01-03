@@ -11,7 +11,7 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-from madgui.component.changetwiss import TwissDialog
+from madgui.component.twissdialog import TwissDialog
 from madgui.component.model import Segment
 from madgui.component.modeldetail import ModelDetailDlg
 from madgui.core import wx

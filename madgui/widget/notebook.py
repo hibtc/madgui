@@ -173,8 +173,8 @@ class NotebookFrame(wx.Frame):
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
         from madgui.component.about import show_about_dialog
-        from madgui.component.beamdlg import BeamDialog
-        from madgui.component.changetwiss import TwissDialog
+        from madgui.component.beamdialog import BeamDialog
+        from madgui.component.twissdialog import TwissDialog
         from madgui.component.lineview import TwissView
         from madgui.component.openmodel import OpenModelDlg
 
