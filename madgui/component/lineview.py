@@ -11,6 +11,7 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
+from madgui.component.changetwiss import TwissDialog
 from madgui.component.model import Segment
 from madgui.component.modeldetail import ModelDetailDlg
 from madgui.core import wx
@@ -112,12 +113,17 @@ class TwissView(object):
     """Instanciate an FigurePair + XYCurve(Envelope)."""
 
     @classmethod
-    def create(cls, model, frame, basename):
+    def create(cls, simulator, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        cpymad_model = model.model
-        if not cpymad_model:
-            return
+        if simulator.model:
+            cls.create_from_model(simulator.model, frame, basename)
+        else:
+            cls.create_from_plain(simulator.madx, frame, basename)
 
+
+    @classmethod
+    def create_from_model(cls, cpymad_model, frame, basename):
+        """Create a new view panel as a page in the notebook frame."""
         select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
                                            title=cpymad_model.name)
         try:
@@ -131,6 +137,7 @@ class TwissView(object):
         sequence = cpymad_model.sequences[detail['sequence']]
         range = sequence.ranges[detail['range']]
         twiss_args = range.initial_conditions[detail['twiss']]
+        twiss_args = frame.madx_units.dict_add_unit(twiss_args)
         range.init()
 
         segment = Segment(
@@ -145,6 +152,42 @@ class TwissView(object):
         view = cls(segment, basename, frame.app.conf['line_view'])
         frame.AddView(view, view.title)
         return view
+
+    @classmethod
+    def create_from_plain(cls, madx, frame, basename):
+
+        # look for sequences
+        sequences = madx.get_sequence_names()
+        if len(sequences) == 0:
+            # TODO: log
+            return
+        elif len(sequences) == 1:
+            name = sequences[0]
+        else:
+            # if there are multiple sequences - just ask the user which
+            # one to use rather than taking a wild guess based on twiss
+            # computation etc
+            dlg = wx.SingleChoiceDialog(parent=frame,
+                                        caption="Select sequence",
+                                        message="Select sequence:",
+                                        choices=sequences)
+            try:
+                if dlg.ShowModal() != wx.ID_OK:
+                    return
+                name = dlg.GetStringSelection()
+            finally:
+                dlg.Destroy()
+
+        # select twiss initial conditions
+        twiss_args = TwissDialog.create(frame, frame.madx_units, None)
+
+        # now create the actual model object
+        model = Segment(madx, utool=frame.madx_units, name=name)
+        frame.env.update(control=model,
+                         model=None,
+                         name=name)
+        if name:
+            model.hook.show(model, frame)
 
     def __init__(self, model, basename, line_view_config):
 

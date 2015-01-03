@@ -167,34 +167,6 @@ class NotebookFrame(wx.Frame):
 
         madx = frame.env['madx']
         madx.call(path, True)
-        # look for sequences
-        sequences = madx.get_sequence_names()
-        if len(sequences) == 0:
-            # TODO: log
-            name = None
-        elif len(sequences) == 1:
-            name = sequences[0]
-        else:
-            # if there are multiple sequences - just ask the user which
-            # one to use rather than taking a wild guess based on twiss
-            # computation etc
-            dlg = wx.SingleChoiceDialog(parent=frame,
-                                        caption="Select sequence",
-                                        message="Select sequence:",
-                                        choices=sequences)
-            try:
-                if dlg.ShowModal() != wx.ID_OK:
-                    return
-                name = dlg.GetStringSelection()
-            finally:
-                dlg.Destroy()
-        # now create the actual model object
-        model = Segment(madx, utool=frame.madx_units, name=name)
-        frame.env.update(control=model,
-                            model=None,
-                            name=name)
-        if name:
-            model.hook.show(model, frame)
 
     def _CreateMenu(self):
         """Create a menubar."""

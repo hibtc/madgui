@@ -69,14 +69,14 @@ class TwissDialog(ParamDialog):
     ]
 
     @classmethod
-    def create(cls, frame):
-        model = frame.env['control']
+    def create(cls, frame, utool, twiss_args):
         dlg = cls(frame,
                   utool=model.utool,
-                  data=model.twiss_args or {})
+                  data=twiss_args or {})
         if dlg.ShowModal() == wx.ID_OK:
-            model.twiss_args = dlg.data
-            model.twiss()
+            return dlg.data
+        else:
+            return None
 
     def __init__(self, parent, utool, data, readonly=False):
         """

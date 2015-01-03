@@ -87,6 +87,10 @@ class OpenModelDlg(ModalDialog):
 
         if not mdata:
             return
+
+        # TODO: model selection belongs into a separate function, that is
+        # called here (hook?) and can be selected from a menu element as well.
+
         # select optic, sequence, beam, range, twiss:
         title = "Select model configuration"
 

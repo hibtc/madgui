@@ -147,7 +147,7 @@ class Segment(object):
     def twiss(self):
         """Recalculate TWISS parameters."""
         twiss_args = self.utool.dict_strip_unit(self.twiss_args)
-        results = self.madx.twiss(sequence=self.sequence,
+        results = self.madx.twiss(sequence=self.sequence.name,
                                   range=self.range,
                                   columns=self._columns,
                                   twiss_init=twiss_args)
