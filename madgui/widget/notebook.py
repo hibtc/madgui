@@ -180,7 +180,7 @@ class NotebookFrame(wx.Frame):
 
         def set_twiss(event):
             # TODO: get initial segment for current TAB
-            segment = None
+            segment = self.GetActiveFigurePanel().view.model
             twiss_args = TwissDialog.show_modal(self, self.madx_units,
                                                 segment.twiss_args)
             if twiss_args is not None:
@@ -189,9 +189,9 @@ class NotebookFrame(wx.Frame):
 
         def set_beam(event):
             # TODO: get initial segment for current TAB
-            segment = None
+            segment = self.GetActiveFigurePanel().view.model
             beam = BeamDialog.show_modal(self, self.madx_units, segment.beam)
-            if beam_args is not None:
+            if beam is not None:
                 segment.beam = beam
                 segment.twiss()
 
@@ -225,10 +225,10 @@ class NotebookFrame(wx.Frame):
                                                     self, basename='pos')),
             ]),
             Menu('&Tab', [
-                MenuItem('&TWISS',
+                MenuItem('Set initial &TWISS',
                          'Set TWISS initial conditions.',
                          set_twiss),
-                MenuItem('&Beam',
+                MenuItem('Set &beam',
                          'Set beam.',
                          set_beam),
             ]),

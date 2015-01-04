@@ -119,7 +119,7 @@ class Segment(object):
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        beam = self.madx.get_sequence(self.sequence.name).beam
+        beam = self.madx.sequences[self.sequence.name].beam
         return self.utool.dict_add_unit(beam)
 
     @beam.setter
