@@ -97,7 +97,6 @@ class Segment(object):
                  range,
                  madx,
                  utool,
-                 name=None,
                  twiss_args=None):
         """
         """
@@ -109,7 +108,6 @@ class Segment(object):
         self.range = range
         self.madx = madx
         self.utool = utool
-        self.name = name
         self.twiss_args = twiss_args
         self._columns = ['name', 'l', 'angle', 'k1l',
                          's',
@@ -121,7 +119,7 @@ class Segment(object):
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        beam = self.madx.get_sequence(self.name).beam
+        beam = self.madx.get_sequence(self.sequence.name).beam
         return self.utool.dict_add_unit(beam)
 
     @beam.setter

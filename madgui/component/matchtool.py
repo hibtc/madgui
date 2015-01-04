@@ -243,7 +243,7 @@ class Matching(object):
                     name: model.utool.strip_unit(name, val)})
 
         twiss_args = model.utool.dict_strip_unit(model.twiss_args)
-        model.madx.match(sequence=model.name,
+        model.madx.match(sequence=model.sequence.name,
                          vary=vary,
                          constraints=constraints,
                          twiss_init=twiss_args)
