@@ -157,12 +157,12 @@ class TwissView(object):
     def create_from_plain(cls, madx, frame, basename):
 
         # look for sequences
-        sequences = madx.get_sequence_names()
+        sequences = madx.sequences
         if len(sequences) == 0:
             # TODO: log
             return
         elif len(sequences) == 1:
-            name = sequences[0]
+            name = next(iter(sequences))
         else:
             # if there are multiple sequences - just ask the user which
             # one to use rather than taking a wild guess based on twiss
@@ -179,12 +179,22 @@ class TwissView(object):
                 dlg.Destroy()
 
         # select twiss initial conditions
-        twiss_args = TwissDialog.create(frame, frame.madx_units, None)
+        twiss_args = TwissDialog.show_modal(frame, frame.madx_units, None)
 
         # now create the actual model object
         # TODO: insert segment into simulator
         # TODO: show segment
-        segment = Segment(madx, utool=frame.madx_units, name=name)
+        segment = Segment(
+            sequence=name,
+            range='#s/#e',
+            madx=madx,
+            utool=frame.madx_units,
+            twiss_args={},
+        )
+        segment.model = None
+        view = cls(segment, basename, frame.app.conf['line_view'])
+        frame.AddView(view, view.title)
+        return view
 
     def __init__(self, model, basename, line_view_config):
 

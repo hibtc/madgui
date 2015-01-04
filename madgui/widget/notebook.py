@@ -165,7 +165,7 @@ class NotebookFrame(wx.Frame):
         finally:
             dlg.Destroy()
 
-        madx = frame.env['madx']
+        madx = self.env['madx']
         madx.call(path, True)
 
     def _CreateMenu(self):
