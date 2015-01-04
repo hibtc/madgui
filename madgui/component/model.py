@@ -90,6 +90,7 @@ class Segment(object):
 
     # TODO: more logging
     # TODO: automatically switch directories when CALLing files
+    # TODO: adjust for S-offset
 
     def __init__(self,
                  sequence,
@@ -124,8 +125,9 @@ class Segment(object):
         return self.utool.dict_add_unit(beam)
 
     @beam.setter
-    def beam(self):
+    def beam(self, beam):
         """Set beam from a parameter dictionary."""
+        self.madx.command.beam(**self.utool.dict_strip_unit(beam))
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""

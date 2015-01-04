@@ -242,8 +242,17 @@ class NotebookFrame(wx.Frame):
         # Create menu items
         self.hook.menu(self, menubar)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
-        self._IsEnabledTop_Control = True
+        self._IsEnabledTop = {self.ViewMenuIndex: True,
+                              self.TabMenuIndex: True}
         return menubar
+
+    @property
+    def ViewMenuIndex(self):
+        return 1
+
+    @property
+    def TabMenuIndex(self):
+        return 2
 
     def OnNewWindow(self, event):
         """Open a new frame."""
@@ -257,6 +266,17 @@ class NotebookFrame(wx.Frame):
         view.plot()
         self.env['views'].append(view)
         return panel
+
+    def GetActivePanel(self):
+        """Return the Panel which is currently active."""
+        return self.notebook.GetPage(self.notebook.GetSelection())
+
+    def GetActiveFigurePanel(self):
+        """Return the FigurePanel which is currently active or None."""
+        panel = self.GetActivePanel()
+        if isinstance(panel, FigurePanel):
+            return panel
+        return None
 
     def OnClose(self, event):
         # We want to terminate the remote session, otherwise _read_stream
@@ -286,17 +306,23 @@ class NotebookFrame(wx.Frame):
         self.Close()
 
     def OnUpdateMenu(self, event):
-        idx = 1
-        enable = bool(self.env['madx'].sequences
-                      or self.env['simulator'].model)
+        enable_view = bool(self.env['madx'].sequences
+                           or self.env['simulator'].model)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is
         # bugged on windows, we need to keep track ourself:
         # if enable != self.menubar.IsEnabledTop(idx):
-        if enable != self._IsEnabledTop_Control:
-            self.menubar.EnableTop(idx, enable)
-            self._IsEnabledTop_Control = enable
+        view_menu_index = self.ViewMenuIndex
+        if enable_view != self._IsEnabledTop[view_menu_index]:
+            self.menubar.EnableTop(view_menu_index, enable_view)
+            self._IsEnabledTop[view_menu_index] = enable_view
+        # Enable/Disable &Tab menu
+        enable_tab = bool(self.GetActiveFigurePanel())
+        tab_menu_index = self.TabMenuIndex
+        if enable_tab != self._IsEnabledTop[tab_menu_index]:
+            self.menubar.EnableTop(tab_menu_index, enable_tab)
+            self._IsEnabledTop[tab_menu_index] = enable_tab
         event.Skip()
 
     def _NewCommandTab(self):
