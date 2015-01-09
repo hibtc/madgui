@@ -50,8 +50,7 @@ class Simulator(object):
         self.rpc_client = client
         self.remote_process = process
         self.libmadx = client.libmadx
-        self.madx = Madx(libmadx=self.libmadx,
-                         command_log=CommandLog(sys.stdout))
+        self.madx = Madx(libmadx=self.libmadx)
 
         self.model = None
         self.utool = utool
