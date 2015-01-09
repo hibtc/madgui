@@ -60,7 +60,7 @@ setup(
     license=meta['__license__'],
     test_suite='nose.collector',
     install_requires=[
-        'cpymad==0.10.0',
+        'cpymad>=0.10.1',
         'docopt',
         'matplotlib',
         'numpy',

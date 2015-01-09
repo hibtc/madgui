@@ -306,6 +306,8 @@ class NotebookFrame(wx.Frame):
         self.Close()
 
     def OnUpdateMenu(self, event):
+        if not self.env['madx']:
+            return
         enable_view = bool(self.env['madx'].sequences
                            or self.env['simulator'].model)
         # we only want to call EnableTop() if the state is actually
