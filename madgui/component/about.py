@@ -21,5 +21,8 @@ def show_about_dialog(parent):
     info.SetWebSite(madgui.__uri__)
     info.SetLicence(madgui.get_license_text())
     info.AddDeveloper(madgui.__author__)
-    wx.AboutBox(info, parent=parent)
-
+    try:
+        wx.AboutBox(info, parent=parent)
+    except TypeError:
+        # 'parent' is not supported on windows (or just older wx version?):
+        wx.AboutBox(info)
