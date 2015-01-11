@@ -32,7 +32,7 @@ class MatchTool(object):
         self.hook = HookCollection(
             start='madgui.component.matching.start')
         self.cid = None
-        self.model = panel.view.segman
+        self.segman = panel.view.segman
         self.panel = panel
         self.view = panel.view
         self.matcher = None
@@ -65,7 +65,7 @@ class MatchTool(object):
                 'button_press_event',
                 self.on_match)
         app = self.panel.GetTopLevelParent().app
-        self.matcher = Matching(self.model, app.conf['matching'])
+        self.matcher = Matching(self.segman, app.conf['matching'])
         self.hook.start(self.matcher, self.view)
 
     def stop_match(self):
@@ -90,7 +90,7 @@ class MatchTool(object):
         name = self.view.get_axes_name(axes)
         conj = self.view.get_conjugate(name)
 
-        elem = self.model.element_by_position(
+        elem = self.segman.element_by_position(
             event.xdata * self.view.unit['s'])
         if elem is None or 'name' not in elem:
             return
@@ -118,7 +118,7 @@ class MatchTool(object):
         self.matcher.add_constraint(name, elem, envelope)
 
         # add another constraint to hold the orthogonal axis constant
-        orth_env = self.model.get_twiss(elem, conj)
+        orth_env = self.segman.get_twiss(elem, conj)
         self.matcher.add_constraint(conj, elem, orth_env)
 
         self.matcher.match()
@@ -127,9 +127,9 @@ class MatchTool(object):
 
 class MatchTransform(object):
 
-    def __init__(self, model):
-        self._ex = model.summary['ex']
-        self._ey = model.summary['ey']
+    def __init__(self, segment):
+        self._ex = segment.summary['ex']
+        self._ey = segment.summary['ey']
 
     def envx(self, val):
         return 'betx', val*val/self._ex
@@ -163,16 +163,15 @@ def _get_any_elem_param(elem, params):
 class Matching(object):
 
 
-    def __init__(self, model, rules):
+    def __init__(self, segman, rules):
         self.hook = HookCollection(
             stop=None,
             add_constraint=None,
             remove_constraint=None,
             clear_constraints=None)
-        self.model = model
-        self.rules = rules
+        self.segman = segman
         self.constraints = {}
-        self._elements = model.elements
+        self._elements = segman.elements
         self._rules = rules
         self._variable_parameters = {}
 
@@ -196,8 +195,9 @@ class Matching(object):
 
         """Perform matching according to current constraints."""
 
-        model = self.model
-        trans = MatchTransform(model)
+        segment = self.get_segment()
+        simul = self.segman.simulator
+        trans = MatchTransform(segment)
 
         # transform constraints (envx => betx, etc)
         trans_constr = {}
@@ -240,14 +240,16 @@ class Matching(object):
                 el_name = re.sub(':\d+$', '', elem['name'])
                 constraints.append({
                     'range': el_name,
-                    name: model.utool.strip_unit(name, val)})
+                    name: simul.utool.strip_unit(name, val)})
 
-        twiss_args = model.utool.dict_strip_unit(model.twiss_args)
-        model.madx.match(sequence=model.sequence.name,
+        twiss_args = simul.utool.dict_strip_unit(segment.twiss_args)
+        simul.madx.match(sequence=segment.sequence.name,
                          vary=vary,
                          constraints=constraints,
                          twiss_init=twiss_args)
-        model.twiss()
+        segment.twiss()
+        segment.hook.update()
+        self.segman.hook.update()
 
     def _gconstr(self, axis):
         return self.constraints.get(axis, [])
@@ -255,13 +257,29 @@ class Matching(object):
     def _sconstr(self, axis):
         return self.constraints.setdefault(axis, [])
 
+    def get_segment(self):
+        if not self.constraints:
+            return None
+        # assuming constraint insertion complies to the invariant that each
+        # constraint must live in the same segment, it is enough to use any
+        # constraint:
+        # TODO: usage of set_twiss_initial breaks this assumption
+        name = next(iter(self.constraints))
+        elem, env = next(iter(self.constraints[name]))
+        return self.segman.get_segment_at(elem['at'])
+
     def find_constraint(self, axis, elem):
         """Find and return the constraint for the specified element."""
         return [c for c in self._gconstr(axis) if c[0] == elem]
 
     def add_constraint(self, axis, elem, envelope):
         """Add constraint and perform matching."""
-        self.remove_constraint(axis, elem)
+        cur_seg = self.get_segment()
+        new_seg = self.segman.get_segment_at(elem['at'])
+        if cur_seg is not None and new_seg is not cur_seg:
+            self.clear_constraints()
+        else:
+            self.remove_constraint(axis, elem)
         self._sconstr(axis).append( (elem, envelope) )
         self.hook.add_constraint()
 
