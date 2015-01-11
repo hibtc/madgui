@@ -32,7 +32,7 @@ class MatchTool(object):
         self.hook = HookCollection(
             start='madgui.component.matching.start')
         self.cid = None
-        self.model = panel.view.model
+        self.model = panel.view.segman
         self.panel = panel
         self.view = panel.view
         self.matcher = None

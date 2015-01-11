@@ -54,7 +54,7 @@ class CompareTool(object):
         The envelope is NOT visible by default.
         """
         self._view = view = panel.view
-        self._model = model = view.model
+        self._model = model = view.segman
         self._lines = {}
         self._visible = False
         self._metadata = None

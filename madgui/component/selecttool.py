@@ -24,7 +24,7 @@ class SelectTool(object):
     def __init__(self, panel):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.cid = None
-        self.model = panel.view.model
+        self.model = panel.view.segman
         self.panel = panel
         self.view = panel.view
         # toolbar tool
@@ -107,7 +107,7 @@ class SelectTool(object):
             move_step = 1
         else:
             return
-        old_index = self.model.element_index_by_name(view.element_name)
+        old_index = self.model.get_element_index(view.element_name)
         new_index = old_index + move_step
         elements = self.model.elements
         new_elem = elements[new_index % len(elements)]

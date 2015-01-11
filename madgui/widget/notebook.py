@@ -18,7 +18,7 @@ from wx.py.crust import Crust
 # internal
 from madgui.widget.figure import FigurePanel
 from madgui.core.plugin import HookCollection
-from madgui.component.model import Simulator, Segment
+from madgui.component.model import Simulator
 from madgui.util import unit
 
 # exported symbols
@@ -193,7 +193,6 @@ class NotebookFrame(wx.Frame):
             beam = BeamDialog.show_modal(self, self.madx_units, segment.beam)
             if beam is not None:
                 segment.beam = beam
-                segment.twiss()
 
         menubar = self.menubar = wx.MenuBar()
         extend_menu(self, menubar, [

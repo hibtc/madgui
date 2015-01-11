@@ -23,7 +23,7 @@ class ElementMarker(object):
     def __init__(self, line_view, elem_view):
         self._line_view = line_view
         self._elem_view = elem_view
-        self._model = line_view.model
+        self._model = line_view.segman
         self._lines = []
         self._elem_view.hook.set_element.connect(self.update)
         self._elem_view.hook.close.connect(self.remove)
@@ -105,9 +105,9 @@ class ElementView(object):
 
     @property
     def element(self):
-        elements = self.model.madx.active_sequence.elements
+        elements = self.model.simulator.madx.active_sequence.elements
         raw_element = elements[self.element_name]
-        return self.model.utool.dict_add_unit(raw_element)
+        return self.model.simulator.utool.dict_add_unit(raw_element)
 
     def update(self):
 
