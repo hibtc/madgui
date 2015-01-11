@@ -195,7 +195,8 @@ class SegmentedRange(object):
     @beam.setter
     def beam(self, beam):
         """Set beam from a parameter dictionary."""
-        self.madx.command.beam(**self.simulator.utool.dict_strip_unit(beam))
+        self.simulator.madx.command.beam(
+            **self.simulator.utool.dict_strip_unit(beam))
         # TODO: re-run twiss
 
     def element_by_position(self, pos):

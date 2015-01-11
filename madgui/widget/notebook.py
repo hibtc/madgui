@@ -188,11 +188,10 @@ class NotebookFrame(wx.Frame):
                 segment.twiss()
 
         def set_beam(event):
-            # TODO: get initial segment for current TAB
-            segment = self.GetActiveFigurePanel().view.model
-            beam = BeamDialog.show_modal(self, self.madx_units, segment.beam)
+            segman = self.GetActiveFigurePanel().view.segman
+            beam = BeamDialog.show_modal(self, self.madx_units, segman.beam)
             if beam is not None:
-                segment.beam = beam
+                segman.beam = beam
 
         menubar = self.menubar = wx.MenuBar()
         extend_menu(self, menubar, [
