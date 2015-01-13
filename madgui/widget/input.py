@@ -56,10 +56,32 @@ class ModalDialog(wx.Dialog):
     def CreateControls(self):
         """
         Create GUI elements.
-
-        Abstract method.
         """
-        raise NotImplementedError()
+        outer = wx.BoxSizer(wx.VERTICAL)
+        inner = wx.BoxSizer(wx.VERTICAL)
+        outer.Add(inner, 1, flag=wx.ALL|wx.EXPAND, border=5)
+        self.AddContentArea(inner)
+        self.AddButtonArea(inner)
+        self.SetSizer(outer)
+
+    def AddContentArea(self, outer):
+        """
+        Create sizer with content area, i.e. input fields.
+        """
+        outer.Add(self.CreateContentArea(), 1,
+                  flag=wx.ALL|wx.EXPAND,
+                  border=5)
+
+    def AddButtonArea(self, outer):
+        """
+        Add button area.
+        """
+        outer.Add(wx.StaticLine(self, style=wx.LI_HORIZONTAL),
+                  flag=wx.ALL|wx.EXPAND,
+                  border=5)
+        outer.Add(self.CreateButtonSizer(),
+                  flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL,
+                  border=5)
 
     def TransferDataToWindow(self):
         """
@@ -72,6 +94,14 @@ class ModalDialog(wx.Dialog):
     def TransferDataFromWindow(self):
         """
         Read input values from GUI elements.
+
+        Abstract method.
+        """
+        raise NotImplementedError()
+
+    def CreateContentArea(self):
+        """
+        Create a sizer with the content area controls.
 
         Abstract method.
         """

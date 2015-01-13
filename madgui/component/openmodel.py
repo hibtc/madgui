@@ -128,7 +128,7 @@ class OpenModelDlg(ModalDialog):
         self.mdata = None
         self.repo = None
 
-    def CreateControls(self):
+    def CreateContentArea(self):
 
         """Create subcontrols and layout."""
 
@@ -137,7 +137,6 @@ class OpenModelDlg(ModalDialog):
         label_model = wx.StaticText(self, label="Model:")
         self.ctrl_pkg = wx.ComboBox(self, wx.CB_DROPDOWN|wx.CB_SORT)
         self.ctrl_model = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-        self.TransferDataToWindow() # needed?
 
         # Create box sizer
         controls = wx.FlexGridSizer(rows=2, cols=2)
@@ -154,19 +153,10 @@ class OpenModelDlg(ModalDialog):
         controls.Add(label_model, flag=left, **sizeargs)
         controls.Add(self.ctrl_model, flag=expand, **sizeargs)
 
-        # buttons
-        buttons = self.CreateButtonSizer()
-
-        # outer layout sizer
-        outer = wx.BoxSizer(wx.VERTICAL)
-        outer.Add(controls, flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.ALL, **sizeargs)
-        outer.Add(buttons, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, **sizeargs)
-
         # register for events
         self.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
 
-        # associate sizer and layout
-        self.SetSizer(outer)
+        return controls
 
     def OnPackageChange(self, event):
         """Update model list when package name is changed."""

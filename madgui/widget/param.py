@@ -206,23 +206,12 @@ class ParamDialog(ModalDialog):
         self.data = data or {}
         self.readonly = readonly
 
-    def CreateControls(self):
-        """Implements ModalDialog.CreateControls."""
-        outer = wx.BoxSizer(wx.VERTICAL)
-        self.InsertContentArea(outer)
-        self.InsertButtonArea(outer)
-        self.SetSizer(outer)
-        self.TransferDataToWindow()
-
-    def InsertButtonArea(self, outer):
-        outer.Add(self.CreateButtonSizer(), flag=wx.ALIGN_CENTER_HORIZONTAL)
-
-    def InsertContentArea(self, outer):
+    def CreateContentArea(self):
         """Create sizer with content area, i.e. input fields."""
         content = wx.BoxSizer(wx.VERTICAL)
         self.InsertInputArea(content)
         self.InsertAddFieldArea(content)
-        outer.Add(content, flag=wx.ALL|wx.EXPAND)
+        return content
 
     def InsertInputArea(self, outer):
         """Create a two-column input grid, with auto sized width."""
