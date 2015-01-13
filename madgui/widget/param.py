@@ -233,6 +233,7 @@ class ParamDialog(ModalDialog):
 
         button_add = wx.Button(self, wx.ID_ADD)
         self.Bind(wx.EVT_BUTTON, self.OnButtonAdd, source=button_add)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnButtonAddUpdate, source=button_add)
         sizer_add.Add(self._ctrl_add)
         sizer_add.Add(button_add)
         outer.Add(sizer_add, flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -271,6 +272,9 @@ class ParamDialog(ModalDialog):
         self.AddGroup(group)
         self.Layout()
         self.Fit()
+
+    def OnButtonAddUpdate(self, event):
+        event.Enable(self._ctrl_add.GetCount() > 0)
 
     def AddGroup(self, group):
         """
