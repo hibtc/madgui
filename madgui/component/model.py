@@ -9,6 +9,7 @@ from __future__ import absolute_import
 # standard library
 from collections import namedtuple
 import os
+import re
 import subprocess
 import sys
 
@@ -166,9 +167,11 @@ class SegmentedRange(object):
         self.hook.update()
 
     def _create_segment(self, start, stop):
+        start = self.get_element_info(start)
+        stop = self.get_element_info(stop)
         segment = Segment(self.sequence,
-                          self.get_element_info(start),
-                          self.get_element_info(stop),
+                          start,
+                          stop,
                           self.simulator.madx,
                           self.simulator.utool,
                           self.twiss_initial[start.index])
@@ -245,6 +248,18 @@ class SegmentedRange(object):
         return segment.tw[name][element.index - segment.start.index]
 
 
+def normalize_range_name(name):
+    # MAD-X does not allow the ":d" suffix in the 'range' parameter string.
+    # This means that name becomes less unique, but that's the only way right
+    # now:
+    name = re.sub(':\d+$', '', name.lower())
+    if name.endswith('$end'):
+        return '#e'
+    if name.endswith('$start'):
+        return '#s'
+    return name
+
+
 class Segment(object):
 
     """
@@ -266,7 +281,8 @@ class Segment(object):
         self.sequence = sequence
         self.start = start
         self.stop = stop
-        self.range = (start.name, stop.name)
+        self.range = (normalize_range_name(start.name),
+                      normalize_range_name(stop.name))
         self.madx = madx
         self.utool = utool
         self.twiss_args = twiss_args
