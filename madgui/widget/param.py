@@ -11,28 +11,31 @@ from collections import OrderedDict
 
 # GUI components
 from madgui.core import wx
+from wx.lib.mixins import listctrl as listmix
 
 # internal
 from madgui.widget.input import ModalDialog
+from madgui.widget.listview import ListView
 
 
-__all__ = ['truncate',
-           'Bool',
-           'String',
-           'Float',
-           'Matrix',
-           'ParamDialog']
+__all__ = [
+    'Bool',
+    'String',
+    'Float',
+    'Matrix',
+    'ParamDialog',
+]
 
 
-# TWISS parameters are organized in 'groups': if the user accesses any one
-# parameter, all parameters of the corresponding group will be shown in a
-# defined layout.
-# This is IMHO the easiest and somewhat convenient way to make all parameters
-# optional but retain a semantic grouping.
+class EditListCtrl(wx.ListCtrl, listmix.TextEditMixin):
+
+    def __init__(self, *args, **kwargs):
+        wx.ListCtrl.__init__(self, *args, **kwargs)
+        listmix.TextEditMixin.__init__(self)
 
 
-def truncate(s, w):
-    return (s[:w-2] + '..') if len(s) > w else s
+# wx.wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT
+# wx.wxEVT_COMMAND_LIST_END_LABEL_EDIT
 
 
 class BaseControl(object):
@@ -119,10 +122,6 @@ class ParamGroup(object):
         """Get the default value for a specific parameter name."""
         return self._defaults[param]
 
-    def layout(self):
-        """Get the layout as tuple (rows, columns)."""
-        return (1, len(self._defaults))
-
 
 class Bool(ParamGroup):
 
@@ -157,13 +156,16 @@ class Matrix(Float):
                        for row in range(rows))
         super(Matrix, self).__init__(**params)
 
-    def layout(self):
-        """Overrides ParamGroup.layout."""
-        return self._layout
-
 
 # TODO: class Vector(Float)
 # unlike Matrix this represents a single MAD-X parameter of type ARRAY.
+
+
+def _split_value(utool, value):
+    try:
+        return str(utool.strip_unit(value)), utool.get_unit_label(value)
+    except AttributeError:
+        return str(value), ""
 
 
 class ParamDialog(ModalDialog):
@@ -178,7 +180,7 @@ class ParamDialog(ModalDialog):
 
     Private members:
 
-    :ivar list _groups: param groups that are added to the dialog
+    :ivar list added_params: param groups that are added to the dialog
 
     Private GUI members:
 
@@ -202,7 +204,11 @@ class ParamDialog(ModalDialog):
     def SetData(self, utool, params, data, readonly=False):
         """Implements ModalDialog.SetData."""
         self.utool = utool
-        self.params = params
+        self.params = OrderedDict(
+            (param, group)
+            for group in params
+            for param in group.names()
+        )
         self.data = data or {}
         self.readonly = readonly
 
@@ -215,20 +221,28 @@ class ParamDialog(ModalDialog):
 
     def InsertInputArea(self, outer):
         """Create a two-column input grid, with auto sized width."""
-        self._groups = []
-        self._grid = wx.GridBagSizer(vgap=5, hgap=5)
-        self._grid.SetFlexibleDirection(wx.HORIZONTAL)
-        self._grid.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_NONE) # fixed height
-        outer.Add(self._grid, flag=wx.ALL|wx.EXPAND, border=5)
+        self.added_params = []
+        self._grid = grid = EditListCtrl(self, style=wx.LC_REPORT)
+        grid.SetMinSize(wx.Size(400, 200))
+        grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
+        grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
+                          format=wx.LIST_FORMAT_RIGHT)
+        grid.InsertColumn(2, "Unit")
+        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginEdit, source=grid)
+        self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndEdit, source=grid)
+        outer.Add(grid, flag=wx.ALL|wx.EXPAND, border=5)
+
+    def OnBeginEdit(self, event):
+        pass
+
+    def OnEndEdit(self, event):
+        pass
 
     def InsertAddFieldArea(self, outer):
         """Create 'Add parameter' control."""
         sizer_add = wx.BoxSizer(wx.HORIZONTAL)
         self._ctrl_add = wx.Choice(self)
-        self._ctrl_add.SetItems([truncate(", ".join(group.names()), 20)
-                           for group in self.params])
-        for i, group in enumerate(self.params):
-            self._ctrl_add.SetClientData(i, group)
+        self._ctrl_add.SetItems(list(self.params))
         self._ctrl_add.SetSelection(0)
 
         button_add = wx.Button(self, wx.ID_ADD)
@@ -247,13 +261,14 @@ class ParamDialog(ModalDialog):
         # iterating over `params` (rather than `data`) enforces a particular
         # order in the GUI:
         data = self.data
-        for param_group in self.params:
-            for param_name in param_group.names():
-                try:
-                    self.SetValue(param_name, data.get(param_name))
-                except KeyError:
-                    # log?
-                    pass
+        for param_name in self.params:
+            try:
+                self.SetValue(param_name, data.get(param_name))
+            except KeyError:
+                # log?
+                pass
+        self._grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self._grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     def TransferDataFromWindow(self):
         """
@@ -262,62 +277,19 @@ class ParamDialog(ModalDialog):
         Implements ParamDialog.TransferDataFromWindow.
         """
         self.data = {name: self.utool.add_unit(name, ctrl.Value)
-                     for group in self._groups
+                     for group in self.added_params
                      for name,ctrl in group.items()}
 
     def OnButtonAdd(self, event):
         """Add the selected group to the dialog."""
-        index = self._ctrl_add.GetSelection()
-        group = self._ctrl_add.GetClientData(index)
-        self.AddGroup(group)
+        self.AddParam(self._ctrl_add.GetStringSelection())
+        self._grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self._grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.Layout()
         self.Fit()
 
     def OnButtonAddUpdate(self, event):
         event.Enable(self._ctrl_add.GetCount() > 0)
-
-    def AddGroup(self, group):
-        """
-        Add a parameter group to the dialog using the default values.
-
-        :param ParamGroup group: parameter group metadata
-        :returns: mapping of all parameter controls in the group
-        :rtype: dict
-        """
-        rows, cols = group.layout()
-        row_offs = self._grid.GetRows()
-        # on windows, this doesn't happen automatically, when adding
-        # new items to the grid:
-        self._grid.SetRows(row_offs + rows)
-        # create and insert individual controls
-        controls = {}
-        self._groups.append(controls)
-        for i, param in enumerate(group.names()):
-            row = row_offs + i/cols
-            col = 2*(i%cols)
-            unit_label = self.utool.get_unit_label(param)
-            if unit_label:
-                text = '{} {}: '.format(param, unit_label)
-            else:
-                text = '{}: '.format(param)
-            label = wx.StaticText(self, label=text)
-            input = group.CreateControl(self)
-            input.Value = group.default(param)
-            self._grid.Add(label,
-                           wx.GBPosition(row, col),
-                           flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-            self._grid.Add(input.Control,
-                           wx.GBPosition(row, col+1),
-                           flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-            controls[param] = input
-        # remove the choice from the 'Add' Control
-        for i in range(self._ctrl_add.GetCount()):
-            if group == self._ctrl_add.GetClientData(i):
-                self._ctrl_add.Delete(i)
-                # TODO: check if count == 0
-                self._ctrl_add.SetSelection(0)
-                break
-        return controls
 
     def SetValue(self, name, value):
         """
@@ -329,22 +301,32 @@ class ParamDialog(ModalDialog):
         :param value: parameter value
         :raises KeyError: if the parameter name is invalid
         """
-        if value is not None:
-            self.AddParam(name).Value = self.utool.strip_unit(name, value)
+        if value is None:
+            return
+        item = self.AddParam(name)
+        grid = self._grid
+        grid.SetStringItem(item, 1, str(self.utool.strip_unit(name, value)))
 
-    def AddParam(self, param_name):
+    def AddParam(self, param):
         """
         Add the parameter group to the dialog if not already existing.
 
-        :param str param_name: parameter name
+        :param str param: parameter name
         :returns: the control that can be used to set/get values for the param
         :rtype: BaseControl
         :raises KeyError: if the parameter name is invalid
         """
-        for group in self._groups:
-            if param_name in group:
-                return group[param_name]
-        for group in self.params:
-            if param_name in group.names():
-                return self.AddGroup(group)[param_name]
-        raise KeyError(param_name)
+        grid = self._grid
+        item = grid.FindItem(0, param, partial=False)
+        if item != -1:
+            return item
+        group = self.params[param]
+        row = grid.GetItemCount()
+        grid.InsertStringItem(row, param)
+        grid.SetStringItem(row, 1, str(group.default(param)))
+        grid.SetStringItem(row, 2, self.utool.get_unit_label(param) or '')
+        # remove the choice from the 'Add' Control
+        index = self._ctrl_add.FindString(param)
+        self._ctrl_add.Delete(index)
+        self._ctrl_add.SetSelection(0)
+        return row
