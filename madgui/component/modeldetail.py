@@ -42,7 +42,7 @@ class ModelDetailDlg(ModalDialog):
                   flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         return combo
 
-    def CreateControls(self):
+    def CreateContentArea(self):
 
         """Create subcontrols and layout."""
 
@@ -57,23 +57,12 @@ class ModelDetailDlg(ModalDialog):
         self.ctrl_beam = self._AddComboBox(controls, 'Beam:')
         self.ctrl_range = self._AddComboBox(controls, 'Range:')
         self.ctrl_twiss = self._AddComboBox(controls, 'Twiss:')
-        self.TransferDataToWindow() # needed?
-
-        # outer layout sizer
-        outer = wx.BoxSizer(wx.VERTICAL)
-        outer.Add(controls,
-                  border=5,
-                  flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.ALL)
-        outer.Add(self.CreateButtonSizer(),
-                  border=5,
-                  flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL)
 
         # register for events
         self.Bind(wx.EVT_TEXT, self.OnSequenceChange, source=self.ctrl_sequence)
         self.Bind(wx.EVT_TEXT, self.OnRangeChange, source=self.ctrl_range)
 
-        # associate sizer and layout
-        self.SetSizer(outer)
+        return controls
 
     def OnSequenceChange(self, event):
         """Update default range+beam when sequence is changed."""

@@ -9,6 +9,7 @@ from __future__ import absolute_import
 # standard library
 from collections import namedtuple
 import os
+import re
 import subprocess
 import sys
 
@@ -86,11 +87,9 @@ class SegmentedRange(object):
         self.simulator = simulator
         self.sequence = simulator.madx.sequences[sequence]
         self.range = range
-        # TODO: use range
         self.start, self.stop = self.parse_range(range)
         self.segments = {}
         self.twiss_initial = {}
-        # TODO ..
         raw_elements = self.sequence.elements
         self.elements = list(map(
             self.simulator.utool.dict_add_unit, raw_elements))
@@ -119,6 +118,26 @@ class SegmentedRange(object):
 
     # segment allocation
 
+    def set_all(self, data):
+        edges = sorted(data) + [self.stop.index]
+        new_segments = list(zip(edges[:-1], edges[1:]))
+        old_twiss = self.twiss_initial
+        self.twiss_initial = data
+        # remove obsolete segments
+        for seg in self.segments.values():
+            if (seg.start.index, seg.stop.index) not in new_segments:
+                self._remove_segment(seg.start.index)
+        # insert new segments / update initial conditions
+        for start, stop in new_segments:
+            try:
+                seg = self.segments[start]
+            except KeyError:
+                self._create_segment(start, stop)
+            else:
+                if old_twiss.get(start, {}) != data[start]:
+                    seg.twiss()
+        self.hook.update()
+
     def set_twiss_initial(self, element, twiss_args):
         """
         Set initial conditions at specified element.
@@ -146,9 +165,11 @@ class SegmentedRange(object):
         self.hook.update()
 
     def _create_segment(self, start, stop):
+        start = self.get_element_info(start)
+        stop = self.get_element_info(stop)
         segment = Segment(self.sequence,
-                          self.get_element_info(start),
-                          self.get_element_info(stop),
+                          start,
+                          stop,
                           self.simulator.madx,
                           self.simulator.utool,
                           self.twiss_initial[start.index])
@@ -159,7 +180,7 @@ class SegmentedRange(object):
 
     def _remove_segment(self, start_index):
         segment = self.segments.pop(start_index)
-        old_seg.hook.remove()
+        segment.hook.remove()
         return segment
 
     def remove_twiss_inital(self, element):
@@ -225,6 +246,18 @@ class SegmentedRange(object):
         return segment.tw[name][element.index - segment.start.index]
 
 
+def normalize_range_name(name):
+    # MAD-X does not allow the ":d" suffix in the 'range' parameter string.
+    # This means that name becomes less unique, but that's the only way right
+    # now:
+    name = re.sub(':\d+$', '', name.lower())
+    if name.endswith('$end'):
+        return '#e'
+    if name.endswith('$start'):
+        return '#s'
+    return name
+
+
 class Segment(object):
 
     """
@@ -235,8 +268,6 @@ class Segment(object):
     :ivar dict twiss_args:
     """
 
-    # TODO: adjust for S-offset
-
     def __init__(self, sequence, start, stop, madx, utool, twiss_args):
         """
         """
@@ -246,7 +277,8 @@ class Segment(object):
         self.sequence = sequence
         self.start = start
         self.stop = stop
-        self.range = (start.name, stop.name)
+        self.range = (normalize_range_name(start.name),
+                      normalize_range_name(stop.name))
         self.madx = madx
         self.utool = utool
         self.twiss_args = twiss_args
@@ -266,6 +298,7 @@ class Segment(object):
         self.tw = self.utool.dict_add_unit(results)
         self.summary = self.utool.dict_add_unit(results.summary)
         # data post processing
+        self.tw['s'] += self.start.at
         self.pos = self.tw['s']
         self.tw['envx'] = (self.tw['betx'] * self.summary['ex'])**0.5
         self.tw['envy'] = (self.tw['bety'] * self.summary['ey'])**0.5

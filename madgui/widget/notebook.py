@@ -174,18 +174,15 @@ class NotebookFrame(wx.Frame):
         # files and/or a plugin system to add/enable/disable menu elements.
         from madgui.component.about import show_about_dialog
         from madgui.component.beamdialog import BeamDialog
-        from madgui.component.twissdialog import TwissDialog
+        from madgui.component.twissdialog import ManageTwissDialog
         from madgui.component.lineview import TwissView
         from madgui.component.openmodel import OpenModelDlg
 
         def set_twiss(event):
-            # TODO: get initial segment for current TAB
-            segment = self.GetActiveFigurePanel().view.model
-            twiss_args = TwissDialog.show_modal(self, self.madx_units,
-                                                segment.twiss_args)
-            if twiss_args is not None:
-                segment.twiss_args = twiss_args
-                segment.twiss()
+            segman = self.GetActiveFigurePanel().view.segman
+            dlg = ManageTwissDialog(self, "Manage TWISS", segman=segman)
+            if dlg.ShowModal() == wx.ID_OK:
+                segman.set_all(dlg.data)
 
         def set_beam(event):
             segman = self.GetActiveFigurePanel().view.segman
@@ -223,8 +220,8 @@ class NotebookFrame(wx.Frame):
                                                     self, basename='pos')),
             ]),
             Menu('&Tab', [
-                MenuItem('Set initial &TWISS',
-                         'Set TWISS initial conditions.',
+                MenuItem('Manage &initial conditions',
+                         'Add/remove/edit TWISS initial conditions.',
                          set_twiss),
                 MenuItem('Set &beam',
                          'Set beam.',
