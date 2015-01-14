@@ -115,6 +115,9 @@ class ManageTwissDialog(ModalDialog):
         """
         return bisect.bisect_left(sorted(self.data), element_index)
 
+    def GetElementIndex(self, element_row):
+        return sorted(self.data)[element_row]
+
     def AddTwissRow(self, elem_index, twiss_init=None):
 
         """
@@ -144,15 +147,18 @@ class ManageTwissDialog(ModalDialog):
     def OnButtonRemove(self, event):
         """Remove the Row with the specified."""
         grid = self._grid
-        grid.DeleteItem(grid.GetFirstSelected())
+        row = grid.GetFirstSelected()
+        grid.DeleteItem(row)
+        del self.data[self.GetElementIndex(row)]
 
     def OnButtonEdit(self, event):
         """Edit the TWISS initial conditions at the specified element."""
-        elem_index = self._grid.GetFirstSelected()
+        row = self._grid.GetFirstSelected()
+        index = self.GetElementIndex(row)
         utool = self.segman.simulator.utool
-        twiss_init = TwissDialog.show_modal(self, utool, self.data[elem_index])
+        twiss_init = TwissDialog.show_modal(self, utool, self.data[index])
         if twiss_init is not None:
-            self.data[elem_index] = twiss_init
+            self.data[index] = twiss_init
 
     def OnUpdateButton(self, event):
         event.Enable(self._grid.GetSelectedItemCount() > 0)
