@@ -10,21 +10,12 @@ from functools import partial
 
 # internal
 from madgui.core import wx
+from madgui.widget.listview import ListView
 from madgui.widget.input import ModalDialog
 from madgui.widget.param import ParamDialog, Bool, String, Float, Matrix
 
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
-
 
 __all__ = ['TwissDialog']
-
-
-class ListView(wx.ListView, ListCtrlAutoWidthMixin):
-
-    def __init__(self, *args, **kwargs):
-        wx.ListView.__init__(self, *args, **kwargs)
-        ListCtrlAutoWidthMixin.__init__(self)
-        self.setResizeColumn(0)
 
 
 class ManageTwissDialog(ModalDialog):
