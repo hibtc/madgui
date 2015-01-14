@@ -119,6 +119,26 @@ class SegmentedRange(object):
 
     # segment allocation
 
+    def set_all(self, data):
+        edges = sorted(data) + [self.stop.index]
+        new_segments = list(zip(edges[:-1], edges[1:]))
+        old_twiss = self.twiss_initial
+        self.twiss_initial = data
+        # remove obsolete segments
+        for seg in self.segments.values():
+            if (seg.start.index, seg.stop.index) not in new_segments:
+                self._remove_segment(seg.start.index)
+        # insert new segments / update initial conditions
+        for start, stop in new_segments:
+            try:
+                seg = self.segments[start]
+            except KeyError:
+                self._create_segment(start, stop)
+            else:
+                if old_twiss.get(start, {}) != data[start]:
+                    seg.twiss()
+        self.hook.update()
+
     def set_twiss_initial(self, element, twiss_args):
         """
         Set initial conditions at specified element.
@@ -159,7 +179,7 @@ class SegmentedRange(object):
 
     def _remove_segment(self, start_index):
         segment = self.segments.pop(start_index)
-        old_seg.hook.remove()
+        segment.hook.remove()
         return segment
 
     def remove_twiss_inital(self, element):

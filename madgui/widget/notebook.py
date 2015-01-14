@@ -182,8 +182,7 @@ class NotebookFrame(wx.Frame):
             segman = self.GetActiveFigurePanel().view.segman
             dlg = ManageTwissDialog(self, "Manage TWISS", segman=segman)
             if dlg.ShowModal() == wx.ID_OK:
-                # TODO: set initial conditions
-                pass
+                segman.set_all(dlg.data)
 
         def set_beam(event):
             segman = self.GetActiveFigurePanel().view.segman
