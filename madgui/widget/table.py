@@ -7,22 +7,7 @@ from __future__ import absolute_import
 
 # GUI components
 from madgui.core import wx
-
-
-class AutoSizedTextCtrl(wx.TextCtrl):
-
-    """
-    Text control that adapts its minimum size to fit the text.
-    """
-
-    def SetValue(self, value):
-        """Set text and update minimum size."""
-        # Convert to `str` (so this works with SymbolicValue, Unum, etc)
-        value = str(value)
-        # FIXME: the factor 1.2 is just a wild guess
-        minwidth = self.GetCharWidth() * len(value) * 1.2
-        self.SetMinSize(wx.Size(int(minwidth), -1))
-        return super(AutoSizedTextCtrl, self).SetValue(value)
+from madgui.widget.listview import ListView
 
 
 class TableDialog(wx.Dialog):
@@ -43,48 +28,52 @@ class TableDialog(wx.Dialog):
         super(TableDialog, self).__init__(
             parent=parent,
             style=wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER)
+        self._rows = []
         # Create a two-column grid, with auto sized width
-        self.grid = wx.FlexGridSizer(rows=0, cols=2, vgap=5, hgap=5)
-        self.grid.SetFlexibleDirection(wx.HORIZONTAL)
-        self.grid.AddGrowableCol(1, proportion=1)
-        # Don't grow height:
-        self.grid.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_NONE)
+        grid = ListView(self, style=wx.LC_REPORT)
+        grid.SetMinSize(wx.Size(400, 200))
+        self.grid = grid
+        grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
+        grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
+                          format=wx.LIST_FORMAT_RIGHT)
+        grid.InsertColumn(2, "Unit")
         outer = wx.BoxSizer(wx.VERTICAL)
         outer.Add(self.grid, flag=wx.ALL|wx.EXPAND, border=5)
         self.SetSizer(outer)
+        self.Layout()
+        self.Fit()
         self.Centre()
 
     @property
     def rows(self):
-        """Iterate over currently shown (key, value) pairs as strings."""
-        grid = self.grid
-        num_rows = grid.CalcRowsCols()[0]
-        for row in range(num_rows):
-            if grid.GetItem(2*row):
-                static = grid.GetItem(2*row).Window
-                edit = grid.GetItem(2*row+1).Window
-                yield static.LabelText, edit.Value
+        return self._rows
 
     @rows.setter
     def rows(self, rows):
         """Update/set (key, value) pairs."""
         grid = self.grid
-        num_rows = grid.CalcRowsCols()[0]
+        num_rows = grid.GetItemCount()
         if len(rows) == num_rows:
             # update grid
             for row, (key, val) in enumerate(rows):
-                grid.GetItem(2*row+0).Window.Value = key
-                # remember this is an AutoSizedTextCtrl, we need `SetValue`
-                # to properly convert and display an arbitrary value:
-                grid.GetItem(2*row+1).Window.SetValue(val)
+                value, value = _split_value(val)
+                grid.SetStringItem(row, 0, key)
+                grid.SetStringItem(row, 1, value)
+                grid.SetStringItem(row, 2, unit)
         else:
             # (re-)generate grid
-            grid.Clear(deleteWindows=True)
-            for key, val in rows:
-                style = wx.TE_READONLY|wx.TE_RIGHT|wx.NO_BORDER
-                label = wx.StaticText(self, label=key)
-                text = AutoSizedTextCtrl(self, style=style)
-                text.SetValue(val)
-                grid.Add(label, flag=wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-                grid.Add(text, flag=wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-        self.Fit()
+            grid.DeleteAllItems()
+            for row, (key, val) in enumerate(rows):
+                value, unit = _split_value(val)
+                grid.InsertStringItem(row, key)
+                grid.SetStringItem(row, 1, value)
+                grid.SetStringItem(row, 2, unit)
+        grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
+def _split_value(value):
+    from madgui.util.unit import strip_unit, get_unit_label
+    try:
+        return str(strip_unit(value)), get_unit_label(value)
+    except AttributeError:
+        return str(value), ""
