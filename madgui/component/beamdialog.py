@@ -12,6 +12,8 @@ from madgui.widget.param import Bool, String, Float, ParamDialog
 
 class BeamDialog(ParamDialog):
 
+    title = "Beam properties"
+
     params = [
         String(particle="positron"),
         #String(sequence=""),   # line/sequence is passed by madgui
@@ -43,31 +45,3 @@ class BeamDialog(ParamDialog):
         #Vector(pdamp=[1, 1, 2]),
         Float(n1min=-1),
     ]
-
-    @classmethod
-    def connect_menu(cls, notebook, menubar):
-        def OnClick(event):
-            model = notebook.vars['control']
-            dlg = cls(notebook,
-                      utool=model.utool,
-                      data=model.beam)
-            if dlg.ShowModal() == wx.ID_OK:
-                model.beam = dlg.data
-                model.twiss()
-        seqmenu = menubar.Menus[1][0]
-        menuitem = seqmenu.Append(wx.ID_ANY, '&Beam', 'Set beam.')
-        notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
-
-    def __init__(self, parent, utool, data, readonly=False):
-        """
-        Create an empty popup window.
-
-        Extends wx.Dialog.__init__.
-        """
-        super(BeamDialog, self).__init__(
-            parent=parent,
-            title="Beam properties",
-            utool=utool,
-            params=self.params,
-            data=data,
-            readonly=readonly)

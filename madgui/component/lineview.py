@@ -6,12 +6,16 @@ View component for the MadGUI application.
 # force new style imports
 from __future__ import absolute_import
 
+from functools import partial
+
 # scipy
 import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-import madgui.core
+from madgui.component.twissdialog import TwissDialog
+from madgui.component.model import SegmentedRange
+from madgui.component.modeldetail import ModelDetailDlg
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
@@ -29,6 +33,12 @@ def _clear_ax(ax):
     ax.grid(True)
     ax.get_xaxis().set_minor_locator(AutoMinorLocator())
     ax.get_yaxis().set_minor_locator(AutoMinorLocator())
+
+
+def _autoscale_axes(axes):
+    """Autoscale a :class:`matplotlib.axes.Axes` to its contents."""
+    axes.relim()
+    axes.autoscale()
 
 
 class FigurePair(object):
@@ -54,6 +64,8 @@ class FigurePair(object):
 
     def draw(self):
         """Draw the figure on its canvas."""
+        _autoscale_axes(self.axx)
+        _autoscale_axes(self.axy)
         self.figure.canvas.draw()
 
     def set_slabel(self, label):
@@ -66,26 +78,24 @@ class FigurePair(object):
         _clear_ax(self.axy)
 
 
-class TwissCurve(object):
+class TwissCurveSegment(object):
 
-    """Plot a TWISS parameter curve into a 2D figure."""
+    """Plot a TWISS parameter curve segment into a 2D figure."""
 
-    @classmethod
-    def from_view(cls, view):
-        """Create a :class:`TwissCurve` inside a :class:`TwissView`."""
-        style = view.config['curve_style']
-        curve = cls(view.model, view.unit, style)
-        # register for update events
-        view.hook.plot_ax.connect(curve.plot_ax)
-        view.hook.update_ax.connect(curve.update_ax)
-        return curve
-
-    def __init__(self, model, unit, style):
+    def __init__(self, segment, view):
         """Store meta data."""
-        self._model = model
-        self._unit = unit
-        self._style = style
+        self._segment = segment
+        self._unit = view.unit
+        self._style = view.config['curve_style']
         self._clines = {}
+        self._view = view
+        # Register for update events
+        view.hook.plot_ax.connect(self.plot_ax)
+        self._segment.hook.update.connect(self.update)
+        self._segment.hook.remove.connect(self.destroy)
+        # Create initial plot
+        self.plot_ax(self._view.figure.axx, self._view.xname)
+        self.plot_ax(self._view.figure.axy, self._view.yname)
 
     def plot_ax(self, axes, name):
         """Make one subplot."""
@@ -95,15 +105,27 @@ class TwissCurve(object):
         axes.set_xlim(abscissa[0], abscissa[-1])
         self._clines[name] = axes.plot(abscissa, ordinate, **style)[0]
 
+    def update(self):
+        """Update the (previously plotted!) lines in the graph."""
+        self.update_ax(self._view.figure.axx, self._view.xname)
+        self.update_ax(self._view.figure.axy, self._view.yname)
+
     def update_ax(self, axes, name):
         """Update the y values for one subplot."""
         self._clines[name].set_ydata(self.get_float_data(name))
-        axes.relim()
-        axes.autoscale_view()
 
     def get_float_data(self, name):
         """Get a float data vector."""
-        return strip_unit(self._model.tw[name], self._unit[name])
+        return strip_unit(self._segment.tw[name], self._unit[name])
+
+    def destroy(self):
+        """Disconnect update events."""
+        self._view.hook.plot_ax.disconnect(self.plot_ax)
+        self._segment.hook.update.disconnect(self.update)
+        self._segment.hook.remove.disconnect(self.destroy)
+        for line in self._clines.values():
+            line.remove()
+        self._clines.clear()
 
 
 class TwissView(object):
@@ -111,34 +133,102 @@ class TwissView(object):
     """Instanciate an FigurePair + XYCurve(Envelope)."""
 
     @classmethod
-    def connect_menu(cls, notebook, menubar):
-        def OnClick(event):
-            model = notebook.vars['control']
-            if model:
-                cls.create(model, notebook)
-        seqmenu = menubar.Menus[1][0]
-        menuitem = seqmenu.Append(wx.ID_ANY, cls.action, cls.description)
-        notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
+    def create(cls, simulator, frame, basename):
+        """Create a new view panel as a page in the notebook frame."""
+        if simulator.model:
+            cls.create_from_model(simulator, frame, basename)
+        else:
+            cls.create_from_plain(simulator, frame, basename)
 
     @classmethod
-    def create(cls, model, frame, basename=None):
+    def create_from_model(cls, simulator, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        if basename is None:
-            basename = cls.basename
-        view = cls(model, basename, frame.app.conf['line_view'])
+        cpymad_model = simulator.model
+        select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
+                                           title=cpymad_model.name)
+        try:
+            if select_detail_dlg.ShowModal() != wx.ID_OK:
+                return
+        finally:
+            select_detail_dlg.Destroy()
+
+        detail = select_detail_dlg.data
+
+        sequence = cpymad_model.sequences[detail['sequence']]
+        range = sequence.ranges[detail['range']]
+        twiss_args = range.initial_conditions[detail['twiss']]
+        twiss_args = frame.madx_units.dict_add_unit(twiss_args)
+        range.init()
+
+        segment = SegmentedRange(
+            simulator=simulator,
+            sequence=detail['sequence'],
+            range=range.bounds,
+        )
+        segment.model = cpymad_model
+
+        view = cls(segment, basename, frame.app.conf['line_view'])
         frame.AddView(view, view.title)
+
+        # TODO: select twiss initial only at figure.init time
+        start_element = segment.get_element_info(range.bounds[0])
+        segment.set_twiss_initial(start_element, twiss_args)
+
         return view
 
-    def __init__(self, model, basename, line_view_config):
+    @classmethod
+    def create_from_plain(cls, simulator, frame, basename):
+
+        madx = simulator.madx
+
+        # look for sequences
+        sequences = madx.sequences
+        if len(sequences) == 0:
+            # TODO: log
+            return
+        elif len(sequences) == 1:
+            name = next(iter(sequences))
+        else:
+            # if there are multiple sequences - just ask the user which
+            # one to use rather than taking a wild guess based on twiss
+            # computation etc
+            dlg = wx.SingleChoiceDialog(parent=frame,
+                                        caption="Select sequence",
+                                        message="Select sequence:",
+                                        choices=sequences)
+            try:
+                if dlg.ShowModal() != wx.ID_OK:
+                    return
+                name = dlg.GetStringSelection()
+            finally:
+                dlg.Destroy()
+
+        # now create the actual model object
+        # TODO: insert segment into simulator
+        # TODO: show segment
+        segment = SegmentedRange(
+            simulator=simulator,
+            sequence=name,
+            range='#s/#e',
+        )
+        segment.model = None
+        view = cls(segment, basename, frame.app.conf['line_view'])
+        frame.AddView(view, view.title)
+
+        # TODO: auto-select twiss initial conditions
+        # twiss_args = TwissDialog.show_modal(frame, frame.madx_units, None)
+
+        return view
+
+    def __init__(self, segmentation_manager, basename, line_view_config):
 
         self.hook = HookCollection(
             plot=None,
-            update_ax=None,
             plot_ax=None)
 
         # create figure
         self.figure = figure = FigurePair()
-        self.model = model
+        self.segman = segmentation_manager
         self.config = line_view_config
 
         self.title = line_view_config['title'][basename]
@@ -156,18 +246,15 @@ class TwissView(object):
         self.unit = unit = {col: getattr(units, unit_names[col])
                             for col in [sname, xname, yname]}
 
-        # create a curve as first plotter hook
-        TwissCurve.from_view(self)
-
         # subscribe for updates
-        model.hook.update.connect(self.update)
+        self.segman.hook.update.connect(self.update)
+        self.segman.hook.add_segment.connect(self.on_add_segment)
 
     def destroy(self):
-        self.model.hook.update.disconnect(self.update)
+        self.segman.hook.update.disconnect(self.update)
+        self.segman.hook.add_segment.disconnect(self.on_add_segment)
 
     def update(self):
-        self.hook.update_ax(self.figure.axx, self.xname)
-        self.hook.update_ax(self.figure.axy, self.yname)
         self.figure.draw()
 
     def get_label(self, name):
@@ -196,17 +283,9 @@ class TwissView(object):
     def get_conjugate(self, name):
         return self._conjugate[name]
 
-
-class EnvView(TwissView):
-    basename = 'env'
-    action = 'Beam &envelope'
-    description = 'Open new tab with beam envelopes.'
-
-
-class XYView(TwissView):
-    basename = 'pos'
-    action = 'Beam &position'
-    description = 'Open new tab with beam position.'
+    def on_add_segment(self, segment):
+        # create a curve as first plotter hook
+        TwissCurveSegment(segment, self)
 
 
 # TODO: Store the constraints with a Match object, rather than "globally"
@@ -286,7 +365,7 @@ class UpdateStatusBar(object):
             return
         name = self._view.get_axes_name(event.inaxes)
         unit = self._view.unit
-        model = self._view.model
+        model = self._view.segman
         elem = model.element_by_position(xdata * unit['s'])
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
@@ -303,7 +382,7 @@ class DrawLineElements(object):
     @classmethod
     def create(cls, panel):
         view = panel.view
-        model = view.model
+        model = view.segman
         style = view.config['element_style']
         return cls(view, model, style)
 
@@ -317,7 +396,7 @@ class DrawLineElements(object):
         """Draw the elements into the canvas."""
         view = self._view
         unit_s = view.unit[view.sname]
-        for elem in view.model.elements:
+        for elem in view.segman.elements:
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue

@@ -21,14 +21,8 @@ def show_about_dialog(parent):
     info.SetWebSite(madgui.__uri__)
     info.SetLicence(madgui.get_license_text())
     info.AddDeveloper(madgui.__author__)
-    wx.AboutBox(info, parent=parent)
-
-
-def connect_menu(notebook, menubar):
-    """Add menuitem for about dialog."""
-    def OnClick(event):
-        show_about_dialog(notebook)
-    helpmenu = menubar.Menus[2][0]
-    menuitem = helpmenu.Append(wx.ID_ANY, '&About', 'Show about dialog.')
-    notebook.Bind(wx.EVT_MENU, OnClick, menuitem)
-
+    try:
+        wx.AboutBox(info, parent=parent)
+    except TypeError:
+        # 'parent' is not supported on windows (or just older wx version?):
+        wx.AboutBox(info)

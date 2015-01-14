@@ -16,8 +16,7 @@ from cpymad.model import Locator, Model as CPModel
 
 # internal
 from madgui.core import wx
-from madgui.component.model import Model
-from madgui.component.modeldetail import ModelDetailDlg
+from madgui.component.model import Simulator
 from madgui.util.common import cachedproperty
 from madgui.widget.input import ModalDialog
 
@@ -75,69 +74,61 @@ class OpenModelDlg(ModalDialog):
     """
 
     @classmethod
-    def connect_menu(cls, frame, menubar):
-        def OnOpenModel(event):
-            # select package, model:
-            select_model_dlg = cls(frame, title="Select model")
-            try:
-                if select_model_dlg.ShowModal() != wx.ID_OK:
-                    return
-                mdata = select_model_dlg.mdata
-                repo = select_model_dlg.repo
-                if not mdata:
-                    return
-                # select optic, sequence, beam, range, twiss:
-                title = "Select model configuration"
+    def create(cls, frame):
+        # select package, model:
+        select_model_dlg = cls(frame, title="Select model")
+        try:
+            if select_model_dlg.ShowModal() != wx.ID_OK:
+                return
+            mdata = select_model_dlg.mdata
+            repo = select_model_dlg.repo
+        finally:
+            select_model_dlg.Destroy()
 
-                # Create a temporary model for convenience:
-                cpymad_model = CPModel(data=mdata, repo=repo, madx=None)
-                select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
-                                                   title=title)
-                try:
-                    if select_detail_dlg.ShowModal() != wx.ID_OK:
-                        return
-                    detail = select_detail_dlg.data
-                    # TODO: redirect history+output to frame!
-                    madx = frame.vars['madx']
-                    cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
-                    cpymad_model.optics[detail['optic']].init()
+        if not mdata:
+            return
 
-                    cpymad_model.beams[detail['beam']].init()
-                    utool = frame.madx_units
-                    twiss_args = cpymad_model.sequences[
-                            detail['sequence']
-                        ].ranges[
-                            detail['range']
-                        ].initial_conditions[
-                            detail['twiss']
-                        ]
+        # TODO: model selection belongs into a separate function, that is
+        # called here (hook?) and can be selected from a menu element as well.
 
-                    # TODO: forward range/sequence to Model
-                    # range is currently not used at all
-                    model = Model(madx,
-                                  utool=utool,
-                                  name=detail['sequence'],
-                                  twiss_args=utool.dict_add_unit(twiss_args),
-                                  model=cpymad_model)
-                    model.twiss()
-                    frame.vars.update(control=model,
-                                      model=cpymad_model)
-                    model.hook.show(model, frame)
-                finally:
-                    select_detail_dlg.Destroy()
-            finally:
-                select_model_dlg.Destroy()
-        appmenu = menubar.Menus[0][0]
-        menuitem = appmenu.Append(wx.ID_ANY, '&Open model\tCtrl+M',
-                                  'Open a model in this frame.')
-        frame.Bind(wx.EVT_MENU, OnOpenModel, menuitem)
+        # select optic, sequence, beam, range, twiss:
+        title = "Select model configuration"
+
+        # Create a temporary model for convenience:
+        cpymad_model = CPModel(data=mdata, repo=repo, madx=None)
+        optics = list(cpymad_model.optics)
+        select_detail_dlg = wx.SingleChoiceDialog(
+            frame,
+            'Select optic:',
+            'Select optic',
+            optics)
+        select_detail_dlg.SetSelection(
+            optics.index(cpymad_model.default_optic.name))
+        try:
+            if select_detail_dlg.ShowModal() != wx.ID_OK:
+                return
+            optic = select_detail_dlg.GetStringSelection()
+        finally:
+            select_detail_dlg.Destroy()
+        # TODO: redirect history+output to frame!
+        madx = frame.env['madx']
+        cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
+        cpymad_model.optics[optic].init()
+
+        utool = frame.madx_units
+
+        # TODO: forward range/sequence to Model
+        # range is currently not used at all
+        frame.env['model'] = cpymad_model
+        frame.env['simulator'].model = cpymad_model
+
 
     def SetData(self):
         """Store the data and initialize the component."""
         self.mdata = None
         self.repo = None
 
-    def CreateControls(self):
+    def CreateContentArea(self):
 
         """Create subcontrols and layout."""
 
@@ -146,7 +137,6 @@ class OpenModelDlg(ModalDialog):
         label_model = wx.StaticText(self, label="Model:")
         self.ctrl_pkg = wx.ComboBox(self, wx.CB_DROPDOWN|wx.CB_SORT)
         self.ctrl_model = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
-        self.TransferDataToWindow() # needed?
 
         # Create box sizer
         controls = wx.FlexGridSizer(rows=2, cols=2)
@@ -163,19 +153,10 @@ class OpenModelDlg(ModalDialog):
         controls.Add(label_model, flag=left, **sizeargs)
         controls.Add(self.ctrl_model, flag=expand, **sizeargs)
 
-        # buttons
-        buttons = self.CreateButtonSizer()
-
-        # outer layout sizer
-        outer = wx.BoxSizer(wx.VERTICAL)
-        outer.Add(controls, flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND|wx.ALL, **sizeargs)
-        outer.Add(buttons, flag=wx.ALIGN_CENTER_HORIZONTAL|wx.ALL, **sizeargs)
-
         # register for events
         self.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
 
-        # associate sizer and layout
-        self.SetSizer(outer)
+        return controls
 
     def OnPackageChange(self, event):
         """Update model list when package name is changed."""

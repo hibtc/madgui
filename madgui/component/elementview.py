@@ -23,7 +23,7 @@ class ElementMarker(object):
     def __init__(self, line_view, elem_view):
         self._line_view = line_view
         self._elem_view = elem_view
-        self._model = line_view.model
+        self._model = line_view.segman
         self._lines = []
         self._elem_view.hook.set_element.connect(self.update)
         self._elem_view.hook.close.connect(self.remove)
@@ -105,9 +105,9 @@ class ElementView(object):
 
     @property
     def element(self):
-        elements = self.model.madx.get_active_sequence().elements
+        elements = self.model.simulator.madx.active_sequence.elements
         raw_element = elements[self.element_name]
-        return self.model.utool.dict_add_unit(raw_element)
+        return self.model.simulator.utool.dict_add_unit(raw_element)
 
     def update(self):
 
@@ -121,11 +121,6 @@ class ElementView(object):
         # convert to title case:
         rows = [(k.title(),v) for (k,v) in rows]
 
-        # substitute nicer names:
-        substitute = {'L': 'Length',
-                      'At': 'Position'}
-        rows = [(substitute.get(k,k),v) for (k,v) in rows]
-
         # presort alphanumerically:
         # (with some luck the order on the elements with equal key in the
         # subsequent sort will be left invariant)
@@ -134,14 +129,11 @@ class ElementView(object):
         # sort preferred elements to top:
         order = ['Name',
                  'Type',
-                 'Position',
-                 'Length']
+                 'At',
+                 'L']
         order = dict(zip(order, range(-len(order), 0)))
         rows = sorted(rows, key=lambda row: order.get(row[0], len(order)))
         rows = filter(lambda row: row[0] not in ('Vary','Ksl','Knl'), rows)
-
-        # add colon
-        rows = [(k+':',v) for (k,v) in rows]
 
         # update view:
         self.popup.rows = rows

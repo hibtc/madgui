@@ -8,8 +8,6 @@ from __future__ import absolute_import
 
 # standard library
 import logging
-import os
-import subprocess
 import threading
 
 # GUI components
@@ -17,13 +15,10 @@ from madgui.core import wx
 import wx.aui
 from wx.py.crust import Crust
 
-# 3rd party
-from cpymad.madx import Madx
-from cpymad import _rpc
-
 # internal
 from madgui.widget.figure import FigurePanel
 from madgui.core.plugin import HookCollection
+from madgui.component.model import Simulator
 from madgui.util import unit
 
 # exported symbols
@@ -36,6 +31,46 @@ def monospace(pt_size):
                    wx.FONTFAMILY_MODERN,
                    wx.FONTSTYLE_NORMAL,
                    wx.FONTWEIGHT_NORMAL)
+
+
+class MenuItem(object):
+
+    def __init__(self, title, description, action, id=wx.ID_ANY):
+        self.title = title
+        self.action = action
+        self.description = description
+        self.id = id
+
+    def append_to(self, menu, evt_handler):
+        item = menu.Append(self.id, self.title, self.description)
+        evt_handler.Bind(wx.EVT_MENU, self.action, item)
+
+
+class Menu(object):
+
+    def __init__(self, title, items):
+        self.title = title
+        self.items = items
+
+    def append_to(self, menu, evt_handler):
+        submenu = wx.Menu()
+        menu.Append(submenu, self.title)
+        extend_menu(evt_handler, submenu, self.items)
+
+
+class Separator(object):
+
+    @classmethod
+    def append_to(cls, menu, evt_handler):
+        menu.AppendSeparator()
+
+
+def extend_menu(evt_handler, menu, items):
+    """
+    Append menu items to menu.
+    """
+    for item in items:
+        item.append_to(menu, evt_handler)
 
 
 class NotebookFrame(wx.Frame):
@@ -62,7 +97,7 @@ class NotebookFrame(wx.Frame):
             size=wx.Size(800, 600))
 
         self.app = app
-        self.vars = {
+        self.env = {
             'frame': self,
             'views': [],
             'madx': None,
@@ -73,34 +108,21 @@ class NotebookFrame(wx.Frame):
         self.InitMadx()
         self.Show(show)
 
-    def InitMadx(self, command_log=None):
-
+    def InitMadx(self):
         """
         Start a MAD-X interpreter and associate with this frame.
         """
-
         # TODO: close old client + shutdown _read_stream thread.
-
-        # stdin=None leads to an error on windows when STDIN is broken.
-        # therefore, we need use stdin=os.devnull:
-        with open(os.devnull, 'r') as devnull:
-            client, process = _rpc.LibMadxClient.spawn_subprocess(
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                stdin=devnull,
-                bufsize=0)
-        self._client = client
-        threading.Thread(target=self._read_stream,
-                         args=(process.stdout,)).start()
-        libmadx = client.libmadx
-        madx = Madx(libmadx=libmadx, command_log=command_log)
-
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
-
-        self.vars.update({
-            'madx': madx,
-            'libmadx': libmadx
+        simulator = Simulator(self.madx_units)
+        self._simulator = simulator
+        threading.Thread(target=self._read_stream,
+                         args=(simulator.remote_process.stdout,)).start()
+        self.env.update({
+            'simulator': simulator,
+            'madx': simulator.madx,
+            'libmadx': simulator.libmadx
         })
 
 
@@ -128,29 +150,104 @@ class NotebookFrame(wx.Frame):
         # Create a command tab
         self._NewCommandTab()
 
+    def _LoadMadxFile(self):
+        """
+        Dialog component to find/open a .madx file.
+        """
+        dlg = wx.FileDialog(
+            self,
+            style=wx.FD_OPEN,
+            wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
+        try:
+            if dlg.ShowModal() != wx.ID_OK:
+                return
+            path = dlg.Path
+        finally:
+            dlg.Destroy()
+
+        madx = self.env['madx']
+        madx.call(path, True)
+
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
+        from madgui.component.about import show_about_dialog
+        from madgui.component.beamdialog import BeamDialog
+        from madgui.component.twissdialog import ManageTwissDialog
+        from madgui.component.lineview import TwissView
+        from madgui.component.openmodel import OpenModelDlg
+
+        def set_twiss(event):
+            segman = self.GetActiveFigurePanel().view.segman
+            dlg = ManageTwissDialog(self, "Manage TWISS", segman=segman)
+            if dlg.ShowModal() == wx.ID_OK:
+                segman.set_all(dlg.data)
+
+        def set_beam(event):
+            segman = self.GetActiveFigurePanel().view.segman
+            beam = BeamDialog.show_modal(self, self.madx_units, segman.beam)
+            if beam is not None:
+                segman.beam = beam
+
         menubar = self.menubar = wx.MenuBar()
-        winmenu = wx.Menu()
-        seqmenu = wx.Menu()
-        helpmenu = wx.Menu()
-        menubar.Append(winmenu, '&Window')
-        menubar.Append(seqmenu, '&Sequence')
-        menubar.Append(helpmenu, '&Help')
+        extend_menu(self, menubar, [
+            Menu('&Window', [
+                MenuItem('&New\tCtrl+N',
+                         'Open a new window',
+                         self.OnNewWindow),
+                Separator,
+                MenuItem('&Open MAD-X file\tCtrl+O',
+                         'Open a .madx file in this frame.',
+                         lambda _: self._LoadMadxFile()),
+                MenuItem('Load &model\tCtrl+M',
+                         'Open a model in this frame.',
+                         lambda _: OpenModelDlg.create(self)),
+                Separator,
+                MenuItem('&Close',
+                         'Close window',
+                         self.OnQuit,
+                         wx.ID_CLOSE),
+            ]),
+            Menu('&View', [
+                MenuItem('Beam &envelope',
+                         'Open new tab with beam envelopes.',
+                         lambda _: TwissView.create(self.env['simulator'],
+                                                    self, basename='env')),
+                MenuItem('Beam &position',
+                         'Open new tab with beam position.',
+                         lambda _: TwissView.create(self.env['simulator'],
+                                                    self, basename='pos')),
+            ]),
+            Menu('&Tab', [
+                MenuItem('Manage &initial conditions',
+                         'Add/remove/edit TWISS initial conditions.',
+                         set_twiss),
+                MenuItem('Set &beam',
+                         'Set beam.',
+                         set_beam),
+            ]),
+            Menu('&Help', [
+                MenuItem('&About',
+                         'Show about dialog.',
+                         lambda _: show_about_dialog(self)),
+            ]),
+        ])
+
         # Create menu items
-        new_window = winmenu.Append(wx.ID_ANY, '&New\tCtrl+N',
-                                    'Open a new window')
-        winmenu.AppendSeparator()
         self.hook.menu(self, menubar)
-        winmenu.AppendSeparator()
-        winmenu.Append(wx.ID_CLOSE, '&Close', 'Close window')
-        self.Bind(wx.EVT_MENU, self.OnNewWindow, new_window)
-        self.Bind(wx.EVT_MENU, self.OnQuit, id=wx.ID_CLOSE)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu, menubar)
-        self._IsEnabledTop_Control = True
+        self._IsEnabledTop = {self.ViewMenuIndex: True,
+                              self.TabMenuIndex: True}
         return menubar
+
+    @property
+    def ViewMenuIndex(self):
+        return 1
+
+    @property
+    def TabMenuIndex(self):
+        return 2
 
     def OnNewWindow(self, event):
         """Open a new frame."""
@@ -162,14 +259,25 @@ class NotebookFrame(wx.Frame):
         panel = FigurePanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
         view.plot()
-        self.vars['views'].append(view)
+        self.env['views'].append(view)
         return panel
+
+    def GetActivePanel(self):
+        """Return the Panel which is currently active."""
+        return self.notebook.GetPage(self.notebook.GetSelection())
+
+    def GetActiveFigurePanel(self):
+        """Return the FigurePanel which is currently active or None."""
+        panel = self.GetActivePanel()
+        if isinstance(panel, FigurePanel):
+            return panel
+        return None
 
     def OnClose(self, event):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self._client.close()
+            self._simulator.rpc_client.close()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
@@ -186,28 +294,37 @@ class NotebookFrame(wx.Frame):
         if self.notebook.GetPageCount() == 0:
             self.Close()
         else:
-            del self.vars['views'][event.Selection - 1]
+            del self.env['views'][event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
         self.Close()
 
     def OnUpdateMenu(self, event):
-        idx = 1
-        enable = 'control' in self.vars
+        if not self.env['madx']:
+            return
+        enable_view = bool(self.env['madx'].sequences
+                           or self.env['simulator'].model)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is
         # bugged on windows, we need to keep track ourself:
         # if enable != self.menubar.IsEnabledTop(idx):
-        if enable != self._IsEnabledTop_Control:
-            self.menubar.EnableTop(idx, enable)
-            self._IsEnabledTop_Control = enable
+        view_menu_index = self.ViewMenuIndex
+        if enable_view != self._IsEnabledTop[view_menu_index]:
+            self.menubar.EnableTop(view_menu_index, enable_view)
+            self._IsEnabledTop[view_menu_index] = enable_view
+        # Enable/Disable &Tab menu
+        enable_tab = bool(self.GetActiveFigurePanel())
+        tab_menu_index = self.TabMenuIndex
+        if enable_tab != self._IsEnabledTop[tab_menu_index]:
+            self.menubar.EnableTop(tab_menu_index, enable_tab)
+            self._IsEnabledTop[tab_menu_index] = enable_tab
         event.Skip()
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        crust = Crust(self.notebook, locals=self.vars)
+        crust = Crust(self.notebook, locals=self.env)
         self.notebook.AddPage(crust, "Command", select=True)
         self._command_tab = crust
         # Create a tab for logging

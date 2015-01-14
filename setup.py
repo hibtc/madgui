@@ -60,7 +60,7 @@ setup(
     license=meta['__license__'],
     test_suite='nose.collector',
     install_requires=[
-        'cpymad==0.10.0',
+        'cpymad>=0.10.1',
         'docopt',
         'matplotlib',
         'numpy',
@@ -85,19 +85,6 @@ setup(
 
         [madgui.component.matching.start]
         drawconstraints = madgui.component.lineview:DrawConstraints
-
-        [madgui.widget.notebook.menu]
-        openmodel = madgui.component.openmodel:OpenModelDlg.connect_menu
-        plainopen = madgui.component.plainopen:connect_menu
-        changetwiss = madgui.component.changetwiss:TwissDialog.connect_menu
-        beamdlg = madgui.component.beamdlg:BeamDialog.connect_menu
-        lineview = madgui.component.lineview:EnvView.connect_menu
-        xyview = madgui.component.lineview:XYView.connect_menu
-        about = madgui.component.about:connect_menu
-
-        [madgui.component.model.show]
-        lineview = madgui.component.lineview:EnvView.create
-        settitle = madgui.widget.notebook:set_frame_title
     """,
     package_data={
         'madgui': [

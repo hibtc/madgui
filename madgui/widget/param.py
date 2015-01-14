@@ -186,6 +186,19 @@ class ParamDialog(ModalDialog):
     :ivar wx.Choice _ctrl_add: choice box to add new groups
     """
 
+    @classmethod
+    def show_modal(cls, parent, utool, data=None, readonly=False):
+        dlg = cls(parent=parent,
+                  title=cls.title,
+                  utool=utool,
+                  params=cls.params,
+                  data=data,
+                  readonly=readonly)
+        if dlg.ShowModal() == wx.ID_OK:
+            return dlg.data
+        else:
+            return None
+
     def SetData(self, utool, params, data, readonly=False):
         """Implements ModalDialog.SetData."""
         self.utool = utool
@@ -193,40 +206,37 @@ class ParamDialog(ModalDialog):
         self.data = data or {}
         self.readonly = readonly
 
-    def CreateControls(self):
+    def CreateContentArea(self):
+        """Create sizer with content area, i.e. input fields."""
+        content = wx.BoxSizer(wx.VERTICAL)
+        self.InsertInputArea(content)
+        self.InsertAddFieldArea(content)
+        return content
 
-        """Implements ModalDialog.CreateControls."""
-
-        outer = wx.BoxSizer(wx.VERTICAL)
-
-        # Create a two-column grid, with auto sized width
-        self._grid = grid = wx.GridBagSizer(vgap=5, hgap=5)
-        grid.SetFlexibleDirection(wx.HORIZONTAL)
-        grid.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_NONE)  # fixed height
+    def InsertInputArea(self, outer):
+        """Create a two-column input grid, with auto sized width."""
         self._groups = []
+        self._grid = wx.GridBagSizer(vgap=5, hgap=5)
+        self._grid.SetFlexibleDirection(wx.HORIZONTAL)
+        self._grid.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_NONE) # fixed height
         outer.Add(self._grid, flag=wx.ALL|wx.EXPAND, border=5)
 
-        # Add parameter control
+    def InsertAddFieldArea(self, outer):
+        """Create 'Add parameter' control."""
         sizer_add = wx.BoxSizer(wx.HORIZONTAL)
-        ctrl_add = self._ctrl_add = wx.Choice(self)
-        ctrl_add.SetItems([truncate(", ".join(group.names()), 20)
+        self._ctrl_add = wx.Choice(self)
+        self._ctrl_add.SetItems([truncate(", ".join(group.names()), 20)
                            for group in self.params])
         for i, group in enumerate(self.params):
-            ctrl_add.SetClientData(i, group)
-        ctrl_add.SetSelection(0)
+            self._ctrl_add.SetClientData(i, group)
+        self._ctrl_add.SetSelection(0)
 
         button_add = wx.Button(self, wx.ID_ADD)
         self.Bind(wx.EVT_BUTTON, self.OnButtonAdd, source=button_add)
-        sizer_add.Add(ctrl_add)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnButtonAddUpdate, source=button_add)
+        sizer_add.Add(self._ctrl_add)
         sizer_add.Add(button_add)
         outer.Add(sizer_add, flag=wx.ALIGN_CENTER_HORIZONTAL)
-
-        # buttons
-        outer.Add(self.CreateButtonSizer(), flag=wx.ALIGN_CENTER_HORIZONTAL)
-
-        # insert values from initial data
-        self.SetSizer(outer)
-        self.TransferDataToWindow()
 
     def TransferDataToWindow(self):
         """
@@ -262,6 +272,9 @@ class ParamDialog(ModalDialog):
         self.AddGroup(group)
         self.Layout()
         self.Fit()
+
+    def OnButtonAddUpdate(self, event):
+        event.Enable(self._ctrl_add.GetCount() > 0)
 
     def AddGroup(self, group):
         """
