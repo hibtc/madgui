@@ -87,11 +87,9 @@ class SegmentedRange(object):
         self.simulator = simulator
         self.sequence = simulator.madx.sequences[sequence]
         self.range = range
-        # TODO: use range
         self.start, self.stop = self.parse_range(range)
         self.segments = {}
         self.twiss_initial = {}
-        # TODO ..
         raw_elements = self.sequence.elements
         self.elements = list(map(
             self.simulator.utool.dict_add_unit, raw_elements))
@@ -270,8 +268,6 @@ class Segment(object):
     :ivar dict twiss_args:
     """
 
-    # TODO: adjust for S-offset
-
     def __init__(self, sequence, start, stop, madx, utool, twiss_args):
         """
         """
@@ -302,6 +298,7 @@ class Segment(object):
         self.tw = self.utool.dict_add_unit(results)
         self.summary = self.utool.dict_add_unit(results.summary)
         # data post processing
+        self.tw['s'] += self.start.at
         self.pos = self.tw['s']
         self.tw['envx'] = (self.tw['betx'] * self.summary['ex'])**0.5
         self.tw['envy'] = (self.tw['bety'] * self.summary['ey'])**0.5
