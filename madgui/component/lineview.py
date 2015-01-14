@@ -38,7 +38,7 @@ def _clear_ax(ax):
 def _autoscale_axes(axes):
     """Autoscale a :class:`matplotlib.axes.Axes` to its contents."""
     axes.relim()
-    axes.autoscale_view()
+    axes.autoscale()
 
 
 class FigurePair(object):
