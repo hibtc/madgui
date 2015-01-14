@@ -140,8 +140,5 @@ class ElementView(object):
         rows = sorted(rows, key=lambda row: order.get(row[0], len(order)))
         rows = filter(lambda row: row[0] not in ('Vary','Ksl','Knl'), rows)
 
-        # add colon
-        rows = [(k+':',v) for (k,v) in rows]
-
         # update view:
         self.popup.rows = rows
