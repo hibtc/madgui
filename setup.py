@@ -72,19 +72,6 @@ setup(
     entry_points="""
         [gui_scripts]
         madgui = madgui.core.app:App.main
-
-        [madgui.core.app.init]
-        mainframe = madgui.widget.notebook:NotebookFrame
-
-        [madgui.widget.figure.init]
-        matchtool = madgui.component.matchtool:MatchTool
-        selecttool = madgui.component.selecttool:SelectTool
-        comparetool = madgui.component.comparetool:CompareTool
-        statusbar = madgui.component.lineview:UpdateStatusBar.create
-        drawelements = madgui.component.lineview:DrawLineElements.create
-
-        [madgui.component.matching.start]
-        drawconstraints = madgui.component.lineview:DrawConstraints
     """,
     package_data={
         'madgui': [

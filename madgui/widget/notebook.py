@@ -16,10 +16,15 @@ import wx.aui
 from wx.py.crust import Crust
 
 # internal
-from madgui.widget.figure import FigurePanel
 from madgui.core.plugin import HookCollection
+from madgui.component.about import show_about_dialog
+from madgui.component.beamdialog import BeamDialog
+from madgui.component.lineview import TwissView, DrawLineElements
 from madgui.component.model import Simulator
+from madgui.component.openmodel import OpenModelDlg
+from madgui.component.twissdialog import ManageTwissDialog
 from madgui.util import unit
+from madgui.widget.figure import FigurePanel
 
 # exported symbols
 __all__ = ['NotebookFrame']
@@ -35,15 +40,20 @@ def monospace(pt_size):
 
 class MenuItem(object):
 
-    def __init__(self, title, description, action, id=wx.ID_ANY):
+    def __init__(self, title, description, action, update_ui=None,
+                 kind=wx.ITEM_NORMAL, id=wx.ID_ANY):
         self.title = title
         self.action = action
         self.description = description
+        self.update_ui = update_ui
+        self.kind = kind
         self.id = id
 
     def append_to(self, menu, evt_handler):
-        item = menu.Append(self.id, self.title, self.description)
+        item = menu.Append(self.id, self.title, self.description, self.kind)
         evt_handler.Bind(wx.EVT_MENU, self.action, item)
+        if self.update_ui:
+            evt_handler.Bind(wx.EVT_UPDATE_UI, self.update_ui, item)
 
 
 class Menu(object):
@@ -166,17 +176,17 @@ class NotebookFrame(wx.Frame):
             dlg.Destroy()
 
         madx = self.env['madx']
+        num_seq = len(madx.sequences)
         madx.call(path, True)
+        # if there are any new sequences, give the user a chance to view them
+        # automatically:
+        if len(madx.sequences) > num_seq:
+            TwissView.create(self.env['simulator'], self, basename='env')
 
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
-        from madgui.component.about import show_about_dialog
-        from madgui.component.beamdialog import BeamDialog
-        from madgui.component.twissdialog import ManageTwissDialog
-        from madgui.component.lineview import TwissView
-        from madgui.component.openmodel import OpenModelDlg
 
         def set_twiss(event):
             segman = self.GetActiveFigurePanel().view.segman
@@ -189,6 +199,20 @@ class NotebookFrame(wx.Frame):
             beam = BeamDialog.show_modal(self, self.madx_units, segman.beam)
             if beam is not None:
                 segman.beam = beam
+
+        def show_indicators(event):
+            panel = self.GetActiveFigurePanel()
+            segman = panel.view.segman
+            if segman.indicators:
+                segman.indicators.destroy()
+            else:
+                segman.indicators = True
+                DrawLineElements.create(panel).plot()
+                panel.view.figure.draw()
+
+        def show_indicators_update(event):
+            segman = self.GetActiveFigurePanel().view.segman
+            event.Check(bool(segman.indicators))
 
         menubar = self.menubar = wx.MenuBar()
         extend_menu(self, menubar, [
@@ -207,7 +231,7 @@ class NotebookFrame(wx.Frame):
                 MenuItem('&Close',
                          'Close window',
                          self.OnQuit,
-                         wx.ID_CLOSE),
+                         id=wx.ID_CLOSE),
             ]),
             Menu('&View', [
                 MenuItem('Beam &envelope',
@@ -226,6 +250,12 @@ class NotebookFrame(wx.Frame):
                 MenuItem('Set &beam',
                          'Set beam.',
                          set_beam),
+                Separator,
+                MenuItem('Show &element indicators',
+                         'Show indicators for beam line elements.',
+                         show_indicators,
+                         show_indicators_update,
+                         wx.ITEM_CHECK),
             ]),
             Menu('&Help', [
                 MenuItem('&About',

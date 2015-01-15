@@ -13,7 +13,7 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-from madgui.component.twissdialog import TwissDialog
+from madgui.component.twissdialog import ManageTwissDialog
 from madgui.component.model import SegmentedRange
 from madgui.component.modeldetail import ModelDetailDlg
 from madgui.core import wx
@@ -160,19 +160,23 @@ class TwissView(object):
         twiss_args = frame.madx_units.dict_add_unit(twiss_args)
         range.init()
 
-        segment = SegmentedRange(
+        segman = SegmentedRange(
             simulator=simulator,
             sequence=detail['sequence'],
             range=range.bounds,
         )
-        segment.model = cpymad_model
+        segman.model = cpymad_model
+        segman.indicators = detail['indicators']
 
-        view = cls(segment, basename, frame.app.conf['line_view'])
-        frame.AddView(view, view.title)
+        view = cls(segman, basename, frame.app.conf['line_view'])
+        panel = frame.AddView(view, view.title)
 
-        # TODO: select twiss initial only at figure.init time
-        start_element = segment.get_element_info(range.bounds[0])
-        segment.set_twiss_initial(start_element, twiss_args)
+        start_element = segman.get_element_info(range.bounds[0])
+        twiss_initial = {start_element.index: twiss_args}
+        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
+                                     segman=segman, data=twiss_initial)
+        if twissdlg.ShowModal() == wx.ID_OK:
+            segman.set_all(twissdlg.data)
 
         return view
 
@@ -204,19 +208,22 @@ class TwissView(object):
                 dlg.Destroy()
 
         # now create the actual model object
-        # TODO: insert segment into simulator
-        # TODO: show segment
-        segment = SegmentedRange(
+        # TODO: insert segman into simulator
+        # TODO: show segman
+        segman = SegmentedRange(
             simulator=simulator,
             sequence=name,
             range='#s/#e',
         )
-        segment.model = None
-        view = cls(segment, basename, frame.app.conf['line_view'])
-        frame.AddView(view, view.title)
+        segman.model = None
+        segman.indicators = True
+        view = cls(segman, basename, frame.app.conf['line_view'])
+        panel = frame.AddView(view, view.title)
 
-        # TODO: auto-select twiss initial conditions
-        # twiss_args = TwissDialog.show_modal(frame, frame.madx_units, None)
+        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
+                                     segman=segman)
+        if twissdlg.ShowModal() == wx.ID_OK:
+            segman.set_all(twissdlg.data)
 
         return view
 
@@ -384,13 +391,26 @@ class DrawLineElements(object):
         view = panel.view
         model = view.segman
         style = view.config['element_style']
-        return cls(view, model, style)
+        if model.indicators is True:
+            return cls(view, model, style)
 
     def __init__(self, view, model, style):
         self._view = view
         self._model = model
         self._style = style
         view.hook.plot_ax.connect(self.plot_ax)
+        model.indicators = self
+
+    def destroy(self):
+        self._view.hook.plot_ax.disconnect(self.plot_ax)
+        # TODO: just remove lines instead of full replot
+        self._view.plot()
+        self._model.indicators = None
+
+    def plot(self):
+        view = self._view
+        self.plot_ax(view.figure.axx, view.xname)
+        self.plot_ax(view.figure.axy, view.yname)
 
     def plot_ax(self, axes, name):
         """Draw the elements into the canvas."""

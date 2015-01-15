@@ -24,9 +24,12 @@ class ManageTwissDialog(ModalDialog):
     Dialog to manage TWISS initial conditions.
     """
 
-    def SetData(self, segman):
+    def SetData(self, segman, data=None):
         self.segman = segman
-        self._data = segman.twiss_initial
+        if data is None:
+            self._data = segman.twiss_initial
+        else:
+            self._data = data
         self.data = {}
         self.elements = segman.sequence.elements
 
@@ -219,4 +222,11 @@ class TwissDialog(ParamDialog):
         Float(tolerance=0),
         String(deltap=""),
         #Bool(notable=True),    # madgui always needs table
+
+        # This property is used only by MadGUI and defines whether the initial
+        # conditions should be used as "mixin", i.e. for every parameter which
+        # is not defined, the TWISS results of the preceding segment are used.
+        # TODO: While it required much less work to add this parameter in this
+        # dialog, it should really be handled by ManageTwissDialog instead:
+        Bool(mixin=False),
     ]

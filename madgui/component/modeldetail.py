@@ -22,7 +22,6 @@ class ModelDetailDlg(ModalDialog):
         self.model = model
         self.data = data or {}
 
-
     def _AddComboBox(self, sizer, label):
         """
         Insert combo box with a label into the sizer.
@@ -42,6 +41,14 @@ class ModelDetailDlg(ModalDialog):
                   flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
         return combo
 
+    def _AddCheckBox(self, sizer, label):
+        """Insert a check box into the sizer."""
+        ctrl = wx.CheckBox(self, label=label)
+        sizer.AddSpacer(10)
+        sizer.Add(ctrl, border=5,
+                  flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        return ctrl
+
     def CreateContentArea(self):
 
         """Create subcontrols and layout."""
@@ -57,6 +64,7 @@ class ModelDetailDlg(ModalDialog):
         self.ctrl_beam = self._AddComboBox(controls, 'Beam:')
         self.ctrl_range = self._AddComboBox(controls, 'Range:')
         self.ctrl_twiss = self._AddComboBox(controls, 'Twiss:')
+        self.ctrl_elem = self._AddCheckBox(controls, 'show element indicators')
 
         # register for events
         self.Bind(wx.EVT_TEXT, self.OnSequenceChange, source=self.ctrl_sequence)
@@ -79,7 +87,9 @@ class ModelDetailDlg(ModalDialog):
             sequence=self.ctrl_sequence.GetValue(),
             beam=self.ctrl_beam.GetValue(),
             range=self.ctrl_range.GetValue(),
-            twiss=self.ctrl_twiss.GetValue())
+            twiss=self.ctrl_twiss.GetValue(),
+            indicators=self.ctrl_elem.GetValue(),
+        )
 
     def TransferDataToWindow(self):
         """Update displayed package and model name."""
@@ -87,6 +97,7 @@ class ModelDetailDlg(ModalDialog):
         self.UpdateBeams()
         self.UpdateRanges()
         self.UpdateTwiss()
+        self.ctrl_elem.SetValue(self.data.get('indicators', True))
 
     def _Update(self, ctrl, items, default, select):
         ctrl.SetItems(list(items))
