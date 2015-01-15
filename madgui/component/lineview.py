@@ -13,7 +13,7 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-from madgui.component.twissdialog import TwissDialog
+from madgui.component.twissdialog import ManageTwissDialog
 from madgui.component.model import SegmentedRange
 from madgui.component.modeldetail import ModelDetailDlg
 from madgui.core import wx
@@ -170,9 +170,12 @@ class TwissView(object):
         view = cls(segment, basename, frame.app.conf['line_view'])
         frame.AddView(view, view.title)
 
-        # TODO: select twiss initial only at figure.init time
         start_element = segment.get_element_info(range.bounds[0])
-        segment.set_twiss_initial(start_element, twiss_args)
+        twiss_initial = {start_element.index: twiss_args}
+        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
+                                     segman=segment, data=twiss_initial)
+        if twissdlg.ShowModal() == wx.ID_OK:
+            segment.set_all(twissdlg.data)
 
         return view
 
@@ -215,8 +218,10 @@ class TwissView(object):
         view = cls(segment, basename, frame.app.conf['line_view'])
         frame.AddView(view, view.title)
 
-        # TODO: auto-select twiss initial conditions
-        # twiss_args = TwissDialog.show_modal(frame, frame.madx_units, None)
+        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
+                                     segman=segment)
+        if twissdlg.ShowModal() == wx.ID_OK:
+            segment.set_all(twissdlg.data)
 
         return view
 
