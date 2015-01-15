@@ -170,8 +170,7 @@ class SegmentedRange(object):
         segment = Segment(self.sequence,
                           start,
                           stop,
-                          self.simulator.madx,
-                          self.simulator.utool,
+                          self,
                           self.twiss_initial[start.index])
         self.segments[start.index] = segment
         segment.twiss()
@@ -236,13 +235,16 @@ class SegmentedRange(object):
 
     def get_segment(self, element):
         element = self.get_element_info(element)
-        index = max(i for i in self.segments if i <= element.index)
-        return self.segments[index]
+        return next((segment for segment in self.segments.values()
+                     if segment.contains(element)),
+                    None)
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
         element = self.get_element_info(elem)
         segment = self.get_segment(element)
+        if segment is None:
+            return None
         return segment.tw[name][element.index - segment.start.index]
 
 
@@ -258,6 +260,12 @@ def normalize_range_name(name):
     return name
 
 
+def dict_setdefault(a, b):
+    for k, v in b.items():
+        a.setdefault(k, v)
+    return a
+
+
 class Segment(object):
 
     """
@@ -268,7 +276,22 @@ class Segment(object):
     :ivar dict twiss_args:
     """
 
-    def __init__(self, sequence, start, stop, madx, utool, twiss_args):
+    _columns = [
+        'name', 'l', 'angle', 'k1l',
+        's',
+        'x', 'y',
+        'betx','bety',
+        'alfx', 'alfy',
+    ]
+
+    # TODO: extend list of merge-columns
+    _mixin_columns = [
+        'x', 'y',
+        'betx','bety',
+        'alfx', 'alfy',
+    ]
+
+    def __init__(self, sequence, start, stop, segman, twiss_args):
         """
         """
         self.hook = HookCollection(
@@ -279,17 +302,38 @@ class Segment(object):
         self.stop = stop
         self.range = (normalize_range_name(start.name),
                       normalize_range_name(stop.name))
-        self.madx = madx
-        self.utool = utool
+        self.segman = segman
+        self.madx = segman.simulator.madx
+        self.utool = segman.simulator.utool
         self.twiss_args = twiss_args
-        self._columns = ['name', 'l', 'angle', 'k1l',
-                         's',
-                         'x', 'y',
-                         'betx','bety']
+        self.segman = segman
+
+    @property
+    def mixin_twiss_args(self):
+        # NOTE: this procedure currently causes a "jump" in the TWISS data at
+        # the boundary element. I guess MAD-X returns the TWISS values at the
+        # center of the element, which can therefore not be used as initial
+        # conditions at the start of the element.
+        twiss_args = self.twiss_args
+        if not twiss_args.get('mixin'):
+            return twiss_args
+        twiss_args = twiss_args.copy()
+        del twiss_args['mixin']
+        if self.start.index > 0:
+            precede_seg = self.segman.get_segment(self.start.index - 1)
+            if precede_seg is not None:
+                precede_tw = {col: precede_seg.tw[col][-1]
+                              for col in self._mixin_columns}
+                dict_setdefault(twiss_args, precede_tw)
+        return twiss_args
+
+    def contains(self, element):
+        return (self.start.index <= element.index and
+                self.stop.index >= element.index)
 
     def twiss(self):
         """Recalculate TWISS parameters."""
-        twiss_args = self.utool.dict_strip_unit(self.twiss_args)
+        twiss_args = self.utool.dict_strip_unit(self.mixin_twiss_args)
         results = self.madx.twiss(sequence=self.sequence.name,
                                   range=self.range,
                                   columns=self._columns,

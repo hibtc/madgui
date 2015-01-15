@@ -222,4 +222,11 @@ class TwissDialog(ParamDialog):
         Float(tolerance=0),
         String(deltap=""),
         #Bool(notable=True),    # madgui always needs table
+
+        # This property is used only by MadGUI and defines whether the initial
+        # conditions should be used as "mixin", i.e. for every parameter which
+        # is not defined, the TWISS results of the preceding segment are used.
+        # TODO: While it required much less work to add this parameter in this
+        # dialog, it should really be handled by ManageTwissDialog instead:
+        Bool(mixin=False),
     ]
