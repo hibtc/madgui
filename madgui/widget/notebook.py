@@ -135,7 +135,6 @@ class NotebookFrame(wx.Frame):
             'libmadx': simulator.libmadx
         })
 
-
     def CreateControls(self):
         # create notebook
         self.Bind(wx.EVT_CLOSE, self.OnClose)

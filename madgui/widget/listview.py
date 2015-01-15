@@ -48,42 +48,34 @@ class EditListCtrl(wx.ListCtrl):
 
         super(EditListCtrl, self).__init__(*args, **kwargs)
 
-        #editor = wx.TextCtrl(self, -1, pos=(-1,-1), size=(-1,-1),
-        #                     style=wx.TE_PROCESS_ENTER|wx.TE_PROCESS_TAB \
-        #                     |wx.TE_RICH2)
+        self.editor = None
+        self.curRow = 0
+        self.curCol = 0
 
-        self.make_editor()
         self.Bind(wx.EVT_TEXT_ENTER, self.CloseEditor)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDown)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self)
 
 
-    def make_editor(self, col_style=wx.LIST_FORMAT_LEFT):
+    def make_editor(self, row, col, col_style=wx.LIST_FORMAT_LEFT):
 
-        style =wx.TE_PROCESS_ENTER|wx.TE_PROCESS_TAB|wx.TE_RICH2
-        style |= {wx.LIST_FORMAT_LEFT: wx.TE_LEFT,
-                  wx.LIST_FORMAT_RIGHT: wx.TE_RIGHT,
-                  wx.LIST_FORMAT_CENTRE : wx.TE_CENTRE
-                  }[col_style]
+        editor = self._CreateEditor(row, col, col_style)
+        if not editor:
+            return
 
-        editor = wx.TextCtrl(self, -1, style=style)
-        editor.SetBackgroundColour(self.editorBgColour)
-        editor.SetForegroundColour(self.editorFgColour)
+        editor.Control.SetBackgroundColour(self.editorBgColour)
+        editor.Control.SetForegroundColour(self.editorFgColour)
         font = self.GetFont()
-        editor.SetFont(font)
+        editor.Control.SetFont(font)
 
-        self.curRow = 0
-        self.curCol = 0
+        self.curRow = row
+        self.curCol = col
 
-        editor.Hide()
-        if hasattr(self, 'editor'):
-            self.editor.Destroy()
-        self.editor = editor
+        editor.Control.Bind(wx.EVT_CHAR, self.OnChar)
+        editor.Control.Bind(wx.EVT_KILL_FOCUS, self.CloseEditor)
 
-        self.col_style = col_style
-        self.editor.Bind(wx.EVT_CHAR, self.OnChar)
-        self.editor.Bind(wx.EVT_KILL_FOCUS, self.CloseEditor)
+        return editor
 
 
     def OnItemSelected(self, evt):
@@ -130,7 +122,7 @@ class EditListCtrl(wx.ListCtrl):
         click events to see if a row has been click on twice. If so,
         determine the current row and columnn and open the editor.'''
 
-        if self.editor.IsShown():
+        if self.editor:
             self.CloseEditor()
 
         x,y = evt.GetPosition()
@@ -151,10 +143,11 @@ class EditListCtrl(wx.ListCtrl):
             loc = loc + self.GetColumnWidth(n)
             self.col_locs.append(loc)
 
-
         col = bisect(self.col_locs, x+self.GetScrollPos(wx.HORIZONTAL)) - 1
-        self.OpenEditor(col, row)
+        self.Touch(row, col)
 
+    def Touch(self, row, col):
+        self.OpenEditor(col, row)
 
     def OpenEditor(self, col, row):
         ''' Opens an editor at the current position. '''
@@ -172,8 +165,11 @@ class EditListCtrl(wx.ListCtrl):
         if ret and not evt.IsAllowed():
             return   # user code doesn't allow the edit.
 
-        if self.GetColumn(col).m_format != self.col_style:
-            self.make_editor(self.GetColumn(col).m_format)
+        self.CloseEditor()
+        editor = self.make_editor(row, col, self.GetColumn(col).m_format)
+        if not editor:
+            return
+        self.editor = editor
 
         x0 = self.col_locs[col]
         x1 = self.col_locs[col+1] - x0
@@ -199,36 +195,34 @@ class EditListCtrl(wx.ListCtrl):
                 # Since we can not programmatically scroll the ListCtrl
                 # close the editor so the user can scroll and open the editor
                 # again
-                self.editor.SetValue(self.GetItem(row, col).GetText())
-                self.curRow = row
-                self.curCol = col
-                self.CloseEditor()
                 return
 
         y0 = self.GetItemRect(row)[1]
 
-        editor = self.editor
-        editor.SetDimensions(x0-scrolloffset,y0, x1,-1)
+        editor.Control.SetDimensions(x0-scrolloffset,y0, x1,-1)
 
-        editor.SetValue(self.GetItem(row, col).GetText())
-        editor.Show()
-        editor.Raise()
-        editor.SetSelection(-1,-1)
-        editor.SetFocus()
-
-        self.curRow = row
-        self.curCol = col
+        editor.Value = self._GetValue(row, col)
+        editor.Select()
+        editor.Control.Show()
+        editor.Control.Raise()
+        editor.Control.SetFocus()
 
 
     # FIXME: this function is usually called twice - second time because
     # it is binded to wx.EVT_KILL_FOCUS. Can it be avoided? (MW)
     def CloseEditor(self, evt=None):
         ''' Close the editor and save the new value to the ListCtrl. '''
-        if not self.editor.IsShown():
+        if not self.editor:
             return
-        text = self.editor.GetValue()
-        self.editor.Hide()
+        valid = self.editor.IsValid
+        value = self.editor.Value
+        text = str(value)
+        self.editor.Destroy()
+        self.editor = None
         self.SetFocus()
+
+        if not valid:
+            return
 
         # post wxEVT_COMMAND_LIST_END_LABEL_EDIT
         # Event can be vetoed. It doesn't has SetEditCanceled(), what would
@@ -243,12 +237,7 @@ class EditListCtrl(wx.ListCtrl):
         evt.m_item.SetText(text) #should be empty string if editor was canceled
         ret = self.GetEventHandler().ProcessEvent(evt)
         if not ret or evt.IsAllowed():
-            if self.IsVirtual():
-                # replace by whather you use to populate the virtual ListCtrl
-                # data source
-                self.SetVirtualData(self.curRow, self.curCol, text)
-            else:
-                self.SetStringItem(self.curRow, self.curCol, text)
+            self._SetValue(self.curRow, self.curCol, value)
         self.RefreshItem(self.curRow)
 
     def _SelectIndex(self, row):
@@ -264,3 +253,17 @@ class EditListCtrl(wx.ListCtrl):
         self.SetItemState(row, wx.LIST_STATE_SELECTED,
                           wx.LIST_STATE_SELECTED)
 
+    def _GetValue(self, row, col):
+        return self.GetItem(row, col).GetText()
+
+    def _SetValue(self, row, col, value):
+        text = str(value)
+        if self.IsVirtual():
+            # replace by whather you use to populate the virtual ListCtrl
+            # data source
+            self.SetVirtualData(self.curRow, self.curCol, text)
+        else:
+            self.SetStringItem(self.curRow, self.curCol, text)
+
+    def _CreateEditor(self, row, col, col_style):
+        raise NotImplementedError

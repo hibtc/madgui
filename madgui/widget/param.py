@@ -26,10 +26,6 @@ __all__ = [
 ]
 
 
-# wx.wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT
-# wx.wxEVT_COMMAND_LIST_END_LABEL_EDIT
-
-
 class BaseControl(object):
 
     """
@@ -42,31 +38,51 @@ class BaseControl(object):
     :ivar:`Control` the actual GUI element (can be used to bind events)
     """
 
+    def Destroy(self):
+        self.Control.Destroy()
+        self.Control = None
+
 
 class BoolControl(BaseControl):
 
-    def __init__(self, parent):
+    def __init__(self, parent, col_style):
         """Create a new wx.Choice control."""
         # Use a Choice control instead of a simple CheckBox to allow logical
         # parameters to be handled just like other types of parameters
-        self.Control = wx.Choice(parent, choices=["Yes", "No"])
+        self.Control = wx.Choice(parent, choices=["True", "False"])
+
+    @property
+    def IsValid(self):
+        return True
 
     @property
     def Value(self):
         """Get the value of the control."""
-        return self.Control.GetStringSelection() == "Yes"
+        return self.Control.GetStringSelection() == "True"
 
     @Value.setter
     def Value(self, value):
         """Set the value of the control."""
-        self.Control.SetStringSelection("Yes" if value else "No")
+        self.Control.SetStringSelection("True" if value else "False")
+
+    def Select(self):
+        """Not used for this type of control."""
+        pass
 
 
 class StringControl(BaseControl):
 
-    def __init__(self, parent):
+    def __init__(self, parent, col_style):
         """Create a new wx.TextCtrl."""
-        self.Control = wx.TextCtrl(parent)
+        style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2
+        style |= {wx.LIST_FORMAT_LEFT: wx.TE_LEFT,
+                  wx.LIST_FORMAT_RIGHT: wx.TE_RIGHT,
+                  wx.LIST_FORMAT_CENTRE : wx.TE_CENTRE}[col_style]
+        self.Control = wx.TextCtrl(parent, style=style)
+
+    @property
+    def IsValid(self):
+        return True
 
     @property
     def Value(self):
@@ -78,8 +94,16 @@ class StringControl(BaseControl):
         """Set the value of the control."""
         self.Control.SetValue(str(value))
 
+    def Select(self):
+        """Select all text."""
+        self.Control.SetSelection(-1,-1)
+
 
 class FloatControl(StringControl):
+
+    @property
+    def IsValid(self):
+        return isinstance(self.Value, float)
 
     @property
     def Value(self):
@@ -96,6 +120,34 @@ class FloatControl(StringControl):
     def Value(self, value):
         """Set the value of the control."""
         self.Control.SetValue(str(value))
+
+
+class ChoiceControl(BaseControl):
+
+    def __init__(self, parent, choices):
+        """Create a new wx.TextCtrl."""
+        style = wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER
+        self.Control = wx.ComboBox(parent, style=style, choices=choices)
+
+    @property
+    def IsValid(self):
+        return self.Value in self.Control.GetItems()
+
+    @property
+    def Value(self):
+        """Get the value of the control."""
+        return self.Control.GetValue()
+
+    @Value.setter
+    def Value(self, value):
+        """Set the value of the control."""
+        value = str(value)
+        self.Control.SetValue(value)
+        self.Control.SetStringSelection(value)
+
+    def Select(self):
+        """Show the listbox portion (if possible)."""
+        self.Control.SelectAll()
 
 
 class ParamGroup(object):
@@ -160,6 +212,77 @@ def _split_value(utool, value):
         return str(value), ""
 
 
+class ListCtrl(EditListCtrl):
+
+    def __init__(self, parent, *args, **kwargs):
+        EditListCtrl.__init__(self, parent, *args, **kwargs)
+        self.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
+        self.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
+                          format=wx.LIST_FORMAT_RIGHT)
+        self.InsertColumn(2, "Unit")
+        self.data = {}
+
+    def _GetValue(self, row, col):
+        if col == 0:
+            return self.GetName(row)
+        if col == 1:
+            return self.GetValue(row)
+
+    def _SetValue(self, row, col, value):
+        if col == 0:
+            self.SetName(row, value)
+        if col == 1:
+            self.SetValue(row, value)
+
+    def GetName(self, row):
+        return self.GetItem(row, 0).GetText()
+
+    def GetValue(self, row):
+        return self.data[self.GetName(row)]
+
+    @property
+    def utool(self):
+        return self.GetParent().utool
+
+    def GetQuantity(self, row):
+        name = self.GetName(row)
+        value = self.GetValue(row)
+        return self.utool.add_unit(name, value)
+
+    def SetName(self, row, value):
+        old_name = self.GetName(row)
+        self.SetStringItem(row, 0, str(value))
+        self.SetStringItem(row, 2, self.utool.get_unit_label(value) or '')
+        try:
+            self.data[value] = self.data.pop(old_name)
+        except KeyError:
+            pass
+
+    def SetValue(self, row, value):
+        self.SetStringItem(row, 1, str(value))
+        self.data[self.GetName(row)] = value
+
+    def _CreateEditor(self, row, col, col_style):
+        parent = self.GetParent()
+        if col == 0:
+            return ChoiceControl(self, choices=parent.choices)
+        elif col == 1:
+            pargroup = parent.params[self.GetName(row)]
+            return pargroup.CreateControl(self, col_style)
+        elif col == 2:
+            # unit can not be editted atm
+            pass
+
+    def Touch(self, row, col):
+        if col == 1:
+            parent = self.GetParent()
+            pargroup = parent.params[self.GetName(row)]
+            if isinstance(pargroup, Bool):
+                self.SetValue(row, not self.GetValue(row))
+                return
+        super(ListCtrl, self).Touch(row, col)
+
+
 class ParamDialog(ModalDialog):
 
     """
@@ -169,10 +292,6 @@ class ParamDialog(ModalDialog):
     :ivar list params: all possible ParamGroups
     :ivar dict data: initial/final parameter values
     :ivar bool readonly: read-only dialog (TODO)
-
-    Private members:
-
-    :ivar list added_params: param groups that are added to the dialog
 
     Private GUI members:
 
@@ -213,13 +332,8 @@ class ParamDialog(ModalDialog):
 
     def InsertInputArea(self, outer):
         """Create a two-column input grid, with auto sized width."""
-        self.added_params = []
-        self._grid = grid = EditListCtrl(self, style=wx.LC_REPORT)
+        self._grid = grid = ListCtrl(self, style=wx.LC_REPORT)
         grid.SetMinSize(wx.Size(400, 200))
-        grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
-        grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
-                          format=wx.LIST_FORMAT_RIGHT)
-        grid.InsertColumn(2, "Unit")
         self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginEdit, source=grid)
         self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndEdit, source=grid)
         outer.Add(grid, flag=wx.ALL|wx.EXPAND, border=5)
@@ -268,9 +382,9 @@ class ParamDialog(ModalDialog):
 
         Implements ParamDialog.TransferDataFromWindow.
         """
-        self.data = {name: self.utool.add_unit(name, ctrl.Value)
-                     for group in self.added_params
-                     for name,ctrl in group.items()}
+        grid = self._grid
+        self.data = {grid.GetName(row): grid.GetQuantity(row)
+                     for row in range(grid.GetItemCount())}
 
     def OnButtonAdd(self, event):
         """Add the selected group to the dialog."""
@@ -297,7 +411,7 @@ class ParamDialog(ModalDialog):
             return
         item = self.AddParam(name)
         grid = self._grid
-        grid.SetStringItem(item, 1, str(self.utool.strip_unit(name, value)))
+        grid.SetValue(item, self.utool.strip_unit(name, value))
 
     def AddParam(self, param):
         """
@@ -315,10 +429,14 @@ class ParamDialog(ModalDialog):
         group = self.params[param]
         row = grid.GetItemCount()
         grid.InsertStringItem(row, param)
-        grid.SetStringItem(row, 1, str(group.default(param)))
-        grid.SetStringItem(row, 2, self.utool.get_unit_label(param) or '')
+        grid.SetName(row, param)
+        grid.SetValue(row, group.default(param))
         # remove the choice from the 'Add' Control
         index = self._ctrl_add.FindString(param)
         self._ctrl_add.Delete(index)
         self._ctrl_add.SetSelection(0)
         return row
+
+    @property
+    def choices(self):
+        return self._ctrl_add.GetItems()
