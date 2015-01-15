@@ -16,10 +16,15 @@ import wx.aui
 from wx.py.crust import Crust
 
 # internal
-from madgui.widget.figure import FigurePanel
 from madgui.core.plugin import HookCollection
+from madgui.component.about import show_about_dialog
+from madgui.component.beamdialog import BeamDialog
+from madgui.component.lineview import TwissView
 from madgui.component.model import Simulator
+from madgui.component.openmodel import OpenModelDlg
+from madgui.component.twissdialog import ManageTwissDialog
 from madgui.util import unit
+from madgui.widget.figure import FigurePanel
 
 # exported symbols
 __all__ = ['NotebookFrame']
@@ -166,17 +171,17 @@ class NotebookFrame(wx.Frame):
             dlg.Destroy()
 
         madx = self.env['madx']
+        num_seq = len(madx.sequences)
         madx.call(path, True)
+        # if there are any new sequences, give the user a chance to view them
+        # automatically:
+        if len(madx.sequences) > num_seq:
+            TwissView.create(self.env['simulator'], self, basename='env')
 
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
-        from madgui.component.about import show_about_dialog
-        from madgui.component.beamdialog import BeamDialog
-        from madgui.component.twissdialog import ManageTwissDialog
-        from madgui.component.lineview import TwissView
-        from madgui.component.openmodel import OpenModelDlg
 
         def set_twiss(event):
             segman = self.GetActiveFigurePanel().view.segman

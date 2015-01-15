@@ -16,7 +16,7 @@ from cpymad.model import Locator, Model as CPModel
 
 # internal
 from madgui.core import wx
-from madgui.component.model import Simulator
+from madgui.component.lineview import TwissView
 from madgui.util.common import cachedproperty
 from madgui.widget.input import ModalDialog
 
@@ -121,6 +121,8 @@ class OpenModelDlg(ModalDialog):
         # range is currently not used at all
         frame.env['model'] = cpymad_model
         frame.env['simulator'].model = cpymad_model
+
+        TwissView.create(frame.env['simulator'], frame, basename='env')
 
 
     def SetData(self):

@@ -24,9 +24,12 @@ class ManageTwissDialog(ModalDialog):
     Dialog to manage TWISS initial conditions.
     """
 
-    def SetData(self, segman):
+    def SetData(self, segman, data=None):
         self.segman = segman
-        self._data = segman.twiss_initial
+        if data is None:
+            self._data = segman.twiss_initial
+        else:
+            self._data = data
         self.data = {}
         self.elements = segman.sequence.elements
 
