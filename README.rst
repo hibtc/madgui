@@ -30,9 +30,9 @@ in your repositories:
 - pydicti_
 - PyYAML_
 
-.. _installation instructions: http://pymad.github.io/installation/index.html
+.. _installation instructions: http://hibtc.github.io/cpymad/installation/index.html
 .. _MAD-X: http://madx.web.cern.ch/madx
-.. _cpymad: http://pymad.github.io
+.. _cpymad: https://github.com/hibtc/cpymad
 .. _wxPython: http://www.wxpython.org/
 .. _matplotlib: http://matplotlib.org/
 .. _numpy: http://www.numpy.org
