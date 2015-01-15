@@ -40,15 +40,20 @@ def monospace(pt_size):
 
 class MenuItem(object):
 
-    def __init__(self, title, description, action, id=wx.ID_ANY):
+    def __init__(self, title, description, action, update_ui=None,
+                 kind=wx.ITEM_NORMAL, id=wx.ID_ANY):
         self.title = title
         self.action = action
         self.description = description
+        self.update_ui = update_ui
+        self.kind = kind
         self.id = id
 
     def append_to(self, menu, evt_handler):
-        item = menu.Append(self.id, self.title, self.description)
+        item = menu.Append(self.id, self.title, self.description, self.kind)
         evt_handler.Bind(wx.EVT_MENU, self.action, item)
+        if self.update_ui:
+            evt_handler.Bind(wx.EVT_UPDATE_UI, self.update_ui, item)
 
 
 class Menu(object):
