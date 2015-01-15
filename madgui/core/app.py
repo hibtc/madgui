@@ -23,12 +23,14 @@ Website:
 # force new style imports
 from __future__ import absolute_import
 
+from pkg_resources import EntryPoint, Requirement, working_set
+
 # not so standard 3rdparty dependencies
 import wx
 
 # internal
 from madgui import __version__
-from madgui.core.config import load_config
+from madgui.core.config import load_config, recursive_merge
 from madgui.core.plugin import HookCollection
 
 # exported symbols
@@ -54,6 +56,21 @@ class App(wx.App):
     version = _version
     usage = _usage
 
+    entry_points = """
+        [madgui.core.app.init]
+        mainframe = madgui.widget.notebook:NotebookFrame
+
+        [madgui.widget.figure.init]
+        matchtool = madgui.component.matchtool:MatchTool
+        selecttool = madgui.component.selecttool:SelectTool
+        comparetool = madgui.component.comparetool:CompareTool
+        statusbar = madgui.component.lineview:UpdateStatusBar.create
+        drawelements = madgui.component.lineview:DrawLineElements.create
+
+        [madgui.component.matching.start]
+        drawconstraints = madgui.component.lineview:DrawConstraints
+    """
+
     @classmethod
     def main(cls, argv=None):
         """
@@ -76,6 +93,8 @@ class App(wx.App):
             init='madgui.core.app.init')
         self.args = args
         self.conf = conf
+        self.dist = working_set.find(Requirement.parse('madgui'))
+        self.add_entry_points(self.entry_points)
         super(App, self).__init__(redirect=False)
 
     def OnInit(self):
@@ -84,3 +103,9 @@ class App(wx.App):
         self.hook.init(self)
         # signal wxwidgets to enter the main loop
         return True
+
+    def add_entry_points(self, entry_map_section):
+        """Add entry points."""
+        recursive_merge(
+            self.dist._ep_map,
+            EntryPoint.parse_map(entry_map_section, self.dist))
