@@ -11,11 +11,10 @@ from collections import OrderedDict
 
 # GUI components
 from madgui.core import wx
-from wx.lib.mixins import listctrl as listmix
 
 # internal
 from madgui.widget.input import ModalDialog
-from madgui.widget.listview import ListView
+from madgui.widget.listview import ListView, EditListCtrl
 
 
 __all__ = [
@@ -25,13 +24,6 @@ __all__ = [
     'Matrix',
     'ParamDialog',
 ]
-
-
-class EditListCtrl(wx.ListCtrl, listmix.TextEditMixin):
-
-    def __init__(self, *args, **kwargs):
-        wx.ListCtrl.__init__(self, *args, **kwargs)
-        listmix.TextEditMixin.__init__(self)
 
 
 # wx.wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT
