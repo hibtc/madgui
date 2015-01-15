@@ -334,15 +334,7 @@ class ParamDialog(ModalDialog):
         """Create a two-column input grid, with auto sized width."""
         self._grid = grid = ListCtrl(self, style=wx.LC_REPORT)
         grid.SetMinSize(wx.Size(400, 200))
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginEdit, source=grid)
-        self.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.OnEndEdit, source=grid)
         outer.Add(grid, flag=wx.ALL|wx.EXPAND, border=5)
-
-    def OnBeginEdit(self, event):
-        pass
-
-    def OnEndEdit(self, event):
-        pass
 
     def InsertAddFieldArea(self, outer):
         """Create 'Add parameter' control."""
