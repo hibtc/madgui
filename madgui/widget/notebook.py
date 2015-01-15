@@ -19,7 +19,7 @@ from wx.py.crust import Crust
 from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamDialog
-from madgui.component.lineview import TwissView
+from madgui.component.lineview import TwissView, DrawLineElements
 from madgui.component.model import Simulator
 from madgui.component.openmodel import OpenModelDlg
 from madgui.component.twissdialog import ManageTwissDialog
@@ -40,15 +40,20 @@ def monospace(pt_size):
 
 class MenuItem(object):
 
-    def __init__(self, title, description, action, id=wx.ID_ANY):
+    def __init__(self, title, description, action, update_ui=None,
+                 kind=wx.ITEM_NORMAL, id=wx.ID_ANY):
         self.title = title
         self.action = action
         self.description = description
+        self.update_ui = update_ui
+        self.kind = kind
         self.id = id
 
     def append_to(self, menu, evt_handler):
-        item = menu.Append(self.id, self.title, self.description)
+        item = menu.Append(self.id, self.title, self.description, self.kind)
         evt_handler.Bind(wx.EVT_MENU, self.action, item)
+        if self.update_ui:
+            evt_handler.Bind(wx.EVT_UPDATE_UI, self.update_ui, item)
 
 
 class Menu(object):
@@ -195,6 +200,20 @@ class NotebookFrame(wx.Frame):
             if beam is not None:
                 segman.beam = beam
 
+        def show_indicators(event):
+            panel = self.GetActiveFigurePanel()
+            segman = panel.view.segman
+            if segman.indicators:
+                segman.indicators.destroy()
+            else:
+                segman.indicators = True
+                DrawLineElements.create(panel).plot()
+                panel.view.figure.draw()
+
+        def show_indicators_update(event):
+            segman = self.GetActiveFigurePanel().view.segman
+            event.Check(bool(segman.indicators))
+
         menubar = self.menubar = wx.MenuBar()
         extend_menu(self, menubar, [
             Menu('&Window', [
@@ -212,7 +231,7 @@ class NotebookFrame(wx.Frame):
                 MenuItem('&Close',
                          'Close window',
                          self.OnQuit,
-                         wx.ID_CLOSE),
+                         id=wx.ID_CLOSE),
             ]),
             Menu('&View', [
                 MenuItem('Beam &envelope',
@@ -231,6 +250,12 @@ class NotebookFrame(wx.Frame):
                 MenuItem('Set &beam',
                          'Set beam.',
                          set_beam),
+                Separator,
+                MenuItem('Show &element indicators',
+                         'Show indicators for beam line elements.',
+                         show_indicators,
+                         show_indicators_update,
+                         wx.ITEM_CHECK),
             ]),
             Menu('&Help', [
                 MenuItem('&About',
