@@ -237,6 +237,9 @@ class EditListCtrl(wx.ListCtrl):
             if self.curCol+1 < self.GetColumnCount():
                 self.OpenEditor(self.curCol+1, self.curRow)
 
+        elif keycode == wx.WXK_RETURN:
+            self.CloseEditor()
+
         elif keycode == wx.WXK_ESCAPE:
             self.CloseEditor()
 
@@ -321,7 +324,12 @@ class EditListCtrl(wx.ListCtrl):
 
         y0 = self.GetItemRect(row)[1]
 
-        editor = self.GetItemType(row, col).create_editor(self)
+        # If using 'self' as parent for the editor, the SetFocus() call down
+        # the road will cause weird displacements if the list control is
+        # scrolled vertically (wxGTK).
+        x0 += self.GetRect()[0]
+        y0 += self.GetRect()[1]
+        editor = self.GetItemType(row, col).create_editor(self.GetParent())
         if not editor:
             return
         self.editor = editor
@@ -340,7 +348,6 @@ class EditListCtrl(wx.ListCtrl):
 
         editor.Control.Bind(wx.EVT_CHAR, self.OnChar)
         editor.Control.Bind(wx.EVT_KILL_FOCUS, self.CloseEditor)
-
 
     # FIXME: this function is usually called twice - second time because
     # it is binded to wx.EVT_KILL_FOCUS. Can it be avoided? (MW)
