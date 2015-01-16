@@ -2,6 +2,8 @@
 List view widget.
 """
 
+from bisect import bisect
+
 from madgui.core import wx
 
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
@@ -15,12 +17,169 @@ class ListView(wx.ListView, ListCtrlAutoWidthMixin):
         self.setResizeColumn(0)
 
 
-#----------------------------------------------------------------------------
-#----------------------------------------------------------------------------
-from bisect import bisect
+### Value handlers
+
+class BaseValue(object):
+
+    """Wrap a value of a specific type for string rendering and editting."""
+
+    default = ""
+
+    def __init__(self, value, default=None):
+        """Store the value."""
+        self.value = value
+        if default is not None:
+            self.default = default
+
+    def __str__(self):
+        """Render the value."""
+        return self.format(self.value)
+
+    @classmethod
+    def format(cls, value):
+        """Render a value of this type as a string."""
+        if value is None:
+            return ""
+        return str(value)
+
+    @classmethod
+    def initiate_edit(cls, parent, row, col):
+        """Allow the user to change this value."""
+        parent.OpenEditor(col, row)
+
+    @classmethod
+    def create_editor(cls, parent, col_style):
+        """Create an edit control to edit a value of this type."""
+        raise NotImplementedError
+
+
+class ReadOnly(BaseValue):
+
+    """Read-only value."""
+
+    @classmethod
+    def initiate_edit(cls, parent, row, col):
+        pass
+
+    @classmethod
+    def create_editor(cls, parent, col_style):
+        return None
+
+
+class StringValue(BaseValue):
+
+    """Arbitrary string value."""
+
+    @classmethod
+    def create_editor(cls, parent, col_style):
+        return StringEditor(parent, col_style)
+
+
+class QuotedStringValue(StringValue):
+
+    """String value, but format with enclosing quotes."""
+
+    @classmethod
+    def format(cls, value):
+        """Quote string."""
+        if value is None:
+            return ""
+        fmt = repr(value)
+        if fmt.startswith('u'):
+            return fmt[1:]
+        return fmt
+
+
+class FloatValue(BaseValue):
+
+    """Float value."""
+
+    default = 0.0
+
+    @classmethod
+    def create_editor(cls, parent, col_style):
+        return FloatEditor(parent, col_style)
+
+
+class BoolValue(BaseValue):
+
+    """Boolean value."""
+
+    default = False
+
+    @classmethod
+    def initiate_edit(cls, parent, row, col):
+        parent.SetItemValue(row, col, not parent.GetItemValue(row, col))
+
+    @classmethod
+    def create_editor(self, parent, col_style):
+        return None
+
+
+### Editors
+
+class BaseEditor(object):
+
+    """
+    Base for accessor classes for typed GUI-controls.
+
+    :ivar:`Value` property to access the value of the GUI element
+    :ivar:`Control` the actual GUI element (can be used to bind events)
+    """
+
+    def Destroy(self):
+        """Destroy the control."""
+        self.Control.Destroy()
+        self.Control = None
+
+    def SelectAll(self):
+        """Select all text in the control."""
+        raise NotImplementedError
+
+
+class StringEditor(BaseEditor):
+
+    def __init__(self, parent, col_style):
+        """Create a new wx.TextCtrl."""
+        style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2
+        style |= {wx.LIST_FORMAT_LEFT: wx.TE_LEFT,
+                  wx.LIST_FORMAT_RIGHT: wx.TE_RIGHT,
+                  wx.LIST_FORMAT_CENTRE : wx.TE_CENTRE}[col_style]
+        self.Control = wx.TextCtrl(parent, style=style)
+
+    @property
+    def Value(self):
+        """Get the value of the control."""
+        return self.Control.GetValue()
+
+    @Value.setter
+    def Value(self, value):
+        """Set the value of the control."""
+        self.Control.SetValue(str(value))
+
+    def SelectAll(self):
+        """Select all text."""
+        self.Control.SetSelection(-1,-1)
+
+
+class FloatEditor(StringEditor):
+
+    @property
+    def Value(self):
+        """Get the value of the control."""
+        value = self.Control.GetValue()
+        if not value:
+            return None
+        return float(value)
+
+    @Value.setter
+    def Value(self, value):
+        """Set the value of the control."""
+        self.Control.SetValue(str(value))
 
 
 class EditListCtrl(wx.ListCtrl):
+
     """
     A mixin class that enables any text in any column of a
     multi-column listctrl to be edited by clicking on the given row
@@ -51,37 +210,17 @@ class EditListCtrl(wx.ListCtrl):
         self.editor = None
         self.curRow = 0
         self.curCol = 0
+        self.items = []
+        self.column_types = {}
 
         self.Bind(wx.EVT_TEXT_ENTER, self.CloseEditor)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDown)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self)
 
-
-    def make_editor(self, row, col, col_style=wx.LIST_FORMAT_LEFT):
-
-        editor = self._CreateEditor(row, col, col_style)
-        if not editor:
-            return
-
-        editor.Control.SetBackgroundColour(self.editorBgColour)
-        editor.Control.SetForegroundColour(self.editorFgColour)
-        font = self.GetFont()
-        editor.Control.SetFont(font)
-
-        self.curRow = row
-        self.curCol = col
-
-        editor.Control.Bind(wx.EVT_CHAR, self.OnChar)
-        editor.Control.Bind(wx.EVT_KILL_FOCUS, self.CloseEditor)
-
-        return editor
-
-
     def OnItemSelected(self, evt):
         self.curRow = evt.GetIndex()
         evt.Skip()
-
 
     def OnChar(self, event):
         ''' Catch the TAB, Shift-TAB, cursor DOWN/UP key code
@@ -116,7 +255,6 @@ class EditListCtrl(wx.ListCtrl):
         else:
             event.Skip()
 
-
     def OnLeftDown(self, evt=None):
         ''' Examine the click and double
         click events to see if a row has been click on twice. If so,
@@ -132,11 +270,8 @@ class EditListCtrl(wx.ListCtrl):
             evt.Skip()
             return
 
-        # the following should really be done in the mixin's init but
-        # the wx.ListCtrl demo creates the columns after creating the
-        # ListCtrl (generally not a good idea) on the other hand,
-        # doing this here handles adjustable column widths
-
+        # The column positions must be recomputed each time so adjustable
+        # column widths are handled properly:
         self.col_locs = [0]
         loc = 0
         for n in range(self.GetColumnCount()):
@@ -144,10 +279,8 @@ class EditListCtrl(wx.ListCtrl):
             self.col_locs.append(loc)
 
         col = bisect(self.col_locs, x+self.GetScrollPos(wx.HORIZONTAL)) - 1
-        self.Touch(row, col)
 
-    def Touch(self, row, col):
-        self.OpenEditor(col, row)
+        self.GetItemType(row, col).initiate_edit(self, row, col)
 
     def OpenEditor(self, col, row):
         ''' Opens an editor at the current position. '''
@@ -166,10 +299,24 @@ class EditListCtrl(wx.ListCtrl):
             return   # user code doesn't allow the edit.
 
         self.CloseEditor()
-        editor = self.make_editor(row, col, self.GetColumn(col).m_format)
+
+        col_style = self.GetColumn(col).m_format
+
+        editor = self.GetItemType(row, col).create_editor(self, col_style)
         if not editor:
             return
         self.editor = editor
+
+        editor.Control.SetBackgroundColour(self.editorBgColour)
+        editor.Control.SetForegroundColour(self.editorFgColour)
+        font = self.GetFont()
+        editor.Control.SetFont(font)
+
+        self.curRow = row
+        self.curCol = col
+
+        editor.Control.Bind(wx.EVT_CHAR, self.OnChar)
+        editor.Control.Bind(wx.EVT_KILL_FOCUS, self.CloseEditor)
 
         x0 = self.col_locs[col]
         x1 = self.col_locs[col+1] - x0
@@ -201,8 +348,8 @@ class EditListCtrl(wx.ListCtrl):
 
         editor.Control.SetDimensions(x0-scrolloffset,y0, x1,-1)
 
-        editor.Value = self._GetValue(row, col)
-        editor.Select()
+        editor.Value = self.GetItemValueOrDefault(row, col)
+        editor.SelectAll()
         editor.Control.Show()
         editor.Control.Raise()
         editor.Control.SetFocus()
@@ -214,15 +361,16 @@ class EditListCtrl(wx.ListCtrl):
         ''' Close the editor and save the new value to the ListCtrl. '''
         if not self.editor:
             return
-        valid = self.editor.IsValid
-        value = self.editor.Value
-        text = str(value)
-        self.editor.Destroy()
-        self.editor = None
-        self.SetFocus()
-
-        if not valid:
+        try:
+            value = self.editor.Value
+        except ValueError:
             return
+        finally:
+            self.editor.Destroy()
+            self.editor = None
+            self.SetFocus()
+
+        text = self.GetItemType(self.curRow, self.curCol).format(value)
 
         # post wxEVT_COMMAND_LIST_END_LABEL_EDIT
         # Event can be vetoed. It doesn't has SetEditCanceled(), what would
@@ -237,7 +385,7 @@ class EditListCtrl(wx.ListCtrl):
         evt.m_item.SetText(text) #should be empty string if editor was canceled
         ret = self.GetEventHandler().ProcessEvent(evt)
         if not ret or evt.IsAllowed():
-            self._SetValue(self.curRow, self.curCol, value)
+            self.SetItemValue(self.curRow, self.curCol, value)
         self.RefreshItem(self.curRow)
 
     def _SelectIndex(self, row):
@@ -253,17 +401,47 @@ class EditListCtrl(wx.ListCtrl):
         self.SetItemState(row, wx.LIST_STATE_SELECTED,
                           wx.LIST_STATE_SELECTED)
 
-    def _GetValue(self, row, col):
-        return self.GetItem(row, col).GetText()
+    # public API
 
-    def _SetValue(self, row, col, value):
-        text = str(value)
-        if self.IsVirtual():
-            # replace by whather you use to populate the virtual ListCtrl
-            # data source
-            self.SetVirtualData(self.curRow, self.curCol, text)
-        else:
-            self.SetStringItem(self.curRow, self.curCol, text)
+    def InsertRow(self, row, columns=()):
+        """Insert a row."""
+        self.items.insert(row, {})
+        self.InsertStringItem(row, "")
+        for col, value in enumerate(columns):
+            self.SetItemValue(row, col, value)
 
-    def _CreateEditor(self, row, col, col_style):
-        raise NotImplementedError
+    def SetColumnType(self, col, val_type):
+        """Set default value type of a column."""
+        self.column_types[col] = val_type
+
+    def GetItemType(self, row, col):
+        """Get value type of the specified row/column."""
+        try:
+            return type(self.items[row][col])
+        except KeyError:
+            return self.column_types.get(col, ReadOnly)
+
+    def GetItemValue(self, row, col):
+        """Get the value associated with the specified row/column."""
+        try:
+            return self.items[row][col].value
+        except KeyError:
+            return None
+
+    def GetItemValueOrDefault(self, row, col):
+        """Get the value or the default."""
+        try:
+            item = self.items[row][col]
+            if item.value is None:
+                return item.default
+            else:
+                return item.value
+        except KeyError:
+            return self.GetColumnType(col).default
+
+    def SetItemValue(self, row, col, value):
+        """Set the value associated with the specified row/column."""
+        if not isinstance(value, BaseValue):
+            value = self.GetItemType(row, col)(value)
+        self.items[row][col] = value
+        self.SetStringItem(row, col, str(value))
