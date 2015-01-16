@@ -145,7 +145,7 @@ class ParamDialog(ModalDialog):
         if keycode == wx.WXK_DELETE or keycode == wx.WXK_BACK:
             self.SetRowValue(self._grid.curRow, None)
         elif keycode == wx.WXK_RETURN:
-            self._grid.OpenEditor(1, self._grid.curRow)
+            self._grid.OpenEditor(self._grid.curRow, 1)
         else:
             event.Skip()
 

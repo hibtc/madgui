@@ -45,7 +45,7 @@ class BaseValue(object):
     @classmethod
     def initiate_edit(cls, parent, row, col):
         """Allow the user to change this value."""
-        parent.OpenEditor(col, row)
+        parent.OpenEditor(row, col)
 
     @classmethod
     def create_editor(cls, parent):
@@ -235,7 +235,7 @@ class EditListCtrl(wx.ListCtrl):
                 row, col = divmod(index, col_count)
                 if not issubclass(self.GetItemType(row, col), ReadOnly):
                     self._SelectIndex(row)
-                    self.OpenEditor(col, row)
+                    self.OpenEditor(row, col)
                     break
 
         elif keycode == wx.WXK_TAB:
@@ -247,7 +247,7 @@ class EditListCtrl(wx.ListCtrl):
                 row, col = divmod(index, col_count)
                 if not issubclass(self.GetItemType(row, col), ReadOnly):
                     self._SelectIndex(row)
-                    self.OpenEditor(col, row)
+                    self.OpenEditor(row, col)
                     break
 
         elif keycode == wx.WXK_RETURN:
@@ -260,13 +260,13 @@ class EditListCtrl(wx.ListCtrl):
             self.CloseEditor()
             if self.curRow+1 < self.GetItemCount():
                 self._SelectIndex(self.curRow+1)
-                self.OpenEditor(self.curCol, self.curRow)
+                self.OpenEditor(self.curRow, self.curCol)
 
         elif keycode == wx.WXK_UP:
             self.CloseEditor()
             if self.curRow > 0:
                 self._SelectIndex(self.curRow-1)
-                self.OpenEditor(self.curCol, self.curRow)
+                self.OpenEditor(self.curRow, self.curCol)
 
         else:
             event.Skip()
@@ -304,7 +304,7 @@ class EditListCtrl(wx.ListCtrl):
             col_locs.append(loc)
         return col_locs
 
-    def OpenEditor(self, col, row):
+    def OpenEditor(self, row, col):
         ''' Opens an editor at the current position. '''
 
         self.CloseEditor()
