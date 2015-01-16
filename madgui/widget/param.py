@@ -81,13 +81,6 @@ class Matrix(Float):
 # unlike Matrix this represents a single MAD-X parameter of type ARRAY.
 
 
-def _split_value(utool, value):
-    try:
-        return str(utool.strip_unit(value)), utool.get_unit_label(value)
-    except AttributeError:
-        return str(value), ""
-
-
 class ParamDialog(ModalDialog):
 
     """
