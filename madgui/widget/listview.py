@@ -290,21 +290,8 @@ class EditListCtrl(wx.ListCtrl):
 
         self.CloseEditor()
 
-        editor = self.GetItemType(row, col).create_editor(self)
-        if not editor:
-            return
-        self.editor = editor
-
-        editor.Control.SetBackgroundColour(self.editorBgColour)
-        editor.Control.SetForegroundColour(self.editorFgColour)
-        font = self.GetFont()
-        editor.Control.SetFont(font)
-
         self.curRow = row
         self.curCol = col
-
-        editor.Control.Bind(wx.EVT_CHAR, self.OnChar)
-        editor.Control.Bind(wx.EVT_KILL_FOCUS, self.CloseEditor)
 
         x0 = self.col_locs[col]
         x1 = self.col_locs[col+1] - x0
@@ -334,13 +321,25 @@ class EditListCtrl(wx.ListCtrl):
 
         y0 = self.GetItemRect(row)[1]
 
-        editor.Control.SetDimensions(x0-scrolloffset,y0, x1,-1)
+        editor = self.GetItemType(row, col).create_editor(self)
+        if not editor:
+            return
+        self.editor = editor
 
-        editor.Value = self.GetItemValueOrDefault(row, col)
-        editor.SelectAll()
+        editor.Control.SetDimensions(x0-scrolloffset,y0, x1,-1)
+        editor.Control.SetBackgroundColour(self.editorBgColour)
+        editor.Control.SetForegroundColour(self.editorFgColour)
+        editor.Control.SetFont(self.GetFont())
+
         editor.Control.Show()
         editor.Control.Raise()
         editor.Control.SetFocus()
+
+        editor.Value = self.GetItemValueOrDefault(row, col)
+        editor.SelectAll()
+
+        editor.Control.Bind(wx.EVT_CHAR, self.OnChar)
+        editor.Control.Bind(wx.EVT_KILL_FOCUS, self.CloseEditor)
 
 
     # FIXME: this function is usually called twice - second time because
