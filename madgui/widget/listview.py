@@ -1,3 +1,4 @@
+# encoding: utf-8
 """
 List view widget.
 """
@@ -181,23 +182,13 @@ class FloatEditor(StringEditor):
 class EditListCtrl(wx.ListCtrl):
 
     """
-    A mixin class that enables any text in any column of a
+    A ListCtrl class that enables any text in any column of a
     multi-column listctrl to be edited by clicking on the given row
     and column.  You close the text editor by hitting the ENTER key or
     clicking somewhere else on the listctrl. You switch to the next
     column by hiting TAB.
 
-    To use the mixin you have to include it in the class definition
-    and call the __init__ function::
-
-        class TestListCtrl(wx.ListCtrl, TextEditMixin):
-            def __init__(self, parent, ID, pos=wx.DefaultPosition,
-                         size=wx.DefaultSize, style=0):
-                wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-                TextEditMixin.__init__(self)
-
-
-    Authors:     Steve Zatz, Pim Van Heuven (pim@think-wize.com)
+    Authors:     Steve Zatz, Pim Van Heuven (pim@think-wize.com), Thomas Gläßle
     """
 
     editorBgColour = wx.Colour(255,255,175) # Yellow
