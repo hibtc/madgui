@@ -171,7 +171,8 @@ class ParamDialog(ModalDialog):
         """
         grid = self._grid
         self.data = {self.GetRowName(row): self.GetRowQuantity(row)
-                     for row in range(grid.GetItemCount())}
+                     for row in range(grid.GetItemCount())
+                     if self.GetRowValue(row) is not None}
 
     def SetParamValue(self, name, value):
         """
