@@ -280,7 +280,10 @@ class EditListCtrl(wx.ListCtrl):
 
         col = bisect(self.col_locs, x+self.GetScrollPos(wx.HORIZONTAL)) - 1
 
-        self.GetItemType(row, col).initiate_edit(self, row, col)
+        # Don't ask me why, but for some reason (at least on my wxGTK) the
+        # editor receives a KILL_FOCUS event right after being opened by a
+        # single left click. Delaying editor creation circumvents the issue:
+        wx.CallAfter(self.GetItemType(row, col).initiate_edit, self, row, col)
 
     def OpenEditor(self, col, row):
         ''' Opens an editor at the current position. '''
