@@ -68,7 +68,7 @@ class ManageTwissDialog(ModalDialog):
         self.Bind(wx.EVT_BUTTON, self.OnButtonRemove, source=button_remove)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_edit)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_remove)
-
+        grid.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
 
     def InsertAddFieldArea(self, outer):
         """Create 'Add parameter' control."""
@@ -99,6 +99,11 @@ class ManageTwissDialog(ModalDialog):
 
     def OnButtonAddUpdate(self, event):
         event.Enable(self._ctrl_add.GetCount() > 0)
+
+    def OnDoubleClick(self, event):
+        x, y = event.GetPosition()
+        row, col = self._grid.GetCellId(x, y)
+        self.EditTwiss(row)
 
     def TransferDataToWindow(self):
         """
@@ -156,7 +161,9 @@ class ManageTwissDialog(ModalDialog):
 
     def OnButtonEdit(self, event):
         """Edit the TWISS initial conditions at the specified element."""
-        row = self._grid.GetFirstSelected()
+        self.EditTwiss(self._grid.GetFirstSelected())
+
+    def EditTwiss(self, row):
         index = self.GetElementIndex(row)
         utool = self.segman.simulator.utool
         twiss_init = TwissDialog.show_modal(self, utool, self.data[index])
