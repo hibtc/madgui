@@ -9,6 +9,8 @@ from __future__ import absolute_import
 # standard library
 from collections import OrderedDict
 
+import yaml
+
 # GUI components
 from madgui.core import wx
 
@@ -81,6 +83,17 @@ class Matrix(Float):
 # unlike Matrix this represents a single MAD-X parameter of type ARRAY.
 
 
+def make_wildcard(title, *exts):
+    """Create wildcard string from a single wildcard tuple."""
+    return "{0} ({1})|{1}".format(title, ";".join(exts))
+
+
+def make_wildcards(*wildcards):
+    """Create wildcard string from multiple wildcard tuples."""
+    return "|".join(make_wildcard(*w) for w in wildcards)
+
+
+
 class ParamDialog(ModalDialog):
 
     """
@@ -122,7 +135,6 @@ class ParamDialog(ModalDialog):
 
     def CreateContentArea(self):
         """Create sizer with content area, i.e. input fields."""
-        content = wx.BoxSizer(wx.VERTICAL)
         self._grid = grid = listview.EditListCtrl(self, style=wx.LC_REPORT)
         grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
         grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
@@ -130,7 +142,19 @@ class ParamDialog(ModalDialog):
         grid.InsertColumn(2, "Unit")
         grid.SetMinSize(wx.Size(400, 200))
         grid.Bind(wx.EVT_CHAR, self.OnChar)
-        content.Add(grid, flag=wx.ALL|wx.EXPAND, border=5)
+
+        button_open = wx.Button(self, wx.ID_OPEN)
+        button_save = wx.Button(self, wx.ID_SAVE)
+
+        buttons = wx.BoxSizer(wx.VERTICAL)
+        buttons.Add(button_open, flag=wx.ALL|wx.EXPAND, border=5)
+        buttons.Add(button_save, flag=wx.ALL|wx.EXPAND, border=5)
+        self.Bind(wx.EVT_BUTTON, self.OnImport, button_open)
+        self.Bind(wx.EVT_BUTTON, self.OnExport, button_save)
+
+        content = wx.BoxSizer(wx.HORIZONTAL)
+        content.Add(grid, 1, flag=wx.ALL|wx.EXPAND, border=5)
+        content.Add(buttons, flag=wx.ALL|wx.ALIGN_TOP, border=5)
         return content
 
     def OnChar(self, event):
@@ -142,6 +166,37 @@ class ParamDialog(ModalDialog):
             self._grid.OpenEditor(self._grid.curRow, 1)
         else:
             event.Skip()
+
+    def OnImport(self, event):
+        """Import parameters from file."""
+        wildcard = make_wildcards(("YAML file", "*.yml", "*.yaml"),
+                                  ("JSON file", "*.json"))
+        dlg = wx.FileDialog(
+            self,
+            "Import values",
+            wildcard=wildcard,
+            style=wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            with open(dlg.GetPath(), 'rt') as f:
+                # Since JSON is a subset of YAML there is no need to invoke a
+                # different parser:
+                raw_data = yaml.safe_load(f)
+            self.data = self.utool.dict_add_unit(raw_data)
+            self.TransferDataToWindow()
+
+    def OnExport(self, event):
+        """Export parameters to file."""
+        wildcard = make_wildcard("YAML file", "*.yml", "*.yaml")
+        dlg = wx.FileDialog(
+            self,
+            "Import values",
+            wildcard=wildcard,
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.TransferDataFromWindow()
+            raw_data = self.utool.dict_strip_unit(self.data)
+            with open(dlg.GetPath(), 'wt') as f:
+                yaml.safe_dump(raw_data, f, default_flow_style=False)
 
     def TransferDataToWindow(self):
         """
