@@ -93,10 +93,11 @@ class ParamDialog(ModalDialog):
     """
     Modal dialog to show and edit key-value pairs.
 
+    The parameters are displayed in 3 columns: name / value / unit.
+
     :ivar UnitConverter utool: tool to add/remove units from input values
     :ivar list params: all possible ParamGroups
     :ivar dict data: initial/final parameter values
-    :ivar bool readonly: read-only dialog (TODO)
 
     Private GUI members:
 
@@ -104,19 +105,19 @@ class ParamDialog(ModalDialog):
     """
 
     @classmethod
-    def show_modal(cls, parent, utool, data=None, readonly=False):
+    def show_modal(cls, parent, utool, data=None):
+        """Show modal dialog."""
         dlg = cls(parent=parent,
                   title=cls.title,
                   utool=utool,
                   params=cls.params,
-                  data=data,
-                  readonly=readonly)
+                  data=data)
         if dlg.ShowModal() == wx.ID_OK:
             return dlg.data
         else:
             return None
 
-    def SetData(self, utool, params, data, readonly=False):
+    def SetData(self, utool, params, data):
         """Implements ModalDialog.SetData."""
         self.utool = utool
         self.params = OrderedDict(
@@ -125,7 +126,6 @@ class ParamDialog(ModalDialog):
             for param in group.names()
         )
         self.data = data or {}
-        self.readonly = readonly
 
     def CreateContentArea(self):
         """Create sizer with content area, i.e. input fields."""
@@ -141,6 +141,7 @@ class ParamDialog(ModalDialog):
         return content
 
     def OnChar(self, event):
+        """Return: open editor; Delete/Backspace: remove value."""
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_DELETE or keycode == wx.WXK_BACK:
             self.SetRowValue(self._grid.curRow, None)
@@ -178,7 +179,7 @@ class ParamDialog(ModalDialog):
         """
         Set a single parameter value.
 
-        Add the parameter group if necessary.
+        Add the parameter to the list if necessary.
 
         :param str name: parameter name
         :param value: parameter value
@@ -197,21 +198,26 @@ class ParamDialog(ModalDialog):
             self.SetRowValue(item, self.utool.strip_unit(name, value))
 
     def GetRowName(self, row):
+        """Get the name of the parameter in the specified row."""
         return self._grid.GetItemValue(row, 0)
 
     def GetRowValue(self, row):
+        """Get the value of the parameter in the specified row."""
         return self._grid.GetItemValue(row, 1)
 
     def GetRowQuantity(self, row):
+        """Get the value (with unit) of the parameter in the specified row."""
         name = self.GetRowName(row)
         value = self.GetRowValue(row)
         return self.utool.add_unit(name, value)
 
     def SetRowName(self, row, value):
+        """Set the name of the parameter in the specified row."""
         self._grid.SetItemValue(row, 0, value)
         self._grid.SetItemValue(row, 2, self.utool.get_unit_label(value) or '')
 
     def SetRowValue(self, row, value):
+        """Set the value of the parameter in the specified row."""
         name = self.GetRowName(row)
         group = self.params[name]
         value = group.ValueType(value, group.default(name))
