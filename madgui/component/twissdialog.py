@@ -13,8 +13,21 @@ from madgui.widget.listview import ListView
 from madgui.widget.input import ModalDialog
 from madgui.widget.param import ParamDialog, Bool, String, Float, Matrix
 
+from wx.lib.mixins.listctrl import CheckListCtrlMixin
+
 
 __all__ = ['TwissDialog']
+
+
+class ListCtrl(ListView, CheckListCtrlMixin):
+
+    def __init__(self, *args, **kwargs):
+        ListView.__init__(self, *args, **kwargs)
+        CheckListCtrlMixin.__init__(self)
+        self._OnCheckItem = lambda index, flag: None
+
+    def OnCheckItem(self, index, flag):
+        self._OnCheckItem(index, flag)
 
 
 class ManageTwissDialog(ModalDialog):
@@ -39,6 +52,7 @@ class ManageTwissDialog(ModalDialog):
             self.inactive = inactive
         self._rows = []
         self.elements = segman.sequence.elements
+        self._inserting = False
 
     def CreateContentArea(self):
         """Create sizer with content area, i.e. input fields."""
@@ -49,14 +63,14 @@ class ManageTwissDialog(ModalDialog):
 
     def InsertInputArea(self, outer):
 
-        grid = ListView(self, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
+        grid = ListCtrl(self, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
+        grid._OnCheckItem = self.OnChangeActive
         grid.SetMinSize(wx.Size(400, 200))
         self._grid = grid
         # TODO: columns = use, at, element, data
         grid.InsertColumn(0, "Name", width=wx.LIST_AUTOSIZE)
         grid.InsertColumn(1, "Type")
         grid.InsertColumn(2, "s [m]", format=wx.LIST_FORMAT_RIGHT)
-        grid.InsertColumn(3, "Use", format=wx.LIST_FORMAT_CENTER)
         headline = wx.StaticText(self, label="List of initial conditions:")
 
         button_edit = wx.Button(self, wx.ID_EDIT)
@@ -115,6 +129,12 @@ class ManageTwissDialog(ModalDialog):
         row, col = self._grid.GetCellId(x, y)
         self.EditTwiss(row)
 
+    def OnChangeActive(self, row, active):
+        if self._inserting:
+            return
+        index, _, twiss = self._rows[row]
+        self._rows[row] = index, active, twiss
+
     def TransferDataToWindow(self):
         """Update dialog with initial values."""
         for index in sorted(self.data):
@@ -129,7 +149,8 @@ class ManageTwissDialog(ModalDialog):
         inactive = {}
         for index, active, twiss in self._rows:
             if active:
-                data[index] = twiss
+                # merge multiple active TWISS at same element
+                data.setdefault(index, {}).update(twiss)
             else:
                 inactive.setdefault(index, []).append(twiss)
         self.data = data
@@ -162,16 +183,18 @@ class ManageTwissDialog(ModalDialog):
         grid = self._grid
 
         # insert elements
+        self._inserting = True
         offset = self.GetInsertRow(elem_index)
         element = self.elements[elem_index]
         grid.InsertStringItem(offset, element['name'])
         grid.SetStringItem(offset, 1, element['type'])
         grid.SetStringItem(offset, 2, str(element['at']))
-        grid.SetStringItem(offset, 3, str(active))
+        grid.CheckItem(offset, active)
         grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
 
         # update stored data
         self._rows.insert(elem_index, (elem_index, active, twiss_init))
+        self._inserting = False
 
     def OnButtonRemove(self, event):
         """Remove the Row with the specified."""
