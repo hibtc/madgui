@@ -9,6 +9,8 @@ from __future__ import absolute_import
 # standard library
 from collections import OrderedDict
 
+import yaml
+
 # GUI components
 from madgui.core import wx
 
@@ -81,11 +83,15 @@ class Matrix(Float):
 # unlike Matrix this represents a single MAD-X parameter of type ARRAY.
 
 
-def _split_value(utool, value):
-    try:
-        return str(utool.strip_unit(value)), utool.get_unit_label(value)
-    except AttributeError:
-        return str(value), ""
+def make_wildcard(title, *exts):
+    """Create wildcard string from a single wildcard tuple."""
+    return "{0} ({1})|{1}".format(title, ";".join(exts))
+
+
+def make_wildcards(*wildcards):
+    """Create wildcard string from multiple wildcard tuples."""
+    return "|".join(make_wildcard(*w) for w in wildcards)
+
 
 
 class ParamDialog(ModalDialog):
@@ -93,10 +99,11 @@ class ParamDialog(ModalDialog):
     """
     Modal dialog to show and edit key-value pairs.
 
+    The parameters are displayed in 3 columns: name / value / unit.
+
     :ivar UnitConverter utool: tool to add/remove units from input values
     :ivar list params: all possible ParamGroups
     :ivar dict data: initial/final parameter values
-    :ivar bool readonly: read-only dialog (TODO)
 
     Private GUI members:
 
@@ -104,19 +111,19 @@ class ParamDialog(ModalDialog):
     """
 
     @classmethod
-    def show_modal(cls, parent, utool, data=None, readonly=False):
+    def show_modal(cls, parent, utool, data=None):
+        """Show modal dialog."""
         dlg = cls(parent=parent,
                   title=cls.title,
                   utool=utool,
                   params=cls.params,
-                  data=data,
-                  readonly=readonly)
+                  data=data)
         if dlg.ShowModal() == wx.ID_OK:
             return dlg.data
         else:
             return None
 
-    def SetData(self, utool, params, data, readonly=False):
+    def SetData(self, utool, params, data):
         """Implements ModalDialog.SetData."""
         self.utool = utool
         self.params = OrderedDict(
@@ -125,11 +132,9 @@ class ParamDialog(ModalDialog):
             for param in group.names()
         )
         self.data = data or {}
-        self.readonly = readonly
 
     def CreateContentArea(self):
         """Create sizer with content area, i.e. input fields."""
-        content = wx.BoxSizer(wx.VERTICAL)
         self._grid = grid = listview.EditListCtrl(self, style=wx.LC_REPORT)
         grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
         grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
@@ -137,10 +142,23 @@ class ParamDialog(ModalDialog):
         grid.InsertColumn(2, "Unit")
         grid.SetMinSize(wx.Size(400, 200))
         grid.Bind(wx.EVT_CHAR, self.OnChar)
-        content.Add(grid, flag=wx.ALL|wx.EXPAND, border=5)
+
+        button_open = wx.Button(self, wx.ID_OPEN)
+        button_save = wx.Button(self, wx.ID_SAVE)
+
+        buttons = wx.BoxSizer(wx.VERTICAL)
+        buttons.Add(button_open, flag=wx.ALL|wx.EXPAND, border=5)
+        buttons.Add(button_save, flag=wx.ALL|wx.EXPAND, border=5)
+        self.Bind(wx.EVT_BUTTON, self.OnImport, button_open)
+        self.Bind(wx.EVT_BUTTON, self.OnExport, button_save)
+
+        content = wx.BoxSizer(wx.HORIZONTAL)
+        content.Add(grid, 1, flag=wx.ALL|wx.EXPAND, border=5)
+        content.Add(buttons, flag=wx.ALL|wx.ALIGN_TOP, border=5)
         return content
 
     def OnChar(self, event):
+        """Return: open editor; Delete/Backspace: remove value."""
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_DELETE or keycode == wx.WXK_BACK:
             self.SetRowValue(self._grid.curRow, None)
@@ -148,6 +166,37 @@ class ParamDialog(ModalDialog):
             self._grid.OpenEditor(self._grid.curRow, 1)
         else:
             event.Skip()
+
+    def OnImport(self, event):
+        """Import parameters from file."""
+        wildcard = make_wildcards(("YAML file", "*.yml", "*.yaml"),
+                                  ("JSON file", "*.json"))
+        dlg = wx.FileDialog(
+            self,
+            "Import values",
+            wildcard=wildcard,
+            style=wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            with open(dlg.GetPath(), 'rt') as f:
+                # Since JSON is a subset of YAML there is no need to invoke a
+                # different parser:
+                raw_data = yaml.safe_load(f)
+            self.data = self.utool.dict_add_unit(raw_data)
+            self.TransferDataToWindow()
+
+    def OnExport(self, event):
+        """Export parameters to file."""
+        wildcard = make_wildcard("YAML file", "*.yml", "*.yaml")
+        dlg = wx.FileDialog(
+            self,
+            "Import values",
+            wildcard=wildcard,
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.TransferDataFromWindow()
+            raw_data = self.utool.dict_strip_unit(self.data)
+            with open(dlg.GetPath(), 'wt') as f:
+                yaml.safe_dump(raw_data, f, default_flow_style=False)
 
     def TransferDataToWindow(self):
         """
@@ -178,7 +227,7 @@ class ParamDialog(ModalDialog):
         """
         Set a single parameter value.
 
-        Add the parameter group if necessary.
+        Add the parameter to the list if necessary.
 
         :param str name: parameter name
         :param value: parameter value
@@ -197,21 +246,26 @@ class ParamDialog(ModalDialog):
             self.SetRowValue(item, self.utool.strip_unit(name, value))
 
     def GetRowName(self, row):
+        """Get the name of the parameter in the specified row."""
         return self._grid.GetItemValue(row, 0)
 
     def GetRowValue(self, row):
+        """Get the value of the parameter in the specified row."""
         return self._grid.GetItemValue(row, 1)
 
     def GetRowQuantity(self, row):
+        """Get the value (with unit) of the parameter in the specified row."""
         name = self.GetRowName(row)
         value = self.GetRowValue(row)
         return self.utool.add_unit(name, value)
 
     def SetRowName(self, row, value):
+        """Set the name of the parameter in the specified row."""
         self._grid.SetItemValue(row, 0, value)
         self._grid.SetItemValue(row, 2, self.utool.get_unit_label(value) or '')
 
     def SetRowValue(self, row, value):
+        """Set the value of the parameter in the specified row."""
         name = self.GetRowName(row)
         group = self.params[name]
         value = group.ValueType(value, group.default(name))
