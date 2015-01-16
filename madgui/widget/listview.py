@@ -10,7 +10,68 @@ from madgui.core import wx
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 
-class ListView(wx.ListView, ListCtrlAutoWidthMixin):
+class ListCtrlUtil(object):
+
+    """Utility to transform window coordinates to row/col and vice versa."""
+
+    def GetCellId(self, x, y):
+        """Transform window (x, y) position to logical (row, col) coords."""
+        row, flags = self.HitTest((x, y))
+        col = bisect(self.col_locs, x + self.GetScrollPos(wx.HORIZONTAL)) - 1
+        return row, col
+
+    def ViewCellRect(self, row, col):
+
+        """
+        Scroll the specified cell into position if possible and return the
+        (x0, y0, width, height) of the specified cell.
+        """
+
+        col_locs = self.col_locs
+        x0 = col_locs[col]
+        x1 = col_locs[col + 1]
+
+        scrolloffset = self.GetScrollPos(wx.HORIZONTAL)
+
+        # scroll forward
+        if x1 - scrolloffset > self.GetSize()[0]:
+            if wx.Platform == "__WXMSW__":
+                # don't start scrolling unless we really need to
+                offset = x1 - self.GetSize()[0] - scrolloffset
+                # scroll a bit more than what is minimum required
+                # so we don't have to scroll everytime the user presses TAB
+                # which is very tireing to the eye
+                addoffset = self.GetSize()[0] / 4
+                # but be careful at the end of the list
+                if addoffset + scrolloffset < self.GetSize()[0]:
+                    offset += addoffset
+
+                self.ScrollList(offset, 0)
+                scrolloffset = self.GetScrollPos(wx.HORIZONTAL)
+            else:
+                # Since we can not programmatically scroll the ListCtrl
+                # close the editor so the user can scroll and open the editor
+                # again
+                return None
+
+        y0, _, height = self.GetItemRect(row)[1:]
+
+        return (x0 - scrolloffset, y0, x1 - x0, height)
+
+    @property
+    def col_locs(self):
+        """Starting positions (x coordinates) of each column."""
+        # The column positions must be recomputed each time so adjustable
+        # column widths are handled properly:
+        col_locs = [0]
+        loc = 0
+        for n in range(self.GetColumnCount()):
+            loc = loc + self.GetColumnWidth(n)
+            col_locs.append(loc)
+        return col_locs
+
+
+class ListView(wx.ListView, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
     """ListView that auto-sizes the first column."""
 
@@ -223,7 +284,7 @@ class FloatEditor(StringEditor):
         self.Control.SetValue(str(value))
 
 
-class EditListCtrl(wx.ListCtrl):
+class EditListCtrl(wx.ListCtrl, ListCtrlUtil):
 
     """
     A multi-column list control that allows the values in any entry to be
@@ -315,40 +376,21 @@ class EditListCtrl(wx.ListCtrl):
             event.Skip()
 
     def OnLeftDown(self, event=None):
-
         """
         Close the editor when clicking somewhere else. Open an editor or
         switch the value if clicking twice on some item.
         """
-
         if self.editor:
             self.CloseEditor()
-
         x, y = event.GetPosition()
-        row, flags = self.HitTest((x, y))
-
+        row, col = self.GetCellId(x, y)
         if row != self.curRow:
             event.Skip()
             return
-
-        col = bisect(self.col_locs, x + self.GetScrollPos(wx.HORIZONTAL)) - 1
-
         # Don't ask me why, but for some reason (at least on my wxGTK) the
         # editor receives a KILL_FOCUS event right after being opened by a
         # single left click. Delaying editor creation circumvents the issue:
         wx.CallAfter(self.GetItemType(row, col).initiate_edit, self, row, col)
-
-    @property
-    def col_locs(self):
-        """Starting positions (x coordinates) of each column."""
-        # The column positions must be recomputed each time so adjustable
-        # column widths are handled properly:
-        col_locs = [0]
-        loc = 0
-        for n in range(self.GetColumnCount()):
-            loc = loc + self.GetColumnWidth(n)
-            col_locs.append(loc)
-        return col_locs
 
     def OpenEditor(self, row, col):
 
@@ -359,46 +401,22 @@ class EditListCtrl(wx.ListCtrl):
         self.curRow = row
         self.curCol = col
 
-        col_locs = self.col_locs
-        x0 = col_locs[col]
-        x1 = col_locs[col + 1] - x0
-
-        scrolloffset = self.GetScrollPos(wx.HORIZONTAL)
-
-        # scroll forward
-        if x0 + x1 - scrolloffset > self.GetSize()[0]:
-            if wx.Platform == "__WXMSW__":
-                # don't start scrolling unless we really need to
-                offset = x0+x1-self.GetSize()[0] - scrolloffset
-                # scroll a bit more than what is minimum required
-                # so we don't have to scroll everytime the user presses TAB
-                # which is very tireing to the eye
-                addoffset = self.GetSize()[0] / 4
-                # but be careful at the end of the list
-                if addoffset + scrolloffset < self.GetSize()[0]:
-                    offset += addoffset
-
-                self.ScrollList(offset, 0)
-                scrolloffset = self.GetScrollPos(wx.HORIZONTAL)
-            else:
-                # Since we can not programmatically scroll the ListCtrl
-                # close the editor so the user can scroll and open the editor
-                # again
-                return
-
-        y0 = self.GetItemRect(row)[1]
+        rect = self.ViewCellRect(row, col)
+        if rect is None:
+            return
+        x, y, w, h = rect
 
         # If using 'self' as parent for the editor, the SetFocus() call down
         # the road will cause weird displacements if the list control is
         # scrolled vertically (wxGTK).
-        x0 += self.GetRect()[0]
-        y0 += self.GetRect()[1]
+        x += self.GetRect()[0]
+        y += self.GetRect()[1]
         editor = self.GetItemType(row, col).create_editor(self.GetParent())
         if not editor:
             return
         self.editor = editor
 
-        editor.Control.SetDimensions(x0 - scrolloffset, y0, x1, -1)
+        editor.Control.SetDimensions(x, y, w, h)
         editor.Control.SetFont(self.GetFont())
 
         editor.Control.Show()
