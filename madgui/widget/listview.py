@@ -59,12 +59,8 @@ class ReadOnly(BaseValue):
     """Read-only value."""
 
     @classmethod
-    def initiate_edit(cls, parent, row, col):
-        pass
-
-    @classmethod
     def create_editor(cls, parent):
-        return None
+        return ReadOnlyEditor(parent)
 
 
 class StringValue(BaseValue):
@@ -159,6 +155,21 @@ class StringEditor(BaseEditor):
     def SelectAll(self):
         """Select all text."""
         self.Control.SetSelection(-1,-1)
+
+
+class ReadOnlyEditor(StringEditor):
+
+    style = StringEditor.style | wx.TE_READONLY
+    value = None
+
+    @property
+    def Value(self):
+        return self.value
+
+    @Value.setter
+    def Value(self, value):
+        self.value = value
+        self.Control.SetValue(str(value))
 
 
 class FloatEditor(StringEditor):
