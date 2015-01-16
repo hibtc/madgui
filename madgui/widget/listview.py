@@ -288,19 +288,6 @@ class EditListCtrl(wx.ListCtrl):
     def OpenEditor(self, col, row):
         ''' Opens an editor at the current position. '''
 
-        # give the derived class a chance to Allow/Veto this edit.
-        evt = wx.ListEvent(wx.wxEVT_COMMAND_LIST_BEGIN_LABEL_EDIT, self.GetId())
-        evt.m_itemIndex = row
-        evt.m_col = col
-        item = self.GetItem(row, col)
-        evt.m_item.SetId(item.GetId())
-        evt.m_item.SetColumn(item.GetColumn())
-        evt.m_item.SetData(item.GetData())
-        evt.m_item.SetText(item.GetText())
-        ret = self.GetEventHandler().ProcessEvent(evt)
-        if ret and not evt.IsAllowed():
-            return   # user code doesn't allow the edit.
-
         self.CloseEditor()
 
         col_style = self.GetColumn(col).m_format
@@ -374,22 +361,7 @@ class EditListCtrl(wx.ListCtrl):
             self.SetFocus()
 
         text = self.GetItemType(self.curRow, self.curCol).format(value)
-
-        # post wxEVT_COMMAND_LIST_END_LABEL_EDIT
-        # Event can be vetoed. It doesn't has SetEditCanceled(), what would
-        # require passing extra argument to CloseEditor()
-        evt = wx.ListEvent(wx.wxEVT_COMMAND_LIST_END_LABEL_EDIT, self.GetId())
-        evt.m_itemIndex = self.curRow
-        evt.m_col = self.curCol
-        item = self.GetItem(self.curRow, self.curCol)
-        evt.m_item.SetId(item.GetId())
-        evt.m_item.SetColumn(item.GetColumn())
-        evt.m_item.SetData(item.GetData())
-        evt.m_item.SetText(text) #should be empty string if editor was canceled
-        ret = self.GetEventHandler().ProcessEvent(evt)
-        if not ret or evt.IsAllowed():
-            self.SetItemValue(self.curRow, self.curCol, value)
-        self.RefreshItem(self.curRow)
+        self.SetItemValue(self.curRow, self.curCol, value)
 
     def _SelectIndex(self, row):
         listlen = self.GetItemCount()
