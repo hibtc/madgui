@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 # standard library
 from collections import OrderedDict
+import os
 
 import yaml
 
@@ -93,6 +94,16 @@ def make_wildcards(*wildcards):
     return "|".join(make_wildcard(*w) for w in wildcards)
 
 
+def get_savedialog_path(dialog, wildcards):
+    """Append extension if necessary."""
+    _, ext = os.path.splitext(dialog.GetPath())
+    if not ext:
+        ext = wildcards[dialog.GetFilterIndex()][1] # use first extension
+        ext = ext[1:]                               # remove leading '*'
+        if ext == '.*':
+            return _
+    return _ + ext
+
 
 class ParamDialog(ModalDialog):
 
@@ -169,13 +180,13 @@ class ParamDialog(ModalDialog):
 
     def OnImport(self, event):
         """Import parameters from file."""
-        wildcard = make_wildcards(("YAML file", "*.yml", "*.yaml"),
-                                  ("JSON file", "*.json"))
+        wildcards = [("YAML file", "*.yml", "*.yaml"),
+                     ("JSON file", "*.json")]
         dlg = wx.FileDialog(
             self,
             "Import values",
-            wildcard=wildcard,
-            style=wx.FD_OPEN)
+            wildcard=make_wildcards(*wildcards),
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         if dlg.ShowModal() == wx.ID_OK:
             with open(dlg.GetPath(), 'rt') as f:
                 # Since JSON is a subset of YAML there is no need to invoke a
@@ -186,16 +197,17 @@ class ParamDialog(ModalDialog):
 
     def OnExport(self, event):
         """Export parameters to file."""
-        wildcard = make_wildcard("YAML file", "*.yml", "*.yaml")
+        wildcards = [("YAML file", "*.yml", "*.yaml")]
         dlg = wx.FileDialog(
             self,
             "Import values",
-            wildcard=wildcard,
+            wildcard=make_wildcards(*wildcards),
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             self.TransferDataFromWindow()
             raw_data = self.utool.dict_strip_unit(self.data)
-            with open(dlg.GetPath(), 'wt') as f:
+            file_path = get_savedialog_path(dlg, wildcards)
+            with open(file_path, 'wt') as f:
                 yaml.safe_dump(raw_data, f, default_flow_style=False)
 
     def TransferDataToWindow(self):
