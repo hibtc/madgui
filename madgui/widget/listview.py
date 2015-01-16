@@ -138,9 +138,14 @@ class StringEditor(BaseEditor):
 
     style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2 | wx.TE_LEFT
 
+    bg_color = wx.Colour(255, 255, 175) # yellow
+    fg_color = wx.Colour(0, 0, 0)       # black
+
     def __init__(self, parent):
         """Create a new wx.TextCtrl."""
         self.Control = wx.TextCtrl(parent, style=self.style)
+        self.Control.SetBackgroundColour(self.bg_color)
+        self.Control.SetForegroundColour(self.fg_color)
 
     @property
     def Value(self):
@@ -161,6 +166,8 @@ class ReadOnlyEditor(StringEditor):
 
     style = StringEditor.style | wx.TE_READONLY
     value = None
+
+    bg_color = wx.Colour(200, 200, 200) # gray
 
     @property
     def Value(self):
@@ -201,9 +208,6 @@ class EditListCtrl(wx.ListCtrl):
 
     Authors:     Steve Zatz, Pim Van Heuven (pim@think-wize.com), Thomas Gläßle
     """
-
-    editorBgColour = wx.Colour(255,255,175) # Yellow
-    editorFgColour = wx.Colour(0,0,0)       # black
 
     def __init__(self, *args, **kwargs):
 
@@ -353,8 +357,6 @@ class EditListCtrl(wx.ListCtrl):
         self.editor = editor
 
         editor.Control.SetDimensions(x0-scrolloffset,y0, x1,-1)
-        editor.Control.SetBackgroundColour(self.editorBgColour)
-        editor.Control.SetForegroundColour(self.editorFgColour)
         editor.Control.SetFont(self.GetFont())
 
         editor.Control.Show()
