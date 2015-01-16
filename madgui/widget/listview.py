@@ -229,13 +229,26 @@ class EditListCtrl(wx.ListCtrl):
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_TAB and event.ShiftDown():
             self.CloseEditor()
-            if self.curCol-1 >= 0:
-                self.OpenEditor(self.curCol-1, self.curRow)
+            col_count = self.GetColumnCount()
+            cur_index = self.curRow * col_count + self.curCol
+            for index in reversed(range(cur_index)):
+                row, col = divmod(index, col_count)
+                if not issubclass(self.GetItemType(row, col), ReadOnly):
+                    self._SelectIndex(row)
+                    self.OpenEditor(col, row)
+                    break
 
         elif keycode == wx.WXK_TAB:
             self.CloseEditor()
-            if self.curCol+1 < self.GetColumnCount():
-                self.OpenEditor(self.curCol+1, self.curRow)
+            col_count = self.GetColumnCount()
+            cur_index = self.curRow * col_count + self.curCol
+            max_index = self.GetItemCount() * col_count
+            for index in range(cur_index + 1, max_index):
+                row, col = divmod(index, col_count)
+                if not issubclass(self.GetItemType(row, col), ReadOnly):
+                    self._SelectIndex(row)
+                    self.OpenEditor(col, row)
+                    break
 
         elif keycode == wx.WXK_RETURN:
             self.CloseEditor()
