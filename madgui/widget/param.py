@@ -50,7 +50,7 @@ class Bool(ParamGroup):
 
 class String(ParamGroup):
 
-    ValueType = listview.StringValue
+    ValueType = listview.QuotedStringValue
 
 
 class Float(ParamGroup):
