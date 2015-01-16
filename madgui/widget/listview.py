@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-List view widget.
+List view widgets.
 """
 
 from bisect import bisect
@@ -12,7 +12,10 @@ from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 class ListView(wx.ListView, ListCtrlAutoWidthMixin):
 
+    """ListView that auto-sizes the first column."""
+
     def __init__(self, *args, **kwargs):
+        """Initialize window."""
         wx.ListView.__init__(self, *args, **kwargs)
         ListCtrlAutoWidthMixin.__init__(self)
         self.setResizeColumn(0)
@@ -59,12 +62,9 @@ class ReadOnly(BaseValue):
     """Read-only value."""
 
     @classmethod
-    def initiate_edit(cls, parent, row, col):
-        pass
-
-    @classmethod
     def create_editor(cls, parent):
-        return None
+        """Create a read-only text editor."""
+        return ReadOnlyEditor(parent)
 
 
 class StringValue(BaseValue):
@@ -73,6 +73,7 @@ class StringValue(BaseValue):
 
     @classmethod
     def create_editor(cls, parent):
+        """Create a text editor."""
         return StringEditor(parent)
 
 
@@ -99,6 +100,7 @@ class FloatValue(BaseValue):
 
     @classmethod
     def create_editor(cls, parent):
+        """Create editor for floats."""
         return FloatEditor(parent)
 
 
@@ -110,10 +112,15 @@ class BoolValue(BaseValue):
 
     @classmethod
     def initiate_edit(cls, parent, row, col):
+        """Negate value."""
         parent.SetItemValue(row, col, not parent.GetItemValue(row, col))
 
     @classmethod
     def create_editor(self, parent):
+        """
+        There is no need for a separate editor - the value can be inverted by
+        clicking on it.
+        """
         return None
 
 
@@ -123,10 +130,17 @@ class BaseEditor(object):
 
     """
     Base for accessor classes for typed GUI-controls.
-
-    :ivar:`Value` property to access the value of the GUI element
-    :ivar:`Control` the actual GUI element (can be used to bind events)
     """
+
+    @property
+    def Value(self):
+        """Get the current value."""
+        raise NotImplementedError
+
+    @Value.setter
+    def Value(self, value):
+        """Set the current value."""
+        raise NotImplementedError
 
     def Destroy(self):
         """Destroy the control."""
@@ -140,11 +154,18 @@ class BaseEditor(object):
 
 class StringEditor(BaseEditor):
 
+    """Manages an edit control for single-line text."""
+
     style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2 | wx.TE_LEFT
+
+    bg_color = wx.Colour(255, 255, 175) # yellow
+    fg_color = wx.Colour(0, 0, 0)       # black
 
     def __init__(self, parent):
         """Create a new wx.TextCtrl."""
         self.Control = wx.TextCtrl(parent, style=self.style)
+        self.Control.SetBackgroundColour(self.bg_color)
+        self.Control.SetForegroundColour(self.fg_color)
 
     @property
     def Value(self):
@@ -161,7 +182,30 @@ class StringEditor(BaseEditor):
         self.Control.SetSelection(-1,-1)
 
 
+class ReadOnlyEditor(StringEditor):
+
+    """Manages a read-only edit control for single-line text."""
+
+    style = StringEditor.style | wx.TE_READONLY
+    value = None
+
+    bg_color = wx.Colour(200, 200, 200) # gray
+
+    @property
+    def Value(self):
+        """Get current value."""
+        return self.value
+
+    @Value.setter
+    def Value(self, value):
+        """Set current value."""
+        self.value = value
+        self.Control.SetValue(str(value))
+
+
 class FloatEditor(StringEditor):
+
+    """Manages an edit control for floats."""
 
     style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2 | wx.TE_RIGHT
 
@@ -182,19 +226,19 @@ class FloatEditor(StringEditor):
 class EditListCtrl(wx.ListCtrl):
 
     """
-    A ListCtrl class that enables any text in any column of a
-    multi-column listctrl to be edited by clicking on the given row
-    and column.  You close the text editor by hitting the ENTER key or
-    clicking somewhere else on the listctrl. You switch to the next
-    column by hiting TAB.
+    A multi-column list control that allows the values in any entry to be
+    edited by clicking on it. You close the text editor by hitting the ENTER
+    key or clicking somewhere else on the listctrl. You switch to the next
+    edittable cell by hiting TAB.
 
-    Authors:     Steve Zatz, Pim Van Heuven (pim@think-wize.com), Thomas Gläßle
+    Authors:    Steve Zatz,
+                Pim Van Heuven (pim@think-wize.com),
+                Thomas Gläßle
     """
 
-    editorBgColour = wx.Colour(255,255,175) # Yellow
-    editorFgColour = wx.Colour(0,0,0)       # black
-
     def __init__(self, *args, **kwargs):
+
+        """Create window and setup event handling."""
 
         super(EditListCtrl, self).__init__(*args, **kwargs)
 
@@ -209,15 +253,23 @@ class EditListCtrl(wx.ListCtrl):
         self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDown)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnItemSelected, self)
 
-    def OnItemSelected(self, evt):
-        self.curRow = evt.GetIndex()
-        evt.Skip()
+    def OnItemSelected(self, event):
+        """Keep track of current row."""
+        self.curRow = event.GetIndex()
+        event.Skip()
 
     def OnChar(self, event):
-        ''' Catch the TAB, Shift-TAB, cursor DOWN/UP key code
-            so we can open the editor at the next column (if any).'''
+
+        """
+        Open/close the editor appropriately on key events.
+
+        - Tab/Shift+Tab     move editor to next/previous edittable item
+        - Return/Escape     stop editting
+        - Up/Down           move editor one up/down
+        """
 
         keycode = event.GetKeyCode()
+
         if keycode == wx.WXK_TAB and event.ShiftDown():
             self.CloseEditor()
             col_count = self.GetColumnCount()
@@ -262,22 +314,24 @@ class EditListCtrl(wx.ListCtrl):
         else:
             event.Skip()
 
-    def OnLeftDown(self, evt=None):
-        ''' Examine the click and double
-        click events to see if a row has been click on twice. If so,
-        determine the current row and columnn and open the editor.'''
+    def OnLeftDown(self, event=None):
+
+        """
+        Close the editor when clicking somewhere else. Open an editor or
+        switch the value if clicking twice on some item.
+        """
 
         if self.editor:
             self.CloseEditor()
 
-        x,y = evt.GetPosition()
-        row,flags = self.HitTest((x,y))
+        x, y = event.GetPosition()
+        row, flags = self.HitTest((x, y))
 
-        if row != self.curRow: # self.curRow keeps track of the current row
-            evt.Skip()
+        if row != self.curRow:
+            event.Skip()
             return
 
-        col = bisect(self.col_locs, x+self.GetScrollPos(wx.HORIZONTAL)) - 1
+        col = bisect(self.col_locs, x + self.GetScrollPos(wx.HORIZONTAL)) - 1
 
         # Don't ask me why, but for some reason (at least on my wxGTK) the
         # editor receives a KILL_FOCUS event right after being opened by a
@@ -286,6 +340,7 @@ class EditListCtrl(wx.ListCtrl):
 
     @property
     def col_locs(self):
+        """Starting positions (x coordinates) of each column."""
         # The column positions must be recomputed each time so adjustable
         # column widths are handled properly:
         col_locs = [0]
@@ -296,27 +351,29 @@ class EditListCtrl(wx.ListCtrl):
         return col_locs
 
     def OpenEditor(self, row, col):
-        ''' Opens an editor at the current position. '''
+
+        """Opens an editor for the specified item."""
 
         self.CloseEditor()
 
         self.curRow = row
         self.curCol = col
 
-        x0 = self.col_locs[col]
-        x1 = self.col_locs[col+1] - x0
+        col_locs = self.col_locs
+        x0 = col_locs[col]
+        x1 = col_locs[col + 1] - x0
 
         scrolloffset = self.GetScrollPos(wx.HORIZONTAL)
 
         # scroll forward
-        if x0+x1-scrolloffset > self.GetSize()[0]:
+        if x0 + x1 - scrolloffset > self.GetSize()[0]:
             if wx.Platform == "__WXMSW__":
                 # don't start scrolling unless we really need to
-                offset = x0+x1-self.GetSize()[0]-scrolloffset
+                offset = x0+x1-self.GetSize()[0] - scrolloffset
                 # scroll a bit more than what is minimum required
                 # so we don't have to scroll everytime the user presses TAB
                 # which is very tireing to the eye
-                addoffset = self.GetSize()[0]/4
+                addoffset = self.GetSize()[0] / 4
                 # but be careful at the end of the list
                 if addoffset + scrolloffset < self.GetSize()[0]:
                     offset += addoffset
@@ -341,9 +398,7 @@ class EditListCtrl(wx.ListCtrl):
             return
         self.editor = editor
 
-        editor.Control.SetDimensions(x0-scrolloffset,y0, x1,-1)
-        editor.Control.SetBackgroundColour(self.editorBgColour)
-        editor.Control.SetForegroundColour(self.editorFgColour)
+        editor.Control.SetDimensions(x0 - scrolloffset, y0, x1, -1)
         editor.Control.SetFont(self.GetFont())
 
         editor.Control.Show()
@@ -358,8 +413,8 @@ class EditListCtrl(wx.ListCtrl):
 
     # FIXME: this function is usually called twice - second time because
     # it is binded to wx.EVT_KILL_FOCUS. Can it be avoided? (MW)
-    def CloseEditor(self, evt=None):
-        ''' Close the editor and save the new value to the ListCtrl. '''
+    def CloseEditor(self, event=None):
+        """Close the editor and save the new value to the ListCtrl."""
         if not self.editor:
             return
         try:
@@ -370,11 +425,11 @@ class EditListCtrl(wx.ListCtrl):
             self.editor.Destroy()
             self.editor = None
             self.SetFocus()
-
         text = self.GetItemType(self.curRow, self.curCol).format(value)
         self.SetItemValue(self.curRow, self.curCol, value)
 
     def _SelectIndex(self, row):
+        """Select+focus the specified row."""
         self.SetItemState(self.curRow, ~wx.LIST_STATE_SELECTED,
                           wx.LIST_STATE_SELECTED)
         self.EnsureVisible(row)
