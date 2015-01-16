@@ -384,17 +384,13 @@ class EditListCtrl(wx.ListCtrl):
         self.SetItemValue(self.curRow, self.curCol, value)
 
     def _SelectIndex(self, row):
-        listlen = self.GetItemCount()
-        if row < 0 and not listlen:
-            return
-        if row > (listlen-1):
-            row = listlen -1
-
         self.SetItemState(self.curRow, ~wx.LIST_STATE_SELECTED,
                           wx.LIST_STATE_SELECTED)
         self.EnsureVisible(row)
         self.SetItemState(row, wx.LIST_STATE_SELECTED,
                           wx.LIST_STATE_SELECTED)
+        self.Focus(row)
+        self.Select(row)
 
     # public API
 
