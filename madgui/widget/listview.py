@@ -286,20 +286,23 @@ class EditListCtrl(wx.ListCtrl):
             evt.Skip()
             return
 
-        # The column positions must be recomputed each time so adjustable
-        # column widths are handled properly:
-        self.col_locs = [0]
-        loc = 0
-        for n in range(self.GetColumnCount()):
-            loc = loc + self.GetColumnWidth(n)
-            self.col_locs.append(loc)
-
         col = bisect(self.col_locs, x+self.GetScrollPos(wx.HORIZONTAL)) - 1
 
         # Don't ask me why, but for some reason (at least on my wxGTK) the
         # editor receives a KILL_FOCUS event right after being opened by a
         # single left click. Delaying editor creation circumvents the issue:
         wx.CallAfter(self.GetItemType(row, col).initiate_edit, self, row, col)
+
+    @property
+    def col_locs(self):
+        # The column positions must be recomputed each time so adjustable
+        # column widths are handled properly:
+        col_locs = [0]
+        loc = 0
+        for n in range(self.GetColumnCount()):
+            loc = loc + self.GetColumnWidth(n)
+            col_locs.append(loc)
+        return col_locs
 
     def OpenEditor(self, col, row):
         ''' Opens an editor at the current position. '''

@@ -136,8 +136,18 @@ class ParamDialog(ModalDialog):
                           format=wx.LIST_FORMAT_RIGHT)
         grid.InsertColumn(2, "Unit")
         grid.SetMinSize(wx.Size(400, 200))
+        grid.Bind(wx.EVT_CHAR, self.OnChar)
         content.Add(grid, flag=wx.ALL|wx.EXPAND, border=5)
         return content
+
+    def OnChar(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_DELETE or keycode == wx.WXK_BACK:
+            self.SetRowValue(self._grid.curRow, None)
+        elif keycode == wx.WXK_RETURN:
+            self._grid.OpenEditor(1, self._grid.curRow)
+        else:
+            event.Skip()
 
     def TransferDataToWindow(self):
         """
