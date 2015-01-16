@@ -48,7 +48,7 @@ class BaseValue(object):
         parent.OpenEditor(col, row)
 
     @classmethod
-    def create_editor(cls, parent, col_style):
+    def create_editor(cls, parent):
         """Create an edit control to edit a value of this type."""
         raise NotImplementedError
 
@@ -62,7 +62,7 @@ class ReadOnly(BaseValue):
         pass
 
     @classmethod
-    def create_editor(cls, parent, col_style):
+    def create_editor(cls, parent):
         return None
 
 
@@ -71,8 +71,8 @@ class StringValue(BaseValue):
     """Arbitrary string value."""
 
     @classmethod
-    def create_editor(cls, parent, col_style):
-        return StringEditor(parent, col_style)
+    def create_editor(cls, parent):
+        return StringEditor(parent)
 
 
 class QuotedStringValue(StringValue):
@@ -97,8 +97,8 @@ class FloatValue(BaseValue):
     default = 0.0
 
     @classmethod
-    def create_editor(cls, parent, col_style):
-        return FloatEditor(parent, col_style)
+    def create_editor(cls, parent):
+        return FloatEditor(parent)
 
 
 class BoolValue(BaseValue):
@@ -112,7 +112,7 @@ class BoolValue(BaseValue):
         parent.SetItemValue(row, col, not parent.GetItemValue(row, col))
 
     @classmethod
-    def create_editor(self, parent, col_style):
+    def create_editor(self, parent):
         return None
 
 
@@ -139,13 +139,11 @@ class BaseEditor(object):
 
 class StringEditor(BaseEditor):
 
-    def __init__(self, parent, col_style):
+    style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2 | wx.TE_LEFT
+
+    def __init__(self, parent):
         """Create a new wx.TextCtrl."""
-        style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2
-        style |= {wx.LIST_FORMAT_LEFT: wx.TE_LEFT,
-                  wx.LIST_FORMAT_RIGHT: wx.TE_RIGHT,
-                  wx.LIST_FORMAT_CENTRE : wx.TE_CENTRE}[col_style]
-        self.Control = wx.TextCtrl(parent, style=style)
+        self.Control = wx.TextCtrl(parent, style=self.style)
 
     @property
     def Value(self):
@@ -163,6 +161,8 @@ class StringEditor(BaseEditor):
 
 
 class FloatEditor(StringEditor):
+
+    style = wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_RICH2 | wx.TE_RIGHT
 
     @property
     def Value(self):
@@ -290,9 +290,7 @@ class EditListCtrl(wx.ListCtrl):
 
         self.CloseEditor()
 
-        col_style = self.GetColumn(col).m_format
-
-        editor = self.GetItemType(row, col).create_editor(self, col_style)
+        editor = self.GetItemType(row, col).create_editor(self)
         if not editor:
             return
         self.editor = editor
