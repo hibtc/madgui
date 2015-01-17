@@ -124,20 +124,20 @@ class ModalDialog(wx.Dialog):
     def CreateOkButton(self):
         """Create 'Ok' button."""
         button = wx.Button(self, wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonOk, source=button)
+        self.Bind(wx.EVT_BUTTON, self.ApplyDialog, source=button)
         return button
 
     def CreateCancelButton(self):
         """Create 'Cancel' button."""
         button = wx.Button(self, wx.ID_CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonCancel, source=button)
+        self.Bind(wx.EVT_BUTTON, self.CancelDialog, source=button)
         return button
 
-    def OnButtonOk(self, event):
+    def ApplyDialog(self, event=None):
         """Confirm current selection and close dialog."""
         self.TransferDataFromWindow()
         self.EndModal(wx.ID_OK)
 
-    def OnButtonCancel(self, event):
+    def CancelDialog(self, event=None):
         """Cancel the dialog."""
         self.EndModal(wx.ID_CANCEL)

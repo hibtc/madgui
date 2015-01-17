@@ -206,6 +206,8 @@ class ElementDialog(ModalDialog):
         sizer.Add(listctrl, 1, flag=wx.ALL|wx.EXPAND, border=5)
         # setup event handlers
         self.Bind(wx.EVT_TEXT, self.OnSearchChange, search_edit)
+        listctrl.Bind(wx.EVT_CHAR, self.OnChar)
+        listctrl.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         # set member variables
         self._listctrl = listctrl
         self._search = search_edit
@@ -214,6 +216,23 @@ class ElementDialog(ModalDialog):
     def OnSearchChange(self, event):
         """Update element list."""
         self.TransferDataToWindow()
+
+    def OnChar(self, event):
+        """Apply dialog when pressing Enter."""
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_RETURN and self.CanApply():
+            self.ApplyDialog()
+        else:
+            event.Skip()
+
+    def OnDoubleClick(self, event):
+        """Apply dialog when double clicking on list item."""
+        x, y = event.GetPosition()
+        row, col = self._listctrl.GetCellId(x, y)
+        if row >= 0:
+            self.ApplyDialog()
+        else:
+            event.Skip()
 
     def TransferDataToWindow(self):
         """Update element list and selection."""
@@ -232,5 +251,9 @@ class ElementDialog(ModalDialog):
 
     def UpdateButtonOk(self, event):
         """Disable OK button if no element is selected."""
-        event.Enable(self._listctrl.GetItemCount() > 0 and
-                     self._listctrl.GetSelectedItemCount() == 1)
+        event.Enable(self.CanApply())
+
+    def CanApply(self):
+        """Check if an item is selected."""
+        return (self._listctrl.GetItemCount() > 0 and
+                self._listctrl.GetSelectedItemCount() == 1)
