@@ -21,7 +21,7 @@ from wx.lib.mixins.listctrl import CheckListCtrlMixin
 __all__ = ['TwissDialog']
 
 
-class ListCtrl(ListView, CheckListCtrlMixin):
+class CheckListCtrl(ListView, CheckListCtrlMixin):
 
     def __init__(self, *args, **kwargs):
         ListView.__init__(self, *args, **kwargs)
@@ -30,6 +30,11 @@ class ListCtrl(ListView, CheckListCtrlMixin):
 
     def OnCheckItem(self, index, flag):
         self._OnCheckItem(index, flag)
+
+
+def format_element(index, element):
+    """Create an informative string representing an element."""
+    return '{1[name]}'.format(index, element)
 
 
 class ManageTwissDialog(ModalDialog):
@@ -60,14 +65,14 @@ class ManageTwissDialog(ModalDialog):
 
         """Create sizer with content area, i.e. input fields."""
 
-        grid = ListCtrl(self, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
+        grid = CheckListCtrl(self, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
         grid._OnCheckItem = self.OnChangeActive
         grid.SetMinSize(wx.Size(400, 200))
         self._grid = grid
         # TODO: columns = use, at, element, data
-        grid.InsertColumn(0, "Name", width=wx.LIST_AUTOSIZE)
-        grid.InsertColumn(1, "Type")
-        grid.InsertColumn(2, "s [m]", format=wx.LIST_FORMAT_RIGHT)
+        grid.InsertColumn(0, "Element", width=wx.LIST_AUTOSIZE)
+        grid.InsertColumn(1, "At [m]", width=wx.LIST_AUTOSIZE)
+        grid.InsertColumn(2, "Data", width=wx.LIST_AUTOSIZE)
         headline = wx.StaticText(self, label="List of initial conditions:")
 
         button_edit = wx.Button(self, wx.ID_EDIT)
@@ -112,7 +117,7 @@ class ManageTwissDialog(ModalDialog):
     def OnDoubleClick(self, event):
         x, y = event.GetPosition()
         row, col = self._grid.GetCellId(x, y)
-        if col == 0:
+        if col == 0 or col == 1:
             self.ChooseElement(row)
         else:
             self.EditTwiss(row)
@@ -173,14 +178,15 @@ class ManageTwissDialog(ModalDialog):
         # insert elements
         self._inserting = True
         offset = self.GetInsertRow(elem_index)
-        utool = self.segman.simulator.utool
         element = self.elements[elem_index]
         at = strip_unit(element['at'], units.m)
-        grid.InsertStringItem(offset, element['name'])
-        grid.SetStringItem(offset, 1, element['type'])
-        grid.SetStringItem(offset, 2, '{:.3f}'.format(at))
+        grid.InsertStringItem(offset, format_element(elem_index, element))
+        grid.SetStringItem(offset, 1, '{:.3f}'.format(at))
+        grid.SetStringItem(offset, 2, str(twiss_init))
         grid.CheckItem(offset, active)
         grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        grid.SetColumnWidth(2, wx.LIST_AUTOSIZE)
 
         # update stored data
         self._rows.insert(elem_index, (elem_index, active, twiss_init))
