@@ -117,6 +117,8 @@ class ManageTwissDialog(ModalDialog):
     def OnDoubleClick(self, event):
         x, y = event.GetPosition()
         row, col = self._grid.GetCellId(x, y)
+        if row < 0:
+            return
         if col == 0 or col == 1:
             self.ChooseElement(row)
         else:
