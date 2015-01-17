@@ -5,17 +5,36 @@ Dialog to set TWISS parameters.
 # force new style imports
 from __future__ import absolute_import
 
-import bisect
 from functools import partial
 
 # internal
 from madgui.core import wx
+from madgui.widget.element import ElementDialog
 from madgui.widget.listview import ListView
 from madgui.widget.input import ModalDialog
 from madgui.widget.param import ParamDialog, Bool, String, Float, Matrix
+from madgui.util.unit import strip_unit, units
+
+from wx.lib.mixins.listctrl import CheckListCtrlMixin
 
 
 __all__ = ['TwissDialog']
+
+
+class CheckListCtrl(ListView, CheckListCtrlMixin):
+
+    def __init__(self, *args, **kwargs):
+        ListView.__init__(self, *args, **kwargs)
+        CheckListCtrlMixin.__init__(self)
+        self._OnCheckItem = lambda index, flag: None
+
+    def OnCheckItem(self, index, flag):
+        self._OnCheckItem(index, flag)
+
+
+def format_element(index, element):
+    """Create an informative string representing an element."""
+    return '{1[name]}'.format(index, element)
 
 
 class ManageTwissDialog(ModalDialog):
@@ -24,104 +43,126 @@ class ManageTwissDialog(ModalDialog):
     Dialog to manage TWISS initial conditions.
     """
 
-    def SetData(self, segman, data=None):
+    def SetData(self, segman, data=None, inactive=None):
         self.segman = segman
         if data is None:
-            self._data = segman.twiss_initial
+            self.data = segman.twiss_initial
         else:
-            self._data = data
-        self.data = {}
-        self.elements = segman.sequence.elements
+            self.data = data
+        if inactive is None:
+            model = segman.simulator.model
+            if model:
+                self.inactive = {}    # TODO: use model's initial conditions
+            else:
+                self.inactive = {}
+        else:
+            self.inactive = inactive
+        self._rows = []
+        self.elements = segman.elements
+        self._inserting = False
 
     def CreateContentArea(self):
+
         """Create sizer with content area, i.e. input fields."""
-        content = wx.BoxSizer(wx.VERTICAL)
-        self.InsertInputArea(content)
-        self.InsertAddFieldArea(content)
-        return content
 
-    def InsertInputArea(self, outer):
-
-        grid = ListView(self, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
+        grid = CheckListCtrl(self, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
+        grid._OnCheckItem = self.OnChangeActive
         grid.SetMinSize(wx.Size(400, 200))
         self._grid = grid
-        grid.InsertColumn(0, "Name", width=wx.LIST_AUTOSIZE)
-        grid.InsertColumn(1, "Type")
-        grid.InsertColumn(2, "s [m]", format=wx.LIST_FORMAT_RIGHT)
+        # TODO: columns = use, at, element, data
+        grid.InsertColumn(0, "Element", width=wx.LIST_AUTOSIZE)
+        grid.InsertColumn(1, "At [m]", width=wx.LIST_AUTOSIZE)
+        grid.InsertColumn(2, "Data", width=wx.LIST_AUTOSIZE)
         headline = wx.StaticText(self, label="List of initial conditions:")
 
         button_edit = wx.Button(self, wx.ID_EDIT)
+        button_add = wx.Button(self, wx.ID_ADD)
         button_remove = wx.Button(self, wx.ID_REMOVE)
 
         buttons = wx.BoxSizer(wx.VERTICAL)
-        buttons.Add(button_edit, flag=wx.ALL|wx.EXPAND, border=5)
+        buttons.Add(button_add, flag=wx.ALL|wx.EXPAND, border=5)
         buttons.Add(button_remove, flag=wx.ALL|wx.EXPAND, border=5)
+        buttons.AddSpacer(10)
+        buttons.Add(button_edit, flag=wx.ALL|wx.EXPAND, border=5)
 
         inner = wx.BoxSizer(wx.HORIZONTAL)
         inner.Add(grid, 1, flag=wx.ALL|wx.EXPAND, border=5)
         inner.Add(buttons, flag=wx.ALL|wx.EXPAND, border=5)
 
+        outer = wx.BoxSizer(wx.VERTICAL)
         outer.Add(headline, flag=wx.ALL|wx.ALIGN_LEFT, border=5)
         outer.Add(inner, 1, flag=wx.ALL|wx.EXPAND, border=5)
 
         self.Bind(wx.EVT_BUTTON, self.OnButtonEdit, source=button_edit)
+        self.Bind(wx.EVT_BUTTON, self.OnButtonAdd, source=button_add)
         self.Bind(wx.EVT_BUTTON, self.OnButtonRemove, source=button_remove)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_edit)
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_remove)
+        grid.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
 
-
-    def InsertAddFieldArea(self, outer):
-        """Create 'Add parameter' control."""
-        sizer_add = wx.BoxSizer(wx.HORIZONTAL)
-        self._ctrl_add = wx.Choice(self)
-        self._ctrl_add.SetItems([
-            elem['name']
-            for elem in self.elements])
-        for i in range(len(self.elements)):
-            self._ctrl_add.SetClientData(i, i)
-        self._ctrl_add.SetSelection(0)
-        button_add = wx.Button(self, wx.ID_ADD)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonAdd, source=button_add)
-        self.Bind(wx.EVT_UPDATE_UI, self.OnButtonAddUpdate, source=button_add)
-        ins_flag = dict(flag=wx.ALL|wx.ALIGN_CENTER_VERTICAL, border=5)
-        sizer_add.Add(self._ctrl_add, **ins_flag)
-        sizer_add.Add(button_add, **ins_flag)
-        outer.AddSpacer(10)
-        outer.Add(sizer_add, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        return outer
 
     def OnButtonAdd(self, event):
         """Add the selected group to the dialog."""
-        index = self._ctrl_add.GetSelection()
-        i_el = self._ctrl_add.GetClientData(index)
+        dlg = ElementDialog(self, "Choose element", elements=self.elements)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        i_el = dlg.selected[0]
+        # TODO: use the TWISS results at this element as default values for
+        # the TwissDialog (?):
         self.AddTwissRow(i_el)
         self.Layout()
         self.Fit()
 
-    def OnButtonAddUpdate(self, event):
-        event.Enable(self._ctrl_add.GetCount() > 0)
+    def OnDoubleClick(self, event):
+        x, y = event.GetPosition()
+        row, col = self._grid.GetCellId(x, y)
+        if row < 0:
+            return
+        if col == 0 or col == 1:
+            self.ChooseElement(row)
+        else:
+            self.EditTwiss(row)
+
+    def OnChangeActive(self, row, active):
+        if self._inserting:
+            return
+        index, _, twiss = self._rows[row]
+        self._rows[row] = index, active, twiss
 
     def TransferDataToWindow(self):
-        """
-        Update dialog with initial values.
-        """
-        for index in sorted(self._data):
-            self.AddTwissRow(index, self._data[index])
+        """Update dialog with initial values."""
+        for index in sorted(self.data):
+            self.AddTwissRow(index, self.data[index], True)
+        for index in sorted(self.inactive):
+            for twiss in self.inactive[index]:
+                self.AddTwissRow(index, twiss, False)
 
     def TransferDataFromWindow(self):
-        """Not neeeded since data is saved on the fly."""
-        pass
+        """Extract current active initial conditions."""
+        data = {}
+        inactive = {}
+        for index, active, twiss in self._rows:
+            if active:
+                # merge multiple active TWISS at same element
+                data.setdefault(index, {}).update(twiss)
+            else:
+                inactive.setdefault(index, []).append(twiss)
+        self.data = data
+        self.inactive = inactive
 
-    def GetElementRow(self, element_index):
+    def GetInsertRow(self, element_index):
         """
-        Get the row within the GridBagSizer in which the TWISS initial
-        conditions for the element with the specified index are stored.
+        Get the row number of the next item for the specified element should
+        be inserted.
         """
-        return bisect.bisect_left(sorted(self.data), element_index)
+        # This assumes the rows are sorted by element index, which is valid
+        # because this function is used to determine the insertion index.
+        bigger = (i for i, (index, active, twiss) in enumerate(self._rows)
+                  if index > element_index)
+        return next(bigger, len(self._rows))
 
-    def GetElementIndex(self, element_row):
-        return sorted(self.data)[element_row]
-
-    def AddTwissRow(self, elem_index, twiss_init=None):
+    def AddTwissRow(self, elem_index, twiss_init=None, active=True):
 
         """
         Add one row to the list of TWISS initial conditions.
@@ -137,31 +178,57 @@ class ManageTwissDialog(ModalDialog):
         grid = self._grid
 
         # insert elements
-        offset = self.GetElementRow(elem_index)
+        self._inserting = True
+        offset = self.GetInsertRow(elem_index)
         element = self.elements[elem_index]
-        grid.InsertStringItem(offset, element['name'])
-        grid.SetStringItem(offset, 1, element['type'])
-        grid.SetStringItem(offset, 2, str(element['at']))
+        at = strip_unit(element['at'], units.m)
+        grid.InsertStringItem(offset, format_element(elem_index, element))
+        grid.SetStringItem(offset, 1, '{:.3f}'.format(at))
+        grid.SetStringItem(offset, 2, str(twiss_init))
+        grid.CheckItem(offset, active)
         grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        grid.SetColumnWidth(2, wx.LIST_AUTOSIZE)
 
         # update stored data
-        self.data[elem_index] = twiss_init
+        self._rows.insert(elem_index, (elem_index, active, twiss_init))
+        self._inserting = False
+
+        return offset
 
     def OnButtonRemove(self, event):
-        """Remove the Row with the specified."""
-        grid = self._grid
-        row = grid.GetFirstSelected()
-        grid.DeleteItem(row)
-        del self.data[self.GetElementIndex(row)]
+        """Remove the selected row."""
+        self.RemoveRow(self._grid.GetFirstSelected())
+
+    def RemoveRow(self, row):
+        """Remove specified row."""
+        self._grid.DeleteItem(row)
+        del self._rows[row]
 
     def OnButtonEdit(self, event):
         """Edit the TWISS initial conditions at the specified element."""
-        row = self._grid.GetFirstSelected()
-        index = self.GetElementIndex(row)
+        self.EditTwiss(self._grid.GetFirstSelected())
+
+    def EditTwiss(self, row):
+        index, active, twiss = self._rows[row]
         utool = self.segman.simulator.utool
-        twiss_init = TwissDialog.show_modal(self, utool, self.data[index])
-        if twiss_init is not None:
-            self.data[index] = twiss_init
+        twiss = TwissDialog.show_modal(self, utool, twiss)
+        if twiss is not None:
+            self._rows[index] = (index, active, twiss)
+
+    def ChooseElement(self, row):
+        old_element_index, active, twiss = self._rows[row]
+        dlg = ElementDialog(self, "Choose element", elements=self.elements,
+                            selected=old_element_index)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        new_element_index = dlg.selected[0]
+        if new_element_index == old_element_index:
+            return
+        self.RemoveRow(row)
+        new_row = self.AddTwissRow(new_element_index, twiss, active)
+        self._grid.Select(new_row)
+        self._grid.Focus(new_row)
 
     def OnUpdateButton(self, event):
         event.Enable(self._grid.GetSelectedItemCount() > 0)
