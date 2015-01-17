@@ -71,13 +71,14 @@ class ListCtrlUtil(object):
         return col_locs
 
 
-class ListView(wx.ListView, ListCtrlAutoWidthMixin, ListCtrlUtil):
+# need to use ListCtrl, since ListView doesn't work in *virtual* mode:
+class ListView(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
     """ListView that auto-sizes the first column."""
 
     def __init__(self, *args, **kwargs):
         """Initialize window."""
-        wx.ListView.__init__(self, *args, **kwargs)
+        wx.ListCtrl.__init__(self, *args, **kwargs)
         ListCtrlAutoWidthMixin.__init__(self)
         self.setResizeColumn(0)
 
