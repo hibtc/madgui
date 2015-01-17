@@ -237,7 +237,16 @@ class ElementDialog(ModalDialog):
     def TransferDataToWindow(self):
         """Update element list and selection."""
         searchtext = self._search.GetValue()
-        self._listctrl.elements = filter_elements(self.elements, searchtext)
+        filtered_elements = filter_elements(self.elements, searchtext)
+        self._listctrl.elements = filtered_elements
+        try:
+            sel_index = self.selected
+            sel_element = self.elements[sel_index]
+            selected = filtered_elements.index((sel_index, sel_element))
+        except (IndexError, ValueError):
+            return
+        self._listctrl.Select(selected)
+        self._listctrl.Focus(selected)
 
     def TransferDataFromWindow(self):
         """Retrieve the index of the selected element."""
