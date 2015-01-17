@@ -146,7 +146,8 @@ class ParamDialog(ModalDialog):
 
     def CreateContentArea(self):
         """Create sizer with content area, i.e. input fields."""
-        self._grid = grid = listview.EditListCtrl(self, style=wx.LC_REPORT)
+        style = wx.LC_REPORT | wx.LC_SINGLE_SEL
+        self._grid = grid = listview.EditListCtrl(self, style=style)
         grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
         grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
                           format=wx.LIST_FORMAT_RIGHT)
