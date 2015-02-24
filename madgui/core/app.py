@@ -107,5 +107,5 @@ class App(wx.App):
     def add_entry_points(self, entry_map_section):
         """Add entry points."""
         recursive_merge(
-            self.dist._ep_map,
+            self.dist.get_entry_map(),
             EntryPoint.parse_map(entry_map_section, self.dist))
