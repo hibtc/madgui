@@ -56,7 +56,7 @@ class TableDialog(wx.Dialog):
         if len(rows) == num_rows:
             # update grid
             for row, (key, val) in enumerate(rows):
-                value, value = _split_value(val)
+                value, unit = _split_value(val)
                 grid.SetStringItem(row, 0, key)
                 grid.SetStringItem(row, 1, value)
                 grid.SetStringItem(row, 2, unit)
