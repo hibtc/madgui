@@ -106,6 +106,8 @@ class SegmentedRange(object):
             element = self.sequence.elements.index(element)
         element_data = self.simulator.utool.dict_add_unit(
             self.sequence.elements[element])
+        if element < 0:
+            element += len(self.sequence.elements)
         return ElementInfo(element_data['name'], element, element_data['at'])
 
     def parse_range(self, range):
