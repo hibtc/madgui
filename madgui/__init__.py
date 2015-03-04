@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 
 __title__ = 'MadGUI'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
-__uri__ = 'https://github.com/coldfix/madgui'
+__uri__ = 'https://github.com/hibtc/madgui'
 
 __version__ = '0.2.0'
 
