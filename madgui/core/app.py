@@ -23,7 +23,8 @@ Website:
 # force new style imports
 from __future__ import absolute_import
 
-from pkg_resources import EntryPoint, Requirement, working_set
+from pkg_resources import (EntryPoint, Requirement, working_set,
+                           iter_entry_points)
 
 # not so standard 3rdparty dependencies
 import wx
@@ -95,6 +96,15 @@ class App(wx.App):
         self.conf = conf
         self.dist = working_set.find(Requirement.parse('madgui'))
         self.add_entry_points(self.entry_points)
+        # Add all entry point maps (strings like `App.entry_point` above) that
+        # are registered under 'madgui.entry_points'. This indirection renders
+        # the plugin mechanism more dynamic and allows plugins to be defined
+        # more easily by eliminating the need to execute 'setup.py' each time
+        # an entrypoint is added, changed or removed. Instead, their setup
+        # step only needs to create a single entrypoint which is less likely
+        # to change.
+        for ep in iter_entry_points('madgui.entry_points'):
+            self.add_entry_points(ep.load())
         super(App, self).__init__(redirect=False)
 
     def OnInit(self):
