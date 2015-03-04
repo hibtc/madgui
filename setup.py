@@ -39,6 +39,8 @@ setup(
     author=meta['__author__'],
     author_email=meta['__email__'],
     url=meta['__uri__'],
+    license=meta['__license__'],
+    classifiers=meta['__classifiers__'],
     packages=[
         'madgui',
         'madgui.component',
@@ -47,17 +49,6 @@ setup(
         'madgui.util',
         'madgui.widget',
     ],
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Topic :: Scientific/Engineering :: Medical Science Apps.',
-        'Topic :: Scientific/Engineering :: Physics',
-    ],
-    license=meta['__license__'],
     test_suite='nose.collector',
     install_requires=[
         'cpymad>=0.10.1',
