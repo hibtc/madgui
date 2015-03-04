@@ -7,7 +7,7 @@ from bisect import bisect
 
 from madgui.core import wx
 
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
 
 
 class ListCtrlUtil(object):
@@ -81,6 +81,19 @@ class ListView(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
         wx.ListCtrl.__init__(self, *args, **kwargs)
         ListCtrlAutoWidthMixin.__init__(self)
         self.setResizeColumn(0)
+
+
+class CheckListCtrl(ListView, CheckListCtrlMixin):
+
+    """ListView with checkboxes in first column."""
+
+    def __init__(self, *args, **kwargs):
+        ListView.__init__(self, *args, **kwargs)
+        CheckListCtrlMixin.__init__(self)
+        self._OnCheckItem = lambda index, flag: None
+
+    def OnCheckItem(self, index, flag):
+        self._OnCheckItem(index, flag)
 
 
 ### Value handlers

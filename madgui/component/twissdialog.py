@@ -10,26 +10,13 @@ from functools import partial
 # internal
 from madgui.core import wx
 from madgui.widget.element import ElementDialog
-from madgui.widget.listview import ListView
+from madgui.widget.listview import CheckListCtrl
 from madgui.widget.input import ModalDialog
 from madgui.widget.param import ParamDialog, Bool, String, Float, Matrix
 from madgui.util.unit import strip_unit, units
 
-from wx.lib.mixins.listctrl import CheckListCtrlMixin
-
 
 __all__ = ['TwissDialog']
-
-
-class CheckListCtrl(ListView, CheckListCtrlMixin):
-
-    def __init__(self, *args, **kwargs):
-        ListView.__init__(self, *args, **kwargs)
-        CheckListCtrlMixin.__init__(self)
-        self._OnCheckItem = lambda index, flag: None
-
-    def OnCheckItem(self, index, flag):
-        self._OnCheckItem(index, flag)
 
 
 def format_element(index, element):
