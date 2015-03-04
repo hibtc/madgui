@@ -51,7 +51,7 @@ class CachedLocator(object):
     @classmethod
     def discover(cls):
         """Return list of all locators at the entrypoint madgui.models."""
-        return [cls(ep.name, ep.load())
+        return [cls(ep.name, ep.load()())
                 for ep in iter_entry_points('madgui.models')]
 
     @classmethod
