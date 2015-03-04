@@ -20,14 +20,20 @@ from setuptools import setup
 from distutils.util import convert_path
 
 
+def read_file(path):
+    """Read a file in binary mode."""
+    with open(convert_path(path), 'rb') as f:
+        return f.read()
+
+
 def exec_file(path):
     """Execute a python file and return the `globals` dictionary."""
     namespace = {}
-    with open(convert_path(path)) as f:
-        exec(f.read(), namespace, namespace)
+    exec(read_file(path), namespace, namespace)
     return namespace
 
 
+long_description = read_file('README.rst').decode('utf-8')
 meta = exec_file('madgui/__init__.py')
 
 
@@ -35,7 +41,7 @@ setup(
     name='madgui',
     version=meta['__version__'],
     description=meta['__summary__'],
-    long_description=open('README.rst').read(),
+    long_description=long_description,
     author=meta['__author__'],
     author_email=meta['__email__'],
     url=meta['__uri__'],
