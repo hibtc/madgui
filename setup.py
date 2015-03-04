@@ -33,51 +33,55 @@ def exec_file(path):
     return namespace
 
 
-long_description = read_file('README.rst').decode('utf-8')
-meta = exec_file('madgui/__init__.py')
+def main():
+    """Execute setup."""
+    long_description = read_file('README.rst').decode('utf-8')
+    meta = exec_file('madgui/__init__.py')
+    setup(
+        name='madgui',
+        version=meta['__version__'],
+        description=meta['__summary__'],
+        long_description=long_description,
+        author=meta['__author__'],
+        author_email=meta['__email__'],
+        url=meta['__uri__'],
+        license=meta['__license__'],
+        classifiers=meta['__classifiers__'],
+        packages=[
+            'madgui',
+            'madgui.component',
+            'madgui.core',
+            'madgui.resource',
+            'madgui.util',
+            'madgui.widget',
+        ],
+        test_suite='nose.collector',
+        install_requires=[
+            'cpymad>=0.10.1',
+            'docopt',
+            'matplotlib',
+            'numpy',
+            'pydicti>=0.0.4',
+            'PyYAML',
+            'Unum>=4.0',
+            # wxPython is a dependency, but we do not require it here, since this
+            # will cause the 'pkg_resources.require' runtime check to fail on the
+            # control system PCs:
+            # 'wxPython>=2.8',
+        ],
+        entry_points="""
+            [gui_scripts]
+            madgui = madgui.core.app:App.main
+        """,
+        package_data={
+            'madgui': [
+                'config.yml',
+                'resource/*.xpm',
+                'LICENSE',
+            ]
+        }
+    )
 
 
-setup(
-    name='madgui',
-    version=meta['__version__'],
-    description=meta['__summary__'],
-    long_description=long_description,
-    author=meta['__author__'],
-    author_email=meta['__email__'],
-    url=meta['__uri__'],
-    license=meta['__license__'],
-    classifiers=meta['__classifiers__'],
-    packages=[
-        'madgui',
-        'madgui.component',
-        'madgui.core',
-        'madgui.resource',
-        'madgui.util',
-        'madgui.widget',
-    ],
-    test_suite='nose.collector',
-    install_requires=[
-        'cpymad>=0.10.1',
-        'docopt',
-        'matplotlib',
-        'numpy',
-        'pydicti>=0.0.4',
-        'PyYAML',
-        'Unum>=4.0',
-        # wxPython is a dependency, but we do not require it here, since this
-        # will cause the 'pkg_resources.require' runtime check to fail on the
-        # control system PCs:
-        # 'wxPython>=2.8',
-    ],
-    entry_points="""
-        [gui_scripts]
-        madgui = madgui.core.app:App.main
-    """,
-    package_data={
-        'madgui': [
-            'config.yml',
-            'resource/*.xpm',
-            'LICENSE',
-        ]
-    }
-)
+if __name__ == '__main__':
+    main()
