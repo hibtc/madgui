@@ -9,12 +9,12 @@ from __future__ import absolute_import
 # standard library
 from collections import namedtuple
 import os
-import re
 import subprocess
 import sys
 
 # 3rd party
 from cpymad.madx import Madx, CommandLog
+from cpymad.util import normalize_range_name
 from cpymad import _rpc
 
 # internal
@@ -248,18 +248,6 @@ class SegmentedRange(object):
         if segment is None:
             return None
         return segment.tw[name][element.index - segment.start.index]
-
-
-def normalize_range_name(name):
-    # MAD-X does not allow the ":d" suffix in the 'range' parameter string.
-    # This means that name becomes less unique, but that's the only way right
-    # now:
-    name = re.sub(':\d+$', '', name.lower())
-    if name.endswith('$end'):
-        return '#e'
-    if name.endswith('$start'):
-        return '#s'
-    return name
 
 
 def dict_setdefault(a, b):

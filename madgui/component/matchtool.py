@@ -6,9 +6,6 @@ Matching tool for a :class:`LineView` instance.
 # force new style imports
 from __future__ import absolute_import
 
-# standard library
-import re
-
 # 3rd party
 from cpymad.resource.package import PackageResource
 
@@ -237,7 +234,6 @@ class Matching(object):
         constraints = []
         for name, constr in trans_constr.items():
             for elem, val in constr:
-                el_name = re.sub(':\d+$', '', elem['name'])
                 constraints.append({
                     'range': el_name,
                     name: simul.utool.strip_unit(name, val)})
