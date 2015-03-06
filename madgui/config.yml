@@ -17,7 +17,7 @@ line_view:
   #   func-name: unit name
   #   func-name: dictionary of {unit name: power}
   #
-  # Valid unit names are from ``unum.units``.
+  # Unit names must be valid arguments to a pint.UnitRegistry
   unit:
     s:      m
     envx:   mm
@@ -89,19 +89,19 @@ madx_units:
   betx:     m
   bety:     m
   angle:    rad
-  k1:       {m: -2}
-  k1s:      {m: -2}
-  k1l:      {m: -2}
+  k1:       m^-2
+  k1s:      m^-2
+  k1l:      m^-2
   ex:       m
   ey:       m
   tilt:     rad
   hgap:     m
-  h:        {rad: 1, m: -1}
+  h:        rad/m
   fint:     1
   fintx:    1
   e1:       rad
   e2:       rad
-  ks:       {m: -1}
+  ks:       1/m
 
 
 # Select which element paramters can be varied when matching a TWISS function:
