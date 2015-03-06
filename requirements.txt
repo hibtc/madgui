@@ -1,8 +1,8 @@
-cern-pymad==0.9
-docopt==0.6.1
-matplotlib==1.3.1
-numpy==1.8.1
+cpymad==0.10.2
+docopt==0.6.2
+matplotlib==1.4.3
+numpy==1.9.1
+Pint==0.6
 pydicti==0.0.4
-PyYAML==3.10
-Unum==4.1.3
-wxPython==3.0.0.0
+PyYAML==3.11
+wxPython==3.0.2.0
