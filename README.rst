@@ -26,7 +26,7 @@ These can easily be installed via PyPI (``pip install ...``) if unavailable
 in your repositories:
 
 - docopt_
-- Unum_
+- Pint_
 - pydicti_
 - PyYAML_
 
@@ -37,7 +37,7 @@ in your repositories:
 .. _matplotlib: http://matplotlib.org/
 .. _numpy: http://www.numpy.org
 .. _docopt: https://pypi.python.org/pypi/docopt
-.. _Unum: https://pypi.python.org/pypi/Unum
+.. _Pint: http://pint.readthedocs.org/
 .. _pydicti: https://github.com/coldfix/pydicti
 .. _PyYAML: https://pypi.python.org/pypi/PyYAML
 
