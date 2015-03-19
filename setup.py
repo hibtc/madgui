@@ -63,7 +63,7 @@ def main():
             'numpy',
             'pydicti>=0.0.4',
             'PyYAML',
-            'Unum>=4.0',
+            'Pint>=0.6',
             # wxPython is a dependency, but we do not require it here, since this
             # will cause the 'pkg_resources.require' runtime check to fail on the
             # control system PCs:

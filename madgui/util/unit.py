@@ -1,3 +1,4 @@
+# encoding: utf-8
 """
 Provides unit conversion.
 """
@@ -6,7 +7,8 @@ Provides unit conversion.
 from __future__ import absolute_import
 
 # 3rd party
-from unum import Unum, units
+from pint import UnitRegistry
+from pint.unit import UnitsContainer
 from pydicti import dicti
 from cpymad.types import Expression
 
@@ -15,7 +17,7 @@ from madgui.util.symbol import SymbolicValue
 
 
 # exported symbols
-__all__ = ['units',     # unum.units module
+__all__ = ['units',
            'strip_unit',
            'tounit',
            'get_unit_label',
@@ -30,44 +32,68 @@ try:                    # python2
     basestring
 except NameError:       # python3 (let's think about future...)
     basestring = str
+    unicode = str
+
+
+units = UnitRegistry()
+
+# extent unit registry.
+# NOTE: parsing %, ‰ doesn't work automatically yet in pint.
+units.define(u'ratio = []')
+units.define(u'percent = 0.01 ratio = %')
+units.define(u'permille = 0.001 ratio = ‰')
 
 
 def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
-    return quantity.asNumber(unit)
+    if unit is None:
+        return quantity.magnitude
+    return quantity.to(unit).magnitude
 
 
 def tounit(quantity, unit):
     """Cast the quantity to a specific unit."""
-    return quantity.asUnit(unit)
+    return quantity.to(unit)
 
 
 def get_unit_label(quantity):
     """Get name of the unit."""
-    return quantity.strUnit()
+    return '[' + get_raw_label(quantity) + ']'
+
+
+def format_quantity(quantity):
+    """Get a nice display string for the quantity."""
+    if isinstance(quantity, units.Quantity):
+        return '{:P~}'.format(quantity)
+    return str(quantity)
 
 
 def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
-    return quantity.strUnit().strip('[]')
+    short = UnitsContainer({units._get_symbol(key): value
+                            for key, value in quantity.units.items()})
+    return u'{:P}'.format(short)
 
 
 def from_config(unit):
     """
-    Convert a config entry for a unit to a :class:`unum.Unum` instance.
+    Parse a config entry for a unit to a :class:`pint.unit.Quantity` instance.
 
-    Possible types for ``unit`` are:
+    The pint parser is quite powerful. Valid examples are:
 
-    - :class:`str`: name of a unit found in :module:`unum.units`.
-    - :class:`dict`: dictionary {unit name: exponent}
-    - the number ``1`` (dimensionless)
+        s / m²
+        microsecond
+        10 rad
+        m^-2
     """
-    if isinstance(unit, dict):
-        return Unum(unit)
-    elif isinstance(unit, int):
-        return unit
-    else:
-        return getattr(units, unit)
+    if not unit:
+        return units(None)
+    unit = unicode(unit)
+    # as of pint-0.6 the following symbols fail to be parsed on python2:
+    unit = unit.replace(u'µ', u'micro')
+    unit = unit.replace(u'%', u'percent')
+    unit = unit.replace(u'‰', u'permille')
+    return units(unit)
 
 
 def from_config_dict(conf_dict):

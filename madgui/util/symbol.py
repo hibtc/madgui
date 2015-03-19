@@ -26,7 +26,7 @@ class SymbolicValue(object):
 
     def __float__(self):
         """Evaluate expression and return as pure float in the base unit."""
-        return self.asNumber()
+        return self._value
 
     def __str__(self):
         """Evaluate expression and return with associated unit."""
@@ -43,14 +43,17 @@ class SymbolicValue(object):
     def value(self):
         return self._get()
 
-    def asNumber(self, unit=None):
+    # TODO: need magnitude etc
+
+    @property
+    def magnitude(self):
         """Evaluate expression and return as pure float."""
-        return self._get().asNumber(unit)
+        return self._value
 
-    def asUnit(self, unit=None):
-        """Evaluate expression and cast to the specified unit."""
-        return self._get().asUnit(unit)
-
-    def strUnit(self):
+    @property
+    def units(self):
         """Return a string that describes the unit."""
-        return self._unit.strUnit()
+        return self._unit.units
+
+    def to(self, other):
+        return self._get().to(other)
