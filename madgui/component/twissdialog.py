@@ -13,7 +13,7 @@ from madgui.widget.element import ElementDialog
 from madgui.widget.listview import CheckListCtrl
 from madgui.widget.input import ModalDialog
 from madgui.widget.param import ParamDialog, Bool, String, Float, Matrix
-from madgui.util.unit import strip_unit, units
+from madgui.util.unit import strip_unit, units, format_quantity
 
 
 __all__ = ['TwissDialog']
@@ -169,9 +169,11 @@ class ManageTwissDialog(ModalDialog):
         offset = self.GetInsertRow(elem_index)
         element = self.elements[elem_index]
         at = strip_unit(element['at'], units.m)
+        data_text = ', '.join(k + '=' + format_quantity(v)
+                              for k, v in twiss_init.items()
         grid.InsertStringItem(offset, format_element(elem_index, element))
         grid.SetStringItem(offset, 1, '{:.3f}'.format(at))
-        grid.SetStringItem(offset, 2, str(twiss_init))
+        grid.SetStringItem(offset, 2, data_text)
         grid.CheckItem(offset, active)
         grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)

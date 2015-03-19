@@ -61,6 +61,13 @@ def get_unit_label(quantity):
     return '[' + get_raw_label(quantity) + ']'
 
 
+def format_quantity(quantity):
+    """Get a nice display string for the quantity."""
+    if isinstance(quantity, units.Quantity):
+        return '{:P~}'.format(quantity)
+    return str(quantity)
+
+
 def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
     short = UnitsContainer({units._get_symbol(key): value
