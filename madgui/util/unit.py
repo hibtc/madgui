@@ -27,14 +27,21 @@ __all__ = ['units',
            'UnitConverter']
 
 
-units = UnitRegistry()
-
-
 # compatibility
 try:                    # python2
     basestring
 except NameError:       # python3 (let's think about future...)
     basestring = str
+    unicode = str
+
+
+units = UnitRegistry()
+
+# extent unit registry.
+# NOTE: parsing %, ‰ doesn't work automatically yet in pint.
+units.define(u'ratio = []')
+units.define(u'percent = 0.01 ratio = %')
+units.define(u'permille = 0.001 ratio = ‰')
 
 
 def strip_unit(quantity, unit=None):
@@ -74,8 +81,11 @@ def from_config(unit):
     """
     if not unit:
         return units(None)
-    unit = str(unit)
-    unit.replace(u'µ', u'micro')
+    unit = unicode(unit)
+    # as of pint-0.6 the following symbols fail to be parsed on python2:
+    unit = unit.replace(u'µ', u'micro')
+    unit = unit.replace(u'%', u'percent')
+    unit = unit.replace(u'‰', u'permille')
     return units(unit)
 
 
