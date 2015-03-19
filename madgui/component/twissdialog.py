@@ -170,7 +170,7 @@ class ManageTwissDialog(ModalDialog):
         element = self.elements[elem_index]
         at = strip_unit(element['at'], units.m)
         data_text = ', '.join(k + '=' + format_quantity(v)
-                              for k, v in twiss_init.items()
+                              for k, v in twiss_init.items())
         grid.InsertStringItem(offset, format_element(elem_index, element))
         grid.SetStringItem(offset, 1, '{:.3f}'.format(at))
         grid.SetStringItem(offset, 2, data_text)
