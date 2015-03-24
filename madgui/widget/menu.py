@@ -36,6 +36,30 @@ class Item(object):
             evt_handler.Bind(wx.EVT_UPDATE_UI, self.update_ui, item)
 
 
+class CondItem(Item):
+
+    def __init__(self, title, description, action, condition=None,
+                 kind=wx.ITEM_NORMAL, id=wx.ID_ANY):
+        self.title = title
+        self._action = action
+        self.description = description
+        self._condition = condition
+        self.kind = kind
+        self.id = id
+
+    def condition(self):
+        if self._condition:
+            return self._condition()
+        return True
+
+    def action(self, event):
+        if self.condition():
+            self._action()
+
+    def update_ui(self, event):
+        event.Enable(self.condition())
+
+
 class Menu(object):
 
     def __init__(self, title, items):
