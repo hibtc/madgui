@@ -6,9 +6,11 @@ Provides unit conversion.
 # force new style imports
 from __future__ import absolute_import
 
+# stdlib
+import sys
+
 # 3rd party
-from pint import UnitRegistry
-from pint.unit import UnitsContainer
+import pint
 from pydicti import dicti
 from cpymad.types import Expression
 
@@ -35,7 +37,17 @@ except NameError:       # python3 (let's think about future...)
     unicode = str
 
 
-units = UnitRegistry()
+units = pint.UnitRegistry()
+
+
+# make `str(quantity)` slightly nicer.
+if sys.version_info[0] == 3:
+    units.default_format = 'P~'
+else:
+    # NOTE: 'P' outputs non-ascii unicode symbols and therefore breaks
+    # str(quantity) on python2 (UnicodeEncodeError).
+    units.default_format = '~'
+
 
 # extent unit registry.
 # NOTE: parsing %, ‰ doesn't work automatically yet in pint.
@@ -61,18 +73,33 @@ def get_unit_label(quantity):
     return '[' + get_raw_label(quantity) + ']'
 
 
-def format_quantity(quantity):
+def format_quantity(quantity, num_spec=''):
     """Get a nice display string for the quantity."""
+    num_fmt = '{:' + num_spec + '}'
     if isinstance(quantity, units.Quantity):
-        return '{:P~}'.format(quantity)
-    return str(quantity)
+        magn = num_fmt.format(quantity.magnitude)
+        unit = get_raw_label(quantity)
+        return magn + ' ' + unit
+    else:
+        return num_fmt.format(quantity)
 
 
 def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
-    short = UnitsContainer({units._get_symbol(key): value
-                            for key, value in quantity.units.items()})
-    return u'{:P}'.format(short)
+    short = pint.unit.UnitsContainer(
+        {units._get_symbol(key): value
+         for key, value in quantity.units.items()})
+    as_ratio = any(exp > 0 for _, exp in short.items())
+    return pint.formatting.formatter(
+        short.items(),
+        as_ratio=as_ratio,
+        single_denominator=True,
+        product_fmt=u'·',
+        division_fmt=u'/',
+        power_fmt=u'{0}{1}',
+        parentheses_fmt=u'({0})',
+        exp_call=pint.formatting._pretty_fmt_exponent,
+    )
 
 
 def from_config(unit):
