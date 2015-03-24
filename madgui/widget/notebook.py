@@ -25,6 +25,7 @@ from madgui.component.openmodel import OpenModelDlg
 from madgui.component.twissdialog import ManageTwissDialog
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
+from madgui.widget import menu
 
 # exported symbols
 __all__ = ['NotebookFrame']
@@ -36,51 +37,6 @@ def monospace(pt_size):
                    wx.FONTFAMILY_MODERN,
                    wx.FONTSTYLE_NORMAL,
                    wx.FONTWEIGHT_NORMAL)
-
-
-class MenuItem(object):
-
-    def __init__(self, title, description, action, update_ui=None,
-                 kind=wx.ITEM_NORMAL, id=wx.ID_ANY):
-        self.title = title
-        self.action = action
-        self.description = description
-        self.update_ui = update_ui
-        self.kind = kind
-        self.id = id
-
-    def append_to(self, menu, evt_handler):
-        item = menu.Append(self.id, self.title, self.description, self.kind)
-        evt_handler.Bind(wx.EVT_MENU, self.action, item)
-        if self.update_ui:
-            evt_handler.Bind(wx.EVT_UPDATE_UI, self.update_ui, item)
-
-
-class Menu(object):
-
-    def __init__(self, title, items):
-        self.title = title
-        self.items = items
-
-    def append_to(self, menu, evt_handler):
-        submenu = wx.Menu()
-        menu.Append(submenu, self.title)
-        extend_menu(evt_handler, submenu, self.items)
-
-
-class Separator(object):
-
-    @classmethod
-    def append_to(cls, menu, evt_handler):
-        menu.AppendSeparator()
-
-
-def extend_menu(evt_handler, menu, items):
-    """
-    Append menu items to menu.
-    """
-    for item in items:
-        item.append_to(menu, evt_handler)
 
 
 class NotebookFrame(wx.Frame):
@@ -213,8 +169,12 @@ class NotebookFrame(wx.Frame):
             segman = self.GetActiveFigurePanel().view.segman
             event.Check(bool(segman.indicators))
 
+        MenuItem = menu.Item
+        Menu = menu.Menu
+        Separator = menu.Separator
+
         menubar = self.menubar = wx.MenuBar()
-        extend_menu(self, menubar, [
+        menu.extend(self, menubar, [
             Menu('&Window', [
                 MenuItem('&New\tCtrl+N',
                          'Open a new window',
