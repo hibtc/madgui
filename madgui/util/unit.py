@@ -170,3 +170,14 @@ class UnitConverter(object):
     def dict_strip_unit(self, obj):
         """Remove units from all elements in a dictionary."""
         return obj.__class__({k: self.strip_unit(k, obj[k]) for k in obj})
+
+    def normalize_unit(self, name, value):
+        """Normalize unit to unit used in MAD-X."""
+        if name in units:
+            if not isinstance(value, Expression):
+                return tounit(value, units[name])
+        return value
+
+    def dict_normalize_unit(self, obj):
+        """Normalize unit for all elements in a dictionary."""
+        return obj.__class__({k: self.normalize_unit(k, obj[k]) for k in obj})
