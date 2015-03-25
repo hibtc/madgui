@@ -176,6 +176,7 @@ class UnitConverter(object):
 
     def normalize_unit(self, name, value):
         """Normalize unit to unit used in MAD-X."""
+        units = self._units
         if name in units:
             if not isinstance(value, Expression):
                 return tounit(value, units[name])
