@@ -4,6 +4,7 @@ List view widgets.
 """
 
 from bisect import bisect
+from collections import namedtuple
 
 from madgui.core import wx
 
@@ -113,6 +114,78 @@ class CheckListCtrl(ListView, CheckListCtrlMixin):
 
     def OnCheckItem(self, index, flag):
         self._OnCheckItem(index, flag)
+
+
+ColumnInfo = namedtuple('ColumnInfo', [
+    'title',
+    'formatter',
+    'format',
+    'width',
+])
+
+
+class ManagedListCtrl(ListView):
+
+    """
+    Virtual ListView that uses a list of :class:`ColumnInfo` to format its
+    columns.
+    """
+
+    def __init__(self, parent, columns, style=wx.LC_SINGLE_SEL):
+        """
+        Initialize list view.
+
+        :param list columns: list of :class:`ColumnInfo`
+        """
+        # initialize super classes
+        style |= wx.LC_REPORT | wx.LC_VIRTUAL
+        super(ManagedListCtrl, self).__init__(parent, style=style)
+        # setup member variables
+        self._items = []
+        self._columns = columns
+        # insert columns
+        for idx, col in enumerate(self._columns):
+            self.InsertColumn(idx, col.title, col.format, col.width)
+
+    @property
+    def selected_items(self):
+        """Iterate over all selected items."""
+        return [self.items[idx] for idx in self.selected_indices]
+
+    @property
+    def selected_indices(self):
+        """Iterate over all selected indices."""
+        idx = self.GetFirstSelected()
+        while idx != -1:
+            yield idx
+            idx = self.GetNextSelected(idx)
+
+    @property
+    def items(self):
+        """Get list of data items."""
+        return self._items
+
+    @items.setter
+    def items(self, items):
+        """
+        Update widget with new item list.
+
+        :param list items: list of data items.
+        """
+        if self._items == items:
+            return
+        self._items = items
+        # TODO: keep the current selection if possible
+        # update list control:
+        count = len(self._items)
+        self.SetItemCount(count)
+        if count > 0:
+            self.RefreshItems(0, count-1)
+        self._doResize()
+
+    def OnGetItemText(self, row, col):
+        """Get the text for the specified row/col."""
+        return self._columns[col].formatter(row, self._items[row])
 
 
 ### Value handlers
