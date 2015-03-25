@@ -19,15 +19,17 @@ from madgui.util.symbol import SymbolicValue
 
 
 # exported symbols
-__all__ = ['units',
-           'strip_unit',
-           'tounit',
-           'get_unit_label',
-           'format_quantity',
-           'get_raw_label',
-           'from_config',
-           'from_config_dict',
-           'UnitConverter']
+__all__ = [
+    'units',
+    'strip_unit',
+    'tounit',
+    'get_unit_label',
+    'format_quantity',
+    'get_raw_label',
+    'from_config',
+    'from_config_dict',
+    'UnitConverter',
+]
 
 
 # compatibility
