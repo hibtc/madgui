@@ -131,6 +131,9 @@ class ManagedListCtrl(ListView):
     columns.
     """
 
+    # TODO: support Ctrl-A + mouse selection
+    # TODO: setter for selected_items/selected_indices
+
     def __init__(self, parent, columns, style=wx.LC_SINGLE_SEL):
         """
         Initialize list view.
