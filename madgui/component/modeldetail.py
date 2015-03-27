@@ -9,6 +9,7 @@ from __future__ import absolute_import
 # internal
 from madgui.core import wx
 from madgui.widget.input import ModalDialog
+from madgui.widget.bookctrl import PanelsBook
 
 
 # TODO: show+modify beam and twiss
@@ -22,55 +23,84 @@ class ModelDetailDlg(ModalDialog):
         self.model = model
         self.data = data or {}
 
-    def _AddComboBox(self, sizer, label):
+    def _AddComboBox(self, label, page):
         """
         Insert combo box with a label into the sizer.
 
-        :param wx.FlexGridSizer sizer: 2-columns
         :param str label: label to be shown to the left
         :returns: the new control
         :rtype: wx.ComboBox
         """
-        label = wx.StaticText(self, label=label)
-        combo = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
+        panel = self._book.AddPage(page)
+        label = wx.StaticText(panel, label=label)
+        style = wx.CB_READONLY|wx.CB_SORT
+        combo = wx.ComboBox(panel, style=style, size=wx.Size(100, -1))
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(label,
                   border=5,
                   flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddStretchSpacer(1)
         sizer.Add(combo,
                   border=5,
                   flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
+        panel.SetSizer(sizer)
+        panel.Finish()
+        combo.Bind(wx.EVT_COMBOBOX, panel.OnClick)
+        combo.Bind(wx.EVT_COMBOBOX_DROPDOWN, panel.OnClick)
         return combo
 
-    def _AddCheckBox(self, sizer, label):
+    def _AddCheckBox(self, label, page):
         """Insert a check box into the sizer."""
-        ctrl = wx.CheckBox(self, label=label)
-        sizer.AddSpacer(10)
+        panel = self._book.AddPage(page)
+        ctrl = wx.CheckBox(panel, label=label)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(ctrl, border=5,
                   flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
+        panel.SetSizer(sizer)
+        panel.Finish()
         return ctrl
 
     def CreateContentArea(self):
 
         """Create subcontrols and layout."""
 
-        # Create box sizer
-        controls = wx.FlexGridSizer(rows=5, cols=2)
-        controls.SetFlexibleDirection(wx.HORIZONTAL)
-        controls.AddGrowableCol(1, 1)
-        controls.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self._book = PanelsBook(self)
+        sizer.Add(self._book)
+
+        def _CreateDummyPage(label):
+            page = wx.Panel(self._book.book)
+            page.SetBackgroundColour(wx.Colour(0x7f, 0x7f, 0x7f))
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            ctrl = wx.StaticText(page, label=label)
+            sizer.AddStretchSpacer(1)
+            sizer.Add(ctrl, flag=wx.ALL|wx.ALIGN_CENTER_HORIZONTAL, border=10)
+            sizer.AddStretchSpacer(1)
+            page.SetSizer(sizer)
+            return page
+
+        # pages
+        page_sequence = _CreateDummyPage("sequence")
+        page_beam = _CreateDummyPage("beam")
+        page_range = _CreateDummyPage("range")
+        page_twiss = _CreateDummyPage("twiss")
+        page_style = _CreateDummyPage("style")
 
         # insert items
-        self.ctrl_sequence = self._AddComboBox(controls, 'Sequence:')
-        self.ctrl_beam = self._AddComboBox(controls, 'Beam:')
-        self.ctrl_range = self._AddComboBox(controls, 'Range:')
-        self.ctrl_twiss = self._AddComboBox(controls, 'Twiss:')
-        self.ctrl_elem = self._AddCheckBox(controls, 'show element indicators')
+        self.ctrl_sequence = self._AddComboBox('Sequence:', page_sequence)
+        self.ctrl_beam = self._AddComboBox('Beam:', page_beam)
+        self.ctrl_range = self._AddComboBox('Range:', page_range)
+        self.ctrl_twiss = self._AddComboBox('Twiss:', page_twiss)
+        self.ctrl_elem = self._AddCheckBox('show element indicators', page_style)
 
         # register for events
         self.Bind(wx.EVT_TEXT, self.OnSequenceChange, source=self.ctrl_sequence)
         self.Bind(wx.EVT_TEXT, self.OnRangeChange, source=self.ctrl_range)
 
-        return controls
+        self._book.SetSelection(0)
+
+        return sizer
 
     def OnSequenceChange(self, event):
         """Update default range+beam when sequence is changed."""
