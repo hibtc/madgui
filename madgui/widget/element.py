@@ -16,6 +16,8 @@ from madgui.util.unit import strip_unit, units, format_quantity
 __all__ = [
     'ElementListWidget',
     'ElementWidget',
+    'RangeListWidget',
+    'RangeWidget',
 ]
 
 
@@ -68,7 +70,7 @@ def _compile_element_searchtoken(search):
     return match
 
 
-def filter_elements(elements, search):
+def filter_elements(elements, search, keep=()):
     """
     Filter the list of elements using the given search string.
 
@@ -76,7 +78,7 @@ def filter_elements(elements, search):
     """
     match = _compile_element_searchtoken(search)
     return [(i, el) for i, el in elements
-            if match(i, el)]
+            if i in keep or match(i, el)]
 
 
 class ElementListWidget(Widget):
@@ -90,7 +92,9 @@ class ElementListWidget(Widget):
     :ivar list selected: list of ids of selected elements
     """
 
-    def Init(self, elements, selected):
+    Style = wx.LC_SINGLE_SEL
+
+    def __init__(self, elements, selected):
         """Initialize data."""
         self.elements = elements
         self.selected = selected
@@ -123,7 +127,8 @@ class ElementListWidget(Widget):
     def CreateControls(self):
         """Create element list and search controls."""
         listctrl = listview.ManagedListCtrl(self.GetWindow(),
-                                            self.GetColumns())
+                                            self.GetColumns(),
+                                            style=self.Style)
         listctrl.setResizeColumn(2)
         listctrl.SetMinSize(wx.Size(400, 200))
         listctrl.Bind(wx.EVT_CHAR, self.OnChar)
@@ -172,8 +177,9 @@ class ElementWidget(Widget):
     """Element selection dialog with a list control and a search box."""
 
     title = "Choose element"
+    ListWidget = ElementListWidget
 
-    def Init(self, elements, selected):
+    def __init__(self, elements, selected):
         """Initialize data."""
         self.elements = elements
         self.selected = selected
@@ -203,9 +209,8 @@ class ElementWidget(Widget):
         return sizer
 
     def _ListWidget(self, elements, selected):
-        widget = ElementListWidget(elements=elements, selected=selected)
-        widget.SetWindow(self.GetWindow())
-        control = widget.CreateControls()
+        widget = self.ListWidget(elements=elements, selected=selected)
+        control = widget.Embed(self.GetWindow())
         return widget, control
 
     def CreateListCtrl(self):
@@ -234,3 +239,87 @@ class ElementWidget(Widget):
 
     def Validate(self, parent):
         return self._listwidget.Validate(parent)
+
+
+class RangeListWidget(ElementListWidget):
+
+    Style = 0
+
+    def CreateControls(self):
+        """Create element list and search controls."""
+        listctrl = super(RangeListWidget, self).CreateControls()
+        listctrl.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        return listctrl
+
+    def OnChar(self, event):
+        """Apply dialog when pressing Enter."""
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_RETURN:
+            self.ApplyDialog()
+        # NOTE: we never skip the event, since the default event handler for
+        # some keys messes up our selection.
+        # TODO: scroll on UP/DOWN?
+
+    def OnLeftDown(self, event):
+        """Change selection."""
+        x, y = event.GetPosition()
+        row, col = self._listctrl.GetCellId(x, y)
+        if row < 0:
+            return
+        if self.elements[row][0] >= self.selected[1]:
+            select_end = True
+        elif self.elements[row][0] <= self.selected[0]:
+            select_end = False
+        else:
+            select_end = event.AltDown() or event.ShiftDown()
+        element_index = self.elements[row][0]
+        if select_end:
+            self.selected[1] = element_index
+        else:
+            self.selected[0] = element_index
+        self.TransferToWindow()
+
+    def OnDoubleClick(self, event):
+        """Do nothing."""
+        event.Skip()
+
+    def Validate(self, parent):
+        """Check input validity."""
+        return (self._listctrl.GetItemCount() > 1 and
+                self._listctrl.GetSelectedItemCount() >= 2)
+
+    def TransferToWindow(self):
+        """Update element list and selection."""
+        self._listctrl.items = self.elements[:]
+        for _i, (i, el) in enumerate(self.elements):
+            if i >= self.selected[0] and i <= self.selected[1]:
+                self._listctrl.Select(_i, True)
+            else:
+                self._listctrl.Select(_i, False)
+
+    def TransferFromWindow(self):
+        """Retrieve the index of the selected element."""
+        sel = [i for i, el in self._listctrl.selected_items]
+        self.selected[:] = [min(sel), max(sel)]
+
+
+class RangeWidget(ElementWidget):
+
+    title = "Select element range"
+
+    ListWidget = RangeListWidget
+
+    def CreateControls(self):
+        sizer = super(RangeWidget, self).CreateControls()
+        help_text = "(Shift click to select last element)"
+        help_ctrl = wx.StaticText(self.GetWindow(), label=help_text)
+        sizer.Add(help_ctrl, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+        return sizer
+
+    def TransferToWindow(self):
+        """Update element list and selection."""
+        searchtext = self._search.GetValue()
+        filtered = filter_elements(self.elements, searchtext, self.selected)
+        self._widget_elements[:] = filtered
+        self._widget_selected[:] = self.selected
+        self._listwidget.TransferToWindow()
