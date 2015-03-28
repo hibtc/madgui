@@ -235,7 +235,7 @@ class Matching(object):
         for name, constr in trans_constr.items():
             for elem, val in constr:
                 constraints.append({
-                    'range': el_name,
+                    'range': elem['name'],
                     name: simul.utool.strip_unit(name, val)})
 
         twiss_args = simul.utool.dict_strip_unit(segment.twiss_args)
