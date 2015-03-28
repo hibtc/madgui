@@ -122,7 +122,7 @@ class ParamTable(Widget):
     :ivar wx.GridBagSizer _grid: sizer that contains all parameters
     """
 
-    def Init(self, utool, data):
+    def __init__(self, utool, data):
         """Initialize data."""
         self.utool = utool
         self._params = OrderedDict(

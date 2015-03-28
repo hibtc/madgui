@@ -36,7 +36,7 @@ class ManageTwissWidget(Widget):
 
     title = "Select TWISS initial conditions"
 
-    def Init(self, segman, data=None, inactive=None):
+    def __init__(self, segman, data=None, inactive=None):
         self.segman = segman
         self.data = data
         if inactive is None:

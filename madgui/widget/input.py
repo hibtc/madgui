@@ -11,12 +11,53 @@ from madgui.core import wx
 
 # exported symbols
 __all__ = [
+    'Validator',
     'Widget',
     'Dialog',
 ]
 
 
-class Widget(wx.PyValidator):
+# Derive from wx.PyValidator (not wx.Validator) in order to overwrite the
+# virtual methods:
+class Validator(wx.PyValidator):
+
+    """
+    Validator for a Widget's window.
+
+    Delegates Validator method calls directly to the associated Widget.
+
+    The reason to have two separate objects for Widget and Validator is that
+    window.SetValidator() clones and deletes the validator object and thereby
+    renders it completely useless. By encapsulating this undesirable property
+    in a small delegate object, the original Widget object remains accessible
+    even after installing it as validator.
+    """
+
+    def __init__(self, widget):
+        """Initialize myself."""
+        super(Validator, self).__init__()
+        self.widget = widget
+
+    # wx.Validator interface
+
+    def Clone(self):
+        """Clone myself."""
+        return self.__class__(self.widget)
+
+    def Validate(self, parent):
+        """Check if the UI elements contain valid input."""
+        return self.widget.Validate(parent)
+
+    def TransferToWindow(self):
+        """Initialize GUI elements input values."""
+        return self.widget.TransferToWindow()
+
+    def TransferFromWindow(self):
+        """Read input values from GUI elements."""
+        return self.widget.TransferFromWindow()
+
+
+class Widget(object):
 
     """
     Manage a group of related controls.
@@ -35,21 +76,49 @@ class Widget(wx.PyValidator):
 
     def __init__(self, **data):
         """Initialize myself."""
-        super(Widget, self).__init__()
-        self._data = data
-        self.Init(**data)
-
-    def Init(self, **data):
-        """Initialize member variables."""
         for k, v in data.items():
             setattr(self, k, v)
+
+    def GetWindow(self):
+        """
+        Get the associated container window.
+
+        :raises AttributeError: if the window has not been set yet.
+        """
+        return self.Window
+
+    def Embed(self, window):
+        """
+        Assign the container window and create the controls.
+
+        :returns: controls sizer / window
+        """
+        self.Window = window
+        return self.CreateControls()
+
+    def EmbedPanel(self, parent):
+        """
+        Assign the container window and create a panel containing the
+        controls.
+
+        :returns: the panel
+        """
+        panel = wx.Panel(parent)
+        ctrls = self.Embed(panel)
+        if isinstance(ctrls, wx.Sizer):
+            sizer = ctrls
+        else:
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(ctrls, 1, flag=wx.EXPAND)
+        panel.SetSizer(sizer)
+        return panel
 
     @classmethod
     def ShowModal(cls, parent, **data):
         """Show a modal dialog based on this Widget class."""
         title = data.pop('title', None)
-        validator = cls(**data)
-        dlg = Dialog(parent, validator, title=title)
+        widget = cls(**data)
+        dlg = Dialog(parent, widget, title=title)
         try:
             return dlg.ShowModal()
         finally:
@@ -63,12 +132,6 @@ class Widget(wx.PyValidator):
     def CreateControls(self):
         """Create controls, return their container (panel or sizer)."""
         raise NotImplementedError()
-
-    # wx.Validator interface
-
-    def Clone(self):
-        """Clone myself."""
-        return self.__class__(**self._data)
 
     def Validate(self, parent):
         """Check if the UI elements contain valid input."""
@@ -139,15 +202,8 @@ class Dialog(wx.Dialog):
         """Create a sizer with the content area controls."""
         # Nesting a panel is necessary since TransferData[From/To]Window will
         # only use the validators of *child* windows
-        panel = wx.Panel(self)
-        panel.SetValidator(self._widget)
-        # SetValidator stores a clone of the object passed to it, which must
-        # be obtained via panel.GetValidator().
-        sizer = panel.GetValidator().CreateControls()
-        panel.SetSizer(sizer)
-        # The corresponding C++ object is destroyed at this point. Let's make
-        # this explicit:
-        del self._widget
+        panel = self._widget.EmbedPanel(self)
+        panel.SetValidator(Validator(self._widget))
         return panel
 
     def CreateButtonArea(self):
