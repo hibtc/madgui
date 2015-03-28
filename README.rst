@@ -11,10 +11,9 @@ it is rather basic, since it is still under heavy development.
 Dependencies
 ~~~~~~~~~~~~
 
-Needs to be built manually (see `installation instructions`_):
+Needs to be built manually:
 
-- MAD-X_ as a library (``.dll``, ``.lib`` or ``.so``)
-- cpymad_
+- cpymad_ (see `installation instructions`_)
 
 These are likely to be available in your system repositories:
 
