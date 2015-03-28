@@ -97,12 +97,13 @@ class ManageTwissWidget(Widget):
     def OnButtonAdd(self, event):
         """Add the selected group to the dialog."""
         window = self.GetWindow()
+        elements = list(enumerate(self.elements))
         selected = [0]
-        retcode = ElementWidget.ShowModal(window, elements=self.elements,
+        retcode = ElementWidget.ShowModal(window, elements=elements,
                                           selected=selected)
         if retcode != wx.ID_OK:
             return
-        i_el = selected[0][0]
+        i_el = selected[0]
         # TODO: use the TWISS results at this element as default values for
         # the TwissWidget (?):
         self.AddTwissRow(i_el)
@@ -220,8 +221,9 @@ class ManageTwissWidget(Widget):
 
     def ChooseElement(self, row):
         old_element_index, active, twiss = self._rows[row]
+        elements = list(enumerate(self.elements))
         selected = [old_element_index]
-        retcode = ElementWidget.ShowModal(window, elements=self.elements,
+        retcode = ElementWidget.ShowModal(self.GetWindow(), elements=elements,
                                           selected=selected)
         if retcode != wx.ID_OK:
             return
