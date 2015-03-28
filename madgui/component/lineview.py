@@ -13,9 +13,9 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-from madgui.component.twissdialog import ManageTwissDialog
+from madgui.component.twissdialog import ManageTwissWidget
 from madgui.component.model import SegmentedRange
-from madgui.component.modeldetail import ModelDetailDlg
+from madgui.component.modeldetail import ModelDetailWidget
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
@@ -144,15 +144,13 @@ class TwissView(object):
     def create_from_model(cls, simulator, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
         cpymad_model = simulator.model
-        select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
-                                           title=cpymad_model.name)
-        try:
-            if select_detail_dlg.ShowModal() != wx.ID_OK:
-                return
-        finally:
-            select_detail_dlg.Destroy()
 
-        detail = select_detail_dlg.data
+        detail = {}
+        retcode = ModelDetailWidget.ShowModal(frame, model=cpymad_model,
+                                              title=cpymad_model.name,
+                                              data=detail)
+        if retcode != wx.ID_OK:
+            return
 
         sequence = cpymad_model.sequences[detail['sequence']]
         range = sequence.ranges[detail['range']]
@@ -173,11 +171,10 @@ class TwissView(object):
 
         start_element = segman.get_element_info(range.bounds[0])
         twiss_initial = {start_element.index: twiss_args}
-        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
-                                     segman=segman, data=twiss_initial)
-        if twissdlg.ShowModal() == wx.ID_OK:
-            segman.set_all(twissdlg.data)
-
+        retcode = ManageTwissWidget.ShowModal(frame, segman=segman,
+                                              data=twiss_initial)
+        if retcode == wx.ID_OK:
+            segman.set_all(twiss_initial)
         return view
 
     @classmethod
@@ -220,10 +217,11 @@ class TwissView(object):
         view = cls(segman, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
 
-        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
-                                     segman=segman)
-        if twissdlg.ShowModal() == wx.ID_OK:
-            segman.set_all(twissdlg.data)
+        twiss_initial = {}
+        retcode = ManageTwissWidget.ShowModal(frame, segman=segman,
+                                              data=twiss_initial)
+        if retcode == wx.ID_OK:
+            segman.set_all(twiss_initial)
 
         return view
 

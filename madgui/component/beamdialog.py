@@ -1,5 +1,5 @@
 """
-Dialog to set BEAM parameters.
+Widget to set BEAM parameters.
 """
 
 # force new style imports
@@ -7,10 +7,15 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.widget.param import Bool, String, Float, ParamDialog
+from madgui.widget.param import Bool, String, Float, ParamTable
 
 
-class BeamDialog(ParamDialog):
+__all__ = [
+    'BeamWidget',
+]
+
+
+class BeamWidget(ParamTable):
 
     title = "Beam properties"
 

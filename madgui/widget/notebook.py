@@ -18,11 +18,11 @@ from wx.py.crust import Crust
 # internal
 from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
-from madgui.component.beamdialog import BeamDialog
+from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
 from madgui.component.model import Simulator
-from madgui.component.openmodel import OpenModelDlg
-from madgui.component.twissdialog import ManageTwissDialog
+from madgui.component.openmodel import OpenModelWidget
+from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
@@ -145,14 +145,18 @@ class NotebookFrame(wx.Frame):
 
         def set_twiss(event):
             segman = self.GetActiveFigurePanel().view.segman
-            dlg = ManageTwissDialog(self, "Manage TWISS", segman=segman)
-            if dlg.ShowModal() == wx.ID_OK:
-                segman.set_all(dlg.data)
+            twiss_initial = segman.twiss_initial.copy()
+            retcode = ManageTwissWidget.ShowModal(self, segman=segman,
+                                                  data=twiss_initial)
+            if retcode == wx.ID_OK:
+                segman.set_all(twiss_initial)
 
         def set_beam(event):
             segman = self.GetActiveFigurePanel().view.segman
-            beam = BeamDialog.show_modal(self, self.madx_units, segman.beam)
-            if beam is not None:
+            beam = segman.beam.copy()
+            retcode = BeamWidget.ShowModal(self, utool=self.madx_units,
+                                           data=segman.beam)
+            if retcode == wx.ID_OK:
                 segman.beam = beam
 
         def show_indicators(event):
@@ -185,7 +189,7 @@ class NotebookFrame(wx.Frame):
                          lambda _: self._LoadMadxFile()),
                 MenuItem('Load &model\tCtrl+M',
                          'Open a model in this frame.',
-                         lambda _: OpenModelDlg.create(self)),
+                         lambda _: OpenModelWidget.create(self)),
                 Separator,
                 MenuItem('&Close',
                          'Close window',

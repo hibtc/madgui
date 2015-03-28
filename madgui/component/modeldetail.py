@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Dialog component to select sequence/range/beam in a model.
+Widget component to select sequence/range/beam in a model.
 """
 
 # force new style imports
@@ -8,7 +8,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
-from madgui.widget.input import ModalDialog
+from madgui.widget.input import Widget
 from madgui.widget.bookctrl import PanelsBook
 
 
@@ -16,12 +16,7 @@ from madgui.widget.bookctrl import PanelsBook
 # TODO: add menu/toolbar for this dialog (?)
 
 
-class ModelDetailDlg(ModalDialog):
-
-    def SetData(self, model, data=None):
-        """Needs a cpymad model and a data dictionary."""
-        self.model = model
-        self.data = data or {}
+class ModelDetailWidget(Widget):
 
     def _AddComboBox(self, label, page):
         """
@@ -60,13 +55,15 @@ class ModelDetailDlg(ModalDialog):
         panel.Finish()
         return ctrl
 
-    def CreateContentArea(self):
+    def CreateControls(self):
 
         """Create subcontrols and layout."""
 
+        window = self.GetWindow()
+
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self._book = PanelsBook(self)
+        self._book = PanelsBook(window)
         sizer.Add(self._book)
 
         def _CreateDummyPage(label):
@@ -95,8 +92,8 @@ class ModelDetailDlg(ModalDialog):
         self.ctrl_elem = self._AddCheckBox('show element indicators', page_style)
 
         # register for events
-        self.Bind(wx.EVT_TEXT, self.OnSequenceChange, source=self.ctrl_sequence)
-        self.Bind(wx.EVT_TEXT, self.OnRangeChange, source=self.ctrl_range)
+        window.Bind(wx.EVT_TEXT, self.OnSequenceChange, source=self.ctrl_sequence)
+        window.Bind(wx.EVT_TEXT, self.OnRangeChange, source=self.ctrl_range)
 
         self._book.SetSelection(0)
 
@@ -111,23 +108,29 @@ class ModelDetailDlg(ModalDialog):
         """Update default twiss when range is changed."""
         self.UpdateTwiss()
 
-    def TransferDataFromWindow(self):
+    def TransferFromWindow(self):
         """Get selected package and model name."""
-        self.data = dict(
+        self.data.update(
             sequence=self.ctrl_sequence.GetValue(),
             beam=self.ctrl_beam.GetValue(),
             range=self.ctrl_range.GetValue(),
             twiss=self.ctrl_twiss.GetValue(),
             indicators=self.ctrl_elem.GetValue(),
         )
+        return True
 
-    def TransferDataToWindow(self):
+    def TransferToWindow(self):
         """Update displayed package and model name."""
         self.UpdateSequences()
         self.UpdateBeams()
         self.UpdateRanges()
         self.UpdateTwiss()
         self.ctrl_elem.SetValue(self.data.get('indicators', True))
+        return True
+
+    def Validate(self, parent):
+        # TODO...
+        return True
 
     def _Update(self, ctrl, items, default, select):
         ctrl.SetItems(list(items))

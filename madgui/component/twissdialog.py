@@ -1,5 +1,5 @@
 """
-Dialog to set TWISS parameters.
+Widgets to set TWISS parameters.
 """
 
 # force new style imports
@@ -9,14 +9,17 @@ from functools import partial
 
 # internal
 from madgui.core import wx
-from madgui.widget.element import ElementDialog
+from madgui.widget.element import ElementWidget
 from madgui.widget.listview import CheckListCtrl
-from madgui.widget.input import ModalDialog
-from madgui.widget.param import ParamDialog, Bool, String, Float, Matrix
+from madgui.widget.input import Widget
+from madgui.widget.param import ParamTable, Bool, String, Float, Matrix
 from madgui.util.unit import strip_unit, units, format_quantity
 
 
-__all__ = ['TwissDialog']
+__all__ = [
+    'ManageTwissWidget',
+    'TwissWidget',
+]
 
 
 def format_element(index, element):
@@ -24,18 +27,17 @@ def format_element(index, element):
     return '{1[name]}'.format(index, element)
 
 
-class ManageTwissDialog(ModalDialog):
+class ManageTwissWidget(Widget):
 
     """
-    Dialog to manage TWISS initial conditions.
+    Widget to manage TWISS initial conditions.
     """
 
-    def SetData(self, segman, data=None, inactive=None):
+    title = "Select TWISS initial conditions"
+
+    def Init(self, segman, data=None, inactive=None):
         self.segman = segman
-        if data is None:
-            self.data = segman.twiss_initial
-        else:
-            self.data = data
+        self.data = data
         if inactive is None:
             model = segman.simulator.model
             if model:
@@ -48,11 +50,13 @@ class ManageTwissDialog(ModalDialog):
         self.elements = segman.elements
         self._inserting = False
 
-    def CreateContentArea(self):
+    def CreateControls(self):
 
         """Create sizer with content area, i.e. input fields."""
 
-        grid = CheckListCtrl(self, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
+        window = self.GetWindow()
+
+        grid = CheckListCtrl(window, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
         grid._OnCheckItem = self.OnChangeActive
         grid.SetMinSize(wx.Size(400, 200))
         self._grid = grid
@@ -60,11 +64,11 @@ class ManageTwissDialog(ModalDialog):
         grid.InsertColumn(0, "Element", width=wx.LIST_AUTOSIZE)
         grid.InsertColumn(1, "At [m]", width=wx.LIST_AUTOSIZE)
         grid.InsertColumn(2, "Data", width=wx.LIST_AUTOSIZE)
-        headline = wx.StaticText(self, label="List of initial conditions:")
+        headline = wx.StaticText(window, label="List of initial conditions:")
 
-        button_edit = wx.Button(self, wx.ID_EDIT)
-        button_add = wx.Button(self, wx.ID_ADD)
-        button_remove = wx.Button(self, wx.ID_REMOVE)
+        button_edit = wx.Button(window, wx.ID_EDIT)
+        button_add = wx.Button(window, wx.ID_ADD)
+        button_remove = wx.Button(window, wx.ID_REMOVE)
 
         buttons = wx.BoxSizer(wx.VERTICAL)
         buttons.Add(button_add, flag=wx.ALL|wx.EXPAND, border=5)
@@ -80,26 +84,29 @@ class ManageTwissDialog(ModalDialog):
         outer.Add(headline, flag=wx.ALL|wx.ALIGN_LEFT, border=5)
         outer.Add(inner, 1, flag=wx.ALL|wx.EXPAND, border=5)
 
-        self.Bind(wx.EVT_BUTTON, self.OnButtonEdit, source=button_edit)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonAdd, source=button_add)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonRemove, source=button_remove)
-        self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_edit)
-        self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_remove)
+        window.Bind(wx.EVT_BUTTON, self.OnButtonEdit, source=button_edit)
+        window.Bind(wx.EVT_BUTTON, self.OnButtonAdd, source=button_add)
+        window.Bind(wx.EVT_BUTTON, self.OnButtonRemove, source=button_remove)
+        window.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_edit)
+        window.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton, source=button_remove)
         grid.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
 
         return outer
 
     def OnButtonAdd(self, event):
         """Add the selected group to the dialog."""
-        dlg = ElementDialog(self, "Choose element", elements=self.elements)
-        if dlg.ShowModal() != wx.ID_OK:
+        window = self.GetWindow()
+        selected = [0]
+        retcode = ElementWidget.ShowModal(window, elements=self.elements,
+                                          selected=selected)
+        if retcode != wx.ID_OK:
             return
-        i_el = dlg.selected[0]
+        i_el = selected[0][0]
         # TODO: use the TWISS results at this element as default values for
-        # the TwissDialog (?):
+        # the TwissWidget (?):
         self.AddTwissRow(i_el)
-        self.Layout()
-        self.Fit()
+        window.Layout()
+        window.Fit()
 
     def OnDoubleClick(self, event):
         x, y = event.GetPosition()
@@ -117,7 +124,7 @@ class ManageTwissDialog(ModalDialog):
         index, _, twiss = self._rows[row]
         self._rows[row] = index, active, twiss
 
-    def TransferDataToWindow(self):
+    def TransferToWindow(self):
         """Update dialog with initial values."""
         for index in sorted(self.data):
             self.AddTwissRow(index, self.data[index], True)
@@ -125,7 +132,7 @@ class ManageTwissDialog(ModalDialog):
             for twiss in self.inactive[index]:
                 self.AddTwissRow(index, twiss, False)
 
-    def TransferDataFromWindow(self):
+    def TransferFromWindow(self):
         """Extract current active initial conditions."""
         data = {}
         inactive = {}
@@ -135,7 +142,8 @@ class ManageTwissDialog(ModalDialog):
                 data.setdefault(index, {}).update(twiss)
             else:
                 inactive.setdefault(index, []).append(twiss)
-        self.data = data
+        self.data.clear()
+        self.data.update(data)
         self.inactive = inactive
 
     def GetInsertRow(self, element_index):
@@ -157,9 +165,11 @@ class ManageTwissDialog(ModalDialog):
 
         # require some TWISS initial conditions to be set
         if twiss_init is None:
+            twiss_init = {}
             utool = self.segman.simulator.utool
-            twiss_init = TwissDialog.show_modal(self, utool, {})
-            if twiss_init is None:
+            retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
+                                            data=twiss_init)
+            if retcode != wx.ID_OK:
                 return
 
         grid = self._grid
@@ -201,17 +211,20 @@ class ManageTwissDialog(ModalDialog):
     def EditTwiss(self, row):
         index, active, twiss = self._rows[row]
         utool = self.segman.simulator.utool
-        twiss = TwissDialog.show_modal(self, utool, twiss)
-        if twiss is not None:
-            self._rows[index] = (index, active, twiss)
+        retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
+                                        data=twiss)
+        if retcode == wx.ID_OK:
+            # TODO: update item
+            pass
 
     def ChooseElement(self, row):
         old_element_index, active, twiss = self._rows[row]
-        dlg = ElementDialog(self, "Choose element", elements=self.elements,
-                            selected=old_element_index)
-        if dlg.ShowModal() != wx.ID_OK:
+        selected = [old_element_index]
+        retcode = ElementWidget.ShowModal(window, elements=self.elements,
+                                          selected=selected)
+        if retcode != wx.ID_OK:
             return
-        new_element_index = dlg.selected[0]
+        new_element_index = selected[0]
         if new_element_index == old_element_index:
             return
         self.RemoveRow(row)
@@ -223,10 +236,10 @@ class ManageTwissDialog(ModalDialog):
         event.Enable(self._grid.GetSelectedItemCount() > 0)
 
 
-class TwissDialog(ParamDialog):
+class TwissWidget(ParamTable):
 
     """
-    Dialog to show key-value pairs.
+    Widget to show key-value pairs.
     """
 
     title = "Set TWISS values"
@@ -283,6 +296,6 @@ class TwissDialog(ParamDialog):
         # conditions should be used as "mixin", i.e. for every parameter which
         # is not defined, the TWISS results of the preceding segment are used.
         # TODO: While it required much less work to add this parameter in this
-        # dialog, it should really be handled by ManageTwissDialog instead:
+        # dialog, it should really be handled by ManageTwissWidget instead:
         Bool(mixin=False),
     ]

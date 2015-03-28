@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Dialog component to find/open a model.
+Widget component to find/open a model.
 """
 
 # force new style imports
@@ -18,7 +18,7 @@ from cpymad.model import Locator, Model as CPModel
 from madgui.core import wx
 from madgui.component.lineview import TwissView
 from madgui.util.common import cachedproperty
-from madgui.widget.input import ModalDialog
+from madgui.widget.input import Widget
 
 
 class CachedLocator(object):
@@ -67,23 +67,29 @@ class CachedLocator(object):
         return cls(pkg_name, Locator(resource_provider))
 
 
-class OpenModelDlg(ModalDialog):
+class ValueContainer(object):
+    pass
+
+
+class OpenModelWidget(Widget):
 
     """
     Open dialog for models contained in python packages.
     """
 
+    title = "select model"
+
     @classmethod
     def create(cls, frame):
         # select package, model:
-        select_model_dlg = cls(frame, title="Select model")
-        try:
-            if select_model_dlg.ShowModal() != wx.ID_OK:
-                return
-            mdata = select_model_dlg.mdata
-            repo = select_model_dlg.repo
-        finally:
-            select_model_dlg.Destroy()
+
+        results = ValueContainer()
+
+        if cls.ShowModal(frame, results=results) != wx.ID_OK:
+            return
+
+        mdata = results.mdata
+        repo = results.repo
 
         if not mdata:
             return
@@ -124,21 +130,17 @@ class OpenModelDlg(ModalDialog):
 
         TwissView.create(frame.env['simulator'], frame, basename='env')
 
-
-    def SetData(self):
-        """Store the data and initialize the component."""
-        self.mdata = None
-        self.repo = None
-
-    def CreateContentArea(self):
+    def CreateControls(self):
 
         """Create subcontrols and layout."""
 
+        window = self.GetWindow()
+
         # Create controls
-        label_pkg = wx.StaticText(self, label="Package:")
-        label_model = wx.StaticText(self, label="Model:")
-        self.ctrl_pkg = wx.ComboBox(self, wx.CB_DROPDOWN|wx.CB_SORT)
-        self.ctrl_model = wx.ComboBox(self, wx.CB_READONLY|wx.CB_SORT)
+        label_pkg = wx.StaticText(window, label="Package:")
+        label_model = wx.StaticText(window, label="Model:")
+        self.ctrl_pkg = wx.ComboBox(window, wx.CB_DROPDOWN|wx.CB_SORT)
+        self.ctrl_model = wx.ComboBox(window, wx.CB_READONLY|wx.CB_SORT)
 
         # Create box sizer
         controls = wx.FlexGridSizer(rows=2, cols=2)
@@ -156,7 +158,7 @@ class OpenModelDlg(ModalDialog):
         controls.Add(self.ctrl_model, flag=expand, **sizeargs)
 
         # register for events
-        self.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
+        window.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
 
         return controls
 
@@ -191,29 +193,27 @@ class OpenModelDlg(ModalDialog):
         self.ctrl_model.SetSelection(0)
         self.ctrl_model.Enable(bool(modellist))
 
-    def TransferDataFromWindow(self):
+    def TransferFromWindow(self):
         """Get selected package and model name."""
         locator = self.GetCurrentLocator()
-        if not locator:
-            self.mdata = None
-            self.repo = None
-            return
-        self.mdata = locator.get_definition(self.ctrl_model.GetValue())
-        self.repo = locator.get_repository(self.mdata)
+        if locator:
+            mdata = locator.get_definition(self.ctrl_model.GetValue())
+            repo = locator.get_repository(mdata)
+        else:
+            mdata = None
+            repo = None
+        self.results.mdata = mdata
+        self.results.repo = repo
+        return True
 
-    def TransferDataToWindow(self):
+    def TransferToWindow(self):
         """Update displayed package and model name."""
         self.UpdateLocatorList()
         self.UpdateModelList()
         # self.ctrl_pkg.SetValue(self.data.pkg_name)
         # self.ctrl_model.SetValue(self.data.model_name)
+        return True
 
-    def CreateOkButton(self):
-        button = super(OpenModelDlg, self).CreateOkButton()
-        self.Bind(wx.EVT_UPDATE_UI, self.UpdateButtonOk, source=button)
-        return button
-
-    def UpdateButtonOk(self, event):
+    def Validate(self, parent):
         """Update the status of the OK button."""
-        modellist = self.GetModelList()
-        event.Enable(bool(modellist))
+        return bool(self.GetModelList())

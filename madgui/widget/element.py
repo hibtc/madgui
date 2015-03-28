@@ -7,7 +7,7 @@ from __future__ import absolute_import
 
 # GUI components
 from madgui.core import wx
-from madgui.widget.input import ModalDialog
+from madgui.widget.input import Widget
 from madgui.widget import listview
 
 from madgui.util.unit import strip_unit, units, format_quantity
@@ -15,8 +15,7 @@ from madgui.util.unit import strip_unit, units, format_quantity
 
 # exported symbols
 __all__ = [
-    'ElementControl',
-    'ElementDialog',
+    'ElementWidget',
 ]
 
 
@@ -80,19 +79,22 @@ def filter_elements(elements, search):
             if match(i, el)]
 
 
-class ElementDialog(ModalDialog):
+class ElementWidget(Widget):
 
     """Element selection dialog with a list control and a search box."""
 
-    def SetData(self, elements, selected=0):
+    title = "Choose element"
+
+    def Init(self, elements, selected):
         """Initialize data."""
         self.elements = list(elements)
         self.selected = selected
 
-    def CreateContentArea(self):
+    def CreateControls(self):
         """Create element list and search controls."""
+        window = self.GetWindow()
         # create list control
-        listctrl = listview.ManagedListCtrl(self, [
+        listctrl = listview.ManagedListCtrl(window, [
             listview.ColumnInfo(
                 '',
                 lambda index, _: index,
@@ -117,8 +119,8 @@ class ElementDialog(ModalDialog):
         listctrl.setResizeColumn(2)
         listctrl.SetMinSize(wx.Size(400, 200))
         # create search control
-        search_label = wx.StaticText(self, label="Search")
-        search_edit = wx.TextCtrl(self, style=wx.TE_RICH2)
+        search_label = wx.StaticText(window, label="Search")
+        search_edit = wx.TextCtrl(window, style=wx.TE_RICH2)
         search_edit.SetFocus()
         # setup sizers
         search = wx.BoxSizer(wx.HORIZONTAL)
@@ -128,7 +130,7 @@ class ElementDialog(ModalDialog):
         sizer.Add(search, flag=wx.ALL|wx.ALIGN_RIGHT, border=5)
         sizer.Add(listctrl, 1, flag=wx.ALL|wx.EXPAND, border=5)
         # setup event handlers
-        self.Bind(wx.EVT_TEXT, self.OnSearchChange, search_edit)
+        window.Bind(wx.EVT_TEXT, self.OnSearchChange, search_edit)
         listctrl.Bind(wx.EVT_CHAR, self.OnChar)
         listctrl.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
         # set member variables
@@ -138,12 +140,12 @@ class ElementDialog(ModalDialog):
 
     def OnSearchChange(self, event):
         """Update element list."""
-        self.TransferDataToWindow()
+        self.TransferToWindow()
 
     def OnChar(self, event):
         """Apply dialog when pressing Enter."""
         keycode = event.GetKeyCode()
-        if keycode == wx.WXK_RETURN and self.CanApply():
+        if keycode == wx.WXK_RETURN:
             self.ApplyDialog()
         else:
             event.Skip()
@@ -157,13 +159,13 @@ class ElementDialog(ModalDialog):
         else:
             event.Skip()
 
-    def TransferDataToWindow(self):
+    def TransferToWindow(self):
         """Update element list and selection."""
         searchtext = self._search.GetValue()
         filtered_elements = filter_elements(self.elements, searchtext)
         self._listctrl.items = filtered_elements
         try:
-            sel_index = self.selected
+            sel_index = self.selected[0]
             sel_element = self.elements[sel_index]
             selected = filtered_elements.index((sel_index, sel_element))
         except (IndexError, ValueError):
@@ -171,21 +173,11 @@ class ElementDialog(ModalDialog):
         self._listctrl.Select(selected)
         self._listctrl.Focus(selected)
 
-    def TransferDataFromWindow(self):
+    def TransferFromWindow(self):
         """Retrieve the index of the selected element."""
-        self.selected = self._listctrl.selected_items[0]
+        self.selected[0] = self._listctrl.selected_items[0]
 
-    def CreateOkButton(self):
-        """Create 'Ok' button."""
-        button = super(ElementDialog, self).CreateOkButton()
-        self.Bind(wx.EVT_UPDATE_UI, self.UpdateButtonOk, source=button)
-        return button
-
-    def UpdateButtonOk(self, event):
-        """Disable OK button if no element is selected."""
-        event.Enable(self.CanApply())
-
-    def CanApply(self):
-        """Check if an item is selected."""
+    def Validate(self, parent):
+        """Check input validity."""
         return (self._listctrl.GetItemCount() > 0 and
                 self._listctrl.GetSelectedItemCount() == 1)
