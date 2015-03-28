@@ -9,6 +9,11 @@ from __future__ import absolute_import
 from madgui.core import wx
 from madgui.widget.listview import ListView
 
+# exported symbols
+__all__ = [
+    'TableDialog',
+]
+
 
 class TableDialog(wx.Dialog):
 
@@ -70,6 +75,7 @@ class TableDialog(wx.Dialog):
                 grid.SetStringItem(row, 2, unit)
         grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
 
 def _split_value(value):
     from madgui.util.unit import strip_unit, get_unit_label

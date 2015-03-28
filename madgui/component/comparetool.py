@@ -14,7 +14,9 @@ from madgui.core import wx
 from madgui.util import unit
 
 # exported symbols
-__all__ = ['CompareTool']
+__all__ = [
+    'CompareTool',
+]
 
 
 def match_metadata(all_metadata, sequence, col_names):

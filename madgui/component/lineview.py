@@ -24,7 +24,9 @@ import matplotlib
 import matplotlib.figure
 
 # exported symbols
-__all__ = ['TwissView']
+__all__ = [
+    'TwissView',
+]
 
 
 def _clear_ax(ax):

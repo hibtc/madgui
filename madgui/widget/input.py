@@ -11,7 +11,6 @@ from madgui.core import wx
 
 # exported symbols
 __all__ = [
-    '',
     'Widget',
     'Dialog',
 ]

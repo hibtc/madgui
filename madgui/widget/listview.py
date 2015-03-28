@@ -3,6 +3,8 @@
 List view widgets.
 """
 
+from __future__ import absolute_import
+
 from bisect import bisect
 from collections import namedtuple
 
@@ -10,11 +12,12 @@ from madgui.core import wx
 
 from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
 
-
+# exported symbols
 __all__ = [
     'ListCtrlUtil',
     'ListView',
     'CheckListCtrl',
+    'ManagedListCtrl',
     'EditListCtrl',
 
     'BaseValue',

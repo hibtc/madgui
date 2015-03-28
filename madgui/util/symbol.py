@@ -7,7 +7,9 @@ MadX string expression that can automatically evaluate to a float.
 from __future__ import absolute_import
 
 # exported symbols
-__all__ = ['SymbolicValue']
+__all__ = [
+    'SymbolicValue',
+]
 
 
 class SymbolicValue(object):

@@ -10,6 +10,14 @@ from madgui.core import wx
 
 from wx.lib.agw.flatnotebook import LightColour
 
+# exported symbols
+__all__ = [
+    'BookCtrl',
+    'MenuItem',
+    'MenuCtrl',
+    'PanelsBook',
+]
+
 
 def RecursiveBind(window, *args, **kwargs):
     window.Bind(*args, **kwargs)

@@ -11,6 +11,11 @@ from madgui.core import wx
 from madgui.widget.input import Widget
 from madgui.widget.bookctrl import PanelsBook
 
+# exported symbols
+__all__ = [
+    'ModelDetailWidget',
+]
+
 
 # TODO: show+modify beam and twiss
 # TODO: add menu/toolbar for this dialog (?)

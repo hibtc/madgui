@@ -40,6 +40,8 @@ import wx
 import matplotlib
 matplotlib.use('WXAgg')
 
-# exported symbols:
-__all__ = ['wx',
-           'matplotlib']
+# exported symbols
+__all__ = [
+    'wx',
+    'matplotlib',
+]

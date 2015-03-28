@@ -15,8 +15,9 @@ from madgui.widget.input import Widget
 from madgui.widget.param import ParamTable, Bool, String, Float, Matrix
 from madgui.util.unit import strip_unit, units, format_quantity
 
-
+# exported symbols
 __all__ = [
+    'format_element',
     'ManageTwissWidget',
     'TwissWidget',
 ]

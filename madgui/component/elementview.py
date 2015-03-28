@@ -12,7 +12,9 @@ from madgui.core.plugin import HookCollection
 from madgui.util.unit import strip_unit
 
 # exported symbols
-__all__ = ['ElementView']
+__all__ = [
+    'ElementView',
+]
 
 
 # TODO: change style for active/inactive element markers

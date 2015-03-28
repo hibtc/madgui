@@ -15,7 +15,9 @@ from madgui.core.plugin import HookCollection
 from madgui.util.unit import strip_unit
 
 # exported symbols
-__all__ = ['MatchTool']
+__all__ = [
+    'MatchTool',
+]
 
 
 class MatchTool(object):

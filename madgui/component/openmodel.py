@@ -20,6 +20,11 @@ from madgui.component.lineview import TwissView
 from madgui.util.common import cachedproperty
 from madgui.widget.input import Widget
 
+# exported symbols
+__all__ = [
+    'OpenModelWidget',
+]
+
 
 class CachedLocator(object):
 

@@ -14,7 +14,9 @@ from pkg_resources import resource_string
 import yaml
 
 # exported symbols
-__all__ = ['load_config']
+__all__ = [
+    'load_config',
+]
 
 
 def get_base_config():

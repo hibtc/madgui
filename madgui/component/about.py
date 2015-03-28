@@ -10,6 +10,11 @@ from __future__ import absolute_import
 import madgui
 from madgui.core import wx
 
+# exported symbols
+__all__ = [
+    'show_about_dialog',
+]
+
 
 def show_about_dialog(parent):
     """Show the about dialog."""

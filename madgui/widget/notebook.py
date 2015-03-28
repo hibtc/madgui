@@ -28,7 +28,10 @@ from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
 
 # exported symbols
-__all__ = ['NotebookFrame']
+__all__ = [
+    'NotebookFrame',
+    'set_frame_title',
+]
 
 
 def monospace(pt_size):

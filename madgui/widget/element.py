@@ -12,7 +12,6 @@ from madgui.widget import listview
 
 from madgui.util.unit import strip_unit, units, format_quantity
 
-
 # exported symbols
 __all__ = [
     'ElementWidget',

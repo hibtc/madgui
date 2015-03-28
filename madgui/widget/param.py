@@ -20,7 +20,7 @@ from madgui.core import wx
 from madgui.widget.input import Widget
 from madgui.widget import listview
 
-
+# exported symbols
 __all__ = [
     'Bool',
     'String',
