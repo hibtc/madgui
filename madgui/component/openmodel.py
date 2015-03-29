@@ -18,7 +18,7 @@ from cpymad.model import Locator, Model as CPModel
 from madgui.core import wx
 from madgui.component.lineview import TwissView
 from madgui.util.common import cachedproperty
-from madgui.widget.input import Widget
+from madgui.widget.input import Widget, ShowModal
 
 # exported symbols
 __all__ = [
@@ -118,12 +118,9 @@ class OpenModelWidget(Widget):
             optics)
         select_detail_dlg.SetSelection(
             optics.index(cpymad_model.default_optic.name))
-        try:
-            if select_detail_dlg.ShowModal() != wx.ID_OK:
-                return
-            optic = select_detail_dlg.GetStringSelection()
-        finally:
-            select_detail_dlg.Destroy()
+        if ShowModal(select_detail_dlg) != wx.ID_OK:
+            return
+        optic = select_detail_dlg.GetStringSelection()
         # TODO: redirect history+output to frame!
         madx = frame.env['madx']
         cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)

@@ -19,6 +19,7 @@ from madgui.component.modeldetail import ModelDetailWidget
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
+from madgui.widget.input import ShowModal
 
 import matplotlib
 import matplotlib.figure
@@ -203,12 +204,9 @@ class TwissView(object):
                                         caption="Select sequence",
                                         message="Select sequence:",
                                         choices=sequences)
-            try:
-                if dlg.ShowModal() != wx.ID_OK:
-                    return
-                name = dlg.GetStringSelection()
-            finally:
-                dlg.Destroy()
+            if ShowModal(dlg) != wx.ID_OK:
+                return
+            name = dlg.GetStringSelection()
 
         # now create the actual model object
         # TODO: insert segman into simulator

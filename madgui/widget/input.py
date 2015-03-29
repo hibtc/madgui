@@ -13,6 +13,7 @@ from madgui.core import wx
 __all__ = [
     'Validator',
     'Widget',
+    'ShowModal',
     'Dialog',
 ]
 
@@ -121,11 +122,8 @@ class Widget(object):
         """Show a modal dialog based on this Widget class."""
         title = data.pop('title', None)
         widget = cls(**data)
-        dlg = Dialog(parent, widget, title=title)
-        try:
-            return dlg.ShowModal()
-        finally:
-            dlg.Destroy()
+        dialog = Dialog(parent, widget, title=title)
+        return ShowModal(dialog)
 
     def ApplyDialog(self, event=None):
         """Confirm current selection and close dialog."""
@@ -147,6 +145,14 @@ class Widget(object):
     def TransferFromWindow(self):
         """Read input values from GUI elements."""
         raise NotImplementedError()
+
+
+def ShowModal(dialog):
+    """Show a modal dialog and destroy it when finished."""
+    try:
+        return dialog.ShowModal()
+    finally:
+        dialog.Destroy()
 
 
 class Dialog(wx.Dialog):

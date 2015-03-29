@@ -26,6 +26,7 @@ from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
+from madgui.widget.input import ShowModal
 
 # exported symbols
 __all__ = [
@@ -126,12 +127,9 @@ class NotebookFrame(wx.Frame):
             self,
             style=wx.FD_OPEN,
             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
-        try:
-            if dlg.ShowModal() != wx.ID_OK:
-                return
-            path = dlg.Path
-        finally:
-            dlg.Destroy()
+        if ShowModal(dlg) != wx.ID_OK:
+            return
+        path = dlg.Path
 
         madx = self.env['madx']
         num_seq = len(madx.sequences)

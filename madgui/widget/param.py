@@ -17,7 +17,7 @@ import yaml
 from madgui.core import wx
 
 # internal
-from madgui.widget.input import Widget
+from madgui.widget.input import Widget, ShowModal
 from madgui.widget import listview
 
 # exported symbols
@@ -177,7 +177,7 @@ class ParamTable(Widget):
             "Import values",
             wildcard=make_wildcards(*wildcards),
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        if dlg.ShowModal() == wx.ID_OK:
+        if ShowModal(dlg) == wx.ID_OK:
             with open(dlg.GetPath(), 'rt') as f:
                 # Since JSON is a subset of YAML there is no need to invoke a
                 # different parser:
@@ -194,7 +194,7 @@ class ParamTable(Widget):
             "Import values",
             wildcard=make_wildcards(*wildcards),
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        if dlg.ShowModal() == wx.ID_OK:
+        if ShowModal(dlg) == wx.ID_OK:
             self.TransferFromWindow()
             raw_data = self.utool.dict_strip_unit(self.data)
             file_path = get_savedialog_path(dlg, wildcards)
