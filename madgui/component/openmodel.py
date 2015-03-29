@@ -84,6 +84,9 @@ class OpenModelWidget(Widget):
 
     title = "select model"
 
+    def __init__(self, results):
+        self.results = results
+
     @classmethod
     def create(cls, frame):
         # select package, model:

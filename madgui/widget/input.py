@@ -74,10 +74,13 @@ class Widget(object):
     windows or higher order control groups.
     """
 
-    def __init__(self, **data):
-        """Initialize myself."""
-        for k, v in data.items():
-            setattr(self, k, v)
+    # NOTE: it is a deliberate choice not to implement an __init__ function in
+    # this class, so subclasses don't need the super() call. In particular,
+    # self.Window is not assigned in the __init__ function! Please, don't do
+    # that in subclasses either! This ensures that self.GetWindow() fails with
+    # an AttributeError if no window was set, which makes it easy to
+    # reinitialize member variables based on different arguments without
+    # losing the memory of the Window object.
 
     def GetWindow(self):
         """

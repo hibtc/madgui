@@ -125,12 +125,12 @@ class ParamTable(Widget):
     def __init__(self, utool, data):
         """Initialize data."""
         self.utool = utool
+        self.data = data
         self._params = OrderedDict(
             (param, group)
             for group in self.params
             for param in group.names()
         )
-        self.data = data
 
     def CreateControls(self):
         """Create sizer with content area, i.e. input fields."""

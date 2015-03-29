@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 # internal
 from madgui.core import wx
+from madgui.util.common import instancevars
 from madgui.widget.input import Widget
 from madgui.widget.bookctrl import PanelsBook
 
@@ -22,6 +23,10 @@ __all__ = [
 
 
 class ModelDetailWidget(Widget):
+
+    @instancevars
+    def __init__(self, model, data):
+        pass
 
     def _AddComboBox(self, label, page):
         """

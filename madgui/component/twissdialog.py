@@ -13,6 +13,7 @@ from madgui.widget.element import ElementWidget
 from madgui.widget.listview import CheckListCtrl
 from madgui.widget.input import Widget
 from madgui.widget.param import ParamTable, Bool, String, Float, Matrix
+from madgui.util.common import instancevars
 from madgui.util.unit import strip_unit, units, format_quantity
 
 # exported symbols
@@ -36,12 +37,9 @@ class ManageTwissWidget(Widget):
 
     title = "Select TWISS initial conditions"
 
+    @instancevars
     def __init__(self, utool, elements, data, inactive):
-        self.utool = utool
-        self.data = data
-        self.inactive = inactive
         self._rows = []
-        self.elements = elements
         self._inserting = False
 
     def CreateControls(self):
