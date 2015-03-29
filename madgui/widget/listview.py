@@ -189,6 +189,21 @@ class ManagedListCtrl(ListView):
             self.RefreshItems(0, count-1)
         self._doResize()
 
+    def insert(self, row, item):
+        """Insert an item."""
+        self._items.insert(row, item)
+        count = len(self._items)
+        self.SetItemCount(count)
+        self.RefreshItems(row, count-1)
+
+    def remove(self, row):
+        """Remove an item."""
+        del self._items[row]
+        count = len(self._items)
+        self.SetItemCount(count)
+        if count > 0:
+            self.RefreshItems(row, count-1)
+
     def OnGetItemText(self, row, col):
         """Get the text for the specified row/col."""
         return self._columns[col].formatter(row, self._items[row])
