@@ -5,12 +5,13 @@ Widgets to set TWISS parameters.
 # force new style imports
 from __future__ import absolute_import
 
+from collections import namedtuple
 from functools import partial
 
 # internal
 from madgui.core import wx
 from madgui.widget.element import ElementWidget
-from madgui.widget.listview import CheckListCtrl
+from madgui.widget.listview import ListCtrl, ColumnInfo
 from madgui.widget.input import Widget
 from madgui.widget.param import ParamTable, Bool, String, Float, Matrix
 from madgui.util.common import instancevars
@@ -29,6 +30,26 @@ def format_element(index, element):
     return '{1[name]}'.format(index, element)
 
 
+ItemInfo = namedtuple('ItemInfo', ['index', 'element', 'active', 'twiss'])
+
+
+def _format_row_element(index, item):
+    return format_element(item.index, item.element)
+
+
+def _format_row_at(index, item):
+    return format_quantity(item.element['at'], '.3f')
+
+
+def _format_row_use(index, item):
+    return 'Yes' if item.active else 'No'
+
+
+def _format_row_data(index, item):
+    return ', '.join(k + '=' + format_quantity(v)
+                     for k, v in item.twiss.items())
+
+
 class ManageTwissWidget(Widget):
 
     """
@@ -37,10 +58,16 @@ class ManageTwissWidget(Widget):
 
     title = "Select TWISS initial conditions"
 
+    column_info = [
+        ColumnInfo('Element', _format_row_element),
+        ColumnInfo('At', _format_row_at, wx.LIST_FORMAT_RIGHT),
+        ColumnInfo('Use', _format_row_use, wx.LIST_FORMAT_CENTER),
+        ColumnInfo('Data', _format_row_data),
+    ]
+
     @instancevars
     def __init__(self, utool, elements, data, inactive):
-        self._rows = []
-        self._inserting = False
+        pass
 
     def CreateControls(self):
 
@@ -48,14 +75,9 @@ class ManageTwissWidget(Widget):
 
         window = self.GetWindow()
 
-        grid = CheckListCtrl(window, style=wx.LC_REPORT|wx.LC_SINGLE_SEL)
-        grid._OnCheckItem = self.OnChangeActive
+        grid = ListCtrl(window, self.column_info)
         grid.SetMinSize(wx.Size(400, 200))
         self._grid = grid
-        # TODO: columns = use, at, element, data
-        grid.InsertColumn(0, "Element", width=wx.LIST_AUTOSIZE)
-        grid.InsertColumn(1, "At [m]", width=wx.LIST_AUTOSIZE)
-        grid.InsertColumn(2, "Data", width=wx.LIST_AUTOSIZE)
         headline = wx.StaticText(window, label="List of initial conditions:")
 
         button_edit = wx.Button(window, wx.ID_EDIT)
@@ -108,36 +130,37 @@ class ManageTwissWidget(Widget):
             return
         if col == 0 or col == 1:
             self.ChooseElement(row)
+        elif col == 2:
+            self.ToggleActive(row)
         else:
             self.EditTwiss(row)
 
-    def OnChangeActive(self, row, active):
-        if self._inserting:
-            return
-        index, _, twiss = self._rows[row]
-        self._rows[row] = index, active, twiss
+    def ToggleActive(self, row):
+        items = self._grid.items
+        item = items[row]
+        items[row] = item._replace(active=not item.active)
+        self._grid.RefreshItem(row)
 
     def TransferToWindow(self):
         """Update dialog with initial values."""
-        for index in sorted(self.data):
-            self.AddTwissRow(index, self.data[index], True)
-        for index in sorted(self.inactive):
-            for twiss in self.inactive[index]:
-                self.AddTwissRow(index, twiss, False)
+        elements = self.elements
+        items = [ItemInfo(index, elements[index], True, self.data[index])
+                 for index in sorted(self.data)]
+        items += [ItemInfo(index, elements[index], False, twiss)
+                  for index in sorted(self.inactive)
+                  for twiss in self.inactive[index]]
+        self._grid.items = items
 
     def TransferFromWindow(self):
         """Extract current active initial conditions."""
-        data = {}
-        inactive = {}
-        for index, active, twiss in self._rows:
-            if active:
-                # merge multiple active TWISS at same element
-                data.setdefault(index, {}).update(twiss)
-            else:
-                inactive.setdefault(index, []).append(twiss)
         self.data.clear()
-        self.data.update(data)
-        self.inactive = inactive
+        self.inactive.clear()
+        for item in self._grid.items:
+            if item.active:
+                # merge multiple active TWISS at same element
+                self.data.setdefault(item.index, {}).update(item.twiss)
+            else:
+                self.inactive.setdefault(item.index, []).append(item.twiss)
 
     def GetInsertRow(self, element_index):
         """
@@ -146,83 +169,62 @@ class ManageTwissWidget(Widget):
         """
         # This assumes the rows are sorted by element index, which is valid
         # because this function is used to determine the insertion index.
-        bigger = (i for i, (index, active, twiss) in enumerate(self._rows)
-                  if index > element_index)
-        return next(bigger, len(self._rows))
+        items = self._grid.items
+        bigger = (i for i, item in enumerate(items)
+                  if item.index > element_index)
+        return next(bigger, len(items))
 
-    def AddTwissRow(self, elem_index, twiss_init=None, active=True):
+    def AddTwissRow(self, index, active=True, twiss=None):
 
         """
         Add one row to the list of TWISS initial conditions.
         """
 
         # require some TWISS initial conditions to be set
-        if twiss_init is None:
-            twiss_init = {}
+        if twiss is None:
+            twiss = {}
             utool = self.utool
             retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
-                                            data=twiss_init)
+                                            data=twiss)
             if retcode != wx.ID_OK:
                 return
 
-        grid = self._grid
-
         # insert elements
-        self._inserting = True
-        offset = self.GetInsertRow(elem_index)
-        element = self.elements[elem_index]
-        at = strip_unit(element['at'], units.m)
-        data_text = ', '.join(k + '=' + format_quantity(v)
-                              for k, v in twiss_init.items())
-        grid.InsertStringItem(offset, format_element(elem_index, element))
-        grid.SetStringItem(offset, 1, '{:.3f}'.format(at))
-        grid.SetStringItem(offset, 2, data_text)
-        grid.CheckItem(offset, active)
-        grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
-        grid.SetColumnWidth(2, wx.LIST_AUTOSIZE)
-
-        # update stored data
-        self._rows.insert(elem_index, (elem_index, active, twiss_init))
-        self._inserting = False
-
-        return offset
+        row = self.GetInsertRow(index)
+        item = ItemInfo(index, self.elements[index], active, twiss)
+        self._grid.insert(row, item)
+        return row
 
     def OnButtonRemove(self, event):
         """Remove the selected row."""
-        self.RemoveRow(self._grid.GetFirstSelected())
-
-    def RemoveRow(self, row):
-        """Remove specified row."""
-        self._grid.DeleteItem(row)
-        del self._rows[row]
+        self._grid.remove(self._grid.GetFirstSelected())
 
     def OnButtonEdit(self, event):
         """Edit the TWISS initial conditions at the specified element."""
         self.EditTwiss(self._grid.GetFirstSelected())
 
     def EditTwiss(self, row):
-        index, active, twiss = self._rows[row]
+        item = self._grid.items[row]
         utool = self.utool
         retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
-                                        data=twiss)
+                                        data=item.twiss)
         if retcode == wx.ID_OK:
-            # TODO: update item
+            self._grid.RefreshItem(row)
             pass
 
     def ChooseElement(self, row):
-        old_element_index, active, twiss = self._rows[row]
+        old_item = self._grid.items[row]
         elements = list(enumerate(self.elements))
-        selected = [old_element_index]
+        selected = [old_item.index]
         retcode = ElementWidget.ShowModal(self.GetWindow(), elements=elements,
                                           selected=selected)
         if retcode != wx.ID_OK:
             return
-        new_element_index = selected[0]
-        if new_element_index == old_element_index:
+        new_index = selected[0]
+        if new_index == old_item.index:
             return
-        self.RemoveRow(row)
-        new_row = self.AddTwissRow(new_element_index, twiss, active)
+        self._grid.remove(row)
+        new_row = self.AddTwissRow(new_index, old_item.active, old_item.twiss)
         self._grid.Select(new_row)
         self._grid.Focus(new_row)
 

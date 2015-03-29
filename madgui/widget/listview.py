@@ -6,18 +6,17 @@ List view widgets.
 from __future__ import absolute_import
 
 from bisect import bisect
-from collections import namedtuple
 
 from madgui.core import wx
+from madgui.util.common import instancevars
 
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 # exported symbols
 __all__ = [
+    'ColumnInfo',
     'ListCtrlUtil',
-    'ListView',
-    'CheckListCtrl',
-    'ManagedListCtrl',
+    'ListCtrl',
     'EditListCtrl',
 
     'BaseValue',
@@ -31,6 +30,20 @@ __all__ = [
     'ReadOnlyEditor',
     'FloatEditor',
 ]
+
+
+class ColumnInfo(object):
+
+    @instancevars
+    def __init__(self, title, gettext, format=wx.LIST_FORMAT_LEFT,
+                 width=wx.LIST_AUTOSIZE):
+        """
+        :param str title: column title
+        :param callable gettext: (index, item) -> str
+        :param int format: format argument for InsertColumn
+        :param int width: width argument for InsertColumn
+        """
+        pass
 
 
 class ListCtrlUtil(object):
@@ -95,43 +108,11 @@ class ListCtrlUtil(object):
 
 
 # need to use ListCtrl, since ListView doesn't work in *virtual* mode:
-class ListView(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
-
-    """ListView that auto-sizes the first column."""
-
-    def __init__(self, *args, **kwargs):
-        """Initialize window."""
-        wx.ListCtrl.__init__(self, *args, **kwargs)
-        ListCtrlAutoWidthMixin.__init__(self)
-        self.setResizeColumn(0)
-
-
-class CheckListCtrl(ListView, CheckListCtrlMixin):
-
-    """ListView with checkboxes in first column."""
-
-    def __init__(self, *args, **kwargs):
-        ListView.__init__(self, *args, **kwargs)
-        CheckListCtrlMixin.__init__(self)
-        self._OnCheckItem = lambda index, flag: None
-
-    def OnCheckItem(self, index, flag):
-        self._OnCheckItem(index, flag)
-
-
-ColumnInfo = namedtuple('ColumnInfo', [
-    'title',
-    'formatter',
-    'format',
-    'width',
-])
-
-
-class ManagedListCtrl(ListView):
+class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
     """
-    Virtual ListView that uses a list of :class:`ColumnInfo` to format its
-    columns.
+    Virtual ListCtrl that uses a list of :class:`ColumnInfo` to format its
+    columns. The first column is auto-sized by default.
     """
 
     # TODO: support Ctrl-A + mouse selection
@@ -145,7 +126,9 @@ class ManagedListCtrl(ListView):
         """
         # initialize super classes
         style |= wx.LC_REPORT | wx.LC_VIRTUAL
-        super(ManagedListCtrl, self).__init__(parent, style=style)
+        wx.ListCtrl.__init__(self, parent, style=style)
+        ListCtrlAutoWidthMixin.__init__(self)
+        self.setResizeColumn(0)
         # setup member variables
         self._items = []
         self._columns = columns
@@ -206,7 +189,7 @@ class ManagedListCtrl(ListView):
 
     def OnGetItemText(self, row, col):
         """Get the text for the specified row/col."""
-        return self._columns[col].formatter(row, self._items[row])
+        return self._columns[col].gettext(row, self._items[row])
 
 
 ### Value handlers
