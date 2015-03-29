@@ -23,6 +23,8 @@ from madgui.core.plugin import HookCollection
 # exported symbols
 __all__ = [
     'Simulator',
+    'ElementInfo',
+    'SegmentedRange',
     'Segment',
 ]
 
@@ -98,11 +100,7 @@ class SegmentedRange(object):
         """Get :class:`ElementInfo` from element name or index."""
         if isinstance(element, ElementInfo):
             return element
-        if element == '#s':
-            element = 0
-        elif element == '#e':
-            element = -1
-        elif isinstance(element, (basestring, dict)):
+        if isinstance(element, (basestring, dict)):
             element = self.sequence.elements.index(element)
         element_data = self.simulator.utool.dict_add_unit(
             self.sequence.elements[element])
