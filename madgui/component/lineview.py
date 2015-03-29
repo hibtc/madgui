@@ -171,10 +171,14 @@ class TwissView(object):
         view = cls(segman, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
 
+        utool = segman.simulator.utool
+        elements = segman.elements
         start_element = segman.get_element_info(range.bounds[0])
         twiss_initial = {start_element.index: twiss_args}
-        retcode = ManageTwissWidget.ShowModal(frame, segman=segman,
-                                              data=twiss_initial)
+        retcode = ManageTwissWidget.ShowModal(frame, utool=utool,
+                                              elements=elements,
+                                              data=twiss_initial,
+                                              inactive={})
         if retcode == wx.ID_OK:
             segman.set_all(twiss_initial)
         return view
@@ -219,9 +223,13 @@ class TwissView(object):
         view = cls(segman, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
 
+        utool = segman.simulator.utool
+        elements = segman.elements
         twiss_initial = {}
-        retcode = ManageTwissWidget.ShowModal(frame, segman=segman,
-                                              data=twiss_initial)
+        retcode = ManageTwissWidget.ShowModal(frame, utool=utool,
+                                              elements=elements,
+                                              data=twiss_initial,
+                                              inactive={})
         if retcode == wx.ID_OK:
             segman.set_all(twiss_initial)
 

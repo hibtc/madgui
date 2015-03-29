@@ -36,19 +36,12 @@ class ManageTwissWidget(Widget):
 
     title = "Select TWISS initial conditions"
 
-    def __init__(self, segman, data=None, inactive=None):
-        self.segman = segman
+    def __init__(self, utool, elements, data, inactive):
+        self.utool = utool
         self.data = data
-        if inactive is None:
-            model = segman.simulator.model
-            if model:
-                self.inactive = {}    # TODO: use model's initial conditions
-            else:
-                self.inactive = {}
-        else:
-            self.inactive = inactive
+        self.inactive = inactive
         self._rows = []
-        self.elements = segman.elements
+        self.elements = elements
         self._inserting = False
 
     def CreateControls(self):
@@ -168,7 +161,7 @@ class ManageTwissWidget(Widget):
         # require some TWISS initial conditions to be set
         if twiss_init is None:
             twiss_init = {}
-            utool = self.segman.simulator.utool
+            utool = self.utool
             retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
                                             data=twiss_init)
             if retcode != wx.ID_OK:
@@ -212,7 +205,7 @@ class ManageTwissWidget(Widget):
 
     def EditTwiss(self, row):
         index, active, twiss = self._rows[row]
-        utool = self.segman.simulator.utool
+        utool = self.utool
         retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
                                         data=twiss)
         if retcode == wx.ID_OK:

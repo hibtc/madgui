@@ -148,9 +148,13 @@ class NotebookFrame(wx.Frame):
 
         def set_twiss(event):
             segman = self.GetActiveFigurePanel().view.segman
+            utool = self.madx_units
+            elements = segman.elements
             twiss_initial = segman.twiss_initial.copy()
-            retcode = ManageTwissWidget.ShowModal(self, segman=segman,
-                                                  data=twiss_initial)
+            retcode = ManageTwissWidget.ShowModal(self, utool=utool,
+                                                  elements=elements,
+                                                  data=twiss_initial,
+                                                  inactive={})
             if retcode == wx.ID_OK:
                 segman.set_all(twiss_initial)
 
