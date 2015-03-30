@@ -98,38 +98,16 @@ class OpenModelWidget(Widget):
 
         mdata = results.mdata
         repo = results.repo
+        optic = results.optic
 
         if not mdata:
             return
 
-        # TODO: model selection belongs into a separate function, that is
-        # called here (hook?) and can be selected from a menu element as well.
-
-        # select optic, sequence, beam, range, twiss:
-        title = "Select model configuration"
-
-        # Create a temporary model for convenience:
-        cpymad_model = CPModel(data=mdata, repo=repo, madx=None)
-        optics = list(cpymad_model.optics)
-        select_detail_dlg = wx.SingleChoiceDialog(
-            frame,
-            'Select optic:',
-            'Select optic',
-            optics)
-        select_detail_dlg.SetSelection(
-            optics.index(cpymad_model.default_optic.name))
-        if ShowModal(select_detail_dlg) != wx.ID_OK:
-            return
-        optic = select_detail_dlg.GetStringSelection()
-        # TODO: redirect history+output to frame!
+        utool = frame.madx_units
         madx = frame.env['madx']
         cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
         cpymad_model.optics[optic].init()
 
-        utool = frame.madx_units
-
-        # TODO: forward range/sequence to Model
-        # range is currently not used at all
         frame.env['model'] = cpymad_model
         frame.env['simulator'].model = cpymad_model
 
@@ -144,11 +122,13 @@ class OpenModelWidget(Widget):
         # Create controls
         label_pkg = wx.StaticText(window, label="Package:")
         label_model = wx.StaticText(window, label="Model:")
+        label_optic = wx.StaticText(window, label="Optic:")
         self.ctrl_pkg = wx.ComboBox(window, wx.CB_DROPDOWN|wx.CB_SORT)
         self.ctrl_model = wx.ComboBox(window, wx.CB_READONLY|wx.CB_SORT)
+        self.ctrl_optic = wx.ComboBox(window, wx.CB_READONLY|wx.CB_SORT)
 
         # Create box sizer
-        controls = wx.FlexGridSizer(rows=2, cols=2)
+        controls = wx.FlexGridSizer(rows=3, cols=2)
         controls.SetFlexibleDirection(wx.HORIZONTAL)
         controls.AddGrowableCol(1, 1)
         controls.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
@@ -161,15 +141,22 @@ class OpenModelWidget(Widget):
         controls.Add(self.ctrl_pkg, flag=expand, **sizeargs)
         controls.Add(label_model, flag=left, **sizeargs)
         controls.Add(self.ctrl_model, flag=expand, **sizeargs)
+        controls.Add(label_optic, flag=left, **sizeargs)
+        controls.Add(self.ctrl_optic, flag=expand, **sizeargs)
 
         # register for events
         window.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
+        window.Bind(wx.EVT_COMBOBOX, self.OnModelChange, self.ctrl_model)
 
         return controls
 
     def OnPackageChange(self, event):
         """Update model list when package name is changed."""
         self.UpdateModelList()
+
+    def OnModelChange(self, event):
+        """Update optic list when the model selection has changed."""
+        self.UpdateOpticList()
 
     def GetCurrentLocator(self):
         """Get the currently selected locator."""
@@ -178,6 +165,12 @@ class OpenModelWidget(Widget):
             return CachedLocator.from_pkg(self.ctrl_pkg.GetValue())
         else:
             return self.locators[selection]
+
+    def GetCurrentModelDefinition(self):
+        """Get the model definition data for the currently selected model."""
+        locator = self.GetCurrentLocator()
+        model = self.ctrl_model.GetValue()
+        return locator.get_definition(model)
 
     def GetModelList(self):
         """Get list of models in the package specified by the input field."""
@@ -198,6 +191,14 @@ class OpenModelWidget(Widget):
         self.ctrl_model.SetSelection(0)
         self.ctrl_model.Enable(bool(modellist))
 
+    def UpdateOpticList(self):
+        """Update list of optics."""
+        mdef = self.GetCurrentModelDefinition()
+        optics = mdef['optics']
+        self.ctrl_optic.SetItems(list(optics))
+        self.ctrl_optic.SetStringSelection(mdef['default-optic'])
+        self.ctrl_optic.Enable(bool(optics))
+
     def TransferFromWindow(self):
         """Get selected package and model name."""
         locator = self.GetCurrentLocator()
@@ -209,12 +210,14 @@ class OpenModelWidget(Widget):
             repo = None
         self.results.mdata = mdata
         self.results.repo = repo
+        self.results.optic = self.ctrl_optic.GetValue()
         return True
 
     def TransferToWindow(self):
         """Update displayed package and model name."""
         self.UpdateLocatorList()
         self.UpdateModelList()
+        self.UpdateOpticList()
         # self.ctrl_pkg.SetValue(self.data.pkg_name)
         # self.ctrl_model.SetValue(self.data.model_name)
         return True
