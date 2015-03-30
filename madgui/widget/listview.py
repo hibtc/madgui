@@ -6,6 +6,7 @@ List view widgets.
 from __future__ import absolute_import
 
 from bisect import bisect
+from collections import MutableSequence
 
 from madgui.core import wx
 from madgui.util.common import instancevars
@@ -107,6 +108,89 @@ class ListCtrlUtil(object):
         return col_locs
 
 
+class ListCtrlList(MutableSequence):
+
+    """A list-like interface adapter for a LC_VIRTUAL wx.ListCtrl."""
+
+    def __init__(self, ctrl, items):
+        """Use the items object by reference."""
+        self._items = items
+        self._ctrl = ctrl
+
+    # Sized
+
+    def __len__(self):
+        return len(self._items)
+
+    # Iterable
+
+    def __iter__(self):
+        return iter(self._items)
+
+    # Container
+
+    def __contains__(self, value):
+        return value in self._items
+
+    # Sequence
+
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __reversed__(self):
+        return reversed(self._items)
+
+    def index(self, value):
+        return self._items.index(value)
+
+    def count(self, value):
+        return self._items.count(value)
+
+    # MutableSequence
+
+    def __setitem__(self, index, value):
+        self._items[index] = value
+        if isinstance(index, slice):
+            self._refresh(0 if index.start is None else index.start,
+                          -1 if index.stop is None else index.stop)
+        else:
+            self._refresh(index, index + 1)
+
+    def __delitem__(self, index):
+        del self._items[index]
+        self._refresh(index, -1)
+
+    def insert(self, index, value):
+        self._items.insert(index, value)
+        self._refresh(index, -1)
+
+    append = MutableSequence.append
+
+    def reverse(self):
+        self._items.reverse()
+        self._refresh(0, -1)
+
+    def extend(self, values):
+        old_len = len(self._items)
+        self._items.extend(values)
+        self._refresh(old_len, -1)
+
+    pop = MutableSequence.pop
+    remove = MutableSequence.remove
+    __iadd__ = MutableSequence.__iadd__
+
+    def _refresh(self, begin, end):
+        count = len(self._items)
+        self._ctrl.SetItemCount(count)
+        if begin < 0:
+            begin = max(0, begin+count)
+        if end < 0:
+            end += count + 1
+        if end > begin:
+            self._ctrl.RefreshItems(min(begin, count-1),
+                                    min(end-1, count-1))
+
+
 # need to use ListCtrl, since ListView doesn't work in *virtual* mode:
 class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
@@ -130,7 +214,7 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
         ListCtrlAutoWidthMixin.__init__(self)
         self.setResizeColumn(0)
         # setup member variables
-        self._items = []
+        self._items = ListCtrlList(self, [])
         self._columns = columns
         # insert columns
         for idx, col in enumerate(self._columns):
@@ -161,31 +245,9 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
         :param list items: list of data items.
         """
-        if self._items == items:
-            return
-        self._items = items
+        self._items[:] = items
         # TODO: keep the current selection if possible
-        # update list control:
-        count = len(self._items)
-        self.SetItemCount(count)
-        if count > 0:
-            self.RefreshItems(0, count-1)
         self._doResize()
-
-    def insert(self, row, item):
-        """Insert an item."""
-        self._items.insert(row, item)
-        count = len(self._items)
-        self.SetItemCount(count)
-        self.RefreshItems(row, count-1)
-
-    def remove(self, row):
-        """Remove an item."""
-        del self._items[row]
-        count = len(self._items)
-        self.SetItemCount(count)
-        if count > 0:
-            self.RefreshItems(row, count-1)
 
     def OnGetItemText(self, row, col):
         """Get the text for the specified row/col."""

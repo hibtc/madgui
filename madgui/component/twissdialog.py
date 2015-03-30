@@ -192,12 +192,12 @@ class ManageTwissWidget(Widget):
         # insert elements
         row = self.GetInsertRow(index)
         item = ItemInfo(index, self.elements[index], active, twiss)
-        self._grid.insert(row, item)
+        self._grid.items.insert(row, item)
         return row
 
     def OnButtonRemove(self, event):
         """Remove the selected row."""
-        self._grid.remove(self._grid.GetFirstSelected())
+        del self._grid.items[self._grid.GetFirstSelected()]
 
     def OnButtonEdit(self, event):
         """Edit the TWISS initial conditions at the specified element."""
@@ -223,7 +223,7 @@ class ManageTwissWidget(Widget):
         new_index = selected[0]
         if new_index == old_item.index:
             return
-        self._grid.remove(row)
+        del self._grid.items[row]
         new_row = self.AddTwissRow(new_index, old_item.active, old_item.twiss)
         self._grid.Select(new_row)
         self._grid.Focus(new_row)
