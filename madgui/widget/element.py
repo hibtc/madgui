@@ -131,27 +131,13 @@ class ElementListWidget(Widget):
                                             style=self.Style)
         listctrl.setResizeColumn(2)
         listctrl.SetMinSize(wx.Size(400, 200))
-        listctrl.Bind(wx.EVT_CHAR, self.OnChar)
-        listctrl.Bind(wx.EVT_LEFT_DCLICK, self.OnDoubleClick)
+        listctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivateItem)
         self._listctrl = listctrl
         return listctrl
 
-    def OnChar(self, event):
+    def OnActivateItem(self, event):
         """Apply dialog when pressing Enter."""
-        keycode = event.GetKeyCode()
-        if keycode == wx.WXK_RETURN:
-            self.ApplyDialog()
-        else:
-            event.Skip()
-
-    def OnDoubleClick(self, event):
-        """Apply dialog when double clicking on list item."""
-        x, y = event.GetPosition()
-        row, col = self._listctrl.GetCellId(x, y)
-        if row >= 0:
-            self.ApplyDialog()
-        else:
-            event.Skip()
+        self.ApplyDialog()
 
     def Validate(self, parent):
         """Check input validity."""
