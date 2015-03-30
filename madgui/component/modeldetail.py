@@ -127,7 +127,6 @@ class ModelDetailWidget(Widget):
             twiss=self.ctrl_twiss.GetValue(),
             indicators=self.ctrl_elem.GetValue(),
         )
-        return True
 
     def TransferToWindow(self):
         """Update displayed package and model name."""
@@ -136,7 +135,6 @@ class ModelDetailWidget(Widget):
         self.UpdateRanges()
         self.UpdateTwiss()
         self.ctrl_elem.SetValue(self.data.get('indicators', True))
-        return True
 
     def Validate(self, parent):
         # TODO...

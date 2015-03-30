@@ -211,7 +211,6 @@ class OpenModelWidget(Widget):
         self.results.mdata = mdata
         self.results.repo = repo
         self.results.optic = self.ctrl_optic.GetValue()
-        return True
 
     def TransferToWindow(self):
         """Update displayed package and model name."""
@@ -220,7 +219,6 @@ class OpenModelWidget(Widget):
         self.UpdateOpticList()
         # self.ctrl_pkg.SetValue(self.data.pkg_name)
         # self.ctrl_model.SetValue(self.data.model_name)
-        return True
 
     def Validate(self, parent):
         """Update the status of the OK button."""
