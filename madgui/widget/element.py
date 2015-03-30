@@ -99,36 +99,31 @@ class ElementListWidget(Widget):
         self.elements = elements
         self.selected = selected
 
-    def GetColumns(self):
-        """Column info for the ListCtrl."""
-        return [
-            listview.ColumnInfo(
-                '',
-                lambda _, item: item[0],
-                wx.LIST_FORMAT_RIGHT,
-                35),
-            listview.ColumnInfo(
-                'Name',
-                lambda _, item: item[1]['name'],
-                wx.LIST_FORMAT_LEFT,
-                wx.LIST_AUTOSIZE),
-            listview.ColumnInfo(
-                'Type',
-                lambda _, item: item[1]['type'],
-                wx.LIST_FORMAT_LEFT,
-                wx.LIST_AUTOSIZE),
-            listview.ColumnInfo(
-                'At',
-                lambda _, item: format_quantity(item[1]['at'], '.3f'),
-                wx.LIST_FORMAT_RIGHT,
-                wx.LIST_AUTOSIZE),
-        ]
+    column_info = [
+        listview.ColumnInfo(
+            '',
+            lambda _, item: item[0],
+            wx.LIST_FORMAT_RIGHT,
+            35),
+        listview.ColumnInfo(
+            'Name',
+            lambda _, item: item[1]['name'],
+            wx.LIST_FORMAT_LEFT),
+        listview.ColumnInfo(
+            'Type',
+            lambda _, item: item[1]['type'],
+            wx.LIST_FORMAT_LEFT),
+        listview.ColumnInfo(
+            'At',
+            lambda _, item: format_quantity(item[1]['at'], '.3f'),
+            wx.LIST_FORMAT_RIGHT),
+    ]
 
     def CreateControls(self):
         """Create element list and search controls."""
-        listctrl = listview.ManagedListCtrl(self.GetWindow(),
-                                            self.GetColumns(),
-                                            style=self.Style)
+        listctrl = listview.ListCtrl(self.GetWindow(),
+                                     self.column_info,
+                                     style=self.Style)
         listctrl.setResizeColumn(2)
         listctrl.SetMinSize(wx.Size(400, 200))
         listctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivateItem)
