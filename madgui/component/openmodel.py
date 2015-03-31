@@ -215,8 +215,6 @@ class OpenModelWidget(Widget):
         self.UpdateLocatorList()
         self.UpdateModelList()
         self.UpdateOpticList()
-        # self.ctrl_pkg.SetValue(self.data.pkg_name)
-        # self.ctrl_model.SetValue(self.data.model_name)
 
     def Validate(self, parent):
         """Update the status of the OK button."""
