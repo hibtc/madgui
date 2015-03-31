@@ -144,13 +144,19 @@ class OpenModelWidget(Widget):
         controls.Add(self.ctrl_optic, flag=expand, **sizeargs)
 
         # register for events
-        window.Bind(wx.EVT_TEXT, self.OnPackageChange, source=self.ctrl_pkg)
+        window.Bind(wx.EVT_TEXT, self.OnPackageChange, self.ctrl_pkg)
+        window.Bind(wx.EVT_COMBOBOX, self.OnPackageChange, self.ctrl_pkg)
         window.Bind(wx.EVT_COMBOBOX, self.OnModelChange, self.ctrl_model)
 
         return controls
 
     def OnPackageChange(self, event):
         """Update model list when package name is changed."""
+        ctrl = self.ctrl_pkg
+        sel = ctrl.GetSelection()
+        val = ctrl.GetValue()
+        if sel == wx.NOT_FOUND and val in self.locator_names:
+            ctrl.SetStringSelection(val)
         self.UpdateModelList()
 
     def OnModelChange(self, event):
@@ -179,7 +185,11 @@ class OpenModelWidget(Widget):
     def UpdateLocatorList(self):
         """Update the list of locators shown in the dialog."""
         self.locators = CachedLocator.discover()
-        self.ctrl_pkg.SetItems([l.name for l in self.locators])
+        # Format entrypoint names, so they can't be confused with package
+        # names. This can be used in the EVT_TEXT handler to decide whether
+        # to use the entrypoint or package:
+        self.locator_names = [u'<{}>'.format(l.name) for l in self.locators]
+        self.ctrl_pkg.SetItems(self.locator_names)
         self.ctrl_pkg.SetSelection(0)
         self.ctrl_pkg.Enable(bool(self.locators))
 
