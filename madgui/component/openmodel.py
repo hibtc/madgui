@@ -112,42 +112,31 @@ class OpenModelWidget(Widget):
 
         TwissView.create(frame.env['simulator'], frame, basename='env')
 
+    def _AddCombo(self, label, combo_style):
+        """Add a label + combobox to the tabular sizer."""
+        ctrl_text = wx.StaticText(self.Window, label=label)
+        ctrl_combo = wx.ComboBox(self.Window, combo_style)
+        flag = wx.ALL|wx.ALIGN_CENTER_VERTICAL
+        self.sizer.Add(ctrl_text, flag=flag|wx.ALIGN_LEFT, border=5)
+        self.sizer.Add(ctrl_combo, flag=flag|wx.EXPAND, border=5)
+        return ctrl_combo
+
     def CreateControls(self):
-
         """Create subcontrols and layout."""
-
-        window = self.GetWindow()
-
-        # Create controls
-        label_pkg = wx.StaticText(window, label="Package:")
-        label_model = wx.StaticText(window, label="Model:")
-        label_optic = wx.StaticText(window, label="Optic:")
-        self.ctrl_pkg = wx.ComboBox(window, wx.CB_DROPDOWN|wx.CB_SORT)
-        self.ctrl_model = wx.ComboBox(window, wx.CB_READONLY|wx.CB_SORT)
-        self.ctrl_optic = wx.ComboBox(window, wx.CB_READONLY|wx.CB_SORT)
-
         # Create box sizer
         controls = wx.FlexGridSizer(rows=3, cols=2)
         controls.SetFlexibleDirection(wx.HORIZONTAL)
         controls.AddGrowableCol(1, 1)
         controls.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
-
-        # insert items
-        left = wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL
-        expand = wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL
-        sizeargs = dict(border=5)
-        controls.Add(label_pkg, flag=left, **sizeargs)
-        controls.Add(self.ctrl_pkg, flag=expand, **sizeargs)
-        controls.Add(label_model, flag=left, **sizeargs)
-        controls.Add(self.ctrl_model, flag=expand, **sizeargs)
-        controls.Add(label_optic, flag=left, **sizeargs)
-        controls.Add(self.ctrl_optic, flag=expand, **sizeargs)
-
+        self.sizer = controls
+        # Create controls
+        self.ctrl_pkg = self._AddCombo('Package:', wx.CB_DROPDOWN|wx.CB_SORT)
+        self.ctrl_model = self._AddCombo('Model:', wx.CB_READONLY|wx.CB_SORT)
+        self.ctrl_optic = self._AddCombo('Optic:', wx.CB_READONLY|wx.CB_SORT)
         # register for events
-        window.Bind(wx.EVT_TEXT, self.OnPackageChange, self.ctrl_pkg)
-        window.Bind(wx.EVT_COMBOBOX, self.OnPackageChange, self.ctrl_pkg)
-        window.Bind(wx.EVT_COMBOBOX, self.OnModelChange, self.ctrl_model)
-
+        self.Window.Bind(wx.EVT_TEXT, self.OnPackageChange, self.ctrl_pkg)
+        self.Window.Bind(wx.EVT_COMBOBOX, self.OnPackageChange, self.ctrl_pkg)
+        self.Window.Bind(wx.EVT_COMBOBOX, self.OnModelChange, self.ctrl_model)
         return controls
 
     def OnPackageChange(self, event):
