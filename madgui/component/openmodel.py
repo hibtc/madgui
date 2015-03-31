@@ -141,13 +141,14 @@ class OpenModelWidget(Widget):
         controls.SetNonFlexibleGrowMode(wx.FLEX_GROWMODE_ALL)
         self.sizer = controls
         # Create controls
-        self.ctrl_pkg = self._AddCombo('Package:', wx.CB_DROPDOWN|wx.CB_SORT)
+        self.ctrl_pkg = self._AddCombo('Source:', wx.CB_DROPDOWN|wx.CB_SORT)
         self.ctrl_model = self._AddCombo('Model:', wx.CB_READONLY|wx.CB_SORT)
         self.ctrl_optic = self._AddCombo('Optic:', wx.CB_READONLY|wx.CB_SORT)
         # register for events
         self.Window.Bind(wx.EVT_TEXT, self.OnPackageChange, self.ctrl_pkg)
         self.Window.Bind(wx.EVT_COMBOBOX, self.OnPackageChange, self.ctrl_pkg)
         self.Window.Bind(wx.EVT_COMBOBOX, self.OnModelChange, self.ctrl_model)
+        self.ctrl_pkg.SetMinSize(wx.Size(200, -1))
         return controls
 
     def OnPackageChange(self, event):
