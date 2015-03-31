@@ -7,10 +7,12 @@ Widget component to find/open a model.
 from __future__ import absolute_import
 
 # standard library
+import os
 from importlib import import_module
 from pkg_resources import iter_entry_points
 
 # 3rd party
+from cpymad.resource.file import FileResource
 from cpymad.resource.package import PackageResource
 from cpymad.model import Locator, Model as CPModel
 
@@ -64,11 +66,20 @@ class CachedLocator(object):
         """List all models in the given package. Returns a Locator."""
         try:
             pkg = import_module(pkg_name)
-        except (ValueError, KeyError, ImportError):
-            # '' => ValueError, 'hit.' => KeyError, 'FOOBAR' => ImportErrow
+        except (ValueError, KeyError, ImportError, TypeError):
+            # '' => ValueError, 'hit.' => KeyError,
+            # 'FOOBAR' => ImportErrow, '.' => TypeError
             return None
         resource_provider = PackageResource(pkg_name)
         return cls(pkg_name, Locator(resource_provider))
+
+    @classmethod
+    def from_path(cls, path_name):
+        """List all models in the given directory. Returns a Locator."""
+        if not os.path.isdir(path_name):
+            return None
+        resource_provider = FileResource(path_name)
+        return cls(path_name, Locator(resource_provider))
 
 
 class ValueContainer(object):
@@ -156,7 +167,9 @@ class OpenModelWidget(Widget):
         """Get the currently selected locator."""
         selection = self.ctrl_pkg.GetSelection()
         if selection == wx.NOT_FOUND:
-            return CachedLocator.from_pkg(self.ctrl_pkg.GetValue())
+            source = self.ctrl_pkg.GetValue()
+            return (CachedLocator.from_pkg(source) or
+                    CachedLocator.from_path(source))
         else:
             return self.locators[selection]
 
