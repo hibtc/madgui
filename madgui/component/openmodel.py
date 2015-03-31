@@ -14,7 +14,7 @@ from pkg_resources import iter_entry_points
 # 3rd party
 from cpymad.resource.file import FileResource
 from cpymad.resource.package import PackageResource
-from cpymad.model import Locator, Model as CPModel
+from cpymad.model import Locator as _Locator, Model as _Model
 
 # internal
 from madgui.core import wx
@@ -28,58 +28,25 @@ __all__ = [
 ]
 
 
-class CachedLocator(object):
-
-    """
-    Cached Model locator.
-    """
-
-    def __init__(self, name, locator):
-        """Store the name and raw (uncached) locator."""
-        self.name = name
-        self._locator = locator
-
-    @cachedproperty
-    def models(self):
-        """Cached list of model names."""
-        return list(self._locator.list_models())
-
-    def list_models(self):
-        """Return list of model names."""
-        return self.models
-
-    def get_definition(self, model):
-        """Return a model definition for the model name."""
-        return self._locator.get_definition(model)
-
-    def get_repository(self, definition):
-        return self._locator.get_repository(definition)
-
-    @classmethod
-    def discover(cls):
-        """Return list of all locators at the entrypoint madgui.models."""
-        return [cls(ep.name, ep.load()())
-                for ep in iter_entry_points('madgui.models')]
+class Locator(_Locator):
 
     @classmethod
     def from_pkg(cls, pkg_name):
-        """List all models in the given package. Returns a Locator."""
+        """Returns a Locator that lists all models in the given package."""
         try:
             pkg = import_module(pkg_name)
         except (ValueError, KeyError, ImportError, TypeError):
             # '' => ValueError, 'hit.' => KeyError,
             # 'FOOBAR' => ImportErrow, '.' => TypeError
             return None
-        resource_provider = PackageResource(pkg_name)
-        return cls(pkg_name, Locator(resource_provider))
+        return cls(PackageResource(pkg_name))
 
     @classmethod
     def from_path(cls, path_name):
-        """List all models in the given directory. Returns a Locator."""
+        """Returns a Locator that lists all models in the given directory."""
         if not os.path.isdir(path_name):
             return None
-        resource_provider = FileResource(path_name)
-        return cls(path_name, Locator(resource_provider))
+        return cls(FileResource(path_name))
 
 
 class ValueContainer(object):
@@ -100,27 +67,20 @@ class OpenModelWidget(Widget):
     @classmethod
     def create(cls, frame):
         # select package, model:
-
         results = ValueContainer()
-
         if cls.ShowModal(frame, results=results) != wx.ID_OK:
             return
-
         mdata = results.mdata
         repo = results.repo
         optic = results.optic
-
         if not mdata:
             return
-
         utool = frame.madx_units
         madx = frame.env['madx']
-        cpymad_model = CPModel(data=mdata, repo=repo, madx=madx)
+        cpymad_model = _Model(data=mdata, repo=repo, madx=madx)
         cpymad_model.optics[optic].init()
-
         frame.env['model'] = cpymad_model
         frame.env['simulator'].model = cpymad_model
-
         TwissView.create(frame.env['simulator'], frame, basename='env')
 
     def _AddCombo(self, label, combo_style):
@@ -156,7 +116,7 @@ class OpenModelWidget(Widget):
         ctrl = self.ctrl_pkg
         sel = ctrl.GetSelection()
         val = ctrl.GetValue()
-        if sel == wx.NOT_FOUND and val in self.locator_names:
+        if sel == wx.NOT_FOUND and val in self.locators:
             ctrl.SetStringSelection(val)
         self.UpdateModelList()
 
@@ -166,54 +126,61 @@ class OpenModelWidget(Widget):
 
     def GetCurrentLocator(self):
         """Get the currently selected locator."""
-        selection = self.ctrl_pkg.GetSelection()
-        if selection == wx.NOT_FOUND:
-            source = self.ctrl_pkg.GetValue()
-            return (CachedLocator.from_pkg(source) or
-                    CachedLocator.from_path(source))
+        ctrl = self.ctrl_pkg
+        if ctrl.GetSelection() == wx.NOT_FOUND:
+            source = ctrl.GetValue()
+            return (Locator.from_pkg(source) or
+                    Locator.from_path(source))
         else:
-            return self.locators[selection]
-
-    def GetCurrentModelDefinition(self):
-        """Get the model definition data for the currently selected model."""
-        locator = self.GetCurrentLocator()
-        model = self.ctrl_model.GetValue()
-        return locator.get_definition(model)
+            return self.locators[ctrl.GetStringSelection()]()
 
     def GetModelList(self):
         """Get list of models in the package specified by the input field."""
-        locator = self.GetCurrentLocator()
-        return list(locator.list_models()) if locator else []
+        return list(self.locator.list_models()) if self.locator else []
+
+    def GetOpticList(self):
+        """Get the model definition data for the currently selected model."""
+        if not self.locator or not self.modellist:
+            return [], ''
+        model = self.ctrl_model.GetValue()
+        mdef = self.locator.get_definition(model)
+        return list(mdef.get('optics', {})), mdef.get('default-optic', '')
 
     def UpdateLocatorList(self):
         """Update the list of locators shown in the dialog."""
-        self.locators = CachedLocator.discover()
+        # Note that entrypoints are lazy-loaded:
+        self.locators = {u'<{}>'.format(ep.name): lambda: ep.load()()
+                         for ep in iter_entry_points('madgui.models')}
         # Format entrypoint names, so they can't be confused with package
         # names. This can be used in the EVT_TEXT handler to decide whether
         # to use the entrypoint or package:
-        self.locator_names = [u'<{}>'.format(l.name) for l in self.locators]
-        self.ctrl_pkg.SetItems(self.locator_names)
+        self.ctrl_pkg.SetItems(list(self.locators))
         self.ctrl_pkg.SetSelection(0)
         self.ctrl_pkg.Enable(bool(self.locators))
 
     def UpdateModelList(self):
         """Update displayed model list."""
-        modellist = self.GetModelList()
-        self.ctrl_model.SetItems(modellist)
+        # UpdateModelList is called on initialization and each time the
+        # 'source' field changes. So this is the place to update the current
+        # locator. Note that is a deliberate choice not to cache anything
+        # located, so files can be changed before applying the dialog:
+        self.locator = self.GetCurrentLocator()
+        self.modellist = self.GetModelList()
+        self.ctrl_model.SetItems(self.modellist)
         self.ctrl_model.SetSelection(0)
-        self.ctrl_model.Enable(bool(modellist))
+        self.ctrl_model.Enable(bool(self.modellist))
+        self.UpdateOpticList()
 
     def UpdateOpticList(self):
         """Update list of optics."""
-        mdef = self.GetCurrentModelDefinition()
-        optics = mdef['optics']
-        self.ctrl_optic.SetItems(list(optics))
-        self.ctrl_optic.SetStringSelection(mdef['default-optic'])
+        optics, selected = self.GetOpticList()
+        self.ctrl_optic.SetItems(optics)
+        self.ctrl_optic.SetStringSelection(selected)
         self.ctrl_optic.Enable(bool(optics))
 
     def TransferFromWindow(self):
         """Get selected package and model name."""
-        locator = self.GetCurrentLocator()
+        locator = self.locator
         if locator:
             mdata = locator.get_definition(self.ctrl_model.GetValue())
             repo = locator.get_repository(mdata)
@@ -228,8 +195,7 @@ class OpenModelWidget(Widget):
         """Update displayed package and model name."""
         self.UpdateLocatorList()
         self.UpdateModelList()
-        self.UpdateOpticList()
 
     def Validate(self, parent):
         """Update the status of the OK button."""
-        return bool(self.GetModelList())
+        return bool(self.modellist)
