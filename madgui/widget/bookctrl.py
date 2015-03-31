@@ -57,15 +57,12 @@ class _BookSelect(_BookEvtEmitter):
                           new_sel, old_sel):
             return
 
-        self.Freeze()
-        try:
+        with wx.FrozenWindow(self):
             # update selection state
             if old_sel != wx.NOT_FOUND:
                 self._Deselect(old_sel)
             self._selection = new_sel
             self._Select(new_sel)
-        finally:
-            self.Thaw()
         self.GetSizer().Layout()
 
         # notify the world
