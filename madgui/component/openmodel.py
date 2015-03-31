@@ -64,9 +64,8 @@ class CachedLocator(object):
         """List all models in the given package. Returns a Locator."""
         try:
             pkg = import_module(pkg_name)
-        except ValueError:
-            return None
-        except ImportError:
+        except (ValueError, KeyError, ImportError):
+            # '' => ValueError, 'hit.' => KeyError, 'FOOBAR' => ImportErrow
             return None
         resource_provider = PackageResource(pkg_name)
         return cls(pkg_name, Locator(resource_provider))
