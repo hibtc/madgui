@@ -147,11 +147,11 @@ class TwissView(object):
     def create_from_model(cls, simulator, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
         cpymad_model = simulator.model
+        utool = simulator.utool
 
         detail = {}
         retcode = ModelDetailWidget.ShowModal(frame, model=cpymad_model,
-                                              title=cpymad_model.name,
-                                              data=detail)
+                                              data=detail, utool=utool)
         if retcode != wx.ID_OK:
             return
 
