@@ -119,7 +119,14 @@ class NotebookFrame(wx.Frame):
         # Create a command tab
         self._NewCommandTab()
 
-    def _LoadMadxFile(self):
+    def _LoadModel(self, event=None):
+        OpenModelWidget.create(self)
+        self._EditModelDetail()
+
+    def _EditModelDetail(self, event=None):
+        TwissView.create(self.env['simulator'], self, basename='env')
+
+    def _LoadMadxFile(self, event=None):
         """
         Dialog component to find/open a .madx file.
         """
@@ -137,47 +144,47 @@ class NotebookFrame(wx.Frame):
         # if there are any new sequences, give the user a chance to view them
         # automatically:
         if len(madx.sequences) > num_seq:
-            TwissView.create(self.env['simulator'], self, basename='env')
+            self._EditModelDetail()
+
+    def _EditTwiss(self, event=None):
+        segman = self.GetActiveFigurePanel().view.segman
+        utool = self.madx_units
+        elements = segman.elements
+        twiss_initial = segman.twiss_initial.copy()
+        retcode = ManageTwissWidget.ShowModal(self, utool=utool,
+                                              elements=elements,
+                                              data=twiss_initial,
+                                              inactive={})
+        if retcode == wx.ID_OK:
+            segman.set_all(twiss_initial)
+
+    def _SetBeam(self, event=None):
+        segman = self.GetActiveFigurePanel().view.segman
+        beam = segman.beam.copy()
+        retcode = BeamWidget.ShowModal(self, utool=self.madx_units,
+                                       data=segman.beam)
+        if retcode == wx.ID_OK:
+            segman.beam = beam
+
+
+    def _ShowIndicators(self, event=None):
+        panel = self.GetActiveFigurePanel()
+        segman = panel.view.segman
+        if segman.indicators:
+            segman.indicators.destroy()
+        else:
+            segman.indicators = True
+            DrawLineElements.create(panel).plot()
+            panel.view.figure.draw()
+
+    def _UpdateShowIndicators(self, event):
+        segman = self.GetActiveFigurePanel().view.segman
+        event.Check(bool(segman.indicators))
 
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
-
-        def set_twiss(event):
-            segman = self.GetActiveFigurePanel().view.segman
-            utool = self.madx_units
-            elements = segman.elements
-            twiss_initial = segman.twiss_initial.copy()
-            retcode = ManageTwissWidget.ShowModal(self, utool=utool,
-                                                  elements=elements,
-                                                  data=twiss_initial,
-                                                  inactive={})
-            if retcode == wx.ID_OK:
-                segman.set_all(twiss_initial)
-
-        def set_beam(event):
-            segman = self.GetActiveFigurePanel().view.segman
-            beam = segman.beam.copy()
-            retcode = BeamWidget.ShowModal(self, utool=self.madx_units,
-                                           data=segman.beam)
-            if retcode == wx.ID_OK:
-                segman.beam = beam
-
-        def show_indicators(event):
-            panel = self.GetActiveFigurePanel()
-            segman = panel.view.segman
-            if segman.indicators:
-                segman.indicators.destroy()
-            else:
-                segman.indicators = True
-                DrawLineElements.create(panel).plot()
-                panel.view.figure.draw()
-
-        def show_indicators_update(event):
-            segman = self.GetActiveFigurePanel().view.segman
-            event.Check(bool(segman.indicators))
-
         MenuItem = menu.Item
         Menu = menu.Menu
         Separator = menu.Separator
@@ -191,10 +198,10 @@ class NotebookFrame(wx.Frame):
                 Separator,
                 MenuItem('&Open MAD-X file\tCtrl+O',
                          'Open a .madx file in this frame.',
-                         lambda _: self._LoadMadxFile()),
+                         self._LoadMadxFile),
                 MenuItem('Load &model\tCtrl+M',
                          'Open a model in this frame.',
-                         lambda _: OpenModelWidget.create(self)),
+                         self._LoadModel),
                 Separator,
                 MenuItem('&Close',
                          'Close window',
@@ -214,15 +221,15 @@ class NotebookFrame(wx.Frame):
             Menu('&Tab', [
                 MenuItem('Manage &initial conditions',
                          'Add/remove/edit TWISS initial conditions.',
-                         set_twiss),
+                         self._EditTwiss),
                 MenuItem('Set &beam',
                          'Set beam.',
-                         set_beam),
+                         self._SetBeam),
                 Separator,
                 MenuItem('Show &element indicators',
                          'Show indicators for beam line elements.',
-                         show_indicators,
-                         show_indicators_update,
+                         self._ShowIndicators,
+                         self._UpdateShowIndicators,
                          wx.ITEM_CHECK),
             ]),
             Menu('&Help', [

@@ -18,7 +18,6 @@ from cpymad.model import Locator as _Locator, Model as _Model
 
 # internal
 from madgui.core import wx
-from madgui.component.lineview import TwissView
 from madgui.util.common import cachedproperty
 from madgui.widget.input import Widget, ShowModal
 
@@ -81,7 +80,6 @@ class OpenModelWidget(Widget):
         cpymad_model.optics[optic].init()
         frame.env['model'] = cpymad_model
         frame.env['simulator'].model = cpymad_model
-        TwissView.create(frame.env['simulator'], frame, basename='env')
 
     def _AddCombo(self, label, combo_style):
         """Add a label + combobox to the tabular sizer."""
