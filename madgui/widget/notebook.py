@@ -156,10 +156,9 @@ class NotebookFrame(wx.Frame):
         segman.indicators = detail['indicators']
 
         session.segman = segman
+        segman.set_all(twiss_args)
 
         TwissView.create(session, self, basename='env')
-
-        segman.set_all(twiss_args)
 
     def _LoadMadxFile(self, event=None):
         """

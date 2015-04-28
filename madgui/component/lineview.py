@@ -170,6 +170,9 @@ class TwissView(object):
         self.segman.hook.update.connect(self.update)
         self.segman.hook.add_segment.connect(self.on_add_segment)
 
+        for segment in self.segman.segments.values():
+            self.on_add_segment(segment)
+
     def destroy(self):
         self.segman.hook.update.disconnect(self.update)
         self.segman.hook.add_segment.disconnect(self.on_add_segment)
