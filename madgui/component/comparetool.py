@@ -65,7 +65,7 @@ class CompareTool(object):
         if not cpymad_model:
             return
 
-        all_metadata = cpymad_model._data['review']
+        all_metadata = cpymad_model._data.get('review', [])
         col_names = [view.sname, view.xname, view.yname]
         try:
             metadata = match_metadata(all_metadata, model.sequence.name,

@@ -15,6 +15,9 @@ from madgui.core import wx
 import wx.aui
 from wx.py.crust import Crust
 
+# 3rd-party
+from cpymad.model import Model
+
 # internal
 from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
@@ -124,9 +127,60 @@ class NotebookFrame(wx.Frame):
         OpenModelWidget.create(self)
         self._EditModelDetail()
 
+    def _GenerateModel(self):
+        session = self.env['session']
+        madx = session.madx
+        libmadx = session.libmadx
+
+        optics = {'default': {'init-files': []}}
+        sequences = {}
+        beams = {}
+        for seq in madx.sequences:
+            ranges = {}
+            ranges['ALL'] = {
+                'madx-range': {'first': '#s', 'last': '#e'},
+                'default-twiss': 'default',
+                'twiss-initial-conditions': {
+                    'default': {}
+                }
+            }
+            # TODO: automatically read other used initial conditions from
+            # MAD-X memory (if any TWISS table is present).
+            seq_data = {
+                'ranges': ranges,
+                'default-range': 'ALL',
+            }
+            sequences[seq] = seq_data
+            beam_name = 'beam{}'.format(len(beams))
+            seq_data['beam'] = beam_name
+            try:
+                beam = libmadx.get_sequence_beam(seq)
+            except RuntimeError:
+                beam = {}
+            beams[beam_name] = beam
+            # TODO: automatically insert other beams from MAD-X memory
+
+        data = {
+            'api_version': 0,
+            'path_offset': '',
+            'init-files': '',
+            'name': '(auto-generated)',
+            'optics': optics,
+            'sequences': sequences,
+            'beams': beams,
+            'default-sequence': sorted(sequences)[0],
+            'default-optic': sorted(optics)[0],
+        }
+        return Model(data, repo=None, madx=madx)
+
     def _EditModelDetail(self, event=None):
         session = self.env['session']
-        cpymad_model = session.model
+
+        if session.model:
+            cpymad_model = session.model
+        else:
+            cpymad_model = self._GenerateModel()
+
         utool = session.utool
 
         detail = {}
