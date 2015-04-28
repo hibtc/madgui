@@ -9,9 +9,10 @@ from __future__ import absolute_import
 # GUI components
 from madgui.core import wx
 
-
+# exported symbols
 __all__ = [
     'Item',
+    'CondItem',
     'Menu',
     'Separator',
     'extend',

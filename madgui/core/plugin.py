@@ -23,13 +23,14 @@ from __future__ import absolute_import
 # standard library
 from pkg_resources import iter_entry_points
 
-
-# public exports
-__all__ = ['Hook',
-           'HookCollection',
-           'Multicast',
-           'List',
-           'EntryPoint']
+# exported symbols
+__all__ = [
+    'Hook',
+    'HookCollection',
+    'Multicast',
+    'List',
+    'EntryPoint',
+]
 
 
 def Hook(name):

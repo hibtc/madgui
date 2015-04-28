@@ -7,17 +7,42 @@ from __future__ import absolute_import
 
 # GUI components
 from madgui.core import wx
-from madgui.widget.listview import ListView
+from madgui.util import unit
+from madgui.widget import listview
+
+# exported symbols
+__all__ = [
+    'TableDialog',
+]
+
+
+def _format_key(index, item):
+    return item[0]
+
+
+def _format_val(index, item):
+    val = item[1]
+    if isinstance(val, (float, unit.units.Quantity)):
+        return unit.format_quantity(val, '.3f')
+    elif isinstance(val, basestring):
+        return val
+    else:
+        return str(val)
 
 
 class TableDialog(wx.Dialog):
 
     """
-    Dialog to show key-value pairs.
+    Read-only dialog to show key-value pairs.
 
-    The keys are displayed by :class:`wx.StaticText`, the values are
-    represented in :class:`AutoSizedTextCtrl`.
+    The values are automatically rendered according to their type. There is no
+    need for a {name: type} mapping.
     """
+
+    column_info = [
+        listview.ColumnInfo('Parameter', _format_key),
+        listview.ColumnInfo('Value', _format_val, wx.LIST_FORMAT_RIGHT),
+    ]
 
     def __init__(self, parent):
         """
@@ -28,15 +53,10 @@ class TableDialog(wx.Dialog):
         super(TableDialog, self).__init__(
             parent=parent,
             style=wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER)
-        self._rows = []
         # Create a two-column grid, with auto sized width
-        grid = ListView(self, style=wx.LC_REPORT)
+        grid = listview.ListCtrl(self, columns=self.column_info)
         grid.SetMinSize(wx.Size(400, 200))
         self.grid = grid
-        grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
-        grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
-                          format=wx.LIST_FORMAT_RIGHT)
-        grid.InsertColumn(2, "Unit")
         outer = wx.BoxSizer(wx.VERTICAL)
         outer.Add(self.grid, flag=wx.ALL|wx.EXPAND, border=5)
         self.SetSizer(outer)
@@ -46,34 +66,9 @@ class TableDialog(wx.Dialog):
 
     @property
     def rows(self):
-        return self._rows
+        return self.grid.items
 
     @rows.setter
     def rows(self, rows):
         """Update/set (key, value) pairs."""
-        grid = self.grid
-        num_rows = grid.GetItemCount()
-        if len(rows) == num_rows:
-            # update grid
-            for row, (key, val) in enumerate(rows):
-                value, unit = _split_value(val)
-                grid.SetStringItem(row, 0, key)
-                grid.SetStringItem(row, 1, value)
-                grid.SetStringItem(row, 2, unit)
-        else:
-            # (re-)generate grid
-            grid.DeleteAllItems()
-            for row, (key, val) in enumerate(rows):
-                value, unit = _split_value(val)
-                grid.InsertStringItem(row, key)
-                grid.SetStringItem(row, 1, value)
-                grid.SetStringItem(row, 2, unit)
-        grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
-
-def _split_value(value):
-    from madgui.util.unit import strip_unit, get_unit_label
-    try:
-        return str(strip_unit(value)), get_unit_label(value)
-    except AttributeError:
-        return str(value), ""
+        self.grid.items = rows[:]

@@ -7,10 +7,12 @@ from __future__ import absolute_import
 
 # standard library
 import functools
+import inspect
 
 # exported symbols
 __all__ = [
     'cachedproperty',
+    'instancevars',
 ]
 
 
@@ -26,3 +28,26 @@ def cachedproperty(func):
             setattr(self, key, val)
             return val
     return property(get)
+
+
+def instancevars(func):
+    """
+    Store arguments as member variables.
+
+    Example:
+
+    >>> class Foo(object):
+    ...     @instancevars
+    ...     def __init__(self, bar):
+    ...         pass
+    >>> Foo(42).bar
+    42
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        callargs = inspect.getcallargs(func, *args, **kwargs)
+        self = args[0]
+        for key, val in callargs.items():
+            setattr(self, key, val)
+        return func(*args, **kwargs)
+    return wrapper

@@ -12,7 +12,9 @@ from madgui.core.plugin import HookCollection
 from madgui.util.unit import strip_unit
 
 # exported symbols
-__all__ = ['ElementView']
+__all__ = [
+    'ElementView',
+]
 
 
 # TODO: change style for active/inactive element markers
@@ -105,9 +107,9 @@ class ElementView(object):
 
     @property
     def element(self):
-        elements = self.model.simulator.madx.active_sequence.elements
+        elements = self.model.session.madx.active_sequence.elements
         raw_element = elements[self.element_name]
-        return self.model.simulator.utool.dict_add_unit(raw_element)
+        return self.model.session.utool.dict_add_unit(raw_element)
 
     def update(self):
 

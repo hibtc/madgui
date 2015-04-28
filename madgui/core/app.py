@@ -35,7 +35,9 @@ from madgui.core.config import load_config, recursive_merge
 from madgui.core.plugin import HookCollection
 
 # exported symbols
-__all__ = ['App']
+__all__ = [
+    'App',
+]
 
 
 # Alias for later use inside App, where __doc__ means App.__doc__. There is no

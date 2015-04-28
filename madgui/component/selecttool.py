@@ -12,7 +12,9 @@ from madgui.component.elementview import ElementView, ElementMarker
 from madgui.widget.table import TableDialog
 
 # exported symbols
-__all__ = ['SelectTool']
+__all__ = [
+    'SelectTool',
+]
 
 
 class SelectTool(object):

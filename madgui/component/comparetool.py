@@ -14,7 +14,9 @@ from madgui.core import wx
 from madgui.util import unit
 
 # exported symbols
-__all__ = ['CompareTool']
+__all__ = [
+    'CompareTool',
+]
 
 
 def match_metadata(all_metadata, sequence, col_names):
@@ -63,7 +65,7 @@ class CompareTool(object):
         if not cpymad_model:
             return
 
-        all_metadata = cpymad_model._data['review']
+        all_metadata = cpymad_model._data.get('review', [])
         col_names = [view.sname, view.xname, view.yname]
         try:
             metadata = match_metadata(all_metadata, model.sequence.name,

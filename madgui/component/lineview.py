@@ -13,18 +13,19 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-from madgui.component.twissdialog import ManageTwissDialog
-from madgui.component.model import SegmentedRange
-from madgui.component.modeldetail import ModelDetailDlg
+from madgui.component.twissdialog import ManageTwissWidget
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
+from madgui.widget.input import ShowModal
 
 import matplotlib
 import matplotlib.figure
 
 # exported symbols
-__all__ = ['TwissView']
+__all__ = [
+    'TwissView',
+]
 
 
 def _clear_ax(ax):
@@ -133,98 +134,10 @@ class TwissView(object):
     """Instanciate an FigurePair + XYCurve(Envelope)."""
 
     @classmethod
-    def create(cls, simulator, frame, basename):
+    def create(cls, session, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        if simulator.model:
-            cls.create_from_model(simulator, frame, basename)
-        else:
-            cls.create_from_plain(simulator, frame, basename)
-
-    @classmethod
-    def create_from_model(cls, simulator, frame, basename):
-        """Create a new view panel as a page in the notebook frame."""
-        cpymad_model = simulator.model
-        select_detail_dlg = ModelDetailDlg(frame, model=cpymad_model,
-                                           title=cpymad_model.name)
-        try:
-            if select_detail_dlg.ShowModal() != wx.ID_OK:
-                return
-        finally:
-            select_detail_dlg.Destroy()
-
-        detail = select_detail_dlg.data
-
-        sequence = cpymad_model.sequences[detail['sequence']]
-        range = sequence.ranges[detail['range']]
-        twiss_args = range.initial_conditions[detail['twiss']]
-        twiss_args = frame.madx_units.dict_add_unit(twiss_args)
-        range.init()
-
-        segman = SegmentedRange(
-            simulator=simulator,
-            sequence=detail['sequence'],
-            range=range.bounds,
-        )
-        segman.model = cpymad_model
-        segman.indicators = detail['indicators']
-
-        view = cls(segman, basename, frame.app.conf['line_view'])
+        view = cls(session.segman, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
-
-        start_element = segman.get_element_info(range.bounds[0])
-        twiss_initial = {start_element.index: twiss_args}
-        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
-                                     segman=segman, data=twiss_initial)
-        if twissdlg.ShowModal() == wx.ID_OK:
-            segman.set_all(twissdlg.data)
-
-        return view
-
-    @classmethod
-    def create_from_plain(cls, simulator, frame, basename):
-
-        madx = simulator.madx
-
-        # look for sequences
-        sequences = madx.sequences
-        if len(sequences) == 0:
-            # TODO: log
-            return
-        elif len(sequences) == 1:
-            name = next(iter(sequences))
-        else:
-            # if there are multiple sequences - just ask the user which
-            # one to use rather than taking a wild guess based on twiss
-            # computation etc
-            dlg = wx.SingleChoiceDialog(parent=frame,
-                                        caption="Select sequence",
-                                        message="Select sequence:",
-                                        choices=sequences)
-            try:
-                if dlg.ShowModal() != wx.ID_OK:
-                    return
-                name = dlg.GetStringSelection()
-            finally:
-                dlg.Destroy()
-
-        # now create the actual model object
-        # TODO: insert segman into simulator
-        # TODO: show segman
-        segman = SegmentedRange(
-            simulator=simulator,
-            sequence=name,
-            range='#s/#e',
-        )
-        segman.model = None
-        segman.indicators = True
-        view = cls(segman, basename, frame.app.conf['line_view'])
-        panel = frame.AddView(view, view.title)
-
-        twissdlg = ManageTwissDialog(frame, "Select TWISS initial conditions",
-                                     segman=segman)
-        if twissdlg.ShowModal() == wx.ID_OK:
-            segman.set_all(twissdlg.data)
-
         return view
 
     def __init__(self, segmentation_manager, basename, line_view_config):
@@ -256,6 +169,9 @@ class TwissView(object):
         # subscribe for updates
         self.segman.hook.update.connect(self.update)
         self.segman.hook.add_segment.connect(self.on_add_segment)
+
+        for segment in self.segman.segments.values():
+            self.on_add_segment(segment)
 
     def destroy(self):
         self.segman.hook.update.disconnect(self.update)

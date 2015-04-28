@@ -15,20 +15,28 @@ from madgui.core import wx
 import wx.aui
 from wx.py.crust import Crust
 
+# 3rd-party
+from cpymad.model import Model
+
 # internal
 from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
-from madgui.component.beamdialog import BeamDialog
+from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
-from madgui.component.model import Simulator
-from madgui.component.openmodel import OpenModelDlg
-from madgui.component.twissdialog import ManageTwissDialog
+from madgui.component.modeldetail import ModelDetailWidget
+from madgui.component.openmodel import OpenModelWidget
+from madgui.component.session import Session, SegmentedRange
+from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
+from madgui.widget.input import ShowModal
 
 # exported symbols
-__all__ = ['NotebookFrame']
+__all__ = [
+    'NotebookFrame',
+    'set_frame_title',
+]
 
 
 def monospace(pt_size):
@@ -81,14 +89,14 @@ class NotebookFrame(wx.Frame):
         # TODO: close old client + shutdown _read_stream thread.
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
-        simulator = Simulator(self.madx_units)
-        self._simulator = simulator
+        session = Session(self.madx_units)
+        self._session = session
         threading.Thread(target=self._read_stream,
-                         args=(simulator.remote_process.stdout,)).start()
+                         args=(session.remote_process.stdout,)).start()
         self.env.update({
-            'simulator': simulator,
-            'madx': simulator.madx,
-            'libmadx': simulator.libmadx
+            'session': session,
+            'madx': session.madx,
+            'libmadx': session.libmadx
         })
 
     def CreateControls(self):
@@ -115,7 +123,98 @@ class NotebookFrame(wx.Frame):
         # Create a command tab
         self._NewCommandTab()
 
-    def _LoadMadxFile(self):
+    def _LoadModel(self, event=None):
+        OpenModelWidget.create(self)
+        self._EditModelDetail()
+
+    def _GenerateModel(self):
+        session = self.env['session']
+        madx = session.madx
+        libmadx = session.libmadx
+
+        optics = {'default': {'init-files': []}}
+        sequences = {}
+        beams = {}
+        for seq in madx.sequences:
+            ranges = {}
+            ranges['ALL'] = {
+                'madx-range': {'first': '#s', 'last': '#e'},
+                'default-twiss': 'default',
+                'twiss-initial-conditions': {
+                    'default': {}
+                }
+            }
+            # TODO: automatically read other used initial conditions from
+            # MAD-X memory (if any TWISS table is present).
+            seq_data = {
+                'ranges': ranges,
+                'default-range': 'ALL',
+            }
+            sequences[seq] = seq_data
+            beam_name = 'beam{}'.format(len(beams))
+            seq_data['beam'] = beam_name
+            try:
+                beam = libmadx.get_sequence_beam(seq)
+            except RuntimeError:
+                beam = {}
+            beams[beam_name] = beam
+            # TODO: automatically insert other beams from MAD-X memory
+
+        data = {
+            'api_version': 0,
+            'path_offset': '',
+            'init-files': '',
+            'name': '(auto-generated)',
+            'optics': optics,
+            'sequences': sequences,
+            'beams': beams,
+            'default-sequence': sorted(sequences)[0],
+            'default-optic': sorted(optics)[0],
+        }
+        return Model(data, repo=None, madx=madx)
+
+    def _EditModelDetail(self, event=None):
+        session = self.env['session']
+
+        if session.model:
+            cpymad_model = session.model
+        else:
+            cpymad_model = self._GenerateModel()
+
+        utool = session.utool
+
+        detail = {}
+        retcode = ModelDetailWidget.ShowModal(self, model=cpymad_model,
+                                              data=detail, utool=utool)
+        if retcode != wx.ID_OK:
+            return
+
+        sequence = detail['sequence']
+        beam = detail['beam']
+        range_bounds = detail['range']
+        twiss_args = detail['twiss']
+
+        beam = dict(beam, sequence=sequence)
+        twiss_args_no_unit = {k: utool.dict_strip_unit(v)
+                              for k, v in twiss_args.items()}
+
+        cpymad_model.sequences[sequence].init()
+        session.madx.command.beam(**utool.dict_strip_unit(beam))
+
+        segman = SegmentedRange(
+            session=session,
+            sequence=sequence,
+            range=range_bounds,
+        )
+        segman.model = cpymad_model
+        segman.indicators = detail['indicators']
+
+        session.segman = segman
+        segman.set_all(twiss_args)
+
+        TwissView.create(session, self, basename='env')
+
+    def _LoadMadxFile(self, event=None):
         """
         Dialog component to find/open a .madx file.
         """
@@ -123,12 +222,9 @@ class NotebookFrame(wx.Frame):
             self,
             style=wx.FD_OPEN,
             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
-        try:
-            if dlg.ShowModal() != wx.ID_OK:
-                return
-            path = dlg.Path
-        finally:
-            dlg.Destroy()
+        if ShowModal(dlg) != wx.ID_OK:
+            return
+        path = dlg.Path
 
         madx = self.env['madx']
         num_seq = len(madx.sequences)
@@ -136,39 +232,47 @@ class NotebookFrame(wx.Frame):
         # if there are any new sequences, give the user a chance to view them
         # automatically:
         if len(madx.sequences) > num_seq:
-            TwissView.create(self.env['simulator'], self, basename='env')
+            self._EditModelDetail()
+
+    def _EditTwiss(self, event=None):
+        segman = self.GetActiveFigurePanel().view.segman
+        utool = self.madx_units
+        elements = segman.elements
+        twiss_initial = segman.twiss_initial.copy()
+        retcode = ManageTwissWidget.ShowModal(self, utool=utool,
+                                              elements=elements,
+                                              data=twiss_initial,
+                                              inactive={})
+        if retcode == wx.ID_OK:
+            segman.set_all(twiss_initial)
+
+    def _SetBeam(self, event=None):
+        segman = self.GetActiveFigurePanel().view.segman
+        beam = segman.beam.copy()
+        retcode = BeamWidget.ShowModal(self, utool=self.madx_units,
+                                       data=segman.beam)
+        if retcode == wx.ID_OK:
+            segman.beam = beam
+
+
+    def _ShowIndicators(self, event=None):
+        panel = self.GetActiveFigurePanel()
+        segman = panel.view.segman
+        if segman.indicators:
+            segman.indicators.destroy()
+        else:
+            segman.indicators = True
+            DrawLineElements.create(panel).plot()
+            panel.view.figure.draw()
+
+    def _UpdateShowIndicators(self, event):
+        segman = self.GetActiveFigurePanel().view.segman
+        event.Check(bool(segman.indicators))
 
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
         # files and/or a plugin system to add/enable/disable menu elements.
-
-        def set_twiss(event):
-            segman = self.GetActiveFigurePanel().view.segman
-            dlg = ManageTwissDialog(self, "Manage TWISS", segman=segman)
-            if dlg.ShowModal() == wx.ID_OK:
-                segman.set_all(dlg.data)
-
-        def set_beam(event):
-            segman = self.GetActiveFigurePanel().view.segman
-            beam = BeamDialog.show_modal(self, self.madx_units, segman.beam)
-            if beam is not None:
-                segman.beam = beam
-
-        def show_indicators(event):
-            panel = self.GetActiveFigurePanel()
-            segman = panel.view.segman
-            if segman.indicators:
-                segman.indicators.destroy()
-            else:
-                segman.indicators = True
-                DrawLineElements.create(panel).plot()
-                panel.view.figure.draw()
-
-        def show_indicators_update(event):
-            segman = self.GetActiveFigurePanel().view.segman
-            event.Check(bool(segman.indicators))
-
         MenuItem = menu.Item
         Menu = menu.Menu
         Separator = menu.Separator
@@ -182,10 +286,10 @@ class NotebookFrame(wx.Frame):
                 Separator,
                 MenuItem('&Open MAD-X file\tCtrl+O',
                          'Open a .madx file in this frame.',
-                         lambda _: self._LoadMadxFile()),
+                         self._LoadMadxFile),
                 MenuItem('Load &model\tCtrl+M',
                          'Open a model in this frame.',
-                         lambda _: OpenModelDlg.create(self)),
+                         self._LoadModel),
                 Separator,
                 MenuItem('&Close',
                          'Close window',
@@ -195,25 +299,25 @@ class NotebookFrame(wx.Frame):
             Menu('&View', [
                 MenuItem('Beam &envelope',
                          'Open new tab with beam envelopes.',
-                         lambda _: TwissView.create(self.env['simulator'],
+                         lambda _: TwissView.create(self.env['session'],
                                                     self, basename='env')),
                 MenuItem('Beam &position',
                          'Open new tab with beam position.',
-                         lambda _: TwissView.create(self.env['simulator'],
+                         lambda _: TwissView.create(self.env['session'],
                                                     self, basename='pos')),
             ]),
             Menu('&Tab', [
                 MenuItem('Manage &initial conditions',
                          'Add/remove/edit TWISS initial conditions.',
-                         set_twiss),
+                         self._EditTwiss),
                 MenuItem('Set &beam',
                          'Set beam.',
-                         set_beam),
+                         self._SetBeam),
                 Separator,
                 MenuItem('Show &element indicators',
                          'Show indicators for beam line elements.',
-                         show_indicators,
-                         show_indicators_update,
+                         self._ShowIndicators,
+                         self._UpdateShowIndicators,
                          wx.ITEM_CHECK),
             ]),
             Menu('&Help', [
@@ -266,7 +370,7 @@ class NotebookFrame(wx.Frame):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self._simulator.rpc_client.close()
+            self._session.rpc_client.close()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
@@ -293,7 +397,7 @@ class NotebookFrame(wx.Frame):
         if not self.env['madx']:
             return
         enable_view = bool(self.env['madx'].sequences
-                           or self.env['simulator'].model)
+                           or self.env['session'].model)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is

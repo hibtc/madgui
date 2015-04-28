@@ -15,7 +15,9 @@ from madgui.core.plugin import HookCollection
 from madgui.util.unit import strip_unit
 
 # exported symbols
-__all__ = ['MatchTool']
+__all__ = [
+    'MatchTool',
+]
 
 
 class MatchTool(object):
@@ -193,7 +195,7 @@ class Matching(object):
         """Perform matching according to current constraints."""
 
         segment = self.get_segment()
-        simul = self.segman.simulator
+        simul = self.segman.session
         trans = MatchTransform(segment)
 
         # transform constraints (envx => betx, etc)

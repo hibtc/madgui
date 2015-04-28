@@ -17,7 +17,6 @@ from cpymad.types import Expression
 # internal
 from madgui.util.symbol import SymbolicValue
 
-
 # exported symbols
 __all__ = [
     'units',

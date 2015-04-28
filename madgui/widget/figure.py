@@ -15,7 +15,9 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Toolbar
 from madgui.core.plugin import HookCollection
 
 # exported symbols
-__all__ = ['FigurePanel']
+__all__ = [
+    'FigurePanel',
+]
 
 
 class FigurePanel(wx.Panel):

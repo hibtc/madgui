@@ -3,18 +3,21 @@
 List view widgets.
 """
 
+from __future__ import absolute_import
+
 from bisect import bisect
-from collections import namedtuple
+from collections import MutableSequence
 
 from madgui.core import wx
+from madgui.util.common import instancevars
 
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin, CheckListCtrlMixin
+from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
-
+# exported symbols
 __all__ = [
+    'ColumnInfo',
     'ListCtrlUtil',
-    'ListView',
-    'CheckListCtrl',
+    'ListCtrl',
     'EditListCtrl',
 
     'BaseValue',
@@ -28,6 +31,20 @@ __all__ = [
     'ReadOnlyEditor',
     'FloatEditor',
 ]
+
+
+class ColumnInfo(object):
+
+    @instancevars
+    def __init__(self, title, gettext, format=wx.LIST_FORMAT_LEFT,
+                 width=wx.LIST_AUTOSIZE):
+        """
+        :param str title: column title
+        :param callable gettext: (index, item) -> str
+        :param int format: format argument for InsertColumn
+        :param int width: width argument for InsertColumn
+        """
+        pass
 
 
 class ListCtrlUtil(object):
@@ -91,44 +108,95 @@ class ListCtrlUtil(object):
         return col_locs
 
 
+class ListCtrlList(MutableSequence):
+
+    """A list-like interface adapter for a LC_VIRTUAL wx.ListCtrl."""
+
+    def __init__(self, ctrl, items):
+        """Use the items object by reference."""
+        self._items = items
+        self._ctrl = ctrl
+
+    # Sized
+
+    def __len__(self):
+        return len(self._items)
+
+    # Iterable
+
+    def __iter__(self):
+        return iter(self._items)
+
+    # Container
+
+    def __contains__(self, value):
+        return value in self._items
+
+    # Sequence
+
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __reversed__(self):
+        return reversed(self._items)
+
+    def index(self, value):
+        return self._items.index(value)
+
+    def count(self, value):
+        return self._items.count(value)
+
+    # MutableSequence
+
+    def __setitem__(self, index, value):
+        self._items[index] = value
+        if isinstance(index, slice):
+            self._refresh(0 if index.start is None else index.start,
+                          -1 if index.stop is None else index.stop)
+        else:
+            self._refresh(index, index + 1)
+
+    def __delitem__(self, index):
+        del self._items[index]
+        self._refresh(index, -1)
+
+    def insert(self, index, value):
+        self._items.insert(index, value)
+        self._refresh(index, -1)
+
+    append = MutableSequence.append
+
+    def reverse(self):
+        self._items.reverse()
+        self._refresh(0, -1)
+
+    def extend(self, values):
+        old_len = len(self._items)
+        self._items.extend(values)
+        self._refresh(old_len, -1)
+
+    pop = MutableSequence.pop
+    remove = MutableSequence.remove
+    __iadd__ = MutableSequence.__iadd__
+
+    def _refresh(self, begin, end):
+        count = len(self._items)
+        self._ctrl.SetItemCount(count)
+        if begin < 0:
+            begin = max(0, begin+count)
+        if end < 0:
+            end += count + 1
+        if end > begin:
+            self._ctrl.RefreshItems(min(begin, count-1),
+                                    min(end-1, count-1))
+
+
 # need to use ListCtrl, since ListView doesn't work in *virtual* mode:
-class ListView(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
-
-    """ListView that auto-sizes the first column."""
-
-    def __init__(self, *args, **kwargs):
-        """Initialize window."""
-        wx.ListCtrl.__init__(self, *args, **kwargs)
-        ListCtrlAutoWidthMixin.__init__(self)
-        self.setResizeColumn(0)
-
-
-class CheckListCtrl(ListView, CheckListCtrlMixin):
-
-    """ListView with checkboxes in first column."""
-
-    def __init__(self, *args, **kwargs):
-        ListView.__init__(self, *args, **kwargs)
-        CheckListCtrlMixin.__init__(self)
-        self._OnCheckItem = lambda index, flag: None
-
-    def OnCheckItem(self, index, flag):
-        self._OnCheckItem(index, flag)
-
-
-ColumnInfo = namedtuple('ColumnInfo', [
-    'title',
-    'formatter',
-    'format',
-    'width',
-])
-
-
-class ManagedListCtrl(ListView):
+class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
     """
-    Virtual ListView that uses a list of :class:`ColumnInfo` to format its
-    columns.
+    Virtual ListCtrl that uses a list of :class:`ColumnInfo` to format its
+    columns. The first column is auto-sized by default.
     """
 
     # TODO: support Ctrl-A + mouse selection
@@ -142,9 +210,11 @@ class ManagedListCtrl(ListView):
         """
         # initialize super classes
         style |= wx.LC_REPORT | wx.LC_VIRTUAL
-        super(ManagedListCtrl, self).__init__(parent, style=style)
+        wx.ListCtrl.__init__(self, parent, style=style)
+        ListCtrlAutoWidthMixin.__init__(self)
+        self.setResizeColumn(0)
         # setup member variables
-        self._items = []
+        self._items = ListCtrlList(self, [])
         self._columns = columns
         # insert columns
         for idx, col in enumerate(self._columns):
@@ -175,20 +245,13 @@ class ManagedListCtrl(ListView):
 
         :param list items: list of data items.
         """
-        if self._items == items:
-            return
-        self._items = items
+        self._items[:] = items
         # TODO: keep the current selection if possible
-        # update list control:
-        count = len(self._items)
-        self.SetItemCount(count)
-        if count > 0:
-            self.RefreshItems(0, count-1)
         self._doResize()
 
     def OnGetItemText(self, row, col):
         """Get the text for the specified row/col."""
-        return self._columns[col].formatter(row, self._items[row])
+        return self._columns[col].gettext(row, self._items[row])
 
 
 ### Value handlers
