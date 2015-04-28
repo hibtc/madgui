@@ -14,8 +14,6 @@ from matplotlib.ticker import AutoMinorLocator
 
 # internal
 from madgui.component.twissdialog import ManageTwissWidget
-from madgui.component.model import SegmentedRange
-from madgui.component.modeldetail import ModelDetailWidget
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
@@ -138,96 +136,8 @@ class TwissView(object):
     @classmethod
     def create(cls, simulator, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        if simulator.model:
-            cls.create_from_model(simulator, frame, basename)
-        else:
-            cls.create_from_plain(simulator, frame, basename)
-
-    @classmethod
-    def create_from_model(cls, simulator, frame, basename):
-        """Create a new view panel as a page in the notebook frame."""
-        cpymad_model = simulator.model
-        utool = simulator.utool
-
-        detail = {}
-        retcode = ModelDetailWidget.ShowModal(frame, model=cpymad_model,
-                                              data=detail, utool=utool)
-        if retcode != wx.ID_OK:
-            return
-
-        sequence = detail['sequence']
-        beam = detail['beam']
-        range_bounds = detail['range']
-        twiss_args = detail['twiss']
-
-        beam = dict(beam, sequence=sequence)
-        twiss_args_no_unit = {k: utool.dict_strip_unit(v)
-                              for k, v in twiss_args.items()}
-
-        cpymad_model.sequences[sequence].init()
-        simulator.madx.command.beam(**utool.dict_strip_unit(beam))
-
-        segman = SegmentedRange(
-            simulator=simulator,
-            sequence=sequence,
-            range=range_bounds,
-        )
-        segman.model = cpymad_model
-        segman.indicators = detail['indicators']
-
-        view = cls(segman, basename, frame.app.conf['line_view'])
+        view = cls(simulator.segman, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
-        segman.set_all(twiss_args)
-
-        return view
-
-    @classmethod
-    def create_from_plain(cls, simulator, frame, basename):
-
-        madx = simulator.madx
-
-        # look for sequences
-        sequences = madx.sequences
-        if len(sequences) == 0:
-            # TODO: log
-            return
-        elif len(sequences) == 1:
-            name = next(iter(sequences))
-        else:
-            # if there are multiple sequences - just ask the user which
-            # one to use rather than taking a wild guess based on twiss
-            # computation etc
-            dlg = wx.SingleChoiceDialog(parent=frame,
-                                        caption="Select sequence",
-                                        message="Select sequence:",
-                                        choices=sequences)
-            if ShowModal(dlg) != wx.ID_OK:
-                return
-            name = dlg.GetStringSelection()
-
-        # now create the actual model object
-        # TODO: insert segman into simulator
-        # TODO: show segman
-        segman = SegmentedRange(
-            simulator=simulator,
-            sequence=name,
-            range='#s/#e',
-        )
-        segman.model = None
-        segman.indicators = True
-        view = cls(segman, basename, frame.app.conf['line_view'])
-        panel = frame.AddView(view, view.title)
-
-        utool = segman.simulator.utool
-        elements = segman.elements
-        twiss_initial = {}
-        retcode = ManageTwissWidget.ShowModal(frame, utool=utool,
-                                              elements=elements,
-                                              data=twiss_initial,
-                                              inactive={})
-        if retcode == wx.ID_OK:
-            segman.set_all(twiss_initial)
-
         return view
 
     def __init__(self, segmentation_manager, basename, line_view_config):

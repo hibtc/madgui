@@ -20,7 +20,8 @@ from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
-from madgui.component.model import Simulator
+from madgui.component.model import Simulator, SegmentedRange
+from madgui.component.modeldetail import ModelDetailWidget
 from madgui.component.openmodel import OpenModelWidget
 from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
@@ -124,7 +125,41 @@ class NotebookFrame(wx.Frame):
         self._EditModelDetail()
 
     def _EditModelDetail(self, event=None):
-        TwissView.create(self.env['simulator'], self, basename='env')
+        simulator = self.env['simulator']
+        cpymad_model = simulator.model
+        utool = simulator.utool
+
+        detail = {}
+        retcode = ModelDetailWidget.ShowModal(self, model=cpymad_model,
+                                              data=detail, utool=utool)
+        if retcode != wx.ID_OK:
+            return
+
+        sequence = detail['sequence']
+        beam = detail['beam']
+        range_bounds = detail['range']
+        twiss_args = detail['twiss']
+
+        beam = dict(beam, sequence=sequence)
+        twiss_args_no_unit = {k: utool.dict_strip_unit(v)
+                              for k, v in twiss_args.items()}
+
+        cpymad_model.sequences[sequence].init()
+        simulator.madx.command.beam(**utool.dict_strip_unit(beam))
+
+        segman = SegmentedRange(
+            simulator=simulator,
+            sequence=sequence,
+            range=range_bounds,
+        )
+        segman.model = cpymad_model
+        segman.indicators = detail['indicators']
+
+        simulator.segman = segman
+
+        TwissView.create(simulator, self, basename='env')
+
+        segman.set_all(twiss_args)
 
     def _LoadMadxFile(self, event=None):
         """
