@@ -79,7 +79,7 @@ class OpenModelWidget(Widget):
         cpymad_model = _Model(data=mdata, repo=repo, madx=madx)
         cpymad_model.optics[optic].init()
         frame.env['model'] = cpymad_model
-        frame.env['simulator'].model = cpymad_model
+        frame.env['session'].model = cpymad_model
 
     def _AddCombo(self, label, combo_style):
         """Add a label + combobox to the tabular sizer."""

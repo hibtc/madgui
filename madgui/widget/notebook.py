@@ -20,9 +20,9 @@ from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
-from madgui.component.model import Simulator, SegmentedRange
 from madgui.component.modeldetail import ModelDetailWidget
 from madgui.component.openmodel import OpenModelWidget
+from madgui.component.session import Session, SegmentedRange
 from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
@@ -86,14 +86,14 @@ class NotebookFrame(wx.Frame):
         # TODO: close old client + shutdown _read_stream thread.
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
-        simulator = Simulator(self.madx_units)
-        self._simulator = simulator
+        session = Session(self.madx_units)
+        self._session = session
         threading.Thread(target=self._read_stream,
-                         args=(simulator.remote_process.stdout,)).start()
+                         args=(session.remote_process.stdout,)).start()
         self.env.update({
-            'simulator': simulator,
-            'madx': simulator.madx,
-            'libmadx': simulator.libmadx
+            'session': session,
+            'madx': session.madx,
+            'libmadx': session.libmadx
         })
 
     def CreateControls(self):
@@ -125,9 +125,9 @@ class NotebookFrame(wx.Frame):
         self._EditModelDetail()
 
     def _EditModelDetail(self, event=None):
-        simulator = self.env['simulator']
-        cpymad_model = simulator.model
-        utool = simulator.utool
+        session = self.env['session']
+        cpymad_model = session.model
+        utool = session.utool
 
         detail = {}
         retcode = ModelDetailWidget.ShowModal(self, model=cpymad_model,
@@ -145,19 +145,19 @@ class NotebookFrame(wx.Frame):
                               for k, v in twiss_args.items()}
 
         cpymad_model.sequences[sequence].init()
-        simulator.madx.command.beam(**utool.dict_strip_unit(beam))
+        session.madx.command.beam(**utool.dict_strip_unit(beam))
 
         segman = SegmentedRange(
-            simulator=simulator,
+            session=session,
             sequence=sequence,
             range=range_bounds,
         )
         segman.model = cpymad_model
         segman.indicators = detail['indicators']
 
-        simulator.segman = segman
+        session.segman = segman
 
-        TwissView.create(simulator, self, basename='env')
+        TwissView.create(session, self, basename='env')
 
         segman.set_all(twiss_args)
 
@@ -246,11 +246,11 @@ class NotebookFrame(wx.Frame):
             Menu('&View', [
                 MenuItem('Beam &envelope',
                          'Open new tab with beam envelopes.',
-                         lambda _: TwissView.create(self.env['simulator'],
+                         lambda _: TwissView.create(self.env['session'],
                                                     self, basename='env')),
                 MenuItem('Beam &position',
                          'Open new tab with beam position.',
-                         lambda _: TwissView.create(self.env['simulator'],
+                         lambda _: TwissView.create(self.env['session'],
                                                     self, basename='pos')),
             ]),
             Menu('&Tab', [
@@ -317,7 +317,7 @@ class NotebookFrame(wx.Frame):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self._simulator.rpc_client.close()
+            self._session.rpc_client.close()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
@@ -344,7 +344,7 @@ class NotebookFrame(wx.Frame):
         if not self.env['madx']:
             return
         enable_view = bool(self.env['madx'].sequences
-                           or self.env['simulator'].model)
+                           or self.env['session'].model)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is

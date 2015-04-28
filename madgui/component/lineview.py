@@ -134,9 +134,9 @@ class TwissView(object):
     """Instanciate an FigurePair + XYCurve(Envelope)."""
 
     @classmethod
-    def create(cls, simulator, frame, basename):
+    def create(cls, session, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        view = cls(simulator.segman, basename, frame.app.conf['line_view'])
+        view = cls(session.segman, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
         return view
 

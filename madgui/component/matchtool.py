@@ -195,7 +195,7 @@ class Matching(object):
         """Perform matching according to current constraints."""
 
         segment = self.get_segment()
-        simul = self.segman.simulator
+        simul = self.segman.session
         trans = MatchTransform(segment)
 
         # transform constraints (envx => betx, etc)

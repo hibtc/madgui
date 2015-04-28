@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-Simulator component for the MadGUI application.
+Session component for the MadGUI application.
 """
 
 # force new style imports
@@ -22,12 +22,12 @@ from madgui.core.plugin import HookCollection
 
 # exported symbols
 __all__ = [
-    'Simulator',
+    'Session',
     'Segment',
 ]
 
 
-class Simulator(object):
+class Session(object):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -35,11 +35,11 @@ class Simulator(object):
 
     :ivar Madx madx: MAD-X interpreter instance
     :ivar Model model: associated metadata or None
-    :ivar list simulations: active simulations
     """
 
     # TODO: more logging
     # TODO: automatically switch directories when CALLing files?
+    # TODO: saveable state
 
     def __init__(self, utool):
         """Initialize with (Madx, Model)."""
@@ -59,7 +59,7 @@ class Simulator(object):
 
         self.model = None
         self.utool = utool
-        self.simulations = []
+        self.segman = None
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
@@ -74,9 +74,9 @@ class SegmentedRange(object):
     :ivar dict twiss_initial: initial conditions
     """
 
-    def __init__(self, simulator, sequence, range='#s/#e'):
+    def __init__(self, session, sequence, range='#s/#e'):
         """
-        :param Simulator simulator:
+        :param Session session:
         :param str sequence:
         :param tuple range:
         """
@@ -84,15 +84,15 @@ class SegmentedRange(object):
             update='madgui.component.manager.update',
             add_segment='madgui.component.manager.add_segment',
         )
-        self.simulator = simulator
-        self.sequence = simulator.madx.sequences[sequence]
+        self.session = session
+        self.sequence = session.madx.sequences[sequence]
         self.range = range
         self.start, self.stop = self.parse_range(range)
         self.segments = {}
         self.twiss_initial = {}
         raw_elements = self.sequence.elements
         self.elements = list(map(
-            self.simulator.utool.dict_add_unit, raw_elements))
+            self.session.utool.dict_add_unit, raw_elements))
 
     def get_element_info(self, element):
         """Get :class:`ElementInfo` from element name or index."""
@@ -104,7 +104,7 @@ class SegmentedRange(object):
             element = -1
         elif isinstance(element, (basestring, dict)):
             element = self.sequence.elements.index(element)
-        element_data = self.simulator.utool.dict_add_unit(
+        element_data = self.session.utool.dict_add_unit(
             self.sequence.elements[element])
         if element < 0:
             element += len(self.sequence.elements)
@@ -212,13 +212,13 @@ class SegmentedRange(object):
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        return self.simulator.utool.dict_add_unit(self.sequence.beam)
+        return self.session.utool.dict_add_unit(self.sequence.beam)
 
     @beam.setter
     def beam(self, beam):
         """Set beam from a parameter dictionary."""
-        self.simulator.madx.command.beam(
-            **self.simulator.utool.dict_strip_unit(beam))
+        self.session.madx.command.beam(
+            **self.session.utool.dict_strip_unit(beam))
         # TODO: re-run twiss
 
     def element_by_position(self, pos):
@@ -293,8 +293,8 @@ class Segment(object):
         self.range = (normalize_range_name(start.name),
                       normalize_range_name(stop.name))
         self.segman = segman
-        self.madx = segman.simulator.madx
-        self.utool = segman.simulator.utool
+        self.madx = segman.session.madx
+        self.utool = segman.session.utool
         self.twiss_args = twiss_args
         self.segman = segman
 
