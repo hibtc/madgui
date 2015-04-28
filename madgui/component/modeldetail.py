@@ -165,11 +165,14 @@ class ModelDetailWidget(Widget):
 
     def TransferFromWindow(self):
         """Get selected package and model name."""
+        self.widget_beam.TransferFromWindow()
+        self.widget_range.TransferFromWindow()
+        self.widget_twiss.TransferFromWindow()
         self.data.update(
             sequence=self.ctrl_sequence.GetValue(),
-            beam=self.ctrl_beam.GetValue(),
-            range=self.ctrl_range.GetValue(),
-            twiss=self.ctrl_twiss.GetValue(),
+            beam=self.widget_beam.data,
+            range=self.widget_range.selected,
+            twiss=self.widget_twiss.data,
             indicators=self.ctrl_elem.GetValue(),
         )
 

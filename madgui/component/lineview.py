@@ -155,33 +155,30 @@ class TwissView(object):
         if retcode != wx.ID_OK:
             return
 
-        sequence = cpymad_model.sequences[detail['sequence']]
-        range = sequence.ranges[detail['range']]
-        twiss_args = range.initial_conditions[detail['twiss']]
-        twiss_args = frame.madx_units.dict_add_unit(twiss_args)
-        range.init()
+        sequence = detail['sequence']
+        beam = detail['beam']
+        range_bounds = detail['range']
+        twiss_args = detail['twiss']
+
+        beam = dict(beam, sequence=sequence)
+        twiss_args_no_unit = {k: utool.dict_strip_unit(v)
+                              for k, v in twiss_args.items()}
+
+        cpymad_model.sequences[sequence].init()
+        simulator.madx.command.beam(**utool.dict_strip_unit(beam))
 
         segman = SegmentedRange(
             simulator=simulator,
-            sequence=detail['sequence'],
-            range=range.bounds,
+            sequence=sequence,
+            range=range_bounds,
         )
         segman.model = cpymad_model
         segman.indicators = detail['indicators']
 
         view = cls(segman, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
+        segman.set_all(twiss_args)
 
-        utool = segman.simulator.utool
-        elements = segman.elements
-        start_element = segman.get_element_info(range.bounds[0])
-        twiss_initial = {start_element.index: twiss_args}
-        retcode = ManageTwissWidget.ShowModal(frame, utool=utool,
-                                              elements=elements,
-                                              data=twiss_initial,
-                                              inactive={})
-        if retcode == wx.ID_OK:
-            segman.set_all(twiss_initial)
         return view
 
     @classmethod
