@@ -279,17 +279,18 @@ class NotebookFrame(wx.Frame):
 
         menubar = self.menubar = wx.MenuBar()
         menu.extend(self, menubar, [
-            Menu('&Window', [
-                MenuItem('&New\tCtrl+N',
-                         'Open a new window',
+            Menu('&Session', [
+                MenuItem('&New session window\tCtrl+N',
+                         'Open a new session window',
                          self.OnNewWindow),
                 Separator,
                 MenuItem('&Open MAD-X file\tCtrl+O',
-                         'Open a .madx file in this frame.',
+                         'Open a .madx file in this MAD-X session.',
                          self._LoadMadxFile),
                 MenuItem('Load &model\tCtrl+M',
-                         'Open a model in this frame.',
+                         'Open a model in this MAD-X session.',
                          self._LoadModel),
+                # TODO: save session/model
                 Separator,
                 MenuItem('&Close',
                          'Close window',
@@ -297,20 +298,20 @@ class NotebookFrame(wx.Frame):
                          id=wx.ID_CLOSE),
             ]),
             Menu('&View', [
-                MenuItem('Beam &envelope',
+                MenuItem('&Envelope',
                          'Open new tab with beam envelopes.',
                          lambda _: TwissView.create(self.env['session'],
                                                     self, basename='env')),
-                MenuItem('Beam &position',
+                MenuItem('&Position',
                          'Open new tab with beam position.',
                          lambda _: TwissView.create(self.env['session'],
                                                     self, basename='pos')),
             ]),
-            Menu('&Tab', [
-                MenuItem('Manage &initial conditions',
+            Menu('&Manage', [
+                MenuItem('&Initial conditions',
                          'Add/remove/edit TWISS initial conditions.',
                          self._EditTwiss),
-                MenuItem('Set &beam',
+                MenuItem('&Beam',
                          'Set beam.',
                          self._SetBeam),
                 Separator,
