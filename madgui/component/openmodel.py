@@ -68,18 +68,19 @@ class OpenModelWidget(Widget):
         # select package, model:
         results = ValueContainer()
         if cls.ShowModal(frame, results=results) != wx.ID_OK:
-            return
+            return None
         mdata = results.mdata
         repo = results.repo
         optic = results.optic
         if not mdata:
-            return
+            return None
         utool = frame.madx_units
         madx = frame.env['madx']
         cpymad_model = _Model(data=mdata, repo=repo, madx=madx)
         cpymad_model.optics[optic].init()
         frame.env['model'] = cpymad_model
         frame.env['session'].model = cpymad_model
+        return cpymad_model
 
     def _AddCombo(self, label, combo_style):
         """Add a label + combobox to the tabular sizer."""

@@ -124,8 +124,8 @@ class NotebookFrame(wx.Frame):
         self._NewCommandTab()
 
     def _LoadModel(self, event=None):
-        OpenModelWidget.create(self)
-        self._EditModelDetail()
+        if OpenModelWidget.create(self):
+            self._EditModelDetail()
 
     def _GenerateModel(self):
         session = self.env['session']
