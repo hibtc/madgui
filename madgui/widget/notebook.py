@@ -63,7 +63,9 @@ class NotebookFrame(wx.Frame):
 
         self.hook = HookCollection(
             init='madgui.widget.notebook.init',
-            menu='madgui.widget.notebook.menu')
+            menu='madgui.widget.notebook.menu',
+            reset=None,
+        )
 
         super(NotebookFrame, self).__init__(
             parent=None,
@@ -269,6 +271,13 @@ class NotebookFrame(wx.Frame):
         segman = self.GetActiveFigurePanel().view.segman
         event.Check(bool(segman.indicators))
 
+    def _ResetSession(self, event=None):
+        self.notebook.DeleteAllPages()
+        self.env['session'].rpc_client.close()
+        self._NewCommandTab()
+        self.InitMadx()
+        self.hook.reset()
+
     def _CreateMenu(self):
         """Create a menubar."""
         # TODO: this needs to be done more dynamically. E.g. use resource
@@ -291,6 +300,10 @@ class NotebookFrame(wx.Frame):
                          'Open a model in this MAD-X session.',
                          self._LoadModel),
                 # TODO: save session/model
+                Separator,
+                MenuItem('&Reset session',
+                         'Clear the MAD-X session state.',
+                         self._ResetSession),
                 Separator,
                 MenuItem('&Close',
                          'Close window',
