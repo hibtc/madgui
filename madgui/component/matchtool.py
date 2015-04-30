@@ -246,7 +246,6 @@ class Matching(object):
                          constraints=constraints,
                          twiss_init=twiss_args)
         segment.twiss()
-        segment.hook.update()
         self.segman.hook.update()
 
     def _gconstr(self, axis):

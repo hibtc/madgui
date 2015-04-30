@@ -94,9 +94,6 @@ class TwissCurveSegment(object):
         view.hook.plot_ax.connect(self.plot_ax)
         self._segment.hook.update.connect(self.update)
         self._segment.hook.remove.connect(self.destroy)
-        # Create initial plot
-        self.plot_ax(self._view.figure.axx, self._view.xname)
-        self.plot_ax(self._view.figure.axy, self._view.yname)
 
     def plot_ax(self, axes, name):
         """Make one subplot."""
