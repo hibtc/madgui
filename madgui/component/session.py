@@ -134,8 +134,8 @@ class SegmentedRange(object):
             except KeyError:
                 self._create_segment(start, stop)
             else:
-                if old_twiss.get(start, {}) != data[start]:
-                    seg.twiss()
+                seg.twiss_args = data[start]
+                seg.twiss()
         self.hook.update()
 
     def set_twiss_initial(self, element, twiss_args):
