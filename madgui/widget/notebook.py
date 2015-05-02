@@ -47,6 +47,10 @@ def monospace(pt_size):
                    wx.FONTWEIGHT_NORMAL)
 
 
+class ValueContainer(object):
+    pass
+
+
 class NotebookFrame(wx.Frame):
 
     """
@@ -126,8 +130,26 @@ class NotebookFrame(wx.Frame):
         self._NewCommandTab()
 
     def _LoadModel(self, event=None):
-        if OpenModelWidget.create(self):
-            self._EditModelDetail()
+        reset = self._ConfirmResetSession()
+        if reset is None:
+            return
+        results = ValueContainer()
+        if OpenModelWidget.ShowModal(self, results=results) != wx.ID_OK:
+            return
+        mdata = results.mdata
+        repo = results.repo
+        optic = results.optic
+        if not mdata:
+            return
+        if reset:
+            self._ResetSession()
+        utool = self.madx_units
+        madx = self.env['madx']
+        model = Model(data=mdata, repo=repo, madx=madx)
+        model.optics[optic].init()
+        self.env['model'] = model
+        self.env['session'].model = model
+        self._EditModelDetail()
 
     def _GenerateModel(self):
         session = self.env['session']
@@ -177,12 +199,7 @@ class NotebookFrame(wx.Frame):
 
     def _EditModelDetail(self, event=None):
         session = self.env['session']
-
-        if session.model:
-            cpymad_model = session.model
-        else:
-            cpymad_model = self._GenerateModel()
-
+        cpymad_model = session.model
         utool = session.utool
 
         detail = {}
@@ -220,6 +237,9 @@ class NotebookFrame(wx.Frame):
         """
         Dialog component to find/open a .madx file.
         """
+        reset = self._ConfirmResetSession()
+        if reset is None:
+            return
         dlg = wx.FileDialog(
             self,
             style=wx.FD_OPEN,
@@ -228,12 +248,18 @@ class NotebookFrame(wx.Frame):
             return
         path = dlg.Path
 
+        if reset:
+            self._ResetSession()
+
         madx = self.env['madx']
         num_seq = len(madx.sequences)
         madx.call(path, True)
         # if there are any new sequences, give the user a chance to view them
         # automatically:
         if len(madx.sequences) > num_seq:
+            model = self._GenerateModel()
+            self.env['model'] = model
+            self.env['session'].model = model
             self._EditModelDetail()
 
     def _EditTwiss(self, event=None):
@@ -270,6 +296,27 @@ class NotebookFrame(wx.Frame):
     def _UpdateShowIndicators(self, event):
         segman = self.GetActiveFigurePanel().view.segman
         event.Check(bool(segman.indicators))
+
+    def _ConfirmResetSession(self):
+        """Prompt the user to confirm resetting the current session."""
+        if not self.env.get('model'):
+            return False
+        question = (
+            'Reset MAD-X session? Unsaved changes will be lost.\n\n'
+            'Note: it is recommended to reset MAD-X before loading a new '
+            'model or sequence into memory, since MAD-X might crash on a '
+            'naming conflict.\n\n'
+            'Press Cancel to abort action.'
+        )
+        answer = wx.MessageBox(
+            question, 'Reset session',
+            wx.YES_NO | wx.CANCEL | wx.YES_DEFAULT | wx.ICON_QUESTION,
+            parent=self)
+        if answer == wx.YES:
+            return True
+        if answer == wx.NO:
+            return False
+        return None
 
     def _ResetSession(self, event=None):
         self.notebook.DeleteAllPages()

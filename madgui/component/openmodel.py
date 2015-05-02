@@ -14,7 +14,7 @@ from pkg_resources import iter_entry_points
 # 3rd party
 from cpymad.resource.file import FileResource
 from cpymad.resource.package import PackageResource
-from cpymad.model import Locator as _Locator, Model as _Model
+from cpymad.model import Locator as _Locator
 
 # internal
 from madgui.core import wx
@@ -48,10 +48,6 @@ class Locator(_Locator):
         return cls(FileResource(path_name))
 
 
-class ValueContainer(object):
-    pass
-
-
 class OpenModelWidget(Widget):
 
     """
@@ -66,20 +62,10 @@ class OpenModelWidget(Widget):
     @classmethod
     def create(cls, frame):
         # select package, model:
-        results = ValueContainer()
         if cls.ShowModal(frame, results=results) != wx.ID_OK:
             return None
-        mdata = results.mdata
-        repo = results.repo
-        optic = results.optic
         if not mdata:
             return None
-        utool = frame.madx_units
-        madx = frame.env['madx']
-        cpymad_model = _Model(data=mdata, repo=repo, madx=madx)
-        cpymad_model.optics[optic].init()
-        frame.env['model'] = cpymad_model
-        frame.env['session'].model = cpymad_model
         return cpymad_model
 
     def _AddCombo(self, label, combo_style):
