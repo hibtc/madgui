@@ -76,12 +76,12 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
+        self.views = []
         self.app = app
         self.env = {
             'frame': self,
-            'views': [],
-            'madx': None,
-            'libmadx': None,
+            'views': self.views,
+            'session': None,
         }
 
         self.CreateControls()
@@ -95,15 +95,10 @@ class NotebookFrame(wx.Frame):
         # TODO: close old client + shutdown _read_stream thread.
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
-        session = Session(self.madx_units)
-        self._session = session
+        self.session = Session(self.madx_units)
+        self.session.start()
         threading.Thread(target=self._read_stream,
-                         args=(session.remote_process.stdout,)).start()
-        self.env.update({
-            'session': session,
-            'madx': session.madx,
-            'libmadx': session.libmadx
-        })
+                         args=(self.session.remote_process.stdout,)).start()
 
     def CreateControls(self):
         # create notebook
@@ -144,15 +139,13 @@ class NotebookFrame(wx.Frame):
         if reset:
             self._ResetSession()
         utool = self.madx_units
-        madx = self.env['madx']
-        model = Model(data=mdata, repo=repo, madx=madx)
+        model = Model(data=mdata, repo=repo, madx=self.session.madx)
         model.optics[optic].init()
-        self.env['model'] = model
-        self.env['session'].model = model
+        self.session.model = model
         self._EditModelDetail()
 
     def _GenerateModel(self):
-        session = self.env['session']
+        session = self.session
         madx = session.madx
         libmadx = session.libmadx
 
@@ -198,7 +191,7 @@ class NotebookFrame(wx.Frame):
         return Model(data, repo=None, madx=madx)
 
     def _EditModelDetail(self, event=None):
-        session = self.env['session']
+        session = self.session
         cpymad_model = session.model
         utool = session.utool
 
@@ -251,15 +244,14 @@ class NotebookFrame(wx.Frame):
         if reset:
             self._ResetSession()
 
-        madx = self.env['madx']
+        madx = self.session.madx
         num_seq = len(madx.sequences)
         madx.call(path, True)
         # if there are any new sequences, give the user a chance to view them
         # automatically:
         if len(madx.sequences) > num_seq:
             model = self._GenerateModel()
-            self.env['model'] = model
-            self.env['session'].model = model
+            self.session.model = model
             self._EditModelDetail()
 
     def _EditTwiss(self, event=None):
@@ -299,7 +291,7 @@ class NotebookFrame(wx.Frame):
 
     def _ConfirmResetSession(self):
         """Prompt the user to confirm resetting the current session."""
-        if not self.env.get('model'):
+        if not self.session.model:
             return False
         question = (
             'Reset MAD-X session? Unsaved changes will be lost.\n\n'
@@ -320,7 +312,7 @@ class NotebookFrame(wx.Frame):
 
     def _ResetSession(self, event=None):
         self.notebook.DeleteAllPages()
-        self.env['session'].rpc_client.close()
+        self.session.stop()
         self._NewCommandTab()
         self.InitMadx()
         self.hook.reset()
@@ -360,11 +352,11 @@ class NotebookFrame(wx.Frame):
             Menu('&View', [
                 MenuItem('&Envelope',
                          'Open new tab with beam envelopes.',
-                         lambda _: TwissView.create(self.env['session'],
+                         lambda _: TwissView.create(self.session,
                                                     self, basename='env')),
                 MenuItem('&Position',
                          'Open new tab with beam position.',
-                         lambda _: TwissView.create(self.env['session'],
+                         lambda _: TwissView.create(self.session,
                                                     self, basename='pos')),
             ]),
             Menu('&Manage', [
@@ -413,7 +405,7 @@ class NotebookFrame(wx.Frame):
         panel = FigurePanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
         view.plot()
-        self.env['views'].append(view)
+        self.views.append(view)
         return panel
 
     def GetActivePanel(self):
@@ -431,7 +423,7 @@ class NotebookFrame(wx.Frame):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self._session.rpc_client.close()
+            self.session.stop()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
@@ -448,17 +440,16 @@ class NotebookFrame(wx.Frame):
         if self.notebook.GetPageCount() == 0:
             self.Close()
         else:
-            del self.env['views'][event.Selection - 1]
+            del self.views[event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
         self.Close()
 
     def OnUpdateMenu(self, event):
-        if not self.env['madx']:
+        if not self.session.madx:
             return
-        enable_view = bool(self.env['madx'].sequences
-                           or self.env['session'].model)
+        enable_view = bool(self.session.madx.sequences or self.session.model)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is

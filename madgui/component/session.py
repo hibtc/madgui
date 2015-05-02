@@ -35,8 +35,14 @@ class Session(object):
     Contains the whole global state of a MAD-X instance and (possibly) loaded
     metadata.
 
-    :ivar Madx madx: MAD-X interpreter instance
-    :ivar Model model: associated metadata or None
+    :ivar utool: Unit conversion tool
+    :ivar libmadx: Low level cpymad API
+    :ivar madx: CPyMAD interpretor instance
+    :ivar model: CPyMAD model
+    :ivar segman: Active configuration
+
+    :ivar rpc_client: Low level MAD-X RPC client
+    :ivar remote_process: MAD-X process
     """
 
     # TODO: more logging
@@ -45,7 +51,16 @@ class Session(object):
 
     def __init__(self, utool):
         """Initialize with (Madx, Model)."""
+        self.utool = utool
+        self.libmadx = None
+        self.madx = None
+        self.model = None
+        self.segman = None
+        self.rpc_client = None
+        self.remote_process = None
 
+    def start(self):
+        self.stop()
         # stdin=None leads to an error on windows when STDIN is broken.
         # therefore, we need use stdin=os.devnull:
         with open(os.devnull, 'r') as devnull:
@@ -57,11 +72,17 @@ class Session(object):
         self.rpc_client = client
         self.remote_process = process
         self.libmadx = client.libmadx
-        self.madx = Madx(libmadx=self.libmadx)
+        self.madx = Madx(libmadx=client.libmadx)
 
-        self.model = None
-        self.utool = utool
+    def stop(self):
+        if self.rpc_client:
+            self.rpc_client.close()
+        self.rpc_client = None
+        self.remote_process = None
+        self.libmadx = None
+        self.madx = None
         self.segman = None
+        # TODO: destroy segman
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
