@@ -30,7 +30,7 @@ from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
-from madgui.widget.input import ShowModal, Cancellable, Dialog
+from madgui.widget.input import ShowModal, Cancellable, Dialog, CancelAction
 
 # exported symbols
 __all__ = [
