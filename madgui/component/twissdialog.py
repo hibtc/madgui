@@ -6,16 +6,14 @@ Widgets to set TWISS parameters.
 from __future__ import absolute_import
 
 from collections import namedtuple
-from functools import partial
 
 # internal
 from madgui.core import wx
 from madgui.widget.element import ElementWidget
 from madgui.widget.listview import ListCtrl, ColumnInfo
-from madgui.widget.input import Widget
+from madgui.widget.input import Widget, Dialog, Cancellable
 from madgui.widget.param import ParamTable, Bool, String, Float, Matrix
-from madgui.util.common import instancevars
-from madgui.util.unit import strip_unit, units, format_quantity
+from madgui.util.unit import format_quantity
 
 # exported symbols
 __all__ = [
@@ -56,7 +54,7 @@ class ManageTwissWidget(Widget):
     Widget to manage TWISS initial conditions.
     """
 
-    title = "Select TWISS initial conditions"
+    Title = "Select TWISS initial conditions"
 
     column_info = [
         ColumnInfo('Element', _format_row_element),
@@ -65,15 +63,13 @@ class ManageTwissWidget(Widget):
         ColumnInfo('Data', _format_row_data),
     ]
 
-    @instancevars
-    def __init__(self, utool, elements, data, inactive):
-        pass
+    def __init__(self, window, utool, **kw):
+        self.utool = utool
+        super(ManageTwissWidget, self).__init__(window, **kw)
 
-    def CreateControls(self):
+    def CreateControls(self, window):
 
         """Create sizer with content area, i.e. input fields."""
-
-        window = self.GetWindow()
 
         grid = ListCtrl(window, self.column_info)
         grid.SetMinSize(wx.Size(400, 200))
@@ -107,15 +103,13 @@ class ManageTwissWidget(Widget):
 
         return outer
 
+    @Cancellable
     def OnButtonAdd(self, event):
         """Add the selected group to the dialog."""
-        window = self.GetWindow()
-        elements = list(enumerate(self.elements))
-        selected = [0]
-        retcode = ElementWidget.ShowModal(window, elements=elements,
-                                          selected=selected)
-        if retcode != wx.ID_OK:
-            return
+        window = self.Window
+        elements = self.elements
+        with Dialog(window) as dialog:
+            selected = ElementWidget(dialog).Query(elements, [0])
         i_el = selected[0]
         # TODO: use the TWISS results at this element as default values for
         # the TwissWidget (?):
@@ -141,26 +135,27 @@ class ManageTwissWidget(Widget):
         items[row] = item._replace(active=not item.active)
         self._grid.RefreshItem(row)
 
-    def TransferToWindow(self):
+    def SetData(self, elements, data, inactive={}):
         """Update dialog with initial values."""
-        elements = self.elements
-        items = [ItemInfo(index, elements[index], True, self.data[index])
-                 for index in sorted(self.data)]
-        items += [ItemInfo(index, elements[index], False, twiss)
-                  for index in sorted(self.inactive)
-                  for twiss in self.inactive[index]]
+        self.elements = elements
+        items = [ItemInfo(index, elements[index][1], True, data[index])
+                 for index in sorted(data)]
+        items += [ItemInfo(index, elements[index][1], False, twiss)
+                  for index in sorted(inactive)
+                  for twiss in inactive[index]]
         self._grid.items = items
 
-    def TransferFromWindow(self):
+    def GetData(self):
         """Extract current active initial conditions."""
-        self.data.clear()
-        self.inactive.clear()
+        data = {}
+        inactive = {}
         for item in self._grid.items:
             if item.active:
                 # merge multiple active TWISS at same element
-                self.data.setdefault(item.index, {}).update(item.twiss)
+                data.setdefault(item.index, {}).update(item.twiss)
             else:
-                self.inactive.setdefault(item.index, []).append(item.twiss)
+                inactive.setdefault(item.index, []).append(item.twiss)
+        return data, inactive
 
     def GetInsertRow(self, element_index):
         """
@@ -174,6 +169,7 @@ class ManageTwissWidget(Widget):
                   if item.index > element_index)
         return next(bigger, len(items))
 
+    @Cancellable
     def AddTwissRow(self, index, active=True, twiss=None):
 
         """
@@ -182,16 +178,12 @@ class ManageTwissWidget(Widget):
 
         # require some TWISS initial conditions to be set
         if twiss is None:
-            twiss = {}
-            utool = self.utool
-            retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
-                                            data=twiss)
-            if retcode != wx.ID_OK:
-                return
+            with Dialog(self.Window) as dialog:
+                twiss = TwissWidget(dialog, utool=self.utool).Query({})
 
         # insert elements
         row = self.GetInsertRow(index)
-        item = ItemInfo(index, self.elements[index], active, twiss)
+        item = ItemInfo(index, self.elements[index][1], active, twiss)
         self._grid.items.insert(row, item)
         return row
 
@@ -203,23 +195,22 @@ class ManageTwissWidget(Widget):
         """Edit the TWISS initial conditions at the specified element."""
         self.EditTwiss(self._grid.GetFirstSelected())
 
+    @Cancellable
     def EditTwiss(self, row):
         item = self._grid.items[row]
-        utool = self.utool
-        retcode = TwissWidget.ShowModal(self.GetWindow(), utool=utool,
-                                        data=item.twiss)
-        if retcode == wx.ID_OK:
-            self._grid.RefreshItem(row)
-            pass
+        with Dialog(self.Window) as dialog:
+            twiss = TwissWidget(dialog, utool=self.utool).Query(item.twiss)
+        item.twiss.clear()
+        item.twiss.update(twiss)
+        self._grid.RefreshItem(row)
 
+    @Cancellable
     def ChooseElement(self, row):
         old_item = self._grid.items[row]
-        elements = list(enumerate(self.elements))
+        elements = self.elements
         selected = [old_item.index]
-        retcode = ElementWidget.ShowModal(self.GetWindow(), elements=elements,
-                                          selected=selected)
-        if retcode != wx.ID_OK:
-            return
+        with Dialog(self.Window) as dialog:
+            selected = ElementWidget(dialog).Query(elements, selected)
         new_index = selected[0]
         if new_index == old_item.index:
             return
@@ -238,7 +229,7 @@ class TwissWidget(ParamTable):
     Widget to show key-value pairs.
     """
 
-    title = "Set TWISS values"
+    Title = "Set TWISS values"
 
     # TODO:
     # - exclude more parameters (for most of these parameters, I actually

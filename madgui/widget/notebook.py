@@ -30,7 +30,7 @@ from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
-from madgui.widget.input import ShowModal
+from madgui.widget.input import ShowModal, Cancellable, Dialog
 
 # exported symbols
 __all__ = [
@@ -124,16 +124,12 @@ class NotebookFrame(wx.Frame):
         # Create a command tab
         self._NewCommandTab()
 
+    @Cancellable
     def _LoadModel(self, event=None):
         reset = self._ConfirmResetSession()
-        if reset is None:
-            return
         results = ValueContainer()
-        if OpenModelWidget.ShowModal(self, results=results) != wx.ID_OK:
-            return
-        mdata = results.mdata
-        repo = results.repo
-        optic = results.optic
+        with Dialog(self) as dialog:
+            mdata, repo, optic = OpenModelWidget(dialog).Query()
         if not mdata:
             return
         if reset:
@@ -190,16 +186,15 @@ class NotebookFrame(wx.Frame):
         }
         return Model(data, repo=None, madx=madx)
 
+    @Cancellable
     def _EditModelDetail(self, event=None):
         session = self.session
-        cpymad_model = session.model
+        model = session.model
         utool = session.utool
 
-        detail = {}
-        retcode = ModelDetailWidget.ShowModal(self, model=cpymad_model,
-                                              data=detail, utool=utool)
-        if retcode != wx.ID_OK:
-            return
+        with Dialog(self) as dialog:
+            widget = ModelDetailWidget(dialog, model=model, utool=utool)
+            detail = widget.Query()
 
         sequence = detail['sequence']
         beam = detail['beam']
@@ -210,7 +205,7 @@ class NotebookFrame(wx.Frame):
         twiss_args_no_unit = {k: utool.dict_strip_unit(v)
                               for k, v in twiss_args.items()}
 
-        cpymad_model.sequences[sequence].init()
+        model.sequences[sequence].init()
         session.madx.command.beam(**utool.dict_strip_unit(beam))
 
         segman = SegmentedRange(
@@ -218,7 +213,7 @@ class NotebookFrame(wx.Frame):
             sequence=sequence,
             range=range_bounds,
         )
-        segman.model = cpymad_model
+        segman.model = model
         segman.indicators = detail['indicators']
 
         session.segman = segman
@@ -226,20 +221,19 @@ class NotebookFrame(wx.Frame):
 
         TwissView.create(session, self, basename='env')
 
+    @Cancellable
     def _LoadMadxFile(self, event=None):
         """
         Dialog component to find/open a .madx file.
         """
         reset = self._ConfirmResetSession()
-        if reset is None:
-            return
         dlg = wx.FileDialog(
             self,
             style=wx.FD_OPEN,
             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
-        if ShowModal(dlg) != wx.ID_OK:
-            return
-        path = dlg.Path
+        with dlg:
+            ShowModal(dlg)
+            path = dlg.Path
 
         if reset:
             self._ResetSession()
@@ -254,26 +248,22 @@ class NotebookFrame(wx.Frame):
             self.session.model = model
             self._EditModelDetail()
 
+    @Cancellable
     def _EditTwiss(self, event=None):
         segman = self.GetActiveFigurePanel().view.segman
         utool = self.madx_units
-        elements = segman.elements
-        twiss_initial = segman.twiss_initial.copy()
-        retcode = ManageTwissWidget.ShowModal(self, utool=utool,
-                                              elements=elements,
-                                              data=twiss_initial,
-                                              inactive={})
-        if retcode == wx.ID_OK:
-            segman.set_all(twiss_initial)
+        elements = list(enumerate(segman.elements))
+        with Dialog(self) as dialog:
+            widget = ManageTwissWidget(dialog, utool=utool)
+            twiss_initial, _ = widget.Query(elements, segman.twiss_initial)
+        segman.set_all(twiss_initial)
 
+    @Cancellable
     def _SetBeam(self, event=None):
         segman = self.GetActiveFigurePanel().view.segman
-        beam = segman.beam.copy()
-        retcode = BeamWidget.ShowModal(self, utool=self.madx_units,
-                                       data=segman.beam)
-        if retcode == wx.ID_OK:
-            segman.beam = beam
-
+        with Dialog(self) as dialog:
+            widget = BeamWidget(dialog, utool=self.madx_units)
+            segman.beam = widget.Query(segman.beam)
 
     def _ShowIndicators(self, event=None):
         panel = self.GetActiveFigurePanel()
@@ -308,7 +298,7 @@ class NotebookFrame(wx.Frame):
             return True
         if answer == wx.NO:
             return False
-        return None
+        raise CancelAction
 
     def _ResetSession(self, event=None):
         self.notebook.DeleteAllPages()

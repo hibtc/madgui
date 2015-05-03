@@ -17,7 +17,7 @@ import yaml
 from madgui.core import wx
 
 # internal
-from madgui.widget.input import Widget, ShowModal
+from madgui.widget.input import Widget, ShowModal, Cancellable
 from madgui.widget import listview
 
 # exported symbols
@@ -122,19 +122,18 @@ class ParamTable(Widget):
     :ivar wx.GridBagSizer _grid: sizer that contains all parameters
     """
 
-    def __init__(self, utool, data):
+    def __init__(self, window, utool, **kw):
         """Initialize data."""
         self.utool = utool
-        self.data = data
         self._params = OrderedDict(
             (param, group)
             for group in self.params
             for param in group.names()
         )
+        super(ParamTable, self).__init__(window, **kw)
 
-    def CreateControls(self):
+    def CreateControls(self, window):
         """Create sizer with content area, i.e. input fields."""
-        window = self.GetWindow()
         style = wx.LC_REPORT | wx.LC_SINGLE_SEL
         self._grid = grid = listview.EditListCtrl(window, style=style)
         grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
@@ -168,57 +167,56 @@ class ParamTable(Widget):
         else:
             event.Skip()
 
+    @Cancellable
     def OnImport(self, event):
         """Import parameters from file."""
         wildcards = [("YAML file", "*.yml", "*.yaml"),
                      ("JSON file", "*.json")]
         dlg = wx.FileDialog(
-            self.GetWindow().GetTopLevelParent(),
+            self.TopLevelWindow,
             "Import values",
             wildcard=make_wildcards(*wildcards),
             style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        if ShowModal(dlg) == wx.ID_OK:
-            with open(dlg.GetPath(), 'rt') as f:
-                # Since JSON is a subset of YAML there is no need to invoke a
-                # different parser:
-                raw_data = yaml.safe_load(f)
-            with restore(self, 'data'):
-                self.data = self.utool.dict_add_unit(raw_data)
-                self.TransferToWindow()
+        with dlg:
+            ShowModal(dlg)
+        with open(dlg.GetPath(), 'rt') as f:
+            # Since JSON is a subset of YAML there is no need to invoke a
+            # different parser (unless we want validate the file):
+            raw_data = yaml.safe_load(f)
+        data = self.utool.dict_add_unit(raw_data)
+        self.SetData(data)
 
+    @Cancellable
     def OnExport(self, event):
         """Export parameters to file."""
         wildcards = [("YAML file", "*.yml", "*.yaml")]
         dlg = wx.FileDialog(
-            self.GetWindow().GetTopLevelParent(),
+            self.TopLevelWindow,
             "Import values",
             wildcard=make_wildcards(*wildcards),
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        if ShowModal(dlg) == wx.ID_OK:
-            self.TransferFromWindow()
-            raw_data = self.utool.dict_strip_unit(self.data)
-            file_path = get_savedialog_path(dlg, wildcards)
-            with open(file_path, 'wt') as f:
-                yaml.safe_dump(raw_data, f, default_flow_style=False)
+        with dlg:
+            ShowModal(dlg)
+        data = self.GetData()
+        raw_data = self.utool.dict_strip_unit(data)
+        file_path = get_savedialog_path(dlg, wildcards)
+        with open(file_path, 'wt') as f:
+            yaml.safe_dump(raw_data, f, default_flow_style=False)
 
-    def TransferToWindow(self):
+    def SetData(self, data):
         """Update dialog with initial values."""
         # iterating over `params` (rather than `data`) enforces a particular
         # order in the GUI:
-        data = self.data
         for param_name in self._params:
             self.SetParamValue(param_name, data.get(param_name))
         self._grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self._grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
-    def TransferFromWindow(self):
+    def GetData(self):
         """Get dictionary with all input values from dialog."""
-        grid = self._grid
-        data = self.data
-        data.clear()
-        data.update({self.GetRowName(row): self.GetRowQuantity(row)
-                     for row in range(grid.GetItemCount())
-                     if self.GetRowValue(row) is not None})
+        return {self.GetRowName(row): self.GetRowQuantity(row)
+                for row in range(self._grid.GetItemCount())
+                if self.GetRowValue(row) is not None}
 
     def SetParamValue(self, name, value):
         """

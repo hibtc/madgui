@@ -6,16 +6,40 @@ Generic utilities for input dialogs.
 # force new style imports
 from __future__ import absolute_import
 
+# standard library
+import functools
+
 # GUI components
 from madgui.core import wx
 
 # exported symbols
 __all__ = [
-    'Validator',
+    'CancelAction',
+    'Cancellable',
     'Widget',
     'ShowModal',
     'Dialog',
 ]
+
+
+class CancelAction(RuntimeError):
+    """Raised when user pressed 'Cancel' in a dialog."""
+    pass
+
+
+def Cancellable(func):
+    """
+    Decorator for functions that represent actions cancellable by the user.
+
+    Returns a wrapper that catches any :class:`CancelAction` exception.
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except CancelAction:
+            return None
+    return wrapper
 
 
 # Derive from wx.PyValidator (not wx.Validator) in order to overwrite the
@@ -51,11 +75,11 @@ class Validator(wx.PyValidator):
 
     def TransferToWindow(self):
         """Initialize GUI elements input values."""
-        return self.widget.TransferToWindow()
+        pass
 
     def TransferFromWindow(self):
         """Read input values from GUI elements."""
-        return self.widget.TransferFromWindow()
+        pass
 
 
 class Widget(object):
@@ -63,74 +87,68 @@ class Widget(object):
     """
     Manage a group of related controls.
 
-    This is an abstract base class. Subclasses must provide the following
+    This is an abstract base class. Subclasses should override the following
     members:
 
     - CreateControls
-    - Validate / TransferToWindow / TransferFromWindow (wx.Validator API)
-    - title (as attribute)
-
-    By keeping this functionality separate from an actual window class such as
-    wx.Dialog or wx.Frame, a control group can easily be embedded into other
-    windows or higher order control groups.
+    - GetData / SetData
+    - Validate (wx.Validator API)
+    - Title (as attribute)
     """
 
-    # NOTE: it is a deliberate choice not to implement an __init__ function in
-    # this class, so subclasses don't need the super() call. In particular,
-    # self.Window is not assigned in the __init__ function! Please, don't do
-    # that in subclasses either! This ensures that self.GetWindow() fails with
-    # an AttributeError if no window was set, which makes it easy to
-    # reinitialize member variables based on different arguments without
-    # losing the memory of the Window object.
+    def __init__(self, parent, manage=True):
+        """Initialize widget and create controls."""
+        try:
+            self.Window = parent.ContentArea
+        except AttributeError:
+            self.Window = parent
+        self.Controls = self.CreateControls(self.Window)
+        if manage:
+            self.Manage()
 
-    def GetWindow(self):
-        """
-        Get the associated container window.
+    # utility mixins
 
-        :raises AttributeError: if the window has not been set yet.
-        """
-        return self.Window
-
-    def Embed(self, window):
-        """
-        Assign the container window and create the controls.
-
-        :returns: controls sizer / window
-        """
-        self.Window = window
-        return self.CreateControls()
-
-    def EmbedPanel(self, parent):
+    def Manage(self, proportion=1, flag=wx.EXPAND, border=5):
         """
         Assign the container window and create a panel containing the
         controls.
 
         :returns: the panel
         """
-        panel = wx.Panel(parent)
-        ctrls = self.Embed(panel)
-        if isinstance(ctrls, wx.Sizer):
-            sizer = ctrls
+        if isinstance(self.Controls, wx.Sizer):
+            sizer = self.Controls
         else:
             sizer = wx.BoxSizer(wx.VERTICAL)
-            sizer.Add(ctrls, 1, flag=wx.EXPAND)
-        panel.SetSizer(sizer)
-        return panel
+            sizer.Add(self.Controls, proportion, flag, border)
+        self.Window.SetSizer(sizer)
+        self.Window.SetValidator(Validator(self))
 
-    @classmethod
-    def ShowModal(cls, parent, **data):
-        """Show a modal dialog based on this Widget class."""
-        title = data.pop('title', None)
-        widget = cls(**data)
-        dialog = Dialog(parent, widget, title=title)
-        return ShowModal(dialog)
+    @property
+    def TopLevelWindow(self):
+        """The top level window for this widget."""
+        return self.Window.GetTopLevelParent()
+
+    def Query(self, *args, **kwargs):
+        """
+        Show modal dialog and return input data.
+
+        :raises CancelAction: if the user cancelled the dialog.
+        """
+        self.SetData(*args, **kwargs)
+        self.TopLevelWindow.SetTitle(self.Title)
+        ShowModal(self.TopLevelWindow)
+        return self.GetData()
 
     def ApplyDialog(self, event=None):
         """Confirm current selection and close dialog."""
         event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-        wx.PostEvent(self.GetWindow(), event)
+        wx.PostEvent(self.Window, event)
 
-    def CreateControls(self):
+    # overrides
+
+    Title = 'MadGUI'
+
+    def CreateControls(self, parent):
         """Create controls, return their container (panel or sizer)."""
         raise NotImplementedError()
 
@@ -138,21 +156,24 @@ class Widget(object):
         """Check if the UI elements contain valid input."""
         return True
 
-    def TransferToWindow(self):
+    def SetData(self, *args, **kwargs):
         """Initialize GUI elements input values."""
         raise NotImplementedError()
 
-    def TransferFromWindow(self):
+    def GetData(self):
         """Read input values from GUI elements."""
         raise NotImplementedError()
 
 
 def ShowModal(dialog):
     """Show a modal dialog and destroy it when finished."""
-    try:
-        return dialog.ShowModal()
-    finally:
-        dialog.Destroy()
+    dialog.Layout()
+    dialog.Fit()
+    dialog.Centre()
+    retcode = dialog.ShowModal()
+    if retcode == wx.ID_CANCEL:
+        raise CancelAction
+    return retcode
 
 
 class Dialog(wx.Dialog):
@@ -167,21 +188,14 @@ class Dialog(wx.Dialog):
 
     Style = wx.DEFAULT_DIALOG_STYLE|wx.SIMPLE_BORDER
 
-    def __init__(self, parent, widget, title=None, style=None):
+    def __init__(self, parent, style=None):
         """Initialize dialog and create GUI elements."""
-        if title is None:
-            title = widget.title
         if style is None:
             style = self.Style
         super(Dialog, self).__init__(
             parent=parent,
-            title=title,
             style=style)
-        self._widget = widget
         self.CreateControls()
-        self.Layout()
-        self.Fit()
-        self.Centre()
 
     def CreateControls(self):
         """Create GUI elements."""
@@ -209,11 +223,10 @@ class Dialog(wx.Dialog):
 
     def CreateContentArea(self):
         """Create a sizer with the content area controls."""
-        # Nesting a panel is necessary since TransferData[From/To]Window will
-        # only use the validators of *child* windows
-        panel = self._widget.EmbedPanel(self)
-        panel.SetValidator(Validator(self._widget))
-        return panel
+        # Nesting a panel is necessary since automatic validation uses only
+        # the validators of *child* windows.
+        self.ContentArea = wx.Panel(self)
+        return self.ContentArea
 
     def CreateButtonArea(self):
         """Create 'Ok'/'Cancel' button sizer."""
