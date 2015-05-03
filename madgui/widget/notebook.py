@@ -51,7 +51,7 @@ class ValueContainer(object):
     pass
 
 
-class NotebookFrame(wx.Frame):
+class NotebookFrame(wx.MDIParentFrame):
 
     """
     Notebook window class for MadGUI (main window).
@@ -103,19 +103,6 @@ class NotebookFrame(wx.Frame):
     def CreateControls(self):
         # create notebook
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-        self.panel = wx.Panel(self)
-        self.notebook = wx.aui.AuiNotebook(self.panel)
-        sizer = wx.BoxSizer()
-        sizer.Add(self.notebook, 1, wx.EXPAND)
-        self.panel.SetSizer(sizer)
-        self.notebook.Bind(
-            wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSED,
-            self.OnPageClosed,
-            source=self.notebook)
-        self.notebook.Bind(
-            wx.aui.EVT_AUINOTEBOOK_PAGE_CLOSE,
-            self.OnPageClose,
-            source=self.notebook)
         statusbar = self.CreateStatusBar()
         statusbar.SetFont(monospace(10))
 
@@ -301,7 +288,7 @@ class NotebookFrame(wx.Frame):
         raise CancelAction
 
     def _ResetSession(self, event=None):
-        self.notebook.DeleteAllPages()
+        # self.notebook.DeleteAllPages()
         self.session.stop()
         self._NewCommandTab()
         self.InitMadx()
@@ -392,15 +379,22 @@ class NotebookFrame(wx.Frame):
     def AddView(self, view, title):
         """Add new notebook tab for the view."""
         # TODO: remove this method in favor of a event based approach?
-        panel = FigurePanel(self.notebook, view)
-        self.notebook.AddPage(panel, title, select=True)
+        child = wx.MDIChildFrame(self, -1, title)
+        panel = FigurePanel(child, view)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(panel, 1, wx.EXPAND)
+        child.SetSizer(sizer)
+        child.Bind(wx.EVT_CLOSE, self.OnPageClosed)
+        child.Show(True)
+
         view.plot()
         self.views.append(view)
         return panel
 
     def GetActivePanel(self):
         """Return the Panel which is currently active."""
-        return self.notebook.GetPage(self.notebook.GetSelection())
+        if self.ActiveChild:
+            return self.ActiveChild.GetChildren()[0]
 
     def GetActiveFigurePanel(self):
         """Return the FigurePanel which is currently active or None."""
@@ -421,16 +415,15 @@ class NotebookFrame(wx.Frame):
 
     def OnPageClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
-        page = self.notebook.GetPage(event.Selection)
-        if page is self._command_tab and self.notebook.GetPageCount() > 1:
+        if len(self.ClientWindow.Children) > 1:
             event.Veto()
+        else:
+            self.Close()
 
     def OnPageClosed(self, event):
         """A page has been closed. If it was the last, close the frame."""
-        if self.notebook.GetPageCount() == 0:
-            self.Close()
-        else:
-            del self.views[event.Selection - 1]
+        event.Skip()
+        del self.views[event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
@@ -459,8 +452,14 @@ class NotebookFrame(wx.Frame):
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        crust = Crust(self.notebook, locals=self.env)
-        self.notebook.AddPage(crust, "Command", select=True)
+        child = wx.MDIChildFrame(self, -1, "Command")
+        crust = Crust(child, locals=self.env)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(crust, 1, wx.EXPAND)
+        child.SetSizer(sizer)
+        child.Bind(wx.EVT_CLOSE, self.OnPageClose)
+        child.Show(True)
+
         self._command_tab = crust
         # Create a tab for logging
         nb = crust.notebook
