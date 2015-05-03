@@ -62,7 +62,11 @@ class ModelDetailWidget(Widget):
         if page:
             panel.Finish()
             combo.Bind(wx.EVT_COMBOBOX, panel.OnClick)
-            combo.Bind(wx.EVT_COMBOBOX_DROPDOWN, panel.OnClick)
+            try:
+                combo.Bind(wx.EVT_COMBOBOX_DROPDOWN, panel.OnClick)
+            except AttributeError:
+                # wx.EVT_COMBOBOX_DROPDOWN not available on windows with wxpython 2.8.12
+                pass
         return combo
 
     def _AddCheckBox(self, label):

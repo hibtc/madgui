@@ -28,11 +28,13 @@ def RecursiveBind(window, *args, **kwargs):
 class _BookEvtEmitter(object):
 
     def _Fire(self, event_type, sel, old_sel):
-        event = wx.BookCtrlEvent(event_type, self.GetId())
+        # BookCtrlEvent not available on windows with wxpython 2.8.12
+        event = wx.ListbookEvent(event_type, self.GetId())
         event.SetSelection(sel)
         event.SetOldSelection(old_sel)
         event.SetEventObject(self)
-        return not self.ProcessWindowEvent(event) or event.IsAllowed()
+        # Window.ProcessWindowEvent not available on windows with wxpython 2.8.12
+        return not self.GetEventHandler().ProcessEvent(event) or event.IsAllowed()
 
 
 class _BookSelect(_BookEvtEmitter):
