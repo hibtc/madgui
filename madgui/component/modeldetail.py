@@ -27,11 +27,12 @@ __all__ = [
 
 class ModelDetailWidget(Widget):
 
-    title = "Setup simulation"
+    Title = "Setup simulation"
 
-    @instancevars
-    def __init__(self, model, data, utool):
-        pass
+    def __init__(self, window, model, utool, **kw):
+        self.model = model
+        self.utool = utool
+        super(ModelDetailWidget, self).__init__(window, **kw)
 
     def _AddComboBox(self, label, page=None):
         """
@@ -75,28 +76,21 @@ class ModelDetailWidget(Widget):
         panel.SetSizer(sizer)
         return ctrl
 
-    def CreateControls(self):
+    def CreateControls(self, window):
 
         """Create subcontrols and layout."""
 
-        window = self.GetWindow()
-
+        self._book = book = PanelsBook(window)
         sizer = wx.BoxSizer(wx.VERTICAL)
-
-        self._book = PanelsBook(window)
-        sizer.Add(self._book)
-
-        utool = self.utool
-
-        self.widget_beam = BeamWidget(utool=utool, data={})
-        self.widget_range = RangeWidget(elements=[], selected=[])
-        self.widget_twiss = ManageTwissWidget(utool=utool, elements=[],
-                                              data={}, inactive={})
+        sizer.Add(book)
 
         # pages
-        page_beam = self.widget_beam.EmbedPanel(self._book.book)
-        page_range = self.widget_range.EmbedPanel(self._book.book)
-        page_twiss = self.widget_twiss.EmbedPanel(self._book.book)
+        page_beam = wx.Panel(book.book)
+        page_range = wx.Panel(book.book)
+        page_twiss = wx.Panel(book.book)
+        self.widget_beam = BeamWidget(page_beam, utool=self.utool)
+        self.widget_range = RangeWidget(page_range)
+        self.widget_twiss = ManageTwissWidget(page_twiss, utool=self.utool)
 
         # insert items
         self.ctrl_sequence = self._AddComboBox('Sequence:')
@@ -114,79 +108,63 @@ class ModelDetailWidget(Widget):
         # window.Bind(wx.EVT_TEXT, self.OnSequenceChange, source=self.ctrl_sequence)
         # window.Bind(wx.EVT_TEXT, self.OnRangeChange, source=self.ctrl_range)
 
-        self._book.SetSelection(2)
+        book.SetSelection(2)
 
         return sizer
 
     def OnSequenceChange(self, event=None):
         """Update default range+beam when sequence is changed."""
+        seq_name = self.ctrl_sequence.GetValue()
+        self.sequence = self.model.sequences[seq_name]
+        self.elements = self.model.madx.sequences[seq_name].elements
+        self.elements_with_units = list(enumerate(
+            map(self.utool.dict_add_unit, self.elements)))
         self.UpdateBeams()
         self.UpdateRanges()
 
     def OnBeamChange(self, event=None):
-        utool = self.utool
         beam = self.ctrl_beam.GetValue()
         data = self.model.beams[beam].data
-        data = utool.dict_add_unit(data)
-        self.widget_beam.__init__(utool=utool, data=data)
-        self.widget_beam.TransferToWindow()
+        data = self.utool.dict_add_unit(data)
+        self.widget_beam.SetData(data)
 
     def OnRangeChange(self, event=None):
         """Update default twiss when range is changed."""
         self.UpdateTwiss()
-        model = self.model
-        seq_name = self.ctrl_sequence.GetValue()
-        sequence = model.sequences[seq_name]
-        range = sequence.ranges[self.ctrl_range.GetValue()]
-        elements = model.madx.sequences[seq_name].elements
+        range = self.sequence.ranges[self.ctrl_range.GetValue()]
         beg, end = range.bounds
-        selected = [elements.index(beg), elements.index(end)]
-        self.widget_range.elements[:] = enumerate(elements)
-        self.widget_range.selected[:] = selected
-        self.widget_range.TransferToWindow()
+        selected = [self.elements.index(beg), self.elements.index(end)]
+        self.widget_range.SetData(self.elements_with_units, selected)
 
     def OnTwissChange(self, event=None):
-        model = self.model
-        seq_name = self.ctrl_sequence.GetValue()
-        sequence = model.sequences[seq_name]
-        range = sequence.ranges[self.ctrl_range.GetValue()]
+        range = self.sequence.ranges[self.ctrl_range.GetValue()]
         twiss_name = self.ctrl_twiss.GetValue()
         twiss_args = range.initial_conditions[twiss_name]
         twiss_args = self.utool.dict_add_unit(twiss_args)
-        elements = model.madx.sequences[seq_name].elements
-        start_element = elements.index(range.bounds[0])
+        start_element = self.elements.index(range.bounds[0])
         twiss_initial = {start_element: twiss_args}
-        self.widget_twiss.elements[:] = map(self.utool.dict_add_unit,
-                                            elements)
-        self.widget_twiss.data.clear()
-        self.widget_twiss.data.update(twiss_initial)
-        self.widget_twiss.inactive.clear()
-        self.widget_twiss.TransferToWindow()
+        self.widget_twiss.SetData(self.elements_with_units, twiss_initial, {})
 
-    def TransferFromWindow(self):
+    def GetData(self):
         """Get selected package and model name."""
-        self.widget_beam.TransferFromWindow()
-        self.widget_range.TransferFromWindow()
-        self.widget_twiss.TransferFromWindow()
-        self.data.update(
-            sequence=self.ctrl_sequence.GetValue(),
-            beam=self.widget_beam.data,
-            range=self.widget_range.selected,
-            twiss=self.widget_twiss.data,
-            indicators=self.ctrl_elem.GetValue(),
-        )
+        return {
+            'sequence': self.ctrl_sequence.GetValue(),
+            'beam': self.widget_beam.GetData(),
+            'range': self.widget_range.GetData(),
+            'twiss': self.widget_twiss.GetData()[0],
+            'indicators': self.ctrl_elem.GetValue(),
+        }
 
-    def TransferToWindow(self):
+    def SetData(self, data={}):
         """Update displayed package and model name."""
+        self.data = data
         self.UpdateSequences()
-        self.ctrl_elem.SetValue(self.data.get('indicators', True))
+        self.ctrl_elem.SetValue(data.get('indicators', True))
 
     def Validate(self, parent):
         # TODO...
         return True
 
-    # TODO: using 'self.data' for 'select' is flawed (unless
-    # TransferFromWindow is executed here and then)
     def _Update(self, ctrl, items, default, select):
         ctrl.SetItems(list(items))
         try:

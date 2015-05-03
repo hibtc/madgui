@@ -13,11 +13,9 @@ import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-from madgui.component.twissdialog import ManageTwissWidget
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
-from madgui.widget.input import ShowModal
 
 import matplotlib
 import matplotlib.figure

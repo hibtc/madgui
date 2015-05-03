@@ -30,7 +30,7 @@ from madgui.component.twissdialog import ManageTwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
-from madgui.widget.input import ShowModal
+from madgui.widget.input import ShowModal, Cancellable, Dialog
 
 # exported symbols
 __all__ = [
@@ -76,12 +76,12 @@ class NotebookFrame(wx.Frame):
             title='MadGUI',
             size=wx.Size(800, 600))
 
+        self.views = []
         self.app = app
         self.env = {
             'frame': self,
-            'views': [],
-            'madx': None,
-            'libmadx': None,
+            'views': self.views,
+            'session': None,
         }
 
         self.CreateControls()
@@ -95,15 +95,10 @@ class NotebookFrame(wx.Frame):
         # TODO: close old client + shutdown _read_stream thread.
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
-        session = Session(self.madx_units)
-        self._session = session
+        self.session = Session(self.madx_units)
+        self.session.start()
         threading.Thread(target=self._read_stream,
-                         args=(session.remote_process.stdout,)).start()
-        self.env.update({
-            'session': session,
-            'madx': session.madx,
-            'libmadx': session.libmadx
-        })
+                         args=(self.session.remote_process.stdout,)).start()
 
     def CreateControls(self):
         # create notebook
@@ -129,30 +124,24 @@ class NotebookFrame(wx.Frame):
         # Create a command tab
         self._NewCommandTab()
 
+    @Cancellable
     def _LoadModel(self, event=None):
         reset = self._ConfirmResetSession()
-        if reset is None:
-            return
         results = ValueContainer()
-        if OpenModelWidget.ShowModal(self, results=results) != wx.ID_OK:
-            return
-        mdata = results.mdata
-        repo = results.repo
-        optic = results.optic
+        with Dialog(self) as dialog:
+            mdata, repo, optic = OpenModelWidget(dialog).Query()
         if not mdata:
             return
         if reset:
             self._ResetSession()
         utool = self.madx_units
-        madx = self.env['madx']
-        model = Model(data=mdata, repo=repo, madx=madx)
+        model = Model(data=mdata, repo=repo, madx=self.session.madx)
         model.optics[optic].init()
-        self.env['model'] = model
-        self.env['session'].model = model
+        self.session.model = model
         self._EditModelDetail()
 
     def _GenerateModel(self):
-        session = self.env['session']
+        session = self.session
         madx = session.madx
         libmadx = session.libmadx
 
@@ -197,16 +186,15 @@ class NotebookFrame(wx.Frame):
         }
         return Model(data, repo=None, madx=madx)
 
+    @Cancellable
     def _EditModelDetail(self, event=None):
-        session = self.env['session']
-        cpymad_model = session.model
+        session = self.session
+        model = session.model
         utool = session.utool
 
-        detail = {}
-        retcode = ModelDetailWidget.ShowModal(self, model=cpymad_model,
-                                              data=detail, utool=utool)
-        if retcode != wx.ID_OK:
-            return
+        with Dialog(self) as dialog:
+            widget = ModelDetailWidget(dialog, model=model, utool=utool)
+            detail = widget.Query()
 
         sequence = detail['sequence']
         beam = detail['beam']
@@ -217,7 +205,7 @@ class NotebookFrame(wx.Frame):
         twiss_args_no_unit = {k: utool.dict_strip_unit(v)
                               for k, v in twiss_args.items()}
 
-        cpymad_model.sequences[sequence].init()
+        model.sequences[sequence].init()
         session.madx.command.beam(**utool.dict_strip_unit(beam))
 
         segman = SegmentedRange(
@@ -225,7 +213,7 @@ class NotebookFrame(wx.Frame):
             sequence=sequence,
             range=range_bounds,
         )
-        segman.model = cpymad_model
+        segman.model = model
         segman.indicators = detail['indicators']
 
         session.segman = segman
@@ -233,55 +221,49 @@ class NotebookFrame(wx.Frame):
 
         TwissView.create(session, self, basename='env')
 
+    @Cancellable
     def _LoadMadxFile(self, event=None):
         """
         Dialog component to find/open a .madx file.
         """
         reset = self._ConfirmResetSession()
-        if reset is None:
-            return
         dlg = wx.FileDialog(
             self,
             style=wx.FD_OPEN,
             wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
-        if ShowModal(dlg) != wx.ID_OK:
-            return
-        path = dlg.Path
+        with dlg:
+            ShowModal(dlg)
+            path = dlg.Path
 
         if reset:
             self._ResetSession()
 
-        madx = self.env['madx']
+        madx = self.session.madx
         num_seq = len(madx.sequences)
         madx.call(path, True)
         # if there are any new sequences, give the user a chance to view them
         # automatically:
         if len(madx.sequences) > num_seq:
             model = self._GenerateModel()
-            self.env['model'] = model
-            self.env['session'].model = model
+            self.session.model = model
             self._EditModelDetail()
 
+    @Cancellable
     def _EditTwiss(self, event=None):
         segman = self.GetActiveFigurePanel().view.segman
         utool = self.madx_units
-        elements = segman.elements
-        twiss_initial = segman.twiss_initial.copy()
-        retcode = ManageTwissWidget.ShowModal(self, utool=utool,
-                                              elements=elements,
-                                              data=twiss_initial,
-                                              inactive={})
-        if retcode == wx.ID_OK:
-            segman.set_all(twiss_initial)
+        elements = list(enumerate(segman.elements))
+        with Dialog(self) as dialog:
+            widget = ManageTwissWidget(dialog, utool=utool)
+            twiss_initial, _ = widget.Query(elements, segman.twiss_initial)
+        segman.set_all(twiss_initial)
 
+    @Cancellable
     def _SetBeam(self, event=None):
         segman = self.GetActiveFigurePanel().view.segman
-        beam = segman.beam.copy()
-        retcode = BeamWidget.ShowModal(self, utool=self.madx_units,
-                                       data=segman.beam)
-        if retcode == wx.ID_OK:
-            segman.beam = beam
-
+        with Dialog(self) as dialog:
+            widget = BeamWidget(dialog, utool=self.madx_units)
+            segman.beam = widget.Query(segman.beam)
 
     def _ShowIndicators(self, event=None):
         panel = self.GetActiveFigurePanel()
@@ -299,7 +281,7 @@ class NotebookFrame(wx.Frame):
 
     def _ConfirmResetSession(self):
         """Prompt the user to confirm resetting the current session."""
-        if not self.env.get('model'):
+        if not self.session.model:
             return False
         question = (
             'Reset MAD-X session? Unsaved changes will be lost.\n\n'
@@ -316,11 +298,11 @@ class NotebookFrame(wx.Frame):
             return True
         if answer == wx.NO:
             return False
-        return None
+        raise CancelAction
 
     def _ResetSession(self, event=None):
         self.notebook.DeleteAllPages()
-        self.env['session'].rpc_client.close()
+        self.session.stop()
         self._NewCommandTab()
         self.InitMadx()
         self.hook.reset()
@@ -360,11 +342,11 @@ class NotebookFrame(wx.Frame):
             Menu('&View', [
                 MenuItem('&Envelope',
                          'Open new tab with beam envelopes.',
-                         lambda _: TwissView.create(self.env['session'],
+                         lambda _: TwissView.create(self.session,
                                                     self, basename='env')),
                 MenuItem('&Position',
                          'Open new tab with beam position.',
-                         lambda _: TwissView.create(self.env['session'],
+                         lambda _: TwissView.create(self.session,
                                                     self, basename='pos')),
             ]),
             Menu('&Manage', [
@@ -413,7 +395,7 @@ class NotebookFrame(wx.Frame):
         panel = FigurePanel(self.notebook, view)
         self.notebook.AddPage(panel, title, select=True)
         view.plot()
-        self.env['views'].append(view)
+        self.views.append(view)
         return panel
 
     def GetActivePanel(self):
@@ -431,7 +413,7 @@ class NotebookFrame(wx.Frame):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self._session.rpc_client.close()
+            self.session.stop()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
@@ -448,17 +430,16 @@ class NotebookFrame(wx.Frame):
         if self.notebook.GetPageCount() == 0:
             self.Close()
         else:
-            del self.env['views'][event.Selection - 1]
+            del self.views[event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
         self.Close()
 
     def OnUpdateMenu(self, event):
-        if not self.env['madx']:
+        if not self.session.madx:
             return
-        enable_view = bool(self.env['madx'].sequences
-                           or self.env['session'].model)
+        enable_view = bool(self.session.madx.sequences or self.session.model)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is

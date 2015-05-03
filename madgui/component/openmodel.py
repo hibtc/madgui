@@ -19,7 +19,7 @@ from cpymad.model import Locator as _Locator
 # internal
 from madgui.core import wx
 from madgui.util.common import cachedproperty
-from madgui.widget.input import Widget, ShowModal
+from madgui.widget.input import Widget
 
 # exported symbols
 __all__ = [
@@ -54,30 +54,18 @@ class OpenModelWidget(Widget):
     Open dialog for models contained in python packages.
     """
 
-    title = "select model"
-
-    def __init__(self, results):
-        self.results = results
-
-    @classmethod
-    def create(cls, frame):
-        # select package, model:
-        if cls.ShowModal(frame, results=results) != wx.ID_OK:
-            return None
-        if not mdata:
-            return None
-        return cpymad_model
+    Title = "Select model"
 
     def _AddCombo(self, label, combo_style):
         """Add a label + combobox to the tabular sizer."""
         ctrl_text = wx.StaticText(self.Window, label=label)
-        ctrl_combo = wx.ComboBox(self.Window, combo_style)
+        ctrl_combo = wx.ComboBox(self.Window, style=combo_style)
         flag = wx.ALL|wx.ALIGN_CENTER_VERTICAL
         self.sizer.Add(ctrl_text, flag=flag|wx.ALIGN_LEFT, border=5)
         self.sizer.Add(ctrl_combo, flag=flag|wx.EXPAND, border=5)
         return ctrl_combo
 
-    def CreateControls(self):
+    def CreateControls(self, window):
         """Create subcontrols and layout."""
         # Create box sizer
         controls = wx.FlexGridSizer(rows=3, cols=2)
@@ -163,8 +151,8 @@ class OpenModelWidget(Widget):
         self.ctrl_optic.SetStringSelection(selected)
         self.ctrl_optic.Enable(bool(optics))
 
-    def TransferFromWindow(self):
-        """Get selected package and model name."""
+    def GetData(self):
+        """Get (model_definition, repository, optic_name)."""
         locator = self.locator
         if locator:
             mdata = locator.get_definition(self.ctrl_model.GetValue())
@@ -172,11 +160,10 @@ class OpenModelWidget(Widget):
         else:
             mdata = None
             repo = None
-        self.results.mdata = mdata
-        self.results.repo = repo
-        self.results.optic = self.ctrl_optic.GetValue()
+        optic = self.ctrl_optic.GetValue()
+        return mdata, repo, optic
 
-    def TransferToWindow(self):
+    def SetData(self):
         """Update displayed package and model name."""
         self.UpdateLocatorList()
         self.UpdateModelList()
