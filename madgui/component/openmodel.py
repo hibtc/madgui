@@ -59,15 +59,6 @@ class OpenModelWidget(Widget):
     def __init__(self, results):
         self.results = results
 
-    @classmethod
-    def create(cls, frame):
-        # select package, model:
-        if cls.ShowModal(frame, results=results) != wx.ID_OK:
-            return None
-        if not mdata:
-            return None
-        return cpymad_model
-
     def _AddCombo(self, label, combo_style):
         """Add a label + combobox to the tabular sizer."""
         ctrl_text = wx.StaticText(self.Window, label=label)
