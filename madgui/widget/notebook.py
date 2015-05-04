@@ -7,6 +7,7 @@ Notebook window component for MadGUI (main window).
 from __future__ import absolute_import
 
 # standard library
+import sys
 import logging
 import threading
 
@@ -39,6 +40,33 @@ __all__ = [
 ]
 
 
+# if sys.platform == 'win32':
+if True:
+    MDIParentFrame = wx.MDIParentFrame
+    MDIChildFrame = wx.MDIChildFrame
+
+    def ShowMDIChildFrame(frame):
+        frame.Show()
+
+    def CloseMDIChildren(parent_frame):
+        pass
+
+else:
+    MDIParentFrame = wx.aui.AuiMDIParentFrame
+    MDIChildFrame = wx.aui.AuiMDIChildFrame
+
+    def ShowMDIChildFrame(frame):
+        frame.Layout()
+        frame.Fit()
+        frame.Activate()
+
+    def CloseMDIChildren(parent):
+        """Close all child frames to prevent a core dump on wxGTK."""
+        for window in parent.GetClientWindow().GetChildren():
+            if isinstance(window, MDIChildFrame):
+                window.Destroy()
+
+
 def monospace(pt_size):
     """Return a monospace font."""
     return wx.Font(pt_size,
@@ -47,11 +75,7 @@ def monospace(pt_size):
                    wx.FONTWEIGHT_NORMAL)
 
 
-class ValueContainer(object):
-    pass
-
-
-class NotebookFrame(wx.MDIParentFrame):
+class NotebookFrame(MDIParentFrame):
 
     """
     Notebook window class for MadGUI (main window).
@@ -72,7 +96,7 @@ class NotebookFrame(wx.MDIParentFrame):
         )
 
         super(NotebookFrame, self).__init__(
-            parent=None,
+            None, -1,
             title='MadGUI',
             size=wx.Size(800, 600))
 
@@ -114,7 +138,6 @@ class NotebookFrame(wx.MDIParentFrame):
     @Cancellable
     def _LoadModel(self, event=None):
         reset = self._ConfirmResetSession()
-        results = ValueContainer()
         with Dialog(self) as dialog:
             mdata, repo, optic = OpenModelWidget(dialog).Query()
         if not mdata:
@@ -379,13 +402,16 @@ class NotebookFrame(wx.MDIParentFrame):
     def AddView(self, view, title):
         """Add new notebook tab for the view."""
         # TODO: remove this method in favor of a event based approach?
-        child = wx.MDIChildFrame(self, -1, title)
+        child = MDIChildFrame(self, -1, title)
         panel = FigurePanel(child, view)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(panel, 1, wx.EXPAND)
         child.SetSizer(sizer)
-        child.Bind(wx.EVT_CLOSE, self.OnPageClosed)
-        child.Show(True)
+        def OnPageClose(event):
+            self.views.remove(view)
+            event.Skip()
+        child.Bind(wx.EVT_CLOSE, OnPageClose)
+        ShowMDIChildFrame(child)
 
         view.plot()
         self.views.append(view)
@@ -393,8 +419,8 @@ class NotebookFrame(wx.MDIParentFrame):
 
     def GetActivePanel(self):
         """Return the Panel which is currently active."""
-        if self.ActiveChild:
-            return self.ActiveChild.GetChildren()[0]
+        if self.GetActiveChild():
+            return self.GetActiveChild().GetChildren()[0]
 
     def GetActiveFigurePanel(self):
         """Return the FigurePanel which is currently active or None."""
@@ -411,19 +437,15 @@ class NotebookFrame(wx.MDIParentFrame):
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
+        CloseMDIChildren(self.GetClientWindow())
         event.Skip()
 
-    def OnPageClose(self, event):
+    def OnCommandTabClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
-        if len(self.ClientWindow.Children) > 1:
+        if self.views:
             event.Veto()
         else:
             self.Close()
-
-    def OnPageClosed(self, event):
-        """A page has been closed. If it was the last, close the frame."""
-        event.Skip()
-        del self.views[event.Selection - 1]
 
     def OnQuit(self, event):
         """Close the window."""
@@ -452,15 +474,14 @@ class NotebookFrame(wx.MDIParentFrame):
 
     def _NewCommandTab(self):
         """Open a new command tab."""
-        child = wx.MDIChildFrame(self, -1, "Command")
+        child = MDIChildFrame(self, -1, "Command")
         crust = Crust(child, locals=self.env)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(crust, 1, wx.EXPAND)
         child.SetSizer(sizer)
-        child.Bind(wx.EVT_CLOSE, self.OnPageClose)
-        child.Show(True)
+        child.Bind(wx.EVT_CLOSE, self.OnCommandTabClose)
+        ShowMDIChildFrame(child)
 
-        self._command_tab = crust
         # Create a tab for logging
         nb = crust.notebook
         panel = wx.Panel(nb, wx.ID_ANY)
