@@ -40,8 +40,7 @@ __all__ = [
 ]
 
 
-# if sys.platform == 'win32':
-if True:
+if sys.platform == 'win32':
     MDIParentFrame = wx.MDIParentFrame
     MDIChildFrame = wx.MDIChildFrame
 
