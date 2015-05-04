@@ -47,7 +47,7 @@ if sys.platform == 'win32':
     def ShowMDIChildFrame(frame):
         frame.Show()
 
-    def CloseMDIChildren(parent_frame):
+    def CloseMDIChildren(parent):
         pass
 
 else:
@@ -436,7 +436,7 @@ class NotebookFrame(MDIParentFrame):
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
-        CloseMDIChildren(self.GetClientWindow())
+        CloseMDIChildren(self)
         event.Skip()
 
     def OnCommandTabClose(self, event):
