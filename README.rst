@@ -1,5 +1,5 @@
 MadGUI
-------
+======
 
 Description
 ~~~~~~~~~~~
