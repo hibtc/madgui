@@ -17,8 +17,11 @@ from cpymad.madx import Madx, CommandLog
 from cpymad.util import normalize_range_name
 from cpymad import _rpc
 
+import numpy as np
+
 # internal
 from madgui.core.plugin import HookCollection
+from madgui.util.common import temp_filename
 
 # exported symbols
 __all__ = [
@@ -342,11 +345,7 @@ class Segment(object):
 
     def twiss(self):
         """Recalculate TWISS parameters."""
-        twiss_args = self.utool.dict_strip_unit(self.mixin_twiss_args)
-        results = self.madx.twiss(sequence=self.sequence.name,
-                                  range=self.range,
-                                  columns=self._columns,
-                                  twiss_init=twiss_args)
+        results = self.raw_twiss()
         # Update TWISS results
         self.tw = self.utool.dict_add_unit(results)
         self.summary = self.utool.dict_add_unit(results.summary)
@@ -361,3 +360,34 @@ class Segment(object):
         self.tw['posx'] = self.tw['x']
         self.tw['posy'] = self.tw['y']
         self.hook.update()
+
+    def raw_twiss(self, **kwargs):
+        twiss_init = self.utool.dict_strip_unit(self.mixin_twiss_args)
+        twiss_args = {
+            'sequence': self.sequence.name,
+            'range': self.range,
+            'columns': self._columns,
+            'twiss_init': twiss_init,
+        }
+        twiss_args.update(kwargs)
+        return self.madx.twiss(**twiss_args)
+
+    def get_transfer_map(self, beg_elem, end_elem):
+        """
+        Get the transfer matrix R(i,j) between the two elements.
+
+        This requires a full twiss call, so don't do it too often.
+        """
+        info = self.segman.get_element_info
+        madx = self.madx
+        madx.command.select(flag='sectormap', clear=True)
+        madx.command.select(flag='sectormap', range=info(beg_elem).name)
+        madx.command.select(flag='sectormap', range=info(end_elem).name)
+        with temp_filename() as sectorfile:
+            self.raw_twiss(sectormap=True, sectorfile=sectorfile)
+        sectortable = madx.get_table('sectortable')
+        def sectormap(i, j):
+            return sectortable['r{}{}'.format(i, j)][-1]
+        return np.array([[sectormap(i+1, j+1)
+                          for j in range(6)]
+                         for i in range(6)])

@@ -8,6 +8,9 @@ from __future__ import absolute_import
 # standard library
 import functools
 import inspect
+import os
+import tempfile
+from contextlib import contextmanager
 
 # exported symbols
 __all__ = [
@@ -51,3 +54,15 @@ def instancevars(func):
             setattr(self, key, val)
         return func(*args, **kwargs)
     return wrapper
+
+
+@contextmanager
+def temp_filename():
+    """Get filename for use within 'with' block and delete file afterwards."""
+    fd, filename = tempfile.mkstemp()
+    os.close(fd)
+    yield filename
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
