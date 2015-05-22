@@ -32,6 +32,7 @@ from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
 from madgui.widget.input import ShowModal, Cancellable, Dialog, CancelAction
+from madgui.widget.filedialog import OpenDialog
 
 # exported symbols
 __all__ = [
@@ -236,10 +237,9 @@ class NotebookFrame(MDIParentFrame):
         Dialog component to find/open a .madx file.
         """
         reset = self._ConfirmResetSession()
-        dlg = wx.FileDialog(
-            self,
-            style=wx.FD_OPEN,
-            wildcard="MADX files (*.madx;*.str)|*.madx;*.str|All files (*.*)|*")
+        wildcards = [("MAD-X files", "*.madx", "*.str"),
+                     ("All files", "*")]
+        dlg = OpenDialog(self, 'Load MAD-X file', wildcards)
         with dlg:
             ShowModal(dlg)
             path = dlg.Path

@@ -19,6 +19,7 @@ from madgui.core import wx
 # internal
 from madgui.widget.input import Widget, ShowModal, Cancellable
 from madgui.widget import listview
+from madgui.widget.filedialog import OpenDialog, SaveDialog, path_with_ext
 
 # exported symbols
 __all__ = [
@@ -83,27 +84,6 @@ class Matrix(Float):
 
 # TODO: class Vector(Float)
 # unlike Matrix this represents a single MAD-X parameter of type ARRAY.
-
-
-def make_wildcard(title, *exts):
-    """Create wildcard string from a single wildcard tuple."""
-    return "{0} ({1})|{1}".format(title, ";".join(exts))
-
-
-def make_wildcards(*wildcards):
-    """Create wildcard string from multiple wildcard tuples."""
-    return "|".join(make_wildcard(*w) for w in wildcards)
-
-
-def get_savedialog_path(dialog, wildcards):
-    """Append extension if necessary."""
-    _, ext = os.path.splitext(dialog.GetPath())
-    if not ext:
-        ext = wildcards[dialog.GetFilterIndex()][1] # use first extension
-        ext = ext[1:]                               # remove leading '*'
-        if ext == '.*':
-            return _
-    return _ + ext
 
 
 class ParamTable(Widget):
@@ -172,11 +152,7 @@ class ParamTable(Widget):
         """Import parameters from file."""
         wildcards = [("YAML file", "*.yml", "*.yaml"),
                      ("JSON file", "*.json")]
-        dlg = wx.FileDialog(
-            self.TopLevelWindow,
-            "Import values",
-            wildcard=make_wildcards(*wildcards),
-            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        dlg = OpenDialog(self.TopLevelWindow, "Import values", wildcards)
         with dlg:
             ShowModal(dlg)
         with open(dlg.GetPath(), 'rt') as f:
@@ -190,16 +166,12 @@ class ParamTable(Widget):
     def OnExport(self, event):
         """Export parameters to file."""
         wildcards = [("YAML file", "*.yml", "*.yaml")]
-        dlg = wx.FileDialog(
-            self.TopLevelWindow,
-            "Import values",
-            wildcard=make_wildcards(*wildcards),
-            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        dlg = SaveDialog(self.TopLevelWindow, "Import values", wildcards)
         with dlg:
             ShowModal(dlg)
         data = self.GetData()
         raw_data = self.utool.dict_strip_unit(data)
-        file_path = get_savedialog_path(dlg, wildcards)
+        file_path = path_with_ext(dlg, wildcards)
         with open(file_path, 'wt') as f:
             yaml.safe_dump(raw_data, f, default_flow_style=False)
 
