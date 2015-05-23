@@ -154,21 +154,25 @@ class ElementWidget(Widget):
 
     Title = "Choose element"
     ListWidget = ElementListWidget
+    label = 'Select element:'
 
     def CreateControls(self, window):
         """Create element list and search controls."""
         # create list control
         listctrl = self.CreateListCtrl()
         # create search control
+        self.ctrl_label = label = wx.StaticText(window, label=self.label)
         search_label = wx.StaticText(window, label="Search:")
         search_edit = wx.TextCtrl(window, style=wx.TE_RICH2)
         search_edit.SetFocus()
         # setup sizers
         search = wx.BoxSizer(wx.HORIZONTAL)
+        search.Add(label, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+        search.AddStretchSpacer(1)
         search.Add(search_label, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
         search.Add(search_edit, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(search, flag=wx.ALL|wx.ALIGN_RIGHT, border=5)
+        sizer.Add(search, flag=wx.ALL|wx.EXPAND, border=5)
         sizer.Add(listctrl, 1, flag=wx.ALL|wx.EXPAND, border=5)
         # setup event handlers
         window.Bind(wx.EVT_TEXT, self.OnSearchChange, search_edit)
@@ -187,8 +191,11 @@ class ElementWidget(Widget):
         selected = self.GetData()               # retrieve selected index
         self.SetData(self.elements, selected)   # filter by search string
 
-    def SetData(self, elements, selected):
+    def SetData(self, elements, selected, label=None):
         """Update element list and selection."""
+        if label is not None:
+            self.label = label
+            self.ctrl_label.SetLabel(label)
         self.elements = elements
         searchtext = self._search.GetValue()
         filtered = filter_elements(elements, searchtext)
