@@ -87,7 +87,7 @@ class Multicast(object):
         """Call all slots and return reduced result."""
         self = self__args[0]
         args = self__args[1:]
-        for slot in self.slots:
+        for slot in list(self.slots):
             slot(*args, **kwargs)
 
 

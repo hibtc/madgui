@@ -31,6 +31,7 @@ class ElementMarker(object):
         self._elem_view.hook.close.connect(self.remove)
         self.update()
         line_view.hook.plot_ax.connect(self.plot_ax)
+        line_view.hook.destroy.connect(self.destroy)
 
     def update(self):
         self._clear()
@@ -46,8 +47,12 @@ class ElementMarker(object):
 
     def remove(self):
         self._clear()
-        self._line_view.hook.plot_ax.disconnect(self.plot_ax)
+        self.destroy()
         self._line_view.figure.draw()
+
+    def destroy(self):
+        self._line_view.hook.destroy.disconnect(self.destroy)
+        self._line_view.hook.plot_ax.disconnect(self.plot_ax)
         self._elem_view.hook.set_element.disconnect(self.update)
         self._elem_view.hook.close.disconnect(self.remove)
 

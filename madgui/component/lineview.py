@@ -139,7 +139,9 @@ class TwissView(object):
 
         self.hook = HookCollection(
             plot=None,
-            plot_ax=None)
+            plot_ax=None,
+            destroy=None,
+        )
 
         # create figure
         self.figure = figure = FigurePair()
@@ -171,6 +173,7 @@ class TwissView(object):
     def destroy(self):
         self.segman.hook.update.disconnect(self.update)
         self.segman.hook.add_segment.disconnect(self.on_add_segment)
+        self.hook.destroy()
 
     def update(self):
         self.figure.draw()
