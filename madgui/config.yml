@@ -103,6 +103,9 @@ madx_units:
   e2:       rad
   ks:       1/m
 
+  # used in online database:
+  kl:       m^-1
+
 
 # Select which element paramters can be varied when matching a TWISS function:
 matching:
