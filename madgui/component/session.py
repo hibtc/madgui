@@ -42,7 +42,7 @@ class Session(object):
     :ivar libmadx: Low level cpymad API
     :ivar madx: CPyMAD interpretor instance
     :ivar model: CPyMAD model
-    :ivar segman: Active configuration
+    :ivar segments: Simulated segments
 
     :ivar rpc_client: Low level MAD-X RPC client
     :ivar remote_process: MAD-X process
@@ -58,7 +58,7 @@ class Session(object):
         self.libmadx = None
         self.madx = None
         self.model = None
-        self.segman = None
+        self.segments = []
         self.rpc_client = None
         self.remote_process = None
 
@@ -84,198 +84,11 @@ class Session(object):
         self.remote_process = None
         self.libmadx = None
         self.madx = None
-        self.segman = None
-        # TODO: destroy segman
+        self.segments = []
+        # TODO: destroy segments
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
-
-
-class SegmentedRange(object):
-
-    """
-    Displayed range.
-
-    :ivar dict segments: segments
-    :ivar dict twiss_initial: initial conditions
-    """
-
-    def __init__(self, session, sequence, range='#s/#e'):
-        """
-        :param Session session:
-        :param str sequence:
-        :param tuple range:
-        """
-        self.hook = HookCollection(
-            update='madgui.component.manager.update',
-            add_segment='madgui.component.manager.add_segment',
-        )
-        self.session = session
-        self.sequence = session.madx.sequences[sequence]
-        self.range = range
-        self.start, self.stop = self.parse_range(range)
-        self.segments = {}
-        self.twiss_initial = {}
-        raw_elements = self.sequence.elements
-        self.elements = list(map(
-            self.session.utool.dict_add_unit, raw_elements))
-
-    def get_element_info(self, element):
-        """Get :class:`ElementInfo` from element name or index."""
-        if isinstance(element, ElementInfo):
-            return element
-        if isinstance(element, (basestring, dict)):
-            element = self.sequence.elements.index(element)
-        element_data = self.session.utool.dict_add_unit(
-            self.sequence.elements[element])
-        if element < 0:
-            element += len(self.sequence.elements)
-        return ElementInfo(element_data['name'], element, element_data['at'])
-
-    def parse_range(self, range):
-        """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
-        if isinstance(range, basestring):
-            range = range.split('/')
-        start_name, stop_name = range
-        return (self.get_element_info(start_name),
-                self.get_element_info(stop_name))
-
-    # segment allocation
-
-    def set_all(self, data):
-        edges = sorted(data) + [self.stop.index]
-        new_segments = list(zip(edges[:-1], edges[1:]))
-        old_twiss = self.twiss_initial
-        self.twiss_initial = data
-        # remove obsolete segments
-        for seg in self.segments.values():
-            if (seg.start.index, seg.stop.index) not in new_segments:
-                self._remove_segment(seg.start.index)
-        # insert new segments / update initial conditions
-        for start, stop in new_segments:
-            try:
-                seg = self.segments[start]
-            except KeyError:
-                self._create_segment(start, stop)
-            else:
-                seg.twiss_args = data[start]
-                seg.twiss()
-        self.hook.update()
-
-    def set_twiss_initial(self, element, twiss_args):
-        """
-        Set initial conditions at specified element.
-
-        If there are currently no initial conditions associated with the
-        element, they are added and the enclosing segment is split in two.
-        """
-        self.twiss_initial[element.index] = twiss_args
-        segments = self.segments
-        if element.index in segments:
-            segments[element.index].twiss()
-        else:
-            try:
-                prev_start = max(i for i in segments if i < element.index)
-            except ValueError:
-                # no previous segment
-                self._create_segment(
-                    self.start,
-                    min(segments) if segments else self.stop)
-            else:
-                # split previous segment
-                old_seg = self._remove_segment(prev_start)
-                front_seg = self._create_segment(old_seg.start, element)
-                self._create_segment(element, old_seg.stop)
-        self.hook.update()
-
-    def _create_segment(self, start, stop):
-        start = self.get_element_info(start)
-        stop = self.get_element_info(stop)
-        segment = Segment(self.sequence,
-                          start,
-                          stop,
-                          self,
-                          self.twiss_initial[start.index])
-        self.segments[start.index] = segment
-        segment.twiss()
-        self.hook.add_segment(segment)
-        return segment
-
-    def _remove_segment(self, start_index):
-        segment = self.segments.pop(start_index)
-        segment.hook.remove()
-        return segment
-
-    def remove_twiss_inital(self, element):
-        """
-        Remove initial conditions at specified element.
-
-        If the initial conditions can be removed, the two adjacent segments
-        are merged into one.
-        """
-        del self.twiss_initial[element.index]
-        del_seg = self._remove_segment(element.index)
-        try:
-            prev_start = max(i for i in segments if i < element.index)
-        except ValueError:
-            pass
-        else:
-            prev_seg = self._remove_segment(prev_start)
-            self._create_segment(prev_seg.start, del_seg.stop)
-        self.hook.update()
-
-    def get_segment_at(self, at):
-        """Get the segment at specified S coordinate."""
-        for segment in self.segments.values():
-            if segment.start.at <= at and segment.stop.at >= at:
-                return segment
-        return None
-
-    @property
-    def beam(self):
-        """Get the beam parameter dictionary."""
-        return self.session.utool.dict_add_unit(self.sequence.beam)
-
-    @beam.setter
-    def beam(self, beam):
-        """Set beam from a parameter dictionary."""
-        self.session.madx.command.beam(
-            **self.session.utool.dict_strip_unit(beam))
-        # TODO: re-run twiss
-
-    def element_by_position(self, pos):
-        """Find optics element by longitudinal position."""
-        if pos is None:
-            return None
-        for elem in self.elements:
-            at, L = elem['at'], elem['l']
-            if pos >= at and pos <= at+L:
-                return elem
-        return None
-
-    def get_element_index(self, elem):
-        """Get element index by it name."""
-        return self.sequence.elements.index(elem)
-
-    def get_segment(self, element):
-        element = self.get_element_info(element)
-        return next((segment for segment in self.segments.values()
-                     if segment.contains(element)),
-                    None)
-
-    def get_twiss(self, elem, name):
-        """Return beam envelope at element."""
-        element = self.get_element_info(elem)
-        segment = self.get_segment(element)
-        if segment is None:
-            return None
-        return segment.tw[name][element.index - segment.start.index]
-
-
-def dict_setdefault(a, b):
-    for k, v in b.items():
-        a.setdefault(k, v)
-    return a
 
 
 class Segment(object):
@@ -303,41 +116,101 @@ class Segment(object):
         'alfx', 'alfy',
     ]
 
-    def __init__(self, sequence, start, stop, segman, twiss_args):
+    def __init__(self, session, sequence, twiss_args, range='#s/#e'):
         """
+        :param Session session:
+        :param str sequence:
+        :param tuple range:
         """
         self.hook = HookCollection(
             update=None,
             remove=None)
-        self.sequence = sequence
-        self.start = start
-        self.stop = stop
-        self.range = (normalize_range_name(start.name),
-                      normalize_range_name(stop.name))
-        self.segman = segman
-        self.madx = segman.session.madx
-        self.utool = segman.session.utool
-        self.twiss_args = twiss_args
-        self.segman = segman
+
+        self.session = session
+        self.sequence = session.madx.sequences[sequence]
+        self._twiss_args = twiss_args
+
+        self.start, self.stop = self.parse_range(range)
+        self.range = (normalize_range_name(self.start.name),
+                      normalize_range_name(self.stop.name))
+
+        raw_elements = self.sequence.elements
+        self.elements = list(map(
+            session.utool.dict_add_unit, raw_elements))
+        self.madx = session.madx
+        self.utool = session.utool
+
+        session.segments.append(self)
+
+        # TODO: self.hook.create(self)
+
+        self.twiss()
+
+    def get_element_info(self, element):
+        """Get :class:`ElementInfo` from element name or index."""
+        if isinstance(element, ElementInfo):
+            return element
+        if isinstance(element, (basestring, dict)):
+            element = self.sequence.elements.index(element)
+        element_data = self.session.utool.dict_add_unit(
+            self.sequence.elements[element])
+        if element < 0:
+            element += len(self.sequence.elements)
+        return ElementInfo(element_data['name'], element, element_data['at'])
+
+    def parse_range(self, range):
+        """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
+        if isinstance(range, basestring):
+            range = range.split('/')
+        start_name, stop_name = range
+        return (self.get_element_info(start_name),
+                self.get_element_info(stop_name))
+
+    def destroy(self, start_index):
+        self.session.segments.remove(self)
+        self.hook.remove()
 
     @property
-    def mixin_twiss_args(self):
-        # NOTE: this procedure currently causes a "jump" in the TWISS data at
-        # the boundary element. I guess MAD-X returns the TWISS values at the
-        # center of the element, which can therefore not be used as initial
-        # conditions at the start of the element.
-        twiss_args = self.twiss_args
-        if not twiss_args.get('mixin'):
-            return twiss_args
-        twiss_args = twiss_args.copy()
-        del twiss_args['mixin']
-        if self.start.index > 0:
-            precede_seg = self.segman.get_segment(self.start.index - 1)
-            if precede_seg is not None:
-                precede_tw = {col: precede_seg.tw[col][-1]
-                              for col in self._mixin_columns}
-                dict_setdefault(twiss_args, precede_tw)
-        return twiss_args
+    def twiss_args(self):
+        return self._twiss_args
+
+    @twiss_args.setter
+    def twiss_args(self, twiss_args):
+        self._twiss_args = twiss_args
+        self.twiss()
+
+    @property
+    def beam(self):
+        """Get the beam parameter dictionary."""
+        return self.session.utool.dict_add_unit(self.sequence.beam)
+
+    @beam.setter
+    def beam(self, beam):
+        """Set beam from a parameter dictionary."""
+        self.session.madx.command.beam(
+            **self.session.utool.dict_strip_unit(beam))
+        self.twiss()
+
+    def element_by_position(self, pos):
+        """Find optics element by longitudinal position."""
+        if pos is None:
+            return None
+        for elem in self.elements:
+            at, L = elem['at'], elem['l']
+            if pos >= at and pos <= at+L:
+                return elem
+        return None
+
+    def get_element_index(self, elem):
+        """Get element index by it name."""
+        return self.sequence.elements.index(elem)
+
+    def get_twiss(self, elem, name):
+        """Return beam envelope at element."""
+        element = self.get_element_info(elem)
+        if not self.contains(element):
+            return None
+        return self.tw[name][element.index - self.start.index]
 
     def contains(self, element):
         return (self.start.index <= element.index and
@@ -362,7 +235,7 @@ class Segment(object):
         self.hook.update()
 
     def raw_twiss(self, **kwargs):
-        twiss_init = self.utool.dict_strip_unit(self.mixin_twiss_args)
+        twiss_init = self.utool.dict_strip_unit(self.twiss_args)
         twiss_args = {
             'sequence': self.sequence.name,
             'range': self.range,
@@ -378,7 +251,7 @@ class Segment(object):
 
         This requires a full twiss call, so don't do it too often.
         """
-        info = self.segman.get_element_info
+        info = self.get_element_info
         madx = self.madx
         madx.command.select(flag='sectormap', clear=True)
         madx.command.select(flag='sectormap', range=info(beg_elem).name)

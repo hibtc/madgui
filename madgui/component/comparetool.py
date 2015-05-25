@@ -56,19 +56,17 @@ class CompareTool(object):
         The envelope is NOT visible by default.
         """
         self._view = view = panel.view
-        self._model = model = view.segman
+        self._model = view.segment.session.model
         self._lines = {}
         self._visible = False
         self._metadata = None
-
-        cpymad_model = model.model
-        if not cpymad_model:
+        if not self._model:
             return
 
-        all_metadata = cpymad_model._data.get('review', [])
+        all_metadata = self._model._data.get('review', [])
         col_names = [view.sname, view.xname, view.yname]
         try:
-            metadata = match_metadata(all_metadata, model.sequence.name,
+            metadata = match_metadata(all_metadata, view.segment.sequence.name,
                                       col_names)
         except ValueError:
             return
@@ -92,7 +90,7 @@ class CompareTool(object):
     @property
     def test_file(self):
         """Get the envelope file."""
-        return self._model.model._repo.get(self._metadata['file'])
+        return self._model._repo.get(self._metadata['file'])
 
     @property
     def visible(self):
