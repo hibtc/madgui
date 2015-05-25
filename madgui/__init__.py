@@ -29,12 +29,13 @@ __credits__ = """
 MadGUI is developed for HIT Betriebs GmbH.
 
 Created by:
-    Thomas Gläßle <t_glaessle@gmx.de>
+
+- Thomas Gläßle <t_glaessle@gmx.de>
 
 Special thanks to my supervisors for their help and support:
 
-    Rainer Cee
-    Andreas Peters
+- Rainer Cee
+- Andreas Peters
 """
 
 # Trove classifiers: https://pypi.python.org/pypi?:action=list_classifiers
