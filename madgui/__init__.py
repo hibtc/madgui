@@ -20,8 +20,22 @@ __version__ = '0.4.0'
 __author__ = 'Thomas Gläßle'
 __email__ = 't_glaessle@gmx.de'
 
+__support__ = __email__
+
 __license__ = 'MIT'
 __copyright__ = '(C) 2013 - 2014 HIT Betriebs GmbH'
+
+__credits__ = """
+MadGUI is developed for HIT Betriebs GmbH.
+
+Created by:
+    Thomas Gläßle <t_glaessle@gmx.de>
+
+Special thanks to my supervisors for their help and support:
+
+    Rainer Cee
+    Andreas Peters
+"""
 
 # Trove classifiers: https://pypi.python.org/pypi?:action=list_classifiers
 __classifiers__ = [
@@ -35,6 +49,6 @@ __classifiers__ = [
     'Topic :: Scientific/Engineering :: Physics',
 ],
 
-def get_license_text():
+def get_copyright_notice():
     from pkg_resources import resource_string
     return resource_string('madgui', 'LICENSE')
