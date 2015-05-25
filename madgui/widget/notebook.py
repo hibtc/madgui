@@ -14,7 +14,7 @@ import threading
 # GUI components
 from madgui.core import wx
 import wx.aui
-from wx.py.crust import Crust
+from wx.py.shell import Shell
 
 # 3rd-party
 from cpymad.model import Model
@@ -133,7 +133,7 @@ class NotebookFrame(MDIParentFrame):
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
         # Create a command tab
-        self._NewCommandTab()
+        self._NewLogTab()
 
     @Cancellable
     def _LoadModel(self, event=None):
@@ -312,7 +312,7 @@ class NotebookFrame(MDIParentFrame):
     def _ResetSession(self, event=None):
         # self.notebook.DeleteAllPages()
         self.session.stop()
-        self._NewCommandTab()
+        self._NewLogTab()
         self.InitMadx()
         self.hook.reset()
 
@@ -330,6 +330,9 @@ class NotebookFrame(MDIParentFrame):
                 MenuItem('&New session window\tCtrl+N',
                          'Open a new session window',
                          self.OnNewWindow),
+                MenuItem('&Python shell\tCtrl+P',
+                         'Open a tab with a python shell',
+                         self._NewCommandTab),
                 Separator,
                 MenuItem('&Open MAD-X file\tCtrl+O',
                          'Open a .madx file in this MAD-X session.',
@@ -439,7 +442,7 @@ class NotebookFrame(MDIParentFrame):
         CloseMDIChildren(self)
         event.Skip()
 
-    def OnCommandTabClose(self, event):
+    def OnLogTabClose(self, event):
         """Prevent the command tab from closing, if other tabs are open."""
         if self.views:
             event.Veto()
@@ -471,26 +474,26 @@ class NotebookFrame(MDIParentFrame):
             self._IsEnabledTop[tab_menu_index] = enable_tab
         event.Skip()
 
-    def _NewCommandTab(self):
+    def _NewCommandTab(self, event=None):
         """Open a new command tab."""
         child = MDIChildFrame(self, -1, "Command")
-        crust = Crust(child, locals=self.env)
+        crust = Shell(child, locals=self.env)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(crust, 1, wx.EXPAND)
         child.SetSizer(sizer)
-        child.Bind(wx.EVT_CLOSE, self.OnCommandTabClose)
         ShowMDIChildFrame(child)
 
+    def _NewLogTab(self):
+        child = MDIChildFrame(self, -1, "Log")
         # Create a tab for logging
-        nb = crust.notebook
-        panel = wx.Panel(nb, wx.ID_ANY)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        panel.SetSizer(sizer)
-        textctrl = wx.TextCtrl(panel, wx.ID_ANY,
+        textctrl = wx.TextCtrl(child, wx.ID_ANY,
                                style=wx.TE_MULTILINE|wx.TE_READONLY)
         textctrl.SetFont(monospace(10))
+        sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(textctrl, 1, wx.EXPAND)
-        nb.AddPage(panel, "Log", select=True)
+        child.SetSizer(sizer)
+        child.Bind(wx.EVT_CLOSE, self.OnLogTabClose)
+        ShowMDIChildFrame(child)
         self._log_ctrl = textctrl
         self._basicConfig(logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
