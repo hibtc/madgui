@@ -131,11 +131,15 @@ class TwissView(object):
     @classmethod
     def create(cls, session, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        view = cls(session.segman, basename, frame.app.conf['line_view'])
+        # TODO: properly handle multiple/no segments
+        if not session.segments:
+            return
+        segment = session.segments[0]
+        view = cls(segment, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
         return view
 
-    def __init__(self, segmentation_manager, basename, line_view_config):
+    def __init__(self, segment, basename, line_view_config):
 
         self.hook = HookCollection(
             plot=None,
@@ -145,7 +149,7 @@ class TwissView(object):
 
         # create figure
         self.figure = figure = FigurePair()
-        self.segman = segmentation_manager
+        self.segment = segment
         self.config = line_view_config
 
         self.title = line_view_config['title'][basename]
@@ -164,15 +168,11 @@ class TwissView(object):
                             for col in [sname, xname, yname]}
 
         # subscribe for updates
-        self.segman.hook.update.connect(self.update)
-        self.segman.hook.add_segment.connect(self.on_add_segment)
-
-        for segment in self.segman.segments.values():
-            self.on_add_segment(segment)
+        TwissCurveSegment(segment, self)
+        self.segment.hook.update.connect(self.update)
 
     def destroy(self):
-        self.segman.hook.update.disconnect(self.update)
-        self.segman.hook.add_segment.disconnect(self.on_add_segment)
+        self.segment.hook.update.disconnect(self.update)
         self.hook.destroy()
 
     def update(self):
@@ -203,10 +203,6 @@ class TwissView(object):
 
     def get_conjugate(self, name):
         return self._conjugate[name]
-
-    def on_add_segment(self, segment):
-        # create a curve as first plotter hook
-        TwissCurveSegment(segment, self)
 
 
 # TODO: Store the constraints with a Match object, rather than "globally"
@@ -286,8 +282,7 @@ class UpdateStatusBar(object):
             return
         name = self._view.get_axes_name(event.inaxes)
         unit = self._view.unit
-        model = self._view.segman
-        elem = model.element_by_position(xdata * unit['s'])
+        elem = self._view.segment.element_by_position(xdata * unit['s'])
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format
@@ -303,7 +298,7 @@ class DrawLineElements(object):
     @classmethod
     def create(cls, panel):
         view = panel.view
-        model = view.segman
+        model = view.segment
         style = view.config['element_style']
         if model.indicators is True:
             return cls(view, model, style)
@@ -330,7 +325,7 @@ class DrawLineElements(object):
         """Draw the elements into the canvas."""
         view = self._view
         unit_s = view.unit[view.sname]
-        for elem in view.segman.elements:
+        for elem in view.segment.elements:
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue

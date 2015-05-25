@@ -26,7 +26,7 @@ class SelectTool(object):
     def __init__(self, panel):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.cid = None
-        self.model = panel.view.segman
+        self.segment = panel.view.segment
         self.panel = panel
         self.view = panel.view
         # toolbar tool
@@ -72,7 +72,7 @@ class SelectTool(object):
         """Display a popup window with info about the selected element."""
         if event.inaxes is None:
             return
-        elem = self.model.element_by_position(
+        elem = self.segment.element_by_position(
             event.xdata * self.view.unit['s'])
         if elem is None or 'name' not in elem:
             return
@@ -90,7 +90,7 @@ class SelectTool(object):
 
         if not elem_view:
             dialog = TableDialog(self.frame)
-            elem_view = ElementView(dialog, self.model, elem['name'])
+            elem_view = ElementView(dialog, self.segment, elem['name'])
             ElementMarker(self.view, elem_view)
             dialog.Show()
             self._last_view = elem_view
@@ -109,9 +109,9 @@ class SelectTool(object):
             move_step = 1
         else:
             return
-        old_index = self.model.get_element_index(view.element_name)
+        old_index = self.segment.get_element_index(view.element_name)
         new_index = old_index + move_step
-        elements = self.model.elements
+        elements = self.segment.elements
         new_elem = elements[new_index % len(elements)]
         view.element_name = new_elem['name']
 

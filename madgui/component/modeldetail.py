@@ -9,7 +9,7 @@ from __future__ import absolute_import
 # internal
 from madgui.core import wx
 from madgui.component.beamdialog import BeamWidget
-from madgui.component.twissdialog import ManageTwissWidget
+from madgui.component.twissdialog import TwissWidget
 from madgui.util.common import instancevars
 from madgui.widget.input import Widget
 from madgui.widget.element import RangeWidget
@@ -94,7 +94,7 @@ class ModelDetailWidget(Widget):
         page_twiss = wx.Panel(book.book)
         self.widget_beam = BeamWidget(page_beam, utool=self.utool)
         self.widget_range = RangeWidget(page_range)
-        self.widget_twiss = ManageTwissWidget(page_twiss, utool=self.utool)
+        self.widget_twiss = TwissWidget(page_twiss, utool=self.utool)
 
         # insert items
         self.ctrl_sequence = self._AddComboBox('Sequence:')
@@ -146,8 +146,8 @@ class ModelDetailWidget(Widget):
         twiss_args = range.initial_conditions[twiss_name]
         twiss_args = self.utool.dict_add_unit(twiss_args)
         start_element = self.elements.index(range.bounds[0])
-        twiss_initial = {start_element: twiss_args}
-        self.widget_twiss.SetData(self.elements_with_units, twiss_initial, {})
+        twiss_initial = twiss_args
+        self.widget_twiss.SetData(twiss_initial)
 
     def GetData(self):
         """Get selected package and model name."""
@@ -155,7 +155,7 @@ class ModelDetailWidget(Widget):
             'sequence': self.ctrl_sequence.GetValue(),
             'beam': self.widget_beam.GetData(),
             'range': self.widget_range.GetData(),
-            'twiss': self.widget_twiss.GetData()[0],
+            'twiss': self.widget_twiss.GetData(),
             'indicators': self.ctrl_elem.GetValue(),
         }
 

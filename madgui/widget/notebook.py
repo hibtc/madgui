@@ -26,8 +26,8 @@ from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
 from madgui.component.modeldetail import ModelDetailWidget
 from madgui.component.openmodel import OpenModelWidget
-from madgui.component.session import Session, SegmentedRange
-from madgui.component.twissdialog import ManageTwissWidget
+from madgui.component.session import Session, Segment
+from madgui.component.twissdialog import TwissWidget
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
@@ -212,22 +212,18 @@ class NotebookFrame(MDIParentFrame):
         twiss_args = detail['twiss']
 
         beam = dict(beam, sequence=sequence)
-        twiss_args_no_unit = {k: utool.dict_strip_unit(v)
-                              for k, v in twiss_args.items()}
 
         model.sequences[sequence].init()
         session.madx.command.beam(**utool.dict_strip_unit(beam))
 
-        segman = SegmentedRange(
+        segment = Segment(
             session=session,
             sequence=sequence,
             range=range_bounds,
+            twiss_args=twiss_args
         )
-        segman.model = model
-        segman.indicators = detail['indicators']
-
-        session.segman = segman
-        segman.set_all(twiss_args)
+        segment.model = model
+        segment.indicators = detail['indicators']
 
         TwissView.create(session, self, basename='env')
 
@@ -259,34 +255,32 @@ class NotebookFrame(MDIParentFrame):
 
     @Cancellable
     def _EditTwiss(self, event=None):
-        segman = self.GetActiveFigurePanel().view.segman
+        segment = self.GetActiveFigurePanel().view.segment
         utool = self.madx_units
-        elements = list(enumerate(segman.elements))
         with Dialog(self) as dialog:
-            widget = ManageTwissWidget(dialog, utool=utool)
-            twiss_initial, _ = widget.Query(elements, segman.twiss_initial)
-        segman.set_all(twiss_initial)
+            widget = TwissWidget(dialog, utool=utool)
+            segment.twiss_args = widget.Query(segment.twiss_args)
 
     @Cancellable
     def _SetBeam(self, event=None):
-        segman = self.GetActiveFigurePanel().view.segman
+        segment = self.GetActiveFigurePanel().view.segment
         with Dialog(self) as dialog:
             widget = BeamWidget(dialog, utool=self.madx_units)
-            segman.beam = widget.Query(segman.beam)
+            segment.beam = widget.Query(segment.beam)
 
     def _ShowIndicators(self, event=None):
         panel = self.GetActiveFigurePanel()
-        segman = panel.view.segman
-        if segman.indicators:
-            segman.indicators.destroy()
+        segment = panel.view.segment
+        if segment.indicators:
+            segment.indicators.destroy()
         else:
-            segman.indicators = True
+            segment.indicators = True
             DrawLineElements.create(panel).plot()
             panel.view.figure.draw()
 
     def _UpdateShowIndicators(self, event):
-        segman = self.GetActiveFigurePanel().view.segman
-        event.Check(bool(segman.indicators))
+        segment = self.GetActiveFigurePanel().view.segment
+        event.Check(bool(segment.indicators))
 
     def _ConfirmResetSession(self):
         """Prompt the user to confirm resetting the current session."""
