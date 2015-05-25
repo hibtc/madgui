@@ -42,12 +42,14 @@ class StaticHtmlWindow(wx.html.HtmlWindow):
         wx.LaunchDefaultBrowser(link.GetHref())
 
 
-def _section(level, title, content):
-    level_chr = '=~'
+def _section(level, title, content, level_chr='=~'):
+    """Output a ReST formatted heading followed by the content."""
     return title + '\n' + level_chr[level] * len(title) + '\n\n' + content
 
 
 class AboutPanel(wx.Panel):
+
+    """A panel showing information about one software component."""
 
     def __init__(self, parent, version_info):
         super(AboutPanel, self).__init__(parent)
@@ -70,6 +72,8 @@ class AboutPanel(wx.Panel):
 
 class AboutDialog(wx.Dialog):
 
+    """Tabbed AboutDialog for multiple software components."""
+
     def __init__(self, parent, all_version_info=()):
         super(AboutDialog, self).__init__(parent)
         self.CreateControls()
@@ -80,6 +84,7 @@ class AboutDialog(wx.Dialog):
         self.Centre()
 
     def CreateControls(self):
+        """Create the empty controls."""
         book = self.book = wx.Notebook(self)
         line = wx.StaticLine(self, style=wx.LI_HORIZONTAL)
         button = wx.Button(self, wx.ID_OK)
@@ -90,10 +95,15 @@ class AboutDialog(wx.Dialog):
         self.SetSizer(sizer)
 
     def AddVersionInfo(self, info):
+        """Show a :class:`VersionInfo` in a new tab."""
         self.book.AddPage(AboutPanel(self.book, info), info.name)
 
 
 def _get_version_info(module):
+    """
+    Get a :class:`VersionInfo` for a module/package or other object that has
+    meta variables similar to :mod:`madgui`.
+    """
     return VersionInfo(
         name=module.__title__,
         version=module.__version__,
