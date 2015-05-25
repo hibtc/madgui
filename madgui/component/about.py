@@ -63,6 +63,7 @@ class AboutPanel(wx.Panel):
         ])
         # convert to HTML and display
         html = docutils.core.publish_string(text, writer_name='html4css1')
+        html = html.decode('utf-8')
         textctrl = StaticHtmlWindow(self, size=(600, 400))
         textctrl.SetPage(html)
         sizer = wx.BoxSizer(wx.VERTICAL)
