@@ -5,8 +5,20 @@ The application is still not nearly production ready. I decided to start
 tagging releases anyway to provide a few hints what's going on.
 
 
+Madgui 0.5.0
+------------
+Date: 28.05.2015
+
+- revert to single range display for now
+- improve aboutdialog
+- fix a minor bug when opening an element info popup window and then
+  closing the view window
+- show log and shell in separate tabs, don't show all the crust
+
+
 Madgui 0.4.0
 ------------
+Date: 22.05.2015
 
 - major changes to the internal API and data model
 - use MDI frame
