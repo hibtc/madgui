@@ -122,6 +122,7 @@ def from_config(unit):
     unit = unit.replace(u'µ', u'micro')
     unit = unit.replace(u'%', u'percent')
     unit = unit.replace(u'‰', u'permille')
+    unit = unit.replace(u'Ω', u'ohm')
     return units(unit)
 
 
