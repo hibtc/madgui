@@ -48,7 +48,7 @@ __classifiers__ = [
     'Programming Language :: Python :: 2',
     'Topic :: Scientific/Engineering :: Medical Science Apps.',
     'Topic :: Scientific/Engineering :: Physics',
-],
+]
 
 def get_copyright_notice():
     from pkg_resources import resource_string
