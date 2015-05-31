@@ -169,6 +169,7 @@ class TwissView(object):
 
         # subscribe for updates
         TwissCurveSegment(segment, self)
+        DrawLineElements(self, self.config['element_style'])
         self.segment.hook.update.connect(self.update)
 
     def destroy(self):
@@ -295,37 +296,27 @@ class UpdateStatusBar(object):
 
 class DrawLineElements(object):
 
-    @classmethod
-    def create(cls, panel):
-        view = panel.view
-        model = view.segment
-        style = view.config['element_style']
-        if model.indicators is True:
-            return cls(view, model, style)
-
-    def __init__(self, view, model, style):
+    def __init__(self, view, style):
         self._view = view
-        self._model = model
         self._style = style
+        segment = view.segment
         view.hook.plot_ax.connect(self.plot_ax)
-        model.indicators = self
+        segment.hook.show_element_indicators.connect(view.plot)
 
     def destroy(self):
-        self._view.hook.plot_ax.disconnect(self.plot_ax)
-        # TODO: just remove lines instead of full replot
-        self._view.plot()
-        self._model.indicators = None
-
-    def plot(self):
         view = self._view
-        self.plot_ax(view.figure.axx, view.xname)
-        self.plot_ax(view.figure.axy, view.yname)
+        segment = view.segment
+        view.hook.plot_ax.disconnect(self.plot_ax)
+        segment.hook.show_element_indicators.disconnect(view.plot)
 
     def plot_ax(self, axes, name):
         """Draw the elements into the canvas."""
         view = self._view
+        segment = view.segment
+        if not segment.show_element_indicators:
+            return
         unit_s = view.unit[view.sname]
-        for elem in view.segment.elements:
+        for elem in segment.elements:
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue

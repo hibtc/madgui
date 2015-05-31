@@ -223,8 +223,7 @@ class NotebookFrame(MDIParentFrame):
             twiss_args=twiss_args
         )
         segment.model = model
-        segment.indicators = detail['indicators']
-
+        segment.show_element_indicators = detail['indicators']
         TwissView.create(session, self, basename='env')
 
     @Cancellable
@@ -268,19 +267,14 @@ class NotebookFrame(MDIParentFrame):
             widget = BeamWidget(dialog, utool=self.madx_units)
             segment.beam = widget.Query(segment.beam)
 
-    def _ShowIndicators(self, event=None):
+    def _ShowIndicators(self, event):
         panel = self.GetActiveFigurePanel()
         segment = panel.view.segment
-        if segment.indicators:
-            segment.indicators.destroy()
-        else:
-            segment.indicators = True
-            DrawLineElements.create(panel).plot()
-            panel.view.figure.draw()
+        segment.show_element_indicators = event.Checked()
 
     def _UpdateShowIndicators(self, event):
         segment = self.GetActiveFigurePanel().view.segment
-        event.Check(bool(segment.indicators))
+        event.Check(bool(segment.show_element_indicators))
 
     def _ConfirmResetSession(self):
         """Prompt the user to confirm resetting the current session."""

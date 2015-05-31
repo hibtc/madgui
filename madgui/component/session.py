@@ -124,11 +124,14 @@ class Segment(object):
         """
         self.hook = HookCollection(
             update=None,
-            remove=None)
+            remove=None,
+            show_element_indicators=None,
+        )
 
         self.session = session
         self.sequence = session.madx.sequences[sequence]
         self._twiss_args = twiss_args
+        self._show_element_indicators = False
 
         self.start, self.stop = self.parse_range(range)
         self.range = (normalize_range_name(self.start.name),
@@ -169,6 +172,17 @@ class Segment(object):
     def destroy(self, start_index):
         self.session.segments.remove(self)
         self.hook.remove()
+
+    @property
+    def show_element_indicators(self):
+        return self._show_element_indicators
+
+    @show_element_indicators.setter
+    def show_element_indicators(self, show):
+        if show == self._show_element_indicators:
+            return
+        self._show_element_indicators = show
+        self.hook.show_element_indicators()
 
     @property
     def twiss_args(self):
