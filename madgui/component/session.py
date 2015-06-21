@@ -66,16 +66,14 @@ class Session(object):
         self.stop()
         # stdin=None leads to an error on windows when STDIN is broken.
         # therefore, we need use stdin=os.devnull:
-        with open(os.devnull, 'r') as devnull:
-            client, process = _rpc.LibMadxClient.spawn_subprocess(
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                stdin=devnull,
-                bufsize=0)
-        self.rpc_client = client
-        self.remote_process = process
-        self.libmadx = client.libmadx
-        self.madx = Madx(libmadx=client.libmadx)
+        self.madx = madx = Madx(
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            stdin=False,
+            bufsize=0)
+        self.rpc_client = madx._service
+        self.remote_process = madx._process
+        self.libmadx = madx._libmadx
 
     def stop(self):
         if self.rpc_client:
