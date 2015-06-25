@@ -62,6 +62,10 @@ def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
     if unit is None:
         return quantity.magnitude
+    if isinstance(unit, (list, tuple)):
+        # FIXME: 'zip' truncates without warning if not enough units
+        # are defined
+        return [q.to(u) for q, u in zip(quantity, unit)]
     return quantity.to(unit).magnitude
 
 
@@ -117,6 +121,8 @@ def from_config(unit):
     """
     if not unit:
         return units(None)
+    if isinstance(unit, list):
+        return [from_config(u) for u in unit]
     unit = unicode(unit)
     # as of pint-0.6 the following symbols fail to be parsed on python2:
     unit = unit.replace(u'µ', u'micro')
@@ -154,12 +160,20 @@ class UnitConverter(object):
         """Add units to a single number."""
         units = self._units
         if name in units:
-            if isinstance(value, Expression):
-                return SymbolicValue(value.expr, value.value, units[name])
-            else:
-                return units[name] * value
+            if isinstance(value, (list, tuple)):
+                # FIXME: 'zip' truncates without warning if not enough units
+                # are defined
+                return [self._add_unit(v, u)
+                        for v, u in zip(value, units[name])]
+            return self._add_unit(value, units[name])
         else:
             return value
+
+    def _add_unit(self, value, unit):
+        if isinstance(value, Expression):
+            return SymbolicValue(value.expr, value.value, unit)
+        else:
+            return unit * value
 
     def strip_unit(self, name, value):
         """Convert to madx units."""

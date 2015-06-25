@@ -22,7 +22,11 @@ def _format_key(index, item):
 
 def _format_val(index, item):
     val = item[1]
-    if isinstance(val, (float, unit.units.Quantity)):
+    if isinstance(val, list):
+        return '[ {} ]'.format(
+            ",".join(_format_val(index, (None, v)) for v in val)
+        )
+    elif isinstance(val, (float, unit.units.Quantity)):
         return unit.format_quantity(val, '.3f')
     elif isinstance(val, basestring):
         return val

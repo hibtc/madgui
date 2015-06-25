@@ -136,10 +136,13 @@ class ElementView(object):
         order = ['Name',
                  'Type',
                  'At',
-                 'L']
+                 'L',
+                 'Ksl',
+                 'Knl',
+                 ]
         order = dict(zip(order, range(-len(order), 0)))
         rows = sorted(rows, key=lambda row: order.get(row[0], len(order)))
-        rows = filter(lambda row: row[0] not in ('Vary','Ksl','Knl'), rows)
+        rows = filter(lambda row: row[0] != 'Vary', rows)
 
         # update view:
         self.popup.rows = rows
