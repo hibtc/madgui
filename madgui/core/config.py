@@ -47,15 +47,16 @@ def recursive_merge(a, b):
     return a
 
 
-def load_config(cls, path_user=None):
+def existing_path(path):
+    return path if os.path.exists(path) else None
+
+
+def load_config(config_path=None):
     """Read config file and recursively merge it with a base config file."""
     base_config = get_base_config()
-    user_config = {}
-    if path_user:
-        user_config = _load_file(path_user)
-    else:
-        try:
-            user_config = _load_file(get_default_user_config_path())
-        except IOError:
-            pass
-    return recursive_merge(base_config, user_config)
+    config_path = (config_path or
+                   existing_path('madgui_config.yml') or
+                   existing_path(get_default_user_config_path()))
+    if config_path:
+        recursive_merge(base_config, _load_file(config_path))
+    return base_config
