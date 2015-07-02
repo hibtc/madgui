@@ -138,8 +138,9 @@ class NotebookFrame(MDIParentFrame):
     @Cancellable
     def _LoadModel(self, event=None):
         reset = self._ConfirmResetSession()
+        model_pathes = self.app.conf.get('model_pathes', [])
         with Dialog(self) as dialog:
-            mdata, repo, optic = OpenModelWidget(dialog).Query()
+            mdata, repo, optic = OpenModelWidget(dialog).Query(model_pathes)
         if not mdata:
             return
         if reset:

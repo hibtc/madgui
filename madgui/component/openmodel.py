@@ -124,6 +124,10 @@ class OpenModelWidget(Widget):
         # Note that entrypoints are lazy-loaded:
         self.locators = {u'<{}>'.format(ep.name): lambda: ep.load()()
                          for ep in iter_entry_points('madgui.models')}
+        self.locators.update({
+            path: lambda: Locator.from_path(path)
+            for path in self.model_pathes
+        })
         # Format entrypoint names, so they can't be confused with package
         # names. This can be used in the EVT_TEXT handler to decide whether
         # to use the entrypoint or package:
@@ -163,8 +167,9 @@ class OpenModelWidget(Widget):
         optic = self.ctrl_optic.GetValue()
         return mdata, repo, optic
 
-    def SetData(self):
+    def SetData(self, model_pathes):
         """Update displayed package and model name."""
+        self.model_pathes = model_pathes
         self.UpdateLocatorList()
         self.UpdateModelList()
 
