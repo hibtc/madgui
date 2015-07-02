@@ -48,8 +48,9 @@ if sys.platform == 'win32':
     def ShowMDIChildFrame(frame):
         frame.Show()
 
-    def CloseMDIChildren(parent):
-        pass
+    def GetMDIChildFrames(parent):
+        return [window for window in parent.GetChildren()
+                if isinstance(window, MDIChildFrame)]
 
 else:
     MDIParentFrame = wx.aui.AuiMDIParentFrame
@@ -60,11 +61,15 @@ else:
         frame.Fit()
         frame.Activate()
 
-    def CloseMDIChildren(parent):
-        """Close all child frames to prevent a core dump on wxGTK."""
-        for window in parent.GetClientWindow().GetChildren():
-            if isinstance(window, MDIChildFrame):
-                window.Destroy()
+    def GetMDIChildFrames(parent):
+        return [window for window in parent.GetClientWindow().GetChildren()
+                if isinstance(window, MDIChildFrame)]
+
+
+def CloseMDIChildren(parent):
+    """Close all child frames to prevent a core dump on wxGTK."""
+    for window in GetMDIChildFrames(parent):
+        window.Destroy()
 
 
 def monospace(pt_size):
@@ -299,7 +304,7 @@ class NotebookFrame(MDIParentFrame):
         raise CancelAction
 
     def _ResetSession(self, event=None):
-        # self.notebook.DeleteAllPages()
+        CloseMDIChildren(self)
         self.session.stop()
         self._NewLogTab()
         self.InitMadx()
