@@ -36,7 +36,7 @@ class MatchTool(object):
         self.view = panel.view
         self.matcher = None
         # toolbar tool
-        res = PackageResource('madgui.resource')
+        res = PackageResource('madgui.data')
         with res.open('cursor.xpm') as xpm:
             img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
         bmp = wx.BitmapFromImage(img)

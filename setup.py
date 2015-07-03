@@ -51,7 +51,7 @@ def main():
             'madgui',
             'madgui.component',
             'madgui.core',
-            'madgui.resource',
+            'madgui.data',
             'madgui.util',
             'madgui.widget',
         ],
