@@ -2,7 +2,21 @@ Changelog
 ~~~~~~~~~
 
 The application is still not nearly production ready. I decided to start
-tagging releases anyway to provide a few hints what's going on.
+tagging releases anyway to provide a few hints and orientation on what's
+going on.
+
+
+Madgui 0.6.0
+------------
+Date: 03.07.2015
+
+- fix a few bugs
+- depend on cpymad 0.11.0
+- support array units
+- load config from CWD
+- path entry for models in config file
+- close child frames on session reset
+- migrate model code from cpymad
 
 
 Madgui 0.5.0

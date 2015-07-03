@@ -15,7 +15,7 @@ __title__ = 'MadGUI'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
 __uri__ = 'https://github.com/hibtc/madgui'
 
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 
 __author__ = 'Thomas Gläßle'
 __email__ = 't_glaessle@gmx.de'
@@ -23,7 +23,7 @@ __email__ = 't_glaessle@gmx.de'
 __support__ = __email__
 
 __license__ = 'MIT'
-__copyright__ = '(C) 2013 - 2014 HIT Betriebs GmbH'
+__copyright__ = '(C) 2013 - 2015 HIT Betriebs GmbH'
 
 __credits__ = """
 MadGUI is developed for HIT Betriebs GmbH.
