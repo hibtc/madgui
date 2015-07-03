@@ -6,12 +6,10 @@ Matching tool for a :class:`LineView` instance.
 # force new style imports
 from __future__ import absolute_import
 
-# 3rd party
-from cpymad.resource.package import PackageResource
-
 # internal
 from madgui.core import wx
 from madgui.core.plugin import HookCollection
+from madgui.resource.package import PackageResource
 from madgui.util.unit import strip_unit
 
 # exported symbols
@@ -36,7 +34,7 @@ class MatchTool(object):
         self.view = panel.view
         self.matcher = None
         # toolbar tool
-        res = PackageResource('madgui.resource')
+        res = PackageResource('madgui.data')
         with res.open('cursor.xpm') as xpm:
             img = wx.ImageFromStream(xpm, wx.BITMAP_TYPE_XPM)
         bmp = wx.BitmapFromImage(img)

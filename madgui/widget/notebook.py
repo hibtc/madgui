@@ -16,14 +16,12 @@ from madgui.core import wx
 import wx.aui
 from wx.py.shell import Shell
 
-# 3rd-party
-from cpymad.model import Model
-
 # internal
 from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
+from madgui.component.model import Model
 from madgui.component.modeldetail import ModelDetailWidget
 from madgui.component.openmodel import OpenModelWidget
 from madgui.component.session import Session, Segment
