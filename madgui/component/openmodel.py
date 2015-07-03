@@ -11,13 +11,11 @@ import os
 from importlib import import_module
 from pkg_resources import iter_entry_points
 
-# 3rd party
-from cpymad.resource.file import FileResource
-from cpymad.resource.package import PackageResource
-from cpymad.model import Locator as _Locator
-
 # internal
 from madgui.core import wx
+from madgui.component.model import Locator as _Locator
+from madgui.resource.file import FileResource
+from madgui.resource.package import PackageResource
 from madgui.util.common import cachedproperty
 from madgui.widget.input import Widget
 
