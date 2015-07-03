@@ -131,7 +131,6 @@ class OpenModelWidget(Widget):
         # to use the entrypoint or package:
         self.ctrl_pkg.SetItems(list(self.locators))
         self.ctrl_pkg.SetSelection(0)
-        self.ctrl_pkg.Enable(bool(self.locators))
 
     def UpdateModelList(self):
         """Update displayed model list."""
