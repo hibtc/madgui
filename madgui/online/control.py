@@ -34,14 +34,6 @@ from .stub import BeamOptikDllProxy
 # TODO: automate loading DVM parameters via model and/or named hook
 
 
-def strip_prefix(name, prefix):
-    """Strip a specified prefix substring from a string."""
-    if name.startswith(prefix):
-        return name[len(prefix):]
-    else:
-        return name
-
-
 def load_config():
     """Return the builtin configuration."""
     return load_yaml_resource('hit.online_control', 'config.yml')
@@ -388,8 +380,6 @@ class Control(object):
 
     def _get_sd_value(self, element_name, param_name):
         """Return a single SD value (with unit)."""
-        element_name = strip_prefix(element_name, 'sd_')
-        param_name = param_name
         sd_name = param_name + '_' + element_name
         plain_value = self._dvm.GetFloatValueSD(sd_name.upper())
         # NOTE: Values returned by SD monitors are in millimeter:
