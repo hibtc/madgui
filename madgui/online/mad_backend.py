@@ -10,25 +10,33 @@ from madgui.util.symbol import SymbolicValue
 from . import api
 
 
+def _get_identifier(expr):
+    if isinstance(expr, SymbolicValue):
+        return str(expr._expression)
+    elif isinstance(expr, Expression):
+        return str(expr)
+    else:
+        return ''
+
+
 def _get_property_lval(elem, attr):
     """
     Return lvalue name for a given element attribute from MAD-X.
 
-    >>> get_element_attribute(elements['r1qs1:1'], 'k1')
-    'k1_r1qs1'
+    >>> get_element_attribute(elements['r1qs1'], 'k1')
+    'r1qs1->k1'
     """
     expr = elem[attr]
-    if isinstance(expr, SymbolicValue):
-        name = str(expr._expression)
-    elif isinstance(expr, Expression):
-        name = str(expr)
+    if isinstance(expr, list):
+        names = [_get_identifier(v) for v in expr]
+        if not any(names):
+            raise api.UnknownElement
+        return names
     else:
-        name = ''       # not a valid identifier! -> for check below
-    if is_identifier(name):
-        return name
-    if attr in ('knl', 'ksl'):
-        raise api.UnknownElement
-    return elem['name'] + '->' + attr
+        name = _get_identifier(expr)
+        if is_identifier(name):
+            return name
+        return elem['name'] + '->' + attr
 
 
 def _value(v):
