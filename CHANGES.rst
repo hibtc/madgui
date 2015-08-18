@@ -6,6 +6,14 @@ tagging releases anyway to provide a few hints and orientation on what's
 going on.
 
 
+Madgui 0.7.0
+------------
+Date: 18.08.2015
+
+- rework online control API
+- embed online control UI + controller
+
+
 Madgui 0.6.0
 ------------
 Date: 03.07.2015
