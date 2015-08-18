@@ -4,39 +4,24 @@ Plugin that integrates a beamoptikdll UI into MadGUI.
 
 from __future__ import absolute_import
 
-import sys
-import traceback
+from functools import partial
 
 import numpy
-
-from pydicti import dicti
 
 from cpymad.types import Expression
 
 from madgui.core import wx
-from madgui.core.plugin import HookCollection, EntryPoint
-from madgui.util import unit
+from madgui.core.plugin import EntryPoint
+from madgui.util.common import cachedproperty
 from madgui.widget import menu
-from madgui.widget.input import CancelAction, Cancellable, Dialog
+from madgui.widget.input import Cancellable, Dialog
 
-from .beamoptikdll import BeamOptikDLL, ExecOptions
-from .dvm_parameters import DVM_ParameterList
-from .dvm_conversion import ParamImporter
-from .util import load_yaml_resource
-from .dialogs import (ImportParamWidget, ExportParamWidget,
-                      MonitorWidget, OpticSelectWidget, OptikVarianzWidget)
-from .stub import BeamOptikDllProxy
-
-
-
+from . import api
+from . import dialogs
+from . import mad_backend
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
-
-
-def load_config():
-    """Return the builtin configuration."""
-    return load_yaml_resource('hit.online_control', 'config.yml')
 
 
 class Control(object):
@@ -44,8 +29,6 @@ class Control(object):
     """
     Plugin class for MadGUI.
     """
-
-    _BeamOptikDLL = BeamOptikDLL
 
     def __init__(self, frame, menubar):
         """
@@ -56,67 +39,29 @@ class Control(object):
         database. This works only if the corresponding parameters were named
         exactly as in the database and are assigned with the ":=" operator.
         """
-        if not (self._check_dll() or self._check_stub()):
-            # Can't connect, so no point in showing anything.
-            return
-        self.hook = HookCollection(
-            on_loaded_dvm_params=None)
         self._frame = frame
-        self._dvm = None
-        self._config = load_config()
-        self._dvm_params = {}
-        units = unit.from_config_dict(self._config['units'])
-        self._utool = unit.UnitConverter(units)
-        submenu = self.create_menu()
-        menu.extend(frame, menubar, [submenu])
+        self._plugin = None
+        loaders = [
+            loader
+            for loader in EntryPoint('madgui.online.PluginLoader').slots
+            if loader.check_avail()
+        ]
+        if loaders:
+            submenu = self.create_menu(loaders)
+            menu.extend(frame, menubar, [submenu])
 
-    def _check_dll(self):
-        """Check if the 'Connect' menu item should be shown."""
-        return self._BeamOptikDLL.check_library()
-
-    def _check_stub(self):
-        """Check if the 'Connect &test stub' menu item should be shown."""
-        # TODO: check for debug mode?
-        return True
-
-    @property
-    def _model_name(self):
-        try:
-            return self._segment.model.name.lower()
-        except AttributeError:
-            return 'all'
-
-    def _check_dvm_params(self):
-        if self._dvm_params:
-            return
-        for ep in EntryPoint('hit.dvm_parameters.load').slots:
-            parlist = ep(self._model_name)
-            if parlist:
-                self.set_dvm_parameter_list(parlist)
-                return
-        self.load_dvm_parameter_list()
-        if not self._dvm_params:
-            raise CancelAction
-
-    def create_menu(self):
+    def create_menu(self, loaders):
         """Create menu."""
         Item = menu.CondItem
         Separator = menu.Separator
         items = []
-        if self._check_dll():
-            items += [
-                Item('&Connect',
-                     'Connect online control interface',
-                     self.load_and_connect,
-                     self.is_disconnected),
-            ]
-        if self._check_stub():
-            items += [
-                Item('Connect &test stub',
-                     'Connect a stub version (for offline testing)',
-                     self.load_and_connect_stub,
-                     self.is_disconnected),
-            ]
+        for loader in loaders:
+            items.append(
+                Item('Connect ' + loader.title,
+                     'Connect ' + loader.descr,
+                     partial(self.connect, loader),
+                     lambda: bool(self._segment) and not self.is_connected())
+            )
         items += [
             Item('&Disconnect',
                  'Disconnect online control interface',
@@ -132,122 +77,64 @@ class Control(object):
                  self.write_all,
                  self.has_sequence),
             Separator,
-            Item('&Execute changes',
-                 'Apply parameter written changes to magnets',
-                 self.execute,
-                 self.has_sequence),
-            Separator,
             Item('Read &monitors',
                  'Read SD values (beam envelope/position) from monitors',
-                 self.read_all_sd_values,
+                 self.read_monitors,
                  self.has_sequence),
             Separator,
             Item('Detect beam &alignment',
                  'Detect the beam alignment and momentum (Optikvarianz)',
                  self.on_find_initial_position,
                  self.has_sequence),
-            Separator,
-            Item('&Load DVM parameter list',
-                 'Load list of DVM parameters',
-                 self.load_dvm_parameter_list,
-                 self.is_connected),
         ]
         return menu.Menu('&Online control', items)
 
-    def is_connected(self):
-        """Check if online control is connected."""
-        return self.connected
+    # menu conditions
 
-    def is_disconnected(self):
-        """Check if online control is disconnected."""
-        return not self.connected
+    def is_connected(self):
+        """Check if the online control is connected."""
+        return bool(self._plugin)
 
     def has_sequence(self):
         """Check if online control is connected and a sequence is loaded."""
-        return self.connected and bool(self._segment)
+        return self.is_connected() and bool(self._segment)
 
-    def load_and_connect(self):
-        """Connect to online database."""
-        try:
-            self._dvm = self._BeamOptikDLL.load_library()
-        except OSError:
-            exc_str = traceback.format_exception_only(*sys.exc_info()[:2])
-            wx.MessageBox("".join(exc_str),
-                          'Failed to load DVM module',
-                          wx.ICON_ERROR|wx.OK,
-                          parent=self._frame)
-            return
-        self._connect()
+    # menu handlers
 
-    def load_and_connect_stub(self):
-        """Connect a stub BeamOptikDLL (for offline testing)."""
-        logger = self._frame.getLogger('hit.online_control.stub')
-        proxy = BeamOptikDllProxy({}, logger)
-        self.hook.on_loaded_dvm_params.connect(
-            proxy._use_dvm_parameter_examples)
-        self._dvm = self._BeamOptikDLL(proxy)
-        self._connect()
-
-    def _connect(self):
-        """Connect to online database (must be loaded)."""
-        self._dvm.GetInterfaceInstance()
-        self._frame.env['dvm'] = self._dvm
+    def connect(self, loader):
+        self._plugin = loader.load(self._frame)
+        self._frame.env['dvm'] = self._plugin._dvm
 
     def disconnect(self):
-        """Disconnect from online database."""
         del self._frame.env['dvm']
-        self._dvm.FreeInterfaceInstance()
+        self._plugin.disconnect()
+        self._plugin = None
 
-    @property
-    def connected(self):
-        """Check if the online control is connected."""
-        return bool(self._dvm)
-
-    @property
-    def _segment(self):
-        """Return the online control (:class:`madgui.component.Model`)."""
-        panel = self._frame.GetActiveFigurePanel()
-        if panel:
-            return panel.view.segment
-        return None
-
-    def iter_dvm_params(self):
-        """
-        Iterate over all known DVM parameters belonging to elements in the
-        current sequence.
-
-        Yields tuples of the form (Element, list[DVM_Parameter]).
-        """
-        self._check_dvm_params()
-        for mad_elem in self._segment.elements:
-            try:
-                el_name = mad_elem['name']
-                dvm_par = self._dvm_params[el_name]
-                yield (mad_elem, dvm_par)
-            except KeyError:
-                continue
-
-    def iter_convertible_dvm_params(self):
-        """
-        Iterate over all DVM parameters that can be converted to/from MAD-X
-        element attributes in the current sequence.
-
-        Yields instances of type :class:`ParamConverterBase`.
-        """
-        for mad_elem, dvm_params in self.iter_dvm_params():
-            try:
-                importer = getattr(ParamImporter, mad_elem['type'])
-            except AttributeError:
-                continue
-            for param in importer(mad_elem, dvm_params, self):
-                yield param
+    def iter_elements(self, kind=None):
+        """Iterate :class:`BaseElement` in the sequence."""
+        if kind is None:
+            kind = BaseElement
+        for el in self._segment.elements:
+            cls = self._decide_element(el)
+            if cls and issubclass(cls, kind):
+                try:
+                    yield cls(self._segment, el, self._plugin)
+                except api.UnknownElement:
+                    pass
 
     @Cancellable
     def read_all(self):
         """Read all parameters from the online database."""
         # TODO: cache and reuse 'active' flag for each parameter
-        rows = [(param, param.get_value())
-                for param in self.iter_convertible_dvm_params()]
+        elements = [
+            (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
+            for el in self.iter_elements(BaseMagnet)
+        ]
+        rows = [
+            (el.dvm_params[k], dv, mvals[k])
+            for el, dvals, mvals in elements
+            for k, dv in dvals.items()
+        ]
         if not rows:
             wx.MessageBox('There are no readable DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.',
                           'No readable parameters available',
@@ -255,8 +142,64 @@ class Control(object):
                           parent=self._frame)
             return
         with Dialog(self._frame) as dialog:
-            selected = ImportParamWidget(dialog).Query(rows)
-        self.read_these(selected)
+            dialogs.ImportParamWidget(dialog).Query(rows)
+        self.read_these(elements)
+
+    @Cancellable
+    def write_all(self):
+        """Write all parameters to the online database."""
+        elements = [
+            (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
+            for el in self.iter_elements(BaseMagnet)
+        ]
+        rows = [
+            (el.dvm_params[k], dv, mvals[k])
+            for el, dvals, mvals in elements
+            for k, dv in dvals.items()
+        ]
+        if not rows:
+            wx.MessageBox('There are no writable DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.',
+                          'No writable parameters available',
+                          wx.ICON_ERROR|wx.OK,
+                          parent=self._frame)
+            return
+        with Dialog(self._frame) as dialog:
+            dialogs.ExportParamWidget(dialog).Query(rows)
+        self.write_these(elements)
+
+    @Cancellable
+    def read_monitors(self):
+        """Read out SD values (beam position/envelope)."""
+        # TODO: cache list of used SD monitors
+        rows = [(m.name, m.dvm_backend.get())
+                for m in self.iter_elements(Monitor)]
+        if not rows:
+            wx.MessageBox('There are no usable SD monitors in the current sequence.',
+                          'No usable monitors available',
+                          wx.ICON_ERROR|wx.OK,
+                          parent=self._frame)
+            return
+        with Dialog(self._frame) as dialog:
+            dialogs.MonitorWidget(dialog).Query(rows)
+        # TODO: show SD values in plot?
+
+    @Cancellable
+    def on_find_initial_position(self):
+        segment = self._segment
+        # TODO: sync elements attributes
+        elements = segment.sequence.elements
+        with Dialog(self._frame) as dialog:
+            elems = dialogs.OpticSelectWidget(dialog).Query(elements, self.varyconf)
+        with Dialog(self._frame) as dialog:
+            dialogs.OptikVarianzWidget(dialog).Query(self, *elems)
+
+    # helper functions
+
+    @property
+    def _segment(self):
+        """Return the online control (:class:`madgui.component.Model`)."""
+        panel = self._frame.GetActiveFigurePanel()
+        return panel and panel.view.segment
 
     def read_these(self, params):
         """
@@ -267,26 +210,9 @@ class Control(object):
         segment = self._segment
         madx = segment.session.madx
         strip_unit = segment.session.utool.strip_unit
-        for param, dvm_value in params:
-            mad_value = param.dvm2madx(dvm_value)
-            plain_value = strip_unit(param.mad_symb, mad_value)
-            madx.set_value(param.mad_name, plain_value)
+        for elem, dvm_value, mad_value in params:
+            elem.mad_backend.set(elem.dvm2mad(dvm_value))
         segment.twiss()
-
-    @Cancellable
-    def write_all(self):
-        """Write all parameters to the online database."""
-        rows = [(param, param.get_value())
-                for param in self.iter_convertible_dvm_params()]
-        if not rows:
-            wx.MessageBox('There are no writable DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.',
-                          'No writable parameters available',
-                          wx.ICON_ERROR|wx.OK,
-                          parent=self._frame)
-            return
-        with Dialog(self._frame) as dialog:
-            selected = ExportParamWidget(dialog).Query(rows)
-        self.write_these(par for par, _ in selected)
 
     def write_these(self, params):
         """
@@ -294,147 +220,8 @@ class Control(object):
 
         :param list params: List of ParamConverterBase
         """
-        for par in params:
-            par.set_value()
-
-    def get_float_value(self, dvm_name):
-        """Get a single float value from the online database."""
-        return self._dvm.GetFloatValue(dvm_name)
-
-    def set_float_value(self, dvm_name, value):
-        """Set a single float value in the online database."""
-        self._dvm.SetFloatValue(dvm_name, value)
-
-    def get_value(self, param_type, dvm_name):
-        """Get a single value from the online database with unit."""
-        plain_value = self.get_float_value(dvm_name)
-        return self._utool.add_unit(param_type.lower(), plain_value)
-
-    def set_value(self, param_type, dvm_name, value):
-        """Set a single parameter in the online database with unit."""
-        plain_value = self._utool.strip_unit(param_type, value)
-        self.set_float_value(dvm_name, plain_value)
-
-    def execute(self, options=ExecOptions.CalcDif):
-        """Execute changes (commits prioir set_value operations)."""
-        self._dvm.ExecuteChanges(options)
-
-    def iter_sd_values(self):
-        """Yields (element, values) tuples for usable monitors."""
-        for elem in self.iter_monitors():
-            values = self.get_sd_values(elem['name'])
-            if values:
-                yield (elem, values)
-
-    @Cancellable
-    def read_all_sd_values(self):
-        """Read out SD values (beam position/envelope)."""
-        # TODO: cache list of used SD monitors
-        rows = list(self.iter_sd_values())
-        if not rows:
-            wx.MessageBox('There are no usable SD monitors in the current sequence.',
-                          'No usable monitors available',
-                          wx.ICON_ERROR|wx.OK,
-                          parent=self._frame)
-            return
-        with Dialog(self._frame) as dialog:
-            selected = MonitorWidget(dialog).Query(rows)
-        self.use_these_sd_values(selected)
-
-    def use_these_sd_values(self, monitor_values):
-        segment = self._segment
-        utool = segment.session.utool
-        for elem, values in monitor_values:
-            sd = {}
-            ex = segment.beam['ex']
-            ey = segment.beam['ey']
-            if 'widthx' in values:
-                sd['betx'] = values['widthx'] ** 2 / ex
-            if 'widthy' in values:
-                sd['bety'] = values['widthy'] ** 2 / ey
-            if 'posx' in values:
-                sd['x'] = values['posx']
-            if 'posy' in values:
-                sd['y'] = values['posy']
-            sd = utool.dict_normalize_unit(sd)
-            element_info = segment.get_element_info(elem['name'])
-            # TODO: show sd values in figure
-
-    def get_sd_values(self, element_name):
-        """Read out one SD monitor."""
-        values = {}
-        for feature in ('widthx', 'widthy', 'posx', 'posy'):
-            # TODO: Handle usability of parameters individually
-            try:
-                val = self._get_sd_value(element_name, feature)
-            except RuntimeError:
-                return {}
-            # TODO: move sanity check to later, so values will simply be
-            # unchecked/grayed out, instead of removed completely
-            # The magic number -9999.0 signals corrupt values.
-            # FIXME: Sometimes width=0 is returned. ~ Meaning?
-            if feature.startswith('width') and val.magnitude <= 0:
-                return {}
-            values[feature] = val
-        return values
-
-    def _get_sd_value(self, element_name, param_name):
-        """Return a single SD value (with unit)."""
-        sd_name = param_name + '_' + element_name
-        plain_value = self._dvm.GetFloatValueSD(sd_name.upper())
-        # NOTE: Values returned by SD monitors are in millimeter:
-        return plain_value * unit.units.mm
-
-    def iter_monitors(self):
-        """Iterate SD monitor elements (element dicts) in current sequence."""
-        for element in self._segment.elements:
-            if element['type'].lower().endswith('monitor'):
-                yield element
-
-    def load_dvm_parameter_list(self):
-        """Show a FileDialog to import a new DVM parameter list."""
-        dlg = wx.FileDialog(
-            self._frame,
-            "Load DVM-Parameter list. The CSV file must be ';' separated and 'utf-8' encoded.",
-            wildcard="CSV files (*.csv)|*.csv",
-            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        if dlg.ShowModal() != wx.ID_OK:
-            return
-        filename = dlg.GetPath()
-        # TODO: let user choose the correct delimiter/encoding settings
-        try:
-            parlist = DVM_ParameterList.from_csv(filename, 'utf-8')
-        except UnicodeDecodeError:
-            wx.MessageBox('I can only load UTF-8 encoded files!',
-                          'UnicodeDecodeError',
-                          wx.ICON_ERROR|wx.OK,
-                          parent=self._frame)
-        else:
-            self.set_dvm_parameter_list(parlist)
-
-    def set_dvm_parameter_list(self, parlist):
-        """Use specified DVM_ParameterList."""
-        self._dvm_params = dicti(parlist._data)
-        self.hook.on_loaded_dvm_params(self._dvm_params)
-
-    def sync_from_db(self):
-        params = [(param, param.get_value())
-                  for param in self.iter_convertible_dvm_params()]
-        self.read_these(params)
-
-    @property
-    def varyconf(self):
-        return self._segment.model._data.get('align', {})
-
-    @Cancellable
-    def on_find_initial_position(self):
-        segment = self._segment
-        # TODO: sync elements attributes
-        elements = segment.sequence.elements
-        with Dialog(self._frame) as dialog:
-            elems = OpticSelectWidget(dialog).Query(elements, self.varyconf)
-        with Dialog(self._frame) as dialog:
-            OptikVarianzWidget(dialog).Query(self, *elems)
+        for elem, dvm_value, mad_value in params:
+            elem.dvm_backend.set(mad_value)
 
     def align_beam(self, elem):
         # TODO: use config only as default, but ask user
@@ -548,3 +335,171 @@ class Control(object):
         x = numpy.linalg.lstsq(M, m)[0]
         return utool.dict_add_unit({'x': x[0], 'px': x[1],
                                     'y': x[2], 'py': x[3]})
+
+    def _decide_element(self, element):
+        el_name = element['name'].lower()
+        el_type = element['type'].lower()
+        if el_type.endswith('monitor'):
+            return Monitor
+        # TODO: pass dvm params
+        if el_type == 'sbend':
+            return Dipole
+        if el_type == 'quadrupole':
+            return Quadrupole
+        if el_type == 'solenoid':
+            return Solenoid
+        if el_type == 'multipole':
+            try:
+                n = len(element['knl'])
+            except KeyError:
+                pass
+            else:
+                if n == 1: return MultipoleNDP
+                if n == 2: return MultipoleNQP
+                return None
+            try:
+                n = len(element['ksl'])
+            except KeyError:
+                pass
+            else:
+                if n == 1: return MultipoleSDP
+                if n == 2: return MultipoleSQP
+                return None
+            # TODO: handle mixed dip/quadp coefficients?
+            # TODO: handle higher order multipoles
+
+
+class BaseElement(api._Interface):
+
+    """
+    Logical beam line element.
+
+    Can be implemented as a group of related MAD-X elements, but usually
+    refers to the same physical element.
+    """
+
+    def __init__(self, segment, element, plugin):
+        self.name = element['name']
+        self.el_type = element['type']
+        self.elements = (element,)
+        self._segment = segment
+        self._plugin = plugin
+        self.mad_converter, self.mad_backend = self._mad_backend()
+        self.dvm_converter, self.dvm_backend = self._dvm_backend()
+
+    @api.abstractproperty
+    def parameter_info(self):
+        """Get a parameter description dict."""
+
+    @api.abstractmethod
+    def _mad_backend(self):
+        """Get converter + backend classes for MAD-X."""
+
+    @api.abstractmethod
+    def _dvm_backend(self):
+        """Get converter + backend classes for DB."""
+
+    def mad2dvm(self, values):
+        return self.dvm_converter.to_backend(
+            self.mad_converter.to_standard(values))
+
+    def dvm2mad(self, values):
+        return self.mad_converter.to_backend(
+            self.dvm_converter.to_standard(values))
+
+    # mixin:
+    def _construct(self, conv):
+        elem = self.elements[0]
+        madx = self._segment.madx
+        utool = self._segment.session.utool
+        lval = {
+            key: mad_backend._get_property_lval(elem, key)
+            for key in conv.backend_keys
+        }
+        back = mad_backend.MagnetBackend(madx, utool, elem, lval)
+        return conv, back
+
+
+class Monitor(BaseElement):
+
+    parameter_info = {
+        'widthx': 'Beam x width',
+        'widthy': 'Beam y width',
+        'posx': 'Beam x position',
+        'posy': 'Beam y position',
+    }
+
+    def _mad_backend(self):
+        segment = self._segment
+        conv = mad_backend.Monitor(segment.beam['ex'], segment.beam['ey'])
+        back = mad_backend.MonitorBackend(segment, self.elements[0])
+        return conv, back
+
+    def _dvm_backend(self):
+        return self._plugin.get_monitor(self._segment, self.elements)
+
+
+class BaseMagnet(BaseElement):
+
+    def _mad_backend(self):
+        return self._construct(self.mad_cls())
+
+    @property
+    def dvm_params(self):
+        return self.dvm_converter.param_info
+
+
+class BaseDipole(BaseMagnet):
+
+    parameter_info = {'angle': "Total deflection angle."}
+
+    def _dvm_backend(self):
+        return self._plugin.get_dipole(self._segment, self.elements, self.skew)
+
+
+class Dipole(BaseDipole):
+    skew = False
+    mad_cls = mad_backend.Dipole
+    # TODO: what about DIPEDGE?
+
+
+class MultipoleNDP(BaseDipole):
+    skew = False
+    mad_cls = mad_backend.MultipoleNDP
+
+
+class MultipoleSDP(BaseDipole):
+    skew = True
+    mad_cls = mad_backend.MultipoleSDP
+
+
+class BaseQuadrupole(BaseMagnet):
+
+    parameter_info = {'kL': "Integrated quadrupole field strength."}
+
+    def _dvm_backend(self):
+        return self._plugin.get_quadrupole(self._segment, self.elements)
+
+
+class Quadrupole(BaseQuadrupole):
+
+    def _mad_backend(self):
+        # TODO: use 'lrad' instead of 'l' when needed?
+        return self._construct(mad_backend.Quadrupole(self.elements[0]['l']))
+
+
+class MultipoleNQP(BaseQuadrupole):
+    mad_cls = mad_backend.MultipoleNQP
+
+
+class MultipoleSQP(BaseQuadrupole):
+    mad_cls = mad_backend.MultipoleSQP
+
+
+class Solenoid(BaseMagnet):
+
+    parameter_info = {'ks': "Integrated field strength."}
+    mad_cls = mad_backend.Solenoid
+
+    def _dvm_backend(self):
+        return self._plugin.get_solenoid(self._segment, self.elements)

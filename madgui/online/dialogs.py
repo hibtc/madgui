@@ -47,16 +47,16 @@ class ListSelectWidget(Widget):
     def SetData(self, data):
         self._grid.items = data
         # TODO: replace SELECT(ALL) by SELECT(SELECTED)
-        for idx in range(len(data)):
-            self._grid.Select(idx)
+        #for idx in range(len(data)):
+        #    self._grid.Select(idx)
 
     def GetData(self):
         return list(self._grid.selected_items)
 
 
 def format_dvm_value(param, value):
-    value = tounit(value, param.dvm_param.ui_unit)
-    fmt_code = '.{}f'.format(param.dvm_param.ui_prec)
+    value = tounit(value, param.ui_unit)
+    fmt_code = '.{}f'.format(param.ui_prec)
     return format_quantity(value, fmt_code)
 
 
@@ -86,16 +86,15 @@ class SyncParamWidget(ListSelectWidget):
         ]
 
     def _format_param(self, index, item):
-        param, dvm_value = item
-        return param.dvm_name
+        param, dvm_value, mad_value = item
+        return param.name
 
     def _format_dvm_value(self, index, item):
-        param, dvm_value = item
+        param, dvm_value, mad_value = item
         return format_dvm_value(param, dvm_value)
 
     def _format_madx_value(self, index, item):
-        param, dvm_value = item
-        mad_value = param.madx2dvm(param.mad_value)
+        param, dvm_value, mad_value = item
         return format_dvm_value(param, mad_value)
 
 
@@ -149,11 +148,11 @@ class MonitorWidget(ListSelectWidget):
         ]
 
     def _format_monitor_name(self, index, item):
-        elem, values = item
-        return elem['name']
+        el_name, values = item
+        return el_name
 
     def _format_sd_value(self, name, index, item):
-        elem, values = item
+        el_name, values = item
         value = values.get(name)
         if value is None:
             return ''
