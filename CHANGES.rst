@@ -6,6 +6,14 @@ tagging releases anyway to provide a few hints and orientation on what's
 going on.
 
 
+Madgui 0.7.1
+------------
+Date: 18.08.2015
+
+- fix bug with stripping units for arrays (e.g. elem->KNL)
+- fix bug with handling arrays (multipoles) in online controller
+
+
 Madgui 0.7.0
 ------------
 Date: 18.08.2015
