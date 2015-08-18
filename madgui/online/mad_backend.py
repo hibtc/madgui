@@ -63,9 +63,16 @@ class MagnetBackend(api.ElementBackend):
 
     def set(self, values):
         """Store values to MAD-X."""
+        madx = self._madx
         for key, val in values.items():
             plain_value = self._utool.strip_unit(key, val)
-            self._madx.set_value(self._lval[key], plain_value)
+            lval = self._lval[key]
+            if isinstance(val, list):
+                for k, v in zip(lval, plain_value):
+                    if k:
+                        madx.set_value(k, v)
+            else:
+                madx.set_value(lval, plain_value)
 
 
 class MonitorBackend(api.ElementBackend):

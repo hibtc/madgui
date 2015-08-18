@@ -65,7 +65,7 @@ def strip_unit(quantity, unit=None):
     if isinstance(unit, (list, tuple)):
         # FIXME: 'zip' truncates without warning if not enough units
         # are defined
-        return [q.to(u) for q, u in zip(quantity, unit)]
+        return [q.to(u).magnitude for q, u in zip(quantity, unit)]
     return quantity.to(unit).magnitude
 
 
