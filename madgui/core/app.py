@@ -63,6 +63,9 @@ class App(wx.App):
         [madgui.core.app.init]
         mainframe = madgui.widget.notebook:NotebookFrame
 
+        [madgui.widget.notebook.menu]
+        online_control = madgui.online.control:Control
+
         [madgui.widget.figure.init]
         matchtool = madgui.component.matchtool:MatchTool
         selecttool = madgui.component.selecttool:SelectTool
