@@ -8,11 +8,10 @@ from functools import partial
 
 import numpy
 
-from cpymad.types import Expression
-
 from madgui.core import wx
 from madgui.core.plugin import EntryPoint
 from madgui.util.common import cachedproperty
+from madgui.util.symbol import SymbolicValue
 from madgui.widget import menu
 from madgui.widget.input import Cancellable, Dialog
 
@@ -22,6 +21,15 @@ from . import mad_backend
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
+
+
+def detect_multipole_order(coefs):
+    # TODO: safe-guard against mixed orders
+    # TODO: also handle non-expression scalars?
+    for i, c in enumerate(coefs):
+        if isinstance(c, SymbolicValue):
+            return i
+    return None
 
 
 class Control(object):
@@ -115,12 +123,12 @@ class Control(object):
         if kind is None:
             kind = BaseElement
         for el in self._segment.elements:
-            cls = self._decide_element(el)
-            if cls and issubclass(cls, kind):
-                try:
+            try:
+                cls = self._decide_element(el)
+                if issubclass(cls, kind):
                     yield cls(self._segment, el, self._plugin)
-                except api.UnknownElement:
-                    pass
+            except api.UnknownElement:
+                pass
 
     @Cancellable
     def read_all(self):
@@ -349,24 +357,19 @@ class Control(object):
         if el_type == 'solenoid':
             return Solenoid
         if el_type == 'multipole':
-            try:
-                n = len(element['knl'])
-            except KeyError:
-                pass
-            else:
-                if n == 1: return MultipoleNDP
-                if n == 2: return MultipoleNQP
-                return None
-            try:
-                n = len(element['ksl'])
-            except KeyError:
-                pass
-            else:
-                if n == 1: return MultipoleSDP
-                if n == 2: return MultipoleSQP
-                return None
+            n = detect_multipole_order(element.get('knl', []))
+            if n == 0: return MultipoleNDP
+            if n == 1: return MultipoleNQP
+            if n != None:
+                raise api.UnknownElement
+            n = detect_multipole_order(element.get('ksl', []))
+            if n == 0: return MultipoleSDP
+            if n == 1: return MultipoleSQP
+            raise api.UnknownElement
             # TODO: handle mixed dip/quadp coefficients?
+            # TODO: handle mixed knl/ksl coefficients?
             # TODO: handle higher order multipoles
+        raise api.UnknownElement
 
 
 class BaseElement(api._Interface):
