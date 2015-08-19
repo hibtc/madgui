@@ -40,6 +40,8 @@ def _get_property_lval(elem, attr):
 
 
 def _value(v):
+    if isinstance(v, list):
+        return [_value(x) for x in v]
     try:
         return v.value
     except AttributeError:
