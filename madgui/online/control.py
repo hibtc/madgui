@@ -196,8 +196,9 @@ class Control(object):
         segment = self._segment
         # TODO: sync elements attributes
         elements = segment.sequence.elements
+        varyconf = segment.model._data.get('align', {})
         with Dialog(self._frame) as dialog:
-            elems = dialogs.OpticSelectWidget(dialog).Query(elements, self.varyconf)
+            elems = dialogs.OpticSelectWidget(dialog).Query(elements, varyconf)
         with Dialog(self._frame) as dialog:
             dialogs.OptikVarianzWidget(dialog).Query(self, *elems)
 
@@ -230,84 +231,7 @@ class Control(object):
         """
         for elem, dvm_value, mad_value in params:
             elem.dvm_backend.set(mad_value)
-
-    def align_beam(self, elem):
-        # TODO: use config only as default, but ask user
-        varyconf = self.varyconf.get(mon['name'])
-        if not varyconf:
-            wx.MessageBox('Steerer for alignment not defined',
-                          'No config for alignment',
-                          wx.ICON_ERROR|wx.OK,
-                          parent=self._frame)
-            return
-        vary = (varyconf['h-steerer'] +
-                varyconf['v-steerer'])
-        segment = self._segment
-        madx = segment.session.madx
-        utool = segment.session.utool
-        constraints = [
-            {'range': elem['name'], 'x': 0},
-            {'range': elem['name'], 'px': 0},
-            {'range': elem['name'], 'y': 0},
-            {'range': elem['name'], 'py': 0},
-            # TODO: also set betx, bety unchanged?
-        ]
-        madx.match(
-            sequence=segment.sequence.name,
-            vary=vary,
-            constraints=constraints,
-            twiss_init=utool.dict_strip_unit(segment.twiss_args))
-        segment.hook.update()
-
-        # TODO: read matched parameters from madx and set in online control
-
-    def find_initial_position(self, monitor, quadrupole, kl_0, kl_1):
-        """
-        Find initial beam alignment + momentum based on two measurements of a
-        monitor at different quadrupole strengths.
-        """
-        A, a = self._measure_with_optic(monitor, quadrupole, kl_0)
-        B, b = self._measure_with_optic(monitor, quadrupole, kl_1)
-        return self.compute_initial_position(A, a, B, b)
-
-    def _measure_with_optic(self, monitor, quadrupole, kl):
-        monitor = self._segment.get_element_info(monitor)
-        quadrupole = self._segment.get_element_info(quadrupole)
-        return (self._get_sectormap_with_optic(monitor, quadrupole, kl),
-                self._read_monitor_with_optic(monitor, quadrupole, kl))
-
-    def _get_sectormap_with_optic(self, monitor, quadrupole, kl):
-        segment = self._segment
-        madx = segment.session.madx
-        strip_unit = segment.session.utool.strip_unit
-        elements = segment.sequence.elements
-        orig_k1 = elements[quadrupole.name]['k1']
-        mad_name = monitor.name + '->k1'
-        mad_value = strip_unit('kl', kl) / elements[quadrupole.name]['l']
-        madx.set_value(mad_name, mad_value)
-        try:
-            return segment.get_transfer_map(segment.start, monitor)
-        finally:
-            if isinstance(orig_k1, Expression):
-                madx.set_expression(mad_name, orig_k1)
-            else:
-                madx.set_value(mad_name, orig_k1)
-
-    def _read_monitor_with_optic(self, monitor, quadrupole, kl):
-        par_type = 'kL'
-        dvm_name = 'kL_' + quadrupole.name
-        sav_value = self.get_value(par_type, dvm_name)
-        # TODO: use conversion utility to convert to a writeable parameter
-        # (KL_* are read-only).
-        dvm_value = kl
-        self.set_value(par_type, dvm_name, dvm_value)
-        self.execute()
-        # TODO: have to wait here?
-        try:
-            return self.get_sd_values(monitor.name)
-        finally:
-            self.set_value(par_type, dvm_name, sav_value)
-            self.execute()
+        self._plugin.execute()
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
         strip_unit = self._segment.session.utool.strip_unit
@@ -343,6 +267,12 @@ class Control(object):
         x = numpy.linalg.lstsq(M, m)[0]
         return utool.dict_add_unit({'x': x[0], 'px': x[1],
                                     'y': x[2], 'py': x[3]})
+
+    def get_element(self, elem_name):
+        index = self._segment.get_element_index(elem_name)
+        elem = self._segment.elements[index]
+        cls = self._decide_element(elem)
+        return cls(self._segment, elem, self._plugin)
 
     def _decide_element(self, element):
         el_name = element['name'].lower()

@@ -17,6 +17,10 @@ def el_names(elems):
     return [el['name'] for el in elems]
 
 
+def incomplete(l):
+    return any(x is None for x in l)
+
+
 class ListSelectWidget(Widget):
 
     """
@@ -268,7 +272,7 @@ class OptikVarianzWidget(Widget):
     def CreateControls(self, window):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        phys_group = wx.FlexGridSizer(5, 4)
+        phys_group = wx.FlexGridSizer(6, 4)
         calc_group = wx.BoxSizer(wx.HORIZONTAL)
         butt_group = wx.BoxSizer(wx.VERTICAL)
 
@@ -284,17 +288,32 @@ class OptikVarianzWidget(Widget):
                       flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
             return ctrl1, ctrl2
 
+        # TODO: show units!
         self.ctrls_qp = (
             _Add("QP 1", wx.TextCtrl),
             _Add("QP 2", wx.TextCtrl),
         )
-        self.ctrl_use = (
-            _Add("", wx.Button, label="Use")
+        self.ctrl_set = (
+            _Add("", wx.Button, label="Set")
+        )
+        self.ctrl_read = (
+            _Add("", wx.Button, label="Read")
         )
         self.ctrl_mon = (
             _Add("Beam X", wx.TextCtrl, style=wx.TE_READONLY),
             _Add("Beam Y", wx.TextCtrl, style=wx.TE_READONLY),
         )
+
+        self.ctrl_apply = wx.Button(window, wx.ID_APPLY)
+        self.ctrl_close = wx.Button(window, wx.ID_CLOSE)
+
+        self.ctrl_set[0].Bind(wx.EVT_BUTTON, partial(self.OnSetQP, run_id=0))
+        self.ctrl_set[1].Bind(wx.EVT_BUTTON, partial(self.OnSetQP, run_id=1))
+        self.ctrl_read[0].Bind(wx.EVT_BUTTON, partial(self.OnProbe, run_id=0))
+        self.ctrl_read[1].Bind(wx.EVT_BUTTON, partial(self.OnProbe, run_id=1))
+
+        self.ctrl_apply.Bind(wx.EVT_BUTTON, self.OnApply)
+        self.ctrl_apply.Bind(wx.EVT_UPDATE_UI, self.OnApplyUpdate)
 
         calculated = wx.ListCtrl(window)
 
@@ -302,35 +321,115 @@ class OptikVarianzWidget(Widget):
         sizer.Add(calc_group, flag=wx.ALL|wx.EXPAND, border=5)
         calc_group.Add(calculated, 1, flag=wx.ALL|wx.EXPAND, border=5)
         calc_group.Add(butt_group, flag=wx.ALL, border=5)
-        butt_group.Add(wx.Button(window, wx.ID_APPLY), flag=wx.ALL, border=5)
-        butt_group.Add(wx.Button(window, wx.ID_CLOSE), flag=wx.ALL, border=5)
+        butt_group.Add(self.ctrl_apply, flag=wx.ALL, border=5)
+        butt_group.Add(self.ctrl_close, flag=wx.ALL, border=5)
+
         return sizer
+
+    def OnSetQP(self, event, run_id):
+        for qp_id, qp_name in enumerate(self.qps):
+            qp_elem = self.control.get_element(qp_name)
+            qp_value = float(self.ctrls_qp[qp_id][run_id].GetValue())
+            qp_value = self.utool.add_unit('kL', qp_value)
+            values = {'kL': qp_value}
+            qp_elem.mad_backend.set(qp_elem.mad_converter.to_backend(values))
+            qp_elem.dvm_backend.set(qp_elem.dvm_converter.to_backend(values))
+        self.plugin.execute()
+
+    def OnProbe(self, event, run_id):
+        mon_name = self.mon
+        mon_elem = self.control.get_element(mon_name)
+        mon_info = self.segment.get_element_info(mon_name)
+        self.sectormap[run_id] = self.segment.get_transfer_map(
+            self.segment.start, mon_info)
+        self.measure[run_id] = values = mon_elem.dvm_converter.to_standard(
+            mon_elem.dvm_backend.get())
+        self.ctrl_mon[0][run_id].SetValue(format_quantity(values['posx']))
+        self.ctrl_mon[1][run_id].SetValue(format_quantity(values['posy']))
+        self.UpdateCalculation()
 
     def GetData(self):
         pass
 
-    def SetData(self, plugin, mon, qps, hst, vst):
-        self.plugin = plugin
+    def SetData(self, control, mon, qps, hst, vst):
+        self.control = control
         self.mon = mon
         self.qps = qps
         self.hst = hst
         self.vst = vst
+        # dialog state
+        self.sectormap = [None, None]
+        self.measure = [None, None]
+        self.init_twiss = None
+        self.steerer_corrections = None
+        # convenience aliases
+        self.plugin = control._plugin
+        self.segment = segment = control._segment
+        self.utool = segment.utool
+        self.madx = segment.madx
+        # TODO: self.sync_from_db()
 
-    def OnReadQPs(self, event):
-        pass
-
-    def OnSetQPs(self, event):
-        pass
-
-    def OnReadMon(self, event):
-        pass
 
     def OnApply(self, event):
-        kl_0 = segment.session.utool.add_unit('kl', kl_0)
-        kl_1 = segment.session.utool.add_unit('kl', kl_1)
-        self.sync_from_db()
-        tw = self.find_initial_position(mon, qp, kl_0, kl_1)
-        # TODO: proper update via segment methods
-        segment.twiss_args.update(tw)
-        segment.twiss()
-        # align_beam(mon)
+        for el, vals in self.steerer_corrections:
+            el.mad_backend.set(vals)
+            el.dvm_backend.set(el.mad2dvm(vals))
+        self.plugin.execute()
+        # self.segment.twiss()
+
+    def OnApplyUpdate(self, event):
+        event.Enable(bool(self.steerer_corrections))
+
+    def UpdateCalculation(self):
+        if incomplete(self.sectormap) or incomplete(self.measure):
+            return
+
+        steerer_names = self.hst + self.vst
+        steerer_elems = [self.control.get_element(v) for v in steerer_names]
+
+        # backup  MAD-X values
+        steerer_values = [el.mad_backend.get() for el in steerer_elems]
+
+        # compute initial condition
+        self.init_twiss = init_twiss = {}
+        init_twiss.update(self.segment.twiss_args)
+        init_twiss.update(self.control.compute_initial_position(
+            self.sectormap[0],
+            self.measure[0],
+            self.sectormap[1],
+            self.measure[1],
+        ))
+        self.segment._twiss_args = init_twiss
+
+        # match final conditions
+        constraints = [
+            {'range': self.mon, 'x': 0},
+            {'range': self.mon, 'px': 0},
+            {'range': self.mon, 'y': 0},
+            {'range': self.mon, 'py': 0},
+            # TODO: also set betx, bety unchanged?
+        ]
+        self.madx.match(
+            sequence=self.segment.sequence.name,
+            vary=steerer_names,
+            constraints=constraints,
+            twiss_init=self.utool.dict_strip_unit(self.init_twiss))
+        self.segment.hook.update()
+
+        # save kicker corrections
+        self.steerer_corrections = [
+            (el, el.mad_backend.get())
+            for el in steerer_elems
+        ]
+
+        # show corrections in list box
+        self.steerer_corrections_rows = [
+            (el.dvm_params[k], v)
+            for el, vals in self.steerer_corrections
+            for k, v in el.mad2dvm(vals).items()
+        ]
+        # TODO: update control
+
+        # restore MAD-X values
+        for el, val in zip(steerer_elems, steerer_values):
+            el.mad_backend.set(val)
