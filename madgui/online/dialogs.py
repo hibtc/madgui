@@ -288,7 +288,12 @@ class OptikVarianzWidget(Widget):
                       flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
             return ctrl1, ctrl2
 
-        # TODO: show units!
+        # TODO: show full parameter names
+        # TODO: tab traversal order
+        # TODO: show units for KL!
+        # TODO: display calculated initial conditions
+        # TODO: display actual beam alignment after applying
+        #       or even better: field with running value
         self.ctrls_qp = (
             _Add("QP 1", wx.TextCtrl),
             _Add("QP 2", wx.TextCtrl),
@@ -315,11 +320,12 @@ class OptikVarianzWidget(Widget):
         self.ctrl_apply.Bind(wx.EVT_BUTTON, self.OnApply)
         self.ctrl_apply.Bind(wx.EVT_UPDATE_UI, self.OnApplyUpdate)
 
-        calculated = wx.ListCtrl(window)
+        self.calculated = ListCtrl(window, self.GetListColumns(), style=0)
+        self.calculated.SetMinSize(wx.Size(400, 200))
 
         sizer.Add(phys_group, flag=wx.ALL|wx.EXPAND, border=5)
         sizer.Add(calc_group, flag=wx.ALL|wx.EXPAND, border=5)
-        calc_group.Add(calculated, 1, flag=wx.ALL|wx.EXPAND, border=5)
+        calc_group.Add(self.calculated, 1, flag=wx.ALL|wx.EXPAND, border=5)
         calc_group.Add(butt_group, flag=wx.ALL, border=5)
         butt_group.Add(self.ctrl_apply, flag=wx.ALL, border=5)
         butt_group.Add(self.ctrl_close, flag=wx.ALL, border=5)
@@ -428,8 +434,32 @@ class OptikVarianzWidget(Widget):
             for el, vals in self.steerer_corrections
             for k, v in el.mad2dvm(vals).items()
         ]
-        # TODO: update control
+        self.calculated.items = self.steerer_corrections_rows
 
         # restore MAD-X values
         for el, val in zip(steerer_elems, steerer_values):
             el.mad_backend.set(val)
+
+
+
+    def GetListColumns(self):
+        return [
+            ColumnInfo(
+                "Param",
+                self._format_param,
+                wx.LIST_FORMAT_LEFT,
+                wx.LIST_AUTOSIZE),
+            ColumnInfo(
+                "Value",
+                self._format_dvm_value,
+                wx.LIST_FORMAT_RIGHT,
+                wx.LIST_AUTOSIZE),
+        ]
+
+    def _format_param(self, index, item):
+        param, val = item
+        return param.name
+
+    def _format_dvm_value(self, index, item):
+        param, val = item
+        return format_dvm_value(param, val)
