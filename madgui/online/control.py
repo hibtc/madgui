@@ -199,8 +199,9 @@ class Control(object):
         varyconf = segment.model._data.get('align', {})
         with Dialog(self._frame) as dialog:
             elems = dialogs.OpticSelectWidget(dialog).Query(elements, varyconf)
+        ovm = OpticVariationMethod(self, *elems)
         with Dialog(self._frame) as dialog:
-            dialogs.OptikVarianzWidget(dialog).Query(self, *elems)
+            dialogs.OpticVariationWidget(dialog).Query(ovm)
 
     # helper functions
 
@@ -232,41 +233,6 @@ class Control(object):
         for elem, dvm_value, mad_value in params:
             elem.dvm_backend.set(mad_value)
         self._plugin.execute()
-
-    def _strip_sd_pair(self, sd_values, prefix='pos'):
-        strip_unit = self._segment.session.utool.strip_unit
-        return (strip_unit('x', sd_values[prefix + 'x']),
-                strip_unit('y', sd_values[prefix + 'y']))
-
-    def compute_initial_position(self, A, a, B, b):
-        """
-        Compute initial beam position from two monitor read-outs at different
-        quadrupole settings.
-
-        A, B are the 4D SECTORMAPs from start to the monitor.
-        a, b are the 2D measurement vectors (x, y)
-
-        This function solves the linear system:
-
-                Ax = a
-                Bx = b
-
-        for the 4D phase space vector x and returns the result as a dict with
-        keys 'x', 'px', 'y, 'py'.
-        """
-        utool = self._segment.session.utool
-        zero = numpy.zeros((2,4))
-        eye = numpy.eye(4)
-        s = ((0,2), slice(0,4))
-        M = numpy.bmat([[A[s], zero],
-                        [zero, B[s]],
-                        [eye,  -eye]])
-        m = (self._strip_sd_pair(a) +
-             self._strip_sd_pair(b) +
-             (0, 0, 0, 0))
-        x = numpy.linalg.lstsq(M, m)[0]
-        return utool.dict_add_unit({'x': x[0], 'px': x[1],
-                                    'y': x[2], 'py': x[3]})
 
     def get_element(self, elem_name):
         index = self._segment.get_element_index(elem_name)
@@ -300,6 +266,117 @@ class Control(object):
             # TODO: handle mixed knl/ksl coefficients?
             # TODO: handle higher order multipoles
         raise api.UnknownElement
+
+
+class OpticVariationMethod(object):
+
+    def __init__(self, control, mon, qps, hst, vst):
+        self.control = control
+        self.mon = mon
+        self.qps = qps
+        self.hst = hst
+        self.vst = vst
+        self.utool = control._segment.session.utool
+        self.segment = control._segment
+        self.sectormap = [None, None]
+        self.measurement = [None, None]
+
+    def get_monitor(self):
+        return self.control.get_element(self.mon)
+
+    def get_qp(self, index):
+        return self.control.get_element(self.qps[index])
+
+    def get_transfer_map(self):
+        return self.segment.get_transfer_map(
+            self.segment.start,
+            self.segment.get_element_info(self.mon))
+
+    def record_measurement(self, index):
+        monitor = self.get_monitor()
+        self.sectormap[index] = self.get_transfer_map()
+        self.measurement[index] = monitor.dvm_converter.to_standard(
+            monitor.dvm_backend.get())
+
+    def compute_initial_position(self):
+        return self._compute_initial_position(
+            self.sectormap[0], self.measurement[0],
+            self.sectormap[1], self.measurement[1])
+
+    def compute_steerer_corrections(self, init_pos):
+
+        steerer_names = self.hst + self.vst
+        steerer_elems = [self.control.get_element(v) for v in steerer_names]
+
+        # backup  MAD-X values
+        steerer_values = [el.mad_backend.get() for el in steerer_elems]
+
+        # compute initial condition
+        init_twiss = {}
+        init_twiss.update(self.segment.twiss_args)
+        init_twiss.update(init_pos)
+        self.segment._twiss_args = init_twiss
+
+        # match final conditions
+        constraints = [
+            {'range': self.mon, 'x': 0},
+            {'range': self.mon, 'px': 0},
+            {'range': self.mon, 'y': 0},
+            {'range': self.mon, 'py': 0},
+            # TODO: also set betx, bety unchanged?
+        ]
+        self.segment.madx.match(
+            sequence=self.segment.sequence.name,
+            vary=steerer_names,
+            constraints=constraints,
+            twiss_init=self.utool.dict_strip_unit(init_twiss))
+        self.segment.hook.update()
+
+        # save kicker corrections
+        steerer_corrections = [
+            (el, el.mad_backend.get())
+            for el in steerer_elems
+        ]
+
+        # restore MAD-X values
+        for el, val in zip(steerer_elems, steerer_values):
+            el.mad_backend.set(val)
+
+        return steerer_corrections
+
+    def _strip_sd_pair(self, sd_values, prefix='pos'):
+        strip_unit = self.utool.strip_unit
+        return (strip_unit('x', sd_values[prefix + 'x']),
+                strip_unit('y', sd_values[prefix + 'y']))
+
+    def _compute_initial_position(self, A, a, B, b):
+        """
+        Compute initial beam position from two monitor read-outs at different
+        quadrupole settings.
+
+        A, B are the 4D SECTORMAPs from start to the monitor.
+        a, b are the 2D measurement vectors (x, y)
+
+        This function solves the linear system:
+
+                Ax = a
+                Bx = b
+
+        for the 4D phase space vector x and returns the result as a dict with
+        keys 'x', 'px', 'y, 'py'.
+        """
+        zero = numpy.zeros((2,4))
+        eye = numpy.eye(4)
+        s = ((0,2), slice(0,4))
+        M = numpy.bmat([[A[s], zero],
+                        [zero, B[s]],
+                        [eye,  -eye]])
+        m = (self._strip_sd_pair(a) +
+             self._strip_sd_pair(b) +
+             (0, 0, 0, 0))
+        x = numpy.linalg.lstsq(M, m)[0]
+        return self.utool.dict_add_unit({'x': x[0], 'px': x[1],
+                                         'y': x[2], 'py': x[3]})
 
 
 class BaseElement(api._Interface):

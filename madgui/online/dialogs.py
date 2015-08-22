@@ -259,7 +259,7 @@ class OpticSelectWidget(Widget):
 
 
 
-class OptikVarianzWidget(Widget):
+class OpticVariationWidget(Widget):
 
     """
     Dialog to perform "Optik Varianz" method for transversal beam alignment.
@@ -343,13 +343,8 @@ class OptikVarianzWidget(Widget):
         self.plugin.execute()
 
     def OnProbe(self, event, run_id):
-        mon_name = self.mon
-        mon_elem = self.control.get_element(mon_name)
-        mon_info = self.segment.get_element_info(mon_name)
-        self.sectormap[run_id] = self.segment.get_transfer_map(
-            self.segment.start, mon_info)
-        self.measure[run_id] = values = mon_elem.dvm_converter.to_standard(
-            mon_elem.dvm_backend.get())
+        self.ovm.record_measurement(run_id)
+        values = self.ovm.measurement[run_id]
         self.ctrl_mon[0][run_id].SetValue(format_quantity(values['posx']))
         self.ctrl_mon[1][run_id].SetValue(format_quantity(values['posy']))
         self.UpdateCalculation()
@@ -357,24 +352,21 @@ class OptikVarianzWidget(Widget):
     def GetData(self):
         pass
 
-    def SetData(self, control, mon, qps, hst, vst):
-        self.control = control
-        self.mon = mon
-        self.qps = qps
-        self.hst = hst
-        self.vst = vst
+    def SetData(self, ovm):
+        self.ovm = ovm
+        self.control = ovm.control
+        self.mon = ovm.mon
+        self.qps = ovm.qps
+        self.hst = ovm.hst
+        self.vst = ovm.vst
         # dialog state
-        self.sectormap = [None, None]
-        self.measure = [None, None]
-        self.init_twiss = None
         self.steerer_corrections = None
         # convenience aliases
-        self.plugin = control._plugin
-        self.segment = segment = control._segment
+        self.plugin = ovm.control._plugin
+        self.segment = segment = ovm.control._segment
         self.utool = segment.utool
         self.madx = segment.madx
         # TODO: self.sync_from_db()
-
 
     def OnApply(self, event):
         for el, vals in self.steerer_corrections:
@@ -387,60 +379,19 @@ class OptikVarianzWidget(Widget):
         event.Enable(bool(self.steerer_corrections))
 
     def UpdateCalculation(self):
-        if incomplete(self.sectormap) or incomplete(self.measure):
+        if incomplete(self.ovm.sectormap) or incomplete(self.ovm.measurement):
             return
 
-        steerer_names = self.hst + self.vst
-        steerer_elems = [self.control.get_element(v) for v in steerer_names]
-
-        # backup  MAD-X values
-        steerer_values = [el.mad_backend.get() for el in steerer_elems]
-
-        # compute initial condition
-        self.init_twiss = init_twiss = {}
-        init_twiss.update(self.segment.twiss_args)
-        init_twiss.update(self.control.compute_initial_position(
-            self.sectormap[0],
-            self.measure[0],
-            self.sectormap[1],
-            self.measure[1],
-        ))
-        self.segment._twiss_args = init_twiss
-
-        # match final conditions
-        constraints = [
-            {'range': self.mon, 'x': 0},
-            {'range': self.mon, 'px': 0},
-            {'range': self.mon, 'y': 0},
-            {'range': self.mon, 'py': 0},
-            # TODO: also set betx, bety unchanged?
-        ]
-        self.madx.match(
-            sequence=self.segment.sequence.name,
-            vary=steerer_names,
-            constraints=constraints,
-            twiss_init=self.utool.dict_strip_unit(self.init_twiss))
-        self.segment.hook.update()
-
-        # save kicker corrections
-        self.steerer_corrections = [
-            (el, el.mad_backend.get())
-            for el in steerer_elems
-        ]
+        pos = self.ovm.compute_initial_position()
+        self.steerer_corrections = self.ovm.compute_steerer_corrections(pos)
 
         # show corrections in list box
-        self.steerer_corrections_rows = [
+        steerer_corrections_rows = [
             (el.dvm_params[k], v)
             for el, vals in self.steerer_corrections
             for k, v in el.mad2dvm(vals).items()
         ]
-        self.calculated.items = self.steerer_corrections_rows
-
-        # restore MAD-X values
-        for el, val in zip(steerer_elems, steerer_values):
-            el.mad_backend.set(val)
-
-
+        self.calculated.items = steerer_corrections_rows
 
     def GetListColumns(self):
         return [
