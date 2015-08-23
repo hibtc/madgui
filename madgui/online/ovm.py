@@ -290,7 +290,9 @@ class OVM_Step(Widget):
     # TODO: CanForward() -> BeamIsStable()
 
     def CreateControls(self, window):
+        outer = wx.BoxSizer(wx.VERTICAL)
         sizer = wx.BoxSizer(wx.HORIZONTAL)
+        outer.Add(sizer, 0, flag=wx.EXPAND)
 
         def box(title, label1, label2, style):
             vsizer = wx.BoxSizer(wx.VERTICAL)
@@ -331,9 +333,16 @@ class OVM_Step(Widget):
                            wx.TE_RIGHT)
 
         sizer.AddSpacer(5)
-        button_apply = wx.Button(window, label=">>", style=wx.BU_EXACTFIT)
-        sizer.Add(button_apply, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+        sep_sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(sep_sizer, flag=wx.EXPAND)
         sizer.AddSpacer(5)
+
+        button_apply = wx.Button(window, label=">>", style=wx.BU_EXACTFIT)
+        sep_sizer.Add(wx.StaticLine(window, style=wx.LI_VERTICAL), 1,
+                      flag=wx.ALIGN_CENTER)
+        sep_sizer.Add(button_apply, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+        sep_sizer.Add(wx.StaticLine(window, style=wx.LI_VERTICAL), 1,
+                      flag=wx.ALIGN_CENTER)
 
         self.disp_qp = box("Current QP settings:", "QP 1:", "QP 2:",
                            wx.TE_RIGHT|wx.TE_READONLY)
@@ -351,7 +360,7 @@ class OVM_Step(Widget):
         self.timer = wx.Timer(self.Window)
         window.Bind(wx.EVT_TIMER, self.UpdateStatus, self.timer)
 
-        return sizer
+        return outer
 
     def GetData(self):
         pass
