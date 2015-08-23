@@ -13,6 +13,9 @@ from madgui.widget.input import Widget
 from madgui.util.unit import format_quantity, tounit
 
 
+# TODO: use UI units
+
+
 class ListSelectWidget(Widget):
 
     """

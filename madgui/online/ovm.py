@@ -9,13 +9,14 @@ from __future__ import absolute_import
 import numpy
 
 from madgui.core import wx
-from madgui.util.unit import format_quantity
+from madgui.util.unit import format_quantity, strip_unit
 from madgui.widget.input import Widget
 from madgui.widget.listview import ListCtrl, ColumnInfo
 from madgui.widget import wizard
 
 from .dialogs import format_dvm_value
 
+# TODO: use UI units
 
 __all__ = [
     'OpticSelectWidget',
@@ -369,8 +370,16 @@ class OVM_Step(Widget):
         self.ovm = ovm
         # TODO: show full parameter names
         # TODO: show units for KL!
+        self._InitManualQP(0)
+        self._InitManualQP(1)
         self.UpdateStatus()
         self.timer.Start(100)
+
+    def _InitManualQP(self, index):
+        qp_elem = self.ovm.get_qp(index)
+        qp_value = qp_elem.dvm_backend.get()['kL']
+        plain = self.ovm.utool.strip_unit('kL', qp_value)
+        self.edit_qp[index].SetValue(str(plain))
 
     def OnApply(self, event):
         self._SetQP(0)
