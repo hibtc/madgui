@@ -9,7 +9,7 @@ from __future__ import absolute_import
 import numpy
 
 from madgui.core import wx
-from madgui.util.unit import format_quantity, strip_unit
+from madgui.util.unit import format_quantity, strip_unit, get_raw_label
 from madgui.widget.input import Widget
 from madgui.widget.listview import ListCtrl, ColumnInfo
 from madgui.widget import wizard
@@ -47,6 +47,11 @@ def _static_box(window, title, orient):
 def set_value(ctrl, text):
     if ctrl.GetValue() != text:
         ctrl.SetValue(text)
+
+
+def set_label(ctrl, text):
+    if ctrl.GetLabel() != text:
+        ctrl.SetLabel(text)
 
 
 class OpticVariationMethod(object):
@@ -299,13 +304,15 @@ class OVM_Step(Widget):
 
         def box(title, label1, label2, style):
             vsizer = wx.BoxSizer(wx.VERTICAL)
-            bsizer = wx.FlexGridSizer(cols=3)
+            bsizer = wx.FlexGridSizer(cols=4)
 
             ctrl_title = wx.StaticText(window, label=title)
             ctrl_label1 = wx.StaticText(window, label=label1)
             ctrl_label2 = wx.StaticText(window, label=label2)
             ctrl_input1 = wx.TextCtrl(window, style=style)
             ctrl_input2 = wx.TextCtrl(window, style=style)
+            ctrl_unit1 = wx.StaticText(window)
+            ctrl_unit2 = wx.StaticText(window)
 
             bsizer.Add(ctrl_label1,
                        flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
@@ -314,11 +321,18 @@ class OVM_Step(Widget):
             bsizer.Add(ctrl_input1,
                        flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
                        border=5)
+            bsizer.Add(ctrl_unit1,
+                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
+                       border=5)
+
             bsizer.Add(ctrl_label2,
                        flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
                        border=5)
             bsizer.AddSpacer(10)
             bsizer.Add(ctrl_input2,
+                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
+                       border=5)
+            bsizer.Add(ctrl_unit2,
                        flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
                        border=5)
 
@@ -332,9 +346,10 @@ class OVM_Step(Widget):
 
             return (ctrl_title,
                     (ctrl_label1, ctrl_label2),
-                    (ctrl_input1, ctrl_input2))
+                    (ctrl_input1, ctrl_input2),
+                    (ctrl_unit1, ctrl_unit2))
 
-        _, self.label_edit_qp, self.edit_qp = \
+        _, self.label_edit_qp, self.edit_qp, self.edit_qp_unit = \
             box("Enter QP settings:", "QP 1:", "QP 2:", wx.TE_RIGHT)
 
         sizer.AddSpacer(5)
@@ -349,7 +364,7 @@ class OVM_Step(Widget):
         sep_sizer.Add(wx.StaticLine(window, style=wx.LI_VERTICAL), 1,
                       flag=wx.ALIGN_CENTER)
 
-        _, self.label_disp_qp, self.disp_qp = \
+        _, self.label_disp_qp, self.disp_qp, self.disp_qp_unit = \
             box("Current QP settings:", "QP 1:", "QP 2:", wx.TE_RIGHT|wx.TE_READONLY)
 
         sizer.AddSpacer(5)
@@ -357,7 +372,7 @@ class OVM_Step(Widget):
         sizer.Add(line, flag=wx.ALL|wx.EXPAND, border=5)
         sizer.AddSpacer(5)
 
-        _, _, self.disp_mon = \
+        _, _, self.disp_mon, self.disp_mon_unit = \
             box("Monitor readout:", "x:", "y:", wx.TE_RIGHT|wx.TE_READONLY)
 
         button_apply.Bind(wx.EVT_BUTTON, self.OnApply)
@@ -372,7 +387,7 @@ class OVM_Step(Widget):
 
     def SetData(self, ovm):
         self.ovm = ovm
-        # TODO: show units for KL!
+        self.qp_ui_units = [None, None]
         self._InitManualQP(0)
         self._InitManualQP(1)
         self.UpdateStatus()
@@ -380,12 +395,18 @@ class OVM_Step(Widget):
 
     def _InitManualQP(self, index):
         qp_elem = self.ovm.get_qp(index)
+        param_info = qp_elem.dvm_converter.param_info['kL']
+        ui_unit = self.qp_ui_units[index] = param_info.ui_unit
+        unit_label = get_raw_label(ui_unit)
+
         qp_value = qp_elem.dvm_backend.get()['kL']
-        plain = self.ovm.utool.strip_unit('kL', qp_value)
-        self.edit_qp[index].SetValue(str(plain))
-        param_name = qp_elem.dvm_converter.param_info['kL'].name
+        self.edit_qp[index].SetValue(self._fmt_kl(qp_value, index))
+
+        param_name = param_info.name
         self.label_edit_qp[index].SetLabel(param_name + ':')
         self.label_disp_qp[index].SetLabel(param_name + ':')
+        self.edit_qp_unit[index].SetLabel(unit_label)
+        self.disp_qp_unit[index].SetLabel(unit_label)
 
     def OnApply(self, event):
         self._SetQP(0)
@@ -395,7 +416,7 @@ class OVM_Step(Widget):
     def _SetQP(self, index):
         qp_elem = self.ovm.get_qp(index)
         qp_value = float(self.edit_qp[index].GetValue())
-        qp_value = self.ovm.utool.add_unit('kL', qp_value)
+        qp_value = qp_value * self.qp_ui_units[index]
         values = {'kL': qp_value}
         qp_elem.mad_backend.set(qp_elem.mad_converter.to_backend(values))
         qp_elem.dvm_backend.set(qp_elem.dvm_converter.to_backend(values))
@@ -406,8 +427,10 @@ class OVM_Step(Widget):
 
     def UpdateBeam(self):
         data = self.ovm.get_monitor().dvm_backend.get()
-        set_value(self.disp_mon[0], format_quantity(data['posx']))
-        set_value(self.disp_mon[1], format_quantity(data['posy']))
+        set_value(self.disp_mon[0], '{:5}'.format(data['posx'].magnitude))
+        set_value(self.disp_mon[1], '{:5}'.format(data['posy'].magnitude))
+        set_label(self.disp_mon_unit[0], get_raw_label(data['posx']))
+        set_label(self.disp_mon_unit[1], get_raw_label(data['posy']))
 
     def UpdateQPs(self):
         self._UpdateQP(0)
@@ -415,7 +438,10 @@ class OVM_Step(Widget):
 
     def _UpdateQP(self, index):
         data = self.ovm.get_qp(index).dvm_backend.get()
-        set_value(self.disp_qp[index], format_quantity(data['kL']))
+        set_value(self.disp_qp[index], self._fmt_kl(data['kL'], index))
+
+    def _fmt_kl(self, value, index):
+        return '{:5}'.format(strip_unit(value, self.qp_ui_units[index]))
 
 
 class OVM_Summary(Widget):
