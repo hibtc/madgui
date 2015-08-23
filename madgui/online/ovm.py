@@ -166,9 +166,11 @@ class OpticVariationMethod(object):
 
 class OpticVariationWizard(wizard.Wizard):
 
+
     def __init__(self, parent, ovm):
         super(OpticVariationWizard, self).__init__(parent)
         self.ovm = ovm
+        # TODO: also include the OVM element selection page
         self._add_step_page("1st optic")
         self._add_step_page("2nd optic")
         self._add_confirm_page()
@@ -328,10 +330,12 @@ class OVM_Step(Widget):
 
             sizer.Add(vsizer, flag=wx.ALL|wx.EXPAND|wx.ALIGN_TOP, border=5)
 
-            return ctrl_input1, ctrl_input2
+            return (ctrl_title,
+                    (ctrl_label1, ctrl_label2),
+                    (ctrl_input1, ctrl_input2))
 
-        self.edit_qp = box("Enter QP settings:", "QP 1:", "QP 2:",
-                           wx.TE_RIGHT)
+        _, self.label_edit_qp, self.edit_qp = \
+            box("Enter QP settings:", "QP 1:", "QP 2:", wx.TE_RIGHT)
 
         sizer.AddSpacer(5)
         sep_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -345,16 +349,16 @@ class OVM_Step(Widget):
         sep_sizer.Add(wx.StaticLine(window, style=wx.LI_VERTICAL), 1,
                       flag=wx.ALIGN_CENTER)
 
-        self.disp_qp = box("Current QP settings:", "QP 1:", "QP 2:",
-                           wx.TE_RIGHT|wx.TE_READONLY)
+        _, self.label_disp_qp, self.disp_qp = \
+            box("Current QP settings:", "QP 1:", "QP 2:", wx.TE_RIGHT|wx.TE_READONLY)
 
         sizer.AddSpacer(5)
         line = wx.StaticLine(window, style=wx.LI_VERTICAL)
         sizer.Add(line, flag=wx.ALL|wx.EXPAND, border=5)
         sizer.AddSpacer(5)
 
-        self.disp_mon = box("Monitor readout:", "x:", "y:",
-                            wx.TE_RIGHT|wx.TE_READONLY)
+        _, _, self.disp_mon = \
+            box("Monitor readout:", "x:", "y:", wx.TE_RIGHT|wx.TE_READONLY)
 
         button_apply.Bind(wx.EVT_BUTTON, self.OnApply)
 
@@ -368,7 +372,6 @@ class OVM_Step(Widget):
 
     def SetData(self, ovm):
         self.ovm = ovm
-        # TODO: show full parameter names
         # TODO: show units for KL!
         self._InitManualQP(0)
         self._InitManualQP(1)
@@ -380,6 +383,9 @@ class OVM_Step(Widget):
         qp_value = qp_elem.dvm_backend.get()['kL']
         plain = self.ovm.utool.strip_unit('kL', qp_value)
         self.edit_qp[index].SetValue(str(plain))
+        param_name = qp_elem.dvm_converter.param_info['kL'].name
+        self.label_edit_qp[index].SetLabel(param_name + ':')
+        self.label_disp_qp[index].SetLabel(param_name + ':')
 
     def OnApply(self, event):
         self._SetQP(0)
