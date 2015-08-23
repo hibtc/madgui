@@ -3,6 +3,8 @@
 Implementations covering the MAD-X backend for accessing element properties.
 """
 
+from __future__ import absolute_import
+
 from cpymad.types import Expression
 from cpymad.util import is_identifier
 from madgui.util.symbol import SymbolicValue
