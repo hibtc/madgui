@@ -10,15 +10,18 @@ from madgui.core import wx
 from madgui.widget.listview import ListCtrl, ColumnInfo
 from madgui.widget.input import Widget
 from madgui.widget.element import ElementWidget
+from madgui.widget import wizard
 from madgui.util.unit import format_quantity, tounit
+
 
 
 def el_names(elems):
     return [el['name'] for el in elems]
 
 
-def incomplete(l):
-    return any(x is None for x in l)
+def set_value(ctrl, text):
+    if ctrl.GetValue() != text:
+        ctrl.SetValue(text)
 
 
 class ListSelectWidget(Widget):
@@ -258,142 +261,164 @@ class OpticSelectWidget(Widget):
         return all(at <= at_mon for at in at_qp + at_st)
 
 
-
-class OpticVariationWidget(Widget):
-
-    """
-    Dialog to perform "Optik Varianz" method for transversal beam alignment.
-    """
-
-    # TODO: make this a dialog / wizard?
-
-    # TODO: first implement without "Load from focus" option
+class OVM_Step(Widget):
 
     def CreateControls(self, window):
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        phys_group = wx.FlexGridSizer(6, 4)
-        calc_group = wx.BoxSizer(wx.HORIZONTAL)
-        butt_group = wx.BoxSizer(wx.VERTICAL)
+        def box(title, label1, label2, style):
+            vsizer = wx.BoxSizer(wx.VERTICAL)
+            bsizer = wx.FlexGridSizer(cols=3)
 
-        def _Add(_label, cls, *args, **kwargs):
-            ctrl1 = cls(window, *args, **kwargs)
-            ctrl2 = cls(window, *args, **kwargs)
-            phys_group.Add(wx.StaticText(window, label=_label), border=5,
-                      flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-            phys_group.AddSpacer(10)
-            phys_group.Add(ctrl1, border=5,
-                      flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-            phys_group.Add(ctrl2, border=5,
-                      flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-            return ctrl1, ctrl2
+            ctrl_title = wx.StaticText(window, label=title)
+            ctrl_label1 = wx.StaticText(window, label=label1)
+            ctrl_label2 = wx.StaticText(window, label=label2)
+            ctrl_input1 = wx.TextCtrl(window, style=style)
+            ctrl_input2 = wx.TextCtrl(window, style=style)
 
-        # TODO: show full parameter names
-        # TODO: tab traversal order
-        # TODO: show units for KL!
-        # TODO: display calculated initial conditions
-        # TODO: display actual beam alignment after applying
-        #       or even better: field with running value
-        self.ctrls_qp = (
-            _Add("QP 1", wx.TextCtrl),
-            _Add("QP 2", wx.TextCtrl),
-        )
-        self.ctrl_set = (
-            _Add("", wx.Button, label="Set")
-        )
-        self.ctrl_read = (
-            _Add("", wx.Button, label="Read")
-        )
-        self.ctrl_mon = (
-            _Add("Beam X", wx.TextCtrl, style=wx.TE_READONLY),
-            _Add("Beam Y", wx.TextCtrl, style=wx.TE_READONLY),
-        )
+            bsizer.Add(ctrl_label1,
+                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
+                       border=5)
+            bsizer.AddSpacer(10)
+            bsizer.Add(ctrl_input1,
+                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
+                       border=5)
+            bsizer.Add(ctrl_label2,
+                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
+                       border=5)
+            bsizer.AddSpacer(10)
+            bsizer.Add(ctrl_input2,
+                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
+                       border=5)
 
-        self.ctrl_apply = wx.Button(window, wx.ID_APPLY)
-        self.ctrl_close = wx.Button(window, wx.ID_CLOSE)
+            vsizer.Add(ctrl_title,
+                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
+                       border=5)
+            vsizer.Add(bsizer, flag=wx.ALL|wx.ALIGN_LEFT|wx.EXPAND,
+                       border=5)
 
-        self.ctrl_set[0].Bind(wx.EVT_BUTTON, partial(self.OnSetQP, run_id=0))
-        self.ctrl_set[1].Bind(wx.EVT_BUTTON, partial(self.OnSetQP, run_id=1))
-        self.ctrl_read[0].Bind(wx.EVT_BUTTON, partial(self.OnProbe, run_id=0))
-        self.ctrl_read[1].Bind(wx.EVT_BUTTON, partial(self.OnProbe, run_id=1))
+            sizer.Add(vsizer, flag=wx.ALL|wx.EXPAND|wx.ALIGN_TOP, border=5)
 
-        self.ctrl_apply.Bind(wx.EVT_BUTTON, self.OnApply)
-        self.ctrl_apply.Bind(wx.EVT_UPDATE_UI, self.OnApplyUpdate)
+            return ctrl_input1, ctrl_input2
 
-        self.calculated = ListCtrl(window, self.GetListColumns(), style=0)
-        self.calculated.SetMinSize(wx.Size(400, 200))
+        self.edit_qp = box("Enter QP settings:", "QP 1:", "QP 2:",
+                           wx.TE_RIGHT)
 
-        sizer.Add(phys_group, flag=wx.ALL|wx.EXPAND, border=5)
-        sizer.Add(calc_group, flag=wx.ALL|wx.EXPAND, border=5)
-        calc_group.Add(self.calculated, 1, flag=wx.ALL|wx.EXPAND, border=5)
-        calc_group.Add(butt_group, flag=wx.ALL, border=5)
-        butt_group.Add(self.ctrl_apply, flag=wx.ALL, border=5)
-        butt_group.Add(self.ctrl_close, flag=wx.ALL, border=5)
+        sizer.AddSpacer(5)
+        button_apply = wx.Button(window, label=">>", style=wx.BU_EXACTFIT)
+        sizer.Add(button_apply, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+        sizer.AddSpacer(5)
+
+        self.disp_qp = box("Current QP settings:", "QP 1:", "QP 2:",
+                           wx.TE_RIGHT|wx.TE_READONLY)
+
+        sizer.AddSpacer(5)
+        line = wx.StaticLine(window, style=wx.LI_VERTICAL)
+        sizer.Add(line, flag=wx.ALL|wx.EXPAND, border=5)
+        sizer.AddSpacer(5)
+
+        self.disp_mon = box("Monitor readout:", "x:", "y:",
+                            wx.TE_RIGHT|wx.TE_READONLY)
+
+        button_apply.Bind(wx.EVT_BUTTON, self.OnApply)
+
+        self.timer = wx.Timer(self.Window)
+        window.Bind(wx.EVT_TIMER, self.UpdateStatus, self.timer)
 
         return sizer
-
-    def OnSetQP(self, event, run_id):
-        for qp_id, qp_name in enumerate(self.qps):
-            qp_elem = self.control.get_element(qp_name)
-            qp_value = float(self.ctrls_qp[qp_id][run_id].GetValue())
-            qp_value = self.utool.add_unit('kL', qp_value)
-            values = {'kL': qp_value}
-            qp_elem.mad_backend.set(qp_elem.mad_converter.to_backend(values))
-            qp_elem.dvm_backend.set(qp_elem.dvm_converter.to_backend(values))
-        self.plugin.execute()
-
-    def OnProbe(self, event, run_id):
-        self.ovm.record_measurement(run_id)
-        values = self.ovm.measurement[run_id]
-        self.ctrl_mon[0][run_id].SetValue(format_quantity(values['posx']))
-        self.ctrl_mon[1][run_id].SetValue(format_quantity(values['posy']))
-        self.UpdateCalculation()
 
     def GetData(self):
         pass
 
     def SetData(self, ovm):
         self.ovm = ovm
-        self.control = ovm.control
-        self.mon = ovm.mon
-        self.qps = ovm.qps
-        self.hst = ovm.hst
-        self.vst = ovm.vst
-        # dialog state
-        self.steerer_corrections = None
-        # convenience aliases
-        self.plugin = ovm.control._plugin
-        self.segment = segment = ovm.control._segment
-        self.utool = segment.utool
-        self.madx = segment.madx
-        # TODO: self.sync_from_db()
+        # TODO: show full parameter names
+        # TODO: show units for KL!
+        self.UpdateStatus()
+        self.timer.Start(100)
 
     def OnApply(self, event):
-        for el, vals in self.steerer_corrections:
-            el.mad_backend.set(vals)
-            el.dvm_backend.set(el.mad2dvm(vals))
-        self.plugin.execute()
-        # self.segment.twiss()
+        self._SetQP(0)
+        self._SetQP(1)
+        self.ovm.control._plugin.execute()
 
-    def OnApplyUpdate(self, event):
-        event.Enable(bool(self.steerer_corrections))
+    def _SetQP(self, index):
+        qp_elem = self.ovm.get_qp(index)
+        qp_value = float(self.edit_qp[index].GetValue())
+        qp_value = self.ovm.utool.add_unit('kL', qp_value)
+        values = {'kL': qp_value}
+        qp_elem.mad_backend.set(qp_elem.mad_converter.to_backend(values))
+        qp_elem.dvm_backend.set(qp_elem.dvm_converter.to_backend(values))
 
-    def UpdateCalculation(self):
-        if incomplete(self.ovm.sectormap) or incomplete(self.ovm.measurement):
-            return
+    def UpdateStatus(self, event=None):
+        self.UpdateBeam()
+        self.UpdateQPs()
 
+    def UpdateBeam(self):
+        data = self.ovm.get_monitor().dvm_backend.get()
+        set_value(self.disp_mon[0], format_quantity(data['posx']))
+        set_value(self.disp_mon[1], format_quantity(data['posy']))
+
+    def UpdateQPs(self):
+        self._UpdateQP(0)
+        self._UpdateQP(1)
+
+    def _UpdateQP(self, index):
+        data = self.ovm.get_qp(index).dvm_backend.get()
+        set_value(self.disp_qp[index], format_quantity(data['kL']))
+
+
+class OVM_Summary(Widget):
+
+    def CreateControls(self, window):
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        def box(title, columns):
+            label = wx.StaticText(window, label=title)
+            lctrl = ListCtrl(window, columns, style=wx.LC_NO_HEADER)
+            lctrl.SetMinSize(wx.Size(250, 150))
+            vsizer = wx.BoxSizer(wx.VERTICAL)
+            vsizer.Add(label, flag=wx.ALL|wx.ALIGN_TOP, border=5)
+            vsizer.Add(lctrl, 1, flag=wx.ALL|wx.EXPAND, border=5)
+            sizer.Add(vsizer, 1, flag=wx.ALL|wx.EXPAND, border=5)
+            return lctrl
+        self.twiss_init = box("Initial position:", self.GetTwissCols())
+        self.steerer_corr = box("Steerer corrections:", self.GetSteererCols())
+        return sizer
+
+    # TODO: restart button
+
+    def GetData(self):
+        pass
+
+    def SetData(self, ovm):
+        self.ovm = ovm
+
+    def Update(self):
         pos = self.ovm.compute_initial_position()
         self.steerer_corrections = self.ovm.compute_steerer_corrections(pos)
-
-        # show corrections in list box
         steerer_corrections_rows = [
             (el.dvm_params[k], v)
             for el, vals in self.steerer_corrections
             for k, v in el.mad2dvm(vals).items()
         ]
-        self.calculated.items = steerer_corrections_rows
+        self.twiss_init.items = sorted(pos.items(), key=lambda item: item[0])
+        self.steerer_corr.items = steerer_corrections_rows
 
-    def GetListColumns(self):
+    def GetTwissCols(self):
+        return [
+            ColumnInfo(
+                "Param",
+                lambda index, item: item[0],
+                wx.LIST_FORMAT_LEFT,
+                wx.LIST_AUTOSIZE),
+            ColumnInfo(
+                "Value",
+                lambda index, item: format_quantity(item[1]),
+                wx.LIST_FORMAT_RIGHT,
+                wx.LIST_AUTOSIZE),
+        ]
+
+    def GetSteererCols(self):
         return [
             ColumnInfo(
                 "Param",
@@ -414,3 +439,37 @@ class OpticVariationWidget(Widget):
     def _format_dvm_value(self, index, item):
         param, val = item
         return format_dvm_value(param, val)
+
+
+class OpticVariationWizard(wizard.Wizard):
+
+    def __init__(self, parent, ovm):
+        super(OpticVariationWizard, self).__init__(parent)
+        self.ovm = ovm
+        self._add_step_page("1st optic")
+        self._add_step_page("2nd optic")
+        self._add_confirm_page()
+
+    def _add_step_page(self, title):
+        page = self.AddPage(title)
+        widget = OVM_Step(page.canvas)
+        widget.SetData(self.ovm)
+
+    def _add_confirm_page(self):
+        page = self.AddPage("Confirm steerer corrections")
+        widget = OVM_Summary(page.canvas)
+        widget.SetData(self.ovm)
+        self.summary = widget
+
+    def NextPage(self):
+        if self.cur_page in (0, 1):
+            self.ovm.record_measurement(self.cur_page)
+        super(OpticVariationWizard, self).NextPage()
+        if self.cur_page == 2:
+            self.summary.Update()
+
+    def OnFinishButton(self, event):
+        for el, vals in self.summary.steerer_corrections:
+            el.mad_backend.set(vals)
+            el.dvm_backend.set(el.mad2dvm(vals))
+        self.ovm.control._plugin.execute()

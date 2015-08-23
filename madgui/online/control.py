@@ -13,7 +13,7 @@ from madgui.core.plugin import EntryPoint
 from madgui.util.common import cachedproperty
 from madgui.util.symbol import SymbolicValue
 from madgui.widget import menu
-from madgui.widget.input import Cancellable, Dialog
+from madgui.widget.input import Cancellable, Dialog, ShowModal
 
 from . import api
 from . import dialogs
@@ -200,8 +200,8 @@ class Control(object):
         with Dialog(self._frame) as dialog:
             elems = dialogs.OpticSelectWidget(dialog).Query(elements, varyconf)
         ovm = OpticVariationMethod(self, *elems)
-        with Dialog(self._frame) as dialog:
-            dialogs.OpticVariationWidget(dialog).Query(ovm)
+        with dialogs.OpticVariationWizard(self._frame, ovm) as dialog:
+            ShowModal(dialog)
 
     # helper functions
 
