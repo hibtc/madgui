@@ -8,7 +8,6 @@ from __future__ import absolute_import
 
 # standard library
 import os
-from importlib import import_module
 from functools import partial
 from glob import glob
 from pkg_resources import iter_entry_points
@@ -17,8 +16,6 @@ from pkg_resources import iter_entry_points
 from madgui.core import wx
 from madgui.component.model import Locator as _Locator
 from madgui.resource.file import FileResource
-from madgui.resource.package import PackageResource
-from madgui.util.common import cachedproperty
 from madgui.widget.input import Widget
 
 # exported symbols
@@ -28,17 +25,6 @@ __all__ = [
 
 
 class Locator(_Locator):
-
-    @classmethod
-    def from_pkg(cls, pkg_name):
-        """Returns a Locator that lists all models in the given package."""
-        try:
-            pkg = import_module(pkg_name)
-        except (ValueError, KeyError, ImportError, TypeError):
-            # '' => ValueError, 'hit.' => KeyError,
-            # 'FOOBAR' => ImportErrow, '.' => TypeError
-            return None
-        return cls(PackageResource(pkg_name))
 
     @classmethod
     def from_path(cls, path_name):
@@ -102,8 +88,7 @@ class OpenModelWidget(Widget):
         ctrl = self.ctrl_pkg
         if ctrl.GetSelection() == wx.NOT_FOUND:
             source = ctrl.GetValue()
-            return (Locator.from_pkg(source) or
-                    Locator.from_path(source))
+            return Locator.from_path(source)
         else:
             return self.locators[ctrl.GetStringSelection()]()
 
