@@ -15,34 +15,8 @@ from madgui.util.unit import format_quantity
 
 # exported symbols
 __all__ = [
-    'format_element',
     'TwissWidget',
 ]
-
-
-def format_element(index, element):
-    """Create an informative string representing an element."""
-    return '{1[name]}'.format(index, element)
-
-
-ItemInfo = namedtuple('ItemInfo', ['index', 'element', 'active', 'twiss'])
-
-
-def _format_row_element(index, item):
-    return format_element(item.index, item.element)
-
-
-def _format_row_at(index, item):
-    return format_quantity(item.element['at'], '.3f')
-
-
-def _format_row_use(index, item):
-    return 'Yes' if item.active else 'No'
-
-
-def _format_row_data(index, item):
-    return ', '.join(k + '=' + format_quantity(v)
-                     for k, v in item.twiss.items())
 
 
 class TwissWidget(ParamTable):
