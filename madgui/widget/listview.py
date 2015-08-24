@@ -248,7 +248,7 @@ class ListCtrlAutoWidthMixin:
 
 class ListCtrlList(MutableSequence):
 
-    """A list-like interface adapter for a LC_VIRTUAL wx.ListCtrl."""
+    """A list-like interface adapter for a wx.ListCtrl."""
 
     def __init__(self, ctrl, items):
         """Use the items object by reference."""
@@ -329,11 +329,10 @@ class ListCtrlList(MutableSequence):
                                     min(end-1, count-1))
 
 
-# need to use ListCtrl, since ListView doesn't work in *virtual* mode:
 class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
     """
-    Virtual ListCtrl that uses a list of :class:`ColumnInfo` to format its
+    ListCtrl that uses a list of :class:`ColumnInfo` to format its
     columns. The first column is auto-sized by default.
     """
 
@@ -347,7 +346,7 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
         :param list columns: list of :class:`ColumnInfo`
         """
         # initialize super classes
-        style |= wx.LC_REPORT | wx.LC_VIRTUAL
+        style |= wx.LC_REPORT
         wx.ListCtrl.__init__(self, parent, style=style)
         ListCtrlAutoWidthMixin.__init__(self)
         self.setResizeColumn(0)
@@ -390,6 +389,22 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
     def OnGetItemText(self, row, col):
         """Get the text for the specified row/col."""
         return self._columns[col].gettext(row, self._items[row])
+
+    # The following methods are usually only implemented by LC_VIRTUAL list
+    # controls. We provide overrides that are useful for non-virtual controls
+    # while maintaining the same API:
+
+    def SetItemCount(self, count):
+        for row in range(self.GetItemCount(), count):
+            self.Append([""])
+        for row in range(count, self.GetItemCount()):
+            self.DeleteItem(row)
+
+    def RefreshItems(self, start, end):
+        for row in range(start, end+1):
+            for col in range(self.GetColumnCount()):
+                text = unicode(self.OnGetItemText(row, col))
+                self.SetStringItem(row, col, text)
 
 
 ### Value handlers
