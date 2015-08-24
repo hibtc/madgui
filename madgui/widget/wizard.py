@@ -102,10 +102,12 @@ class Wizard(Dialog):
         if page < 0 or page >= len(self.pages):
             raise ValueError("Invalid page index: {}".format(page))
         old_page, new_page = self.cur_page, page
+        self.Freeze()
         self.content_sizer.Hide(old_page)
         self.content_sizer.Show(new_page)
         self.cur_page = new_page
         self.content_sizer.Layout()
+        self.Thaw()
 
     def NextPage(self):
         self.GoToPage(self.cur_page + 1)
