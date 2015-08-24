@@ -8,15 +8,14 @@ from __future__ import absolute_import
 
 # standard library
 import os
-from importlib import import_module
+from functools import partial
+from glob import glob
 from pkg_resources import iter_entry_points
 
 # internal
 from madgui.core import wx
 from madgui.component.model import Locator as _Locator
 from madgui.resource.file import FileResource
-from madgui.resource.package import PackageResource
-from madgui.util.common import cachedproperty
 from madgui.widget.input import Widget
 
 # exported symbols
@@ -26,17 +25,6 @@ __all__ = [
 
 
 class Locator(_Locator):
-
-    @classmethod
-    def from_pkg(cls, pkg_name):
-        """Returns a Locator that lists all models in the given package."""
-        try:
-            pkg = import_module(pkg_name)
-        except (ValueError, KeyError, ImportError, TypeError):
-            # '' => ValueError, 'hit.' => KeyError,
-            # 'FOOBAR' => ImportErrow, '.' => TypeError
-            return None
-        return cls(PackageResource(pkg_name))
 
     @classmethod
     def from_path(cls, path_name):
@@ -100,8 +88,7 @@ class OpenModelWidget(Widget):
         ctrl = self.ctrl_pkg
         if ctrl.GetSelection() == wx.NOT_FOUND:
             source = ctrl.GetValue()
-            return (Locator.from_pkg(source) or
-                    Locator.from_path(source))
+            return Locator.from_path(source)
         else:
             return self.locators[ctrl.GetStringSelection()]()
 
@@ -120,10 +107,11 @@ class OpenModelWidget(Widget):
     def UpdateLocatorList(self):
         """Update the list of locators shown in the dialog."""
         # Note that entrypoints are lazy-loaded:
-        self.locators = {u'<{}>'.format(ep.name): lambda: ep.load()()
+        load = lambda ep: ep.load()()
+        self.locators = {u'<{}>'.format(ep.name): partial(load, ep)
                          for ep in iter_entry_points('madgui.models')}
         self.locators.update({
-            path: lambda: Locator.from_path(path)
+            path: partial(Locator.from_path, path)
             for path in self.model_pathes
         })
         # Format entrypoint names, so they can't be confused with package
@@ -166,7 +154,10 @@ class OpenModelWidget(Widget):
 
     def SetData(self, model_pathes):
         """Update displayed package and model name."""
-        self.model_pathes = model_pathes
+        self.model_pathes = [path
+                             for expr in model_pathes
+                             for path in glob(expr)
+                             if os.path.isdir(path)]
         self.UpdateLocatorList()
         self.UpdateModelList()
 

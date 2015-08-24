@@ -446,4 +446,4 @@ class Locator(object):
         Get the resource loader for the given model.
         """
         # instantiate the resource providers for model resource data
-        return self._repo.get(data['path-offset'])
+        return self._repo.get(data.get('path-offset', '.'))
