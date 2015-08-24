@@ -69,7 +69,7 @@ class Wizard(Dialog):
         super(Wizard, self).Fit()
 
     def AddPage(self, title):
-        panel = WizardPage(self, title)
+        panel = WizardPage(self.ContentArea, title)
         self.content_sizer.Add(panel, 2, wx.EXPAND)
         self.pages.append(panel)
         if len(self.pages) > 1:
