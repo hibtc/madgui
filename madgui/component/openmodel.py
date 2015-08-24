@@ -107,7 +107,8 @@ class OpenModelWidget(Widget):
     def UpdateLocatorList(self):
         """Update the list of locators shown in the dialog."""
         # Note that entrypoints are lazy-loaded:
-        self.locators = {u'<{}>'.format(ep.name): lambda: ep.load()()
+        load = lambda ep: ep.load()()
+        self.locators = {u'<{}>'.format(ep.name): partial(load, ep)
                          for ep in iter_entry_points('madgui.models')}
         self.locators.update({
             path: partial(Locator.from_path, path)
