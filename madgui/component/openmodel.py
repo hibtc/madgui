@@ -9,6 +9,7 @@ from __future__ import absolute_import
 # standard library
 import os
 from importlib import import_module
+from functools import partial
 from glob import glob
 from pkg_resources import iter_entry_points
 
@@ -124,7 +125,7 @@ class OpenModelWidget(Widget):
         self.locators = {u'<{}>'.format(ep.name): lambda: ep.load()()
                          for ep in iter_entry_points('madgui.models')}
         self.locators.update({
-            path: lambda: Locator.from_path(path)
+            path: partial(Locator.from_path, path)
             for path in self.model_pathes
         })
         # Format entrypoint names, so they can't be confused with package
