@@ -580,7 +580,7 @@ class FloatEditor(StringEditor):
         self.Control.SetValue(str(value))
 
 
-class EditListCtrl(wx.ListCtrl, ListCtrlUtil):
+class EditListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
     """
     A multi-column list control that allows the values in any entry to be
@@ -593,17 +593,19 @@ class EditListCtrl(wx.ListCtrl, ListCtrlUtil):
                 Thomas Gläßle
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, parent, autosize_columns, *args, **kwargs):
 
         """Create window and setup event handling."""
 
-        super(EditListCtrl, self).__init__(*args, **kwargs)
+        super(EditListCtrl, self).__init__(parent, *args, **kwargs)
 
         self.editor = None
         self.curRow = 0
         self.curCol = 0
         self.items = []
         self.column_types = {}
+
+        ListCtrlAutoWidthMixin.__init__(self, autosize_columns)
 
         self.Bind(wx.EVT_TEXT_ENTER, self.CloseEditor)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)

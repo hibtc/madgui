@@ -115,7 +115,8 @@ class ParamTable(Widget):
     def CreateControls(self, window):
         """Create sizer with content area, i.e. input fields."""
         style = wx.LC_REPORT | wx.LC_SINGLE_SEL
-        self._grid = grid = listview.EditListCtrl(window, style=style)
+        self._grid = grid = listview.EditListCtrl(window, style=style,
+                                                  autosize_columns=[0, 1, 3])
         grid.InsertColumn(0, "Parameter", width=wx.LIST_AUTOSIZE)
         grid.InsertColumn(1, "Value", width=wx.LIST_AUTOSIZE,
                           format=wx.LIST_FORMAT_RIGHT)
@@ -181,8 +182,7 @@ class ParamTable(Widget):
         # order in the GUI:
         for param_name in self._params:
             self.SetParamValue(param_name, data.get(param_name))
-        self._grid.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self._grid.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self._grid._doResize()
 
     def GetData(self):
         """Get dictionary with all input values from dialog."""
