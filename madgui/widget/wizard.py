@@ -74,7 +74,7 @@ class Wizard(Dialog):
         self.pages.append(panel)
         if len(self.pages) > 1:
             # hide all panels after the first one
-            panel.Hide()
+            self.content_sizer.Hide(panel)
         return panel
 
     def _UpdateSize(self):
@@ -102,10 +102,10 @@ class Wizard(Dialog):
         if page < 0 or page >= len(self.pages):
             raise ValueError("Invalid page index: {}".format(page))
         old_page, new_page = self.cur_page, page
-        self.pages[old_page].Hide()
-        self.pages[new_page].Show()
+        self.content_sizer.Hide(old_page)
+        self.content_sizer.Show(new_page)
         self.cur_page = new_page
-        self.Layout()
+        self.content_sizer.Layout()
 
     def NextPage(self):
         self.GoToPage(self.cur_page + 1)
