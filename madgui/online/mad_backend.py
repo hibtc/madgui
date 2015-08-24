@@ -3,6 +3,8 @@
 Implementations covering the MAD-X backend for accessing element properties.
 """
 
+from __future__ import absolute_import
+
 from cpymad.types import Expression
 from cpymad.util import is_identifier
 from madgui.util.symbol import SymbolicValue
@@ -40,10 +42,17 @@ def _get_property_lval(elem, attr):
 
 
 def _value(v):
+    if isinstance(v, list):
+        return [_value(x) for x in v]
     try:
         return v.value
     except AttributeError:
         return v
+
+def _evaluate(madx, v):
+    if isinstance(v, list):
+        return [madx.evaluate(x) for x in v]
+    return madx.evaluate(v)
 
 
 class MagnetBackend(api.ElementBackend):
@@ -58,8 +67,8 @@ class MagnetBackend(api.ElementBackend):
 
     def get(self):
         """Get dict of values from MAD-X."""
-        return {key: _value(self._elem[key])
-                for key in self._lval}
+        return {key: self._utool.add_unit(key, _evaluate(self._madx, lval))
+                for key, lval in self._lval.items()}
 
     def set(self, values):
         """Store values to MAD-X."""

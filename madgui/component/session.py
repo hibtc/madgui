@@ -136,6 +136,7 @@ class Segment(object):
                       normalize_range_name(self.stop.name))
 
         raw_elements = self.sequence.elements
+        # TODO: provide uncached version of elements with units:
         self.elements = list(map(
             session.utool.dict_add_unit, raw_elements))
         self.madx = session.madx
