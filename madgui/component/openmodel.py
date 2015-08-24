@@ -9,6 +9,7 @@ from __future__ import absolute_import
 # standard library
 import os
 from importlib import import_module
+from glob import glob
 from pkg_resources import iter_entry_points
 
 # internal
@@ -166,7 +167,10 @@ class OpenModelWidget(Widget):
 
     def SetData(self, model_pathes):
         """Update displayed package and model name."""
-        self.model_pathes = model_pathes
+        self.model_pathes = [path
+                             for expr in model_pathes
+                             for path in glob(expr)
+                             if os.path.isdir(path)]
         self.UpdateLocatorList()
         self.UpdateModelList()
 
