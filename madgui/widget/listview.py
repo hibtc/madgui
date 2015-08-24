@@ -11,12 +11,11 @@ from collections import MutableSequence
 from madgui.core import wx
 from madgui.util.common import instancevars
 
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
-
 # exported symbols
 __all__ = [
     'ColumnInfo',
     'ListCtrlUtil',
+    'ListCtrlAutoWidthMixin',
     'ListCtrl',
     'EditListCtrl',
 
@@ -106,6 +105,145 @@ class ListCtrlUtil(object):
             loc = loc + self.GetColumnWidth(n)
             col_locs.append(loc)
         return col_locs
+
+
+# This class is originally copied from the module `wx.lib.mixins.listctrl`
+# distributed with wxPython. See the original source file for authorship.
+
+class ListCtrlAutoWidthMixin:
+    """ A mix-in class that automatically resizes the last column to take up
+        the remaining width of the wx.ListCtrl.
+
+        This causes the wx.ListCtrl to automatically take up the full width of
+        the list, without either a horizontal scroll bar (unless absolutely
+        necessary) or empty space to the right of the last column.
+
+        NOTE:    This only works for report-style lists.
+
+        WARNING: If you override the EVT_SIZE event in your wx.ListCtrl, make
+                 sure you call event.Skip() to ensure that the mixin's
+                 _OnResize method is called.
+
+        This mix-in class was written by Erik Westra <ewestra@wave.co.nz>
+    """
+    def __init__(self):
+        """ Standard initialiser.
+        """
+        self._resizeColMinWidth = None
+        self._resizeColStyle = "LAST"
+        self._resizeCol = 0
+        self.Bind(wx.EVT_SIZE, self._onResize)
+        self.Bind(wx.EVT_LIST_COL_END_DRAG, self._onResize, self)
+
+
+    def setResizeColumn(self, col):
+        """
+        Specify which column that should be autosized.  Pass either
+        'LAST' or the column number.  Default is 'LAST'.
+        """
+        if col == "LAST":
+            self._resizeColStyle = "LAST"
+        else:
+            self._resizeColStyle = "COL"
+            self._resizeCol = col
+
+
+    def resizeLastColumn(self, minWidth):
+        """ Resize the last column appropriately.
+
+            If the list's columns are too wide to fit within the window, we use
+            a horizontal scrollbar.  Otherwise, we expand the right-most column
+            to take up the remaining free space in the list.
+
+            This method is called automatically when the wx.ListCtrl is resized;
+            you can also call it yourself whenever you want the last column to
+            be resized appropriately (eg, when adding, removing or resizing
+            columns).
+
+            'minWidth' is the preferred minimum width for the last column.
+        """
+        self.resizeColumn(minWidth)
+
+
+    def resizeColumn(self, minWidth):
+        self._resizeColMinWidth = minWidth
+        self._doResize()
+
+
+    # =====================
+    # == Private Methods ==
+    # =====================
+
+    def _onResize(self, event):
+        """ Respond to the wx.ListCtrl being resized.
+
+            We automatically resize the last column in the list.
+        """
+        if 'gtk2' in wx.PlatformInfo or 'gtk3' in wx.PlatformInfo:
+            self._doResize()
+        else:
+            wx.CallAfter(self._doResize)
+        event.Skip()
+
+
+    def _doResize(self):
+        """ Resize the last column as appropriate.
+
+            If the list's columns are too wide to fit within the window, we use
+            a horizontal scrollbar.  Otherwise, we expand the right-most column
+            to take up the remaining free space in the list.
+
+            We remember the current size of the last column, before resizing,
+            as the preferred minimum width if we haven't previously been given
+            or calculated a minimum width.  This ensure that repeated calls to
+            _doResize() don't cause the last column to size itself too large.
+        """
+
+        if not self:  # avoid a PyDeadObject error
+            return
+
+        if self.GetSize().height < 32:
+            return  # avoid an endless update bug when the height is small.
+
+        numCols = self.GetColumnCount()
+        if numCols == 0: return # Nothing to resize.
+
+        if(self._resizeColStyle == "LAST"):
+            resizeCol = self.GetColumnCount()
+        else:
+            resizeCol = self._resizeCol
+
+        resizeCol = max(1, resizeCol)
+
+        if self._resizeColMinWidth == None:
+            self._resizeColMinWidth = self.GetColumnWidth(resizeCol - 1)
+
+        # We're showing the vertical scrollbar -> allow for scrollbar width
+        # NOTE: on GTK, the scrollbar is included in the client size, but on
+        # Windows it is not included
+        listWidth = self.GetClientSize().width
+        if wx.Platform != '__WXMSW__':
+            if self.GetItemCount() > self.GetCountPerPage():
+                scrollWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+                listWidth = listWidth - scrollWidth
+
+        totColWidth = 0 # Width of all columns except last one.
+        for col in range(numCols):
+            if col != (resizeCol-1):
+                totColWidth = totColWidth + self.GetColumnWidth(col)
+
+        resizeColWidth = self.GetColumnWidth(resizeCol - 1)
+
+        if totColWidth + self._resizeColMinWidth > listWidth:
+            # We haven't got the width to show the last column at its minimum
+            # width -> set it to its minimum width and allow the horizontal
+            # scrollbar to show.
+            self.SetColumnWidth(resizeCol-1, self._resizeColMinWidth)
+            return
+
+        # Resize the last column to take up the remaining available space.
+
+        self.SetColumnWidth(resizeCol-1, listWidth - totColWidth)
 
 
 class ListCtrlList(MutableSequence):
