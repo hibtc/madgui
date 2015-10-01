@@ -147,7 +147,7 @@ class Control(object):
         """Write all parameters to the online database."""
         elems = [
             (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
-            for el in self.iter_elements(BaseMagnet)
+            for el in self.iter_elements(elements.BaseMagnet)
         ]
         rows = [
             (el.dvm_params[k], dv, mvals[k])
