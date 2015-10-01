@@ -123,13 +123,13 @@ class Control(object):
     def read_all(self):
         """Read all parameters from the online database."""
         # TODO: cache and reuse 'active' flag for each parameter
-        elements = [
+        elems = [
             (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
             for el in self.iter_elements(elements.BaseMagnet)
         ]
         rows = [
             (el.dvm_params[k], dv, mvals[k])
-            for el, dvals, mvals in elements
+            for el, dvals, mvals in elems
             for k, dv in dvals.items()
         ]
         if not rows:
@@ -140,18 +140,18 @@ class Control(object):
             return
         with Dialog(self._frame) as dialog:
             dialogs.ImportParamWidget(dialog).Query(rows)
-        self.read_these(elements)
+        self.read_these(elems)
 
     @Cancellable
     def write_all(self):
         """Write all parameters to the online database."""
-        elements = [
+        elems = [
             (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
             for el in self.iter_elements(BaseMagnet)
         ]
         rows = [
             (el.dvm_params[k], dv, mvals[k])
-            for el, dvals, mvals in elements
+            for el, dvals, mvals in elems
             for k, dv in dvals.items()
         ]
         if not rows:
@@ -162,7 +162,7 @@ class Control(object):
             return
         with Dialog(self._frame) as dialog:
             dialogs.ExportParamWidget(dialog).Query(rows)
-        self.write_these(elements)
+        self.write_these(elems)
 
     @Cancellable
     def read_monitors(self):
@@ -184,10 +184,10 @@ class Control(object):
     def on_find_initial_position(self):
         segment = self._segment
         # TODO: sync elements attributes
-        elements = segment.sequence.elements
+        elems = segment.sequence.elements
         varyconf = segment.model._data.get('align', {})
         with Dialog(self._frame) as dialog:
-            elems = ovm.OpticSelectWidget(dialog).Query(elements, varyconf)
+            elems = ovm.OpticSelectWidget(dialog).Query(elems, varyconf)
         data = ovm.OpticVariationMethod(self, *elems)
         with ovm.OpticVariationWizard(self._frame, data) as dialog:
             ShowModal(dialog)
