@@ -22,7 +22,6 @@ from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
 from madgui.component.model import Model
-from madgui.component.modeldetail import ModelDetailWidget
 from madgui.component.openmodel import OpenModelWidget
 from madgui.component.session import Session, Segment
 from madgui.component.twissdialog import TwissWidget
@@ -147,7 +146,6 @@ class NotebookFrame(MDIParentFrame):
             return
         if reset:
             self._ResetSession()
-        utool = self.madx_units
         Model.init(data=mdata, repo=repo, madx=self.session.madx)
         self.session.model = mdata
         self.session.repo = repo
@@ -193,30 +191,16 @@ class NotebookFrame(MDIParentFrame):
     def _EditModelDetail(self, event=None):
         session = self.session
         model = session.model
-        madx = session.madx
         utool = session.utool
-
-        with Dialog(self) as dialog:
-            widget = ModelDetailWidget(dialog, model=model, madx=madx, utool=utool)
-            detail = widget.Query()
-
-        sequence = detail['sequence']
-        beam = detail['beam']
-        range_bounds = detail['range']
-        twiss_args = detail['twiss']
-
-        beam = dict(beam, sequence=sequence)
-
-        session.madx.command.beam(**utool.dict_strip_unit(beam))
 
         segment = Segment(
             session=session,
-            sequence=sequence,
-            range=range_bounds,
-            twiss_args=twiss_args
+            sequence=model['sequence'],
+            range=model['range'],
+            twiss_args=utool.dict_add_unit(model['twiss']),
         )
         segment.model = model
-        segment.show_element_indicators = detail['indicators']
+        segment.show_element_indicators = model.get('indicators', True)
         TwissView.create(session, self, basename='env')
 
     @Cancellable
