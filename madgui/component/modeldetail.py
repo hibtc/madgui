@@ -141,8 +141,7 @@ class ModelDetailWidget(Widget):
 
     def OnTwissChange(self, event=None):
         range = self.sequence.range
-        twiss_name = self.ctrl_twiss.GetValue()
-        twiss_args = range.initial_conditions[twiss_name]
+        twiss_args = range.initial_conditions
         twiss_args = self.utool.dict_add_unit(twiss_args)
         start_element = self.elements.index(range.bounds[0])
         twiss_initial = twiss_args
@@ -207,7 +206,7 @@ class ModelDetailWidget(Widget):
         model, data = self.model, self.data
         range = model.sequence.range
         self._Update(self.ctrl_twiss,
-                     range.initial_conditions.keys(),
-                     range.data['default-twiss'],
-                     data.get('twiss'))
+                     ['default'],
+                     'default',
+                     'default')
         self.OnTwissChange()

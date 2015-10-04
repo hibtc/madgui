@@ -33,10 +33,9 @@ range:
   madx-range:
     first: '#s'
     last: '#e'
-  default-twiss: default
-  twiss-initial-conditions:
-    default:
-      betx: 0.1
-      bety: 0.1
-      alfx: 0.0
-      alfy: 0.0
+
+twiss:
+  betx: 0.1
+  bety: 0.1
+  alfx: 0.0
+  alfy: 0.0

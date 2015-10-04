@@ -98,11 +98,6 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         range = self.model.sequence.range
         # bounds
         self.assertEqual(range.bounds, ('#s', '#e'))
-        # initial_conditions
-        self.assertItemsEqual(range.initial_conditions.keys(), ['default'])
-        # default_initial_conditions
-        self.assertIs(range.default_initial_conditions,
-                      range.initial_conditions['default'])
 
     def test_Range_twiss(self):
         """Execute twiss() and check that it returns usable values."""

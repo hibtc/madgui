@@ -165,10 +165,6 @@ class NotebookFrame(MDIParentFrame):
         for seq in madx.sequences:
             range_ = {
                 'madx-range': {'first': '#s', 'last': '#e'},
-                'default-twiss': 'default',
-                'twiss-initial-conditions': {
-                    'default': {}
-                }
             }
             beam_name = 'beam{}'.format(len(beams))
             # TODO: automatically read other used initial conditions from
@@ -193,6 +189,7 @@ class NotebookFrame(MDIParentFrame):
             'name': '(auto-generated)',
             'sequence': sequence,
             'beams': beams,
+            'twiss': {},
         }
         return Model(data, repo=None, madx=madx)
 

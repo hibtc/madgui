@@ -76,6 +76,7 @@ class Model(object):
         self.beam = Beam(data['beam'], self)
         self.sequence = Sequence(data['sequence'], self)
         self.range = Range(data['range'], self)
+        self.initial_conditions = data['twiss']
 
     @classmethod
     def check_compatibility(cls, data):
@@ -153,6 +154,7 @@ class Model(object):
         data['beam'] = self.beam.data
         data['sequence'] = self.sequence.data
         data['range'] = self.range.data
+        data['twiss'] = self.initial_conditions
         return data
 
     def _load(self, *files):
@@ -263,14 +265,10 @@ class Range(object):
     :ivar Sequence _sequence:
     """
 
-    def __init__(self, data, sequence):
+    def __init__(self, data, model):
         """Initialize instance variables."""
         self.data = data
-        self._sequence = sequence
-
-    def init(self):
-        """Load model in MAD-X interpreter."""
-        self._sequence.init()
+        self._model = model
 
     @property
     def bounds(self):
@@ -283,15 +281,15 @@ class Range(object):
         """Get a :class:`ResourceProvider` for the offsets file."""
         if 'aper-offset' not in self.data:
             return None
-        repo = self._sequence._model._repo
+        repo = self._model._repo
         return _repo.get(self.data['aper-offset'])
 
     def twiss(self, **kwargs):
         """Run TWISS on this range."""
         self.init()
         kw = self._set_twiss_init(kwargs)
-        madx = self._sequence._model.madx
-        result = madx.twiss(sequence=self._sequence.name,
+        madx = self._model.madx
+        result = madx.twiss(sequence=self._model.sequence.name,
                             range=self.bounds, **kw)
         return result
 
@@ -304,28 +302,19 @@ class Range(object):
             for key, val in kw['twiss_init'].items()
             if is_match_param(key)
         }
-        madx = self._sequence._model.madx
-        return madx.match(sequence=self._sequence.name,
+        madx = self._model.madx
+        return madx.match(sequence=self._model.sequence.name,
                           range=self.bounds, **kw)
 
     @property
     def initial_conditions(self):
-        """
-        Return a dict of all defined initial conditions.
-
-        Each item is a dict of TWISS parameters.
-        """
-        return self.data['twiss-initial-conditions']
-
-    @property
-    def default_initial_conditions(self):
-        """Return the default twiss initial conditions."""
-        return self.initial_conditions[self.data['default-twiss']]
+        """Return a dict with initial conditions."""
+        return self._model.initial_conditions
 
     def _set_twiss_init(self, kwargs):
         kw = kwargs.copy()
         twiss_init = kw.get('twiss_init', {}).copy()
-        twiss_init.update(self.default_initial_conditions)
+        twiss_init.update(self.initial_conditions)
         kw['twiss_init'] = twiss_init
         return kw
 
