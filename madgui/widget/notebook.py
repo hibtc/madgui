@@ -21,10 +21,11 @@ from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
-from madgui.component.model import Model
+from madgui.component.model import Model, Locator
 from madgui.component.openmodel import OpenModelWidget
 from madgui.component.session import Session, Segment
 from madgui.component.twissdialog import TwissWidget
+from madgui.resource.file import FileResource
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
@@ -139,9 +140,19 @@ class NotebookFrame(MDIParentFrame):
     @Cancellable
     def _LoadModel(self, event=None):
         reset = self._ConfirmResetSession()
-        model_pathes = self.app.conf.get('model_pathes', [])
-        with Dialog(self) as dialog:
-            mdata, repo = OpenModelWidget(dialog).Query(model_pathes)
+        wildcards = [("cpymad model files", "*.cpymad.yml"),
+                     ("All files", "*")]
+        dlg = OpenDialog(self, "Open model", wildcards)
+        dlg.Directory = self.app.conf.get('model_path', '.')
+        with dlg:
+            ShowModal(dlg)
+            filename = dlg.Filename
+            directory = dlg.Directory
+
+        locator = Locator(FileResource(directory))
+        mdata = locator.get_definition(filename)
+        repo = locator.get_repository(mdata)
+
         if not mdata:
             return
         if reset:
