@@ -143,14 +143,14 @@ class NotebookFrame(MDIParentFrame):
         reset = self._ConfirmResetSession()
         model_pathes = self.app.conf.get('model_pathes', [])
         with Dialog(self) as dialog:
-            mdata, repo, optic = OpenModelWidget(dialog).Query(model_pathes)
+            mdata, repo = OpenModelWidget(dialog).Query(model_pathes)
         if not mdata:
             return
         if reset:
             self._ResetSession()
         utool = self.madx_units
         model = Model(data=mdata, repo=repo, madx=self.session.madx)
-        model.optics[optic].init()
+        model.init()
         self.session.model = model
         self._EditModelDetail()
 
@@ -159,7 +159,6 @@ class NotebookFrame(MDIParentFrame):
         madx = session.madx
         libmadx = session.libmadx
 
-        optics = {'default': {'init-files': []}}
         sequences = {}
         beams = {}
         for seq in madx.sequences:
@@ -192,11 +191,9 @@ class NotebookFrame(MDIParentFrame):
             'path_offset': '',
             'init-files': '',
             'name': '(auto-generated)',
-            'optics': optics,
             'sequences': sequences,
             'beams': beams,
             'default-sequence': sorted(sequences)[0],
-            'default-optic': sorted(optics)[0],
         }
         return Model(data, repo=None, madx=madx)
 

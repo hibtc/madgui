@@ -17,7 +17,6 @@ from madgui.resource.file import FileResource
 __all__ = [
     'Model',
     'Beam',
-    'Optic',
     'Sequence',
     'Range',
     'Locator',
@@ -51,7 +50,6 @@ class Model(object):
 
     :ivar str Model.name: model name
     :ivar dict beams: known :class:`Beam` objects
-    :ivar dict optics: known :class:`Optic` objects
     :ivar dict sequences: known :class:`Sequence` objects
     :ivar Madx madx: handle to the MAD-X library
     :ivar dict _data: model definition data
@@ -86,7 +84,6 @@ class Model(object):
         self._loaded = False
         # create Beam/Optic/Sequence instances:
         self.beams = _deserialize(data['beams'], Beam, self)
-        self.optics = _deserialize(data['optics'], Optic, self)
         self.sequences = _deserialize(data['sequences'], Sequence, self)
 
     @classmethod
@@ -163,21 +160,15 @@ class Model(object):
         """Get a serializable representation of this model."""
         data = self._data.copy()
         data['beams'] = _serialize(self.beams)
-        data['optics'] = _serialize(self.optics)
         data['sequences'] = _serialize(self.sequences)
         return data
-
-    @property
-    def default_optic(self):
-        """Get default Optic."""
-        return self.optics[self._data['default-optic']]
 
     @property
     def default_sequence(self):
         """Get default Sequence."""
         return self.sequences[self._data['default-sequence']]
 
-    # TODO: add setters for default_optic / default_sequence
+    # TODO: add setter for default_sequence
     # TODO: remove default_sequence?
 
     def _load(self, *files):
@@ -213,34 +204,6 @@ class Beam(object):
         self._loaded = True
         self._model.init()
         self._model.madx.command.beam(**self.data)
-
-
-class Optic(object):
-
-    """
-    An optic (as far as I understand) defines a variant of the accelerator
-    setup, e.g. different field strengths.
-
-    :ivar str Optic.name: optic name
-    :ivar dict _data: optic definition
-    :ivar Model _model: owning model
-    :ivar bool _loaded: beam has been initialized in MAD-X
-    """
-
-    def __init__(self, name, data, model):
-        """Initialize instance variables."""
-        self.name = name
-        self.data = data
-        self._model = model
-        self._loaded = False
-
-    def init(self):
-        """Load the optic in the MAD-X process."""
-        if self._loaded:
-            return
-        self._loaded = True
-        self._model.init()
-        self._model._load(*self.data.get('init-files', ()))
 
 
 class Sequence(object):

@@ -51,7 +51,6 @@ class TestModel(unittest.TestCase, _compat.TestCase):
     def test_compatibility_check(self):
         data = {
             'beams': {},
-            'optics': {},
             'sequences': {},
         }
         with self.assertRaises(ValueError):
@@ -73,25 +72,12 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         self.assertEqual(model.data, repository.yaml())
         # beams
         self.assertItemsEqual(model.beams.keys(), ['carbon', 'other'])
-        # optics
-        self.assertItemsEqual(model.optics.keys(), ['thick'])
         # sequences
         self.assertItemsEqual(model.sequences.keys(), ['s1', 's2'])
         self.assertTrue('s1' in madx.sequences)
         self.assertTrue('s2' in madx.sequences)
-        # default_optic
-        self.assertIs(model.default_optic, model.optics['thick'])
         # default_sequence
         self.assertIs(model.default_sequence, model.sequences['s1'])
-
-    # tests for Optic API
-
-    def test_Optic_load(self):
-        """Check that the Optic init-files are executed upon init()."""
-        evaluate = self.model.madx.evaluate
-        self.assertAlmostEqual(evaluate('NOT_ZERO'), 0.0)
-        self.model.optics['thick'].init()
-        self.assertAlmostEqual(evaluate('NOT_ZERO'), 1.0)
 
     # tests for Sequence API
 

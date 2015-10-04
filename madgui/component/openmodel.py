@@ -62,11 +62,9 @@ class OpenModelWidget(Widget):
         # Create controls
         self.ctrl_pkg = self._AddCombo('Source:', wx.CB_DROPDOWN|wx.CB_SORT)
         self.ctrl_model = self._AddCombo('Model:', wx.CB_READONLY|wx.CB_SORT)
-        self.ctrl_optic = self._AddCombo('Optic:', wx.CB_READONLY|wx.CB_SORT)
         # register for events
         self.Window.Bind(wx.EVT_TEXT, self.OnPackageChange, self.ctrl_pkg)
         self.Window.Bind(wx.EVT_COMBOBOX, self.OnPackageChange, self.ctrl_pkg)
-        self.Window.Bind(wx.EVT_COMBOBOX, self.OnModelChange, self.ctrl_model)
         self.ctrl_pkg.SetMinSize(wx.Size(200, -1))
         return controls
 
@@ -78,10 +76,6 @@ class OpenModelWidget(Widget):
         if sel == wx.NOT_FOUND and val in self.locators:
             ctrl.SetStringSelection(val)
         self.UpdateModelList()
-
-    def OnModelChange(self, event):
-        """Update optic list when the model selection has changed."""
-        self.UpdateOpticList()
 
     def GetCurrentLocator(self):
         """Get the currently selected locator."""
@@ -95,14 +89,6 @@ class OpenModelWidget(Widget):
     def GetModelList(self):
         """Get list of models in the package specified by the input field."""
         return list(self.locator.list_models()) if self.locator else []
-
-    def GetOpticList(self):
-        """Get the model definition data for the currently selected model."""
-        if not self.locator or not self.modellist:
-            return [], ''
-        model = self.ctrl_model.GetValue()
-        mdef = self.locator.get_definition(model)
-        return list(mdef.get('optics', {})), mdef.get('default-optic', '')
 
     def UpdateLocatorList(self):
         """Update the list of locators shown in the dialog."""
@@ -131,17 +117,9 @@ class OpenModelWidget(Widget):
         self.ctrl_model.SetItems(self.modellist)
         self.ctrl_model.SetSelection(0)
         self.ctrl_model.Enable(bool(self.modellist))
-        self.UpdateOpticList()
-
-    def UpdateOpticList(self):
-        """Update list of optics."""
-        optics, selected = self.GetOpticList()
-        self.ctrl_optic.SetItems(optics)
-        self.ctrl_optic.SetStringSelection(selected)
-        self.ctrl_optic.Enable(bool(optics))
 
     def GetData(self):
-        """Get (model_definition, repository, optic_name)."""
+        """Get (model_definition, repository)."""
         locator = self.locator
         if locator:
             mdata = locator.get_definition(self.ctrl_model.GetValue())
@@ -149,8 +127,7 @@ class OpenModelWidget(Widget):
         else:
             mdata = None
             repo = None
-        optic = self.ctrl_optic.GetValue()
-        return mdata, repo, optic
+        return mdata, repo
 
     def SetData(self, model_pathes):
         """Update displayed package and model name."""

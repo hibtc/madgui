@@ -4,6 +4,7 @@ api_version: 0
 path-offset: "lebt"
 init-files:
   - init.madx
+  - thick.madx
 beams:
   carbon:
     mass: 12.0
@@ -60,9 +61,3 @@ sequences:
             bety: 0.1
             alfx: 0.0
             alfy: 0.0
-
-default-optic: thick
-optics:
-  thick:
-    init-files:
-      - thick.madx
