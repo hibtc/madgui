@@ -11,6 +11,7 @@ import os
 
 from cpymad.madx import Madx
 from cpymad.util import is_match_param
+from cpymad.types import Range
 from madgui.resource.file import FileResource
 
 
@@ -75,7 +76,7 @@ class Model(object):
         # create Beam/Optic/Sequence instances:
         self.beam = Beam(data['beam'], self)
         self.sequence = Sequence(data['sequence'], self)
-        self.range = Range(data['range'], self)
+        self.range = Range(*data['range'])
         self.initial_conditions = data['twiss']
 
     @classmethod
@@ -138,6 +139,7 @@ class Model(object):
             return
         self._loaded = True
         self._load(*self._data['init-files'])
+        self.madx.command.beam(**self.beam.data)
 
     def __repr__(self):
         return "{0}({1!r})".format(self.__class__.__name__, self.name)
@@ -153,7 +155,7 @@ class Model(object):
         data = self._data.copy()
         data['beam'] = self.beam.data
         data['sequence'] = self.sequence.data
-        data['range'] = self.range.data
+        data['range'] = list(self.range)
         data['twiss'] = self.initial_conditions
         return data
 
@@ -238,33 +240,6 @@ class Sequence(object):
     def elements(self):
         """Get a proxy list for all the elements."""
         return self.real_sequence.elements
-
-
-class Range(object):
-
-    """
-    Subsequence of elements within a :class:`Sequence`.
-
-    :ivar str ~Range.name: sequence name
-    :ivar dict _data:
-    :ivar Sequence _sequence:
-    """
-
-    def __init__(self, data, model):
-        """Initialize instance variables."""
-        self.data = data
-        self._model = model
-
-    @property
-    def bounds(self):
-        """Get a tuple (first, last)."""
-        return (self.data["madx-range"]["first"],
-                self.data["madx-range"]["last"])
-
-    @property
-    def initial_conditions(self):
-        """Return a dict with initial conditions."""
-        return self._model.initial_conditions
 
 
 class Locator(object):
