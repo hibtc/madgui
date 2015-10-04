@@ -19,27 +19,6 @@ __all__ = [
 ]
 
 
-def match_metadata(all_metadata, sequence, col_names):
-    """
-    Find suitable match for sequence/optic/range/columns in metadata.
-    
-    :param list all_metadata: all metadata entries for the model
-    :param str sequence: sequence name to be searched for
-    :param list col_names: column names to be searched for
-    :returns: matched metadata
-    :rtype: dict
-
-    TODO: Add optic/range matching
-    """
-    for review in all_metadata:
-        if review['sequence'] != sequence:
-            continue
-        columns = review['columns']
-        if all(col in columns for col in col_names):
-            return review
-    raise ValueError()
-
-
 class CompareTool(object):
 
     """
@@ -48,6 +27,8 @@ class CompareTool(object):
     Draws the mirko envelope into a LineView figure whenever that figure
     is replotted.
     """
+
+    # TODO: allow to plot any dynamically loaded curve from any file
 
     def __init__(self, panel):
         """
@@ -64,12 +45,13 @@ class CompareTool(object):
         if not self._model:
             return
 
-        all_metadata = self._model.get('review', [])
-        col_names = [view.sname, view.xname, view.yname]
         try:
-            metadata = match_metadata(all_metadata, view.segment.sequence.name,
-                                      col_names)
-        except ValueError:
+            metadata = self._model['review']
+        except KeyError:
+            return
+
+        col_names = [view.sname, view.xname, view.yname]
+        if not all(col in metadata['columns'] for col in col_names):
             return
         self._metadata = metadata
 
