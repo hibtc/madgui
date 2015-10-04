@@ -180,16 +180,6 @@ class Beam(object):
     def __init__(self, data, model):
         """Initialize instance variables."""
         self.data = data
-        self._model = model
-        self._loaded = False
-
-    def init(self):
-        """Define the beam in MAD-X."""
-        if self._loaded:
-            return
-        self._loaded = True
-        self._model.init()
-        self._model.madx.command.beam(**self.data)
 
 
 class Sequence(object):
@@ -207,11 +197,6 @@ class Sequence(object):
         self.name = data['name']
         self._data = data
         self._model = model
-
-    def init(self):
-        """Load model in MAD-X interpreter."""
-        self._model.init()
-        self.beam.init()
 
     @property
     def data(self):
@@ -233,7 +218,6 @@ class Sequence(object):
     @property
     def real_sequence(self):
         """Get the corresponding :class:`Sequence`."""
-        self.init()
         return self._model.madx.sequences[self.name]
 
     @property

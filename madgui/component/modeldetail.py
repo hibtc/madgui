@@ -134,16 +134,14 @@ class ModelDetailWidget(Widget):
     def OnRangeChange(self, event=None):
         """Update default twiss when range is changed."""
         self.UpdateTwiss()
-        range = self.sequence.range
-        beg, end = range.bounds
+        beg, end = self.model.range
         selected = [self.elements.index(beg), self.elements.index(end)]
         self.widget_range.SetData(self.elements_with_units, selected)
 
     def OnTwissChange(self, event=None):
-        range = self.sequence.range
-        twiss_args = range.initial_conditions
+        twiss_args = self.model.initial_conditions
         twiss_args = self.utool.dict_add_unit(twiss_args)
-        start_element = self.elements.index(range.bounds[0])
+        start_element = self.elements.index(self.model.range[0])
         twiss_initial = twiss_args
         self.widget_twiss.SetData(twiss_initial)
 

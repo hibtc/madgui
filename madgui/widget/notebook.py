@@ -210,7 +210,6 @@ class NotebookFrame(MDIParentFrame):
 
         beam = dict(beam, sequence=sequence)
 
-        model.sequence.init()
         session.madx.command.beam(**utool.dict_strip_unit(beam))
 
         segment = Segment(
