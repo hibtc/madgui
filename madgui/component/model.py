@@ -58,7 +58,8 @@ class Model(object):
         """Load model in MAD-X interpreter."""
         cls.check_compatibility(data)
         _load(madx, repo, *data['init-files'])
-        madx.command.beam(**data['beam'])
+        beam = dict(data['beam'], sequence=data['sequence'])
+        madx.command.beam(**beam)
 
 
 class Locator(object):
