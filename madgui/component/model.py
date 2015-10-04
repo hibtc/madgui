@@ -142,11 +142,6 @@ class Model(object):
         return "{0}({1!r})".format(self.__class__.__name__, self.name)
 
     @property
-    def name(self):
-        """Model name."""
-        return self._data['name']
-
-    @property
     def data(self):
         """Get a serializable representation of this model."""
         data = self._data.copy()

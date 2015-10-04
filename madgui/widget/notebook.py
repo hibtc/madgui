@@ -514,7 +514,7 @@ def set_frame_title(model, frame):
 
     This is invoked as a hook from ``model.hook.show(frame)``.
     """
-    frame.SetTitle(model.name)
+    frame.SetTitle(model.sequence)
 
 
 class TextCtrlStream(object):
