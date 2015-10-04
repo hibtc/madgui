@@ -49,8 +49,8 @@ class Model(object):
     All instance variables are READ-ONLY at the moment.
 
     :ivar str Model.name: model name
-    :ivar dict beams: known :class:`Beam` objects
-    :ivar Sequence sequence: known :class:`Sequence` objects
+    :ivar Beam beam:
+    :ivar Sequence sequence:
     :ivar Madx madx: handle to the MAD-X library
     :ivar dict _data: model definition data
     :ivar ResourceProvider _repo: resource access
@@ -83,7 +83,7 @@ class Model(object):
         self.madx = madx
         self._loaded = False
         # create Beam/Optic/Sequence instances:
-        self.beams = _deserialize(data['beams'], Beam, self)
+        self.beam = Beam(data['beam'], self)
         self.sequence = Sequence(data['sequence'], self)
 
     @classmethod
@@ -159,7 +159,7 @@ class Model(object):
     def data(self):
         """Get a serializable representation of this model."""
         data = self._data.copy()
-        data['beams'] = _serialize(self.beams)
+        data['beam'] = self.beam.data
         data['sequence'] = self.sequence.data
         return data
 
@@ -176,15 +176,13 @@ class Beam(object):
     A beam defines the mass, charge, energy, etc. of the particles moved
     through the accelerator.
 
-    :ivar str Beam.name: beam name
     :ivar dict Beam.data: beam parameters (keywords to BEAM command in MAD-X)
     :ivar Model _model: owning model
     :ivar bool _loaded: beam has been initialized in MAD-X
     """
 
-    def __init__(self, name, data, model):
+    def __init__(self, data, model):
         """Initialize instance variables."""
-        self.name = name
         self.data = data
         self._model = model
         self._loaded = False
@@ -232,7 +230,7 @@ class Sequence(object):
     @property
     def beam(self):
         """Get :class:`Beam` instance for this sequence."""
-        return self._model.beams[self._data['beam']]
+        return self._model.beam
 
     @property
     def default_range(self):

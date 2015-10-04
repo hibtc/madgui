@@ -127,8 +127,7 @@ class ModelDetailWidget(Widget):
         self.UpdateRanges()
 
     def OnBeamChange(self, event=None):
-        beam = self.ctrl_beam.GetValue()
-        data = self.model.beams[beam].data
+        data = self.model.beam.data
         data = self.utool.dict_add_unit(data)
         self.widget_beam.SetData(data)
 
@@ -183,15 +182,16 @@ class ModelDetailWidget(Widget):
         self._Update(self.ctrl_sequence,
                      [model.sequence.name],
                      model.sequence.name,
-                     data.get('sequence'))
+                     model.sequence.name)
         self.OnSequenceChange()
 
     def UpdateBeams(self):
         model, data = self.model, self.data
+        # TODO: list all available beams
         self._Update(self.ctrl_beam,
-                     model.beams.keys(),
-                     model.sequence.beam.name,
-                     data.get('beam'))
+                     ['default'],
+                     'default',
+                     'default')
         self.OnBeamChange()
 
     def UpdateRanges(self):

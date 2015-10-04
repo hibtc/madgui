@@ -50,7 +50,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_compatibility_check(self):
         data = {
-            'beams': {},
+            'beam': {},
             'sequence': {},
         }
         with self.assertRaises(ValueError):
@@ -70,8 +70,6 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         # data
         repository = FileResource(self.path)
         self.assertEqual(model.data, repository.yaml())
-        # beams
-        self.assertItemsEqual(model.beams.keys(), ['carbon'])
 
     # tests for Sequence API
 
@@ -83,7 +81,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         # ranges
         self.assertItemsEqual(sequence.ranges.keys(), ['ALL'])
         # beam
-        self.assertIs(sequence.beam, self.model.beams['carbon'])
+        self.assertIs(sequence.beam, self.model.beam)
         # default_range
         self.assertIs(sequence.default_range, sequence.ranges['ALL'])
 
