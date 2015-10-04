@@ -71,53 +71,6 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         repository = FileResource(self.path)
         self.assertEqual(model.data, repository.yaml())
 
-    # tests for Sequence API
-
-    def test_Sequence_API(self):
-        """Check that the general Sequence API behaves reasonable."""
-        sequence = self.model.sequence
-        # name
-        self.assertEqual(sequence.name, 's1')
-
-    # def test_Sequence_twiss(self):        # see test_Optic_twiss for now
-    # def test_Sequence_match(self):        # see test_Optic_match for now
-
-    def test_Sequence_survey(self):
-        """Execute survey() and check that it returns usable values."""
-        survey = self.model.sequence.survey()
-        # access some data to make sure the table was generated:
-        s = survey['s']
-        x = survey['x']
-        y = survey['y']
-        z = survey['z']
-
-    # tests for Range API
-
-    def test_Range_API(self):
-        """Check that the general Range API behaves reasonable."""
-        range = self.model.sequence.range
-        # bounds
-        self.assertEqual(range.bounds, ('#s', '#e'))
-
-    def test_Range_twiss(self):
-        """Execute twiss() and check that it returns usable values."""
-        range = self.model.sequence.range
-        twiss = range.twiss()
-        # access some data to make sure the table was generated:
-        betx = twiss['betx']
-        bety = twiss['bety']
-        alfx = twiss['alfx']
-        alfy = twiss['alfy']
-
-    def test_Range_match(self):
-        """Execute match() and check that it returns usable values."""
-        range = self.model.sequence.range
-        knobs = range.match(
-            constraints=[dict(range='sb', betx=0.3)],
-            vary=['QP_K1'],
-        )
-        knobs['QP_K1']
-
 
 if __name__ == '__main__':
     unittest.main()
