@@ -51,7 +51,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
     def test_compatibility_check(self):
         data = {
             'beams': {},
-            'sequences': {},
+            'sequence': {},
         }
         with self.assertRaises(ValueError):
             Model(data=data, repo=None, madx=None)
@@ -71,19 +71,13 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         repository = FileResource(self.path)
         self.assertEqual(model.data, repository.yaml())
         # beams
-        self.assertItemsEqual(model.beams.keys(), ['carbon', 'other'])
-        # sequences
-        self.assertItemsEqual(model.sequences.keys(), ['s1', 's2'])
-        self.assertTrue('s1' in madx.sequences)
-        self.assertTrue('s2' in madx.sequences)
-        # default_sequence
-        self.assertIs(model.default_sequence, model.sequences['s1'])
+        self.assertItemsEqual(model.beams.keys(), ['carbon'])
 
     # tests for Sequence API
 
     def test_Sequence_API(self):
         """Check that the general Sequence API behaves reasonable."""
-        sequence = self.model.sequences['s1']
+        sequence = self.model.sequence
         # name
         self.assertEqual(sequence.name, 's1')
         # ranges
@@ -98,8 +92,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_Sequence_survey(self):
         """Execute survey() and check that it returns usable values."""
-        seq = self.model.default_sequence
-        survey = seq.survey()
+        survey = self.model.sequence.survey()
         # access some data to make sure the table was generated:
         s = survey['s']
         x = survey['x']
@@ -110,7 +103,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_Range_API(self):
         """Check that the general Range API behaves reasonable."""
-        range = self.model.default_sequence.default_range
+        range = self.model.sequence.default_range
         # name
         self.assertEqual(range.name, 'ALL')
         # bounds
@@ -123,7 +116,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_Range_twiss(self):
         """Execute twiss() and check that it returns usable values."""
-        range = self.model.default_sequence.default_range
+        range = self.model.sequence.default_range
         twiss = range.twiss()
         # access some data to make sure the table was generated:
         betx = twiss['betx']
@@ -133,7 +126,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_Range_match(self):
         """Execute match() and check that it returns usable values."""
-        range = self.model.sequences['s1'].default_range
+        range = self.model.sequence.default_range
         knobs = range.match(
             constraints=[dict(range='sb', betx=0.3)],
             vary=['QP_K1'],

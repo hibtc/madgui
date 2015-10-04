@@ -16,10 +16,6 @@ beams:
     sige: 0.001
     radiate: false
     sequence: s1
-  other:
-    particle: electron
-    energy: 0.1
-    sequence: s2
 
 default-sequence: s1
 
@@ -30,34 +26,19 @@ unicode: €®æة《±∓
 files:
   - misc.yml
 
-sequences:
-  s1:
-    beam: carbon
-    default-range: ALL
-    ranges:
-      ALL:
-        madx-range:
-          first: '#s'
-          last: '#e'
-        default-twiss: default
-        twiss-initial-conditions:
-          default:
-            betx: 0.1
-            bety: 0.1
-            alfx: 0.0
-            alfy: 0.0
-  s2:
-    beam: other
-    default-range: ALL
-    ranges:
-      ALL:
-        madx-range:
-          first: '#s'
-          last: '#e'
-        default-twiss: default
-        twiss-initial-conditions:
-          default:
-            betx: 0.1
-            bety: 0.1
-            alfx: 0.0
-            alfy: 0.0
+sequence:
+  name: s1
+  beam: carbon
+  default-range: ALL
+  ranges:
+    ALL:
+      madx-range:
+        first: '#s'
+        last: '#e'
+      default-twiss: default
+      twiss-initial-conditions:
+        default:
+          betx: 0.1
+          bety: 0.1
+          alfx: 0.0
+          alfy: 0.0

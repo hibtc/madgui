@@ -50,7 +50,7 @@ class Model(object):
 
     :ivar str Model.name: model name
     :ivar dict beams: known :class:`Beam` objects
-    :ivar dict sequences: known :class:`Sequence` objects
+    :ivar Sequence sequence: known :class:`Sequence` objects
     :ivar Madx madx: handle to the MAD-X library
     :ivar dict _data: model definition data
     :ivar ResourceProvider _repo: resource access
@@ -59,7 +59,7 @@ class Model(object):
 
         model = Model.load('/path/to/model/definition.cpymad.yml')
 
-        twiss = model.default_sequence.twiss()
+        twiss = model.sequence.twiss()
 
         print("max/min beta x:", max(twiss['betx']), min(twiss['betx']))
         print("ex: {0}, ey: {1}", twiss.summary['ex'], twiss.summary['ey'])
@@ -84,7 +84,7 @@ class Model(object):
         self._loaded = False
         # create Beam/Optic/Sequence instances:
         self.beams = _deserialize(data['beams'], Beam, self)
-        self.sequences = _deserialize(data['sequences'], Sequence, self)
+        self.sequence = Sequence(data['sequence'], self)
 
     @classmethod
     def check_compatibility(cls, data):
@@ -160,16 +160,8 @@ class Model(object):
         """Get a serializable representation of this model."""
         data = self._data.copy()
         data['beams'] = _serialize(self.beams)
-        data['sequences'] = _serialize(self.sequences)
+        data['sequence'] = self.sequence.data
         return data
-
-    @property
-    def default_sequence(self):
-        """Get default Sequence."""
-        return self.sequences[self._data['default-sequence']]
-
-    # TODO: add setter for default_sequence
-    # TODO: remove default_sequence?
 
     def _load(self, *files):
         """Load MAD-X files in interpreter."""
@@ -217,9 +209,9 @@ class Sequence(object):
     :ivar Model _model:
     """
 
-    def __init__(self, name, data, model):
+    def __init__(self, data, model):
         """Initialize instance variables."""
-        self.name = name
+        self.name = data['name']
         self._data = data
         self._model = model
         self.ranges = _deserialize(data['ranges'], Range, self)
@@ -233,6 +225,7 @@ class Sequence(object):
     def data(self):
         """Get a serializable representation of this sequence."""
         data = self._data.copy()
+        data['name'] = self.name
         data['ranges'] = _serialize(self.ranges)
         return data
 

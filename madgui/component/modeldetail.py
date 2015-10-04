@@ -119,8 +119,8 @@ class ModelDetailWidget(Widget):
     def OnSequenceChange(self, event=None):
         """Update default range+beam when sequence is changed."""
         seq_name = self.ctrl_sequence.GetValue()
-        self.sequence = self.model.sequences[seq_name]
-        self.elements = self.model.madx.sequences[seq_name].elements
+        self.sequence = self.model.sequence
+        self.elements = self.sequence.real_sequence.elements
         self.elements_with_units = list(enumerate(
             map(self.utool.dict_add_unit, self.elements)))
         self.UpdateBeams()
@@ -179,34 +179,32 @@ class ModelDetailWidget(Widget):
 
     def UpdateSequences(self):
         model, data = self.model, self.data
+        # TODO: list all available sequences
         self._Update(self.ctrl_sequence,
-                     model.sequences.keys(),
-                     model.default_sequence.name,
+                     [model.sequence.name],
+                     model.sequence.name,
                      data.get('sequence'))
         self.OnSequenceChange()
 
     def UpdateBeams(self):
         model, data = self.model, self.data
-        sequence = model.sequences[self.ctrl_sequence.GetValue()]
         self._Update(self.ctrl_beam,
                      model.beams.keys(),
-                     sequence.beam.name,
+                     model.sequence.beam.name,
                      data.get('beam'))
         self.OnBeamChange()
 
     def UpdateRanges(self):
         model, data = self.model, self.data
-        sequence = model.sequences[self.ctrl_sequence.GetValue()]
         self._Update(self.ctrl_range,
-                     sequence.ranges.keys(),
-                     sequence.default_range.name,
+                     model.sequence.ranges.keys(),
+                     model.sequence.default_range.name,
                      data.get('range'))
         self.OnRangeChange()
 
     def UpdateTwiss(self):
         model, data = self.model, self.data
-        sequence = model.sequences[self.ctrl_sequence.GetValue()]
-        range = sequence.ranges[self.ctrl_range.GetValue()]
+        range = model.sequence.ranges[self.ctrl_range.GetValue()]
         self._Update(self.ctrl_twiss,
                      range.initial_conditions.keys(),
                      range.data['default-twiss'],

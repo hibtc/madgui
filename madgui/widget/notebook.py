@@ -159,7 +159,8 @@ class NotebookFrame(MDIParentFrame):
         madx = session.madx
         libmadx = session.libmadx
 
-        sequences = {}
+        # TODO: this should be auto-discovered in the detail dialog?
+        sequence = {}
         beams = {}
         for seq in madx.sequences:
             ranges = {}
@@ -170,20 +171,20 @@ class NotebookFrame(MDIParentFrame):
                     'default': {}
                 }
             }
+            beam_name = 'beam{}'.format(len(beams))
             # TODO: automatically read other used initial conditions from
             # MAD-X memory (if any TWISS table is present).
-            seq_data = {
+            sequence = {
                 'ranges': ranges,
                 'default-range': 'ALL',
+                'beam': beam_name,
             }
-            sequences[seq] = seq_data
-            beam_name = 'beam{}'.format(len(beams))
-            seq_data['beam'] = beam_name
             try:
                 beam = libmadx.get_sequence_beam(seq)
             except RuntimeError:
                 beam = {}
             beams[beam_name] = beam
+            break
             # TODO: automatically insert other beams from MAD-X memory
 
         data = {
@@ -191,9 +192,8 @@ class NotebookFrame(MDIParentFrame):
             'path_offset': '',
             'init-files': '',
             'name': '(auto-generated)',
-            'sequences': sequences,
+            'sequence': sequence,
             'beams': beams,
-            'default-sequence': sorted(sequences)[0],
         }
         return Model(data, repo=None, madx=madx)
 
@@ -214,7 +214,7 @@ class NotebookFrame(MDIParentFrame):
 
         beam = dict(beam, sequence=sequence)
 
-        model.sequences[sequence].init()
+        model.sequence.init()
         session.madx.command.beam(**utool.dict_strip_unit(beam))
 
         segment = Segment(
