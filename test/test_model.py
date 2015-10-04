@@ -78,12 +78,6 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         sequence = self.model.sequence
         # name
         self.assertEqual(sequence.name, 's1')
-        # ranges
-        self.assertItemsEqual(sequence.ranges.keys(), ['ALL'])
-        # beam
-        self.assertIs(sequence.beam, self.model.beam)
-        # default_range
-        self.assertIs(sequence.default_range, sequence.ranges['ALL'])
 
     # def test_Sequence_twiss(self):        # see test_Optic_twiss for now
     # def test_Sequence_match(self):        # see test_Optic_match for now
@@ -101,9 +95,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_Range_API(self):
         """Check that the general Range API behaves reasonable."""
-        range = self.model.sequence.default_range
-        # name
-        self.assertEqual(range.name, 'ALL')
+        range = self.model.sequence.range
         # bounds
         self.assertEqual(range.bounds, ('#s', '#e'))
         # initial_conditions
@@ -114,7 +106,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_Range_twiss(self):
         """Execute twiss() and check that it returns usable values."""
-        range = self.model.sequence.default_range
+        range = self.model.sequence.range
         twiss = range.twiss()
         # access some data to make sure the table was generated:
         betx = twiss['betx']
@@ -124,7 +116,7 @@ class TestModel(unittest.TestCase, _compat.TestCase):
 
     def test_Range_match(self):
         """Execute match() and check that it returns usable values."""
-        range = self.model.sequence.default_range
+        range = self.model.sequence.range
         knobs = range.match(
             constraints=[dict(range='sb', betx=0.3)],
             vary=['QP_K1'],

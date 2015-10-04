@@ -23,16 +23,6 @@ __all__ = [
 ]
 
 
-def _deserialize(data, cls, *args):
-    """Create an instance dictionary from a data dictionary."""
-    return {key: cls(key, val, *args) for key, val in data.items()}
-
-
-def _serialize(data):
-    """Create a data dictionary from an instance dictionary."""
-    return {key: val.data for key, val in data.items()}
-
-
 class Model(object):
 
     """
@@ -85,6 +75,7 @@ class Model(object):
         # create Beam/Optic/Sequence instances:
         self.beam = Beam(data['beam'], self)
         self.sequence = Sequence(data['sequence'], self)
+        self.range = Range(data['range'], self)
 
     @classmethod
     def check_compatibility(cls, data):
@@ -161,6 +152,7 @@ class Model(object):
         data = self._data.copy()
         data['beam'] = self.beam.data
         data['sequence'] = self.sequence.data
+        data['range'] = self.range.data
         return data
 
     def _load(self, *files):
@@ -202,7 +194,6 @@ class Sequence(object):
     A MAD-X beam line. It can be subdivided into arbitrary ranges.
 
     :ivar str Sequence.name: sequence name
-    :ivar dict ranges: known :class:`Range` objects
     :ivar dict _data:
     :ivar Model _model:
     """
@@ -212,7 +203,6 @@ class Sequence(object):
         self.name = data['name']
         self._data = data
         self._model = model
-        self.ranges = _deserialize(data['ranges'], Range, self)
 
     def init(self):
         """Load model in MAD-X interpreter."""
@@ -224,7 +214,6 @@ class Sequence(object):
         """Get a serializable representation of this sequence."""
         data = self._data.copy()
         data['name'] = self.name
-        data['ranges'] = _serialize(self.ranges)
         return data
 
     @property
@@ -233,9 +222,9 @@ class Sequence(object):
         return self._model.beam
 
     @property
-    def default_range(self):
+    def range(self):
         """Get default :class:`Range`."""
-        return self.ranges[self._data['default-range']]
+        return self._model.range
 
     @property
     def real_sequence(self):
@@ -248,16 +237,11 @@ class Sequence(object):
         """Get a proxy list for all the elements."""
         return self.real_sequence.elements
 
-    def range(self, start, stop):
-        """Create a :class:`Range` within (start, stop) for this sequence."""
-        # TODO
-        raise NotImplementedError()
-
     # MAD-X commands:
 
     def twiss(self, **kwargs):
         """Execute a TWISS command on the default range."""
-        return self.default_range.twiss(**kwargs)
+        return self.range.twiss(**kwargs)
 
     def survey(self, **kwargs):
         """Run SURVEY on this sequence."""
@@ -266,7 +250,7 @@ class Sequence(object):
 
     def match(self, **kwargs):
         """Run MATCH on this sequence."""
-        return self.default_range.match(**kwargs)
+        return self.range.match(**kwargs)
 
 
 class Range(object):
@@ -279,9 +263,8 @@ class Range(object):
     :ivar Sequence _sequence:
     """
 
-    def __init__(self, name, data, sequence):
+    def __init__(self, data, sequence):
         """Initialize instance variables."""
-        self.name = name
         self.data = data
         self._sequence = sequence
 

@@ -163,8 +163,7 @@ class NotebookFrame(MDIParentFrame):
         sequence = {}
         beams = {}
         for seq in madx.sequences:
-            ranges = {}
-            ranges['ALL'] = {
+            range_ = {
                 'madx-range': {'first': '#s', 'last': '#e'},
                 'default-twiss': 'default',
                 'twiss-initial-conditions': {
@@ -175,7 +174,7 @@ class NotebookFrame(MDIParentFrame):
             # TODO: automatically read other used initial conditions from
             # MAD-X memory (if any TWISS table is present).
             sequence = {
-                'ranges': ranges,
+                'range': range_,
                 'default-range': 'ALL',
                 'beam': beam_name,
             }
