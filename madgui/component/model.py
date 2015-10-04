@@ -239,21 +239,6 @@ class Sequence(object):
         """Get a proxy list for all the elements."""
         return self.real_sequence.elements
 
-    # MAD-X commands:
-
-    def twiss(self, **kwargs):
-        """Execute a TWISS command on the default range."""
-        return self.range.twiss(**kwargs)
-
-    def survey(self, **kwargs):
-        """Run SURVEY on this sequence."""
-        self.init()
-        return self._model.madx.survey(sequence=self.name, **kwargs)
-
-    def match(self, **kwargs):
-        """Run MATCH on this sequence."""
-        return self.range.match(**kwargs)
-
 
 class Range(object):
 
@@ -277,46 +262,9 @@ class Range(object):
                 self.data["madx-range"]["last"])
 
     @property
-    def offsets_file(self):
-        """Get a :class:`ResourceProvider` for the offsets file."""
-        if 'aper-offset' not in self.data:
-            return None
-        repo = self._model._repo
-        return _repo.get(self.data['aper-offset'])
-
-    def twiss(self, **kwargs):
-        """Run TWISS on this range."""
-        self.init()
-        kw = self._set_twiss_init(kwargs)
-        madx = self._model.madx
-        result = madx.twiss(sequence=self._model.sequence.name,
-                            range=self.bounds, **kw)
-        return result
-
-    def match(self, **kwargs):
-        """Perform a MATCH operation on this range."""
-        self.init()
-        kw = self._set_twiss_init(kwargs)
-        kw['twiss_init'] = {
-            key: val
-            for key, val in kw['twiss_init'].items()
-            if is_match_param(key)
-        }
-        madx = self._model.madx
-        return madx.match(sequence=self._model.sequence.name,
-                          range=self.bounds, **kw)
-
-    @property
     def initial_conditions(self):
         """Return a dict with initial conditions."""
         return self._model.initial_conditions
-
-    def _set_twiss_init(self, kwargs):
-        kw = kwargs.copy()
-        twiss_init = kw.get('twiss_init', {}).copy()
-        twiss_init.update(self.initial_conditions)
-        kw['twiss_init'] = twiss_init
-        return kw
 
 
 class Locator(object):
