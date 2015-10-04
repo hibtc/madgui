@@ -35,7 +35,6 @@ from madgui.widget.filedialog import OpenDialog
 # exported symbols
 __all__ = [
     'NotebookFrame',
-    'set_frame_title',
 ]
 
 
@@ -149,9 +148,9 @@ class NotebookFrame(MDIParentFrame):
         if reset:
             self._ResetSession()
         utool = self.madx_units
-        model = Model(data=mdata, repo=repo, madx=self.session.madx)
-        model.init()
-        self.session.model = model
+        Model.init(data=mdata, repo=repo, madx=self.session.madx)
+        self.session.model = mdata
+        self.session.repo = repo
         self._EditModelDetail()
 
     def _GenerateModel(self):
@@ -182,25 +181,23 @@ class NotebookFrame(MDIParentFrame):
             break
             # TODO: automatically insert other beams from MAD-X memory
 
-        data = {
+        return {
             'api_version': 1,
-            'path_offset': '',
-            'init-files': '',
-            'name': '(auto-generated)',
+            'init-files': [],
             'sequence': sequence,
             'beams': beams,
             'twiss': {},
         }
-        return Model(data, repo=None, madx=madx)
 
     @Cancellable
     def _EditModelDetail(self, event=None):
         session = self.session
         model = session.model
+        madx = session.madx
         utool = session.utool
 
         with Dialog(self) as dialog:
-            widget = ModelDetailWidget(dialog, model=model, utool=utool)
+            widget = ModelDetailWidget(dialog, model=model, madx=madx, utool=utool)
             detail = widget.Query()
 
         sequence = detail['sequence']
@@ -506,15 +503,6 @@ class NotebookFrame(MDIParentFrame):
                 self._log_stream.write(line)
             except:
                 break
-
-
-def set_frame_title(model, frame):
-    """
-    Set the frame title to the model name.
-
-    This is invoked as a hook from ``model.hook.show(frame)``.
-    """
-    frame.SetTitle(model.sequence)
 
 
 class TextCtrlStream(object):

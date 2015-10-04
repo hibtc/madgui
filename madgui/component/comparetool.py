@@ -57,13 +57,14 @@ class CompareTool(object):
         """
         self._view = view = panel.view
         self._model = view.segment.session.model
+        self._repo = view.segment.session.repo
         self._lines = {}
         self._visible = False
         self._metadata = None
         if not self._model:
             return
 
-        all_metadata = self._model._data.get('review', [])
+        all_metadata = self._model.get('review', [])
         col_names = [view.sname, view.xname, view.yname]
         try:
             metadata = match_metadata(all_metadata, view.segment.sequence.name,
@@ -90,7 +91,7 @@ class CompareTool(object):
     @property
     def test_file(self):
         """Get the envelope file."""
-        return self._model._repo.get(self._metadata['file'])
+        return self._repo.get(self._metadata['file'])
 
     @property
     def visible(self):

@@ -65,9 +65,6 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         """Check that the public Model attributes/methods behave reasonably."""
         model = self.model
         madx = model.madx
-        # name
-        self.assertEqual(model.name, 'lebt')
-        # data
         repository = FileResource(self.path)
         self.assertEqual(model.data, repository.yaml())
 

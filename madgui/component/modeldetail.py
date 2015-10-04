@@ -29,8 +29,9 @@ class ModelDetailWidget(Widget):
 
     Title = "Setup simulation"
 
-    def __init__(self, window, model, utool, **kw):
+    def __init__(self, window, model, madx, utool, **kw):
         self.model = model
+        self.madx = madx
         self.utool = utool
         super(ModelDetailWidget, self).__init__(window, **kw)
 
@@ -119,27 +120,27 @@ class ModelDetailWidget(Widget):
     def OnSequenceChange(self, event=None):
         """Update default range+beam when sequence is changed."""
         seq_name = self.ctrl_sequence.GetValue()
-        self.elements = self.model.elements
+        self.elements = self.madx.sequences[seq_name].elements
         self.elements_with_units = list(enumerate(
             map(self.utool.dict_add_unit, self.elements)))
         self.UpdateBeams()
         self.UpdateRanges()
 
     def OnBeamChange(self, event=None):
-        data = self.utool.dict_add_unit(self.model.beam)
+        data = self.utool.dict_add_unit(self.model['beam'])
         self.widget_beam.SetData(data)
 
     def OnRangeChange(self, event=None):
         """Update default twiss when range is changed."""
         self.UpdateTwiss()
-        beg, end = self.model.range
+        beg, end = self.model['range']
         selected = [self.elements.index(beg), self.elements.index(end)]
         self.widget_range.SetData(self.elements_with_units, selected)
 
     def OnTwissChange(self, event=None):
-        twiss_args = self.model.initial_conditions
+        twiss_args = self.model['twiss']
         twiss_args = self.utool.dict_add_unit(twiss_args)
-        start_element = self.elements.index(self.model.range[0])
+        start_element = self.elements.index(self.model['range'][0])
         twiss_initial = twiss_args
         self.widget_twiss.SetData(twiss_initial)
 
@@ -172,16 +173,12 @@ class ModelDetailWidget(Widget):
         ctrl.SetSelection(index)
 
     def UpdateSequences(self):
-        model, data = self.model, self.data
         # TODO: list all available sequences
-        self._Update(self.ctrl_sequence,
-                     [model.sequence],
-                     model.sequence,
-                     model.sequence)
+        seq_name = self.model['sequence']
+        self._Update(self.ctrl_sequence, [seq_name], seq_name, seq_name)
         self.OnSequenceChange()
 
     def UpdateBeams(self):
-        model, data = self.model, self.data
         # TODO: list all available beams
         self._Update(self.ctrl_beam,
                      ['default'],
@@ -190,7 +187,6 @@ class ModelDetailWidget(Widget):
         self.OnBeamChange()
 
     def UpdateRanges(self):
-        model, data = self.model, self.data
         # TODO: list all available ranges
         self._Update(self.ctrl_range,
                      ['default'],
@@ -199,8 +195,6 @@ class ModelDetailWidget(Widget):
         self.OnRangeChange()
 
     def UpdateTwiss(self):
-        model, data = self.model, self.data
-        range = model.range
         self._Update(self.ctrl_twiss,
                      ['default'],
                      'default',

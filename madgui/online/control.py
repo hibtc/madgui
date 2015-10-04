@@ -185,7 +185,7 @@ class Control(object):
         segment = self._segment
         # TODO: sync elements attributes
         elems = segment.sequence.elements
-        varyconf = segment.model._data.get('align', {})
+        varyconf = segment.model.data.get('align', {})
         with Dialog(self._frame) as dialog:
             elems = ovm.OpticSelectWidget(dialog).Query(elems, varyconf)
         data = ovm.OpticVariationMethod(self, *elems)

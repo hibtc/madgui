@@ -58,6 +58,7 @@ class Session(object):
         self.libmadx = None
         self.madx = None
         self.model = None
+        self.repo = None
         self.segments = []
         self.rpc_client = None
         self.remote_process = None

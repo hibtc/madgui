@@ -10,8 +10,6 @@ import logging
 import os
 
 from cpymad.madx import Madx
-from cpymad.util import is_match_param
-from cpymad.types import Range
 from madgui.resource.file import FileResource
 
 
@@ -21,60 +19,25 @@ __all__ = [
 ]
 
 
+def _load(madx, repo, *files):
+    """Load MAD-X files in interpreter."""
+    for file in files:
+        with repo.get(file).filename() as fpath:
+            madx.call(fpath)
+
+
 class Model(object):
 
     """
-    A model is a complete description of an accelerator machine.
-
-    This class is used to bundle all metadata related to an accelerator and
-    all its configurations. It takes care of loading the proper MAD-X files
-    when needed. Models are conceptually derived from the JMad models, but
-    have evolved to a more pythonic and simple API.
-
-    To create a model instance from a model definition file, use the
-    ``Model.load`` constructor.
-
-    All instance variables are READ-ONLY at the moment.
-
-    :ivar str Model.name: model name
-    :ivar dict beam:
-    :ivar Sequence sequence:
-    :ivar Madx madx: handle to the MAD-X library
-    :ivar dict _data: model definition data
-    :ivar ResourceProvider _repo: resource access
-
-    The following example demonstrates the basic usage::
-
-        model = Model.load('/path/to/model/definition.cpymad.yml')
-
-        twiss = model.sequence.twiss()
-
-        print("max/min beta x:", max(twiss['betx']), min(twiss['betx']))
-        print("ex: {0}, ey: {1}", twiss.summary['ex'], twiss.summary['ey'])
+    A model is a configuration of an accelerator machine. This class is only
+    a static utility for model definitions and not meant to be instanciated.
     """
 
     # current version of model API
     API_VERSION = 1
 
-    def __init__(self, data, repo, madx):
-        """
-        Initialize a Model object.
-
-        :param dict data: model definition data
-        :param ResourceProvider repo: resource repository
-        :param Madx madx: MAD-X instance to use
-        """
-        self.check_compatibility(data)
-        # init instance variables
-        self._data = data
-        self._repo = repo
-        self.madx = madx
-        self._loaded = False
-        # set Beam/Optic/Sequence members:
-        self.beam = data['beam'].copy()
-        self.sequence = data['sequence']
-        self.range = Range(*data['range'])
-        self.initial_conditions = data['twiss']
+    def __init__(self):
+        raise NotImplementedError("Models are POD only!")
 
     @classmethod
     def check_compatibility(cls, data):
@@ -91,81 +54,11 @@ class Model(object):
                              .format(model_api, cls.API_VERSION))
 
     @classmethod
-    def load(cls,
-             name,
-             # *,
-             # These should be passed as keyword-only parameters:
-             locator=None,
-             madx=None,
-             command_log=None,
-             error_log=None):
-        """
-        Create Model instance from a model definition file.
-
-        :param str name: model definition file name
-        :param Locator locator: model locator
-        :param Madx madx: MAD-X instance to use
-        :param str command_log: history file name; use only if madx is None!
-        :param logging.Logger error_log:
-
-        If the ``locator`` is not specified ``name`` is assumed to be an
-        absolute path of a model definition file living in the ordinary file
-        system.
-        """
-        if locator is None:
-            path, name = os.path.split(name)
-            locator = Locator(FileResource(path))
-        data = locator.get_definition(name)
-        repo = locator.get_repository(data)
-        if madx is None:
-            if error_log is None:
-                error_log = logging.getLogger(__name__ + '.' + name)
-            madx = Madx(command_log=command_log, error_log=error_log)
-            madx.verbose(False)
-        elif command_log is not None:
-            raise ValueError("'command_log' cannot be used with 'madx'")
-        elif error_log is not None:
-            raise ValueError("'error_log' cannot be used with 'madx'")
-        model = cls(data, repo=repo, madx=madx)
-        model.init()
-        return model
-
-    def init(self):
+    def init(cls, madx, repo, data):
         """Load model in MAD-X interpreter."""
-        if self._loaded:
-            return
-        self._loaded = True
-        self._load(*self._data['init-files'])
-        self.madx.command.beam(**self.beam)
-
-    def __repr__(self):
-        return "{0}({1!r})".format(self.__class__.__name__, self.name)
-
-    @property
-    def data(self):
-        """Get a serializable representation of this model."""
-        data = self._data.copy()
-        data['beam'] = self.beam
-        data['sequence'] = self.sequence.data
-        data['range'] = list(self.range)
-        data['twiss'] = self.initial_conditions
-        return data
-
-    def _load(self, *files):
-        """Load MAD-X files in interpreter."""
-        for file in files:
-            with self._repo.get(file).filename() as fpath:
-                self.madx.call(fpath)
-
-    @property
-    def real_sequence(self):
-        """Get the corresponding :class:`Sequence`."""
-        return self.madx.sequences[self.sequence]
-
-    @property
-    def elements(self):
-        """Get a proxy list for all the elements."""
-        return self.real_sequence.elements
+        cls.check_compatibility(data)
+        _load(madx, repo, *data['init-files'])
+        madx.command.beam(**data['beam'])
 
 
 class Locator(object):
