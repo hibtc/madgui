@@ -163,37 +163,33 @@ class NotebookFrame(MDIParentFrame):
 
     def _GenerateModel(self):
         session = self.session
-        madx = session.madx
-        libmadx = session.libmadx
 
-        # TODO: this should be auto-discovered in the detail dialog?
-        sequence = {}
-        beams = {}
-        for seq in madx.sequences:
-            range_ = {
-                'madx-range': {'first': '#s', 'last': '#e'},
-            }
-            beam_name = 'beam{}'.format(len(beams))
-            # TODO: automatically read other used initial conditions from
-            # MAD-X memory (if any TWISS table is present).
-            sequence = {
-                'range': range_,
-                'default-range': 'ALL',
-                'beam': beam_name,
-            }
+        # TODO:
+        # - should this be discovered in the detail dialog?
+        # - read the selected range from MAD-X
+        # - read initial conditions from TWISS table
+        # - return configurations for all available sequences, not just one
+        # - keep track of loaded files
+        sequence = ''
+        range_ = ['#s', '#e']
+        beam = {}
+        twiss = {}
+
+        # Get the first sequence that has an associated beam. If no sequence
+        # has a beam, get the last sequence:
+        for sequence in session.madx.sequences:
             try:
-                beam = libmadx.get_sequence_beam(seq)
+                beam = session.libmadx.get_sequence_beam(sequence)
             except RuntimeError:
-                beam = {}
-            beams[beam_name] = beam
+                continue
             break
-            # TODO: automatically insert other beams from MAD-X memory
 
         return {
             'api_version': 1,
             'init-files': [],
             'sequence': sequence,
-            'beams': beams,
+            'range': range_,
+            'beam': beam,
             'twiss': {},
         }
 
@@ -225,6 +221,7 @@ class NotebookFrame(MDIParentFrame):
         with dlg:
             ShowModal(dlg)
             path = dlg.Path
+            directory = dlg.Directory
 
         if reset:
             self._ResetSession()
@@ -237,6 +234,7 @@ class NotebookFrame(MDIParentFrame):
         if len(madx.sequences) > num_seq:
             model = self._GenerateModel()
             self.session.model = model
+            self.session.repo = FileResource(directory)
             self._EditModelDetail()
 
     @Cancellable
