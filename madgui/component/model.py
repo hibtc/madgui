@@ -17,9 +17,7 @@ from madgui.resource.file import FileResource
 
 __all__ = [
     'Model',
-    'Beam',
     'Sequence',
-    'Range',
     'Locator',
 ]
 
@@ -40,7 +38,7 @@ class Model(object):
     All instance variables are READ-ONLY at the moment.
 
     :ivar str Model.name: model name
-    :ivar Beam beam:
+    :ivar dict beam:
     :ivar Sequence sequence:
     :ivar Madx madx: handle to the MAD-X library
     :ivar dict _data: model definition data
@@ -73,8 +71,8 @@ class Model(object):
         self._repo = repo
         self.madx = madx
         self._loaded = False
-        # create Beam/Optic/Sequence instances:
-        self.beam = Beam(data['beam'], self)
+        # set Beam/Optic/Sequence members:
+        self.beam = data['beam'].copy()
         self.sequence = Sequence(data['sequence'], self)
         self.range = Range(*data['range'])
         self.initial_conditions = data['twiss']
@@ -139,7 +137,7 @@ class Model(object):
             return
         self._loaded = True
         self._load(*self._data['init-files'])
-        self.madx.command.beam(**self.beam.data)
+        self.madx.command.beam(**self.beam)
 
     def __repr__(self):
         return "{0}({1!r})".format(self.__class__.__name__, self.name)
@@ -153,7 +151,7 @@ class Model(object):
     def data(self):
         """Get a serializable representation of this model."""
         data = self._data.copy()
-        data['beam'] = self.beam.data
+        data['beam'] = self.beam
         data['sequence'] = self.sequence.data
         data['range'] = list(self.range)
         data['twiss'] = self.initial_conditions
@@ -164,22 +162,6 @@ class Model(object):
         for file in files:
             with self._repo.get(file).filename() as fpath:
                 self.madx.call(fpath)
-
-
-class Beam(object):
-
-    """
-    A beam defines the mass, charge, energy, etc. of the particles moved
-    through the accelerator.
-
-    :ivar dict Beam.data: beam parameters (keywords to BEAM command in MAD-X)
-    :ivar Model _model: owning model
-    :ivar bool _loaded: beam has been initialized in MAD-X
-    """
-
-    def __init__(self, data, model):
-        """Initialize instance variables."""
-        self.data = data
 
 
 class Sequence(object):
@@ -207,7 +189,7 @@ class Sequence(object):
 
     @property
     def beam(self):
-        """Get :class:`Beam` instance for this sequence."""
+        """Get the beam data for this sequence."""
         return self._model.beam
 
     @property

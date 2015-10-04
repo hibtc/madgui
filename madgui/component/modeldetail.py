@@ -127,8 +127,7 @@ class ModelDetailWidget(Widget):
         self.UpdateRanges()
 
     def OnBeamChange(self, event=None):
-        data = self.model.beam.data
-        data = self.utool.dict_add_unit(data)
+        data = self.utool.dict_add_unit(self.model.beam)
         self.widget_beam.SetData(data)
 
     def OnRangeChange(self, event=None):
