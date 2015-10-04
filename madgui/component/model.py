@@ -17,7 +17,6 @@ from madgui.resource.file import FileResource
 
 __all__ = [
     'Model',
-    'Sequence',
     'Locator',
 ]
 
@@ -73,7 +72,7 @@ class Model(object):
         self._loaded = False
         # set Beam/Optic/Sequence members:
         self.beam = data['beam'].copy()
-        self.sequence = Sequence(data['sequence'], self)
+        self.sequence = data['sequence']
         self.range = Range(*data['range'])
         self.initial_conditions = data['twiss']
 
@@ -163,44 +162,10 @@ class Model(object):
             with self._repo.get(file).filename() as fpath:
                 self.madx.call(fpath)
 
-
-class Sequence(object):
-
-    """
-    A MAD-X beam line. It can be subdivided into arbitrary ranges.
-
-    :ivar str Sequence.name: sequence name
-    :ivar dict _data:
-    :ivar Model _model:
-    """
-
-    def __init__(self, data, model):
-        """Initialize instance variables."""
-        self.name = data['name']
-        self._data = data
-        self._model = model
-
-    @property
-    def data(self):
-        """Get a serializable representation of this sequence."""
-        data = self._data.copy()
-        data['name'] = self.name
-        return data
-
-    @property
-    def beam(self):
-        """Get the beam data for this sequence."""
-        return self._model.beam
-
-    @property
-    def range(self):
-        """Get default :class:`Range`."""
-        return self._model.range
-
     @property
     def real_sequence(self):
         """Get the corresponding :class:`Sequence`."""
-        return self._model.madx.sequences[self.name]
+        return self.madx.sequences[self.sequence]
 
     @property
     def elements(self):

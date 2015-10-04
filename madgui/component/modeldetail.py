@@ -119,8 +119,7 @@ class ModelDetailWidget(Widget):
     def OnSequenceChange(self, event=None):
         """Update default range+beam when sequence is changed."""
         seq_name = self.ctrl_sequence.GetValue()
-        self.sequence = self.model.sequence
-        self.elements = self.sequence.real_sequence.elements
+        self.elements = self.model.elements
         self.elements_with_units = list(enumerate(
             map(self.utool.dict_add_unit, self.elements)))
         self.UpdateBeams()
@@ -176,9 +175,9 @@ class ModelDetailWidget(Widget):
         model, data = self.model, self.data
         # TODO: list all available sequences
         self._Update(self.ctrl_sequence,
-                     [model.sequence.name],
-                     model.sequence.name,
-                     model.sequence.name)
+                     [model.sequence],
+                     model.sequence,
+                     model.sequence)
         self.OnSequenceChange()
 
     def UpdateBeams(self):
@@ -201,7 +200,7 @@ class ModelDetailWidget(Widget):
 
     def UpdateTwiss(self):
         model, data = self.model, self.data
-        range = model.sequence.range
+        range = model.range
         self._Update(self.ctrl_twiss,
                      ['default'],
                      'default',
