@@ -187,7 +187,7 @@ class NotebookFrame(MDIParentFrame):
             # TODO: automatically insert other beams from MAD-X memory
 
         data = {
-            'api_version': 0,
+            'api_version': 1,
             'path_offset': '',
             'init-files': '',
             'name': '(auto-generated)',

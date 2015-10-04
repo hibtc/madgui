@@ -58,8 +58,8 @@ class TestModel(unittest.TestCase, _compat.TestCase):
         with self.assertRaises(ValueError):
             Model(data=dict(data, api_version=-1), repo=None, madx=None)
         with self.assertRaises(ValueError):
-            Model(data=dict(data, api_version=1), repo=None, madx=None)
-        Model(data=dict(data, api_version=0), repo=None, madx=None)
+            Model(data=dict(data, api_version=2), repo=None, madx=None)
+        Model(data=dict(data, api_version=1), repo=None, madx=None)
 
     def test_Model_API(self):
         """Check that the public Model attributes/methods behave reasonably."""

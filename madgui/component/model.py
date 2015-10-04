@@ -66,7 +66,7 @@ class Model(object):
     """
 
     # current version of model API
-    API_VERSION = 0
+    API_VERSION = 1
 
     def __init__(self, data, repo, madx):
         """
