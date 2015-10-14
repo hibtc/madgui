@@ -161,40 +161,29 @@ class NotebookFrame(MDIParentFrame):
         self.session.repo = repo
         self._EditModelDetail()
 
-    def _GenerateModel(self):
+    def _UpdateModel(self, known_sequences):
         session = self.session
+        madx = session.madx
 
-        # TODO:
-        # - should this be discovered in the detail dialog?
-        # - read the selected range from MAD-X
-        # - read initial conditions from TWISS table
-        # - return configurations for all available sequences, not just one
-        # - keep track of loaded files
-        sequence = ''
-        range_ = ['#s', '#e']
-        beam = {}
-        twiss = {}
+        # Don't do anything if a sequence is already shown (but update?!)
+        if session.model is not None:
+            return
 
-        # Get the first sequence that has an associated beam. If no sequence
-        # has a beam, get the last sequence:
-        for sequence in session.madx.sequences:
-            try:
-                beam = session.libmadx.get_sequence_beam(sequence)
-            except RuntimeError:
-                continue
-            break
+        # TODO: diff on configurations rather than sequences
+        if set(madx.sequences) <= set(known_sequences):
+            # TODO: INFO("No new sequences/configurations.")
+            pass
 
-        return {
-            'api_version': 1,
-            'init-files': [],
-            'sequence': sequence,
-            'range': range_,
-            'beam': beam,
-            'twiss': {},
-        }
+        models = Model.detect(madx)
+        if not models:
+            # TODO: INFO("No configuration can be detected.")
+            return
+
+        self._EditModelDetail()
 
     @Cancellable
-    def _EditModelDetail(self, event=None):
+    def _EditModelDetail(self, models=None):
+        # TODO: dialog to choose among models + summary + edit subpages
         session = self.session
         model = session.model
         utool = session.utool
@@ -227,15 +216,13 @@ class NotebookFrame(MDIParentFrame):
             self._ResetSession()
 
         madx = self.session.madx
-        num_seq = len(madx.sequences)
+        old_sequences = list(madx.sequences)
         madx.call(path, True)
+
         # if there are any new sequences, give the user a chance to view them
         # automatically:
-        if len(madx.sequences) > num_seq:
-            model = self._GenerateModel()
-            self.session.model = model
-            self.session.repo = FileResource(directory)
-            self._EditModelDetail()
+        self._UpdateModel(old_sequences)
+
 
     @Cancellable
     def _EditTwiss(self, event=None):

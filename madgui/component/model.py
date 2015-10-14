@@ -26,6 +26,14 @@ def _load(madx, repo, *files):
             madx.call(fpath)
 
 
+def map_noexcept(func, sequence, catch):
+    for item in sequence:
+        try:
+            yield func(item)
+        except catch:
+            pass
+
+
 class Model(object):
 
     """
@@ -60,6 +68,70 @@ class Model(object):
         _load(madx, repo, *data['init-files'])
         beam = dict(data['beam'], sequence=data['sequence'])
         madx.command.beam(**beam)
+
+    @classmethod
+    def detect(cls, madx):
+        """
+        Construct Models from prior TWISS calls. All accessible models are
+        returned in a list.
+
+        Note that it seems currently not possible to reliably access prior
+        TWISS statements and hence the information required to guess the
+        Models is extracted from the TWISS tables associated with the
+        sequences. This means that
+
+            - twiss tables may accidentally be associated with the wrong
+              sequence
+            - there is no reliable way to tell which parameters were set in
+              the twiss command and hence deduce the correct (expected) model
+            - you have to make sure the twiss range starts with a zero-width
+              element (e.g. MARKER), otherwise TWISS parameters at the start
+              of the range can not be reliably extrapolated
+
+        The returned models should be seen as a first guess/approximation.
+        """
+        return list(map_noexcept(
+            partial(cls._get_seq_model, madx),
+            self.sequences,
+            RuntimeError))
+
+    @classmethod
+    def _get_seq_model(cls, madx, sequence_name):
+        """
+        Return a Model for the last TWISS statement used for the given
+        sequence, if available.
+
+        :raises RuntimeError: if there is no good guess for a prior TWISS command
+        """
+        try:
+            sequence = madx.sequences[sequence_name]
+        except KeyError:
+            raise RuntimeError("The sequence is not defined.")
+        beam = sequence.beam            # raises RuntimeError
+        table = sequence.twiss_table    # raises RuntimeError
+        try:
+            first, last = table.range
+        except ValueError:
+            raise RuntimeError("TWISS table inaccessible or nonsensical.")
+        # consistency check:
+        if first not in sequence.elements or last not in sequence.elements:
+            raise RuntimeError("The TWISS table appears to belong to a different sequence.")
+        # TODO: this inefficiently copies over the whole table over the pipe
+        # rather than just the first row.
+        mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
+        twiss_init = {
+            key: data[0]
+            for key, data in table.items()
+            if data[0] != 0 or key in mandatory_fields
+        }
+        return {
+            'api_version': 1,
+            'init-files': [],
+            'sequence': sequence_name,
+            'range': (first, last),
+            'beam': beam,
+            'twiss': twiss_init,
+        }
 
 
 class Locator(object):
