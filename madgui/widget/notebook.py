@@ -21,7 +21,7 @@ from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView, DrawLineElements
-from madgui.component.model import Model, Locator
+from madgui.component.model import Model
 from madgui.component.session import Session, Segment
 from madgui.component.twissdialog import TwissWidget
 from madgui.resource.file import FileResource
@@ -148,9 +148,8 @@ class NotebookFrame(MDIParentFrame):
             filename = dlg.Filename
             directory = dlg.Directory
 
-        locator = Locator(FileResource(directory))
-        mdata = locator.get_definition(filename)
-        repo = locator.get_repository(mdata)
+        repo = FileResource(directory)
+        mdata = repo.yaml(filename, encoding='utf-8')
 
         if not mdata:
             return

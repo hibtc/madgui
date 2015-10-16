@@ -15,7 +15,6 @@ from madgui.resource.file import FileResource
 
 __all__ = [
     'Model',
-    'Locator',
 ]
 
 
@@ -132,59 +131,3 @@ class Model(object):
             'beam': beam,
             'twiss': twiss_init,
         }
-
-
-class Locator(object):
-
-    """
-    Model locator for yaml files that contain multiple model definitions.
-
-    These are the model definition files that are currently used by default
-    for filesystem resources.
-
-    Serves the purpose of locating models and returning corresponding
-    resource providers.
-    """
-
-    ext = '.cpymad.yml'
-
-    def __init__(self, resource_provider):
-        """
-        Initialize a merged model locator instance.
-
-        The resource_provider parameter must be a ResourceProvider instance
-        that points to the filesystem location where the .cpymad.yml model
-        files are stored.
-        """
-        self._repo = resource_provider
-
-    def list_models(self, encoding='utf-8'):
-        """
-        Iterate all available models.
-
-        Returns an iterable that may be a generator object.
-        """
-        for res_name in self._repo.listdir_filter(ext=self.ext):
-            yield res_name[:-len(self.ext)]
-
-    def get_definition(self, name, encoding='utf-8'):
-        """
-        Get the first found model with the specified name.
-
-        :returns: the model definition
-        :raises ValueError: if no model with the given name is found.
-        """
-        try:
-            if not name.endswith(self.ext):
-                name += self.ext
-            return self._repo.yaml(name, encoding=encoding)
-        except IOError:
-            raise ValueError("The model {!r} does not exist in the database"
-                             .format(name))
-
-    def get_repository(self, data):
-        """
-        Get the resource loader for the given model.
-        """
-        # instantiate the resource providers for model resource data
-        return self._repo.get(data.get('path-offset', '.'))
