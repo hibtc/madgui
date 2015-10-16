@@ -4,14 +4,7 @@ Models encapsulate metadata for accelerator machines.
 For more information about models, see :class:`Model`.
 """
 
-from __future__ import absolute_import
-
-import logging
-import os
-
-from cpymad.madx import Madx
-from madgui.resource.file import FileResource
-
+from functools import partial
 
 __all__ = [
     'Model',
@@ -91,7 +84,7 @@ class Model(object):
         """
         return list(map_noexcept(
             partial(cls._get_seq_model, madx),
-            self.sequences,
+            madx.sequences,
             RuntimeError))
 
     @classmethod
