@@ -8,14 +8,11 @@ from __future__ import absolute_import
 
 # standard library
 from collections import namedtuple
-import os
 import subprocess
-import sys
 
 # 3rd party
-from cpymad.madx import Madx, CommandLog
+from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
-from cpymad import _rpc
 
 import numpy as np
 
@@ -26,7 +23,6 @@ from madgui.util.common import temp_filename
 # exported symbols
 __all__ = [
     'ElementInfo',
-    'SegmentedRange',
     'Session',
     'Segment',
 ]

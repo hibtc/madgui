@@ -207,8 +207,6 @@ class Control(object):
         :param list params: List of tuples (ParamConverterBase, dvm_value)
         """
         segment = self._segment
-        madx = segment.session.madx
-        strip_unit = segment.session.utool.strip_unit
         for elem, dvm_value, mad_value in params:
             elem.mad_backend.set(elem.dvm2mad(dvm_value))
         segment.twiss()

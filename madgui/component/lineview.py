@@ -6,14 +6,10 @@ View component for the MadGUI application.
 # force new style imports
 from __future__ import absolute_import
 
-from functools import partial
-
 # scipy
-import numpy as np
 from matplotlib.ticker import AutoMinorLocator
 
 # internal
-from madgui.core import wx
 from madgui.core.plugin import HookCollection
 from madgui.util.unit import units, strip_unit, get_unit_label, get_raw_label
 
@@ -54,7 +50,7 @@ class FigurePair(object):
         """Create an empty matplotlib figure with two subplots."""
         self.figure = figure = matplotlib.figure.Figure()
         self.axx = axx = figure.add_subplot(211)
-        self.axy = axy = figure.add_subplot(212, sharex=axx)
+        self.axy       = figure.add_subplot(212, sharex=axx)
 
     @property
     def canvas(self):
@@ -164,8 +160,8 @@ class TwissView(object):
         # plot style
         self._label = line_view_config['label']
         unit_names = line_view_config['unit']
-        self.unit = unit = {col: getattr(units, unit_names[col])
-                            for col in [sname, xname, yname]}
+        self.unit = {col: getattr(units, unit_names[col])
+                     for col in [sname, xname, yname]}
 
         # subscribe for updates
         TwissCurveSegment(segment, self)

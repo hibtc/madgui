@@ -9,7 +9,6 @@ from __future__ import absolute_import
 
 # standard library
 from collections import OrderedDict
-import os
 
 import yaml
 
@@ -203,7 +202,6 @@ class ParamTable(Widget):
         grid = self._grid
         item = grid.FindItem(0, name, partial=False)
         if item == -1:
-            group = self._params[name]
             item = grid.GetItemCount()
             grid.InsertRow(item)
             self.SetRowName(item, name)

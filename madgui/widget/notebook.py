@@ -20,7 +20,7 @@ from wx.py.shell import Shell
 from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
-from madgui.component.lineview import TwissView, DrawLineElements
+from madgui.component.lineview import TwissView
 from madgui.component.model import Model
 from madgui.component.session import Session, Segment
 from madgui.component.twissdialog import TwissWidget

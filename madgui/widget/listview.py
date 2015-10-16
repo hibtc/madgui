@@ -741,7 +741,6 @@ class EditListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
             self.editor.Destroy()
             self.editor = None
             self.SetFocus()
-        text = self.GetItemType(self.curRow, self.curCol).format(value)
         self.SetItemValue(self.curRow, self.curCol, value)
 
     def _SelectIndex(self, row):

@@ -4,7 +4,7 @@ Resource provider for python package resources.
 """
 
 import pkg_resources
-from contextlib import contextmanager, closing
+from contextlib import contextmanager
 from shutil import rmtree
 from os import remove
 from os.path import isdir

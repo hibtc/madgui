@@ -6,7 +6,6 @@ Widget to set BEAM parameters.
 from __future__ import absolute_import
 
 # internal
-from madgui.core import wx
 from madgui.widget.param import Bool, String, Float, ParamTable
 
 # exported symbols
