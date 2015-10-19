@@ -33,7 +33,7 @@ from madgui.widget.filedialog import OpenDialog
 
 # exported symbols
 __all__ = [
-    'NotebookFrame',
+    'MainFrame',
 ]
 
 
@@ -76,7 +76,7 @@ def monospace(pt_size):
                    wx.FONTWEIGHT_NORMAL)
 
 
-class NotebookFrame(MDIParentFrame):
+class MainFrame(MDIParentFrame):
 
     """
     Notebook window class for MadGUI (main window).
@@ -91,12 +91,12 @@ class NotebookFrame(MDIParentFrame):
         """
 
         self.hook = HookCollection(
-            init='madgui.widget.notebook.init',
-            menu='madgui.widget.notebook.menu',
+            init='madgui.core.mainframe.init',
+            menu='madgui.core.mainframe.menu',
             reset=None,
         )
 
-        super(NotebookFrame, self).__init__(
+        super(MainFrame, self).__init__(
             None, -1,
             title='MadGUI',
             size=wx.Size(800, 600))
