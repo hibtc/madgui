@@ -193,7 +193,6 @@ class NotebookFrame(MDIParentFrame):
             range=model['range'],
             twiss_args=utool.dict_add_unit(model['twiss']),
         )
-        segment.model = model
         segment.show_element_indicators = model.get('indicators', True)
         TwissView.create(session, self, basename='env')
 
