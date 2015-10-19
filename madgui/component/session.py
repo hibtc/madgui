@@ -79,8 +79,8 @@ class Session(object):
         self.remote_process = None
         self.libmadx = None
         self.madx = None
-        self.segment = None
-        # TODO: destroy segment
+        if self.segment is not None:
+            self.segment.destroy()
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
@@ -166,7 +166,7 @@ class Segment(object):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def destroy(self, start_index):
+    def destroy(self):
         self.session.segment = None
         self.hook.remove()
 
