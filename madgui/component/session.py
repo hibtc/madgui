@@ -38,7 +38,7 @@ class Session(object):
     :ivar libmadx: Low level cpymad API
     :ivar madx: CPyMAD interpretor instance
     :ivar model: CPyMAD model
-    :ivar segments: Simulated segments
+    :ivar segment: Currently active segment
 
     :ivar rpc_client: Low level MAD-X RPC client
     :ivar remote_process: MAD-X process
@@ -55,7 +55,7 @@ class Session(object):
         self.madx = None
         self.model = None
         self.repo = None
-        self.segments = []
+        self.segment = None
         self.rpc_client = None
         self.remote_process = None
 
@@ -79,8 +79,8 @@ class Session(object):
         self.remote_process = None
         self.libmadx = None
         self.madx = None
-        self.segments = []
-        # TODO: destroy segments
+        self.segment = None
+        # TODO: destroy segment
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
@@ -139,7 +139,8 @@ class Segment(object):
         self.madx = session.madx
         self.utool = session.utool
 
-        session.segments.append(self)
+
+        session.segment = self
 
         # TODO: self.hook.create(self)
 
@@ -166,7 +167,7 @@ class Segment(object):
                 self.get_element_info(stop_name))
 
     def destroy(self, start_index):
-        self.session.segments.remove(self)
+        self.session.segment = None
         self.hook.remove()
 
     @property

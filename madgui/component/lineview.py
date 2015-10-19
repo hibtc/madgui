@@ -127,11 +127,9 @@ class TwissView(object):
     @classmethod
     def create(cls, session, frame, basename):
         """Create a new view panel as a page in the notebook frame."""
-        # TODO: properly handle multiple/no segments
-        if not session.segments:
+        if not session.segment:
             return
-        segment = session.segments[0]
-        view = cls(segment, basename, frame.app.conf['line_view'])
+        view = cls(session.segment, basename, frame.app.conf['line_view'])
         panel = frame.AddView(view, view.title)
         return view
 
