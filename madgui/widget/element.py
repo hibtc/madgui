@@ -97,20 +97,20 @@ class ElementListWidget(Widget):
     column_info = [
         listview.ColumnInfo(
             '',
-            lambda _, item: item[0],
+            lambda item: item[0],
             wx.LIST_FORMAT_RIGHT,
             35),
         listview.ColumnInfo(
             'Name',
-            lambda _, item: item[1]['name'],
+            lambda item: item[1]['name'],
             wx.LIST_FORMAT_LEFT),
         listview.ColumnInfo(
             'Type',
-            lambda _, item: item[1]['type'],
+            lambda item: item[1]['type'],
             wx.LIST_FORMAT_LEFT),
         listview.ColumnInfo(
             'At',
-            lambda _, item: format_quantity(item[1]['at'], '.3f'),
+            lambda item: format_quantity(item[1]['at'], '.3f'),
             wx.LIST_FORMAT_RIGHT),
     ]
 
