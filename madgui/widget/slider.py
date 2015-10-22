@@ -7,12 +7,12 @@ from __future__ import absolute_import
 from .input import Widget
 import wx
 
-from wx.lib.newevent import NewEvent
+from wx.lib.newevent import NewCommandEvent
 
 
-RangeChange, EVT_RANGE_CHANGE = NewEvent()
-RangeChangeStart, EVT_RANGE_CHANGE_START = NewEvent()
-RangeChangeStop, EVT_RANGE_CHANGE_STOP = NewEvent()
+RangeChange, EVT_RANGE_CHANGE = NewCommandEvent()
+RangeChangeStart, EVT_RANGE_CHANGE_START = NewCommandEvent()
+RangeChangeStop, EVT_RANGE_CHANGE_STOP = NewCommandEvent()
 
 
 class DualSlider(Widget):
@@ -25,19 +25,20 @@ class DualSlider(Widget):
     # - implement in terms of single two-pin slider control
 
     def CreateControls(self, window):
-        self.ctrl_start = start = wx.Slider(window, style=wx.SL_TOP)
-        self.ctrl_stop = stop = wx.Slider(window, style=wx.SL_BOTTOM)
+        self.panel = panel = wx.Panel(window)
+        self.ctrl_start = start = wx.Slider(panel)
+        self.ctrl_stop = stop = wx.Slider(panel)
 
-        sizer = wx.FlexGridSizer(rows=2, cols=2, vgap=5, hgap=5)
+        self.sizer = sizer = wx.FlexGridSizer(rows=2, vgap=5, hgap=5)
         sizer.SetFlexibleDirection(wx.HORIZONTAL)
-        sizer.AddGrowableCol(1)
 
         sizer.Add(start, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
         sizer.Add(stop, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
 
         start.Bind(wx.EVT_SLIDER, self.OnSliderStart)
         stop.Bind(wx.EVT_SLIDER, self.OnSliderStop)
-        return sizer
+        panel.SetSizer(sizer)
+        return panel
 
     def SetData(self, cur, limits=None):
         if limits is not None:
@@ -71,5 +72,5 @@ class DualSlider(Widget):
         self._Post(RangeChange, start=start, stop=stop)
 
     def _Post(self, event_class, **args):
-        event = event_class(**args)
-        wx.PostEvent(self.Window.GetEventHandler(), event)
+        event = event_class(self.panel.GetId(), **args)
+        wx.PostEvent(self.panel.GetEventHandler(), event)
