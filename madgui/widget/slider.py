@@ -24,11 +24,6 @@ class DualSlider(Widget):
     # TODO:
     # - implement in terms of single two-pin slider control
 
-    def __init__(self, parent, info_min, info_max):
-        self.info_min = info_min
-        self.info_max = info_max
-        super(DualSlider, self).__init__(parent)
-
     def CreateControls(self, window):
         self.ctrl_start = start = wx.Slider(window, style=wx.SL_TOP)
         self.ctrl_stop = stop = wx.Slider(window, style=wx.SL_BOTTOM)
@@ -37,9 +32,7 @@ class DualSlider(Widget):
         sizer.SetFlexibleDirection(wx.HORIZONTAL)
         sizer.AddGrowableCol(1)
 
-        sizer.Add(self.info_min)
         sizer.Add(start, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
-        sizer.Add(self.info_max)
         sizer.Add(stop, 1, wx.ALL|wx.ALIGN_CENTER_VERTICAL|wx.EXPAND)
 
         start.Bind(wx.EVT_SLIDER, self.OnSliderStart)
