@@ -38,6 +38,7 @@ class DualSlider(Widget):
         start.Bind(wx.EVT_SLIDER, self.OnSliderStart)
         stop.Bind(wx.EVT_SLIDER, self.OnSliderStop)
         panel.SetSizer(sizer)
+        self.SetMinWidth(100)
         return panel
 
     def SetData(self, cur, limits=None):
@@ -50,6 +51,10 @@ class DualSlider(Widget):
         start, stop = cur
         self.ctrl_start.SetValue(start)
         self.ctrl_stop.SetValue(stop)
+
+    def SetMinWidth(self, width):
+        self.ctrl_start.SetMinSize((width, -1))
+        self.ctrl_stop.SetMinSize((width, -1))
 
     def GetData(self):
         return (self.ctrl_start.GetValue(),
