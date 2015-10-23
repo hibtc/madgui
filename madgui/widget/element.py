@@ -7,15 +7,17 @@ from __future__ import absolute_import
 
 # GUI components
 from madgui.core import wx
-from madgui.widget.input import Widget
+from madgui.widget.input import Widget, Dialog, Cancellable
 from madgui.widget import listview
+from madgui.widget import slider
 
 from madgui.util.unit import strip_unit, units, format_quantity
 
 # exported symbols
 __all__ = [
     'ElementListWidget',
-    'ElementWidget',
+    'SelectElementWidget',
+    'ElementPickerWidget',
     'RangeListWidget',
     'RangeWidget',
 ]
@@ -98,8 +100,7 @@ class ElementListWidget(Widget):
         listview.ColumnInfo(
             '',
             lambda item: item[0],
-            wx.LIST_FORMAT_RIGHT,
-            35),
+            wx.LIST_FORMAT_RIGHT),
         listview.ColumnInfo(
             'Name',
             lambda item: item[1]['name'],
@@ -119,7 +120,7 @@ class ElementListWidget(Widget):
         listctrl = listview.ListCtrl(window,
                                      self.column_info,
                                      style=self.Style)
-        listctrl.setResizeColumn(2)
+        listctrl.setResizeColumn(1)
         listctrl.SetMinSize(wx.Size(400, 200))
         listctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivateItem)
         self._listctrl = listctrl
@@ -148,20 +149,18 @@ class ElementListWidget(Widget):
         return [i for i, el in self._listctrl.selected_items]
 
 
-class ElementWidget(Widget):
+class SelectElementWidget(Widget):
 
     """Element selection dialog with a list control and a search box."""
 
     Title = "Choose element"
-    ListWidget = ElementListWidget
-    label = 'Select element:'
 
     def CreateControls(self, window):
         """Create element list and search controls."""
         # create list control
         listctrl = self.CreateListCtrl()
         # create search control
-        self.ctrl_label = label = wx.StaticText(window, label=self.label)
+        self.ctrl_label = label = wx.StaticText(window, label='Select element:')
         search_label = wx.StaticText(window, label="Search:")
         search_edit = wx.TextCtrl(window, style=wx.TE_RICH2)
         search_edit.SetFocus()
@@ -181,7 +180,8 @@ class ElementWidget(Widget):
         return sizer
 
     def CreateListCtrl(self):
-        widget = self.ListWidget(self.Window)
+        # TODO: support manage=False by intermediate panel?
+        widget = ElementListWidget(self.Window)
         self._listwidget = widget
         self._listctrl = widget.Controls
         return self._listctrl
@@ -191,11 +191,11 @@ class ElementWidget(Widget):
         selected = self.GetData()               # retrieve selected index
         self.SetData(self.elements, selected)   # filter by search string
 
-    def SetData(self, elements, selected, label=None):
+    def SetLabel(self, label):
+        self.ctrl_label.SetLabel(label)
+
+    def SetData(self, elements, selected):
         """Update element list and selection."""
-        if label is not None:
-            self.label = label
-            self.ctrl_label.SetLabel(label)
         self.elements = elements
         searchtext = self._search.GetValue()
         filtered = filter_elements(elements, searchtext)
@@ -209,86 +209,115 @@ class ElementWidget(Widget):
         return self._listwidget.Validate(parent)
 
 
-class RangeListWidget(ElementListWidget):
+class PickerWidgetBase(Widget):
 
-    Style = 0
+    """
+    Base class for generic picker control composed of a read-only text field
+    and a button to show a picker popup dialog.
+    """
 
     def CreateControls(self, window):
-        """Create element list and search controls."""
-        listctrl = super(RangeListWidget, self).CreateControls(window)
-        listctrl.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
-        return listctrl
+        self.panel = wx.Panel(window)
+        self.textctrl = wx.TextCtrl(self.panel, style=wx.TE_READONLY)
+        self.button = wx.Button(self.panel, style=wx.BU_EXACTFIT, label=" ... ")
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.textctrl, 1, wx.ALIGN_CENTER_HORIZONTAL)
+        self.sizer.Add(self.button, 0, wx.LEFT|wx.ALIGN_CENTER_HORIZONTAL, 2)
+        self.button.Bind(wx.EVT_BUTTON, self.OnShowPopup)
+        self.textctrl.Bind(wx.EVT_LEFT_DCLICK, self.OnShowPopup)
+        self.panel.SetSizer(self.sizer)
+        return self.panel
 
-    def OnChar(self, event):
-        """Apply dialog when pressing Enter."""
-        keycode = event.GetKeyCode()
-        if keycode == wx.WXK_RETURN:
-            self.ApplyDialog()
-        # NOTE: we never skip the event, since the default event handler for
-        # some keys messes up our selection.
-        # TODO: scroll on UP/DOWN?
+    def OnShowPopup(self, event):
+        raise NotImplementedError("Must be implementid in derived class!")
 
-    def OnLeftDown(self, event):
-        """Change selection."""
-        selected = self.GetData()
-        x, y = event.GetPosition()
-        row, col = self._listctrl.GetCellId(x, y)
-        if row < 0:
-            return
-        if self.elements[row][0] >= selected[1]:
-            select_end = True
-        elif self.elements[row][0] <= selected[0]:
-            select_end = False
-        else:
-            select_end = event.AltDown() or event.ShiftDown()
-        element_index = self.elements[row][0]
-        if select_end:
-            selected[1] = element_index
-        else:
-            selected[0] = element_index
-        self.SetData(self.elements, selected)
 
-    def OnDoubleClick(self, event):
-        """Do nothing."""
-        event.Skip()
+class ElementPickerWidget(PickerWidgetBase):
 
-    def Validate(self, parent):
-        """Check input validity."""
-        return (self._listctrl.GetItemCount() > 1 and
-                self._listctrl.GetSelectedItemCount() >= 2)
+    """
+    Picker control for an element
+    """
 
     def SetData(self, elements, selected):
-        """Update element list and selection."""
+        """
+        Set from list of
+
+        :param list elements: with units
+        :param int selected: index
+        """
         self.elements = elements
-        self._listctrl.items = elements
-        for _i, (i, el) in enumerate(elements):
-            if i >= selected[0] and i <= selected[1]:
-                self._listctrl.Select(_i, True)
-            else:
-                self._listctrl.Select(_i, False)
+        self.SetSelection(selected)
+
+    def SetSelection(self, selected):
+        self.selected = selected
+        self.UpdateText()
+
+    def UpdateText(self):
+        """Update the displayed text."""
+        self.textctrl.SetValue(self.elements[self.selected]['name'])
 
     def GetData(self):
-        """Retrieve the index of the selected element."""
-        sel = [i for i, el in self._listctrl.selected_items]
-        return [min(sel), max(sel)]
+        """
+        Returns the selected choice.
+
+        :rtype: int
+        """
+        return self.selected
+
+    @Cancellable
+    def OnShowPopup(self, event):
+        """Show the picker popup dialog."""
+        with Dialog(self.Window) as dialog:
+            widget = SelectElementWidget(dialog)
+            self.selected = widget.Query(enumerate(self.elements),
+                                         [self.selected])[0]
+            self.UpdateText()
+
+            ev = wx.PyCommandEvent(wx.EVT_CHOICE.typeId, self.panel.GetId())
+            ev.SetInt(self.selected)
+            wx.PostEvent(self.panel.GetEventHandler(), ev)
 
 
-class RangeWidget(ElementWidget):
+class RangeWidget(slider.DualSlider):
 
     Title = "Select element range"
 
-    ListWidget = RangeListWidget
-
     def CreateControls(self, window):
-        sizer = super(RangeWidget, self).CreateControls(window)
-        help_text = "(Shift click to select last element)"
-        help_ctrl = wx.StaticText(window, label=help_text)
-        sizer.Add(help_ctrl, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
-        return sizer
+        ctrl = super(RangeWidget, self).CreateControls(window)
+        sizer = self.sizer
+        self.start_picker = ElementPickerWidget(ctrl, manage=False)
+        self.stop_picker = ElementPickerWidget(ctrl, manage=False)
+        CENTER_V = wx.ALIGN_CENTER_VERTICAL
+        sizer.Insert(0, wx.StaticText(ctrl, label="Begin:"), 0, CENTER_V)
+        sizer.Insert(2, self.start_picker.Controls, 1, CENTER_V|wx.EXPAND)
+        sizer.Insert(3, wx.StaticText(ctrl, label="End:"), 0, CENTER_V)
+        sizer.Insert(5, self.stop_picker.Controls, 1, CENTER_V|wx.EXPAND)
+        sizer.AddGrowableCol(1)
+        sizer.AddGrowableCol(2)
+        self.start_picker.Controls.Bind(wx.EVT_CHOICE, self.OnPickStart)
+        self.stop_picker.Controls.Bind(wx.EVT_CHOICE, self.OnPickStop)
+        ctrl.Bind(slider.EVT_RANGE_CHANGE_START, self.OnSlideStart)
+        ctrl.Bind(slider.EVT_RANGE_CHANGE_STOP, self.OnSlideStop)
+        return ctrl
 
     def SetData(self, elements, selected):
         """Update element list and selection."""
-        self.elements = elements
-        searchtext = self._search.GetValue()
-        filtered = filter_elements(elements, searchtext, selected)
-        self._listwidget.SetData(filtered, selected)
+        start, stop = selected
+        self.start_picker.SetData(elements, start)
+        self.stop_picker.SetData(elements, stop)
+        super(RangeWidget, self).SetData(selected, (0, len(elements)))
+
+    def OnPickStart(self, event):
+        self.ctrl_start.SetValue(event.GetInt())
+        self.OnSliderStart(event)
+
+    def OnPickStop(self, event):
+        self.ctrl_stop.SetValue(event.GetInt())
+        self.OnSliderStop(event)
+
+    def OnSlideStart(self, event):
+        self.start_picker.SetSelection(event.start)
+
+    def OnSlideStop(self, event):
+        self.stop_picker.SetSelection(event.stop)
+
