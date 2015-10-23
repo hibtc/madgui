@@ -21,7 +21,6 @@ __all__ = [
     'ElementListWidget',
     'SelectElementWidget',
     'ElementPickerWidget',
-    'RangeListWidget',
     'RangeWidget',
 ]
 
@@ -86,6 +85,13 @@ def filter_elements(elements, search, keep=()):
             if i in keep or match(i, el)]
 
 
+def GetItemIndexById(items, el_id):
+    for _i, (i, el) in enumerate(items):
+        if i == el_id:
+            return _i
+    raise ValueError("Element index out of range.")
+
+
 class ElementListWidget(Widget):
 
     """
@@ -101,7 +107,7 @@ class ElementListWidget(Widget):
 
     column_info = [
         listview.ColumnInfo(
-            '',
+            'i',
             lambda item: item[0],
             wx.LIST_FORMAT_RIGHT),
         listview.ColumnInfo(
@@ -125,13 +131,8 @@ class ElementListWidget(Widget):
                                      style=self.Style)
         listctrl.setResizeColumn(1)
         listctrl.SetMinSize(wx.Size(400, 200))
-        listctrl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnActivateItem)
         self._listctrl = listctrl
         return listctrl
-
-    def OnActivateItem(self, event):
-        """Apply dialog when pressing Enter."""
-        self.ApplyDialog()
 
     def Validate(self, parent):
         """Check input validity."""
@@ -160,31 +161,32 @@ class SelectElementWidget(Widget):
 
     def CreateControls(self, window):
         """Create element list and search controls."""
+        self.panel = panel = wx.Panel(window)
         # create list control
         listctrl = self.CreateListCtrl()
         # create search control
-        self.ctrl_label = label = wx.StaticText(window, label='Select element:')
-        search_label = wx.StaticText(window, label="Search:")
-        search_edit = wx.TextCtrl(window, style=wx.TE_RICH2)
+        self.ctrl_label = label = wx.StaticText(panel, label='Select element:')
+        search_label = wx.StaticText(panel, label="Search:")
+        search_edit = wx.TextCtrl(panel, style=wx.TE_RICH2|wx.TE_PROCESS_ENTER)
         search_edit.SetFocus()
         # setup sizers
         search = wx.BoxSizer(wx.HORIZONTAL)
         search.Add(label, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
         search.AddStretchSpacer(1)
         search.Add(search_label, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
-        search.Add(search_edit, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+        search.Add(search_edit, 2, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(search, flag=wx.ALL|wx.EXPAND, border=5)
         sizer.Add(listctrl, 1, flag=wx.ALL|wx.EXPAND, border=5)
         # setup event handlers
-        window.Bind(wx.EVT_TEXT, self.OnSearchChange, search_edit)
+        search_edit.Bind(wx.EVT_TEXT, self.OnSearchChange)
         # set member variables
         self._search = search_edit
-        return sizer
+        panel.SetSizer(sizer)
+        return panel
 
     def CreateListCtrl(self):
-        # TODO: support manage=False by intermediate panel?
-        widget = ElementListWidget(self.Window)
+        widget = ElementListWidget(self.panel, manage=False)
         self._listwidget = widget
         self._listctrl = widget.Controls
         return self._listctrl
@@ -263,28 +265,28 @@ class ElementPickerWidget(Widget):
         self.ctrl = ComboCtrl(window, style=wx.CB_READONLY)
         self.popup = ElementListPopup()
         self.ctrl.SetPopupControl(self.popup)
+        self.ctrl.Bind(wx.EVT_COMBOBOX_CLOSEUP, self.OnChange)
         return self.ctrl
 
-    def SetElements(self, elements):
-        self.popup.SetElements(elements)
-
     def SetSelection(self, value):
-        self.popup.Value = value
+        self.popup.value = value
         self.UpdateText()
 
     def SetData(self, elements, selected):
-        self.SetElements(elements)
-        self.SetSelection(selected)
+        self.popup.SetData(elements, selected)
+        self.UpdateText()
 
     def UpdateText(self):
         self.ctrl.SetText(self.popup.GetStringValue())
 
     def GetData(self):
         """Selected index."""
-        return self.popup.Value
+        return self.popup.value
 
     def OnChange(self, event):
-        event.Skip()
+        ev = wx.PyCommandEvent(wx.EVT_CHOICE.typeId, self.Controls.GetId())
+        ev.SetInt(self.GetData())
+        wx.PostEvent(self.Controls.GetEventHandler(), ev)
 
     def OnGetFocus(self, event):
         self.ctrl.SelectAll()
@@ -301,40 +303,61 @@ class ElementListPopup(ComboPopup):
 
     def Create(self, parent):
         """Create the popup child control. Return true for success."""
-        self.lcw = ElementListWidget(parent, manage=False)
-        self.lc = self.lcw.Controls
+        self.lsw = SelectElementWidget(parent)
+        self.lcw = self.lsw._listwidget
+        self.lc = self.lsw._listctrl
         self.lc.Bind(wx.EVT_MOTION, self.OnMotion)
-        self.lc.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.lc.Bind(wx.EVT_LEFT_DOWN, self.ActivateItem)
         self.lc.Bind(wx.EVT_CHAR, self.OnChar)
+        self.lc.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.ActivateItem)
+        self.lsw._search.Bind(wx.EVT_TEXT_ENTER, self.ActivateItem)
         return True
 
     def GetControl(self):
         """Return the widget that is to be used for the popup."""
-        return self.lc
+        return self.lsw.Controls
 
     def OnPopup(self):
         self.lc._doResize()
-        self.lc.ViewCellRect(self.Value, 0)
+        self.lsw._search.Clear()
+        self.lsw._search.SetFocus()
+        self._UpdateSelection()
 
-    def SetStringValue(self, value):
-        """Called just prior to displaying the popup to update the selection."""
-        pass
+    def _UpdateSelection(self):
+        try:
+            sel = [GetItemIndexById(self.lc.items, self.value)]
+        except ValueError:
+            sel = []
+        self.lc.selected_indices = sel
+
+    def OnDismiss(self):
+        try:
+            self.value = self.lsw.GetData()[0]
+        except IndexError:
+            return
 
     def GetStringValue(self):
-        value = self.Value
-        if value < 0:
+        try:
+            index = GetItemIndexById(self.elements, self.value)
+        except ValueError:
             return ""
-        item = self.lc.items[value]
+        item = self.elements[index]
         return self.lcw.column_info[1].gettext(item)
 
     def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
-        return (max(minWidth, self.lc.GetTotalWidth()),
+        lc_width = self.lc.GetTotalWidth()
+        self.lsw.Controls.Layout()
+        diff_w = self.lsw.Controls.GetSize()[0] - self.lc.GetSize()[0]
+        tot_width = diff_w + lc_width
+        return (max(minWidth, tot_width),
                 prefHeight if prefHeight > 0 else maxHeight)
 
     # Own methods
 
-    def SetElements(self, elements):
-        self.lc.items = elements
+    def SetData(self, elements, selected):
+        self.elements = elements
+        self.value = selected
+        self.lsw.SetData(elements, [selected])
 
     def OnMotion(self, evt):
         """Select the item currenly under the cursor."""
@@ -342,19 +365,15 @@ class ElementListPopup(ComboPopup):
         if item >= 0:
             self.lc.Select(item)
 
-    def OnLeftDown(self, evt):
+    def ActivateItem(self, evt=None):
         """Dismiss the control and use the current value as result."""
         self.Dismiss()
 
     def OnChar(self, event):
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_RETURN:
-            self.Dismiss()
+            self.ActivateItem()
+        else:
+            event.Skip()
 
-    @property
-    def Value(self):
-        return self.lc.GetFirstSelected()
-
-    @Value.setter
-    def Value(self, value):
-        self.lc.Select(value)
+    value = -1

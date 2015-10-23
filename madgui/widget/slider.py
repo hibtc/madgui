@@ -64,6 +64,7 @@ class DualSlider(Widget):
         start, stop = self.GetData()
         self._Post(RangeChangeStart, start=start, stop=stop)
         if start > stop:
+            stop = start
             self.ctrl_stop.SetValue(start)
             self._Post(RangeChangeStop, start=start, stop=stop)
         self._Post(RangeChange, start=start, stop=stop)
@@ -72,6 +73,7 @@ class DualSlider(Widget):
         start, stop = self.GetData()
         self._Post(RangeChangeStop, start=start, stop=stop)
         if stop < start:
+            start = stop
             self.ctrl_start.SetValue(stop)
             self._Post(RangeChangeStart, start=start, stop=stop)
         self._Post(RangeChange, start=start, stop=stop)
