@@ -382,8 +382,8 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
     def SetItemCount(self, count):
         for row in range(self.GetItemCount(), count):
             self.Append([""])
-        for row in range(count, self.GetItemCount()):
-            self.DeleteItem(row)
+        for row in range(self.GetItemCount(), count, -1):
+            self.DeleteItem(row-1)
 
     def RefreshItems(self, start, end):
         for row in range(start, end+1):
