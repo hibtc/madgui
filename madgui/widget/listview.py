@@ -175,6 +175,20 @@ class ListCtrlAutoWidthMixin:
             w = max(w, self._GetTextExtent(self.GetFont(), title)[0])
         return w + self.GetItemSpacing()[0]
 
+    def GetTotalColWidth(self):
+        return sum(self._GetMinColWidth(col)
+                   for col in range(self.GetColumnCount()))
+
+    def GetTotalWidth(self):
+        # We're showing the vertical scrollbar -> allow for scrollbar width
+        # NOTE: on GTK, the scrollbar is included in the client size, but on
+        # Windows it is not included
+        width = self.GetTotalColWidth()
+        if wx.Platform != '__WXMSW__':
+            if self.GetItemCount() > self.GetCountPerPage():
+                width += wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        return width
+
     def _doResize(self):
         """
         Resize the last column as appropriate.

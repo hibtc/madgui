@@ -13,6 +13,9 @@ from madgui.widget import slider
 
 from madgui.util.unit import strip_unit, units, format_quantity
 
+from wx.combo import ComboCtrl, ComboPopup
+
+
 # exported symbols
 __all__ = [
     'ElementListWidget',
@@ -303,9 +306,10 @@ class RangeWidget(slider.DualSlider):
     def SetData(self, elements, selected):
         """Update element list and selection."""
         start, stop = selected
-        self.start_picker.SetData(elements, start)
-        self.stop_picker.SetData(elements, stop)
-        super(RangeWidget, self).SetData(selected, (0, len(elements)))
+        els = list(enumerate(elements))
+        self.start_picker.SetData(els, start)
+        self.stop_picker.SetData(els, stop)
+        super(RangeWidget, self).SetData(selected, (0, len(elements)-1))
 
     def OnPickStart(self, event):
         self.ctrl_start.SetValue(event.GetInt())
@@ -321,3 +325,105 @@ class RangeWidget(slider.DualSlider):
     def OnSlideStop(self, event):
         self.stop_picker.SetSelection(event.stop)
 
+
+class ElementPickerWidget(Widget):
+
+    def CreateControls(self, window):
+        self.ctrl = ComboCtrl(window, style=wx.CB_READONLY)
+        self.popup = ElementListPopup()
+        self.ctrl.SetPopupControl(self.popup)
+        return self.ctrl
+
+    def SetElements(self, elements):
+        self.popup.SetElements(elements)
+
+    def SetSelection(self, value):
+        self.popup.Value = value
+        self.UpdateText()
+
+    def SetData(self, elements, selected):
+        self.SetElements(elements)
+        self.SetSelection(selected)
+
+    def UpdateText(self):
+        self.ctrl.SetText(self.popup.GetStringValue())
+
+    def GetData(self):
+        """Selected index."""
+        return self.popup.Value
+
+    def OnChange(self, event):
+        event.Skip()
+
+    def OnGetFocus(self, event):
+        self.ctrl.SelectAll()
+        event.Skip()
+
+
+class ElementListPopup(ComboPopup):
+
+    """
+    The class that controls the popup part of the ComboCtrl.
+    """
+
+    # ComboPopup Overwrites:
+
+    def Create(self, parent):
+        """Create the popup child control. Return true for success."""
+        self.lcw = ElementListWidget(parent, manage=False)
+        self.lc = self.lcw.Controls
+        self.lc.Bind(wx.EVT_MOTION, self.OnMotion)
+        self.lc.Bind(wx.EVT_LEFT_DOWN, self.OnLeftDown)
+        self.lc.Bind(wx.EVT_CHAR, self.OnChar)
+        return True
+
+    def GetControl(self):
+        """Return the widget that is to be used for the popup."""
+        return self.lc
+
+    def OnPopup(self):
+        self.lc._doResize()
+        self.lc.ViewCellRect(self.Value, 0)
+
+    def SetStringValue(self, value):
+        """Called just prior to displaying the popup to update the selection."""
+        pass
+
+    def GetStringValue(self):
+        value = self.Value
+        if value < 0:
+            return ""
+        item = self.lc.items[value]
+        return self.lcw.column_info[1].gettext(item)
+
+    def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
+        return (max(minWidth, self.lc.GetTotalWidth()),
+                prefHeight if prefHeight > 0 else maxHeight)
+
+    # Own methods
+
+    def SetElements(self, elements):
+        self.lc.items = elements
+
+    def OnMotion(self, evt):
+        """Select the item currenly under the cursor."""
+        item, _ = self.lc.HitTest(evt.GetPosition())
+        if item >= 0:
+            self.lc.Select(item)
+
+    def OnLeftDown(self, evt):
+        """Dismiss the control and use the current value as result."""
+        self.Dismiss()
+
+    def OnChar(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_RETURN:
+            self.Dismiss()
+
+    @property
+    def Value(self):
+        return self.lc.GetFirstSelected()
+
+    @Value.setter
+    def Value(self, value):
+        self.lc.Select(value)
