@@ -3,6 +3,8 @@
 Generic utilities for input dialogs.
 """
 
+# TODO: instructions
+
 # force new style imports
 from __future__ import absolute_import
 
@@ -96,37 +98,29 @@ class Widget(object):
     - Title (as attribute)
     """
 
-    def __init__(self, parent, manage=True):
+    # TODO: change GetData/SetData data model; separate list of choices etc. from result state
+    # TODO: allow to query dialog with single utility function
+    # TODO: 'manage' defaults to True only for historical reasons. It should
+    # be False by default.
+
+    def __init__(self, parent, manage=True, embed=False):
         """Initialize widget and create controls."""
         try:
-            self.Window = parent.ContentArea
+            self.Parent = parent.ContentArea
         except AttributeError:
-            self.Window = parent
-        self.Controls = self.CreateControls(self.Window)
-        if manage:
-            self.Manage()
+            self.Parent = parent
+        self.Create(self.Parent, manage=manage, embed=embed)
 
     # utility mixins
 
-    def Manage(self, proportion=1, flag=wx.EXPAND, border=5):
-        """
-        Assign the container window and create a panel containing the
-        controls.
-
-        :returns: the panel
-        """
-        if isinstance(self.Controls, wx.Sizer):
-            sizer = self.Controls
-        else:
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            sizer.Add(self.Controls, proportion, flag, border)
-        self.Window.SetSizer(sizer)
-        self.Window.SetValidator(Validator(self))
+    @property
+    def CanEmbed(self):
+        return self.__class__.CreateControl == Widget.CreateControl
 
     @property
     def TopLevelWindow(self):
         """The top level window for this widget."""
-        return self.Window.GetTopLevelParent()
+        return self.Parent.GetTopLevelParent()
 
     def Query(self, *args, **kwargs):
         """
@@ -142,11 +136,29 @@ class Widget(object):
     def ApplyDialog(self, event=None):
         """Confirm current selection and close dialog."""
         event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, wx.ID_OK)
-        wx.PostEvent(self.Window, event)
+        wx.PostEvent(self.Parent, event)
 
     # overrides
 
     Title = 'MadGUI'
+
+    def Create(self, parent, manage=True, embed=False):
+        if embed and self.CanEmbed:
+            self.Control = parent
+            sizer = self.Sizer = self.CreateControls(self.Control)
+        else:
+            self.Control = self.CreateControl(parent)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(self.Control, 1, wx.EXPAND)
+        if manage:
+            parent.SetSizer(sizer)
+        self.Control.SetValidator(Validator(self))
+
+    def CreateControl(self, parent):
+        panel = wx.Panel(parent)
+        sizer = self.Sizer = self.CreateControls(panel)
+        panel.SetSizer(sizer)
+        return panel
 
     def CreateControls(self, parent):
         """Create controls, return their container (panel or sizer)."""

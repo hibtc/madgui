@@ -377,7 +377,7 @@ class OVM_Step(Widget):
 
         button_apply.Bind(wx.EVT_BUTTON, self.OnApply)
 
-        self.timer = wx.Timer(self.Window)
+        self.timer = wx.Timer(window)
         window.Bind(wx.EVT_TIMER, self.UpdateStatus, self.timer)
 
         return outer

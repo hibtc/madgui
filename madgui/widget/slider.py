@@ -25,9 +25,8 @@ class DualSlider(Widget):
     # - implement in terms of single two-pin slider control
 
     def CreateControls(self, window):
-        self.panel = panel = wx.Panel(window)
-        self.ctrl_start = start = wx.Slider(panel)
-        self.ctrl_stop = stop = wx.Slider(panel)
+        self.ctrl_start = start = wx.Slider(window)
+        self.ctrl_stop = stop = wx.Slider(window)
 
         self.sizer = sizer = wx.FlexGridSizer(rows=2, vgap=5, hgap=5)
         sizer.SetFlexibleDirection(wx.HORIZONTAL)
@@ -37,9 +36,8 @@ class DualSlider(Widget):
 
         start.Bind(wx.EVT_SLIDER, self.OnSliderStart)
         stop.Bind(wx.EVT_SLIDER, self.OnSliderStop)
-        panel.SetSizer(sizer)
         self.SetMinWidth(100)
-        return panel
+        return sizer
 
     def SetData(self, cur, limits=None):
         if limits is not None:
@@ -79,5 +77,5 @@ class DualSlider(Widget):
         self._Post(RangeChange, start=start, stop=stop)
 
     def _Post(self, event_class, **args):
-        event = event_class(self.panel.GetId(), **args)
-        wx.PostEvent(self.panel.GetEventHandler(), event)
+        event = event_class(self.Control.GetId(), **args)
+        wx.PostEvent(self.Control.GetEventHandler(), event)

@@ -2,6 +2,9 @@
 Widgets for element selection.
 """
 
+# TODO: increase textctrl width for element picker
+# TODO: use of monospace
+
 # force new style imports
 from __future__ import absolute_import
 
@@ -124,7 +127,7 @@ class ElementListWidget(Widget):
             wx.LIST_FORMAT_RIGHT),
     ]
 
-    def CreateControls(self, window):
+    def CreateControl(self, window):
         """Create element list and search controls."""
         listctrl = listview.ListCtrl(window,
                                      self.column_info,
@@ -161,13 +164,12 @@ class SelectElementWidget(Widget):
 
     def CreateControls(self, window):
         """Create element list and search controls."""
-        self.panel = panel = wx.Panel(window)
         # create list control
-        listctrl = self.CreateListCtrl()
+        listctrl = self.CreateListCtrl(window)
         # create search control
-        self.ctrl_label = label = wx.StaticText(panel, label='Select element:')
-        search_label = wx.StaticText(panel, label="Search:")
-        search_edit = wx.TextCtrl(panel, style=wx.TE_RICH2|wx.TE_PROCESS_ENTER)
+        self.ctrl_label = label = wx.StaticText(window, label='Select element:')
+        search_label = wx.StaticText(window, label="Search:")
+        search_edit = wx.TextCtrl(window, style=wx.TE_RICH2|wx.TE_PROCESS_ENTER)
         search_edit.SetFocus()
         # setup sizers
         search = wx.BoxSizer(wx.HORIZONTAL)
@@ -182,13 +184,12 @@ class SelectElementWidget(Widget):
         search_edit.Bind(wx.EVT_TEXT, self.OnSearchChange)
         # set member variables
         self._search = search_edit
-        panel.SetSizer(sizer)
-        return panel
+        return sizer
 
-    def CreateListCtrl(self):
-        widget = ElementListWidget(self.panel, manage=False)
+    def CreateListCtrl(self, parent):
+        widget = ElementListWidget(parent, manage=False)
         self._listwidget = widget
-        self._listctrl = widget.Controls
+        self._listctrl = widget.Control
         return self._listctrl
 
     def OnSearchChange(self, event):
@@ -219,22 +220,21 @@ class RangeWidget(slider.DualSlider):
     Title = "Select element range"
 
     def CreateControls(self, window):
-        ctrl = super(RangeWidget, self).CreateControls(window)
-        sizer = self.sizer
-        self.start_picker = ElementPickerWidget(ctrl, manage=False)
-        self.stop_picker = ElementPickerWidget(ctrl, manage=False)
+        sizer = super(RangeWidget, self).CreateControls(window)
+        self.start_picker = ElementPickerWidget(window, manage=False)
+        self.stop_picker = ElementPickerWidget(window, manage=False)
         CENTER_V = wx.ALIGN_CENTER_VERTICAL
-        sizer.Insert(0, wx.StaticText(ctrl, label="Begin:"), 0, CENTER_V)
-        sizer.Insert(2, self.start_picker.Controls, 1, CENTER_V|wx.EXPAND)
-        sizer.Insert(3, wx.StaticText(ctrl, label="End:"), 0, CENTER_V)
-        sizer.Insert(5, self.stop_picker.Controls, 1, CENTER_V|wx.EXPAND)
+        sizer.Insert(0, wx.StaticText(window, label="Begin:"), 0, CENTER_V)
+        sizer.Insert(2, self.start_picker.Control, 1, CENTER_V|wx.EXPAND)
+        sizer.Insert(3, wx.StaticText(window, label="End:"), 0, CENTER_V)
+        sizer.Insert(5, self.stop_picker.Control, 1, CENTER_V|wx.EXPAND)
         sizer.AddGrowableCol(1)
         sizer.AddGrowableCol(2)
-        self.start_picker.Controls.Bind(wx.EVT_CHOICE, self.OnPickStart)
-        self.stop_picker.Controls.Bind(wx.EVT_CHOICE, self.OnPickStop)
-        ctrl.Bind(slider.EVT_RANGE_CHANGE_START, self.OnSlideStart)
-        ctrl.Bind(slider.EVT_RANGE_CHANGE_STOP, self.OnSlideStop)
-        return ctrl
+        self.start_picker.Control.Bind(wx.EVT_CHOICE, self.OnPickStart)
+        self.stop_picker.Control.Bind(wx.EVT_CHOICE, self.OnPickStop)
+        window.Bind(slider.EVT_RANGE_CHANGE_START, self.OnSlideStart)
+        window.Bind(slider.EVT_RANGE_CHANGE_STOP, self.OnSlideStop)
+        return sizer
 
     def SetData(self, elements, selected):
         """Update element list and selection."""
@@ -261,12 +261,12 @@ class RangeWidget(slider.DualSlider):
 
 class ElementPickerWidget(Widget):
 
-    def CreateControls(self, window):
-        self.ctrl = ComboCtrl(window, style=wx.CB_READONLY)
+    def CreateControl(self, window):
+        ctrl = ComboCtrl(window, style=wx.CB_READONLY)
         self.popup = ElementListPopup()
-        self.ctrl.SetPopupControl(self.popup)
-        self.ctrl.Bind(wx.EVT_COMBOBOX_CLOSEUP, self.OnChange)
-        return self.ctrl
+        ctrl.SetPopupControl(self.popup)
+        ctrl.Bind(wx.EVT_COMBOBOX_CLOSEUP, self.OnChange)
+        return ctrl
 
     def SetSelection(self, value):
         self.popup.value = value
@@ -277,16 +277,16 @@ class ElementPickerWidget(Widget):
         self.UpdateText()
 
     def UpdateText(self):
-        self.ctrl.SetText(self.popup.GetStringValue())
+        self.Control.SetText(self.popup.GetStringValue())
 
     def GetData(self):
         """Selected index."""
         return self.popup.value
 
     def OnChange(self, event):
-        ev = wx.PyCommandEvent(wx.EVT_CHOICE.typeId, self.Controls.GetId())
+        ev = wx.PyCommandEvent(wx.EVT_CHOICE.typeId, self.Control.GetId())
         ev.SetInt(self.GetData())
-        wx.PostEvent(self.Controls.GetEventHandler(), ev)
+        wx.PostEvent(self.Control.GetEventHandler(), ev)
 
     def OnGetFocus(self, event):
         self.ctrl.SelectAll()
@@ -303,7 +303,7 @@ class ElementListPopup(ComboPopup):
 
     def Create(self, parent):
         """Create the popup child control. Return true for success."""
-        self.lsw = SelectElementWidget(parent)
+        self.lsw = SelectElementWidget(parent, manage=False)
         self.lcw = self.lsw._listwidget
         self.lc = self.lsw._listctrl
         self.lc.Bind(wx.EVT_MOTION, self.OnMotion)
@@ -315,7 +315,7 @@ class ElementListPopup(ComboPopup):
 
     def GetControl(self):
         """Return the widget that is to be used for the popup."""
-        return self.lsw.Controls
+        return self.lsw.Control
 
     def OnPopup(self):
         self.lc._doResize()
@@ -346,8 +346,8 @@ class ElementListPopup(ComboPopup):
 
     def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
         lc_width = self.lc.GetTotalWidth()
-        self.lsw.Controls.Layout()
-        diff_w = self.lsw.Controls.GetSize()[0] - self.lc.GetSize()[0]
+        self.lsw.Control.Layout()
+        diff_w = self.lsw.Control.GetSize()[0] - self.lc.GetSize()[0]
         tot_width = diff_w + lc_width
         return (max(minWidth, tot_width),
                 prefHeight if prefHeight > 0 else maxHeight)
