@@ -55,7 +55,6 @@ def detect_multipole_order(coefs):
 
 def get_element_class(element):
     """Get the implementing class for a given MAD-X element."""
-    el_name = element['name'].lower()
     el_type = element['type'].lower()
     if el_type.endswith('monitor'):
         return Monitor

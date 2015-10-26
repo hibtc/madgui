@@ -185,7 +185,7 @@ class Control(object):
         segment = self._segment
         # TODO: sync elements attributes
         elems = segment.sequence.elements
-        varyconf = segment.model._data.get('align', {})
+        varyconf = segment.model.data.get('align', {})
         with Dialog(self._frame) as dialog:
             elems = ovm.OpticSelectWidget(dialog).Query(elems, varyconf)
         data = ovm.OpticVariationMethod(self, *elems)
@@ -207,8 +207,6 @@ class Control(object):
         :param list params: List of tuples (ParamConverterBase, dvm_value)
         """
         segment = self._segment
-        madx = segment.session.madx
-        strip_unit = segment.session.utool.strip_unit
         for elem, dvm_value, mad_value in params:
             elem.mad_backend.set(elem.dvm2mad(dvm_value))
         segment.twiss()

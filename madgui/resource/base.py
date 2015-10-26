@@ -128,7 +128,7 @@ class ResourceProvider(object):
                     yield [e.decode(encoding) for e in row]
 
     else:
-        def csv(filename, encoding='utf-8', **kwargs):
+        def csv(self, filename, encoding='utf-8', **kwargs):
             """Load unicode CSV file, return iterable over rows."""
             with self.open(filename, encoding=encoding) as f:
                 return csv.reader(list(f), **kwargs)
@@ -150,10 +150,10 @@ class ResourceProvider(object):
             # temporarily extracted files are deleted at this point
         """
         try:
-            tempfile = tempfile.NamedTemporaryFile(mode='wb', delete=False)
-            with tempfile as dest:
+            tmp = NamedTemporaryFile(mode='wb', delete=False)
+            with tmp as dest:
                 with self.open(name) as src:
                     copyfileobj(src, dest)
-            yield tempfile.name
+            yield tmp.name
         finally:
-            os.remove(tempfile.name)
+            os.remove(tmp.name)

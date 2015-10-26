@@ -61,9 +61,9 @@ class App(wx.App):
 
     entry_points = """
         [madgui.core.app.init]
-        mainframe = madgui.widget.notebook:NotebookFrame
+        mainframe = madgui.core.mainframe:MainFrame
 
-        [madgui.widget.notebook.menu]
+        [madgui.core.mainframe.menu]
         online_control = madgui.online.control:Control
 
         [madgui.widget.figure.init]

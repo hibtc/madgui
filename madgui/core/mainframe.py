@@ -20,12 +20,12 @@ from wx.py.shell import Shell
 from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
-from madgui.component.lineview import TwissView, DrawLineElements
+from madgui.component.lineview import TwissView
 from madgui.component.model import Model
-from madgui.component.modeldetail import ModelDetailWidget
-from madgui.component.openmodel import OpenModelWidget
 from madgui.component.session import Session, Segment
+from madgui.component.sessiondialog import SessionWidget
 from madgui.component.twissdialog import TwissWidget
+from madgui.resource.file import FileResource
 from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
@@ -34,8 +34,7 @@ from madgui.widget.filedialog import OpenDialog
 
 # exported symbols
 __all__ = [
-    'NotebookFrame',
-    'set_frame_title',
+    'MainFrame',
 ]
 
 
@@ -78,7 +77,7 @@ def monospace(pt_size):
                    wx.FONTWEIGHT_NORMAL)
 
 
-class NotebookFrame(MDIParentFrame):
+class MainFrame(MDIParentFrame):
 
     """
     Notebook window class for MadGUI (main window).
@@ -93,12 +92,12 @@ class NotebookFrame(MDIParentFrame):
         """
 
         self.hook = HookCollection(
-            init='madgui.widget.notebook.init',
-            menu='madgui.widget.notebook.menu',
+            init='madgui.core.mainframe.init',
+            menu='madgui.core.mainframe.menu',
             reset=None,
         )
 
-        super(NotebookFrame, self).__init__(
+        super(MainFrame, self).__init__(
             None, -1,
             title='MadGUI',
             size=wx.Size(800, 600))
@@ -141,93 +140,45 @@ class NotebookFrame(MDIParentFrame):
     @Cancellable
     def _LoadModel(self, event=None):
         reset = self._ConfirmResetSession()
-        model_pathes = self.app.conf.get('model_pathes', [])
-        with Dialog(self) as dialog:
-            mdata, repo, optic = OpenModelWidget(dialog).Query(model_pathes)
+        wildcards = [("cpymad model files", "*.cpymad.yml"),
+                     ("All files", "*")]
+        dlg = OpenDialog(self, "Open model", wildcards)
+        dlg.Directory = self.app.conf.get('model_path', '.')
+        with dlg:
+            ShowModal(dlg)
+            filename = dlg.Filename
+            directory = dlg.Directory
+
+        repo = FileResource(directory)
+        mdata = repo.yaml(filename, encoding='utf-8')
+
         if not mdata:
             return
         if reset:
             self._ResetSession()
-        utool = self.madx_units
-        model = Model(data=mdata, repo=repo, madx=self.session.madx)
-        model.optics[optic].init()
-        self.session.model = model
+        Model.init(data=mdata, repo=repo, madx=self.session.madx)
+        self.session.model = mdata
+        self.session.repo = repo
         self._EditModelDetail()
 
-    def _GenerateModel(self):
-        session = self.session
-        madx = session.madx
-        libmadx = session.libmadx
-
-        optics = {'default': {'init-files': []}}
-        sequences = {}
-        beams = {}
-        for seq in madx.sequences:
-            ranges = {}
-            ranges['ALL'] = {
-                'madx-range': {'first': '#s', 'last': '#e'},
-                'default-twiss': 'default',
-                'twiss-initial-conditions': {
-                    'default': {}
-                }
-            }
-            # TODO: automatically read other used initial conditions from
-            # MAD-X memory (if any TWISS table is present).
-            seq_data = {
-                'ranges': ranges,
-                'default-range': 'ALL',
-            }
-            sequences[seq] = seq_data
-            beam_name = 'beam{}'.format(len(beams))
-            seq_data['beam'] = beam_name
-            try:
-                beam = libmadx.get_sequence_beam(seq)
-            except RuntimeError:
-                beam = {}
-            beams[beam_name] = beam
-            # TODO: automatically insert other beams from MAD-X memory
-
-        data = {
-            'api_version': 0,
-            'path_offset': '',
-            'init-files': '',
-            'name': '(auto-generated)',
-            'optics': optics,
-            'sequences': sequences,
-            'beams': beams,
-            'default-sequence': sorted(sequences)[0],
-            'default-optic': sorted(optics)[0],
-        }
-        return Model(data, repo=None, madx=madx)
-
     @Cancellable
-    def _EditModelDetail(self, event=None):
+    def _EditModelDetail(self, models=None):
+        # TODO: dialog to choose among models + summary + edit subpages
         session = self.session
         model = session.model
         utool = session.utool
 
         with Dialog(self) as dialog:
-            widget = ModelDetailWidget(dialog, model=model, utool=utool)
-            detail = widget.Query()
-
-        sequence = detail['sequence']
-        beam = detail['beam']
-        range_bounds = detail['range']
-        twiss_args = detail['twiss']
-
-        beam = dict(beam, sequence=sequence)
-
-        model.sequences[sequence].init()
-        session.madx.command.beam(**utool.dict_strip_unit(beam))
+            widget = SessionWidget(dialog, session)
+            model = widget.Query(model)
 
         segment = Segment(
             session=session,
-            sequence=sequence,
-            range=range_bounds,
-            twiss_args=twiss_args
+            sequence=model['sequence'],
+            range=model['range'],
+            twiss_args=utool.dict_add_unit(model['twiss']),
         )
-        segment.model = model
-        segment.show_element_indicators = detail['indicators']
+        segment.show_element_indicators = model.get('indicators', True)
         TwissView.create(session, self, basename='env')
 
     @Cancellable
@@ -242,19 +193,27 @@ class NotebookFrame(MDIParentFrame):
         with dlg:
             ShowModal(dlg)
             path = dlg.Path
+            directory = dlg.Directory
 
         if reset:
             self._ResetSession()
 
-        madx = self.session.madx
-        num_seq = len(madx.sequences)
+        session = self.session
+        madx = session.madx
+        old_sequences = list(madx.sequences)
         madx.call(path, True)
+
         # if there are any new sequences, give the user a chance to view them
         # automatically:
-        if len(madx.sequences) > num_seq:
-            model = self._GenerateModel()
-            self.session.model = model
-            self._EditModelDetail()
+
+        # Don't do anything if a sequence is already shown (but update?!)
+        if session.model is not None:
+            return
+
+        if set(madx.sequences) <= set(old_sequences):
+            return
+
+        self._EditModelDetail()
 
     @Cancellable
     def _EditTwiss(self, event=None):
@@ -514,15 +473,6 @@ class NotebookFrame(MDIParentFrame):
                 self._log_stream.write(line)
             except:
                 break
-
-
-def set_frame_title(model, frame):
-    """
-    Set the frame title to the model name.
-
-    This is invoked as a hook from ``model.hook.show(frame)``.
-    """
-    frame.SetTitle(model.name)
 
 
 class TextCtrlStream(object):

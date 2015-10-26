@@ -8,14 +8,11 @@ from __future__ import absolute_import
 
 # standard library
 from collections import namedtuple
-import os
 import subprocess
-import sys
 
 # 3rd party
-from cpymad.madx import Madx, CommandLog
+from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
-from cpymad import _rpc
 
 import numpy as np
 
@@ -26,7 +23,6 @@ from madgui.util.common import temp_filename
 # exported symbols
 __all__ = [
     'ElementInfo',
-    'SegmentedRange',
     'Session',
     'Segment',
 ]
@@ -42,7 +38,7 @@ class Session(object):
     :ivar libmadx: Low level cpymad API
     :ivar madx: CPyMAD interpretor instance
     :ivar model: CPyMAD model
-    :ivar segments: Simulated segments
+    :ivar segment: Currently active segment
 
     :ivar rpc_client: Low level MAD-X RPC client
     :ivar remote_process: MAD-X process
@@ -58,7 +54,8 @@ class Session(object):
         self.libmadx = None
         self.madx = None
         self.model = None
-        self.segments = []
+        self.repo = None
+        self.segment = None
         self.rpc_client = None
         self.remote_process = None
 
@@ -82,8 +79,8 @@ class Session(object):
         self.remote_process = None
         self.libmadx = None
         self.madx = None
-        self.segments = []
-        # TODO: destroy segments
+        if self.segment is not None:
+            self.segment.destroy()
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
@@ -142,7 +139,8 @@ class Segment(object):
         self.madx = session.madx
         self.utool = session.utool
 
-        session.segments.append(self)
+
+        session.segment = self
 
         # TODO: self.hook.create(self)
 
@@ -168,8 +166,8 @@ class Segment(object):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def destroy(self, start_index):
-        self.session.segments.remove(self)
+    def destroy(self):
+        self.session.segment = None
         self.hook.remove()
 
     @property

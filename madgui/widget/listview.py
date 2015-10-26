@@ -39,7 +39,7 @@ class ColumnInfo(object):
                  width=wx.LIST_AUTOSIZE):
         """
         :param str title: column title
-        :param callable gettext: (index, item) -> str
+        :param callable gettext: item -> str
         :param int format: format argument for InsertColumn
         :param int width: width argument for InsertColumn
         """
@@ -175,6 +175,20 @@ class ListCtrlAutoWidthMixin:
             w = max(w, self._GetTextExtent(self.GetFont(), title)[0])
         return w + self.GetItemSpacing()[0]
 
+    def GetTotalColWidth(self):
+        return sum(self._GetMinColWidth(col)
+                   for col in range(self.GetColumnCount()))
+
+    def GetTotalWidth(self):
+        # We're showing the vertical scrollbar -> allow for scrollbar width
+        # NOTE: on GTK, the scrollbar is included in the client size, but on
+        # Windows it is not included
+        width = self.GetTotalColWidth()
+        if wx.Platform != '__WXMSW__':
+            if self.GetItemCount() > self.GetCountPerPage():
+                width += wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        return width
+
     def _doResize(self):
         """
         Resize the last column as appropriate.
@@ -307,7 +321,7 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
     """
 
     # TODO: support Ctrl-A + mouse selection
-    # TODO: setter for selected_items/selected_indices
+    # TODO: setter for selected_items
 
     def __init__(self, parent, columns, style=wx.LC_SINGLE_SEL):
         """
@@ -341,6 +355,15 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
             yield idx
             idx = self.GetNextSelected(idx)
 
+    @selected_indices.setter
+    def selected_indices(self, selected):
+        new = set(selected)
+        old = set(self.selected_indices)
+        for idx in new - old:
+            self.Select(idx, True)
+        for idx in old - new:
+            self.Select(idx, False)
+
     @property
     def items(self):
         """Get list of data items."""
@@ -359,7 +382,7 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
 
     def OnGetItemText(self, row, col):
         """Get the text for the specified row/col."""
-        return self._columns[col].gettext(row, self._items[row])
+        return self._columns[col].gettext(self._items[row])
 
     # The following methods are usually only implemented by LC_VIRTUAL list
     # controls. We provide overrides that are useful for non-virtual controls
@@ -368,8 +391,8 @@ class ListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
     def SetItemCount(self, count):
         for row in range(self.GetItemCount(), count):
             self.Append([""])
-        for row in range(count, self.GetItemCount()):
-            self.DeleteItem(row)
+        for row in range(self.GetItemCount(), count, -1):
+            self.DeleteItem(row-1)
 
     def RefreshItems(self, start, end):
         for row in range(start, end+1):
@@ -741,7 +764,6 @@ class EditListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin, ListCtrlUtil):
             self.editor.Destroy()
             self.editor = None
             self.SetFocus()
-        text = self.GetItemType(self.curRow, self.curCol).format(value)
         self.SetItemValue(self.curRow, self.curCol, value)
 
     def _SelectIndex(self, row):

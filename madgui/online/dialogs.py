@@ -86,15 +86,15 @@ class SyncParamWidget(ListSelectWidget):
                 wx.LIST_AUTOSIZE),
         ]
 
-    def _format_param(self, index, item):
+    def _format_param(self, item):
         param, dvm_value, mad_value = item
         return param.name
 
-    def _format_dvm_value(self, index, item):
+    def _format_dvm_value(self, item):
         param, dvm_value, mad_value = item
         return format_dvm_value(param, dvm_value)
 
-    def _format_madx_value(self, index, item):
+    def _format_madx_value(self, item):
         param, dvm_value, mad_value = item
         return format_dvm_value(param, mad_value)
 
@@ -148,11 +148,11 @@ class MonitorWidget(ListSelectWidget):
                 wx.LIST_AUTOSIZE),
         ]
 
-    def _format_monitor_name(self, index, item):
+    def _format_monitor_name(self, item):
         el_name, values = item
         return el_name
 
-    def _format_sd_value(self, name, index, item):
+    def _format_sd_value(self, name, item):
         el_name, values = item
         value = values.get(name)
         if value is None:

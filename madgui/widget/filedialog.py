@@ -6,6 +6,8 @@ Utilities for file dialogs.
 # force new style imports
 from __future__ import absolute_import
 
+import os
+
 # GUI components
 from madgui.core import wx
 

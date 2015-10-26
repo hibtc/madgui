@@ -5,13 +5,8 @@ Widgets to set TWISS parameters.
 # force new style imports
 from __future__ import absolute_import
 
-from collections import namedtuple
-
 # internal
-from madgui.core import wx
-from madgui.widget.input import Widget
 from madgui.widget.param import ParamTable, Bool, String, Float, Matrix
-from madgui.util.unit import format_quantity
 
 # exported symbols
 __all__ = [
