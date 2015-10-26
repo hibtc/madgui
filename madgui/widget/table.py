@@ -16,15 +16,15 @@ __all__ = [
 ]
 
 
-def _format_key(index, item):
+def _format_key(item):
     return item[0]
 
 
-def _format_val(index, item):
+def _format_val(item):
     val = item[1]
     if isinstance(val, list):
         return '[ {} ]'.format(
-            ",".join(_format_val(index, (None, v)) for v in val)
+            ",".join(_format_val((None, v)) for v in val)
         )
     elif isinstance(val, (float, unit.units.Quantity)):
         return unit.format_quantity(val, '.3f')
