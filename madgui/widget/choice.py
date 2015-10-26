@@ -30,3 +30,7 @@ class ChoiceWidget(Widget):
     def GetData(self):
         """Return selected choice (string)."""
         return self.ctrl_choices.GetStringSelection()
+
+    def Validate(self):
+        """Check that something is selected."""
+        return self.ctrl_choices.GetSelection() != wx.NOT_FOUND

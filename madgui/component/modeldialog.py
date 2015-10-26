@@ -78,12 +78,15 @@ class ModelWidget(Widget):
         self.w_sequence.SetData(self.session.madx, self.mdata, self.session.utool)
 
     def Validate(self):
-        pass
+        return (self.w_sequence.Validate() and
+                self.w_beam.Validate() and
+                self.w_twiss.Validate())
 
 
 class SequenceRangeWidget(Widget):
 
     def CreateControls(self, window):
+        """Create sub-controls."""
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sequence_picker = ChoiceWidget(window, manage=False)
         self.range_picker = RangeWidget(window, manage=False)
@@ -126,5 +129,11 @@ class SequenceRangeWidget(Widget):
         self.range_picker.SetData(elements_with_units, selected)
 
     def GetData(self):
+        """Return (seq_name, range) with range of the form (start, stop)."""
         return (self.sequence_picker.GetData(),
                 self.range_picker.GetData())
+
+    def Validate(self):
+        """Check that the current state of the control sense."""
+        return (self.sequence_picker.Validate() and
+                self.range_picker.Validate())
