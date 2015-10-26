@@ -83,12 +83,12 @@ class Model(object):
         The returned models should be seen as a first guess/approximation.
         """
         return list(map_noexcept(
-            partial(cls._get_seq_model, madx),
+            partial(cls.get_seq_model, madx),
             madx.sequences,
             RuntimeError))
 
     @classmethod
-    def _get_seq_model(cls, madx, sequence_name):
+    def get_seq_model(cls, madx, sequence_name):
         """
         Return a Model for the last TWISS statement used for the given
         sequence, if available.

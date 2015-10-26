@@ -23,6 +23,7 @@ from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView
 from madgui.component.model import Model
 from madgui.component.session import Session, Segment
+from madgui.component.sessiondialog import SessionWidget
 from madgui.component.twissdialog import TwissWidget
 from madgui.resource.file import FileResource
 from madgui.util import unit
@@ -160,32 +161,16 @@ class MainFrame(MDIParentFrame):
         self.session.repo = repo
         self._EditModelDetail()
 
-    def _UpdateModel(self, known_sequences):
-        session = self.session
-        madx = session.madx
-
-        # Don't do anything if a sequence is already shown (but update?!)
-        if session.model is not None:
-            return
-
-        # TODO: diff on configurations rather than sequences
-        if set(madx.sequences) <= set(known_sequences):
-            # TODO: INFO("No new sequences/configurations.")
-            pass
-
-        models = Model.detect(madx)
-        if not models:
-            # TODO: INFO("No configuration can be detected.")
-            return
-
-        self._EditModelDetail()
-
     @Cancellable
     def _EditModelDetail(self, models=None):
         # TODO: dialog to choose among models + summary + edit subpages
         session = self.session
         model = session.model
         utool = session.utool
+
+        with Dialog(self) as dialog:
+            widget = SessionWidget(dialog, session)
+            model = widget.Query(model)
 
         segment = Segment(
             session=session,
@@ -213,14 +198,22 @@ class MainFrame(MDIParentFrame):
         if reset:
             self._ResetSession()
 
-        madx = self.session.madx
+        session = self.session
+        madx = session.madx
         old_sequences = list(madx.sequences)
         madx.call(path, True)
 
         # if there are any new sequences, give the user a chance to view them
         # automatically:
-        self._UpdateModel(old_sequences)
 
+        # Don't do anything if a sequence is already shown (but update?!)
+        if session.model is not None:
+            return
+
+        if set(madx.sequences) <= set(old_sequences):
+            return
+
+        self._EditModelDetail()
 
     @Cancellable
     def _EditTwiss(self, event=None):

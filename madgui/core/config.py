@@ -21,7 +21,7 @@ __all__ = [
 
 def get_base_config():
     """Return the builtin base configuration."""
-    return yaml.safe_load(resource_string('madgui', 'config.yml'))
+    return yaml.safe_load(resource_string('madgui.data', 'config.yml'))
 
 
 def get_default_user_config_path():

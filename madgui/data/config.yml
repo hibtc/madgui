@@ -103,6 +103,10 @@ madx_units:
   e2:       rad
   ks:       1/m
 
+  energy:   MeV
+  charge:   e
+  mass:     u
+
   # TODO: use general formula m^-N ?
   knl:      [rad, m^-1, m^-2, m^-3, m^-4]
   ksl:      [rad, m^-1, m^-2, m^-3, m^-4]

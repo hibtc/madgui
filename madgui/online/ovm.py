@@ -377,7 +377,7 @@ class OVM_Step(Widget):
 
         button_apply.Bind(wx.EVT_BUTTON, self.OnApply)
 
-        self.timer = wx.Timer(self.Window)
+        self.timer = wx.Timer(window)
         window.Bind(wx.EVT_TIMER, self.UpdateStatus, self.timer)
 
         return outer
@@ -489,12 +489,12 @@ class OVM_Summary(Widget):
         return [
             ColumnInfo(
                 "Param",
-                lambda index, item: item[0],
+                lambda item: item[0],
                 wx.LIST_FORMAT_LEFT,
                 wx.LIST_AUTOSIZE),
             ColumnInfo(
                 "Value",
-                lambda index, item: format_quantity(item[1]),
+                lambda item: format_quantity(item[1]),
                 wx.LIST_FORMAT_RIGHT,
                 wx.LIST_AUTOSIZE),
         ]
@@ -514,10 +514,10 @@ class OVM_Summary(Widget):
                 wx.LIST_AUTOSIZE),
         ]
 
-    def _format_param(self, index, item):
+    def _format_param(self, item):
         param, val = item
         return param.name
 
-    def _format_dvm_value(self, index, item):
+    def _format_dvm_value(self, item):
         param, val = item
         return format_dvm_value(param, val)
