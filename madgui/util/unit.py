@@ -41,7 +41,7 @@ except NameError:       # python3 (let's think about future...)
     unicode = str
 
 
-units = pint.UnitRegistry(resource_filename('madgui', 'default_en.txt'))
+units = pint.UnitRegistry(resource_filename('madgui.data', 'default_en.txt'))
 
 
 # make `str(quantity)` slightly nicer.

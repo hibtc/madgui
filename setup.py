@@ -79,7 +79,9 @@ def main():
         package_data={
             'madgui': [
                 'config.yml',
-                'resource/*.xpm',
+                'data/*.xpm',
+                'data/*.yml',
+                'data/*.txt',
                 'LICENSE',
             ]
         }
