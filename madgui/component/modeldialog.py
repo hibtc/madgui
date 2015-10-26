@@ -1,5 +1,5 @@
 """
-Dialog to select the session settings.
+Dialog to edit the current model.
 """
 
 from __future__ import absolute_import
@@ -15,15 +15,25 @@ import wx
 
 
 __all__ = [
-    'SessionWidget',
+    'ModelWidget',
 ]
 
 
-class SessionWidget(Widget):
+class ModelWidget(Widget):
+
+    """
+    Model config dialog.
+
+    Allows to view and modify the following model properties:
+
+        - sequence and range
+        - beam properties
+        - twiss initial conditions
+    """
 
     def __init__(self, parent, session):
         self.session = session
-        super(SessionWidget, self).__init__(parent)
+        super(ModelWidget, self).__init__(parent)
 
     def CreateControls(self, window):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -56,10 +66,10 @@ class SessionWidget(Widget):
         self._UpdateSequence()
 
     def GetData(self):
-        sequence, range = self.w_sequence.GetData()
+        seq, ran = self.w_sequence.GetData()
         return {
-            'sequence': sequence,
-            'range': range,
+            'sequence': seq,
+            'range': ran,
             'beam': self.w_beam.GetData(),
             'twiss': self.w_twiss.GetData(),
         }
@@ -132,4 +142,3 @@ class SequenceRangeWidget(Widget):
     def GetData(self):
         return (self.sequence_picker.GetData(),
                 self.range_picker.GetData())
-
