@@ -54,11 +54,12 @@ class SessionWidget(Widget):
 
     def GetData(self):
         sequence, range = self.w_sequence.GetData()
+        nu = self.session.utool.dict_strip_unit
         return {
             'sequence': sequence,
             'range': range,
-            'beam': self.w_beam.GetData(),
-            'twiss': self.w_twiss.GetData(),
+            'beam': nu(self.w_beam.GetData()),
+            'twiss': nu(self.w_twiss.GetData()),
         }
 
     def _UpdateSequence(self):
@@ -68,6 +69,9 @@ class SessionWidget(Widget):
         # if self.mdata['sequence'] == self.
 
         self.widget['beam'].SetData(self.mdata['beam'])
+
+    def Validate(self):
+        pass
 
     def _UpdateTwiss(self):
         pass

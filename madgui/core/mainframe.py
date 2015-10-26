@@ -23,6 +23,7 @@ from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView
 from madgui.component.model import Model
 from madgui.component.session import Session, Segment
+from madgui.component.sessiondialog import SessionWidget
 from madgui.component.twissdialog import TwissWidget
 from madgui.resource.file import FileResource
 from madgui.util import unit
@@ -186,6 +187,10 @@ class MainFrame(MDIParentFrame):
         session = self.session
         model = session.model
         utool = session.utool
+
+        with Dialog(self) as dialog:
+            widget = SessionWidget(dialog, session)
+            model = widget.Query(model)
 
         segment = Segment(
             session=session,
