@@ -4,7 +4,6 @@ Models encapsulate metadata for accelerator machines.
 For more information about models, see :class:`Model`.
 """
 
-from functools import partial
 
 __all__ = [
     'Model',
