@@ -137,7 +137,7 @@ class ElementListWidget(Widget):
         self._listctrl = listctrl
         return listctrl
 
-    def Validate(self, parent):
+    def Validate(self):
         """Check input validity."""
         return (self._listctrl.GetItemCount() > 0 and
                 self._listctrl.GetSelectedItemCount() == 1)
@@ -211,8 +211,8 @@ class SelectElementWidget(Widget):
         """Retrieve the index of the selected element."""
         return self._listwidget.GetData()
 
-    def Validate(self, parent):
-        return self._listwidget.Validate(parent)
+    def Validate(self):
+        return self._listwidget.Validate()
 
 
 class RangeWidget(slider.DualSlider):

@@ -73,7 +73,7 @@ class Validator(wx.PyValidator):
 
     def Validate(self, parent):
         """Check if the UI elements contain valid input."""
-        return self.widget.Validate(parent)
+        return self.widget.Validate()
 
     def TransferToWindow(self):
         """Initialize GUI elements input values."""
@@ -165,7 +165,7 @@ class Widget(object):
         """Create controls, return their container (panel or sizer)."""
         raise NotImplementedError()
 
-    def Validate(self, parent):
+    def Validate(self):
         """Check if the UI elements contain valid input."""
         return True
 

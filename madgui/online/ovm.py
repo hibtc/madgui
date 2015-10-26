@@ -272,7 +272,7 @@ class OpticSelectWidget(Widget):
         self.ctrl_mon.SetSelection(sel)
         self.OnChangeMonitor()
 
-    def Validate(self, window):
+    def Validate(self):
         sel_mon = self.ctrl_mon.GetSelection()
         sel_qp = tuple(ctrl.GetSelection() for ctrl in self.ctrl_qps)
         sel_st = tuple(ctrl.GetSelection() for ctrl in self.ctrl_hst + self.ctrl_vst)
