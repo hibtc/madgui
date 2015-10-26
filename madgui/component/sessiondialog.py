@@ -51,20 +51,17 @@ class SessionWidget(Widget):
             self.mdata = Model.detect(self.session.madx)[0]
         else:
             self.mdata = mdata
-
-        u = self.session.utool.dict_add_unit
-        self.w_beam.SetData(u(self.mdata.get('beam', {})))
-        self.w_twiss.SetData(u(self.mdata.get('twiss', {})))
+        self.w_beam.SetData(self.mdata.get('beam', {}))
+        self.w_twiss.SetData(self.mdata.get('twiss', {}))
         self._UpdateSequence()
 
     def GetData(self):
         sequence, range = self.w_sequence.GetData()
-        nu = self.session.utool.dict_strip_unit
         return {
             'sequence': sequence,
             'range': range,
-            'beam': nu(self.w_beam.GetData()),
-            'twiss': nu(self.w_twiss.GetData()),
+            'beam': self.w_beam.GetData(),
+            'twiss': self.w_twiss.GetData(),
         }
 
     def _UpdateSequence(self):

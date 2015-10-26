@@ -54,12 +54,23 @@ class Model(object):
                              .format(model_api, cls.API_VERSION))
 
     @classmethod
-    def init(cls, madx, repo, data):
+    def init(cls, session, madx, repo, data):
         """Load model in MAD-X interpreter."""
         cls.check_compatibility(data)
         _load(madx, repo, *data['init-files'])
-        beam = dict(data['beam'], sequence=data['sequence'])
+        nu = session.utool.dict_strip_unit
+        beam = dict(nu(data['beam']), sequence=data['sequence'])
         madx.command.beam(**beam)
+
+    @classmethod
+    def load(cls, session, repo, filename):
+        """Load model data from file."""
+        data = repo.yaml(filename, encoding='utf-8')
+        cls.check_compatibility(data)
+        u = session.utool.dict_add_unit
+        data['beam'] = u(data.get('beam', {}))
+        data['twiss'] = u(data.get('twiss', {}))
+        return data
 
     @classmethod
     def detect(cls, madx):

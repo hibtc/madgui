@@ -149,16 +149,17 @@ class MainFrame(MDIParentFrame):
             filename = dlg.Filename
             directory = dlg.Directory
 
+        session = self.session
         repo = FileResource(directory)
-        mdata = repo.yaml(filename, encoding='utf-8')
+        mdata = Model.load(session, repo, filename)
 
         if not mdata:
             return
         if reset:
             self._ResetSession()
-        Model.init(data=mdata, repo=repo, madx=self.session.madx)
-        self.session.model = mdata
-        self.session.repo = repo
+        Model.init(session, data=mdata, repo=repo, madx=session.madx)
+        session.model = mdata
+        session.repo = repo
         self._EditModelDetail()
 
     @Cancellable
@@ -170,13 +171,13 @@ class MainFrame(MDIParentFrame):
 
         with Dialog(self) as dialog:
             widget = SessionWidget(dialog, session)
-            model = widget.Query(model)
+            model.update(widget.Query(model))
 
         segment = Segment(
             session=session,
             sequence=model['sequence'],
             range=model['range'],
-            twiss_args=utool.dict_add_unit(model['twiss']),
+            twiss_args=model['twiss'],
         )
         segment.show_element_indicators = model.get('indicators', True)
         TwissView.create(session, self, basename='env')
