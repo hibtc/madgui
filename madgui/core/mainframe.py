@@ -151,13 +151,13 @@ class MainFrame(MDIParentFrame):
 
         session = self.session
         repo = FileResource(directory)
-        mdata = Model.load(session, repo, filename)
+        mdata = Model.load(session.utool, repo, filename)
 
         if not mdata:
             return
         if reset:
             self._ResetSession()
-        Model.init(session, data=mdata, repo=repo, madx=session.madx)
+        Model.init(madx=session.madx, utool=session.utool, repo=repo, data=mdata)
         session.model = mdata
         session.repo = repo
         self._EditModelDetail()
@@ -166,7 +166,7 @@ class MainFrame(MDIParentFrame):
     def _EditModelDetail(self, models=None):
         # TODO: dialog to choose among models + summary + edit subpages
         session = self.session
-        model = session.model
+        model = session.model or {}
         utool = session.utool
 
         with Dialog(self) as dialog:

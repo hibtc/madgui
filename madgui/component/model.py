@@ -54,33 +54,32 @@ class Model(object):
                              .format(model_api, cls.API_VERSION))
 
     @classmethod
-    def init(cls, session, madx, repo, data):
+    def init(cls, madx, utool, repo, data):
         """Load model in MAD-X interpreter."""
         cls.check_compatibility(data)
         _load(madx, repo, *data['init-files'])
-        nu = session.utool.dict_strip_unit
-        beam = dict(nu(data['beam']), sequence=data['sequence'])
+        beam = utool.dict_strip_unit(data['beam'])
+        beam = dict(beam, sequence=data['sequence'])
         madx.command.beam(**beam)
 
     @classmethod
-    def load(cls, session, repo, filename):
+    def load(cls, utool, repo, filename):
         """Load model data from file."""
         data = repo.yaml(filename, encoding='utf-8')
         cls.check_compatibility(data)
-        u = session.utool.dict_add_unit
-        data['beam'] = u(data.get('beam', {}))
-        data['twiss'] = u(data.get('twiss', {}))
+        data['beam'] = utool.dict_add_unit(data.get('beam', {}))
+        data['twiss'] = utool.dict_add_unit(data.get('twiss', {}))
         return data
 
     @classmethod
-    def detect(cls, madx):
+    def get_seq_model(cls, madx, utool, sequence_name):
         """
-        Construct Models from prior TWISS calls. All accessible models are
-        returned in a list.
+        Return a model as good as possible from the last TWISS statement used
+        for the given sequence, if available.
 
         Note that it seems currently not possible to reliably access prior
         TWISS statements and hence the information required to guess the
-        Models is extracted from the TWISS tables associated with the
+        model is extracted from the TWISS tables associated with the
         sequences. This means that
 
             - twiss tables may accidentally be associated with the wrong
@@ -91,47 +90,53 @@ class Model(object):
               element (e.g. MARKER), otherwise TWISS parameters at the start
               of the range can not be reliably extrapolated
 
-        The returned models should be seen as a first guess/approximation.
-        """
-        return list(map_noexcept(
-            partial(cls.get_seq_model, madx),
-            madx.sequences,
-            RuntimeError))
+        The returned model should be seen as a first guess/approximation. Some
+        fields may be empty if they cannot reliably be determined.
 
-    @classmethod
-    def get_seq_model(cls, madx, sequence_name):
-        """
-        Return a Model for the last TWISS statement used for the given
-        sequence, if available.
-
-        :raises RuntimeError: if there is no good guess for a prior TWISS command
+        :raises RuntimeError: if the sequence is undefined
         """
         try:
             sequence = madx.sequences[sequence_name]
         except KeyError:
             raise RuntimeError("The sequence is not defined.")
-        beam = sequence.beam            # raises RuntimeError
-        table = sequence.twiss_table    # raises RuntimeError
+        try:
+            beam = sequence.beam
+        except RuntimeError:
+            beam = {}
+        try:
+            range, twiss = cls._get_twiss(madx, utool, sequence)
+        except RuntimeError:
+            range = (sequence_name+'$start', sequence_name+'$end')
+            twiss = {}
+        return {
+            'api_version': 1,
+            'init-files': [],
+            'sequence': sequence_name,
+            'range': range,
+            'beam': utool.dict_add_unit(beam),
+            'twiss': utool.dict_add_unit(twiss),
+        }
+
+    @classmethod
+    def _get_twiss(self, madx, utool, sequence):
+        """
+        Try to determine (range, twiss) from the MAD-X state.
+
+        :raises RuntimeError: if unable to make a useful guess
+        """
+        table = sequence.twiss_table        # raises RuntimeError
         try:
             first, last = table.range
         except ValueError:
             raise RuntimeError("TWISS table inaccessible or nonsensical.")
-        # consistency check:
         if first not in sequence.elements or last not in sequence.elements:
             raise RuntimeError("The TWISS table appears to belong to a different sequence.")
         # TODO: this inefficiently copies over the whole table over the pipe
         # rather than just the first row.
         mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
-        twiss_init = {
+        twiss = {
             key: data[0]
             for key, data in table.items()
             if data[0] != 0 or key in mandatory_fields
         }
-        return {
-            'api_version': 1,
-            'init-files': [],
-            'sequence': sequence_name,
-            'range': (first, last),
-            'beam': beam,
-            'twiss': twiss_init,
-        }
+        return (first, last), twiss
