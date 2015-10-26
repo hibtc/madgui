@@ -70,3 +70,23 @@ class TwissWidget(ParamTable):
         String(deltap=""),
         #Bool(notable=True),    # madgui always needs table
     ]
+
+    def Validate(self):
+        """
+        Validate the input.
+
+        This checks that the current dialog state satisfies the minimal
+        requirements on TWISS initial conditions, which is:
+
+            - alpha, beta must be given
+            - betx, bety must be greater than zero
+        """
+        alfx = self.GetRowValue('alfx')
+        alfy = self.GetRowValue('alfy')
+        betx = self.GetRowValue('betx')
+        bety = self.GetRowValue('bety')
+        if None in (alfx, alfy, betx, bety):
+            return False
+        if betx <= 0 or bety <= 0:
+            return False
+        return True

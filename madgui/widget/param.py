@@ -210,16 +210,35 @@ class ParamTable(Widget):
         else:
             self.SetRowValue(item, self.utool.strip_unit(name, value))
 
+    def GetRowCount(self):
+        """Get number of rows."""
+        return self._grid.GetItemCount()
+
+    def FindRow(self, name):
+        """Get the index showing the row with the specified name."""
+        for row in range(self.GetRowCount()):
+            if self.GetRowName(row) == name:
+                return row
+        raise ValueError("Row not found: {}".format(name))
+
+    def ToIndex(self, row):
+        """Convert row name to row index, leave indices as is."""
+        if isinstance(row, int):
+            return row
+        return self.FindRow(row)
+
     def GetRowName(self, row):
         """Get the name of the parameter in the specified row."""
         return self._grid.GetItemValue(row, 0)
 
     def GetRowValue(self, row):
         """Get the value of the parameter in the specified row."""
+        row = self.ToIndex(row)
         return self._grid.GetItemValue(row, 1)
 
     def GetRowQuantity(self, row):
         """Get the value (with unit) of the parameter in the specified row."""
+        row = self.ToIndex(row)
         name = self.GetRowName(row)
         value = self.GetRowValue(row)
         return self.utool.add_unit(name, value)
@@ -231,6 +250,7 @@ class ParamTable(Widget):
 
     def SetRowValue(self, row, value):
         """Set the value of the parameter in the specified row."""
+        row = self.ToIndex(row)
         name = self.GetRowName(row)
         group = self._params[name]
         value = group.ValueType(value, group.default(name))
