@@ -5,6 +5,7 @@ Dialog to select the session settings.
 from __future__ import absolute_import
 
 from madgui.component.beamdialog import BeamWidget
+from madgui.component.model import Model
 from madgui.component.twissdialog import TwissWidget
 from madgui.widget.input import Widget
 from madgui.widget.choice import ChoiceWidget
@@ -46,10 +47,14 @@ class SessionWidget(Widget):
         return sizer
 
     def SetData(self, mdata):
-        self.mdata = mdata
+        if mdata is None:
+            self.mdata = Model.detect(self.session.madx)[0]
+        else:
+            self.mdata = mdata
+
         u = self.session.utool.dict_add_unit
-        self.w_beam.SetData(u(self.mdata['beam']))
-        self.w_twiss.SetData(u(self.mdata['twiss']))
+        self.w_beam.SetData(u(self.mdata.get('beam', {})))
+        self.w_twiss.SetData(u(self.mdata.get('twiss', {})))
         self._UpdateSequence()
 
     def GetData(self):
