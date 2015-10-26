@@ -242,7 +242,7 @@ class RangeWidget(slider.DualSlider):
         els = list(enumerate(elements))
         self.start_picker.SetData(els, start)
         self.stop_picker.SetData(els, stop)
-        super(RangeWidget, self).SetData(selected, (0, len(elements)-1))
+        super(RangeWidget, self).SetData(selected, (0, len(els)-1))
 
     def OnPickStart(self, event):
         self.ctrl_start.SetValue(event.GetInt())
