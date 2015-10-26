@@ -77,21 +77,7 @@ class ModelWidget(Widget):
     def _UpdateSequence(self):
         self.w_sequence.SetData(self.session.madx, self.mdata, self.session.utool)
 
-    def _UpdateBeam(self):
-        # if self.mdata['sequence'] == self.
-
-        self.widget['beam'].SetData(self.mdata['beam'])
-
     def Validate(self):
-        pass
-
-    def _UpdateTwiss(self):
-        pass
-
-    def _UpdateSummary(self):
-        pass
-
-    def OnFinishButton(self, event):
         pass
 
 
