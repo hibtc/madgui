@@ -107,6 +107,7 @@ class Widget(object):
         """Initialize widget and create controls."""
         try:
             self.Parent = parent.ContentArea
+            embed = True
         except AttributeError:
             self.Parent = parent
         self.Create(self.Parent, manage=manage, embed=embed)
