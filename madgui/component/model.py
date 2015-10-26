@@ -18,14 +18,6 @@ def _load(madx, repo, *files):
             madx.call(fpath)
 
 
-def map_noexcept(func, sequence, catch):
-    for item in sequence:
-        try:
-            yield func(item)
-        except catch:
-            pass
-
-
 class Model(object):
 
     """
