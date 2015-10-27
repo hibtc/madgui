@@ -38,7 +38,7 @@ class Session(object):
     :ivar utool: Unit conversion tool
     :ivar libmadx: Low level cpymad API
     :ivar madx: CPyMAD interpretor instance
-    :ivar model: CPyMAD model
+    :ivar data: data loaded from model
     :ivar segment: Currently active segment
 
     :ivar rpc_client: Low level MAD-X RPC client
@@ -54,7 +54,7 @@ class Session(object):
         self.utool = utool
         self.libmadx = None
         self.madx = None
-        self.model = None
+        self.data = None
         self.repo = repo
         self.segment = None
         self.rpc_client = None
@@ -133,7 +133,7 @@ class Session(object):
         cls._load_params(data, utool, repo, 'twiss')
         session = cls(utool, repo)
         session.start()
-        session.model = data
+        session.data = data
         for file in data['init-files']:
             with repo.get(file).filename() as fpath:
                 session.madx.call(fpath)

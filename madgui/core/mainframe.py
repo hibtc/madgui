@@ -161,8 +161,8 @@ class MainFrame(MDIParentFrame):
             return
         with Dialog(self) as dialog:
             widget = ModelWidget(dialog, session)
-            model = widget.Query(session.model or {})
-        session.init_segment(model)
+            data = widget.Query(session.data or {})
+        session.init_segment(data)
         TwissView.create(session, self, basename='env')
 
     @Cancellable
@@ -191,7 +191,7 @@ class MainFrame(MDIParentFrame):
 
     def _ConfirmResetSession(self):
         """Prompt the user to confirm resetting the current session."""
-        if not self.session.model:
+        if not self.session.segment:
             return False
         question = 'Open new MAD-X session? Unsaved changes will be lost.'
         answer = wx.MessageBox(
@@ -220,8 +220,8 @@ class MainFrame(MDIParentFrame):
                          'Open a tab with a python shell',
                          self._NewCommandTab),
                 Separator,
-                MenuItem('&Open file\tCtrl+O',
-                         'Open a new model or MAD-X file.',
+                MenuItem('&Open model\tCtrl+O',
+                         'Load model or open new model from a MAD-X file.',
                          self._LoadFile),
                 # TODO: save session/model
                 Separator,
@@ -339,7 +339,7 @@ class MainFrame(MDIParentFrame):
     def OnUpdateMenu(self, event):
         if not self.session.madx:
             return
-        enable_view = bool(self.session.madx.sequences or self.session.model)
+        enable_view = bool(self.session.madx.sequences)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is
