@@ -41,6 +41,19 @@ in your repositories:
 .. _PyYAML: https://pypi.python.org/pypi/PyYAML
 
 
+Usage
+~~~~~
+
+After installing the dependencies, open a terminal in the project folder and
+type::
+
+    python setup.py install
+
+Now, you should be able to start madgui by typing::
+
+    madgui
+
+
 Development guidelines
 ~~~~~~~~~~~~~~~~~~~~~~
 
