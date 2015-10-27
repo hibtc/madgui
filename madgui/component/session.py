@@ -22,7 +22,6 @@ from madgui.util.common import temp_filename
 
 # exported symbols
 __all__ = [
-    'Model',
     'ElementInfo',
     'Session',
     'Segment',
@@ -49,13 +48,13 @@ class Session(object):
     # TODO: automatically switch directories when CALLing files?
     # TODO: saveable state
 
-    def __init__(self, utool):
+    def __init__(self, utool, repo=None):
         """Initialize with (Madx, Model)."""
         self.utool = utool
         self.libmadx = None
         self.madx = None
         self.model = None
-        self.repo = None
+        self.repo = repo
         self.segment = None
         self.rpc_client = None
         self.remote_process = None
@@ -83,19 +82,17 @@ class Session(object):
         if self.segment is not None:
             self.segment.destroy()
 
+    def call(self, name):
+        with self.repo.filename(name) as f:
+            self.madx.call(f, True)
 
-class Model(object):
 
-    """
-    A model is a configuration of an accelerator machine. This class is only
-    a static utility for model definitions and not meant to be instanciated.
-    """
+    #----------------------------------------
+    # Serialization
+    #----------------------------------------
 
     # current version of model API
     API_VERSION = 1
-
-    def __init__(self):
-        raise NotImplementedError("Models are POD only!")
 
     @classmethod
     def check_compatibility(cls, data):
@@ -112,21 +109,36 @@ class Model(object):
                              .format(model_api, cls.API_VERSION))
 
     @classmethod
-    def init(cls, madx, utool, repo, data):
-        """Load model in MAD-X interpreter."""
-        cls.check_compatibility(data)
-        for file in data['init-files']:
-            with repo.get(file).filename() as fpath:
-                madx.call(fpath)
+    def load_madx_file(cls, utool, repo, filename):
+        session = cls(utool, repo)
+        session.start()
+        session.call(filename)
+        return session
 
     @classmethod
-    def load(cls, utool, repo, filename):
+    def load_model(cls, utool, repo, filename):
         """Load model data from file."""
         data = repo.yaml(filename, encoding='utf-8')
         cls.check_compatibility(data)
         cls._load_params(data, utool, repo, 'beam')
         cls._load_params(data, utool, repo, 'twiss')
-        return data
+        session = cls(utool, repo)
+        session.start()
+        session.model = data
+        for file in data['init-files']:
+            with repo.get(file).filename() as fpath:
+                session.madx.call(fpath)
+        return session
+
+    def init_segment(self, data):
+        self.segment = Segment(
+            session=self,
+            sequence=data['sequence'],
+            range=data['range'],
+            twiss_args=data['twiss'],
+            beam=data['beam'],
+        )
+        self.segment.show_element_indicators = data.get('indicators', True)
 
     @classmethod
     def _load_params(cls, data, utool, repo, name):
@@ -136,8 +148,7 @@ class Model(object):
             vals = repo.yaml(vals, encoding='utf-8')
         data[name] = utool.dict_add_unit(vals)
 
-    @classmethod
-    def get_seq_model(cls, madx, utool, sequence_name):
+    def _get_seq_model(self, sequence_name):
         """
         Return a model as good as possible from the last TWISS statement used
         for the given sequence, if available.
@@ -161,7 +172,7 @@ class Model(object):
         :raises RuntimeError: if the sequence is undefined
         """
         try:
-            sequence = madx.sequences[sequence_name]
+            sequence = self.madx.sequences[sequence_name]
         except KeyError:
             raise RuntimeError("The sequence is not defined.")
         try:
@@ -169,21 +180,18 @@ class Model(object):
         except RuntimeError:
             beam = {}
         try:
-            range, twiss = cls._get_twiss(madx, utool, sequence)
+            range, twiss = self._get_twiss(sequence)
         except RuntimeError:
             range = (sequence_name+'$start', sequence_name+'$end')
             twiss = {}
         return {
-            'api_version': 1,
-            'init-files': [],
             'sequence': sequence_name,
             'range': range,
-            'beam': utool.dict_add_unit(beam),
-            'twiss': utool.dict_add_unit(twiss),
+            'beam': self.utool.dict_add_unit(beam),
+            'twiss': self.utool.dict_add_unit(twiss),
         }
 
-    @classmethod
-    def _get_twiss(self, madx, utool, sequence):
+    def _get_twiss(self, sequence):
         """
         Try to determine (range, twiss) from the MAD-X state.
 
@@ -260,15 +268,19 @@ class Segment(object):
         # TODO: provide uncached version of elements with units:
         self.elements = list(map(
             session.utool.dict_add_unit, raw_elements))
-        self.madx = session.madx
-        self.utool = session.utool
-
-        session.segment = self
 
         # TODO: self.hook.create(self)
 
         self.beam = beam
         self.twiss()
+
+    @property
+    def madx(self):
+        return self.session.madx
+
+    @property
+    def utool(self):
+        return self.session.utool
 
     def get_element_info(self, element):
         """Get :class:`ElementInfo` from element name or index."""
