@@ -59,13 +59,13 @@ def main():
         ],
         test_suite='nose.collector',
         install_requires=[
-            'cpymad>=0.11.0',
+            'cpymad>=0.12.1',
             'docopt',
             'matplotlib',
             'numpy',
             'pydicti>=0.0.4',
             'PyYAML',
-            'Pint>=0.6',
+            'Pint==0.6',
             'docutils',
             # wxPython is a dependency, but we do not require it here, since this
             # will cause the 'pkg_resources.require' runtime check to fail on the
