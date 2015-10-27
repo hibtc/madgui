@@ -21,9 +21,8 @@ from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView
-from madgui.component.model import Model
 from madgui.component.modeldialog import ModelWidget
-from madgui.component.session import Session, Segment
+from madgui.component.session import Model, Session, Segment
 from madgui.component.twissdialog import TwissWidget
 from madgui.resource.file import FileResource
 from madgui.util import unit

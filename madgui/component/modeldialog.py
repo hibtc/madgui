@@ -5,7 +5,7 @@ Dialog to edit the current model.
 from __future__ import absolute_import
 
 from madgui.component.beamdialog import BeamWidget
-from madgui.component.model import Model
+from madgui.component.session import Model
 from madgui.component.twissdialog import TwissWidget
 from madgui.widget.input import Widget
 from madgui.widget.choice import ChoiceWidget
