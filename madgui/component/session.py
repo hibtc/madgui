@@ -116,7 +116,7 @@ class Session(object):
             f.write(text)
 
     def _as_model(self):
-        data = self.extra.copy()
+        data = self.data.copy()
         if self.segment:
             data.update(self.segment.data)
         data.update({
