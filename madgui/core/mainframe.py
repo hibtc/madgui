@@ -7,6 +7,7 @@ Notebook window component for MadGUI (main window).
 from __future__ import absolute_import
 
 # standard library
+import os
 import sys
 import logging
 import threading
@@ -21,7 +22,6 @@ from madgui.core.plugin import HookCollection
 from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView
-from madgui.component.model import Model
 from madgui.component.modeldialog import ModelWidget
 from madgui.component.session import Session, Segment
 from madgui.component.twissdialog import TwissWidget
@@ -30,7 +30,7 @@ from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
 from madgui.widget.input import ShowModal, Cancellable, Dialog, CancelAction
-from madgui.widget.filedialog import OpenDialog
+from madgui.widget.filedialog import OpenDialog, SaveDialog
 
 # exported symbols
 __all__ = [
@@ -110,21 +110,11 @@ class MainFrame(MDIParentFrame):
             'session': None,
         }
 
-        self.CreateControls()
-        self.InitMadx()
-        self.Show(show)
-
-    def InitMadx(self):
-        """
-        Start a MAD-X interpreter and associate with this frame.
-        """
-        # TODO: close old client + shutdown _read_stream thread.
         self.madx_units = unit.UnitConverter(
             unit.from_config_dict(self.app.conf['madx_units']))
-        self.session = Session(self.madx_units)
-        self.session.start()
-        threading.Thread(target=self._read_stream,
-                         args=(self.session.remote_process.stdout,)).start()
+
+        self.CreateControls()
+        self.Show(show)
 
     def CreateControls(self):
         # create notebook
@@ -134,80 +124,65 @@ class MainFrame(MDIParentFrame):
 
         # create menubar and listen to events:
         self.SetMenuBar(self._CreateMenu())
-        # Create a command tab
+        self.session = None
+        self._ResetSession()
+
+    def _ResetSession(self, session=None):
+        """Associate a new Session with this frame."""
+        # start new session if necessary
+        if session is None:
+            session = Session(self.madx_units)
+        # remove existing associations
+        if self.session:
+            self.session.close()
+        CloseMDIChildren(self)
+        # add new associations
         self._NewLogTab()
+        self.session = session
+        self.env['session'] = session
+        threading.Thread(target=self._read_stream,
+                         args=(session.remote_process.stdout,)).start()
+        self.hook.reset()
 
     @Cancellable
-    def _LoadModel(self, event=None):
-        reset = self._ConfirmResetSession()
-        wildcards = [("cpymad model files", "*.cpymad.yml"),
+    def _LoadFile(self, event=None):
+        self._ConfirmResetSession()
+        wildcards = [("Model files", "*.cpymad.yml"),
+                     ("MAD-X files", "*.madx", "*.str", "*.seq"),
                      ("All files", "*")]
         with OpenDialog(self, "Open model", wildcards) as dlg:
             dlg.Directory = self.app.conf.get('model_path', '.')
             ShowModal(dlg)
-            filename = dlg.Filename
-            directory = dlg.Directory
-        if reset:
-            self._ResetSession()
-
-        session = self.session
-        repo = FileResource(directory)
-        mdata = Model.load(session.utool, repo, filename)
-        Model.init(madx=session.madx, utool=session.utool, repo=repo, data=mdata)
-        self._EditModelDetail(repo, mdata)
-
-    @Cancellable
-    def _EditModelDetail(self, repo, model=None):
-        # TODO: dialog to choose among models + summary + edit subpages
-        session = self.session
-        model = model or {}
-        utool = session.utool
-
+            name = dlg.Filename
+            repo = FileResource(dlg.Directory)
+        session = Session.load(self.madx_units, repo, name)
+        self._ResetSession(session)
+        if not session.madx.sequences:
+            return
         with Dialog(self) as dialog:
             widget = ModelWidget(dialog, session)
-            model.update(widget.Query(model))
-
-        session.model = model
-        session.repo = repo
-
-        segment = Segment(
-            session=session,
-            sequence=model['sequence'],
-            range=model['range'],
-            twiss_args=model['twiss'],
-            beam=model['beam'],
-        )
-        segment.show_element_indicators = model.get('indicators', True)
+            data = widget.Query(session.data)
+        session.init_segment(data)
         TwissView.create(session, self, basename='env')
 
-
     @Cancellable
-    def _LoadMadxFile(self, event=None):
-        """
-        Dialog component to find/open a .madx file.
-        """
-        reset = self._ConfirmResetSession()
-        wildcards = [("MAD-X files", "*.madx", "*.str"),
+    def _SaveModel(self, event=None):
+        data = self.session.data
+        pathes = data.get('init-files', [])
+        if pathes:
+            folder = os.path.dirname(pathes[0])
+        else:
+            folder = self.app.conf.get('model_path', '.')
+        wildcards = [("cpymad model files", "*.cpymad.yml"),
                      ("All files", "*")]
-        with OpenDialog(self, 'Load MAD-X file', wildcards) as dlg:
+        with SaveDialog(self, 'Save model', wildcards) as dlg:
+            dlg.Directory = folder
             ShowModal(dlg)
             path = dlg.Path
-            directory = dlg.Directory
-        if reset:
-            self._ResetSession()
+        self.session.save(path)
 
-        session = self.session
-        madx = session.madx
-        madx.call(path, True)
-
-        # Don't do anything if a sequence is already shown (but update?!)
-        if session.model is not None:
-            return
-
-        # if there are any sequences, give the user a chance to view them
-        # automatically:
-        if madx.sequences:
-            self._EditModelDetail()
+    def _CanSaveModel(self, event):
+        event.Enable(bool(self.session.segment))
 
     @Cancellable
     def _EditTwiss(self, event=None):
@@ -235,31 +210,16 @@ class MainFrame(MDIParentFrame):
 
     def _ConfirmResetSession(self):
         """Prompt the user to confirm resetting the current session."""
-        if not self.session.model:
+        if not self.session.segment:
             return False
-        question = (
-            'Reset MAD-X session? Unsaved changes will be lost.\n\n'
-            'Note: it is recommended to reset MAD-X before loading a new '
-            'model or sequence into memory, since MAD-X might crash on a '
-            'naming conflict.\n\n'
-            'Press Cancel to abort action.'
-        )
+        question = 'Open new MAD-X session? Unsaved changes will be lost.'
         answer = wx.MessageBox(
             question, 'Reset session',
-            wx.YES_NO | wx.CANCEL | wx.YES_DEFAULT | wx.ICON_QUESTION,
+            wx.OK | wx.CANCEL | wx.ICON_QUESTION,
             parent=self)
-        if answer == wx.YES:
+        if answer == wx.OK:
             return True
-        if answer == wx.NO:
-            return False
         raise CancelAction
-
-    def _ResetSession(self, event=None):
-        CloseMDIChildren(self)
-        self.session.stop()
-        self._NewLogTab()
-        self.InitMadx()
-        self.hook.reset()
 
     def _CreateMenu(self):
         """Create a menubar."""
@@ -279,17 +239,17 @@ class MainFrame(MDIParentFrame):
                          'Open a tab with a python shell',
                          self._NewCommandTab),
                 Separator,
-                MenuItem('&Open MAD-X file\tCtrl+O',
-                         'Open a .madx file in this MAD-X session.',
-                         self._LoadMadxFile),
-                MenuItem('Load &model\tCtrl+M',
-                         'Open a model in this MAD-X session.',
-                         self._LoadModel),
-                # TODO: save session/model
+                MenuItem('&Open model\tCtrl+O',
+                         'Load model or open new model from a MAD-X file.',
+                         self._LoadFile),
+                MenuItem('&Save model as..\tCtrl+S',
+                         'Save the current model (beam + twiss) to a file',
+                         self._SaveModel,
+                         self._CanSaveModel),
                 Separator,
                 MenuItem('&Reset session',
                          'Clear the MAD-X session state.',
-                         self._ResetSession),
+                         lambda _: self._ResetSession()),
                 Separator,
                 MenuItem('&Close',
                          'Close window',
@@ -380,7 +340,7 @@ class MainFrame(MDIParentFrame):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self.session.stop()
+            self.session.close()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
@@ -401,7 +361,7 @@ class MainFrame(MDIParentFrame):
     def OnUpdateMenu(self, event):
         if not self.session.madx:
             return
-        enable_view = bool(self.session.madx.sequences or self.session.model)
+        enable_view = bool(self.session.madx.sequences)
         # we only want to call EnableTop() if the state is actually
         # different from before, since otherwise this will cause very
         # irritating flickering on windows. Because menubar.IsEnabledTop is

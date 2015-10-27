@@ -74,23 +74,23 @@ class ElementView(object):
     Control class for filling a TableDialog with beam line element details.
     """
 
-    def __init__(self, popup, model, element_name):
+    def __init__(self, popup, segment, element_name):
         """Start to manage the popup window."""
         self.hook = HookCollection(
             set_element=None,
             close=None)
 
-        self.model = model
+        self.segment = segment
         self.popup = popup
         self._closed = False
-        model.hook.update.connect(self.update)
+        segment.hook.update.connect(self.update)
         self.popup.Bind(wx.EVT_CLOSE, self.OnClose)
         # this comes last, as it implies an update
         self.element_name = element_name
 
     def OnClose(self, event):
         """Disconnect the manager, after the popup window was closed."""
-        self.model.hook.update.disconnect(self.update)
+        self.segment.hook.update.disconnect(self.update)
         self._closed = True
         self.hook.close()
         event.Skip()
@@ -111,9 +111,9 @@ class ElementView(object):
 
     @property
     def element(self):
-        elements = self.model.session.madx.active_sequence.elements
+        elements = self.segment.session.madx.active_sequence.elements
         raw_element = elements[self.element_name]
-        return self.model.session.utool.dict_add_unit(raw_element)
+        return self.segment.session.utool.dict_add_unit(raw_element)
 
     def update(self):
 

@@ -5,7 +5,6 @@ Dialog to edit the current model.
 from __future__ import absolute_import
 
 from madgui.component.beamdialog import BeamWidget
-from madgui.component.model import Model
 from madgui.component.twissdialog import TwissWidget
 from madgui.widget.input import Widget
 from madgui.widget.choice import ChoiceWidget
@@ -62,13 +61,12 @@ class ModelWidget(Widget):
         Update UI controls after changing the sequence selection using the
         most suitable known model data for the given sequence.
         """
+        session = self.session
         sequence, _ = self.w_sequence.GetData()
         if self.mdata.get('sequence') == sequence:
             mdata = self.mdata
         else:
-            mdata = Model.get_seq_model(self.session.madx,
-                                        self.session.utool,
-                                        sequence)
+            mdata = session._get_seq_model(sequence)
         self.w_sequence._UpdateRange()
         self.w_beam.SetData(mdata.get('beam', {}))
         self.w_twiss.SetData(mdata.get('twiss', {}))
