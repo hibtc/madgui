@@ -145,52 +145,25 @@ class MainFrame(MDIParentFrame):
         self.hook.reset()
 
     @Cancellable
-    def _LoadModel(self, event=None):
+    def _LoadFile(self, event=None):
         self._ConfirmResetSession()
-        wildcards = [("cpymad model files", "*.cpymad.yml"),
+        wildcards = [("Model files", "*.cpymad.yml"),
+                     ("MAD-X files", "*.madx", "*.str", "*.seq"),
                      ("All files", "*")]
         with OpenDialog(self, "Open model", wildcards) as dlg:
             dlg.Directory = self.app.conf.get('model_path', '.')
             ShowModal(dlg)
             name = dlg.Filename
             repo = FileResource(dlg.Directory)
-
-        session = Session.load_model(self.madx_units, repo, name)
+        session = Session.load(self.madx_units, repo, name)
         self._ResetSession(session)
-
+        if not session.madx.sequences:
+            return
         with Dialog(self) as dialog:
             widget = ModelWidget(dialog, session)
-            model = widget.Query(session.model)
-
+            model = widget.Query(session.model or {})
         session.init_segment(model)
         TwissView.create(session, self, basename='env')
-
-    @Cancellable
-    def _LoadMadxFile(self, event=None):
-        """
-        Dialog component to find/open a .madx file.
-        """
-        self._ConfirmResetSession()
-        wildcards = [("MAD-X files", "*.madx", "*.str"),
-                     ("All files", "*")]
-        with OpenDialog(self, 'Load MAD-X file', wildcards) as dlg:
-            dlg.Directory = self.app.conf.get('model_path', '.')
-            ShowModal(dlg)
-            name = dlg.Filename
-            repo = FileResource(dlg.Directory)
-
-        session = Session.load_madx_file(self.madx_units, repo, name)
-        self._ResetSession(session)
-
-        # if there are any sequences, give the user a chance to view them
-        # automatically:
-        if session.madx.sequences:
-            with Dialog(self) as dialog:
-                widget = ModelWidget(dialog, session)
-                model = widget.Query({})
-
-            session.init_segment(model)
-            TwissView.create(session, self, basename='env')
 
     @Cancellable
     def _EditTwiss(self, event=None):
@@ -247,12 +220,9 @@ class MainFrame(MDIParentFrame):
                          'Open a tab with a python shell',
                          self._NewCommandTab),
                 Separator,
-                MenuItem('&Open MAD-X file\tCtrl+O',
-                         'Open a .madx file in this MAD-X session.',
-                         self._LoadMadxFile),
-                MenuItem('Load &model\tCtrl+M',
-                         'Open a model in this MAD-X session.',
-                         self._LoadModel),
+                MenuItem('&Open file\tCtrl+O',
+                         'Open a new model or MAD-X file.',
+                         self._LoadFile),
                 # TODO: save session/model
                 Separator,
                 MenuItem('&Reset session',

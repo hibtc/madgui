@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 # standard library
 from collections import namedtuple
+import os
 import subprocess
 
 # 3rd party
@@ -107,6 +108,14 @@ class Session(object):
             raise ValueError(("Incompatible model API version: {!r},\n"
                               "              Required version: {!r}")
                              .format(model_api, cls.API_VERSION))
+
+    @classmethod
+    def load(cls, utool, repo, filename):
+        ext = os.path.splitext(filename)[1]
+        if ext.lower() in ('.yml', '.yaml'):
+            return cls.load_model(utool, repo, filename)
+        else:
+            return cls.load_madx_file(utool, repo, filename)
 
     @classmethod
     def load_madx_file(cls, utool, repo, filename):
