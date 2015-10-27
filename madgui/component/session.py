@@ -111,7 +111,7 @@ class Segment(object):
         'alfx', 'alfy',
     ]
 
-    def __init__(self, session, sequence, twiss_args, range='#s/#e'):
+    def __init__(self, session, sequence, twiss_args, beam, range='#s/#e'):
         """
         :param Session session:
         :param str sequence:
@@ -139,11 +139,11 @@ class Segment(object):
         self.madx = session.madx
         self.utool = session.utool
 
-
         session.segment = self
 
         # TODO: self.hook.create(self)
 
+        self.beam = beam
         self.twiss()
 
     def get_element_info(self, element):
@@ -198,8 +198,9 @@ class Segment(object):
     @beam.setter
     def beam(self, beam):
         """Set beam from a parameter dictionary."""
-        self.session.madx.command.beam(
-            **self.session.utool.dict_strip_unit(beam))
+        beam = self.utool.dict_strip_unit(beam)
+        beam = dict(beam, sequence=self.sequence.name)
+        self.madx.command.beam(**beam)
         self.twiss()
 
     def element_by_position(self, pos):

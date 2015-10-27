@@ -22,8 +22,8 @@ from madgui.component.about import show_about_dialog
 from madgui.component.beamdialog import BeamWidget
 from madgui.component.lineview import TwissView
 from madgui.component.model import Model
+from madgui.component.modeldialog import ModelWidget
 from madgui.component.session import Session, Segment
-from madgui.component.sessiondialog import SessionWidget
 from madgui.component.twissdialog import TwissWidget
 from madgui.resource.file import FileResource
 from madgui.util import unit
@@ -142,44 +142,44 @@ class MainFrame(MDIParentFrame):
         reset = self._ConfirmResetSession()
         wildcards = [("cpymad model files", "*.cpymad.yml"),
                      ("All files", "*")]
-        dlg = OpenDialog(self, "Open model", wildcards)
-        dlg.Directory = self.app.conf.get('model_path', '.')
-        with dlg:
+        with OpenDialog(self, "Open model", wildcards) as dlg:
+            dlg.Directory = self.app.conf.get('model_path', '.')
             ShowModal(dlg)
             filename = dlg.Filename
             directory = dlg.Directory
-
-        repo = FileResource(directory)
-        mdata = repo.yaml(filename, encoding='utf-8')
-
-        if not mdata:
-            return
         if reset:
             self._ResetSession()
-        Model.init(data=mdata, repo=repo, madx=self.session.madx)
-        self.session.model = mdata
-        self.session.repo = repo
-        self._EditModelDetail()
+
+        session = self.session
+        repo = FileResource(directory)
+        mdata = Model.load(session.utool, repo, filename)
+        Model.init(madx=session.madx, utool=session.utool, repo=repo, data=mdata)
+        self._EditModelDetail(repo, mdata)
 
     @Cancellable
-    def _EditModelDetail(self, models=None):
+    def _EditModelDetail(self, repo, model=None):
         # TODO: dialog to choose among models + summary + edit subpages
         session = self.session
-        model = session.model
+        model = model or {}
         utool = session.utool
 
         with Dialog(self) as dialog:
-            widget = SessionWidget(dialog, session)
-            model = widget.Query(model)
+            widget = ModelWidget(dialog, session)
+            model.update(widget.Query(model))
+
+        session.model = model
+        session.repo = repo
 
         segment = Segment(
             session=session,
             sequence=model['sequence'],
             range=model['range'],
-            twiss_args=utool.dict_add_unit(model['twiss']),
+            twiss_args=model['twiss'],
+            beam=model['beam'],
         )
         segment.show_element_indicators = model.get('indicators', True)
         TwissView.create(session, self, basename='env')
+
 
     @Cancellable
     def _LoadMadxFile(self, event=None):
@@ -189,31 +189,25 @@ class MainFrame(MDIParentFrame):
         reset = self._ConfirmResetSession()
         wildcards = [("MAD-X files", "*.madx", "*.str"),
                      ("All files", "*")]
-        dlg = OpenDialog(self, 'Load MAD-X file', wildcards)
-        with dlg:
+        with OpenDialog(self, 'Load MAD-X file', wildcards) as dlg:
             ShowModal(dlg)
             path = dlg.Path
             directory = dlg.Directory
-
         if reset:
             self._ResetSession()
 
         session = self.session
         madx = session.madx
-        old_sequences = list(madx.sequences)
         madx.call(path, True)
-
-        # if there are any new sequences, give the user a chance to view them
-        # automatically:
 
         # Don't do anything if a sequence is already shown (but update?!)
         if session.model is not None:
             return
 
-        if set(madx.sequences) <= set(old_sequences):
-            return
-
-        self._EditModelDetail()
+        # if there are any sequences, give the user a chance to view them
+        # automatically:
+        if madx.sequences:
+            self._EditModelDetail()
 
     @Cancellable
     def _EditTwiss(self, event=None):
