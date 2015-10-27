@@ -265,7 +265,6 @@ class ElementPickerWidget(Widget):
         ctrl = ComboCtrl(window, style=wx.CB_READONLY)
         self.popup = ElementListPopup()
         ctrl.SetPopupControl(self.popup)
-        ctrl.Bind(wx.EVT_COMBOBOX_CLOSEUP, self.OnChange)
         return ctrl
 
     def SetSelection(self, value):
@@ -282,11 +281,6 @@ class ElementPickerWidget(Widget):
     def GetData(self):
         """Selected index."""
         return self.popup.value
-
-    def OnChange(self, event):
-        ev = wx.PyCommandEvent(wx.EVT_CHOICE.typeId, self.Control.GetId())
-        ev.SetInt(self.GetData())
-        wx.PostEvent(self.Control.GetEventHandler(), ev)
 
     def OnGetFocus(self, event):
         self.ctrl.SelectAll()
@@ -335,6 +329,10 @@ class ElementListPopup(ComboPopup):
             self.value = self.lsw.GetData()[0]
         except IndexError:
             return
+        comboctrl = self.GetCombo()
+        ev = wx.PyCommandEvent(wx.EVT_CHOICE.typeId, comboctrl.GetId())
+        ev.SetInt(self.value)
+        wx.PostEvent(comboctrl.GetEventHandler(), ev)
 
     def GetStringValue(self):
         try:
