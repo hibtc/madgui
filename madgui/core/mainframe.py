@@ -142,36 +142,33 @@ class MainFrame(MDIParentFrame):
         reset = self._ConfirmResetSession()
         wildcards = [("cpymad model files", "*.cpymad.yml"),
                      ("All files", "*")]
-        dlg = OpenDialog(self, "Open model", wildcards)
-        dlg.Directory = self.app.conf.get('model_path', '.')
-        with dlg:
+        with OpenDialog(self, "Open model", wildcards) as dlg:
+            dlg.Directory = self.app.conf.get('model_path', '.')
             ShowModal(dlg)
             filename = dlg.Filename
             directory = dlg.Directory
+        if reset:
+            self._ResetSession()
 
         session = self.session
         repo = FileResource(directory)
         mdata = Model.load(session.utool, repo, filename)
-
-        if not mdata:
-            return
-        if reset:
-            self._ResetSession()
         Model.init(madx=session.madx, utool=session.utool, repo=repo, data=mdata)
-        session.model = mdata
-        session.repo = repo
-        self._EditModelDetail()
+        self._EditModelDetail(repo, mdata)
 
     @Cancellable
-    def _EditModelDetail(self, models=None):
+    def _EditModelDetail(self, repo, model=None):
         # TODO: dialog to choose among models + summary + edit subpages
         session = self.session
-        model = session.model or {}
+        model = model or {}
         utool = session.utool
 
         with Dialog(self) as dialog:
             widget = ModelWidget(dialog, session)
             model.update(widget.Query(model))
+
+        session.model = model
+        session.repo = repo
 
         segment = Segment(
             session=session,
@@ -182,6 +179,7 @@ class MainFrame(MDIParentFrame):
         segment.show_element_indicators = model.get('indicators', True)
         TwissView.create(session, self, basename='env')
 
+
     @Cancellable
     def _LoadMadxFile(self, event=None):
         """
@@ -190,31 +188,25 @@ class MainFrame(MDIParentFrame):
         reset = self._ConfirmResetSession()
         wildcards = [("MAD-X files", "*.madx", "*.str"),
                      ("All files", "*")]
-        dlg = OpenDialog(self, 'Load MAD-X file', wildcards)
-        with dlg:
+        with OpenDialog(self, 'Load MAD-X file', wildcards) as dlg:
             ShowModal(dlg)
             path = dlg.Path
             directory = dlg.Directory
-
         if reset:
             self._ResetSession()
 
         session = self.session
         madx = session.madx
-        old_sequences = list(madx.sequences)
         madx.call(path, True)
-
-        # if there are any new sequences, give the user a chance to view them
-        # automatically:
 
         # Don't do anything if a sequence is already shown (but update?!)
         if session.model is not None:
             return
 
-        if set(madx.sequences) <= set(old_sequences):
-            return
-
-        self._EditModelDetail()
+        # if there are any sequences, give the user a chance to view them
+        # automatically:
+        if madx.sequences:
+            self._EditModelDetail()
 
     @Cancellable
     def _EditTwiss(self, event=None):
