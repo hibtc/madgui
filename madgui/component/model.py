@@ -10,13 +10,6 @@ __all__ = [
 ]
 
 
-def _load(madx, repo, *files):
-    """Load MAD-X files in interpreter."""
-    for file in files:
-        with repo.get(file).filename() as fpath:
-            madx.call(fpath)
-
-
 class Model(object):
 
     """
@@ -48,10 +41,9 @@ class Model(object):
     def init(cls, madx, utool, repo, data):
         """Load model in MAD-X interpreter."""
         cls.check_compatibility(data)
-        _load(madx, repo, *data['init-files'])
-        beam = utool.dict_strip_unit(data['beam'])
-        beam = dict(beam, sequence=data['sequence'])
-        madx.command.beam(**beam)
+        for file in data['init-files']:
+            with repo.get(file).filename() as fpath:
+                madx.call(fpath)
 
     @classmethod
     def load(cls, utool, repo, filename):

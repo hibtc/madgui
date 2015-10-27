@@ -175,6 +175,7 @@ class MainFrame(MDIParentFrame):
             sequence=model['sequence'],
             range=model['range'],
             twiss_args=model['twiss'],
+            beam=model['beam'],
         )
         segment.show_element_indicators = model.get('indicators', True)
         TwissView.create(session, self, basename='env')
