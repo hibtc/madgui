@@ -10,7 +10,7 @@ from __future__ import absolute_import
 
 # GUI components
 from madgui.core import wx
-from madgui.widget.input import Widget, Dialog, Cancellable
+from madgui.widget.input import Widget
 from madgui.widget import listview
 from madgui.widget import slider
 
