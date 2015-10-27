@@ -58,9 +58,17 @@ class Model(object):
         """Load model data from file."""
         data = repo.yaml(filename, encoding='utf-8')
         cls.check_compatibility(data)
-        data['beam'] = utool.dict_add_unit(data.get('beam', {}))
-        data['twiss'] = utool.dict_add_unit(data.get('twiss', {}))
+        cls._load_params(data, utool, repo, 'beam')
+        cls._load_params(data, utool, repo, 'twiss')
         return data
+
+    @classmethod
+    def _load_params(cls, data, utool, repo, name):
+        """Load parameter dict from file if necessary and add units."""
+        vals = data.get(name, {})
+        if isinstance(data[name], basestring):
+            vals = repo.yaml(vals, encoding='utf-8')
+        data[name] = utool.dict_add_unit(vals)
 
     @classmethod
     def get_seq_model(cls, madx, utool, sequence_name):
