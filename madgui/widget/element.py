@@ -14,7 +14,7 @@ from madgui.widget.input import Widget
 from madgui.widget import listview
 from madgui.widget import slider
 
-from madgui.util.unit import strip_unit, units, format_quantity
+from madgui.util.unit import format_quantity
 
 from wx.combo import ComboCtrl, ComboPopup
 
@@ -22,70 +22,9 @@ from wx.combo import ComboCtrl, ComboPopup
 # exported symbols
 __all__ = [
     'ElementListWidget',
-    'SelectElementWidget',
     'ElementPickerWidget',
     'RangeWidget',
 ]
-
-
-def _compile_element_searchtoken(search):
-
-    """
-    Prepare a match function for a given textual search string.
-
-    Supports matching by name/type/index/position.
-    """
-
-    matchers = []               # match functions for a single property each
-    search = search.lower()     # everything is lower-case in MAD-X
-
-    # search string is an integer, so we can match the index
-    try:
-        num_i = int(search)
-    except ValueError:
-        pass
-    else:
-        def match_index(i, el):
-            return i == num_i
-        matchers.append(match_index)
-
-    # search string is a float, so we can match the position
-    try:
-        num_f = float(search)
-    except ValueError:
-        pass
-    else:
-        meter = units.m
-        def match_at(i, el):
-            at = strip_unit(el['at'], meter)
-            return (str(at).startswith(search)
-                    or num_f >= at and num_f <= strip_unit(el['l'], meter))
-        matchers.append(match_at)
-
-    def match_type(i, el):
-        return search in el['type']
-
-    def match_name(i, el):
-        return search in el['name']
-
-    matchers.append(match_type)
-    matchers.append(match_name)
-
-    def match(i, el):
-        return any(match(i, el) for match in matchers)
-
-    return match
-
-
-def filter_elements(elements, search, keep=()):
-    """
-    Filter the list of elements using the given search string.
-
-    Searches by name/type/index/position.
-    """
-    match = _compile_element_searchtoken(search)
-    return [(i, el) for i, el in elements
-            if i in keep or match(i, el)]
 
 
 def GetItemIndexById(items, el_id):
@@ -128,7 +67,7 @@ class ElementListWidget(Widget):
     ]
 
     def CreateControl(self, window):
-        """Create element list and search controls."""
+        """Create element list."""
         listctrl = listview.ListCtrl(window,
                                      self.column_info,
                                      style=self.Style)
@@ -154,65 +93,6 @@ class ElementListWidget(Widget):
     def GetData(self):
         """Retrieve the index of the selected element."""
         return [i for i, el in self._listctrl.selected_items]
-
-
-class SelectElementWidget(Widget):
-
-    """Element selection dialog with a list control and a search box."""
-
-    Title = "Choose element"
-
-    def CreateControls(self, window):
-        """Create element list and search controls."""
-        # create list control
-        listctrl = self.CreateListCtrl(window)
-        # create search control
-        self.ctrl_label = label = wx.StaticText(window, label='Select element:')
-        search_label = wx.StaticText(window, label="Search:")
-        search_edit = wx.TextCtrl(window, style=wx.TE_RICH2|wx.TE_PROCESS_ENTER)
-        search_edit.SetFocus()
-        # setup sizers
-        search = wx.BoxSizer(wx.HORIZONTAL)
-        search.Add(label, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
-        search.AddStretchSpacer(1)
-        search.Add(search_label, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
-        search.Add(search_edit, 2, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(search, flag=wx.ALL|wx.EXPAND, border=5)
-        sizer.Add(listctrl, 1, flag=wx.ALL|wx.EXPAND, border=5)
-        # setup event handlers
-        search_edit.Bind(wx.EVT_TEXT, self.OnSearchChange)
-        # set member variables
-        self._search = search_edit
-        return sizer
-
-    def CreateListCtrl(self, parent):
-        widget = ElementListWidget(parent, manage=False)
-        self._listwidget = widget
-        self._listctrl = widget.Control
-        return self._listctrl
-
-    def OnSearchChange(self, event):
-        """Update element list."""
-        selected = self.GetData()               # retrieve selected index
-        self.SetData(self.elements, selected)   # filter by search string
-
-    def SetLabel(self, label):
-        self.ctrl_label.SetLabel(label)
-
-    def SetData(self, elements, selected):
-        """Update element list and selection."""
-        self.elements = elements
-        searchtext = self._search.GetValue()
-        filtered = filter_elements(elements, searchtext)
-        self._listwidget.SetData(filtered, selected)
-
-    def GetData(self):
-        """Retrieve the index of the selected element."""
-        return self._listwidget.GetData()
-
-    def Validate(self):
-        return self._listwidget.Validate()
 
 
 class RangeWidget(slider.DualSlider):
@@ -297,24 +177,20 @@ class ElementListPopup(ComboPopup):
 
     def Create(self, parent):
         """Create the popup child control. Return true for success."""
-        self.lsw = SelectElementWidget(parent, manage=False)
-        self.lcw = self.lsw._listwidget
-        self.lc = self.lsw._listctrl
+        self.lsw = ElementListWidget(parent, manage=False)
+        self.lc = self.lsw.Control
         self.lc.Bind(wx.EVT_MOTION, self.OnMotion)
         self.lc.Bind(wx.EVT_LEFT_DOWN, self.ActivateItem)
         self.lc.Bind(wx.EVT_CHAR, self.OnChar)
         self.lc.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.ActivateItem)
-        self.lsw._search.Bind(wx.EVT_TEXT_ENTER, self.ActivateItem)
         return True
 
     def GetControl(self):
         """Return the widget that is to be used for the popup."""
-        return self.lsw.Control
+        return self.lc
 
     def OnPopup(self):
         self.lc._doResize()
-        self.lsw._search.Clear()
-        self.lsw._search.SetFocus()
         self._UpdateSelection()
 
     def _UpdateSelection(self):
@@ -340,14 +216,11 @@ class ElementListPopup(ComboPopup):
         except ValueError:
             return ""
         item = self.elements[index]
-        return self.lcw.column_info[1].gettext(item)
+        return self.lsw.column_info[1].gettext(item)
 
     def GetAdjustedSize(self, minWidth, prefHeight, maxHeight):
         lc_width = self.lc.GetTotalWidth()
-        self.lsw.Control.Layout()
-        diff_w = self.lsw.Control.GetSize()[0] - self.lc.GetSize()[0]
-        tot_width = diff_w + lc_width
-        return (max(minWidth, tot_width),
+        return (max(minWidth, lc_width),
                 prefHeight if prefHeight > 0 else maxHeight)
 
     # Own methods
