@@ -6,6 +6,21 @@ tagging releases anyway to provide a few hints and orientation on what's
 going on.
 
 
+Madgui 0.8.0
+------------
+Date: 27.10.2015
+
+- reworked models, they now define a single configuration
+- added ability to save models
+- reworked dialog to edit session details
+- a few changes to the internal Widget API
+- fixed awkward listcontrol sizing algorithm (mostly)
+- added wizard dialog for orbit correction
+- some refactoring
+- fixed a few bugs
+- added a few new bugs ;)
+
+
 Madgui 0.7.1
 ------------
 Date: 18.08.2015
