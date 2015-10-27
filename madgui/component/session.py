@@ -16,6 +16,7 @@ from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
 import numpy as np
+import yaml
 
 # internal
 from madgui.core.plugin import HookCollection
@@ -38,7 +39,10 @@ class Session(object):
     :ivar utool: Unit conversion tool
     :ivar libmadx: Low level cpymad API
     :ivar madx: CPyMAD interpretor instance
+
     :ivar data: data loaded from model
+    :ivar repo: resource provider
+
     :ivar segment: Currently active segment
 
     :ivar rpc_client: Low level MAD-X RPC client
@@ -46,34 +50,28 @@ class Session(object):
     """
 
     # TODO: more logging
-    # TODO: automatically switch directories when CALLing files?
     # TODO: saveable state
 
     def __init__(self, utool, repo=None):
         """Initialize with (Madx, Model)."""
         self.utool = utool
-        self.libmadx = None
-        self.madx = None
-        self.data = None
+        self.data = {}
         self.repo = repo
         self.segment = None
-        self.rpc_client = None
-        self.remote_process = None
-
-    def start(self):
-        self.stop()
+        self.init_files = []
         # stdin=None leads to an error on windows when STDIN is broken.
-        # therefore, we need use stdin=os.devnull:
+        # therefore, we need set stdin=os.devnull by passing stdin=False:
         self.madx = madx = Madx(
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             stdin=False,
             bufsize=0)
+        self.libmadx = madx._libmadx
         self.rpc_client = madx._service
         self.remote_process = madx._process
-        self.libmadx = madx._libmadx
 
-    def stop(self):
+    def close(self):
+        """Close current session. Stop MAD-X interpreter."""
         if self.rpc_client:
             self.rpc_client.close()
         self.rpc_client = None
@@ -84,9 +82,10 @@ class Session(object):
             self.segment.destroy()
 
     def call(self, name):
+        """Load a MAD-X file into the current session."""
         with self.repo.filename(name) as f:
             self.madx.call(f, True)
-
+        self.init_files.append(name)
 
     #----------------------------------------
     # Serialization
@@ -109,8 +108,29 @@ class Session(object):
                               "              Required version: {!r}")
                              .format(model_api, cls.API_VERSION))
 
+    def save(self, filename):
+        ext = os.path.splitext(filename)[1]
+        data = self._as_model()
+        text = yaml.safe_dump(data, default_flow_style=False)
+        with open(filename, 'wt') as f:
+            f.write(text)
+
+    def _as_model(self):
+        data = self.extra.copy()
+        if self.segment:
+            data.update(self.segment.data)
+        data.update({
+            'api_version': self.API_VERSION,
+            'init-files': self.init_files,
+        })
+        self._serialize_params(data, 'twiss')
+        self._serialize_params(data, 'beam')
+        data['range'] = list(data['range'])
+        return data
+
     @classmethod
     def load(cls, utool, repo, filename):
+        """Load model or plain MAD-X file."""
         ext = os.path.splitext(filename)[1]
         if ext.lower() in ('.yml', '.yaml'):
             return cls.load_model(utool, repo, filename)
@@ -119,8 +139,8 @@ class Session(object):
 
     @classmethod
     def load_madx_file(cls, utool, repo, filename):
+        """Load a plain MAD-X file."""
         session = cls(utool, repo)
-        session.start()
         session.call(filename)
         return session
 
@@ -132,22 +152,21 @@ class Session(object):
         cls._load_params(data, utool, repo, 'beam')
         cls._load_params(data, utool, repo, 'twiss')
         session = cls(utool, repo)
-        session.start()
         session.data = data
-        for file in data['init-files']:
-            with repo.get(file).filename() as fpath:
-                session.madx.call(fpath)
+        for f in data.get('init-files', []):
+            session.call(f)
         return session
 
     def init_segment(self, data):
+        """Create a segment."""
         self.segment = Segment(
             session=self,
             sequence=data['sequence'],
             range=data['range'],
-            twiss_args=data['twiss'],
             beam=data['beam'],
+            twiss_args=data['twiss'],
+            show_element_indicators=data.get('indicators', True),
         )
-        self.segment.show_element_indicators = data.get('indicators', True)
 
     @classmethod
     def _load_params(cls, data, utool, repo, name):
@@ -156,6 +175,12 @@ class Session(object):
         if isinstance(data[name], basestring):
             vals = repo.yaml(vals, encoding='utf-8')
         data[name] = utool.dict_add_unit(vals)
+
+    def _serialize_params(self, data, name):
+        vals = data.get(name, {})
+        vals = self.utool.dict_strip_unit(vals)
+        data[name] = vals
+
 
     def _get_seq_model(self, sequence_name):
         """
@@ -217,9 +242,12 @@ class Session(object):
         # rather than just the first row.
         mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
         twiss = {
-            key: data[0]
+            key: float(data[0])
             for key, data in table.items()
-            if data[0] != 0 or key in mandatory_fields
+            if issubclass(data.dtype.type, np.number) and (
+                    key in mandatory_fields or
+                    data[0] != 0
+            )
         }
         return (first, last), twiss
 
@@ -252,7 +280,8 @@ class Segment(object):
         'alfx', 'alfy',
     ]
 
-    def __init__(self, session, sequence, twiss_args, beam, range='#s/#e'):
+    def __init__(self, session, sequence, range, beam, twiss_args,
+                 show_element_indicators):
         """
         :param Session session:
         :param str sequence:
@@ -266,12 +295,15 @@ class Segment(object):
 
         self.session = session
         self.sequence = session.madx.sequences[sequence]
-        self._twiss_args = twiss_args
-        self._show_element_indicators = False
 
         self.start, self.stop = self.parse_range(range)
         self.range = (normalize_range_name(self.start.name),
                       normalize_range_name(self.stop.name))
+
+        self._beam = beam
+        self._twiss_args = twiss_args
+        self._show_element_indicators = show_element_indicators
+        self._use_beam(beam)
 
         raw_elements = self.sequence.elements
         # TODO: provide uncached version of elements with units:
@@ -280,7 +312,6 @@ class Segment(object):
 
         # TODO: self.hook.create(self)
 
-        self.beam = beam
         self.twiss()
 
     @property
@@ -290,6 +321,15 @@ class Segment(object):
     @property
     def utool(self):
         return self.session.utool
+
+    @property
+    def data(self):
+        return {
+            'sequence': self.sequence.name,
+            'range': self.range,
+            'beam': self.beam,
+            'twiss': self.twiss_args,
+        }
 
     def get_element_info(self, element):
         """Get :class:`ElementInfo` from element name or index."""
@@ -338,15 +378,19 @@ class Segment(object):
     @property
     def beam(self):
         """Get the beam parameter dictionary."""
-        return self.session.utool.dict_add_unit(self.sequence.beam)
+        return self._beam
 
     @beam.setter
     def beam(self, beam):
         """Set beam from a parameter dictionary."""
+        self._beam = beam
+        self._use_beam(beam)
+        self.twiss()
+
+    def _use_beam(self, beam):
         beam = self.utool.dict_strip_unit(beam)
         beam = dict(beam, sequence=self.sequence.name)
         self.madx.command.beam(**beam)
-        self.twiss()
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""

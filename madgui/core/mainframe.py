@@ -7,6 +7,7 @@ Notebook window component for MadGUI (main window).
 from __future__ import absolute_import
 
 # standard library
+import os
 import sys
 import logging
 import threading
@@ -29,7 +30,7 @@ from madgui.util import unit
 from madgui.widget.figure import FigurePanel
 from madgui.widget import menu
 from madgui.widget.input import ShowModal, Cancellable, Dialog, CancelAction
-from madgui.widget.filedialog import OpenDialog
+from madgui.widget.filedialog import OpenDialog, SaveDialog
 
 # exported symbols
 __all__ = [
@@ -131,10 +132,9 @@ class MainFrame(MDIParentFrame):
         # start new session if necessary
         if session is None:
             session = Session(self.madx_units)
-            session.start()
         # remove existing associations
         if self.session:
-            self.session.stop()
+            self.session.close()
         CloseMDIChildren(self)
         # add new associations
         self._NewLogTab()
@@ -161,9 +161,28 @@ class MainFrame(MDIParentFrame):
             return
         with Dialog(self) as dialog:
             widget = ModelWidget(dialog, session)
-            data = widget.Query(session.data or {})
+            data = widget.Query(session.data)
         session.init_segment(data)
         TwissView.create(session, self, basename='env')
+
+    @Cancellable
+    def _SaveModel(self, event=None):
+        data = self.session.data
+        pathes = data.get('init-files', [])
+        if pathes:
+            folder = os.path.dirname(pathes[0])
+        else:
+            folder = self.app.conf.get('model_path', '.')
+        wildcards = [("cpymad model files", "*.cpymad.yml"),
+                     ("All files", "*")]
+        with SaveDialog(self, 'Save model', wildcards) as dlg:
+            dlg.Directory = folder
+            ShowModal(dlg)
+            path = dlg.Path
+        self.session.save(path)
+
+    def _CanSaveModel(self, event):
+        event.Enable(bool(self.session.segment))
 
     @Cancellable
     def _EditTwiss(self, event=None):
@@ -223,7 +242,10 @@ class MainFrame(MDIParentFrame):
                 MenuItem('&Open model\tCtrl+O',
                          'Load model or open new model from a MAD-X file.',
                          self._LoadFile),
-                # TODO: save session/model
+                MenuItem('&Save model as..\tCtrl+S',
+                         'Save the current model (beam + twiss) to a file',
+                         self._SaveModel,
+                         self._CanSaveModel),
                 Separator,
                 MenuItem('&Reset session',
                          'Clear the MAD-X session state.',
@@ -318,7 +340,7 @@ class MainFrame(MDIParentFrame):
         # We want to terminate the remote session, otherwise _read_stream
         # may hang:
         try:
-            self.session.stop()
+            self.session.close()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
