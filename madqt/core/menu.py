@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from PyQt4 import QtCore, QtGui
+from six import string_types, integer_types
 
 
 __all__ = [
@@ -20,11 +21,12 @@ __all__ = [
 
 class Item(object):
 
-    def __init__(self, label, shortcut, description, action):
+    def __init__(self, label, shortcut, description, action, icon=None):
         self.label = label
         self.shortcut = shortcut
         self.description = description
         self.action = action
+        self.icon = icon
 
     def append_to(self, menu, parent=None):
         if parent is None:
@@ -36,6 +38,14 @@ class Item(object):
             action.setStatusTip(self.description)
         if self.action is not None:
             action.triggered.connect(self.action)
+        if self.icon is not None:
+            if isinstance(self.icon, integer_types):
+                icon = parent.style().standardIcon(self.icon)
+            elif isinstance(self.icon, string_types):
+                icon = QtGui.QIcon.fromTheme(self.icon)
+            else:
+                icon = self.icon
+            action.setIcon(icon)
         menu.addAction(action)
 
 
