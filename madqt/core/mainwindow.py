@@ -56,7 +56,7 @@ class MainWindow(QtGui.QMainWindow):
                      self.viewShell),
             ]),
             Menu('&Help', [
-                Item('&About', None,
+                Item('About &MadQt', None,
                      'Show about dialog.',
                      self.helpAbout),
             ]),
@@ -82,4 +82,6 @@ class MainWindow(QtGui.QMainWindow):
         pass
 
     def helpAbout(self):
-        pass
+        """Show about dialog."""
+        import madqt.core.about as about
+        about.show_about_dialog(self)
