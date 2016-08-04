@@ -8,6 +8,8 @@ from __future__ import unicode_literals
 
 from PyQt4 import QtCore, QtGui
 
+import madqt.core.menu as menu
+
 
 __all__ = [
     'MainWindow',
@@ -16,4 +18,65 @@ __all__ = [
 
 class MainWindow(QtGui.QMainWindow):
 
-    pass
+    #----------------------------------------
+    # Basic setup
+    #----------------------------------------
+
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+        self.initUI()
+
+    def initUI(self):
+        self.createMenu()
+        self.createControls()
+        self.createStatusBar()
+
+    def createMenu(self):
+        Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
+        menubar = self.menuBar()
+        menu.extend(self, menubar, [
+            Menu('&File', [
+                Item('&Open', 'Ctrl+O',
+                     'Load model or open new model from a MAD-X file.',
+                     self.fileOpen),
+                Item('&Save', 'Ctrl+S',
+                     'Save the current model (beam + twiss) to a file',
+                     self.fileSave),
+                Separator,
+                Item('&Quit', 'Ctrl+Q',
+                     'Close window',
+                     self.close),
+            ]),
+            Menu('&View', [
+                Item('&Python shell', 'Ctrl+P',
+                     'Show a python shell',
+                     self.viewShell),
+            ]),
+            Menu('&Help', [
+                Item('&About', None,
+                     'Show about dialog.',
+                     self.helpAbout),
+            ]),
+        ])
+
+    def createControls(self):
+        pass
+
+    def createStatusBar(self):
+        self.statusBar()
+
+    #----------------------------------------
+    # Menu actions
+    #----------------------------------------
+
+    def fileOpen(self):
+        pass
+
+    def fileSave(self):
+        pass
+
+    def viewShell(self):
+        pass
+
+    def helpAbout(self):
+        pass
