@@ -40,6 +40,8 @@ def main():
         classifiers=meta['__classifiers__'],
         packages=[
             'madqt',
+            'madqt.core',
+            'madqt.resource',
         ],
         install_requires=[
             'cpymad>=0.14.1',
