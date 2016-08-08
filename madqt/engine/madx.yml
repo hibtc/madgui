@@ -1,0 +1,37 @@
+units:
+  l:        m
+  lrad:     m
+  at:       m
+  s:        m
+  x:        m
+  y:        m
+  betx:     m
+  bety:     m
+  angle:    rad
+  k1:       m^-2
+  k1s:      m^-2
+  k1l:      m^-2
+  ex:       m
+  ey:       m
+  tilt:     rad
+  hgap:     m
+  h:        rad/m
+  fint:     1
+  fintx:    1
+  e1:       rad
+  e2:       rad
+  ks:       1/m
+
+  energy:   MeV
+  charge:   e
+  mass:     u
+
+  # TODO: use general formula m^-N ?
+  knl:      [rad, m^-1, m^-2, m^-3, m^-4]
+  ksl:      [rad, m^-1, m^-2, m^-3, m^-4]
+
+  # used in online database:
+  kl:       m^-1
+
+  # TODO: THIS IS INCORRECT
+  kick:     rad

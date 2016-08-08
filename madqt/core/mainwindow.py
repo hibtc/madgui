@@ -6,9 +6,17 @@ Main window component for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import logging
+import threading
+
 from PyQt4 import QtCore, QtGui
 
+from six import text_type
+
+import madqt.util.filedialog as filedialog
+import madqt.util.font as font
 import madqt.core.menu as menu
+import madqt.engine.madx as madx
 
 
 __all__ = [
@@ -24,6 +32,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        self._universe = None
+        self.folder = ''
         self.initUI()
 
     def initUI(self):
@@ -41,19 +51,22 @@ class MainWindow(QtGui.QMainWindow):
                      self.fileOpen,
                      QtGui.QStyle.SP_DialogOpenButton),
                 Item('&Save', 'Ctrl+S',
-                     'Save the current model (beam + twiss) to a file',
+                     'Save the current model (beam + twiss) to a file.',
                      self.fileSave,
                      QtGui.QStyle.SP_DialogSaveButton),
                 Separator,
                 Item('&Quit', 'Ctrl+Q',
-                     'Close window',
+                     'Close window.',
                      self.close,
                      QtGui.QStyle.SP_DialogCloseButton),
             ]),
             Menu('&View', [
                 Item('&Python shell', 'Ctrl+P',
-                     'Show a python shell',
+                     'Show a python shell.',
                      self.viewShell),
+                Item('&Log window', 'Ctrl+L',
+                     'Show a log window.',
+                     self.viewLog),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
@@ -79,12 +92,26 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------
 
     def fileOpen(self):
-        pass
+        filters = filedialog.make_filter([
+            ("Model files", "*.cpymad.yml"),
+            ("MAD-X files", "*.madx", "*.str", "*.seq"),
+            ("All files", "*"),
+        ])
+        filename = QtGui.QFileDialog.getOpenFileName(
+            self, 'Open file', self.folder, filters)
+        if not filename:
+            return
+        filename = text_type(filename)
+        universe = self.universe = madx.Universe()
+        universe.load(filename)
 
     def fileSave(self):
         pass
 
     def viewShell(self):
+        pass
+
+    def viewLog(self):
         pass
 
     def helpAboutMadQt(self):
@@ -107,3 +134,77 @@ class MainWindow(QtGui.QMainWindow):
         info = about.VersionInfo(module)
         dialog = about.AboutDialog(info, self)
         dialog.show()
+
+    #----------------------------------------
+    # Update state
+    #----------------------------------------
+
+    @property
+    def universe(self):
+        return self._universe
+
+    @universe.setter
+    def universe(self, universe):
+        self._universe = universe
+        self._createLogTab()
+        threading.Thread(target=self._read_stream,
+                         args=(universe.remote_process.stdout,)).start()
+
+    def _createLogTab(self):
+        text = QtGui.QPlainTextEdit()
+        text.setFont(font.monospace())
+        text.setReadOnly(True)
+        dock = QtGui.QDockWidget()
+        dock.setWidget(text)
+        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
+        # TODO: MAD-X log should be separate from basic logging
+        self._basicConfig(text, logging.INFO,
+                          '%(asctime)s %(levelname)s %(name)s: %(message)s',
+                          '%H:%M:%S')
+
+    def _basicConfig(self, widget, level, fmt, datefmt=None):
+        """Configure logging."""
+        stream = TextCtrlStream(widget)
+        root = logging.RootLogger(level)
+        manager = logging.Manager(root)
+        formatter = logging.Formatter(fmt, datefmt)
+        handler = logging.StreamHandler(stream)
+        handler.setFormatter(formatter)
+        root.addHandler(handler)
+        # store member variables:
+        self._log_widget = widget
+        self._log_stream = stream
+        self._log_manager = manager
+
+    def _read_stream(self, stream):
+        # The file iterator seems to be buffered:
+        for line in iter(stream.readline, b''):
+            try:
+                self._log_stream.write(line)
+            except:
+                break
+
+    def closeEvent(self, event):
+        # We want to terminate the remote session, otherwise _read_stream
+        # may hang:
+        try:
+            self.universe.destroy()
+        except IOError:
+            # The connection may already be terminated in case MAD-X crashed.
+            pass
+        event.accept()
+
+
+class TextCtrlStream(object):
+
+    """
+    Write to a text control.
+    """
+
+    def __init__(self, ctrl):
+        """Set text control."""
+        self._ctrl = ctrl
+
+    def write(self, text):
+        """Append text."""
+        self._ctrl.appendPlainText(text.rstrip())

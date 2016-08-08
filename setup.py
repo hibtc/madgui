@@ -41,7 +41,10 @@ def main():
         packages=[
             'madqt',
             'madqt.core',
+            'madqt.data',
+            'madqt.engine',
             'madqt.resource',
+            'madqt.util',
         ],
         install_requires=[
             'cpymad>=0.14.1',
@@ -52,6 +55,7 @@ def main():
             'PyYAML',
             'Pint==0.6',
             'docutils',
+            'six>=1.10.0',
             # 'PyQt4',
         ],
         entry_points="""
