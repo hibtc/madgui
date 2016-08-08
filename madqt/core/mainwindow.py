@@ -56,9 +56,15 @@ class MainWindow(QtGui.QMainWindow):
                      self.viewShell),
             ]),
             Menu('&Help', [
-                Item('About &MadQt', None,
-                     'Show about dialog.',
-                     self.helpAbout),
+                Item('About Mad&Qt', None,
+                     'About the MadQt GUI application.',
+                     self.helpAboutMadQt),
+                Item('About &CPyMAD', None,
+                     'About the cpymad python binding to MAD-X.',
+                     self.helpAboutCPyMAD),
+                Item('About MAD-&X', None,
+                     'About the included MAD-X backend.',
+                     self.helpAboutMadX),
             ]),
         ])
 
@@ -81,7 +87,23 @@ class MainWindow(QtGui.QMainWindow):
     def viewShell(self):
         pass
 
-    def helpAbout(self):
+    def helpAboutMadQt(self):
         """Show about dialog."""
+        import madqt
+        self._showAboutDialog(madqt)
+
+    def helpAboutCPyMAD(self):
+        """Show about dialog."""
+        import cpymad
+        self._showAboutDialog(cpymad)
+
+    def helpAboutMadX(self):
+        """Show about dialog."""
+        import cpymad.madx
+        self._showAboutDialog(cpymad.madx.metadata)
+
+    def _showAboutDialog(self, module):
         import madqt.core.about as about
-        about.show_about_dialog(self)
+        info = about.VersionInfo(module)
+        dialog = about.AboutDialog(info, self)
+        dialog.show()

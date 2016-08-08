@@ -11,25 +11,10 @@ from collections import namedtuple
 from PyQt4 import QtCore, QtGui
 import docutils.core
 
-# We want to show metadata of these modules:
-import madqt
-import cpymad
-from cpymad.madx import metadata as madx
-
 
 __all__ = [
     'show_about_dialog',
 ]
-
-
-def show_about_dialog(*args, **kwargs):
-    """Show the about dialog."""
-    dialog = AboutDialog([
-        VersionInfo(madqt),
-        VersionInfo(cpymad),
-        VersionInfo(madx),
-    ], *args, **kwargs)
-    dialog.show()
 
 
 class VersionInfo(object):
@@ -77,43 +62,27 @@ def HLine():
     return line
 
 
-class AboutWidget(QtGui.QTextBrowser):
-
+def AboutWidget(version_info, *args, **kwargs):
+    """A panel showing information about one software component."""
     # QTextBrowser is good enough for our purposes. For a comparison of
     # QtGui.QTextBrowser and QWebKit.QWebView, see:
     # See http://www.mimec.org/node/383
-
-    """A panel showing information about one software component."""
-
-    def __init__(self, version_info, *args, **kwargs):
-        super(AboutWidget, self).__init__(*args, **kwargs)
-        self.setOpenExternalLinks(True)
-        self.setHtml(version_info.to_html())
-        self.setMinimumSize(600, 400)
+    widget = QtGui.QTextBrowser(*args, **kwargs)
+    widget.setOpenExternalLinks(True)
+    widget.setHtml(version_info.to_html())
+    widget.setMinimumSize(600, 400)
+    return widget
 
 
-class AboutDialog(QtGui.QDialog):
-
-    """Tabbed AboutDialog for multiple software components."""
-
-    def __init__(self, all_version_info=(), *args, **kwargs):
-        super(AboutDialog, self).__init__(*args, **kwargs)
-        self.createControls()
-        for version_info in all_version_info:
-            self.addVersionInfo(version_info)
-
-    def createControls(self):
-        """Create the empty controls."""
-        tabs = self.tabs = QtGui.QTabWidget(self)
-        line = HLine()
-        button = QtGui.QPushButton("&OK")
-        button.clicked.connect(self.close)
-        layout = QtGui.QVBoxLayout()
-        layout.addWidget(tabs)
-        layout.addWidget(line)
-        layout.addWidget(button)
-        self.setLayout(layout)
-
-    def addVersionInfo(self, info):
-        """Show a :class:`VersionInfo` in a new tab."""
-        self.tabs.addTab(AboutWidget(info), info.name)
+def AboutDialog(version_info, *args, **kwargs):
+    dialog = QtGui.QDialog(*args, **kwargs)
+    main = AboutWidget(version_info)
+    line = HLine()
+    button = QtGui.QPushButton("&OK")
+    button.clicked.connect(dialog.close)
+    layout = QtGui.QVBoxLayout()
+    layout.addWidget(main)
+    layout.addWidget(line)
+    layout.addWidget(button)
+    dialog.setLayout(layout)
+    return dialog
