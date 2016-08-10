@@ -30,7 +30,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self._universe = None
+        self.universe = None
         self.folder = ''
         self.initUI()
 
@@ -99,8 +99,8 @@ class MainWindow(QtGui.QMainWindow):
             self, 'Open file', self.folder, filters)
         if not filename:
             return
-        universe = self.universe = madx.Universe()
-        universe.load(filename)
+        self.setUniverse(madx.Universe())
+        self.universe.load(filename)
 
     def fileSave(self):
         pass
@@ -136,16 +136,26 @@ class MainWindow(QtGui.QMainWindow):
     # Update state
     #----------------------------------------
 
-    @property
-    def universe(self):
-        return self._universe
-
-    @universe.setter
-    def universe(self, universe):
-        self._universe = universe
+    def setUniverse(self, universe):
+        if universe is self.universe:
+            return
+        self.destroyUniverse()
+        self.universe = universe
+        if universe is None:
+            return
         self._createLogTab()
         threading.Thread(target=self._read_stream,
                          args=(universe.remote_process.stdout,)).start()
+
+    def destroyUniverse(self):
+        if self.universe is None:
+            return
+        try:
+            self.universe.destroy()
+        except IOError:
+            # The connection may already be terminated in case MAD-X crashed.
+            pass
+        self.universe = None
 
     def _createShell(self):
         """Create a python shell widget."""
@@ -192,19 +202,9 @@ class MainWindow(QtGui.QMainWindow):
             except:
                 break
 
-    def _destroyUniverse(self):
-        if self.universe is None:
-            return
-        try:
-            self.universe.destroy()
-        except IOError:
-            # The connection may already be terminated in case MAD-X crashed.
-            pass
-        self.universe = None
-
     def closeEvent(self, event):
         # Terminate the remote session, otherwise `_read_stream()` may hang:
-        self._destroyUniverse()
+        self.destroyUniverse()
         event.accept()
 
 
