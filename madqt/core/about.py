@@ -8,8 +8,9 @@ from __future__ import unicode_literals
 
 from collections import namedtuple
 
-from PyQt4 import QtCore, QtGui
 import docutils.core
+
+from madqt.qt import QtCore, QtGui
 
 
 __all__ = [

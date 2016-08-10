@@ -9,9 +9,7 @@ from __future__ import unicode_literals
 import logging
 import threading
 
-from PyQt4 import QtCore, QtGui
-
-from six import text_type
+from madqt.qt import QtCore, QtGui
 
 import madqt.util.filedialog as filedialog
 import madqt.util.font as font
@@ -101,7 +99,6 @@ class MainWindow(QtGui.QMainWindow):
             self, 'Open file', self.folder, filters)
         if not filename:
             return
-        filename = text_type(filename)
         universe = self.universe = madx.Universe()
         universe.load(filename)
 
@@ -109,7 +106,7 @@ class MainWindow(QtGui.QMainWindow):
         pass
 
     def viewShell(self):
-        pass
+        self._createShell()
 
     def viewLog(self):
         pass
@@ -150,12 +147,23 @@ class MainWindow(QtGui.QMainWindow):
         threading.Thread(target=self._read_stream,
                          args=(universe.remote_process.stdout,)).start()
 
+    def _createShell(self):
+        """Create a python shell widget."""
+        import madqt.core.pyshell as pyshell
+        self.user_ns = {}
+        self.shell = pyshell.create(self.user_ns)
+        dock = QtGui.QDockWidget()
+        dock.setWidget(self.shell)
+        dock.setWindowTitle("python shell")
+        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
+
     def _createLogTab(self):
         text = QtGui.QPlainTextEdit()
         text.setFont(font.monospace())
         text.setReadOnly(True)
         dock = QtGui.QDockWidget()
         dock.setWidget(text)
+        dock.setWindowTitle("MAD-X output")
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
         # TODO: MAD-X log should be separate from basic logging
         self._basicConfig(text, logging.INFO,
@@ -184,14 +192,19 @@ class MainWindow(QtGui.QMainWindow):
             except:
                 break
 
-    def closeEvent(self, event):
-        # We want to terminate the remote session, otherwise _read_stream
-        # may hang:
+    def _destroyUniverse(self):
+        if self.universe is None:
+            return
         try:
             self.universe.destroy()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
+        self.universe = None
+
+    def closeEvent(self, event):
+        # Terminate the remote session, otherwise `_read_stream()` may hang:
+        self._destroyUniverse()
         event.accept()
 
 

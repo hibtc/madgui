@@ -6,8 +6,9 @@ Menu creation utilities.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from PyQt4 import QtCore, QtGui
 from six import string_types, integer_types
+
+from madqt.qt import QtCore, QtGui
 
 
 __all__ = [

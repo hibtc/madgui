@@ -10,14 +10,14 @@ from collections import namedtuple
 import os
 import subprocess
 
-from PyQt4 import QtCore, QtGui
-
 from six import string_types as basestring
 import numpy as np
 import yaml
 
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
+
+from madqt.qt import QtCore, QtGui
 
 from madqt.core.unit import UnitConverter
 from madqt.resource.file import FileResource

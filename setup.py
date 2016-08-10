@@ -47,15 +47,18 @@ def main():
             'madqt.util',
         ],
         install_requires=[
-            'cpymad>=0.14.1',
-            'docopt',
+            'cpymad>=0.14.1',   # MAD-X backend
+            'docopt',           # command line parsing
             'matplotlib',
             'numpy',
             'pydicti>=0.0.5',
-            'PyYAML',
+            'PyYAML',           # config/model files
             'Pint==0.6',
-            'docutils',
-            'six>=1.10.0',
+            'docutils',         # about dialogs
+            'six>=1.10.0',      # py2/3 compatibility
+            # inprocess python shell:
+            'ipython',
+            'qtconsole',
             # 'PyQt4',
         ],
         entry_points="""

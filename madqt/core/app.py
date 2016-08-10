@@ -24,9 +24,9 @@ from __future__ import unicode_literals
 import signal
 import sys
 
-from PyQt4 import QtCore, QtGui
 from docopt import docopt
-from six import text_type
+
+from madqt.qt import QtCore, QtGui
 
 from madqt import __version__
 from madqt.core.mainwindow import MainWindow
@@ -45,7 +45,7 @@ def main(argv=None):
     app = QtGui.QApplication(argv)
     setup_interrupt_handling(app)
     # Filter arguments understood by Qt before doing our own processing:
-    args = [text_type(s) for s in app.arguments()[1:]]
+    args = app.arguments()[1:]
     # QApplication uses the "real" command line on windows. This means, when
     # invoking MadQt as `python -m madqt ...` we have to strip two more
     # arguments from the left:
