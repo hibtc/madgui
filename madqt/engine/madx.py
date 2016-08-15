@@ -17,7 +17,7 @@ import yaml
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
-from madqt.qt import QtCore, QtGui
+from madqt.core.base import Object, Signal
 
 from madqt.core.unit import UnitConverter
 from madqt.resource.file import FileResource
@@ -34,7 +34,7 @@ __all__ = [
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
 
 
-class Universe(QtCore.QObject):
+class Universe(Object):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -256,7 +256,7 @@ class Universe(QtCore.QObject):
         return (first, last), twiss
 
 
-class Segment(QtCore.QObject):
+class Segment(Object):
 
     """
     Simulate one fixed segment, i.e. sequence + range.
@@ -274,10 +274,10 @@ class Segment(QtCore.QObject):
         'alfx', 'alfy',
     ]
 
-    updated = QtCore.pyqtSignal()
-    destroyed = QtCore.pyqtSignal()
-    showIndicators = QtCore.pyqtSignal()
-    hideIndicators = QtCore.pyqtSignal()
+    updated = Signal()
+    destroyed = Signal()
+    showIndicators = Signal()
+    hideIndicators = Signal()
 
     def __init__(self, universe, sequence, range, beam, twiss_args,
                  show_element_indicators):
