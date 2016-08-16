@@ -166,6 +166,7 @@ class MainWindow(QtGui.QMainWindow):
         dock.setWidget(self.shell)
         dock.setWindowTitle("python shell")
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
+        self.shell.exit_requested.connect(dock.close)
 
     def _createLogTab(self):
         text = QtGui.QPlainTextEdit()
