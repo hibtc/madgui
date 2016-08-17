@@ -104,6 +104,7 @@ class MainWindow(QtGui.QMainWindow):
             return
         self.setUniverse(madx.Universe())
         self.universe.load(filename)
+        self.showTwiss()
 
     def fileSave(self):
         pass
@@ -159,6 +160,12 @@ class MainWindow(QtGui.QMainWindow):
             # The connection may already be terminated in case MAD-X crashed.
             pass
         self.universe = None
+
+    def showTwiss(self):
+        import madqt.plot.matplotlib as plot
+        figure = plot.TwissFigure.create(self.universe, self, 'env')
+        widget = plot.PlotWidget(figure)
+        self.setCentralWidget(widget)
 
     def _createShell(self):
         """Create a python shell widget."""

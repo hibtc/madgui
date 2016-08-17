@@ -43,6 +43,7 @@ def main():
             'madqt.core',
             'madqt.data',
             'madqt.engine',
+            'madqt.plot',
             'madqt.resource',
             'madqt.util',
         ],
