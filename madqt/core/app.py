@@ -3,9 +3,11 @@
 MadQt - interactive GUI application for MAD-X via cpymad.
 
 Usage:
+    madqt [--config <config>]
     madqt [--help | --version]
 
 Options:
+    --config=<config>       Set config file
     -h, --help              Show this help
     -v, --version           Show version information
 
@@ -52,7 +54,7 @@ def main(argv=None):
     if args[:1] == ['-m']:
         args = args[2:]
     opts = docopt(__doc__, args, version=__version__)
-    mainwindow = MainWindow()
+    mainwindow = MainWindow(opts)
     mainwindow.show()
     return sys.exit(app.exec_())
 

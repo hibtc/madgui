@@ -1,0 +1,93 @@
+# This is the default config file for MadQt. The file format is YAML, which
+# is fairly intuitive to read and write. To customize settings you should NOT
+# modify this file, but rather put your values in a separate config file in
+# $HOME/.madgui/config.yml (or %USER%\.madgui\config.yml). The values from
+# both files will be merged.
+#
+# NOTE: Use lower-case keys, unless there is a special reason.
+
+
+# Settings for beam line and TWISS function display (component.TwissView and
+# subcomponents):
+line_view:
+
+  # Displayed unit for TWISS functions.
+  # The following two formats are accepted for units:
+  #
+  #   func-name: unit name
+  #   func-name: dictionary of {unit name: power}
+  #
+  # Unit names must be valid arguments to a pint.UnitRegistry
+  unit:
+    s:      m
+    envx:   mm
+    envy:   mm
+    posx:   mm
+    posy:   mm
+
+  # Label to be put on the axis (``matplotlib.axes.Axes.set_xlabel``, etc.)
+  label:
+    s: "position $s$"
+    envx: "$\\Delta x$"
+    envy: "$\\Delta y$"
+    posx: "$x$"
+    posy: "$y$"
+
+  # Tab title for views. The key is the common prefix, e.g. "env" expands to
+  # "envx", "envy". The empty string "" expands to "x", "y".
+  title:
+    pos: "beam position"
+    env: "beam envelope"
+
+  # Plot style for the TWISS curve. The key is the suffix, e.g. "x" for the
+  # "envx" curve. Any keyword argument to ``matplotlib.axes.Axes.plot`` is
+  # allowed:
+  curve_style:
+    x:
+      color: "#8b1a0e"
+      marker: "o"
+      linestyle: "-"
+    y:
+      color: "#005000"
+      marker: "o"
+      linestyle: "-"
+
+  # Plot style for the element indicators. Supports common keyword arguments
+  # for ``matplotlib.patches.axvspan()`` and ``matplotlib.axes.axvlines()``:
+  element_style:
+    f-quadrupole: {color: "#ff0000", alpha: 0.3, ymin: 0.1, ymax: 0.9}
+    d-quadrupole: {color: "#0000ff", alpha: 0.3, ymin: 0.1, ymax: 0.9}
+    f-sbend:      {color: "#770000", alpha: 0.3, ymin: 0.1, ymax: 0.9}
+    d-sbend:      {color: "#000077", alpha: 0.3, ymin: 0.1, ymax: 0.9}
+    multipole:    {color: "#00ff00", alpha: 0.3, ymin: 0.1, ymax: 0.9}
+    solenoid:     {color: "#555555", alpha: 0.3, ymin: 0.1, ymax: 0.9}
+
+  # Style for the constraint markers. Can contain any keyword arguments to
+  # ``matplotlib.axes.Axes.plot()``:
+  constraint_style:
+    marker: "s"
+    fillstyle: "full"
+    markersize: 7
+    color: 'black'
+
+  # Style for the selected element markers. Can contain any keyword
+  # arguments to ``matplotlib.axes.axvline()``:
+  select_style:
+    color: "#000000"
+    ymin: 0
+    ymax: 1
+
+
+# Select which element paramters can be varied when matching a TWISS function:
+matching:
+  # MAD-X doesn't know about envelopes. This means matching envx and envy is
+  # translated to betx a matching on betx, bety by MadQt.
+  betx:
+    # Use only quadrupole.k1, quadrupole.k1s for matching betx:
+    quadrupole: [k1, k1s]
+  bety:
+    quadrupole: [k1, k1s]
+  x:
+    quadrupole: [k1, k1s]
+  y:
+    quadrupole: [k1, k1s]

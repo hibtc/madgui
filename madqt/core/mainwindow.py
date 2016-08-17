@@ -13,6 +13,7 @@ from madqt.qt import QtCore, QtGui
 
 import madqt.util.filedialog as filedialog
 import madqt.util.font as font
+import madqt.core.config as config
 import madqt.core.menu as menu
 import madqt.engine.madx as madx
 
@@ -28,10 +29,12 @@ class MainWindow(QtGui.QMainWindow):
     # Basic setup
     #----------------------------------------
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, options, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        self.options = options
+        self.config = config.load(options['--config'])
         self.universe = None
-        self.folder = ''
+        self.folder = self.config.get('model_path', '')
         self.initUI()
 
     def initUI(self):
