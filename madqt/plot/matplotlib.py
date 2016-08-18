@@ -103,12 +103,12 @@ class TwissFigure(object):
 
     @classmethod
     def create(cls, universe, frame, basename):
-        """Create a new view panel as a page in the notebook frame."""
+        """Create a new figure as a page in the notebook frame."""
         if not universe.segment:
             return
-        view = cls(universe.segment, basename, frame.config['line_view'])
-        #panel = frame.AddView(view, view.title)
-        return view
+        figure = cls(universe.segment, basename, frame.config['line_view'])
+        #panel = frame.AddView(figure, figure.title)
+        return figure
 
     def __init__(self, segment, basename, config):
 
@@ -278,19 +278,19 @@ class ElementIndicators(object):
     Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
     """
 
-    def __init__(self, axes, view, style):
+    def __init__(self, axes, figure, style):
         self.axes = axes
-        self.view = view
+        self.figure = figure
         self.style = style
         self.lines = []
 
     @property
     def s_unit(self):
-        return self.view.unit[self.view.sname]
+        return self.figure.unit[self.figure.sname]
 
     @property
     def elements(self):
-        return self.view.segment.elements
+        return self.figure.segment.elements
 
     def remove(self):
         for line in self.lines:
@@ -340,15 +340,15 @@ class UpdateStatusBar(object):
     Update utility for status bars.
     """
 
-    def __init__(self, frame, view):
+    def __init__(self, frame, figure):
         """Connect mouse event handler."""
         self.frame = frame
-        self.view = view
+        self.figure = figure
         # Just passing self.on_mouse_move to mpl_connect does not keep the
         # self object alive. The closure does the job, though:
         def on_mouse_move(event):
             self.on_mouse_move(event)
-        view.mpl_figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
+        figure.mpl_figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
 
     def set_status_text(self, text):
         return self.frame.statusBar().showMessage(text)
@@ -357,9 +357,9 @@ class UpdateStatusBar(object):
         if x is None or y is None:
             # outside of axes:
             return ""
-        name = self.view.get_axes_name(inaxes)
-        unit = self.view.unit
-        elem = self.view.segment.element_by_position(x * unit['s'])
+        name = self.figure.get_axes_name(inaxes)
+        unit = self.figure.unit
+        elem = self.figure.segment.element_by_position(x * unit['s'])
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format
