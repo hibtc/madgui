@@ -165,6 +165,7 @@ class MainWindow(QtGui.QMainWindow):
         import madqt.plot.matplotlib as plot
         figure = plot.TwissFigure.create(self.universe, self, 'env')
         widget = plot.PlotWidget(figure)
+        status = plot.UpdateStatusBar(self, figure)
         self.setCentralWidget(widget)
 
     def _createShell(self):

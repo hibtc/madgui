@@ -168,7 +168,7 @@ class TwissFigure(object):
         self.figure.draw()
 
     def get_axes_name(self, axes):
-        return self.names[self.axes.index(axes)]
+        return self.names[self.figure.axes.index(axes)]
 
     def get_conjugate(self, name):
         return self.names[1-self.names.index(name)]
@@ -348,10 +348,10 @@ class UpdateStatusBar(object):
         # self object alive. The closure does the job, though:
         def on_mouse_move(event):
             self.on_mouse_move(event)
-        view.figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
+        view.mpl_figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
 
     def set_status_text(self, text):
-        return self.frame.getStatusBar().showMessage(text)
+        return self.frame.statusBar().showMessage(text)
 
     def compose_status_text(self, inaxes, x, y):
         if x is None or y is None:
@@ -359,12 +359,12 @@ class UpdateStatusBar(object):
             return ""
         name = self.view.get_axes_name(inaxes)
         unit = self.view.unit
-        elem = self.view.segment.element_by_position(xdata * unit['s'])
+        elem = self.view.segment.element_by_position(x * unit['s'])
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format
-        parts = [coord_fmt('s', xdata, get_raw_label(unit['s'])),
-                 coord_fmt(name, ydata, get_raw_label(unit[name]))]
+        parts = [coord_fmt('s', x, get_raw_label(unit['s'])),
+                 coord_fmt(name, y, get_raw_label(unit[name]))]
         if elem and 'name' in elem:
             parts.append('elem={0}'.format(elem['name']))
         return ', '.join(parts)
