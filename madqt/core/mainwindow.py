@@ -164,6 +164,7 @@ class MainWindow(QtGui.QMainWindow):
     def showTwiss(self):
         import madqt.plot.matplotlib as plot
         figure = plot.TwissFigure.create(self.universe, self, 'env')
+        figure.show_indicators = True
         widget = plot.PlotWidget(figure)
         status = plot.UpdateStatusBar(self, figure)
         self.setCentralWidget(widget)
