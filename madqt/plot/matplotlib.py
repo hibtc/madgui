@@ -9,11 +9,18 @@ from __future__ import unicode_literals
 from collections import namedtuple
 from functools import partial
 
-from madqt.qt import QtCore, QtGui      # import Qt before matplotlib!
+from madqt.qt import QtCore, QtGui, QT_API  # import Qt before matplotlib!
 
 import matplotlib as mpl
-mpl.use('Qt4Agg')                       # select before mpl.backends import!
-import matplotlib.backends.backend_qt4agg as mpl_backend
+if QT_API == 'pyqt5':
+    mpl.use('Qt5Agg')                       # select before mpl.backends import!
+    import matplotlib.backends.backend_qt5agg as mpl_backend
+elif QT_API == 'pyqt':
+    mpl.use('Qt4Agg')                       # select before mpl.backends import!
+    import matplotlib.backends.backend_qt4agg as mpl_backend
+else:
+    raise NotImplementedError("Unsupported Qt API: {}".format(QT_API))
+
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
