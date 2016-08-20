@@ -85,7 +85,9 @@ class FigurePair(object):
         """Draw the figure on its canvas."""
         _autoscale_axes(self.axes.x)
         _autoscale_axes(self.axes.y)
-        self.mpl_figure.canvas.draw()
+        canvas = self.mpl_figure.canvas
+        canvas.draw()
+        canvas.updateGeometry()
 
     def set_slabel(self, label):
         """Set label on the s axis."""

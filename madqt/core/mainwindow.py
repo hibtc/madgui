@@ -83,7 +83,10 @@ class MainWindow(QtGui.QMainWindow):
         ])
 
     def createControls(self):
-        pass
+        # Create the central widget in advance. If the central widget is
+        # replaced later, the layout gets messed up on PyQt4 (in this case the
+        # central widget does not respect the preferred size hints).
+        self.setCentralWidget(QtGui.QWidget())
 
     def createStatusBar(self):
         self.statusBar()
@@ -167,7 +170,10 @@ class MainWindow(QtGui.QMainWindow):
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
         status = plot.UpdateStatusBar(self, figure)
-        self.setCentralWidget(widget)
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.centralWidget().setLayout(layout)
 
     def _createShell(self):
         """Create a python shell widget."""
