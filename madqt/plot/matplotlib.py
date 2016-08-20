@@ -131,13 +131,19 @@ class TwissFigure(object):
         self.unit = {col: getattr(units, unit_names[col])
                      for col in all_axes_names}
 
+        axes = self.figure.axes
+
+        # Tune the builtin coord status message on the toolbar:
+        axes.x.format_coord = partial(self.format_coord, self.names.x)
+        axes.y.format_coord = partial(self.format_coord, self.names.y)
+
         # create scene
         elements_style = config['element_style']
         self.scene_graph = SceneGraph([])
         self.add_twiss_curve(self.basename)
         self.indicators = SceneGraph([
-            ElementIndicators(self.figure.axes.x, self, elements_style),
-            ElementIndicators(self.figure.axes.y, self, elements_style),
+            ElementIndicators(axes.x, self, elements_style),
+            ElementIndicators(axes.y, self, elements_style),
         ])
 
         # subscribe for updates
@@ -150,6 +156,18 @@ class TwissFigure(object):
     def remove(self):
         self.scene_graph.remove()
         self.segment.updated.disconnect(self.update)
+
+    def format_coord(self, name, x, y):
+        unit = self.unit
+        elem = self.segment.element_by_position(x * unit['s'])
+        # TODO: in some cases, it might be necessary to adjust the
+        # precision to the displayed xlim/ylim.
+        coord_fmt = "{0}={1:.6f}{2}".format
+        parts = [coord_fmt('s', x, get_raw_label(unit['s'])),
+                 coord_fmt(name, y, get_raw_label(unit[name]))]
+        if elem and 'name' in elem:
+            parts.insert(0, 'elem={0}'.format(elem['name']))
+        return ', '.join(parts)
 
     def get_label(self, name):
         return self.label[name] + ' ' + get_unit_label(self.unit[name])
@@ -334,44 +352,3 @@ class ElementIndicators(object):
             else:
                 type_name = 'd-' + type_name
         return self.style.get(type_name)
-
-
-class UpdateStatusBar(object):
-
-    """
-    Update utility for status bars.
-    """
-
-    def __init__(self, frame, figure):
-        """Connect mouse event handler."""
-        self.frame = frame
-        self.figure = figure
-        # Just passing self.on_mouse_move to mpl_connect does not keep the
-        # self object alive. The closure does the job, though:
-        def on_mouse_move(event):
-            self.on_mouse_move(event)
-        figure.mpl_figure.canvas.mpl_connect('motion_notify_event', on_mouse_move)
-
-    def set_status_text(self, text):
-        return self.frame.statusBar().showMessage(text)
-
-    def compose_status_text(self, inaxes, x, y):
-        if x is None or y is None:
-            # outside of axes:
-            return ""
-        name = self.figure.get_axes_name(inaxes)
-        unit = self.figure.unit
-        elem = self.figure.segment.element_by_position(x * unit['s'])
-        # TODO: in some cases, it might be necessary to adjust the
-        # precision to the displayed xlim/ylim.
-        coord_fmt = "{0}={1:.6f}{2}".format
-        parts = [coord_fmt('s', x, get_raw_label(unit['s'])),
-                 coord_fmt(name, y, get_raw_label(unit[name]))]
-        if elem and 'name' in elem:
-            parts.append('elem={0}'.format(elem['name']))
-        return ', '.join(parts)
-
-    def on_mouse_move(self, event):
-        """Update statusbar text."""
-        self.set_status_text(self.compose_status_text(
-            event.inaxes, event.xdata, event.ydata))

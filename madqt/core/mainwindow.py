@@ -169,7 +169,6 @@ class MainWindow(QtGui.QMainWindow):
         figure = plot.TwissFigure.create(self.universe, self, 'env')
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
-        status = plot.UpdateStatusBar(self, figure)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(widget)
         layout.setContentsMargins(0, 0, 0, 0)
