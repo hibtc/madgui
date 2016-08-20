@@ -105,9 +105,7 @@ class MainWindow(QtGui.QMainWindow):
             self, 'Open file', self.folder, filters)
         if not filename:
             return
-        self.setUniverse(madx.Universe())
-        self.universe.load(filename)
-        self.showTwiss()
+        self.loadFile(filename)
 
     def fileSave(self):
         pass
@@ -142,6 +140,12 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------
     # Update state
     #----------------------------------------
+
+    def loadFile(self, filename):
+        """Load the specified model and show plot inside the main window."""
+        self.setUniverse(madx.Universe())
+        self.universe.load(filename)
+        self.showTwiss()
 
     def setUniverse(self, universe):
         if universe is self.universe:
