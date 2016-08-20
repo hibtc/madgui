@@ -83,9 +83,8 @@ class MainWindow(QtGui.QMainWindow):
         ])
 
     def createControls(self):
-        # Create the central widget in advance. If the central widget is
-        # replaced later, the layout gets messed up on PyQt4 (in this case the
-        # central widget does not respect the preferred size hints).
+        # Create an empty container as central widget in advance. For more
+        # info, see the MainWindow.setCentralWidget method.
         self.setCentralWidget(QtGui.QWidget())
 
     def createStatusBar(self):
@@ -173,10 +172,21 @@ class MainWindow(QtGui.QMainWindow):
         figure = plot.TwissFigure.create(self.universe, self, 'env')
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
+        self.setCentralWidget(widget)
+
+    def setCentralWidget(self, widget):
+        """Set the central widget."""
+        central = self.centralWidget()
+        if central is None:
+            return super(MainWindow, self).setCentralWidget(widget)
+        # On PyQt4, if the central widget is replaced after having created a
+        # dock widget, the layout gets messed up (in this case the central
+        # widget does not respect the preferred size hints). Therefore, we
+        # have to just update its contents:
         layout = QtGui.QVBoxLayout()
         layout.addWidget(widget)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.centralWidget().setLayout(layout)
+        central.setLayout(layout)
 
     def _createShell(self):
         """Create a python shell widget."""
