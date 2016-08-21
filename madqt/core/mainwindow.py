@@ -79,6 +79,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('About MAD-&X', None,
                      'About the included MAD-X backend.',
                      self.helpAboutMadX),
+                Item('About Q&t', None,
+                     'About Qt.',
+                     self.helpAboutQt),
             ]),
         ])
 
@@ -129,6 +132,9 @@ class MainWindow(QtGui.QMainWindow):
         """Show about dialog."""
         import cpymad.madx
         self._showAboutDialog(cpymad.madx.metadata)
+
+    def helpAboutQt(self):
+        QtGui.qApp.aboutQt()
 
     def _showAboutDialog(self, module):
         import madqt.core.about as about
