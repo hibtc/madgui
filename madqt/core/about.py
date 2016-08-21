@@ -11,6 +11,7 @@ from collections import namedtuple
 import docutils.core
 
 from madqt.qt import QtCore, QtGui
+from madqt.util.layout import VBoxLayout
 
 
 __all__ = [
@@ -80,10 +81,9 @@ def AboutDialog(version_info, *args, **kwargs):
     main = AboutWidget(version_info)
     line = HLine()
     button = QtGui.QPushButton("&OK")
-    button.clicked.connect(dialog.close)
-    layout = QtGui.QVBoxLayout()
-    layout.addWidget(main)
-    layout.addWidget(line)
-    layout.addWidget(button)
-    dialog.setLayout(layout)
+    button.setDefault(True)
+    button.clicked.connect(dialog.accept)
+    dialog.setLayout(
+        VBoxLayout([main, line, button]))
+    dialog.setSizeGripEnabled(True)
     return dialog
