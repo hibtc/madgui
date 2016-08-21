@@ -1,7 +1,7 @@
 # This is the default config file for MadQt. The file format is YAML, which
 # is fairly intuitive to read and write. To customize settings you should NOT
 # modify this file, but rather put your values in a separate config file in
-# $HOME/.madgui/config.yml (or %USER%\.madgui\config.yml). The values from
+# $HOME/.madqt/config.yml (or %USER%\.madqt\config.yml). The values from
 # both files will be merged.
 #
 # NOTE: Use lower-case keys, unless there is a special reason.
