@@ -156,6 +156,9 @@ class MainWindow(QtGui.QMainWindow):
         self._createLogTab()
         threading.Thread(target=self._read_stream,
                          args=(universe.remote_process.stdout,)).start()
+        # This is required to make the thread exit (and hence allow the
+        # application to close) by calling app.quit() on Ctrl-C:
+        QtGui.qApp.aboutToQuit.connect(universe.destroy)
 
     def destroyUniverse(self):
         if self.universe is None:
