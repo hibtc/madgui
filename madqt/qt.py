@@ -11,3 +11,5 @@ from qtconsole.qt_loaders import (load_qt, QT_API_PYSIDE,
 api_opts = [QT_API_PYQT, QT_API_PYQT5, QT_API_PYSIDE]
 
 QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
+
+Qt = QtCore.Qt
