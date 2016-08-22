@@ -90,6 +90,23 @@ class PlotWidget(QtGui.QWidget):
                 self._uncapture = None
         self._old_update_buttons()
 
+    def addAction(self, icon, text):
+        if isinstance(icon, QtGui.QStyle.StandardPixmap):
+            icon =  self.style().standardIcon(icon)
+        action = QtGui.QAction(self.toolbar)
+        action.setText(text)
+        action.setIcon(icon)
+        self.insertAction(action)
+        return action
+
+    def insertAction(self, action):
+        toolbar = self.toolbar
+        try:
+            before = self._insert_actions_before
+        except AttributeError:
+            before = self._insert_actions_before = toolbar.actions()[-1]
+            toolbar.insertSeparator(before)
+        toolbar.insertAction(before, action)
 
 
 class FigurePair(object):
@@ -402,7 +419,7 @@ class SelectTool(object):
         self.figure = plot_widget.figure
         self.toolbar = plot_widget.toolbar
 
-        self.add_toolbar_toggle_action(self.toolbar)
+        self.add_toolbar_action()
 
         # Store a reference so we don't get garbage collected:
         plot_widget._select_tool = self
@@ -410,17 +427,12 @@ class SelectTool(object):
         # List of existing info boxes
         self._info_boxes = []
 
-    def add_toolbar_toggle_action(self, toolbar):
-        style = self.plot_widget.style()
-        info_icon = style.standardIcon(QtGui.QStyle.SP_MessageBoxInformation)
-        before = toolbar.actions()[-1]
-        action = self.action = QtGui.QAction(toolbar)
-        action.setText('Show info for individual elements')
-        action.setIcon(info_icon)
+    def add_toolbar_action(self):
+        action = self.action = self.plot_widget.addAction(
+            icon=QtGui.QStyle.SP_MessageBoxInformation,
+            text='Show info for individual elements')
         action.setCheckable(True)
         action.triggered.connect(self.onToolClicked)
-        toolbar.insertSeparator(before)
-        toolbar.insertAction(before, action)
 
     def onToolClicked(self, checked):
         """Invoked when user clicks Mirko-Button"""
