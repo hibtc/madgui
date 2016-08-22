@@ -46,7 +46,9 @@ class MainWindow(QtGui.QMainWindow):
         self.createStatusBar()
 
     def loadDefault(self):
-        filename = self.options['FILE'] or self.config.get('load_default')
+        filename = self.options['FILE']
+        if filename is None:
+            filename = self.config.get('load_default')
         if filename:
             self.loadFile(self.searchFile(filename))
 
