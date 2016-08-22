@@ -40,12 +40,21 @@ __all__ = [
 
 Pair = namedtuple('Pair', ['x', 'y'])
 
+MouseEvent = namedtuple('MouseEvent', [
+    'button', 'x', 'y', 'axes', 'elem', 'guiEvent'])
+
+KeyboardEvent = namedtuple('KeyboardEvent', [
+    'key', 'guiEvent'])
+
 
 class PlotWidget(QtGui.QWidget):
 
     """
     Widget containing a matplotlib figure.
     """
+
+    buttonPress = Signal(MouseEvent)
+    keyPress = Signal(KeyboardEvent)
 
     def __init__(self, figure, *args, **kwargs):
 
@@ -60,16 +69,22 @@ class PlotWidget(QtGui.QWidget):
         super(PlotWidget, self).__init__(*args, **kwargs)
 
         self.figure = figure
-        self.canvas = mpl_backend.FigureCanvas(figure.mpl_figure)
-        self.toolbar = mpl_backend.NavigationToolbar2QT(self.canvas, self)
+        self.canvas = canvas = mpl_backend.FigureCanvas(figure.mpl_figure)
+        self.toolbar = toolbar = mpl_backend.NavigationToolbar2QT(canvas, self)
         self.figure.plot()
 
-        self.setLayout(VBoxLayout([self.canvas, self.toolbar]))
+        self.setLayout(VBoxLayout([canvas, toolbar]))
 
-        self._active = self.toolbar._active
+        self._cid_mouse = canvas.mpl_connect(
+            'button_press_event', self.onButtonPress)
+        self._cid_key = canvas.mpl_connect(
+            'key_press_event', self.onKeyPress)
+
+        # monkey patch MPL's mouse-capture logic:
+        self._active = toolbar._active
         self._uncapture = None
-        self._old_update_buttons = self.toolbar._update_buttons_checked
-        self.toolbar._update_buttons_checked = self._update_buttons_checked
+        self._old_update_buttons = toolbar._update_buttons_checked
+        toolbar._update_buttons_checked = self._update_buttons_checked
 
     def captureMouse(self, mode, message, deactivate):
         """
@@ -107,6 +122,23 @@ class PlotWidget(QtGui.QWidget):
             before = self._insert_actions_before = toolbar.actions()[-1]
             toolbar.insertSeparator(before)
         toolbar.insertAction(before, action)
+
+    def onButtonPress(self, mpl_event):
+        # translate event to matplotlib-oblivious API
+        if mpl_event.inaxes is None:
+            return
+        axes = mpl_event.inaxes
+        name = mpl_event.inaxes.twiss_name
+        xpos = mpl_event.xdata * self.figure.unit['s']
+        ypos = mpl_event.ydata * self.figure.unit[name]
+        elem = self.figure.segment.element_by_position(xpos)
+        event = MouseEvent(mpl_event.button, xpos, ypos,
+                           axes, elem, mpl_event.guiEvent)
+        self.buttonPress.emit(event)
+
+    def onKeyPress(self, mpl_event):
+        event = KeyboardEvent(mpl_event.key, mpl_event.guiEvent)
+        self.keyPress.emit(event)
 
 
 class FigurePair(object):
@@ -182,6 +214,12 @@ class TwissFigure(object):
                      for col in all_axes_names}
 
         axes = self.figure.axes
+
+        # Store names
+        axes.x.twiss_name = self.names.x
+        axes.x.twiss_conj = self.names.y
+        axes.y.twiss_name = self.names.y
+        axes.y.twiss_conj = self.names.x
 
         # Tune the builtin coord status message on the toolbar:
         axes.x.format_coord = partial(self.format_coord, self.names.x)
@@ -412,12 +450,9 @@ class SelectTool(object):
 
     def __init__(self, plot_widget):
         """Add toolbar tool to panel and subscribe to capture events."""
-        self._cid_mouse = None
-        self._cid_key = None
+        self.is_active = False
         self.plot_widget = plot_widget
         self.segment = plot_widget.figure.segment
-        self.figure = plot_widget.figure
-        self.toolbar = plot_widget.toolbar
 
         self.add_toolbar_action()
 
@@ -443,31 +478,30 @@ class SelectTool(object):
 
     def startSelect(self):
         """Start select mode."""
-        if self._cid_mouse is None:
-            canvas = self.plot_widget.canvas
-            self._cid_mouse = canvas.mpl_connect('button_press_event', self.on_select)
-            self._cid_key = canvas.mpl_connect('key_press_event', self.on_key)
-            canvas.setFocus()
-            self.plot_widget.captureMouse('INFO', 'element info', self.stopSelect)
+        if not self.is_active:
+            plot = self.plot_widget
+            plot.buttonPress.connect(self.on_select)
+            plot.keyPress.connect(self.on_key)
+            plot.canvas.setFocus()
+            plot.captureMouse('INFO', 'element info', self.stopSelect)
+            self.is_active = True
+            # TODO: insert markers
         self.action.setChecked(True)
 
     def stopSelect(self):
         """Stop select mode."""
-        if self._cid_mouse is not None:
-            canvas = self.plot_widget.canvas
-            canvas.mpl_disconnect(self._cid_mouse)
-            canvas.mpl_disconnect(self._cid_key)
-        self._cid_mouse = None
-        self._cid_key = None
+        if self.is_active:
+            plot = self.plot_widget
+            plot.buttonPress.disconnect(self.on_select)
+            plot.keyPress.disconnect(self.on_key)
+            self.is_active = False
         self.action.setChecked(False)
 
     def on_select(self, event):
         """Display a popup window with info about the selected element."""
-        if event.inaxes is None:
-            return
-        xpos = event.xdata * self.figure.unit['s']
-        elem = self.segment.element_by_position(xpos)
-        if elem is None or 'name' not in elem:
+
+        elem = event.elem
+        if event.elem is None or 'name' not in elem:
             return
         elem_name = elem['name']
 
