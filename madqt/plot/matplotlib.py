@@ -484,8 +484,7 @@ class SelectTool(object):
         self._info_boxes.append(dock)
 
         # Set focus to parent window, so left/right cursor buttons can be
-        # used immediately. This also makes the window realized if the
-        # shift button is released:
+        # used immediately.
         self.plot_widget.canvas.setFocus()
 
     def activeBox(self):
