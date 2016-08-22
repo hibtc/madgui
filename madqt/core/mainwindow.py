@@ -144,7 +144,7 @@ class MainWindow(QtGui.QMainWindow):
         self._showAboutDialog(cpymad.madx.metadata)
 
     def helpAboutQt(self):
-        QtGui.qApp.aboutQt()
+        QtGui.QMessageBox.aboutQt(self)
 
     def _showAboutDialog(self, module):
         import madqt.core.about as about
