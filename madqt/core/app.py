@@ -3,13 +3,16 @@
 MadQt - interactive GUI application for MAD-X via cpymad.
 
 Usage:
-    madqt [--config <config>]
+    madqt [--config <config>] [FILE]
     madqt [--help | --version]
 
 Options:
     --config=<config>       Set config file
     -h, --help              Show this help
     -v, --version           Show version information
+
+Arguments:
+    FILE                    Load this file initially
 
 Contact information:
 

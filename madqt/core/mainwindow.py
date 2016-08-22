@@ -6,8 +6,10 @@ Main window component for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import glob
 import logging
 import threading
+import os
 
 from madqt.qt import QtCore, QtGui
 
@@ -36,11 +38,17 @@ class MainWindow(QtGui.QMainWindow):
         self.universe = None
         self.folder = self.config.get('model_path', '')
         self.initUI()
+        self.loadDefault()
 
     def initUI(self):
         self.createMenu()
         self.createControls()
         self.createStatusBar()
+
+    def loadDefault(self):
+        filename = self.options['FILE'] or self.config.get('load_default')
+        if filename:
+            self.loadFile(self.searchFile(filename))
 
     def createMenu(self):
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
@@ -145,6 +153,17 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------
     # Update state
     #----------------------------------------
+
+    def searchFile(self, path):
+        if not os.path.exists(path) and not os.path.isabs(path) and self.folder:
+            path = os.path.join(self.folder, path)
+        if os.path.isdir(path):
+            models = glob.glob(os.path.join(path, '*.cpymad.yml'))
+            if models:
+                path = models[0]
+        if not os.path.isfile(path):
+            raise OSError("File not found: {!r}".format(path))
+        return path
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
