@@ -9,7 +9,8 @@ from __future__ import unicode_literals
 from collections import namedtuple
 from functools import partial
 
-from madqt.qt import QtCore, QtGui, QT_API  # import Qt before matplotlib!
+from madqt.qt import QtCore, QtGui, Qt, QT_API  # import Qt before matplotlib!
+from madqt.util.qt import notifyCloseEvent, notifyEvent
 
 import matplotlib as mpl
 if QT_API == 'pyqt5':
@@ -64,6 +65,31 @@ class PlotWidget(QtGui.QWidget):
         self.figure.plot()
 
         self.setLayout(VBoxLayout([self.canvas, self.toolbar]))
+
+        self._active = self.toolbar._active
+        self._uncapture = None
+        self._old_update_buttons = self.toolbar._update_buttons_checked
+        self.toolbar._update_buttons_checked = self._update_buttons_checked
+
+    def captureMouse(self, mode, message, deactivate):
+        """
+        Capture the mouse for the plot widget using the specified mode name.
+        This manages the toolbar's active mouse mode and invokes the cleanup
+        routine when another mode receives mouse capture (e.g. ZOOM/PAN).
+        """
+        self.toolbar._active = mode
+        self.toolbar.set_message(message)
+        self.toolbar._update_buttons_checked()
+        self._uncapture = deactivate
+
+    def _update_buttons_checked(self):
+        if self.toolbar._active != self._active:
+            self._active = self.toolbar._active
+            if self._uncapture is not None:
+                self._uncapture()
+                self._uncapture = None
+        self._old_update_buttons()
+
 
 
 class FigurePair(object):
@@ -359,3 +385,136 @@ class ElementIndicators(object):
             else:
                 type_name = 'd-' + type_name
         return self.style.get(type_name)
+
+
+class SelectTool(object):
+
+    """
+    Opens detail popups when clicking on an element.
+    """
+
+    def __init__(self, plot_widget):
+        """Add toolbar tool to panel and subscribe to capture events."""
+        self._cid_mouse = None
+        self._cid_key = None
+        self.plot_widget = plot_widget
+        self.segment = plot_widget.figure.segment
+        self.figure = plot_widget.figure
+        self.toolbar = plot_widget.toolbar
+
+        self.add_toolbar_toggle_action(self.toolbar)
+
+        # Store a reference so we don't get garbage collected:
+        plot_widget._select_tool = self
+
+        # List of existing info boxes
+        self._info_boxes = []
+
+    def add_toolbar_toggle_action(self, toolbar):
+        style = self.plot_widget.style()
+        info_icon = style.standardIcon(QtGui.QStyle.SP_MessageBoxInformation)
+        before = toolbar.actions()[-1]
+        action = self.action = QtGui.QAction(toolbar)
+        action.setText('Show info for individual elements')
+        action.setIcon(info_icon)
+        action.setCheckable(True)
+        action.triggered.connect(self.onToolClicked)
+        toolbar.insertSeparator(before)
+        toolbar.insertAction(before, action)
+
+    def onToolClicked(self, checked):
+        """Invoked when user clicks Mirko-Button"""
+        if checked:
+            self.startSelect()
+        else:
+            self.stopSelect()
+
+    def startSelect(self):
+        """Start select mode."""
+        if self._cid_mouse is None:
+            canvas = self.plot_widget.canvas
+            self._cid_mouse = canvas.mpl_connect('button_press_event', self.on_select)
+            self._cid_key = canvas.mpl_connect('key_press_event', self.on_key)
+            canvas.setFocus()
+            self.plot_widget.captureMouse('INFO', 'element info', self.stopSelect)
+        self.action.setChecked(True)
+
+    def stopSelect(self):
+        """Stop select mode."""
+        if self._cid_mouse is not None:
+            canvas = self.plot_widget.canvas
+            canvas.mpl_disconnect(self._cid_mouse)
+            canvas.mpl_disconnect(self._cid_key)
+        self._cid_mouse = None
+        self._cid_key = None
+        self.action.setChecked(False)
+
+    def on_select(self, event):
+        """Display a popup window with info about the selected element."""
+        if event.inaxes is None:
+            return
+        xpos = event.xdata * self.figure.unit['s']
+        elem = self.segment.element_by_position(xpos)
+        if elem is None or 'name' not in elem:
+            return
+        elem_name = elem['name']
+
+        shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
+        control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
+
+        # By default, show info in an existing dialog. The shift/ctrl keys
+        # are used to open more dialogs:
+        if self._info_boxes and not shift and not control:
+            box = self.activeBox()
+            box.widget().el_name = elem_name
+            box.setWindowTitle(elem_name)
+            return
+
+        dock, info = self.create_info_box(elem_name)
+        notifyCloseEvent(dock, lambda: self._info_boxes.remove(dock))
+        notifyEvent(info, 'focusInEvent', lambda event: self.setActiveBox(dock))
+
+        frame = self.plot_widget.window()
+        frame.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock)
+        if self._info_boxes and shift:
+            frame.tabifyDockWidget(self.activeBox(), dock)
+            dock.show()
+            dock.raise_()
+
+        self._info_boxes.append(dock)
+
+        # Set focus to parent window, so left/right cursor buttons can be
+        # used immediately. This also makes the window realized if the
+        # shift button is released:
+        self.plot_widget.canvas.setFocus()
+
+    def activeBox(self):
+        return self._info_boxes[-1]
+
+    def setActiveBox(self, box):
+        self._info_boxes.remove(box)
+        self._info_boxes.append(box)
+
+    def create_info_box(self, elem_name):
+        from madqt.widget.elementinfo import ElementInfoBox
+        info = ElementInfoBox(self.segment, elem_name)
+        dock = QtGui.QDockWidget()
+        dock.setWidget(info)
+        dock.setWindowTitle(elem_name)
+        return dock, info
+
+    def on_key(self, event):
+        if not self._info_boxes:
+            return
+        if 'left' in event.key:
+            move_step = -1
+        elif 'right' in event.key:
+            move_step = 1
+        else:
+            return
+        cur_box = self.activeBox().widget()
+        old_index = self.segment.get_element_index(cur_box.el_name)
+        new_index = old_index + move_step
+        elements = self.segment.elements
+        new_elem = elements[new_index % len(elements)]
+        cur_box.el_name = new_elem['name']

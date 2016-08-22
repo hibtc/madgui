@@ -46,6 +46,7 @@ def main():
             'madqt.plot',
             'madqt.resource',
             'madqt.util',
+            'madqt.widget',
         ],
         install_requires=[
             'cpymad>=0.14.1',   # MAD-X backend
