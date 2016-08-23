@@ -10,7 +10,6 @@ from __future__ import unicode_literals
 
 from madqt.qt import QtCore, QtGui, Qt
 
-from madqt.core.base import Object, Signal
 from madqt.util.qt import waitCursor
 from madgui.util.unit import strip_unit
 from madqt.resource.package import PackageResource
@@ -31,6 +30,7 @@ class MatchTool(object):
         self.rules = rules
         self.constraints = {}
         plot_widget._match_tool = self
+        self.drawtool = DrawConstraints(plot_widget.figure)
 
     @property
     def elements(self):
@@ -189,6 +189,7 @@ class MatchTool(object):
         """Add constraint and perform matching."""
         self.removeConstraint(axis, elem)
         self._sconstr(axis).append( (elem, envelope) )
+        self.drawtool.drawConstraint(axis, elem, envelope)
 
     def removeConstraint(self, axis, elem):
         """Remove the constraint for elem."""
@@ -205,6 +206,7 @@ class MatchTool(object):
     def clearConstraints(self):
         """Remove all constraints."""
         self.constraints = {}
+        self.drawtool.clear()
 
 
 class MatchTransform(object):
@@ -240,3 +242,30 @@ def _get_any_elem_param(elem, params):
             if strip_unit(elem[param]) != 0.0:
                 return elem['name'] + '->' + param
     raise ValueError()
+
+
+class DrawConstraints(object):
+
+    def __init__(self, figure):
+        self.figure = figure
+        self.style = figure.config['constraint_style']
+        self.lines = []
+
+    def clear(self):
+        for lines in self.lines:
+            for l in lines:
+                l.remove()
+        self.lines = []
+
+    def drawConstraint(self, name, elem, envelope):
+        """Draw one constraint representation in the graph."""
+        figure = self.figure
+        ax = figure.get_ax_by_name(name)
+        self.lines.append(ax.plot(
+            strip_unit(elem['at'] + elem['l']/2, figure.unit[figure.sname]),
+            strip_unit(envelope, figure.unit[name]),
+            **self.style))
+
+    def update(self):
+        """Draw all current constraints in the graph."""
+        self.figure.figure.draw()

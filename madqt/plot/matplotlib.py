@@ -275,6 +275,9 @@ class TwissFigure(object):
         self.scene_graph.update()
         self.figure.draw()
 
+    def get_ax_by_name(self, name):
+        return self.figure.axes[self.names.index(name)]
+
     def get_axes_name(self, axes):
         return self.names[self.figure.axes.index(axes)]
 
