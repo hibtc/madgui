@@ -68,6 +68,7 @@ class MatchTool(object):
             plot = self.plot_widget
             plot.buttonPress.disconnect(self.onClick)
             self.clearConstraints()
+            self.drawtool.update()
             self.is_active = False
         self.action.setChecked(False)
 
@@ -109,6 +110,7 @@ class MatchTool(object):
         self.addConstraint(conj, elem, orth_env)
 
         with waitCursor():
+            self.drawtool.update()
             self.match()
 
     def _allvars(self, axis):
@@ -252,16 +254,15 @@ class DrawConstraints(object):
         self.lines = []
 
     def clear(self):
-        for lines in self.lines:
-            for l in lines:
-                l.remove()
+        for line in self.lines:
+            line.remove()
         self.lines = []
 
     def drawConstraint(self, name, elem, envelope):
         """Draw one constraint representation in the graph."""
         figure = self.figure
         ax = figure.get_ax_by_name(name)
-        self.lines.append(ax.plot(
+        self.lines.extend(ax.plot(
             strip_unit(elem['at'] + elem['l']/2, figure.unit[figure.sname]),
             strip_unit(envelope, figure.unit[name]),
             **self.style))
