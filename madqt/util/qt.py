@@ -6,6 +6,8 @@ Qt utilities.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from contextlib import contextmanager
+
 from madqt.qt import QtCore, QtGui, Qt
 
 
@@ -28,3 +30,12 @@ def notifyEvent(widget, name, handler):
         handler(event)
         old_handler(event)
     setattr(widget, name, new_handler)
+
+
+@contextmanager
+def waitCursor(cursor=QtGui.QCursor(Qt.WaitCursor)):
+    QtGui.QApplication.setOverrideCursor(cursor)
+    try:
+        yield None
+    finally:
+        QtGui.QApplication.restoreOverrideCursor()

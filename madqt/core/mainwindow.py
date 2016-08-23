@@ -199,10 +199,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def showTwiss(self):
         import madqt.plot.matplotlib as plot
+        import madqt.core.matching as matching
         figure = plot.TwissFigure.create(self.universe, self, 'env')
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
         select = plot.SelectTool(widget)
+        match = matching.MatchTool(widget)
         self.setCentralWidget(widget)
 
     def setCentralWidget(self, widget):
