@@ -12,6 +12,7 @@ from madqt.qt import QtCore, QtGui, Qt
 
 from madqt.core.base import Object, Signal
 from madqt.util.qt import waitCursor
+from madgui.util.unit import strip_unit
 from madqt.resource.package import PackageResource
 
 
@@ -21,14 +22,19 @@ class MatchTool(object):
     Controller that performs matching when clicking on an element.
     """
 
-    def __init__(self, plot_widget):
+    def __init__(self, plot_widget, rules):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.is_active = False
         self.plot_widget = plot_widget
         self.segment = plot_widget.figure.segment
         self.add_toolbar_action()
+        self.rules = rules
+        self.constraints = {}
         plot_widget._match_tool = self
-        self.matcher = None
+
+    @property
+    def elements(self):
+        return self.segment.elements
 
     def add_toolbar_action(self):
         with PackageResource('madqt.data', 'target.xpm').filename() as xpm:
@@ -50,8 +56,7 @@ class MatchTool(object):
         """Start matching mode."""
         if not self.is_active:
             plot = self.plot_widget
-            plot.buttonPress.connect(self.onMatch)
-            self.matcher = Matching(self.segment, plot.window().config['matching'])
+            plot.buttonPress.connect(self.onClick)
             plot.captureMouse('MATCH', 'Match constraints', self.stopMatch)
             # TODO: insert markers
             self.is_active = True
@@ -61,12 +66,12 @@ class MatchTool(object):
         """Stop matching mode."""
         if self.is_active:
             plot = self.plot_widget
-            plot.buttonPress.disconnect(self.onMatch)
-            self.matcher.stop()
+            plot.buttonPress.disconnect(self.onClick)
+            self.clearConstraints()
             self.is_active = False
         self.action.setChecked(False)
 
-    def onMatch(self, event):
+    def onClick(self, event):
 
         """
         Draw new constraint and perform matching.
@@ -82,8 +87,8 @@ class MatchTool(object):
             return
 
         if event.button == 2:
-            self.matcher.remove_constraint(name, elem)
-            self.matcher.remove_constraint(conj, elem)
+            self.removeConstraint(name, elem)
+            self.removeConstraint(conj, elem)
             return
         elif event.button != 1:
             return
@@ -94,17 +99,112 @@ class MatchTool(object):
         # By default, the list of constraints will be reset. The shift/alt
         # keys are used to add more constraints.
         if not shift and not control:
-            self.matcher.clear_constraints()
+            self.clearConstraints()
 
         # add the clicked constraint
-        self.matcher.add_constraint(name, elem, event.y)
+        self.addConstraint(name, elem, event.y)
 
         # add another constraint to hold the orthogonal axis constant
         orth_env = self.segment.get_twiss(elem, conj)
-        self.matcher.add_constraint(conj, elem, orth_env)
+        self.addConstraint(conj, elem, orth_env)
 
         with waitCursor():
-            self.matcher.match()
+            self.match()
+
+    def _allvars(self, axis):
+        # filter element list for usable types:
+        param_spec = self.rules.get(axis, {})
+        return [(elem, param_spec[elem['type']])
+                for elem in self.elements
+                if elem['type'] in param_spec]
+
+    def match(self):
+
+        """Perform matching according to current constraints."""
+
+        segment = self.segment
+        universe = self.segment.universe
+        transform = MatchTransform(segment)
+
+        # transform constraints (envx => betx, etc)
+        constraints = {}
+        for axis, constr in self.constraints.items():
+            for elem, value in constr:
+                trans_name, trans_value = getattr(transform, axis)(value)
+                this_constr = constraints.setdefault(trans_name, [])
+                this_constr.append((elem, trans_value))
+
+        # The following uses a greedy algorithm to select all elements that
+        # can be used for varying. This means that for advanced matching it
+        # will most probably not work.
+        # Copy all needed variable lists (for later modification):
+        allvars = {axis: self._allvars(axis)[:]
+                   for axis in constraints}
+        vary = []
+        for axis, constr in constraints.items():
+            for elem, envelope in constr:
+                at = elem['at']
+                allowed = [v for v in allvars[axis] if v[0]['at'] < at]
+                if not allowed:
+                    # No variable in range found! Ok.
+                    continue
+                v = max(allowed, key=lambda v: v[0]['at'])
+                expr = _get_any_elem_param(v[0], v[1])
+                if expr is None:
+                    allvars[axis].remove(v)
+                else:
+                    vary.append(expr)
+                    for c in allvars.values():
+                        try:
+                            c.remove(v)
+                        except ValueError:
+                            pass
+
+        # create constraints list to be passed to Madx.match
+        constraints = [
+            {'range': elem['name'],
+             name: universe.utool.strip_unit(name, val)}
+            for name, constr in constraints.items()
+            for elem, val in constr
+        ]
+
+        twiss_args = universe.utool.dict_strip_unit(segment.twiss_args)
+        universe.madx.match(sequence=segment.sequence.name,
+                            vary=vary,
+                            constraints=constraints,
+                            twiss_init=twiss_args)
+        segment.twiss()
+
+    def _gconstr(self, axis):
+        return self.constraints.get(axis, [])
+
+    def _sconstr(self, axis):
+        return self.constraints.setdefault(axis, [])
+
+    def findConstraint(self, axis, elem):
+        """Find and return the constraint for the specified element."""
+        return [c for c in self._gconstr(axis) if c[0] == elem]
+
+    def addConstraint(self, axis, elem, envelope):
+        """Add constraint and perform matching."""
+        self.removeConstraint(axis, elem)
+        self._sconstr(axis).append( (elem, envelope) )
+
+    def removeConstraint(self, axis, elem):
+        """Remove the constraint for elem."""
+        try:
+            orig = self.constraints[axis]
+        except KeyError:
+            return
+        filtered = [c for c in orig if c[0]['name'] != elem['name']]
+        if filtered:
+            self.constraints[axis] = filtered
+        else:
+            del self.constraints[axis]
+
+    def clearConstraints(self):
+        """Remove all constraints."""
+        self.constraints = {}
 
 
 class MatchTransform(object):
@@ -140,128 +240,3 @@ def _get_any_elem_param(elem, params):
             if strip_unit(elem[param]) != 0.0:
                 return elem['name'] + '->' + param
     raise ValueError()
-
-
-class Matching(Object):
-
-    stopped = Signal()
-    addConstraint = Signal()
-    removeConstraint = Signal()
-    clearConstraints = Signal()
-
-
-    def __init__(self, segment, rules):
-        super(Matching, self).__init__()
-        self.segment = segment
-        self.constraints = {}
-        self._elements = segment.elements
-        self._rules = rules
-        self._variable_parameters = {}
-
-    def stop(self):
-        self.clear_constraints()
-        self.stopped.emit()
-
-    def _allvars(self, axis):
-        try:
-            allvars = self._variable_parameters[axis]
-        except KeyError:
-            # filter element list for usable types:
-            param_spec = self._rules.get(axis, {})
-            allvars = [(elem, param_spec[elem['type']])
-                       for elem in self._elements
-                       if elem['type'] in param_spec]
-            self._variable_parameters[axis] = allvars
-        return allvars
-
-    def match(self):
-
-        """Perform matching according to current constraints."""
-
-        segment = self.segment
-        universe = self.segment.universe
-        trans = MatchTransform(segment)
-
-        # transform constraints (envx => betx, etc)
-        trans_constr = {}
-        for axis, constr in self.constraints.items():
-            for elem, value in constr:
-                trans_name, trans_value = getattr(trans, axis)(value)
-                this_constr = trans_constr.setdefault(trans_name, [])
-                this_constr.append((elem, trans_value))
-
-        # The following uses a greedy algorithm to select all elements that
-        # can be used for varying. This means that for advanced matching it
-        # will most probably not work.
-        # Copy all needed variable lists (for later modification):
-        allvars = {axis: self._allvars(axis)[:]
-                   for axis in trans_constr}
-        vary = []
-        for axis, constr in trans_constr.items():
-            for elem, envelope in constr:
-                at = elem['at']
-                allowed = [v for v in allvars[axis] if v[0]['at'] < at]
-                if not allowed:
-                    # No variable in range found! Ok.
-                    continue
-                v = max(allowed, key=lambda v: v[0]['at'])
-                expr = _get_any_elem_param(v[0], v[1])
-                if expr is None:
-                    allvars[axis].remove(v)
-                else:
-                    vary.append(expr)
-                    for c in allvars.values():
-                        try:
-                            c.remove(v)
-                        except ValueError:
-                            pass
-
-        # create constraints list to be passed to Madx.match
-        constraints = []
-        for name, constr in trans_constr.items():
-            for elem, val in constr:
-                constraints.append({
-                    'range': elem['name'],
-                    name: universe.utool.strip_unit(name, val)})
-
-        twiss_args = universe.utool.dict_strip_unit(segment.twiss_args)
-        universe.madx.match(sequence=segment.sequence.name,
-                            vary=vary,
-                            constraints=constraints,
-                            twiss_init=twiss_args)
-        segment.twiss()
-
-    def _gconstr(self, axis):
-        return self.constraints.get(axis, [])
-
-    def _sconstr(self, axis):
-        return self.constraints.setdefault(axis, [])
-
-    def find_constraint(self, axis, elem):
-        """Find and return the constraint for the specified element."""
-        return [c for c in self._gconstr(axis) if c[0] == elem]
-
-    def add_constraint(self, axis, elem, envelope):
-        """Add constraint and perform matching."""
-        self.remove_constraint(axis, elem)
-        self._sconstr(axis).append( (elem, envelope) )
-        self.addConstraint.emit()
-
-    def remove_constraint(self, axis, elem):
-        """Remove the constraint for elem."""
-        try:
-            orig = self.constraints[axis]
-        except KeyError:
-            return
-        filtered = [c for c in orig if c[0]['name'] != elem['name']]
-        if filtered:
-            self.constraints[axis] = filtered
-        else:
-            del self.constraints[axis]
-        if len(filtered) < len(orig):
-            self.removeConstraint.emit()
-
-    def clear_constraints(self):
-        """Remove all constraints."""
-        self.constraints = {}
-        self.clearConstraints.emit()

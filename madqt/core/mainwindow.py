@@ -204,7 +204,7 @@ class MainWindow(QtGui.QMainWindow):
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
         select = plot.SelectTool(widget)
-        match = matching.MatchTool(widget)
+        match = matching.MatchTool(widget, self.config['matching'])
         self.setCentralWidget(widget)
 
     def setCentralWidget(self, widget):
