@@ -284,7 +284,7 @@ class MatchTool(CaptureTool):
         self.segment = plot.figure.segment
         self.rules = plot.figure.config['matching']
         self.constraints = []
-        self.drawtool = DrawConstraints(plot.figure)
+        self.markers = ConstraintMarkers(plot.figure, self.constraints)
 
     @property
     def elements(self):
@@ -294,14 +294,14 @@ class MatchTool(CaptureTool):
         """Start matching mode."""
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
-        self.plot.figure.scene_graph.items.append(self.drawtool)
+        self.plot.figure.scene_graph.items.append(self.markers)
         # TODO: insert markers
 
     def deactivate(self):
         """Stop matching mode."""
         self.clearConstraints()
-        self.plot.figure.scene_graph.items.remove(self.drawtool)
-        self.plot.figure.figure.draw()
+        self.markers.draw()
+        self.plot.figure.scene_graph.items.remove(self.markers)
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
@@ -341,9 +341,9 @@ class MatchTool(CaptureTool):
         # add another constraint to hold the orthogonal axis constant
         orth_env = self.segment.get_twiss(elem, conj)
         self.addConstraint(elem, conj, orth_env)
+        self.markers.draw()
 
         with waitCursor():
-            self.drawtool.update()
             self.match()
 
     def _allvars(self, axis):
@@ -412,18 +412,17 @@ class MatchTool(CaptureTool):
         """Add constraint and perform matching."""
         self.removeConstraint(elem, axis)
         self.constraints.append((elem, axis, envelope))
-        self.drawtool.addConstraint(elem, axis, envelope)
 
     def removeConstraint(self, elem, axis):
         """Remove the constraint for elem."""
-        self.constraints = [
+        self.constraints[:] = [
             c for c in self.constraints
             if c[0]['name'] != elem['name'] or c[1] != axis]
 
     def clearConstraints(self):
         """Remove all constraints."""
         del self.constraints[:]
-        self.drawtool.clear()
+        self.markers.draw()
 
 
 class MatchTransform(object):
@@ -461,33 +460,30 @@ def _get_any_elem_param(elem, params):
     raise ValueError()
 
 
-class DrawConstraints(SceneElement):
+class ConstraintMarkers(SceneElement):
 
-    def __init__(self, figure):
+    def __init__(self, figure, constraints):
         self.figure = figure
         self.style = figure.config['constraint_style']
         self.lines = []
-        self.constraints = []
+        self.constraints = constraints
 
-    def clear(self):
-        self.remove()
-        del self.constraints[:]
+    def draw(self):
+        self.update()
+        self.figure.figure.draw()
 
     def plot(self):
         for constraint in self.constraints:
             self.plotConstraint(*constraint)
 
     def update(self):
-        pass
+        self.remove()
+        self.plot()
 
     def remove(self):
         for line in self.lines:
             line.remove()
         del self.lines[:]
-
-    def addConstraint(self, elem, axis, envelope):
-        self.constraints.append((axis, elem, envelope))
-        self.plotConstraint(elem, axis, envelope)
 
     def plotConstraint(self, elem, axis, envelope):
         """Draw one constraint representation in the graph."""
@@ -497,8 +493,6 @@ class DrawConstraints(SceneElement):
             strip_unit(elem['at'] + elem['l']/2, figure.unit[figure.sname]),
             strip_unit(envelope, figure.unit[axis]),
             **self.style))
-
-
 
 
 #----------------------------------------
