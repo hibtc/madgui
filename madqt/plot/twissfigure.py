@@ -7,6 +7,7 @@ s-axis.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from collections import namedtuple
 from functools import partial
 
 from madqt.qt import QtGui, Qt
@@ -262,6 +263,9 @@ class CaptureTool(CheckTool):
 # Toolbar item for matching
 #----------------------------------------
 
+Constraint = namedtuple('Constraint', ['elem', 'axis', 'value'])
+
+
 class MatchTool(CaptureTool):
 
     """
@@ -336,11 +340,11 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        self.addConstraint(elem, name, event.y)
+        self.addConstraint(Constraint(elem, name, event.y))
 
         # add another constraint to hold the orthogonal axis constant
         orth_env = self.segment.get_twiss(elem, conj)
-        self.addConstraint(elem, conj, orth_env)
+        self.addConstraint(Constraint(elem, conj, orth_env))
         self.markers.draw()
 
         with waitCursor():
@@ -363,26 +367,26 @@ class MatchTool(CaptureTool):
 
         # transform constraints (envx => betx, etc)
         constraints = [
-            (elem,) + getattr(transform, axis)(value)
-            for elem, axis, value in self.constraints]
+            Constraint(c.elem, *getattr(transform, c.axis)(c.value))
+            for c in self.constraints]
 
         # The following uses a greedy algorithm to select all elements that
         # can be used for varying. This means that for advanced matching it
         # will most probably not work.
         # Copy all needed variable lists (for later modification):
-        axes = {axis for elem, axis, envelope in constraints}
+        axes = {c.axis for c in constraints}
         allvars = {axis: self._allvars(axis)[:] for axis in axes}
         vary = []
-        for elem, axis, envelope in constraints:
-            at = elem['at']
-            allowed = [v for v in allvars[axis] if v[0]['at'] < at]
+        for c in constraints:
+            at = c.elem['at']
+            allowed = [v for v in allvars[c.axis] if v[0]['at'] < at]
             if not allowed:
                 # No variable in range found! Ok.
                 continue
             v = max(allowed, key=lambda v: v[0]['at'])
             expr = _get_any_elem_param(v[0], v[1])
             if expr is None:
-                allvars[axis].remove(v)
+                allvars[c.axis].remove(v)
             else:
                 vary.append(expr)
                 for c in allvars.values():
@@ -406,18 +410,19 @@ class MatchTool(CaptureTool):
 
     def findConstraint(self, elem, axis):
         """Find and return the constraint for the specified element."""
-        return [c for c in self.constraints if c[0] == elem and c[1] == axis]
+        return [c for c in self.constraints
+                if c.elem['name'] == elem['name'] and c.axis == axis]
 
-    def addConstraint(self, elem, axis, envelope):
+    def addConstraint(self, constraint):
         """Add constraint and perform matching."""
-        self.removeConstraint(elem, axis)
-        self.constraints.append((elem, axis, envelope))
+        self.removeConstraint(constraint.elem, constraint.axis)
+        self.constraints.append(constraint)
 
     def removeConstraint(self, elem, axis):
         """Remove the constraint for elem."""
         self.constraints[:] = [
             c for c in self.constraints
-            if c[0]['name'] != elem['name'] or c[1] != axis]
+            if c.elem['name'] != elem['name'] or c.axis != axis]
 
     def clearConstraints(self):
         """Remove all constraints."""
