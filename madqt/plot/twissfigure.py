@@ -283,7 +283,7 @@ class MatchTool(CaptureTool):
         self.plot = plot
         self.segment = plot.figure.segment
         self.rules = plot.figure.config['matching']
-        self.constraints = {}
+        self.constraints = []
         self.drawtool = DrawConstraints(plot.figure)
 
     @property
@@ -321,8 +321,8 @@ class MatchTool(CaptureTool):
             return
 
         if event.button == 2:
-            self.removeConstraint(name, elem)
-            self.removeConstraint(conj, elem)
+            self.removeConstraint(elem, name)
+            self.removeConstraint(elem, conj)
             return
         elif event.button != 1:
             return
@@ -336,11 +336,11 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        self.addConstraint(name, elem, event.y)
+        self.addConstraint(elem, name, event.y)
 
         # add another constraint to hold the orthogonal axis constant
         orth_env = self.segment.get_twiss(elem, conj)
-        self.addConstraint(conj, elem, orth_env)
+        self.addConstraint(elem, conj, orth_env)
 
         with waitCursor():
             self.drawtool.update()
@@ -362,85 +362,67 @@ class MatchTool(CaptureTool):
         transform = MatchTransform(segment)
 
         # transform constraints (envx => betx, etc)
-        constraints = {}
-        for axis, constr in self.constraints.items():
-            for elem, value in constr:
-                trans_name, trans_value = getattr(transform, axis)(value)
-                this_constr = constraints.setdefault(trans_name, [])
-                this_constr.append((elem, trans_value))
+        constraints = [
+            (elem,) + getattr(transform, axis)(value)
+            for elem, axis, value in self.constraints]
 
         # The following uses a greedy algorithm to select all elements that
         # can be used for varying. This means that for advanced matching it
         # will most probably not work.
         # Copy all needed variable lists (for later modification):
-        allvars = {axis: self._allvars(axis)[:]
-                   for axis in constraints}
+        axes = {axis for elem, axis, envelope in constraints}
+        allvars = {axis: self._allvars(axis)[:] for axis in axes}
         vary = []
-        for axis, constr in constraints.items():
-            for elem, envelope in constr:
-                at = elem['at']
-                allowed = [v for v in allvars[axis] if v[0]['at'] < at]
-                if not allowed:
-                    # No variable in range found! Ok.
-                    continue
-                v = max(allowed, key=lambda v: v[0]['at'])
-                expr = _get_any_elem_param(v[0], v[1])
-                if expr is None:
-                    allvars[axis].remove(v)
-                else:
-                    vary.append(expr)
-                    for c in allvars.values():
-                        try:
-                            c.remove(v)
-                        except ValueError:
-                            pass
+        for elem, axis, envelope in constraints:
+            at = elem['at']
+            allowed = [v for v in allvars[axis] if v[0]['at'] < at]
+            if not allowed:
+                # No variable in range found! Ok.
+                continue
+            v = max(allowed, key=lambda v: v[0]['at'])
+            expr = _get_any_elem_param(v[0], v[1])
+            if expr is None:
+                allvars[axis].remove(v)
+            else:
+                vary.append(expr)
+                for c in allvars.values():
+                    try:
+                        c.remove(v)
+                    except ValueError:
+                        pass
 
         # create constraints list to be passed to Madx.match
-        constraints = [
+        madx_constraints = [
             {'range': elem['name'],
-             name: universe.utool.strip_unit(name, val)}
-            for name, constr in constraints.items()
-            for elem, val in constr
-        ]
+             axis: universe.utool.strip_unit(axis, val)}
+            for elem, axis, val in constraints]
 
         twiss_args = universe.utool.dict_strip_unit(segment.twiss_args)
         universe.madx.match(sequence=segment.sequence.name,
                             vary=vary,
-                            constraints=constraints,
+                            constraints=madx_constraints,
                             twiss_init=twiss_args)
         segment.twiss()
 
-    def _gconstr(self, axis):
-        return self.constraints.get(axis, [])
-
-    def _sconstr(self, axis):
-        return self.constraints.setdefault(axis, [])
-
-    def findConstraint(self, axis, elem):
+    def findConstraint(self, elem, axis):
         """Find and return the constraint for the specified element."""
-        return [c for c in self._gconstr(axis) if c[0] == elem]
+        return [c for c in self.constraints if c[0] == elem and c[1] == axis]
 
-    def addConstraint(self, axis, elem, envelope):
+    def addConstraint(self, elem, axis, envelope):
         """Add constraint and perform matching."""
-        self.removeConstraint(axis, elem)
-        self._sconstr(axis).append( (elem, envelope) )
-        self.drawtool.addConstraint(axis, elem, envelope)
+        self.removeConstraint(elem, axis)
+        self.constraints.append((elem, axis, envelope))
+        self.drawtool.addConstraint(elem, axis, envelope)
 
-    def removeConstraint(self, axis, elem):
+    def removeConstraint(self, elem, axis):
         """Remove the constraint for elem."""
-        try:
-            orig = self.constraints[axis]
-        except KeyError:
-            return
-        filtered = [c for c in orig if c[0]['name'] != elem['name']]
-        if filtered:
-            self.constraints[axis] = filtered
-        else:
-            del self.constraints[axis]
+        self.constraints = [
+            c for c in self.constraints
+            if c[0]['name'] != elem['name'] or c[1] != axis]
 
     def clearConstraints(self):
         """Remove all constraints."""
-        self.constraints = {}
+        del self.constraints[:]
         self.drawtool.clear()
 
 
@@ -503,17 +485,17 @@ class DrawConstraints(SceneElement):
             line.remove()
         del self.lines[:]
 
-    def addConstraint(self, name, elem, envelope):
-        self.constraints.append((name, elem, envelope))
-        self.plotConstraint(name, elem, envelope)
+    def addConstraint(self, elem, axis, envelope):
+        self.constraints.append((axis, elem, envelope))
+        self.plotConstraint(elem, axis, envelope)
 
-    def plotConstraint(self, name, elem, envelope):
+    def plotConstraint(self, elem, axis, envelope):
         """Draw one constraint representation in the graph."""
         figure = self.figure
-        ax = figure.get_ax_by_name(name)
+        ax = figure.get_ax_by_name(axis)
         self.lines.extend(ax.plot(
             strip_unit(elem['at'] + elem['l']/2, figure.unit[figure.sname]),
-            strip_unit(envelope, figure.unit[name]),
+            strip_unit(envelope, figure.unit[axis]),
             **self.style))
 
 
