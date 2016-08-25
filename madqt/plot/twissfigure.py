@@ -294,12 +294,14 @@ class MatchTool(CaptureTool):
         """Start matching mode."""
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
+        self.plot.figure.scene_graph.items.append(self.drawtool)
         # TODO: insert markers
 
     def deactivate(self):
         """Stop matching mode."""
         self.clearConstraints()
-        self.drawtool.update()
+        self.plot.figure.scene_graph.items.remove(self.drawtool)
+        self.plot.figure.figure.draw()
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
@@ -422,7 +424,7 @@ class MatchTool(CaptureTool):
         """Add constraint and perform matching."""
         self.removeConstraint(axis, elem)
         self._sconstr(axis).append( (elem, envelope) )
-        self.drawtool.drawConstraint(axis, elem, envelope)
+        self.drawtool.addConstraint(axis, elem, envelope)
 
     def removeConstraint(self, axis, elem):
         """Remove the constraint for elem."""
@@ -477,19 +479,35 @@ def _get_any_elem_param(elem, params):
     raise ValueError()
 
 
-class DrawConstraints(object):
+class DrawConstraints(SceneElement):
 
     def __init__(self, figure):
         self.figure = figure
         self.style = figure.config['constraint_style']
         self.lines = []
+        self.constraints = []
 
     def clear(self):
+        self.remove()
+        del self.constraints[:]
+
+    def plot(self):
+        for constraint in self.constraints:
+            self.plotConstraint(*constraint)
+
+    def update(self):
+        pass
+
+    def remove(self):
         for line in self.lines:
             line.remove()
-        self.lines = []
+        del self.lines[:]
 
-    def drawConstraint(self, name, elem, envelope):
+    def addConstraint(self, name, elem, envelope):
+        self.constraints.append((name, elem, envelope))
+        self.plotConstraint(name, elem, envelope)
+
+    def plotConstraint(self, name, elem, envelope):
         """Draw one constraint representation in the graph."""
         figure = self.figure
         ax = figure.get_ax_by_name(name)
@@ -498,9 +516,7 @@ class DrawConstraints(object):
             strip_unit(envelope, figure.unit[name]),
             **self.style))
 
-    def update(self):
-        """Draw all current constraints in the graph."""
-        self.figure.figure.draw()
+
 
 
 #----------------------------------------
