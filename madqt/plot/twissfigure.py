@@ -271,7 +271,7 @@ class MatchTool(CaptureTool):
 
     mode = 'MATCH'
     short = 'match constraints'
-    text = 'Click in plot to match for desired target value'
+    text = 'Match for desired target value'
 
     @property
     def icon(self):
@@ -516,7 +516,7 @@ class InfoTool(CaptureTool):
     mode = 'INFO'
     short = 'element info'
     icon = QtGui.QStyle.SP_MessageBoxInformation
-    text = 'Click on element to show open an info box'
+    text = 'Show element info boxes'
 
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""
