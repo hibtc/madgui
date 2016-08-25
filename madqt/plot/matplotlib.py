@@ -31,7 +31,6 @@ __all__ = [
     'PlotWidget',
     'FigurePair',
     'Curve',
-    'SceneGraph',
 ]
 
 
@@ -192,24 +191,6 @@ def _autoscale_axes(axes):
     axes.autoscale()
 
 
-class SceneGraph(object):
-
-    def __init__(self, items):
-        self.items = items
-
-    def remove(self):
-        for item in self.items:
-            item.remove()
-
-    def plot(self):
-        for item in self.items:
-            item.plot()
-
-    def update(self):
-        for item in self.items:
-            item.update()
-
-
 class Curve(object):
 
     """Plot a TWISS parameter curve segment into a 2D figure."""
@@ -222,19 +203,19 @@ class Curve(object):
         self.style = style
         self.line = None
 
-    def remove(self):
-        """Disconnect update events."""
-        if self.line is not None:
-            self.line.remove()
-            self.line = None
-
-    def update(self):
-        """Update the y values for one subplot."""
-        self.line.set_ydata(self.get_ydata())
-
     def plot(self):
         """Make one subplot."""
         xdata = self.get_xdata()
         ydata = self.get_ydata()
         self.axes.set_xlim(xdata[0], xdata[-1])
         self.line = self.axes.plot(xdata, ydata, **self.style)[0]
+
+    def update(self):
+        """Update the y values for one subplot."""
+        self.line.set_ydata(self.get_ydata())
+
+    def remove(self):
+        """Disconnect update events."""
+        if self.line is not None:
+            self.line.remove()
+            self.line = None

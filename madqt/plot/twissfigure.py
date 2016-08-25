@@ -14,6 +14,7 @@ from madqt.qt import QtGui, Qt
 from madqt.util.qt import waitCursor, notifyCloseEvent, notifyEvent
 from madqt.core.unit import units, strip_unit, get_unit_label, get_raw_label
 from madqt.resource.package import PackageResource
+from madqt.plot.base import SceneElement, SceneGraph
 
 
 __all__ = [
@@ -65,9 +66,9 @@ class TwissFigure(object):
 
         # create scene
         elements_style = config['element_style']
-        self.scene_graph = backend.SceneGraph([])
+        self.scene_graph = SceneGraph([])
         self.add_twiss_curve(self.basename)
-        self.indicators = backend.SceneGraph([
+        self.indicators = SceneGraph([
             ElementIndicators(axes.x, self, elements_style),
             ElementIndicators(axes.y, self, elements_style),
         ])
@@ -82,10 +83,6 @@ class TwissFigure(object):
     @property
     def backend_figure(self):
         return self.figure.backend_figure
-
-    def remove(self):
-        self.scene_graph.remove()
-        self.segment.updated.disconnect(self.update)
 
     def format_coord(self, name, x, y):
         unit = self.unit
@@ -116,6 +113,10 @@ class TwissFigure(object):
         """Update existing plot after TWISS recomputation."""
         self.scene_graph.update()
         self.figure.draw()
+
+    def remove(self):
+        self.scene_graph.remove()
+        self.segment.updated.disconnect(self.update)
 
     def get_ax_by_name(self, name):
         return self.figure.axes[self.names.index(name)]
@@ -183,11 +184,6 @@ class ElementIndicators(object):
     def elements(self):
         return self.figure.segment.elements
 
-    def remove(self):
-        for line in self.lines:
-            line.remove()
-        self.lines.clear()
-
     def plot(self):
         """Draw the elements into the canvas."""
         axes = self.axes
@@ -206,6 +202,11 @@ class ElementIndicators(object):
 
     def update(self):
         pass
+
+    def remove(self):
+        for line in self.lines:
+            line.remove()
+        del self.lines[:]
 
     def get_element_type(self, elem):
         """Return the element type name used for properties like coloring."""
