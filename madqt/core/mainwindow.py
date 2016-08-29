@@ -11,7 +11,10 @@ import logging
 import threading
 import os
 
+from six import text_type
+
 from madqt.qt import QtCore, QtGui
+from madqt.core.base import Object, Signal
 
 import madqt.util.filedialog as filedialog
 import madqt.util.font as font
@@ -181,8 +184,10 @@ class MainWindow(QtGui.QMainWindow):
         if universe is None:
             return
         self._createLogTab()
-        threading.Thread(target=self._read_stream,
-                         args=(universe.remote_process.stdout,)).start()
+
+        madx_log = AsyncRead(universe.remote_process.stdout)
+        madx_log.dataReceived.connect(self._log_stream.write)
+
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
         QtGui.qApp.aboutToQuit.connect(universe.destroy)
@@ -263,18 +268,37 @@ class MainWindow(QtGui.QMainWindow):
         self._log_stream = stream
         self._log_manager = manager
 
-    def _read_stream(self, stream):
-        # The file iterator seems to be buffered:
-        for line in iter(stream.readline, b''):
-            try:
-                self._log_stream.write(line)
-            except:
-                break
+    def _appendToLog(self, text):
+        self._log_widget.appendPlainText(text.rstrip())
 
     def closeEvent(self, event):
-        # Terminate the remote session, otherwise `_read_stream()` may hang:
+        # Terminate the remote session, otherwise `_readLoop()` may hang:
         self.destroyUniverse()
         event.accept()
+
+
+class AsyncRead(Object):
+
+    """
+    Write to a text control.
+    """
+
+    dataReceived = Signal(text_type)
+    closed = Signal()
+
+    def __init__(self, stream):
+        super(AsyncRead, self).__init__()
+        self.stream = stream
+        self.thread = threading.Thread(target=self._readLoop)
+        self.thread.start()
+
+    def _readLoop(self):
+        # The file iterator seems to be buffered:
+        for line in iter(self.stream.readline, b''):
+            try:
+                self.dataReceived.emit(line)
+            except BaseException:
+                break
 
 
 class TextCtrlStream(object):
