@@ -107,7 +107,11 @@ class MainWindow(QtGui.QMainWindow):
     def createControls(self):
         # Create an empty container as central widget in advance. For more
         # info, see the MainWindow.setCentralWidget method.
-        self.setCentralWidget(QtGui.QWidget())
+        widget = QtGui.QWidget()
+        layout = QtGui.QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
 
     def createStatusBar(self):
         self.statusBar()
@@ -124,9 +128,8 @@ class MainWindow(QtGui.QMainWindow):
         ])
         filename = QtGui.QFileDialog.getOpenFileName(
             self, 'Open file', self.folder, filters)
-        if not filename:
-            return
-        self.loadFile(filename)
+        if filename:
+            self.loadFile(filename)
 
     def fileSave(self):
         pass
@@ -220,21 +223,18 @@ class MainWindow(QtGui.QMainWindow):
         figure = figure.TwissFigure(plot, segment, basename, config)
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
-        self.setCentralWidget(widget)
+        self.setMainWidget(widget)
 
-    def setCentralWidget(self, widget):
+    def setMainWidget(self, widget):
         """Set the central widget."""
-        central = self.centralWidget()
-        if central is None:
-            return super(MainWindow, self).setCentralWidget(widget)
         # On PyQt4, if the central widget is replaced after having created a
         # dock widget, the layout gets messed up (in this case the central
         # widget does not respect the preferred size hints). Therefore, we
         # have to just update its contents:
-        layout = QtGui.QVBoxLayout()
+        layout = self.centralWidget().layout()
+        layout.takeAt(0)            # safe to call on empty layouts
         layout.addWidget(widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        central.setLayout(layout)
+        self.updateGeometry()
 
     def _createShell(self):
         """Create a python shell widget."""
