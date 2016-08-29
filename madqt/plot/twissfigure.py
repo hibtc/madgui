@@ -575,6 +575,7 @@ class InfoTool(CaptureTool):
             frame.tabifyDockWidget(self.activeBox(), dock)
             dock.show()
             dock.raise_()
+        self.segment.universe.destroyed.connect(dock.close)
 
         self._info_boxes.append(dock)
         self.markers.draw()

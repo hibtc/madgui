@@ -223,6 +223,9 @@ class MainWindow(QtGui.QMainWindow):
         figure = figure.TwissFigure(plot, segment, basename, config)
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
+        self.universe.destroyed.connect(widget.close)
+        self.universe.destroyed.connect(figure.remove)
+
         self.setMainWidget(widget)
 
     def setMainWidget(self, widget):
@@ -259,6 +262,7 @@ class MainWindow(QtGui.QMainWindow):
         self._basicConfig(text, logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
                           '%H:%M:%S')
+        self.universe.destroyed.connect(dock.close)
 
     def _basicConfig(self, widget, level, fmt, datefmt=None):
         """Configure logging."""

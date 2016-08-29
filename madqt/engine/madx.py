@@ -47,6 +47,8 @@ class Universe(Object):
     :ivar utool: Unit conversion tool for MAD-X.
     """
 
+    destroyed = Signal()
+
     def __init__(self):
         super(Universe, self).__init__()
         self.data = {}
@@ -70,6 +72,7 @@ class Universe(Object):
         self.madx = None
         if self.segment is not None:
             self.segment.destroy()
+        self.destroyed.emit()
 
     def call(self, name):
         """Load a MAD-X file into the current universe."""
