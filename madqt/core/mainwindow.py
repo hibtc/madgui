@@ -41,7 +41,13 @@ class MainWindow(QtGui.QMainWindow):
         self.universe = None
         self.folder = self.config.get('model_path', '')
         self.initUI()
-        self.loadDefault()
+        # Defer `loadDefault` to avoid creation of a AsyncRead thread before
+        # the main loop is entered: (Being in the mainloop simplifies
+        # terminating the AsyncRead thread via the QApplication.aboutToQuit
+        # signal. Without this, if the setup code excepts after creating the
+        # thread the main loop will never be entered and thus aboutToQuit
+        # never be emitted, even when pressing Ctrl+C.)
+        QtCore.QTimer.singleShot(0, self.loadDefault)
 
     def initUI(self):
         self.createMenu()
