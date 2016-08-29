@@ -111,10 +111,13 @@ class TwissFigure(object):
         self.scene_graph.plot()
         fig.draw()
 
+    def draw(self):
+        self.figure.draw()
+
     def update(self):
         """Update existing plot after TWISS recomputation."""
         self.scene_graph.update()
-        self.figure.draw()
+        self.draw()
 
     def remove(self):
         self.scene_graph.remove()
@@ -480,7 +483,7 @@ class ConstraintMarkers(SceneElement):
 
     def draw(self):
         self.update()
-        self.figure.figure.draw()
+        self.figure.draw()
 
     def plot(self):
         for constraint in self.constraints:
@@ -627,7 +630,7 @@ class ElementMarkers(object):
 
     def draw(self):
         self.update()
-        self.figure.figure.draw()
+        self.figure.draw()
 
     def plot(self):
         for box in self.boxes:
@@ -681,7 +684,7 @@ class CompareTool(CheckTool):
         if self.curve:
             self.curve.plot()
             self.plot.figure.scene_graph.items.append(self.curve)
-            self.plot.figure.figure.draw()
+            self.plot.figure.draw()
         else:
             self.setChecked(False)
 
@@ -689,7 +692,7 @@ class CompareTool(CheckTool):
         if self.curve:
             self.curve.remove()
             self.plot.figure.scene_graph.items.remove(self.curve)
-            self.plot.figure.figure.draw()
+            self.plot.figure.draw()
             self.curve = None
 
     def createCurve(self):
