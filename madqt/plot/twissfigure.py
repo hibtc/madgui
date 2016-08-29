@@ -193,12 +193,12 @@ class ElementIndicators(object):
             elem_type = self.get_element_type(elem)
             if elem_type is None:
                 continue
-            patch_x = strip_unit(elem['at'], s_unit)
+            at = strip_unit(elem['at'], s_unit)
             if strip_unit(elem['l']) != 0:
                 patch_w = strip_unit(elem['l'], s_unit)
-                line = axes.axvspan(patch_x, patch_x + patch_w, **elem_type)
+                line = axes.axvspan(at, at + patch_w, **elem_type)
             else:
-                line = axes.vlines(patch_x, **elem_type)
+                line = axes.vlines(at, **elem_type)
             self.lines.append(line)
 
     def update(self):
@@ -521,6 +521,8 @@ class InfoTool(CaptureTool):
         self.plot = plot
         self.segment = plot.figure.segment
         self._info_boxes = []
+        self.markers = ElementMarkers(self.plot.figure, self._info_boxes)
+        self.plot.figure.scene_graph.items.append(self.markers)
 
     def activate(self):
         """Start select mode."""
@@ -552,6 +554,7 @@ class InfoTool(CaptureTool):
             box = self.activeBox()
             box.widget().el_name = elem_name
             box.setWindowTitle(elem_name)
+            self.markers.draw()
             return
 
         dock, info = self.create_info_box(elem_name)
@@ -566,6 +569,7 @@ class InfoTool(CaptureTool):
             dock.raise_()
 
         self._info_boxes.append(dock)
+        self.markers.draw()
 
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
@@ -601,3 +605,37 @@ class InfoTool(CaptureTool):
         elements = self.segment.elements
         new_elem = elements[new_index % len(elements)]
         cur_box.el_name = new_elem['name']
+        self.markers.draw()
+
+
+class ElementMarkers(object):
+
+    def __init__(self, figure, boxes):
+        self.figure = figure
+        self.style = figure.config['select_style']
+        self.lines = []
+        self.boxes = boxes
+
+    def draw(self):
+        self.update()
+        self.figure.figure.draw()
+
+    def plot(self):
+        for box in self.boxes:
+            self.plotMarker(self.figure.figure.axes.x, box.widget().element)
+            self.plotMarker(self.figure.figure.axes.y, box.widget().element)
+
+    def update(self):
+        self.remove()
+        self.plot()
+
+    def remove(self):
+        for line in self.lines:
+            line.remove()
+        del self.lines[:]
+
+    def plotMarker(self, ax, element):
+        """Draw the elements into the canvas."""
+        s_unit = self.figure.unit[self.figure.sname]
+        at = strip_unit(element['at'], s_unit)
+        self.lines.append(ax.axvline(at, **self.style))
