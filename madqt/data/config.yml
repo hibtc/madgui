@@ -65,10 +65,10 @@ line_view:
   # Style for the constraint markers. Can contain any keyword arguments to
   # ``matplotlib.axes.Axes.plot()``:
   constraint_style:
-    marker: "s"
+    marker: "o"
     fillstyle: "full"
-    markersize: 7
-    color: 'black'
+    markersize: 12
+    color: 'yellow'
     zorder: 1
 
   # Style for the selected element markers. Can contain any keyword

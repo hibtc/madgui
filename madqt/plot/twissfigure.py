@@ -494,8 +494,9 @@ class ConstraintMarkers(SceneElement):
         """Draw one constraint representation in the graph."""
         figure = self.figure
         ax = figure.get_ax_by_name(axis)
+        at = elem['at'] + elem['l']         # TODO: how to match at center?
         self.lines.extend(ax.plot(
-            strip_unit(elem['at'] + elem['l']/2, figure.unit[figure.sname]),
+            strip_unit(at, figure.unit[figure.sname]),
             strip_unit(envelope, figure.unit[axis]),
             **self.style))
 
