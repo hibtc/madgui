@@ -558,7 +558,7 @@ class InfoTool(CaptureTool):
             return
 
         dock, info = self.create_info_box(elem_name)
-        notifyCloseEvent(dock, lambda: self._info_boxes.remove(dock))
+        notifyCloseEvent(dock, partial(self._onCloseBox, dock))
         notifyEvent(info, 'focusInEvent', lambda event: self.setActiveBox(dock))
 
         frame = self.plot.window()
@@ -574,6 +574,10 @@ class InfoTool(CaptureTool):
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
         self.plot.canvas.setFocus()
+
+    def _onCloseBox(self, box):
+        self._info_boxes.remove(box)
+        self.markers.draw()
 
     def activeBox(self):
         return self._info_boxes[-1]
