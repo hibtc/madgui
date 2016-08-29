@@ -199,7 +199,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
-        QtGui.qApp.aboutToQuit.connect(universe.destroy)
+        QtGui.qApp.aboutToQuit.connect(self.destroyUniverse)
 
     def destroyUniverse(self):
         if self.universe is None:
