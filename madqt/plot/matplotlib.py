@@ -35,6 +35,7 @@ __all__ = [
 
 
 Pair = namedtuple('Pair', ['x', 'y'])
+Triple = namedtuple('Triple', ['x', 'y', 's'])
 
 MouseEvent = namedtuple('MouseEvent', [
     'button', 'x', 'y', 'axes', 'elem', 'guiEvent'])

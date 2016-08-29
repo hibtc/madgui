@@ -10,10 +10,12 @@ from __future__ import unicode_literals
 from collections import namedtuple
 from functools import partial
 
+import numpy as np
+
 from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor, notifyCloseEvent, notifyEvent
-from madqt.core.unit import units, strip_unit, get_unit_label, get_raw_label
+from madqt.core.unit import units, strip_unit, from_config, get_unit_label, get_raw_label
 from madqt.resource.package import PackageResource
 from madqt.plot.base import SceneElement, SceneGraph
 
@@ -43,15 +45,13 @@ class TwissFigure(object):
         self.figure = figure = backend.FigurePair()
 
         self.title = config['title'][basename]
-        self.sname = sname = 's'
-        self.names = backend.Pair(basename+'x', basename+'y')
+        self.names = backend.Triple(basename+'x', basename+'y', 's')
 
         # plot style
         self.label = config['label']
         unit_names = config['unit']
-        all_axes_names = (self.sname,) + self.names
         self.unit = {col: getattr(units, unit_names[col])
-                     for col in all_axes_names}
+                     for col in self.names}
 
         axes = self.figure.axes
 
@@ -80,6 +80,7 @@ class TwissFigure(object):
     def attach(self, plot, canvas, toolbar):
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
+        plot.addTool(CompareTool(plot))
 
     @property
     def backend_figure(self):
@@ -106,7 +107,7 @@ class TwissFigure(object):
         fig.clear()
         fig.axes.x.set_ylabel(self.get_label(self.names.x))
         fig.axes.y.set_ylabel(self.get_label(self.names.y))
-        fig.set_slabel(self.get_label(self.sname))
+        fig.set_slabel(self.get_label(self.names.s))
         self.scene_graph.plot()
         fig.draw()
 
@@ -179,7 +180,7 @@ class ElementIndicators(object):
 
     @property
     def s_unit(self):
-        return self.figure.unit[self.figure.sname]
+        return self.figure.unit[self.figure.names.s]
 
     @property
     def elements(self):
@@ -229,9 +230,13 @@ class ElementIndicators(object):
 
 class CheckTool(object):
 
+    action = None
     active = False
 
-    def setActive(self, active):
+    def setChecked(self, checked):
+        self.action.setChecked(checked)
+
+    def onToggle(self, active):
         """Update enabled state to match the UI."""
         if active == self.active:
             return
@@ -245,9 +250,9 @@ class CheckTool(object):
         icon = self.icon
         if isinstance(icon, QtGui.QStyle.StandardPixmap):
             icon =  self.plot.style().standardIcon(icon)
-        action = QtGui.QAction(icon, self.text, self.plot)
+        action = self.action = QtGui.QAction(icon, self.text, self.plot)
         action.setCheckable(True)
-        action.toggled.connect(self.setActive)
+        action.toggled.connect(self.onToggle)
         return action
 
 
@@ -496,7 +501,7 @@ class ConstraintMarkers(SceneElement):
         ax = figure.get_ax_by_name(axis)
         at = elem['at'] + elem['l']         # TODO: how to match at center?
         self.lines.extend(ax.plot(
-            strip_unit(at, figure.unit[figure.sname]),
+            strip_unit(at, figure.unit[figure.names.s]),
             strip_unit(envelope, figure.unit[axis]),
             **self.style))
 
@@ -640,6 +645,90 @@ class ElementMarkers(object):
 
     def plotMarker(self, ax, element):
         """Draw the elements into the canvas."""
-        s_unit = self.figure.unit[self.figure.sname]
+        s_unit = self.figure.unit[self.figure.names.s]
         at = strip_unit(element['at'], s_unit)
         self.lines.append(ax.axvline(at, **self.style))
+
+
+#----------------------------------------
+# Compare tool
+#----------------------------------------
+
+
+class CompareTool(CheckTool):
+
+    """
+    Display a precomputed reference curve for comparison.
+    """
+
+    short = 'Show reference curve'
+    icon = QtGui.QStyle.SP_DirLinkIcon
+    text = 'Show MIRKO envelope for comparison. The envelope is computed for the default parameters.'
+
+    # TODO: allow to plot any dynamically loaded curve from any file
+
+    def __init__(self, plot):
+        """
+        The reference curve is NOT visible by default.
+        """
+        self.plot = plot
+        self.style = plot.figure.config['reference_style']
+        self.curve = None
+
+    def activate(self):
+        if not self.curve:
+            self.createCurve()
+        if self.curve:
+            self.curve.plot()
+            self.plot.figure.scene_graph.items.append(self.curve)
+            self.plot.figure.figure.draw()
+        else:
+            self.setChecked(False)
+
+    def deactivate(self):
+        if self.curve:
+            self.curve.remove()
+            self.plot.figure.scene_graph.items.remove(self.curve)
+            self.plot.figure.figure.draw()
+            self.curve = None
+
+    def createCurve(self):
+        self.curve = None
+        try:
+            data = self.getData()
+        except KeyError:
+            return
+        figure = self.plot.figure
+        self.curve = SceneGraph([
+            self.plot_ax(data, figure.figure.axes.x, figure.names.x),
+            self.plot_ax(data, figure.figure.axes.y, figure.names.y),
+        ])
+
+    def plot_ax(self, data, axes, name):
+        """Plot the envelope into the figure."""
+        figure = self.plot.figure
+        sname = figure.names.s
+        return figure.backend.Curve(
+            axes,
+            lambda: strip_unit(data[sname], figure.unit[sname]),
+            lambda: strip_unit(data[name], figure.unit[name]),
+            self.style)
+
+    def getData(self):
+        metadata, resource = self.getMeta()
+        column_info = metadata['columns']
+        figure = self.plot.figure
+        columns = [column_info[ax] for ax in figure.names]
+        usecols = [column['column'] for column in columns]
+        with resource.filename() as f:
+            ref_data = np.loadtxt(f, usecols=usecols, unpack=True)
+        return {
+            name: from_config(column['unit']) * data
+            for name, column, data in zip(figure.names, columns, ref_data)
+        }
+
+    def getMeta(self):
+        universe = self.plot.figure.segment.universe
+        metadata = universe.data['review']
+        resource = universe.repo.get(metadata['file'])
+        return metadata, resource
