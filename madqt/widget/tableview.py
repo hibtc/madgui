@@ -1,5 +1,6 @@
 # encoding: utf-8
 """
+Table widget specified by column behaviour.
 """
 
 from __future__ import absolute_import
@@ -7,8 +8,16 @@ from __future__ import unicode_literals
 
 from collections import MutableSequence
 from contextlib import contextmanager
+from inspect import getmro
+
+from six import (python_2_unicode_compatible,
+                 text_type,
+                 string_types as basestring)
 
 from madqt.qt import QtCore, QtGui, Qt
+from madqt.core.base import Object, Signal
+
+import madqt.core.unit as unit
 
 
 __all__ = [
@@ -19,17 +28,36 @@ __all__ = [
 ]
 
 
+defaultTypes = {}       # default {type: value proxy} mapping
+bareTypes = {}          # default
+
+
 class ColumnInfo(object):
 
     """Column specification for a table widget."""
 
-    def __init__(self, title, gettext):
+    types = defaultTypes
+
+    def __init__(self, title, getter, types=None, **kwargs):
         """
         :param str title: column title
-        :param callable gettext: item -> str
+        :param callable getter: item -> :class:`BaseProxy`
+        :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
         self.title = title
-        self.gettext = gettext
+        self.getter = getter
+        self.kwargs = kwargs
+        if types is not None:
+            self.types = types
+
+    def valueProxy(self, item):
+        if isinstance(self.getter, basestring):
+            value = getattr(item, self.getter)
+        else:
+            value = self.getter(item)
+        if isinstance(value, BaseProxy):
+            return value
+        return makeValue(value, self.types, **self.kwargs)
 
 
 class ItemsList(MutableSequence):
@@ -115,6 +143,11 @@ class ItemsList(MutableSequence):
 
 class TableModel(QtCore.QAbstractTableModel):
 
+    try:
+        baseFlags = Qt.ItemNeverHasChildren
+    except AttributeError:
+        baseFlags = 0
+
     """
     Table data model.
 
@@ -137,6 +170,11 @@ class TableModel(QtCore.QAbstractTableModel):
     def rows(self, rows):
         self._rows[:] = rows
 
+    def value(self, index):
+        column = self.columns[index.column()]
+        item = self.rows[index.row()]
+        return column.valueProxy(item)
+
     # QAbstractTableModel overrides
 
     def columnCount(self, parent):
@@ -145,21 +183,29 @@ class TableModel(QtCore.QAbstractTableModel):
     def rowCount(self, parent):
         return len(self.rows)
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return None
-        elif role != Qt.DisplayRole:
-            return None
-        column = self.columns[index.column()]
-        item = self.rows[index.row()]
-        return column.gettext(item)
+        return self.value(index).data(role)
 
-    def headerData(self, section, orientation, role):
-        if role == Qt.DisplayRole:
-            return None
-        if orientation == Qt.Horizontal:
+    def flags(self, index):
+        if not index.isValid():
+            return super(TableModel, self).flags(index)
+        return self.value(index).flags() | self.baseFlags
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             return self.columns[section].title
         return None
+
+    def setData(self, index, value, role=Qt.EditRole):
+        if not index.isValid():
+            return False
+        proxy = self.value(index)
+        changed = proxy.setData(value, role)
+        if changed:
+            self.dataChanged.emit(index, index)
+        return changed
 
 
 class TableView(QtGui.QTableView):
@@ -181,3 +227,229 @@ class TableView(QtGui.QTableView):
     def rows(self, rows):
         """List-like access to the data."""
         self.model().rows = rows
+
+
+# Value types
+
+
+@python_2_unicode_compatible
+class BaseProxy(Object):
+
+    """Wrap a value of a specific type for string rendering and editting."""
+
+    default = ""
+    fmtspec = ''
+    editable = True
+    dataChanged = Signal(object)
+    types = defaultTypes
+
+    # data role, see: http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
+    roles = {
+        # general purpose roles
+        Qt.DisplayRole:                 'display',
+        Qt.DecorationRole:              'decoration',
+        Qt.EditRole:                    'edit',
+        Qt.ToolTipRole:                 'toolTip',
+        Qt.StatusTipRole:               'statusTip',
+        Qt.WhatsThisRole:               'whatsThis',
+        Qt.SizeHintRole:                'sizeHint',
+        # appearance and meta data
+        Qt.FontRole:                    'font',
+        Qt.TextAlignmentRole:           'textAlignment',
+        Qt.BackgroundRole:              'background',
+        Qt.BackgroundColorRole:         'backgroundColor',
+        Qt.ForegroundRole:              'foreground',
+        Qt.TextColorRole:               'textColor',
+        Qt.CheckStateRole:              'checkState',
+        Qt.InitialSortOrderRole:        'initialSortOrder',
+        # Accessibility roles
+        Qt.AccessibleTextRole:          'accessibleText',
+        Qt.AccessibleDescriptionRole:   'accessibleDescription',
+    }
+
+    def __init__(self, value,
+                 # keyword-only arguments:
+                 default=None,
+                 editable=None,
+                 fmtspec=None,
+                 types=None):
+        """Store the value."""
+        super(BaseProxy, self).__init__()
+        self.value = value
+        if default is not None: self.default = default
+        if editable is not None: self.editable = editable
+        if fmtspec is not None: self.fmtspec = fmtspec
+        if types is not None: self.types = types
+
+    def __str__(self):
+        """Render the value."""
+        return self.display()
+
+    def __repr__(self):
+        return "{}({})".format(
+            self.__class__.__name__,
+            self.display())
+
+    def data(self, role):
+        getter_name = self.roles.get(role, '')
+        getter_func = getattr(self, getter_name, lambda: None)
+        return getter_func()
+
+    def setData(self, value, role=Qt.EditRole):
+        if self.editable and role == Qt.EditRole:
+            self.value = value
+            self.dataChanged.emit(self.value)
+            return True
+        return False
+
+    def flags(self):
+        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
+        if self.editable:
+            # TODO: let ItemIsEditable=True but use a read-only editor
+            flags |= Qt.ItemIsEditable
+        return flags
+
+    # role query functions
+
+    def display(self):
+        """Render the value as string."""
+        if self.value is None:
+            return ""
+        return format(self.value, self.fmtspec)
+
+    def edit(self):
+        return self.value if self.editable else None
+
+    def checkState(self):
+        checked = self.checked()
+        if checked is None:
+            return None
+        return Qt.Checked if checked else Qt.Unchecked
+
+    def checked(self):
+        return None
+
+    # TODO: delegate functions (initiateEdit / createEditor)
+
+
+class StringValue(BaseProxy):
+
+    """Bare string value."""
+
+    pass
+
+
+class QuotedStringValue(StringValue):
+
+    """String value, but format with enclosing quotes."""
+
+    def display(self):
+        """Quote string."""
+        if self.value is None:
+            return ""
+        return repr(self.value).lstrip('u')
+
+
+class FloatValue(BaseProxy):
+
+    """Float value."""
+
+    default = 0.0
+    fmtspec = '.3f'
+
+
+class IntValue(BaseProxy):
+
+    """Integer value."""
+
+    default = 0
+
+
+class BoolValue(BaseProxy):
+
+    """Boolean value."""
+
+    default = False
+
+    def checked(self):
+        return self.value
+
+    def flags(self):
+        base_flags = super(BoolValue, self).flags()
+        return base_flags & ~Qt.ItemIsEditable | Qt.ItemIsUserCheckable
+
+    def setData(self, value, role):
+        if role == Qt.CheckStateRole:
+            role = Qt.EditRole
+            value = value == Qt.Checked
+        return super(BoolValue, self).setData(value, role)
+
+
+class QuantityValue(FloatValue):
+
+    fmtspec = '.3f'
+
+    def display(self):
+        return unit.format_quantity(self.value, self.fmtspec)
+
+    def edit(self):
+        return unit.strip_unit(self.value)
+
+    def setData(self, value, role):
+        if role == Qt.EditRole:
+            value = unit.units.Quantity(value, self.value.units)
+        return super(QuantityValue, self).setData(value, role)
+
+
+class ListValue(BaseProxy):
+
+    """List value."""
+
+    def display(self):
+        return '[{}]'.format(
+            ", ".join(map(self.formatValue, self.value)))
+
+    def formatValue(self, value):
+        return makeValue(value, self.types).display()
+
+
+defaultTypes.update({
+    float: FloatValue,
+    int: IntValue,
+    bool: BoolValue,
+    text_type: QuotedStringValue,
+    bytes: QuotedStringValue,
+    list: ListValue,
+    unit.units.Quantity: QuantityValue,
+})
+
+bareTypes.update(defaultTypes)
+bareTypes.update({
+    text_type: StringValue,
+    bytes: StringValue,
+})
+
+
+# makeValue
+
+def makeValue(value, types=defaultTypes, **kwargs):
+    types = _setdefault(types, BaseProxy.types)
+    try:
+        match = _get_best_base(value.__class__, types)
+    except ValueError:
+        factory = BaseProxy
+    else:
+        factory = types[match]
+    return factory(value, types=types, **kwargs)
+
+
+def _get_best_base(cls, bases):
+    bases = tuple(base for base in bases if issubclass(cls, base))
+    mro = getmro(cls)
+    return min(bases, key=(mro + bases).index)
+
+
+def _setdefault(dict_, default):
+    result = default.copy()
+    result.update(dict_)
+    return result

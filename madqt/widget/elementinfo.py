@@ -7,7 +7,6 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import madqt.widget.tableview as tableview
-import madqt.core.unit as unit
 
 
 __all__ = [
@@ -15,29 +14,37 @@ __all__ = [
 ]
 
 
-def _format_key(item):
-    return item[0]
+def makeIndex(values):
+    return {k: i for i, k in enumerate(values)}
 
 
-def _format_val(item):
-    val = item[1]
-    if isinstance(val, list):
-        return '[{}]'.format(
-            ", ".join(_format_val((None, v)) for v in val)
-        )
-    elif isinstance(val, (float, unit.units.Quantity)):
-        return unit.format_quantity(val, '.3f')
-    elif isinstance(val, basestring):
-        return val
-    else:
-        return str(val)
+class ParamInfo(object):
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    # sort preferred elements to top:
+    sortTop = makeIndex([
+        'Name',
+        'Type',
+        'At',
+        'L',
+        'Ksl',
+        'Knl',
+    ])
+
+    def sortKey(self):
+        return (self.sortTop.get(self.name, len(self.sortTop)),
+                self.name, self.value)
 
 
 class ElementInfoBox(tableview.TableView):
 
     columns = [
-        tableview.ColumnInfo('Parameter', _format_key),
-        tableview.ColumnInfo('Value', _format_val),
+        tableview.ColumnInfo('Parameter', 'name', editable=False,
+                             types=tableview.bareTypes),
+        tableview.ColumnInfo('Value', 'value', editable=False),
     ]
 
     def __init__(self, segment, el_name, *args, **kwargs):
@@ -68,36 +75,12 @@ class ElementInfoBox(tableview.TableView):
         return self.segment.utool.dict_add_unit(raw_element)
 
     def update(self):
-
         """
         Update the contents of the managed popup window.
         """
-
-        el = self.element
-        rows = list(el.items())
-
-        # convert to title case:
-        rows = [(k.title(), v) for (k, v) in rows]
-
-        # presort alphanumerically:
-        # (with some luck the order on the elements with equal key in the
-        # subsequent sort will be left invariant)
-        rows = sorted(rows)
-
-        # sort preferred elements to top:
-        order = [
-            'Name',
-            'Type',
-            'At',
-            'L',
-            'Ksl',
-            'Knl',
-        ]
-        order = {k: i for i, k in enumerate(order)}
-        rows = sorted(rows, key=lambda row: order.get(row[0], len(order)))
-        rows = [row for row in rows if row[0] != 'Vary']
-
-        # update view:
-        self.rows = rows
-
+        blacklist = {'vary'}
+        rows = [ParamInfo(k.title(), v)
+                for k, v in self.element.items()
+                if k.lower() not in blacklist]
+        self.rows = sorted(rows, key=ParamInfo.sortKey)
         self.resizeColumnsToContents()
