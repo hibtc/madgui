@@ -61,7 +61,9 @@ units = initialize()
 def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
     if unit is None:
-        return quantity.magnitude
+        if isinstance(quantity, units.Quantity):
+            return quantity.magnitude
+        return quantity
     if isinstance(unit, (list, tuple)):
         # FIXME: 'zip' truncates without warning if not enough units
         # are defined
