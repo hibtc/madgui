@@ -21,8 +21,16 @@ def makeIndex(values):
 class ParamInfo(object):
 
     def __init__(self, name, value):
-        self.name = name
-        self.value = value
+        self._name = tableview.StringValue(name, editable=False)
+        self._value = tableview.makeValue(value, editable=False)
+
+    @property
+    def name(self):
+        return self._name.value
+
+    @property
+    def value(self):
+        return self._value.value
 
     # sort preferred elements to top:
     sortTop = makeIndex([
@@ -42,9 +50,8 @@ class ParamInfo(object):
 class ElementInfoBox(tableview.TableView):
 
     columns = [
-        tableview.ColumnInfo('Parameter', 'name', editable=False,
-                             types=tableview.bareTypes),
-        tableview.ColumnInfo('Value', 'value', editable=False),
+        tableview.ColumnInfo('Parameter', '_name'),
+        tableview.ColumnInfo('Value', '_value'),
     ]
 
     def __init__(self, segment, el_name, *args, **kwargs):
