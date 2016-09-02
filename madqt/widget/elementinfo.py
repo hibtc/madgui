@@ -6,6 +6,8 @@ Info boxes to display element detail.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from madqt.qt import QtCore, QtGui
+
 import madqt.widget.tableview as tableview
 
 
@@ -57,6 +59,16 @@ class ElementInfoBox(tableview.TableView):
     def __init__(self, segment, el_name, *args, **kwargs):
         super(ElementInfoBox, self).__init__(self.columns, *args, **kwargs)
 
+        # control resize behaviour:
+        header = self.horizontalHeader()
+        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(1, QtGui.QHeaderView.Stretch)
+        header.hide()
+
+        sizePolicy = self.sizePolicy()
+        sizePolicy.setVerticalPolicy(QtGui.QSizePolicy.Preferred)
+        self.setSizePolicy(sizePolicy)
+
         self.segment = segment
         self.el_name = el_name
 
@@ -65,6 +77,11 @@ class ElementInfoBox(tableview.TableView):
     def closeEvent(self, event):
         self.segment.updated.disconnect(self.update)
         event.accept()
+
+    def sizeHint(self):
+        return QtCore.QSize(
+            self.horizontalHeader().length(),
+            super(ElementInfoBox, self).sizeHint().height())
 
     @property
     def el_name(self):
