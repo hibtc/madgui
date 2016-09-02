@@ -16,6 +16,7 @@ from six import (python_2_unicode_compatible,
 
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
+from madqt.util.layout import HBoxLayout
 
 import madqt.core.unit as unit
 
@@ -217,6 +218,8 @@ class TableView(QtGui.QTableView):
         super(TableView, self).__init__(*args, **kwargs)
         self.setModel(TableModel(columns))
         self.setShowGrid(False)
+        self.verticalHeader().hide()
+        self.setItemDelegate(TableViewDelegate())
 
     @property
     def rows(self):
@@ -227,6 +230,29 @@ class TableView(QtGui.QTableView):
     def rows(self, rows):
         """List-like access to the data."""
         self.model().rows = rows
+
+
+class TableViewDelegate(QtGui.QStyledItemDelegate):
+
+    # NOTE: The QItemEditorFactory/QItemEditorCreatorBase has some problems
+    # regarding registration and creation of QVariant types for custom python
+    # types, so we use QItemDelegate as a simpler replacement.
+
+    def delegate(self, index):
+        return (index.model().value(index).delegate() or
+                super(TableViewDelegate, self))
+
+    def createEditor(self, parent, option, index):
+        return self.delegate(index).createEditor(parent, option, index)
+
+    def setEditorData(self, editor, index):
+        return self.delegate(index).setEditorData(editor, index)
+
+    def setModelData(self, editor, model, index):
+        return self.delegate(index).setModelData(editor, model, index)
+
+    def updateEditorGeometry(self, editor, option, index):
+        return self.delegate(index).updateEditorGeometry(editor, option, index)
 
 
 # Value types
@@ -308,6 +334,9 @@ class ValueProxy(Object):
             # TODO: let ItemIsEditable=True but use a read-only editor
             flags |= Qt.ItemIsEditable
         return flags
+
+    def delegate(self):
+        return None
 
     # role query functions
 
@@ -392,13 +421,12 @@ class QuantityValue(FloatValue):
     def display(self):
         return unit.format_quantity(self.value, self.fmtspec)
 
-    def edit(self):
-        return unit.strip_unit(self.value)
-
-    def setData(self, value, role):
-        if role == Qt.EditRole:
-            value = unit.units.Quantity(value, self.value.units)
-        return super(QuantityValue, self).setData(value, role)
+    def delegate(self):
+        try:
+            delegate = self._delegate
+        except AttributeError:
+            delegate = self._delegate = QuantityDelegate()
+        return delegate
 
 
 class ListValue(ValueProxy):
@@ -411,6 +439,9 @@ class ListValue(ValueProxy):
 
     def formatValue(self, value):
         return makeValue(value, self.types).display()
+
+    def delegate(self):
+        return ListDelegate()
 
 
 defaultTypes.update({
@@ -453,3 +484,80 @@ def _setdefault(dict_, default):
     result = default.copy()
     result.update(dict_)
     return result
+
+
+# Editors
+
+class QuantityDelegate(QtGui.QStyledItemDelegate):
+
+    unit = None
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QDoubleSpinBox(parent)
+        editor.setFrame(False)
+        return editor
+
+    def setEditorData(self, editor, index):
+        quantity = index.data(Qt.EditRole)
+        unit_label = unit.get_raw_label(quantity)
+        suffix = ' ' + unit_label if unit_label else ''
+        editor.setSuffix(suffix)
+        decimals = 3
+        editor.setDecimals(decimals)
+        editor.setSingleStep(10**-decimals)
+        editor.setValue(quantity.magnitude)
+        self.units = quantity.units
+
+    def setModelData(self, editor, model, index):
+        value = editor.value()
+        quantity = unit.units.Quantity(value, self.units)
+        model.setData(index, quantity)
+
+
+class InfixLineEdit(QtGui.QWidget):
+
+    """Single-line edit control with prefix/suffix text."""
+
+    def __init__(self, *args, **kwargs):
+        super(InfixLineEdit, self).__init__(*args, **kwargs)
+        self.prefix = QtGui.QLabel()
+        self.suffix = QtGui.QLabel()
+        self.edit = QtGui.QLineEdit()
+        self.edit.setFrame(False)
+        layout = HBoxLayout([
+            self.prefix,
+            self.edit,
+            self.suffix,
+        ])
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+        self.setAutoFillBackground(True)
+
+    def focusInEvent(self, event):
+        self.edit.setFocus()
+        event.accept()
+
+
+class ListDelegate(QtGui.QStyledItemDelegate):
+
+    # TODO: select sections individually, cycle through with <Tab>
+    # TODO: adjust increase editor size while typing? (so prefix/suffix will
+    # always be directly after the edit text)
+    # TODO: use QDoubleSpinBox for current section? Show other parts as
+    # prefix/suffix
+
+    def createEditor(self, parent, option, index):
+        editor = InfixLineEdit(parent)
+        editor.prefix.setText('[')
+        editor.suffix.setText(']')
+        return editor
+
+    def setEditorData(self, editor, index):
+        text = index.data().lstrip('[').rstrip(']')
+        editor.edit.setText(text)
+        editor.edit.selectAll()
+
+    def setModelData(self, editor, model, index):
+        value = editor.edit.text()
+        items = [unit.from_config(item) for item in value.split(',')]
+        model.setData(index, items)
