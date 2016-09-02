@@ -492,6 +492,9 @@ class QuantityDelegate(QtGui.QStyledItemDelegate):
 
     unit = None
 
+    # TODO: *infer* number of decimals from the value in a sensible manner
+    # TODO: use same inference for ordinary FloatValue's as well
+
     def createEditor(self, parent, option, index):
         editor = QtGui.QDoubleSpinBox(parent)
         editor.setFrame(False)
@@ -545,6 +548,7 @@ class ListDelegate(QtGui.QStyledItemDelegate):
     # always be directly after the edit text)
     # TODO: use QDoubleSpinBox for current section? Show other parts as
     # prefix/suffix
+    # TODO: intercept and handle <Enter>
 
     def createEditor(self, parent, option, index):
         editor = InfixLineEdit(parent)
