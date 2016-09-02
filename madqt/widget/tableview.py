@@ -41,7 +41,7 @@ class ColumnInfo(object):
     def __init__(self, title, getter, types=None, **kwargs):
         """
         :param str title: column title
-        :param callable getter: item -> :class:`BaseProxy`
+        :param callable getter: item -> :class:`ValueProxy`
         :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
         self.title = title
@@ -55,7 +55,7 @@ class ColumnInfo(object):
             value = getattr(item, self.getter)
         else:
             value = self.getter(item)
-        if isinstance(value, BaseProxy):
+        if isinstance(value, ValueProxy):
             return value
         return makeValue(value, self.types, **self.kwargs)
 
@@ -233,7 +233,7 @@ class TableView(QtGui.QTableView):
 
 
 @python_2_unicode_compatible
-class BaseProxy(Object):
+class ValueProxy(Object):
 
     """Wrap a value of a specific type for string rendering and editting."""
 
@@ -274,7 +274,7 @@ class BaseProxy(Object):
                  fmtspec=None,
                  types=None):
         """Store the value."""
-        super(BaseProxy, self).__init__()
+        super(ValueProxy, self).__init__()
         self.value = value
         if default is not None: self.default = default
         if editable is not None: self.editable = editable
@@ -332,7 +332,7 @@ class BaseProxy(Object):
     # TODO: delegate functions (initiateEdit / createEditor)
 
 
-class StringValue(BaseProxy):
+class StringValue(ValueProxy):
 
     """Bare string value."""
 
@@ -350,7 +350,7 @@ class QuotedStringValue(StringValue):
         return repr(self.value).lstrip('u')
 
 
-class FloatValue(BaseProxy):
+class FloatValue(ValueProxy):
 
     """Float value."""
 
@@ -358,14 +358,14 @@ class FloatValue(BaseProxy):
     fmtspec = '.3f'
 
 
-class IntValue(BaseProxy):
+class IntValue(ValueProxy):
 
     """Integer value."""
 
     default = 0
 
 
-class BoolValue(BaseProxy):
+class BoolValue(ValueProxy):
 
     """Boolean value."""
 
@@ -401,7 +401,7 @@ class QuantityValue(FloatValue):
         return super(QuantityValue, self).setData(value, role)
 
 
-class ListValue(BaseProxy):
+class ListValue(ValueProxy):
 
     """List value."""
 
@@ -433,11 +433,11 @@ bareTypes.update({
 # makeValue
 
 def makeValue(value, types=defaultTypes, **kwargs):
-    types = _setdefault(types, BaseProxy.types)
+    types = _setdefault(types, defaultTypes)
     try:
         match = _get_best_base(value.__class__, types)
     except ValueError:
-        factory = BaseProxy
+        factory = ValueProxy
     else:
         factory = types[match]
     return factory(value, types=types, **kwargs)
