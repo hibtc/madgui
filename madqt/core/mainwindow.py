@@ -145,36 +145,26 @@ class MainWindow(QtGui.QMainWindow):
     def editTwiss(self):
         from madqt.widget.params import ExportWidget
         from madqt.widget.twissparams import TwissParamsWidget
-        from madqt.util.layout import VBoxLayout
+        from madqt.util.layout import Dialog
 
         widget = TwissParamsWidget(self.universe.utool)
         widget.setData(self.universe.segment.twiss_args)
+        export = ExportWidget(widget, self.folder)
+        dialog = Dialog(export, self)
 
-        export = ExportWidget(widget, self)
-
-        layout = VBoxLayout([export])
-        layout.setContentsMargins(0, 0, 0, 0)
-        dialog = QtGui.QDialog(self)
-        dialog.setSizeGripEnabled(True)
-        dialog.setLayout(layout)
         dialog.exec_()
         # TODO: read results back
 
     def editBeam(self):
         from madqt.widget.params import ExportWidget
         from madqt.widget.beamparams import BeamParamsWidget
-        from madqt.util.layout import VBoxLayout
+        from madqt.util.layout import Dialog
 
         widget = BeamParamsWidget(self.universe.utool)
         widget.setData(self.universe.segment.beam)
+        export = ExportWidget(widget, self.folder)
+        dialog = Dialog(export, self)
 
-        export = ExportWidget(widget, self)
-
-        layout = VBoxLayout([export])
-        layout.setContentsMargins(0, 0, 0, 0)
-        dialog = QtGui.QDialog(self)
-        dialog.setSizeGripEnabled(True)
-        dialog.setLayout(layout)
         dialog.exec_()
         # TODO: read results back
 

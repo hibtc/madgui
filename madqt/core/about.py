@@ -11,7 +11,7 @@ from collections import namedtuple
 import docutils.core
 
 from madqt.qt import QtCore, QtGui
-from madqt.util.layout import VBoxLayout
+from madqt.util.layout import Dialog
 
 
 __all__ = [
@@ -77,13 +77,10 @@ def AboutWidget(version_info, *args, **kwargs):
 
 
 def AboutDialog(version_info, *args, **kwargs):
-    dialog = QtGui.QDialog(*args, **kwargs)
     main = AboutWidget(version_info)
     line = HLine()
     button = QtGui.QPushButton("&OK")
     button.setDefault(True)
+    dialog = Dialog([main, line, button], *args, **kwargs)
     button.clicked.connect(dialog.accept)
-    dialog.setLayout(
-        VBoxLayout([main, line, button]))
-    dialog.setSizeGripEnabled(True)
     return dialog
