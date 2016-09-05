@@ -78,11 +78,6 @@ class ElementInfoBox(tableview.TableView):
         self.segment.updated.disconnect(self.update)
         event.accept()
 
-    def sizeHint(self):
-        return QtCore.QSize(
-            self.horizontalHeader().length(),
-            super(ElementInfoBox, self).sizeHint().height())
-
     @property
     def el_name(self):
         return self._el_name

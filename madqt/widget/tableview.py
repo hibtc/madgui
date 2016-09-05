@@ -230,6 +230,11 @@ class TableView(QtGui.QTableView):
         """List-like access to the data."""
         self.model().rows = rows
 
+    def sizeHint(self):
+        return QtCore.QSize(
+            self.horizontalHeader().length(),
+            super(TableView, self).sizeHint().height())
+
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
