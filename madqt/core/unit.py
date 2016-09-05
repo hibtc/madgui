@@ -60,6 +60,8 @@ units = initialize()
 
 def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
+    if quantity is None:
+        return None
     if unit is None:
         if isinstance(quantity, units.Quantity):
             return quantity.magnitude
@@ -94,6 +96,8 @@ def format_quantity(quantity, num_spec=''):
 
 def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
+    if quantity is None:
+        return ''
     short = pint.unit.UnitsContainer(
         {units._get_symbol(key): value
          for key, value in quantity.units.items()})
