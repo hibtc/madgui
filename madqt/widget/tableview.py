@@ -30,7 +30,6 @@ __all__ = [
 
 
 defaultTypes = {}       # default {type: value proxy} mapping
-bareTypes = {}          # default
 
 
 class ColumnInfo(object):
@@ -449,16 +448,10 @@ defaultTypes.update({
     float: FloatValue,
     int: IntValue,
     bool: BoolValue,
-    text_type: QuotedStringValue,
-    bytes: QuotedStringValue,
-    list: ListValue,
-    unit.units.Quantity: QuantityValue,
-})
-
-bareTypes.update(defaultTypes)
-bareTypes.update({
     text_type: StringValue,
     bytes: StringValue,
+    list: ListValue,
+    unit.units.Quantity: QuantityValue,
 })
 
 
