@@ -80,6 +80,14 @@ class MainWindow(QtGui.QMainWindow):
                      self.close,
                      QtGui.QStyle.SP_DialogCloseButton),
             ]),
+            Menu('&Edit', [
+                Item('&TWISS initial conditions', 'Ctrl+T',
+                     'Modify the initial conditions.',
+                     self.editTwiss),
+                Item('&Beam parameters', 'Ctrl+B',
+                     'Change the beam parameters.',
+                     self.editBeam),
+            ]),
             Menu('&View', [
                 Item('&Python shell', 'Ctrl+P',
                      'Show a python shell.',
@@ -133,6 +141,42 @@ class MainWindow(QtGui.QMainWindow):
 
     def fileSave(self):
         pass
+
+    def editTwiss(self):
+        from madqt.widget.params import ExportWidget
+        from madqt.widget.twissparams import TwissParamsWidget
+        from madqt.util.layout import VBoxLayout
+
+        widget = TwissParamsWidget(self.universe.utool)
+        widget.setData(self.universe.segment.twiss_args)
+
+        export = ExportWidget(widget, self)
+
+        layout = VBoxLayout([export])
+        layout.setContentsMargins(0, 0, 0, 0)
+        dialog = QtGui.QDialog(self)
+        dialog.setSizeGripEnabled(True)
+        dialog.setLayout(layout)
+        dialog.exec_()
+        # TODO: read results back
+
+    def editBeam(self):
+        from madqt.widget.params import ExportWidget
+        from madqt.widget.beamparams import BeamParamsWidget
+        from madqt.util.layout import VBoxLayout
+
+        widget = BeamParamsWidget(self.universe.utool)
+        widget.setData(self.universe.segment.beam)
+
+        export = ExportWidget(widget, self)
+
+        layout = VBoxLayout([export])
+        layout.setContentsMargins(0, 0, 0, 0)
+        dialog = QtGui.QDialog(self)
+        dialog.setSizeGripEnabled(True)
+        dialog.setLayout(layout)
+        dialog.exec_()
+        # TODO: read results back
 
     def viewShell(self):
         self._createShell()
