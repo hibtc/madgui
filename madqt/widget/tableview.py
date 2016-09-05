@@ -239,7 +239,9 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
     # types, so we use QItemDelegate as a simpler replacement.
 
     def delegate(self, index):
-        return (index.model().value(index).delegate() or
+        valueProxy = index.model().value(index)
+        return (not valueProxy.editable and ReadOnlyDelegate() or
+                valueProxy.delegate() or
                 super(TableViewDelegate, self))
 
     def createEditor(self, parent, option, index):
@@ -330,9 +332,8 @@ class ValueProxy(Object):
 
     def flags(self):
         flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
-        if self.editable:
-            # TODO: let ItemIsEditable=True but use a read-only editor
-            flags |= Qt.ItemIsEditable
+        # Always editable with ReadOnlyDelegate
+        flags |= Qt.ItemIsEditable
         return flags
 
     def delegate(self):
@@ -487,6 +488,22 @@ def _setdefault(dict_, default):
 
 
 # Editors
+
+class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QLineEdit(parent)
+        #editor.setFrame(False)
+        editor.setReadOnly(True)
+        return editor
+
+    def setEditorData(self, editor, index):
+        editor.setText(index.data(Qt.DisplayRole))
+        editor.selectAll()
+
+    def setModelData(self, editor, model, index):
+        pass
+
 
 class QuantityDelegate(QtGui.QStyledItemDelegate):
 
