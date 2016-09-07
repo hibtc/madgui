@@ -153,6 +153,7 @@ class ParamTable(tableview.TableView):
         # order in the GUI:
         self.rows = [self.makeParamInfo(param, data.get(param))
                      for param, group in self.params.items()]
+        self.selectRow(0)
 
     def makeParamInfo(self, param, quantity):
         unit = self.units.get(param)
@@ -168,18 +169,21 @@ class ParamTable(tableview.TableView):
             event.accept()
             return
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            self.edit(self.curRow())
+            self.edit(self.model().index(self.curRow(), 1))
             event.accept()
             return
         super(ParamTable, self).keyPressEvent(event)
 
     def curRow(self):
         # This is failsafe only in SingleSelection widgets:
-        return self.selectedIndices()[0].row()
+        return self.selectedIndexes()[0].row()
 
     def setRowValue(self, row, value):
         """Set the value of the parameter in the specified row."""
-        self.rows[row].value.setData(value)
+        model = self.model()
+        index = model.index(row, 1)
+        model.setData(index, value)
+        model.dataChanged.emit(index, index)
 
     # data im-/export
 

@@ -152,8 +152,8 @@ class MainWindow(QtGui.QMainWindow):
         export = ExportWidget(widget, self.folder)
         dialog = Dialog(export, self)
 
-        dialog.exec_()
-        # TODO: read results back
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            self.universe.segment.twiss_args = widget.data()
 
     def editBeam(self):
         from madqt.widget.params import ExportWidget
@@ -165,8 +165,8 @@ class MainWindow(QtGui.QMainWindow):
         export = ExportWidget(widget, self.folder)
         dialog = Dialog(export, self)
 
-        dialog.exec_()
-        # TODO: read results back
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            self.universe.segment.beam = widget.data()
 
     def viewShell(self):
         self._createShell()

@@ -352,7 +352,7 @@ class ValueProxy(Object):
         return format(self.value, self.fmtspec)
 
     def edit(self):
-        return self.value if self.editable else None
+        return self.default if self.value is None else self.value
 
     def checkState(self):
         checked = self.checked()
