@@ -70,6 +70,10 @@ def main():
         package_data={
             'madqt': [
                 'LICENSE',
+                'data/*.txt',
+                'data/*.yml',
+                'data/*.xpm',
+                'engine/*.yml',
             ]
         }
     )
