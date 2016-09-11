@@ -342,7 +342,7 @@ class AsyncRead(Object):
         # The file iterator seems to be buffered:
         for line in iter(self.stream.readline, b''):
             try:
-                self.dataReceived.emit(line)
+                self.dataReceived.emit(line.decode('utf-8'))
             except BaseException:
                 break
 
