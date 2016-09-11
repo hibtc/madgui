@@ -254,6 +254,8 @@ class ExportWidget(QtGui.QWidget):
         filename = QtGui.QFileDialog.getOpenFileName(
             self.window(), 'Import values', self.folder,
             self.widget.exportFilters)
+        if isinstance(filename, tuple):
+            filename, selected_filter = filename
         if filename:
             self.widget.importFrom(filename)
 
@@ -262,5 +264,7 @@ class ExportWidget(QtGui.QWidget):
         filename = QtGui.QFileDialog.getSaveFileName(
             self.window(), 'Export values', self.folder,
             self.widget.importFilters)
+        if isinstance(filename, tuple):
+            filename, selected_filter = filename
         if filename:
             self.widget.exportTo(filename)

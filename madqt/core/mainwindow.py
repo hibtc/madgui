@@ -136,6 +136,8 @@ class MainWindow(QtGui.QMainWindow):
         ])
         filename = QtGui.QFileDialog.getOpenFileName(
             self, 'Open file', self.folder, filters)
+        if isinstance(filename, tuple): # Qt5
+            filename, selected_filter = filename
         if filename:
             self.loadFile(filename)
 
