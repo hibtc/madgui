@@ -133,9 +133,13 @@ class ParamTable(tableview.TableView):
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
         header = self.horizontalHeader()
-        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
-        header.setResizeMode(1, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
+        try:
+            setResizeMode = header.setResizeMode
+        except AttributeError:  # PyQt5
+            setResizeMode = header.setSectionResizeMode
+        setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        setResizeMode(1, QtGui.QHeaderView.Stretch)
+        setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
 
         sizePolicy = self.sizePolicy()
         sizePolicy.setVerticalPolicy(QtGui.QSizePolicy.Preferred)
