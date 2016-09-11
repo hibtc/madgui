@@ -15,7 +15,7 @@ from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
 import madqt.util.filedialog as filedialog
-from madqt.core.unit import get_raw_label, strip_unit
+from madqt.core.unit import get_raw_label, strip_unit, units
 from madqt.util.layout import HBoxLayout, Spacing, Stretch
 
 
@@ -95,7 +95,7 @@ class ParamInfo(object):
         unit = self._unit
         if value is None or unit is None:
             return value
-        return unit.units.Quantity(value, unit)
+        return units.Quantity(value, unit)
 
 
 class ParamTable(tableview.TableView):
@@ -147,7 +147,7 @@ class ParamTable(tableview.TableView):
 
     def data(self):
         """Get dictionary with all input values from dialog."""
-        return {row.name: row.quantity
+        return {row.name.value: row.quantity
                 for row in self.rows
                 if row.value.value is not None}
 
@@ -216,8 +216,8 @@ class ParamTable(tableview.TableView):
         data = self.data()
         raw_data = self.utool.dict_strip_unit(data)
         if self.data_key:
-            raw_data = {data_key: raw_data}
-        with open(file_path, 'wt') as f:
+            raw_data = {self.data_key: raw_data}
+        with open(filename, 'wt') as f:
             yaml.safe_dump(raw_data, f, default_flow_style=False)
 
 
