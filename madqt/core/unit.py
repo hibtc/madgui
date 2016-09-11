@@ -63,9 +63,10 @@ def strip_unit(quantity, unit=None):
     if quantity is None:
         return None
     if unit is None:
-        if isinstance(quantity, units.Quantity):
+        try:
             return quantity.magnitude
-        return quantity
+        except AttributeError:
+            return quantity
     if isinstance(unit, (list, tuple)):
         # FIXME: 'zip' truncates without warning if not enough units
         # are defined
