@@ -144,7 +144,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def fileOpen(self):
         filters = filedialog.make_filter([
-            ("Model files", "*.cpymad.yml"),
+            ("Model files", "*.cpymad.yml", "*.pytao.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
             ("All files", "*"),
         ])
