@@ -164,6 +164,7 @@ class FigurePair(object):
         """Draw the figure on its canvas."""
         _autoscale_axes(self.axes.x)
         _autoscale_axes(self.axes.y)
+        self.backend_figure.tight_layout()
         canvas = self.backend_figure.canvas
         canvas.draw()
         canvas.updateGeometry()
