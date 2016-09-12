@@ -4,11 +4,14 @@ Compatibility module for Qt.
 Use this module to get consistent Qt imports.
 """
 
-# this is required for qtconsole (interactive shell) to work:
-from qtconsole.qt_loaders import (load_qt, QT_API_PYSIDE,
-                                  QT_API_PYQT, QT_API_PYQT5)
 
-api_opts = [QT_API_PYQT, QT_API_PYQT5, QT_API_PYSIDE]
+# this is required for qtconsole (interactive shell) to work:
+from qtconsole.qt_loaders import load_qt
+
+import os
+
+api_pref = os.environ.get('PYQT_API') or 'pyqt,pyqt5'
+api_opts = api_pref.lower().split(',')
 
 QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
 

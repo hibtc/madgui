@@ -136,6 +136,8 @@ class MainWindow(QtGui.QMainWindow):
         ])
         filename = QtGui.QFileDialog.getOpenFileName(
             self, 'Open file', self.folder, filters)
+        if isinstance(filename, tuple): # Qt5
+            filename, selected_filter = filename
         if filename:
             self.loadFile(filename)
 
@@ -340,7 +342,7 @@ class AsyncRead(Object):
         # The file iterator seems to be buffered:
         for line in iter(self.stream.readline, b''):
             try:
-                self.dataReceived.emit(line)
+                self.dataReceived.emit(line.decode('utf-8'))
             except BaseException:
                 break
 

@@ -6,7 +6,7 @@ Menu creation utilities.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from six import string_types, integer_types
+from six import string_types
 
 from madqt.qt import QtCore, QtGui
 
@@ -40,7 +40,7 @@ class Item(object):
         if self.action is not None:
             action.triggered.connect(self.action)
         if self.icon is not None:
-            if isinstance(self.icon, integer_types):
+            if isinstance(self.icon, QtGui.QStyle.StandardPixmap):
                 icon = parent.style().standardIcon(self.icon)
             elif isinstance(self.icon, string_types):
                 icon = QtGui.QIcon.fromTheme(self.icon)

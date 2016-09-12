@@ -13,4 +13,7 @@ __all__ = [
 
 
 Object = QtCore.QObject
-Signal = QtCore.pyqtSignal
+try:
+    Signal = QtCore.pyqtSignal
+except AttributeError:
+    Signal = QtCore.Signal
