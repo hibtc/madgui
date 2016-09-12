@@ -27,6 +27,20 @@ __all__ = [
 ]
 
 
+def savedict(filename, data):
+    import numpy as np
+    from madqt.core.unit import get_unit_label
+    cols = list(data)
+    body = list(data.values())
+    for i, col in enumerate(body[:]):
+        try:
+            cols[i] += get_unit_label(col)
+            body[i] = col.magnitude
+        except AttributeError:
+            pass
+    np.savetxt(filename, np.array(body).T, header=' '.join(cols))
+
+
 class MainWindow(QtGui.QMainWindow):
 
     #----------------------------------------
@@ -35,6 +49,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, options, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        self.user_ns = {}
         self.options = options
         self.config = config.load(options['--config'])
         self.universe = None
@@ -234,6 +249,8 @@ class MainWindow(QtGui.QMainWindow):
             return
         self.destroyUniverse()
         self.universe = universe
+        self.user_ns['universe'] = universe
+        self.user_ns['savedict'] = savedict
         if universe is None:
             return
         self._createLogTab()
@@ -254,6 +271,7 @@ class MainWindow(QtGui.QMainWindow):
             # The connection may already be terminated in case MAD-X crashed.
             pass
         self.universe = None
+        self.user_ns['universe'] = None
 
     def showTwiss(self):
         import madqt.plot.matplotlib as plot
@@ -286,7 +304,6 @@ class MainWindow(QtGui.QMainWindow):
     def _createShell(self):
         """Create a python shell widget."""
         import madqt.core.pyshell as pyshell
-        self.user_ns = {}
         self.shell = pyshell.create(self.user_ns)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
