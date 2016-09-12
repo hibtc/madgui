@@ -20,7 +20,6 @@ import madqt.util.filedialog as filedialog
 import madqt.util.font as font
 import madqt.core.config as config
 import madqt.core.menu as menu
-import madqt.engine.madx as madx
 
 
 __all__ = [
@@ -208,7 +207,9 @@ class MainWindow(QtGui.QMainWindow):
         if not os.path.exists(path) and not os.path.isabs(path) and self.folder:
             path = os.path.join(self.folder, path)
         if os.path.isdir(path):
-            models = glob.glob(os.path.join(path, '*.cpymad.yml'))
+            models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
+                      glob.glob(os.path.join(path, '*.pytao.yml')) +
+                      glob.glob(os.path.join(path, '*.init')))
             if models:
                 path = models[0]
         if not os.path.isfile(path):
@@ -217,8 +218,15 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
-        self.setUniverse(madx.Universe())
-        self.universe.load(filename)
+        if filename.endswith('.cpymad.yml'):
+            from madqt.engine.madx import Universe
+        elif filename.endswith('.pytao.yml'):
+            from madqt.engine.tao import Universe
+        else:
+            raise NotImplementedError("Unsupported file format: {}"
+                                      .format(filename))
+
+        self.setUniverse(Universe(filename))
         self.showTwiss()
 
     def setUniverse(self, universe):

@@ -49,7 +49,7 @@ class Universe(Object):
 
     destroyed = Signal()
 
-    def __init__(self):
+    def __init__(self, filename):
         super(Universe, self).__init__()
         self.data = {}
         self.segment = None
@@ -64,6 +64,7 @@ class Universe(Object):
             bufsize=0)
         self.config = PackageResource('madqt.engine').yaml('madx.yml')
         self.utool = UnitConverter.from_config_dict(self.config['units'])
+        self.load(filename)
 
     def destroy(self):
         """Annihilate current universe. Stop MAD-X interpreter."""
@@ -141,28 +142,27 @@ class Universe(Object):
     def load(self, filename):
         """Load model or plain MAD-X file."""
         path, name = os.path.split(filename)
-        repo = FileResource(path)
+        self.repo = FileResource(path)
         ext = os.path.splitext(name)[1]
         if ext.lower() in ('.yml', '.yaml'):
-            self.load_model(repo, name)
+            self.load_model(name)
         else:
-            self.load_madx_files(repo, [name])
+            self.load_madx_files([name])
 
-    def load_model(self, repo, filename):
+    def load_model(self, filename):
         """Load model data from file."""
-        data = repo.yaml(filename, encoding='utf-8')
+        data = self.repo.yaml(filename, encoding='utf-8')
         self.check_compatibility(data)
         self.data = data
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
-        self.load_madx_files(repo, data.get('init-files', []))
+        self.load_madx_files(data.get('init-files', []))
         segment_data = {'sequence', 'range', 'beam', 'twiss'}
         if all(data.get(p) for p in segment_data):
             self.init_segment(data)
 
-    def load_madx_files(self, repo, filenames):
+    def load_madx_files(self, filenames):
         """Load a plain MAD-X file."""
-        self.repo = repo
         for filename in filenames:
             self.call(filename)
 
