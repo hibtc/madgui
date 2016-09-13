@@ -150,7 +150,7 @@ class FigurePair(object):
 
     def __init__(self):
         """Create an empty matplotlib figure with two subplots."""
-        self.backend_figure = figure = Figure()
+        self.backend_figure = figure = Figure(tight_layout=True)
         axx = figure.add_subplot(211)
         axy = figure.add_subplot(212, sharex=axx)
         self.axes = Pair(axx, axy)
@@ -164,7 +164,6 @@ class FigurePair(object):
         """Draw the figure on its canvas."""
         _autoscale_axes(self.axes.x)
         _autoscale_axes(self.axes.y)
-        self.backend_figure.tight_layout()
         canvas = self.backend_figure.canvas
         canvas.draw()
         canvas.updateGeometry()
