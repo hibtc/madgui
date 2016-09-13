@@ -150,7 +150,7 @@ class FigurePair(object):
 
     def __init__(self):
         """Create an empty matplotlib figure with two subplots."""
-        self.backend_figure = figure = Figure()
+        self.backend_figure = figure = Figure(tight_layout=True)
         axx = figure.add_subplot(211)
         axy = figure.add_subplot(212, sharex=axx)
         self.axes = Pair(axx, axy)
