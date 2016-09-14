@@ -235,22 +235,14 @@ class ExportWidget(QtGui.QWidget):
 
         self.widget = widget
         self.folder = folder
+        buttons = QtGui.QDialogButtonBox(Qt.Vertical)
 
-        standardIcon = self.style().standardIcon
-        export_icon = standardIcon(QtGui.QStyle.SP_DialogOpenButton)
-        import_icon = standardIcon(QtGui.QStyle.SP_DialogSaveButton)
-
-        import_button = QtGui.QPushButton(export_icon, "&Import")
-        export_button = QtGui.QPushButton(import_icon, "&Export")
-
-        import_button.clicked.connect(self.onImport)
-        export_button.clicked.connect(self.onExport)
+        Button = QtGui.QDialogButtonBox
+        buttons.addButton(Button.Open).clicked.connect(self.onImport)
+        buttons.addButton(Button.Save).clicked.connect(self.onExport)
 
         self.setLayout(HBoxLayout(
-            [self.widget, [
-                import_button,
-                export_button,
-                Stretch()]]
+            [self.widget, buttons]
         ))
 
     def onImport(self):

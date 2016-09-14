@@ -59,7 +59,10 @@ def main(argv=None):
     opts = docopt(__doc__, args, version=__version__)
     mainwindow = MainWindow(opts)
     mainwindow.show()
-    app.setStyleSheet("QLineEdit:read-only { background: #c8c8c8; }")
+    app.setStyleSheet("""
+QLineEdit:read-only { background: #c8c8c8; }
+QDialogButtonBox { dialogbuttonbox-buttons-have-icons: 1; }
+""")
     return sys.exit(app.exec_())
 
 
