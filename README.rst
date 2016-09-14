@@ -54,6 +54,18 @@ or::
     python -m madqt
 
 
+Qt
+~~
+
+MadQt can be run with PyQt4 or PyQt5. To select either backend, set the
+environment variable ``PYQT_API``:
+
+.. code-block:: bash
+
+    export PYQT_API=pyqt        # require PyQt4
+    export PYQT_API=pyqt5,pyqt  # prefer PyQt5, fallback to PyQt4
+
+
 Development guidelines
 ~~~~~~~~~~~~~~~~~~~~~~
 
