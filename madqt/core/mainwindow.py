@@ -11,7 +11,7 @@ import logging
 import threading
 import os
 
-from six import text_type
+from six import text_type as unicode
 
 from madqt.qt import QtCore, QtGui
 from madqt.core.base import Object, Signal
@@ -335,7 +335,7 @@ class AsyncRead(Object):
     Write to a text control.
     """
 
-    dataReceived = Signal(text_type)
+    dataReceived = Signal(unicode)
     closed = Signal()
 
     def __init__(self, stream):

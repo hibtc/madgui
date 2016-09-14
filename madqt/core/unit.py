@@ -11,7 +11,7 @@ import sys
 from pkg_resources import resource_filename
 
 import pint
-from six import text_type, string_types as basestring
+from six import string_types as basestring
 
 from pydicti import dicti
 from cpymad.types import Expression
@@ -130,7 +130,9 @@ def from_config(unit):
         return units(None)
     if isinstance(unit, list):
         return [from_config(u) for u in unit]
-    unit = text_type(unit)
+    if isinstance(unit, bytes):
+        unit = unit.decode('utf-8')
+    unit = u'{}'.format(unit)
     # as of pint-0.6 the following symbols fail to be parsed on python2:
     unit = unit.replace(u'µ', u'micro')
     unit = unit.replace(u'%', u'percent')

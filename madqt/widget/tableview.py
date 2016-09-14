@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from inspect import getmro
 
 from six import (python_2_unicode_compatible,
-                 text_type,
+                 text_type as unicode,
                  string_types as basestring)
 
 from madqt.qt import QtCore, QtGui, Qt
@@ -453,7 +453,7 @@ defaultTypes.update({
     float: FloatValue,
     int: IntValue,
     bool: BoolValue,
-    text_type: StringValue,
+    unicode: StringValue,
     bytes: StringValue,
     list: ListValue,
     unit.units.Quantity: QuantityValue,
