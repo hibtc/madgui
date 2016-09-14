@@ -16,7 +16,6 @@ from madqt.qt import QtCore, QtGui, Qt
 import madqt.widget.tableview as tableview
 import madqt.util.filedialog as filedialog
 from madqt.core.unit import get_raw_label, strip_unit, units
-from madqt.util.layout import HBoxLayout, Spacing, Stretch
 
 
 __all__ = [
@@ -219,48 +218,3 @@ class ParamTable(tableview.TableView):
             raw_data = {self.data_key: raw_data}
         with open(filename, 'wt') as f:
             yaml.safe_dump(raw_data, f, default_flow_style=False)
-
-
-class ExportWidget(QtGui.QWidget):
-
-    """
-    :ivar QWidget widget: the content area widget
-    :ivar str folder: folder for exports/imports
-    """
-
-    # TODO: support Ok/Cancel button
-
-    def __init__(self, widget, folder, *args, **kwargs):
-        super(ExportWidget, self).__init__(*args, **kwargs)
-
-        self.widget = widget
-        self.folder = folder
-        buttons = QtGui.QDialogButtonBox(Qt.Vertical)
-
-        Button = QtGui.QDialogButtonBox
-        buttons.addButton(Button.Open).clicked.connect(self.onImport)
-        buttons.addButton(Button.Save).clicked.connect(self.onExport)
-
-        self.setLayout(HBoxLayout(
-            [self.widget, buttons]
-        ))
-
-    def onImport(self):
-        """Import data from JSON/YAML file."""
-        filename = QtGui.QFileDialog.getOpenFileName(
-            self.window(), 'Import values', self.folder,
-            self.widget.exportFilters)
-        if isinstance(filename, tuple):
-            filename, selected_filter = filename
-        if filename:
-            self.widget.importFrom(filename)
-
-    def onExport(self):
-        """Export data to YAML file."""
-        filename = QtGui.QFileDialog.getSaveFileName(
-            self.window(), 'Export values', self.folder,
-            self.widget.importFilters)
-        if isinstance(filename, tuple):
-            filename, selected_filter = filename
-        if filename:
-            self.widget.exportTo(filename)

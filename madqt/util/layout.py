@@ -69,19 +69,3 @@ def VBoxLayout(items):
 
 def HBoxLayout(items):
     return addItems(QtGui.QHBoxLayout(), items)
-
-
-def Dialog(widget, *args, **kwargs):
-    if isinstance(widget, list):
-        layout = VBoxLayout(widget)
-    elif isinstance(widget, QtGui.QLayout):
-        layout = widget
-    elif isinstance(widget, QtGui.QWidget):
-        layout = VBoxLayout([widget])
-        layout.setContentsMargins(0, 0, 0, 0)
-    else:
-        raise NotImplementedError
-    dialog = QtGui.QDialog(*args, **kwargs)
-    dialog.setSizeGripEnabled(True)
-    dialog.setLayout(layout)
-    return dialog
