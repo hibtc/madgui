@@ -62,7 +62,10 @@ class ColumnInfo(object):
 
 class ItemsList(MutableSequence):
 
-    """A list-like interface adapter for a :class:`QtCore.QAbstractTableModel`."""
+    """
+    A list-like interface adapter for accessing the items (rows) in a
+    :class:`QtCore.QAbstractTableModel`.
+    """
 
     def __init__(self, model, items):
         """Use the items object by reference."""
@@ -143,17 +146,17 @@ class ItemsList(MutableSequence):
 
 class TableModel(QtCore.QAbstractTableModel):
 
-    try:
-        baseFlags = Qt.ItemNeverHasChildren
-    except AttributeError:
-        baseFlags = 0
-
     """
     Table data model.
 
     Column specifications are provided as :class:`ColumnInfo` instances. The
     data can be accessed and changed via the list-like :attribute:`rows`.
     """
+
+    try:
+        baseFlags = Qt.ItemNeverHasChildren
+    except AttributeError:
+        baseFlags = 0           # Qt4
 
     def __init__(self, columns):
         super(TableModel, self).__init__()

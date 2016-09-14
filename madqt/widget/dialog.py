@@ -62,6 +62,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
 class Dialog(QtGui.QDialog):
 
     applied = Signal()
+    # TODO: reset button
 
     def __init__(self, *args, **kwargs):
         super(Dialog, self).__init__(*args, **kwargs)
