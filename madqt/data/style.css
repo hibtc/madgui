@@ -1,0 +1,8 @@
+
+QLineEdit:read-only {
+    background: #c8c8c8;
+}
+
+QDialogButtonBox {
+    dialogbuttonbox-buttons-have-icons: 1;
+}

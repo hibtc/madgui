@@ -73,6 +73,7 @@ def main():
                 'data/*.txt',
                 'data/*.yml',
                 'data/*.xpm',
+                'data/*.css',
                 'engine/*.yml',
             ]
         }
