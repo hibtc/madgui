@@ -131,18 +131,21 @@ class ParamTable(tableview.TableView):
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
-        header = self.horizontalHeader()
-        try:
-            setResizeMode = header.setResizeMode
-        except AttributeError:  # PyQt5
-            setResizeMode = header.setSectionResizeMode
+        setResizeMode = self._setColumnResizeMode
         setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
         setResizeMode(1, QtGui.QHeaderView.Stretch)
         setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
 
-        sizePolicy = self.sizePolicy()
-        sizePolicy.setVerticalPolicy(QtGui.QSizePolicy.Preferred)
-        self.setSizePolicy(sizePolicy)
+        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
+                           QtGui.QSizePolicy.Preferred)
+
+    @property
+    def _setColumnResizeMode(self):
+        header = self.horizontalHeader()
+        try:
+            return header.setResizeMode
+        except AttributeError:  # PyQt5
+            return header.setSectionResizeMode
 
     def data(self):
         """Get dictionary with all input values from dialog."""
@@ -157,6 +160,15 @@ class ParamTable(tableview.TableView):
         self.rows = [self.makeParamInfo(param, data.get(param))
                      for param, group in self.params.items()]
         self.selectRow(0)
+        # Set initial size:
+        if not self.isVisible():
+            self.updateGeometries()
+
+    def sizeHintForColumn(self, column):
+        baseValue = super(ParamTable, self).sizeHintForColumn(column)
+        if column == 1:
+            return baseValue + 50
+        return baseValue
 
     def makeParamInfo(self, param, quantity):
         unit = self.units.get(param)

@@ -233,10 +233,23 @@ class TableView(QtGui.QTableView):
         """List-like access to the data."""
         self.model().rows = rows
 
+    def _columnContentWidth(self, column):
+        return max(self.sizeHintForColumn(column),
+                   self.horizontalHeader().sectionSizeHint(column))
+
     def sizeHint(self):
-        return QtCore.QSize(
-            self.horizontalHeader().length(),
-            super(TableView, self).sizeHint().height())
+        # FIXME: (low priority) This works accurately (as expected) on PyQt5,
+        # but somehow gives slightly too much space on PyQt4:
+        content_width = sum(map(self._columnContentWidth,
+                                range(len(self.model().columns))))
+        margins_width = (self.contentsMargins().left() +
+                         self.contentsMargins().right())
+        scrollbar_width = self.verticalScrollBar().width()
+        total_width = (margins_width +
+                       content_width +
+                       scrollbar_width)
+        height = super(TableView, self).sizeHint().height()
+        return QtCore.QSize(total_width, height)
 
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
