@@ -397,7 +397,7 @@ class FloatValue(ValueProxy):
     """Float value."""
 
     default = 0.0
-    fmtspec = '.3f'
+    fmtspec = '.4g'
 
     def textAlignment(self):
         return Qt.AlignRight | AlignBaseline
@@ -435,7 +435,7 @@ class BoolValue(ValueProxy):
 
 class QuantityValue(FloatValue):
 
-    fmtspec = '.3f'
+    fmtspec = '.4g'
 
     def __init__(self, value, unit=None, **kwargs):
         self.unit = value.units if unit is None else unit
