@@ -16,7 +16,6 @@ from six import text_type as unicode
 from madqt.qt import QtCore, QtGui
 from madqt.core.base import Object, Signal
 
-import madqt.util.filedialog as filedialog
 import madqt.util.font as font
 import madqt.core.config as config
 import madqt.core.menu as menu
@@ -129,15 +128,14 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------
 
     def fileOpen(self):
-        filters = filedialog.make_filter([
+        from madqt.util.filedialog import getOpenFileName
+        filters = [
             ("Model files", "*.cpymad.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
             ("All files", "*"),
-        ])
-        filename = QtGui.QFileDialog.getOpenFileName(
+        ]
+        filename = getOpenFileName(
             self, 'Open file', self.folder, filters)
-        if isinstance(filename, tuple): # Qt5
-            filename, selected_filter = filename
         if filename:
             self.loadFile(filename)
 
@@ -223,6 +221,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
+        filename = os.path.abspath(filename)
+        self.folder, _ = os.path.split(filename)
         self.setUniverse(madx.Universe())
         self.universe.load(filename)
         self.showTwiss()

@@ -14,7 +14,6 @@ import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
-import madqt.util.filedialog as filedialog
 from madqt.core.unit import get_raw_label, strip_unit, units
 
 
@@ -206,14 +205,14 @@ class ParamTable(tableview.TableView):
 
     # data im-/export
 
-    exportFilters = filedialog.make_filter([
+    exportFilters = [
         ("YAML file", "*.yml", "*.yaml"),
         ("JSON file", "*.json"),
-    ])
+    ]
 
-    importFilters = filedialog.make_filter([
+    importFilters = [
         ("YAML file", "*.yml", "*.yaml"),
-    ])
+    ]
 
     def importFrom(self, filename):
         """Import data from JSON/YAML file."""
