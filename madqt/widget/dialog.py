@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from madqt.qt import Qt, QtCore, QtGui
 
 from madqt.core.base import Object, Signal
-from madqt.util.layout import HBoxLayout, VBoxLayout, Stretch
+from madqt.util.layout import HBoxLayout, VBoxLayout, Stretch, Spacing
 
 
 __all__ = [
@@ -115,5 +115,6 @@ class Dialog(QtGui.QDialog):
         self.setWidget(HBoxLayout([widget, [
             SerializeButtons(widget, folder, Qt.Vertical),
             Stretch(),
+            Spacing(20),
             self.standardButtons(Qt.Vertical),
         ]]))
