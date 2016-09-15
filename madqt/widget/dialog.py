@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 from madqt.qt import Qt, QtCore, QtGui
 
 from madqt.core.base import Object, Signal
-from madqt.util.layout import VBoxLayout, Stretch
+from madqt.util.layout import HBoxLayout, VBoxLayout, Stretch
 
 
 __all__ = [
@@ -20,6 +20,20 @@ __all__ = [
 
 # short-hand for accessing QDialogButtonBox.StandardButtons identifiers:
 Button = QtGui.QDialogButtonBox
+
+
+def perpendicular(orientation):
+    return (Qt.Horizontal|Qt.Vertical) ^ orientation
+
+
+def expand(widget, orientation):
+    policy = widget.sizePolicy()
+    if orientation == Qt.Horizontal:
+        policy.setHorizontalPolicy(QtGui.QSizePolicy.Minimum)
+    else:
+        policy.setVerticalPolicy(QtGui.QSizePolicy.Minimum)
+    widget.setSizePolicy(policy)
+
 
 
 class SerializeButtons(QtGui.QDialogButtonBox):
@@ -35,6 +49,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         self.folder = folder
         self.addButton(Button.Open).clicked.connect(self.onImport)
         self.addButton(Button.Save).clicked.connect(self.onExport)
+        expand(self, perpendicular(self.orientation()))
 
     def onImport(self):
         """Import data from JSON/YAML file."""
@@ -97,8 +112,8 @@ class Dialog(QtGui.QDialog):
         self.setWidget([widget, self.standardButtons()])
 
     def setExportWidget(self, widget, folder):
-        self.setWidget([widget, [
-            SerializeButtons(widget, folder),
+        self.setWidget(HBoxLayout([widget, [
+            SerializeButtons(widget, folder, Qt.Vertical),
             Stretch(),
-            self.standardButtons(),
-        ]])
+            self.standardButtons(Qt.Vertical),
+        ]]))
