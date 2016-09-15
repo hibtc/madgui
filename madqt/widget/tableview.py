@@ -397,6 +397,9 @@ class FloatValue(ValueProxy):
     def textAlignment(self):
         return Qt.AlignRight | Qt.AlignVCenter
 
+    def delegate(self):
+        return FloatDelegate()
+
 
 class IntValue(ValueProxy):
 
@@ -524,6 +527,42 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         pass
+
+
+class DoubleValidator(QtGui.QDoubleValidator):
+
+    def validate(self, text, pos):
+        # Allow to delete values
+        if not text:
+            return (QtGui.QValidator.Acceptable, text, pos)
+        return super(DoubleValidator, self).validate(text, pos)
+
+
+class FloatDelegate(QtGui.QStyledItemDelegate):
+
+    unit = None
+
+    # TODO: *infer* number of decimals from the value in a sensible manner
+    # TODO: use same inference for ordinary FloatValue's as well
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QLineEdit(parent)
+        editor.setFrame(False)
+        editor.setValidator(DoubleValidator())
+        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(Qt.DisplayRole)
+        editor.setText(value)
+
+    def setModelData(self, editor, model, index):
+        value = editor.text()
+        try:
+            parsed = float(value)
+        except ValueError:
+            parsed = None
+        model.setData(index, parsed)
 
 
 class QuantityDelegate(QtGui.QStyledItemDelegate):
