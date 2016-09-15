@@ -167,14 +167,15 @@ class ParamTable(tableview.TableView):
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
-        if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
-            self.setRowValue(self.curRow(), None)
-            event.accept()
-            return
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            self.edit(self.model().index(self.curRow(), 1))
-            event.accept()
-            return
+        if self.state() == QtGui.QAbstractItemView.NoState:
+            if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
+                self.setRowValue(self.curRow(), None)
+                event.accept()
+                return
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                self.edit(self.model().index(self.curRow(), 1))
+                event.accept()
+                return
         super(ParamTable, self).keyPressEvent(event)
 
     def curRow(self):
