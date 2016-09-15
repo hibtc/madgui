@@ -31,11 +31,6 @@ __all__ = [
 
 defaultTypes = {}       # default {type: value proxy} mapping
 
-try:
-    AlignBaseline = Qt.AlignBaseline     # Qt5
-except AttributeError:
-    AlignBaseline = Qt.AlignVCenter      # Qt4
-
 
 class ColumnInfo(object):
 
@@ -400,7 +395,7 @@ class FloatValue(ValueProxy):
     fmtspec = '.4g'
 
     def textAlignment(self):
-        return Qt.AlignRight | AlignBaseline
+        return Qt.AlignRight | Qt.AlignVCenter
 
 
 class IntValue(ValueProxy):
@@ -410,7 +405,7 @@ class IntValue(ValueProxy):
     default = 0
 
     def textAlignment(self):
-        return Qt.AlignRight | AlignBaseline
+        return Qt.AlignRight | Qt.AlignVCenter
 
 
 class BoolValue(ValueProxy):
