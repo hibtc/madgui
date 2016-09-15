@@ -6,6 +6,8 @@ Utilities to create widgets
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import os
+
 from madqt.qt import Qt, QtCore, QtGui
 
 from madqt.core.base import Object, Signal
@@ -13,7 +15,6 @@ from madqt.util.layout import HBoxLayout, VBoxLayout, Stretch, Spacing
 
 
 __all__ = [
-    'Exporter',
     'Dialog',
 ]
 
@@ -23,17 +24,18 @@ Button = QtGui.QDialogButtonBox
 
 
 def perpendicular(orientation):
+    """Get perpendicular orientation."""
     return (Qt.Horizontal|Qt.Vertical) ^ orientation
 
 
 def expand(widget, orientation):
+    """Expand widget in specified direction."""
     policy = widget.sizePolicy()
     if orientation == Qt.Horizontal:
         policy.setHorizontalPolicy(QtGui.QSizePolicy.Minimum)
     else:
         policy.setVerticalPolicy(QtGui.QSizePolicy.Minimum)
     widget.setSizePolicy(policy)
-
 
 
 class SerializeButtons(QtGui.QDialogButtonBox):

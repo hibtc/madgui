@@ -224,7 +224,7 @@ class ParamTable(tableview.TableView):
         if self.data_key:
             raw_data = raw_data[self.data_key]
         data = self.utool.dict_add_unit(raw_data)
-        self.SetData(data)
+        self.setData(data)
 
     def exportTo(self, filename):
         """Export parameters to YAML file."""
