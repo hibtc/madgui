@@ -437,6 +437,20 @@ class QuantityValue(FloatValue):
 
     fmtspec = '.3f'
 
+    def __init__(self, value, unit=None, **kwargs):
+        self.unit = value.units if unit is None else unit
+        super(QuantityValue, self).__init__(**kwargs)
+
+    @property
+    def value(self):
+        if self.magnitude is None or self.unit is None:
+            return self.magnitude
+        return unit.units.Quantity(self.magnitude, self.unit)
+
+    @value.setter
+    def value(self, value):
+        self.magnitude = unit.strip_unit(value, self.unit)
+
     def display(self):
         return unit.format_quantity(self.value, self.fmtspec)
 
