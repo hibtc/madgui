@@ -109,6 +109,9 @@ class ParamTable(tableview.TableView):
     :ivar dict data: initial/final parameter values
     """
 
+    # TODO: visually indicate rows with default or unset values (gray)
+    # TODO: move rows with default or unset values to bottom?
+
     data_key = ''
 
     def __init__(self, spec, utool, *args, **kwargs):
