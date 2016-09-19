@@ -145,6 +145,7 @@ class MainWindow(QtGui.QMainWindow):
         filters = [
             ("Model files", "*.cpymad.yml", "*.pytao.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
+            ("Bmad lattice", ".bmad", "*.lat"),
             ("All files", "*"),
         ]
         filename = getOpenFileName(
