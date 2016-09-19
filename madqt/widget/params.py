@@ -14,9 +14,7 @@ import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
-import madqt.util.filedialog as filedialog
 from madqt.core.unit import get_raw_label, strip_unit, units
-from madqt.util.layout import HBoxLayout, Spacing, Stretch
 
 
 __all__ = [
@@ -110,6 +108,9 @@ class ParamTable(tableview.TableView):
     :ivar dict data: initial/final parameter values
     """
 
+    # TODO: visually indicate rows with default or unset values (gray)
+    # TODO: move rows with default or unset values to bottom?
+
     data_key = ''
 
     def __init__(self, spec, utool, *args, **kwargs):
@@ -132,18 +133,21 @@ class ParamTable(tableview.TableView):
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
-        header = self.horizontalHeader()
-        try:
-            setResizeMode = header.setResizeMode
-        except AttributeError:  # PyQt5
-            setResizeMode = header.setSectionResizeMode
+        setResizeMode = self._setColumnResizeMode
         setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
         setResizeMode(1, QtGui.QHeaderView.Stretch)
         setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
 
-        sizePolicy = self.sizePolicy()
-        sizePolicy.setVerticalPolicy(QtGui.QSizePolicy.Preferred)
-        self.setSizePolicy(sizePolicy)
+        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
+                           QtGui.QSizePolicy.Preferred)
+
+    @property
+    def _setColumnResizeMode(self):
+        header = self.horizontalHeader()
+        try:
+            return header.setResizeMode
+        except AttributeError:  # PyQt5
+            return header.setSectionResizeMode
 
     def data(self):
         """Get dictionary with all input values from dialog."""
@@ -158,6 +162,15 @@ class ParamTable(tableview.TableView):
         self.rows = [self.makeParamInfo(param, data.get(param))
                      for param, group in self.params.items()]
         self.selectRow(0)
+        # Set initial size:
+        if not self.isVisible():
+            self.updateGeometries()
+
+    def sizeHintForColumn(self, column):
+        baseValue = super(ParamTable, self).sizeHintForColumn(column)
+        if column == 1:
+            return baseValue + 50
+        return baseValue
 
     def makeParamInfo(self, param, quantity):
         unit = self.units.get(param)
@@ -168,14 +181,15 @@ class ParamTable(tableview.TableView):
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
-        if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
-            self.setRowValue(self.curRow(), None)
-            event.accept()
-            return
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            self.edit(self.model().index(self.curRow(), 1))
-            event.accept()
-            return
+        if self.state() == QtGui.QAbstractItemView.NoState:
+            if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
+                self.setRowValue(self.curRow(), None)
+                event.accept()
+                return
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+                self.edit(self.model().index(self.curRow(), 1))
+                event.accept()
+                return
         super(ParamTable, self).keyPressEvent(event)
 
     def curRow(self):
@@ -191,14 +205,14 @@ class ParamTable(tableview.TableView):
 
     # data im-/export
 
-    exportFilters = filedialog.make_filter([
+    exportFilters = [
         ("YAML file", "*.yml", "*.yaml"),
         ("JSON file", "*.json"),
-    ])
+    ]
 
-    importFilters = filedialog.make_filter([
+    importFilters = [
         ("YAML file", "*.yml", "*.yaml"),
-    ])
+    ]
 
     def importFrom(self, filename):
         """Import data from JSON/YAML file."""
@@ -209,7 +223,7 @@ class ParamTable(tableview.TableView):
         if self.data_key:
             raw_data = raw_data[self.data_key]
         data = self.utool.dict_add_unit(raw_data)
-        self.SetData(data)
+        self.setData(data)
 
     def exportTo(self, filename):
         """Export parameters to YAML file."""
@@ -219,56 +233,3 @@ class ParamTable(tableview.TableView):
             raw_data = {self.data_key: raw_data}
         with open(filename, 'wt') as f:
             yaml.safe_dump(raw_data, f, default_flow_style=False)
-
-
-class ExportWidget(QtGui.QWidget):
-
-    """
-    :ivar QWidget widget: the content area widget
-    :ivar str folder: folder for exports/imports
-    """
-
-    # TODO: support Ok/Cancel button
-
-    def __init__(self, widget, folder, *args, **kwargs):
-        super(ExportWidget, self).__init__(*args, **kwargs)
-
-        self.widget = widget
-        self.folder = folder
-
-        standardIcon = self.style().standardIcon
-        export_icon = standardIcon(QtGui.QStyle.SP_DialogOpenButton)
-        import_icon = standardIcon(QtGui.QStyle.SP_DialogSaveButton)
-
-        import_button = QtGui.QPushButton(export_icon, "&Import")
-        export_button = QtGui.QPushButton(import_icon, "&Export")
-
-        import_button.clicked.connect(self.onImport)
-        export_button.clicked.connect(self.onExport)
-
-        self.setLayout(HBoxLayout(
-            [self.widget, [
-                import_button,
-                export_button,
-                Stretch()]]
-        ))
-
-    def onImport(self):
-        """Import data from JSON/YAML file."""
-        filename = QtGui.QFileDialog.getOpenFileName(
-            self.window(), 'Import values', self.folder,
-            self.widget.exportFilters)
-        if isinstance(filename, tuple):
-            filename, selected_filter = filename
-        if filename:
-            self.widget.importFrom(filename)
-
-    def onExport(self):
-        """Export data to YAML file."""
-        filename = QtGui.QFileDialog.getSaveFileName(
-            self.window(), 'Export values', self.folder,
-            self.widget.importFilters)
-        if isinstance(filename, tuple):
-            filename, selected_filter = filename
-        if filename:
-            self.widget.exportTo(filename)

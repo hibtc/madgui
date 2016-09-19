@@ -29,6 +29,8 @@ from __future__ import unicode_literals
 import signal
 import sys
 
+from pkg_resources import resource_string
+
 from docopt import docopt
 
 from madqt.qt import QtCore, QtGui
@@ -59,7 +61,7 @@ def main(argv=None):
     opts = docopt(__doc__, args, version=__version__)
     mainwindow = MainWindow(opts)
     mainwindow.show()
-    app.setStyleSheet("QLineEdit:read-only { background: #c8c8c8; }")
+    app.setStyleSheet(resource_string('madqt.data', 'style.css'))
     return sys.exit(app.exec_())
 
 

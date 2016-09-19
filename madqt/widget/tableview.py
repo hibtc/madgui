@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from inspect import getmro
 
 from six import (python_2_unicode_compatible,
-                 text_type,
+                 text_type as unicode,
                  string_types as basestring)
 
 from madqt.qt import QtCore, QtGui, Qt
@@ -62,7 +62,10 @@ class ColumnInfo(object):
 
 class ItemsList(MutableSequence):
 
-    """A list-like interface adapter for a :class:`QtCore.QAbstractTableModel`."""
+    """
+    A list-like interface adapter for accessing the items (rows) in a
+    :class:`QtCore.QAbstractTableModel`.
+    """
 
     def __init__(self, model, items):
         """Use the items object by reference."""
@@ -143,17 +146,17 @@ class ItemsList(MutableSequence):
 
 class TableModel(QtCore.QAbstractTableModel):
 
-    try:
-        baseFlags = Qt.ItemNeverHasChildren
-    except AttributeError:
-        baseFlags = 0
-
     """
     Table data model.
 
     Column specifications are provided as :class:`ColumnInfo` instances. The
     data can be accessed and changed via the list-like :attribute:`rows`.
     """
+
+    try:
+        baseFlags = Qt.ItemNeverHasChildren
+    except AttributeError:
+        baseFlags = 0           # Qt4
 
     def __init__(self, columns):
         super(TableModel, self).__init__()
@@ -230,10 +233,23 @@ class TableView(QtGui.QTableView):
         """List-like access to the data."""
         self.model().rows = rows
 
+    def _columnContentWidth(self, column):
+        return max(self.sizeHintForColumn(column),
+                   self.horizontalHeader().sectionSizeHint(column))
+
     def sizeHint(self):
-        return QtCore.QSize(
-            self.horizontalHeader().length(),
-            super(TableView, self).sizeHint().height())
+        # FIXME: (low priority) This works accurately (as expected) on PyQt5,
+        # but somehow gives slightly too much space on PyQt4:
+        content_width = sum(map(self._columnContentWidth,
+                                range(len(self.model().columns))))
+        margins_width = (self.contentsMargins().left() +
+                         self.contentsMargins().right())
+        scrollbar_width = self.verticalScrollBar().width()
+        total_width = (margins_width +
+                       content_width +
+                       scrollbar_width)
+        height = super(TableView, self).sizeHint().height()
+        return QtCore.QSize(total_width, height)
 
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
@@ -389,7 +405,13 @@ class FloatValue(ValueProxy):
     """Float value."""
 
     default = 0.0
-    fmtspec = '.3f'
+    fmtspec = '.4g'
+
+    def textAlignment(self):
+        return Qt.AlignRight | Qt.AlignVCenter
+
+    def delegate(self):
+        return FloatDelegate()
 
 
 class IntValue(ValueProxy):
@@ -397,6 +419,9 @@ class IntValue(ValueProxy):
     """Integer value."""
 
     default = 0
+
+    def textAlignment(self):
+        return Qt.AlignRight | Qt.AlignVCenter
 
 
 class BoolValue(ValueProxy):
@@ -421,7 +446,21 @@ class BoolValue(ValueProxy):
 
 class QuantityValue(FloatValue):
 
-    fmtspec = '.3f'
+    fmtspec = '.4g'
+
+    def __init__(self, value, unit=None, **kwargs):
+        self.unit = value.units if unit is None else unit
+        super(QuantityValue, self).__init__(**kwargs)
+
+    @property
+    def value(self):
+        if self.magnitude is None or self.unit is None:
+            return self.magnitude
+        return unit.units.Quantity(self.magnitude, self.unit)
+
+    @value.setter
+    def value(self, value):
+        self.magnitude = unit.strip_unit(value, self.unit)
 
     def display(self):
         return unit.format_quantity(self.value, self.fmtspec)
@@ -453,7 +492,7 @@ defaultTypes.update({
     float: FloatValue,
     int: IntValue,
     bool: BoolValue,
-    text_type: StringValue,
+    unicode: StringValue,
     bytes: StringValue,
     list: ListValue,
     unit.units.Quantity: QuantityValue,
@@ -501,6 +540,42 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         pass
+
+
+class DoubleValidator(QtGui.QDoubleValidator):
+
+    def validate(self, text, pos):
+        # Allow to delete values
+        if not text:
+            return (QtGui.QValidator.Acceptable, text, pos)
+        return super(DoubleValidator, self).validate(text, pos)
+
+
+class FloatDelegate(QtGui.QStyledItemDelegate):
+
+    unit = None
+
+    # TODO: *infer* number of decimals from the value in a sensible manner
+    # TODO: use same inference for ordinary FloatValue's as well
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QLineEdit(parent)
+        editor.setFrame(False)
+        editor.setValidator(DoubleValidator())
+        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(Qt.DisplayRole)
+        editor.setText(value)
+
+    def setModelData(self, editor, model, index):
+        value = editor.text()
+        try:
+            parsed = float(value)
+        except ValueError:
+            parsed = None
+        model.setData(index, parsed)
 
 
 class QuantityDelegate(QtGui.QStyledItemDelegate):

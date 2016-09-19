@@ -11,12 +11,11 @@ import logging
 import threading
 import os
 
-from six import text_type
+from six import text_type as unicode
 
 from madqt.qt import QtCore, QtGui
 from madqt.core.base import Object, Signal
 
-import madqt.util.filedialog as filedialog
 import madqt.util.font as font
 import madqt.core.config as config
 import madqt.core.menu as menu
@@ -143,15 +142,13 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------
 
     def fileOpen(self):
-        filters = filedialog.make_filter([
+        filters = [
             ("Model files", "*.cpymad.yml", "*.pytao.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
             ("All files", "*"),
-        ])
-        filename = QtGui.QFileDialog.getOpenFileName(
+        ]
+        filename = getOpenFileName(
             self, 'Open file', self.folder, filters)
-        if isinstance(filename, tuple): # Qt5
-            filename, selected_filter = filename
         if filename:
             self.loadFile(filename)
 
@@ -159,30 +156,36 @@ class MainWindow(QtGui.QMainWindow):
         pass
 
     def editTwiss(self):
-        from madqt.widget.params import ExportWidget
+        # TODO: inhibit multiple dialogs
+        from madqt.widget.dialog import Dialog
         from madqt.widget.twissparams import TwissParamsWidget
-        from madqt.util.layout import Dialog
 
         widget = TwissParamsWidget(self.universe.utool)
         widget.setData(self.universe.segment.twiss_args)
-        export = ExportWidget(widget, self.folder)
-        dialog = Dialog(export, self)
 
-        if dialog.exec_() == QtGui.QDialog.Accepted:
-            self.universe.segment.twiss_args = widget.data()
+        dialog = Dialog(self)
+        dialog.applied.connect(lambda: self.setTwiss(widget.data()))
+        dialog.setExportWidget(widget, self.folder)
+        dialog.show()
+
+    def setTwiss(self, data):
+        self.universe.segment.twiss_args = data
 
     def editBeam(self):
-        from madqt.widget.params import ExportWidget
+        # TODO: inhibit multiple dialogs
+        from madqt.widget.dialog import Dialog
         from madqt.widget.beamparams import BeamParamsWidget
-        from madqt.util.layout import Dialog
 
         widget = BeamParamsWidget(self.universe.utool)
         widget.setData(self.universe.segment.beam)
-        export = ExportWidget(widget, self.folder)
-        dialog = Dialog(export, self)
 
-        if dialog.exec_() == QtGui.QDialog.Accepted:
-            self.universe.segment.beam = widget.data()
+        dialog = Dialog(self)
+        dialog.applied.connect(lambda: self.setBeam(widget.data()))
+        dialog.setExportWidget(widget, self.folder)
+        dialog.show()
+
+    def setBeam(self, data):
+        self.universe.segment.beam = data
 
     def viewShell(self):
         self._createShell()
@@ -233,6 +236,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
+<<<<<<< HEAD
         if filename.endswith('.cpymad.yml'):
             from madqt.engine.madx import Universe
         elif filename.endswith('.pytao.yml'):
@@ -242,6 +246,12 @@ class MainWindow(QtGui.QMainWindow):
                                       .format(filename))
 
         self.setUniverse(Universe(filename))
+=======
+        filename = os.path.abspath(filename)
+        self.folder, _ = os.path.split(filename)
+        self.setUniverse(madx.Universe())
+        self.universe.load(filename)
+>>>>>>> master
         self.showTwiss()
 
     def setUniverse(self, universe):
@@ -354,7 +364,7 @@ class AsyncRead(Object):
     Write to a text control.
     """
 
-    dataReceived = Signal(text_type)
+    dataReceived = Signal(unicode)
     closed = Signal()
 
     def __init__(self, stream):
