@@ -237,7 +237,6 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
-<<<<<<< HEAD
         if filename.endswith('.cpymad.yml'):
             from madqt.engine.madx import Universe
         elif filename.endswith('.pytao.yml'):
@@ -246,13 +245,9 @@ class MainWindow(QtGui.QMainWindow):
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
 
-        self.setUniverse(Universe(filename))
-=======
         filename = os.path.abspath(filename)
         self.folder, _ = os.path.split(filename)
-        self.setUniverse(madx.Universe())
-        self.universe.load(filename)
->>>>>>> master
+        self.setUniverse(Universe(filename))
         self.showTwiss()
 
     def setUniverse(self, universe):
