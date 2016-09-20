@@ -450,7 +450,7 @@ class QuantityValue(FloatValue):
 
     def __init__(self, value, unit=None, **kwargs):
         self.unit = value.units if unit is None else unit
-        super(QuantityValue, self).__init__(**kwargs)
+        super(QuantityValue, self).__init__(value, **kwargs)
 
     @property
     def value(self):
@@ -483,6 +483,9 @@ class ListValue(ValueProxy):
 
     def formatValue(self, value):
         return makeValue(value, self.types).display()
+
+    def textAlignment(self):
+        return Qt.AlignRight | Qt.AlignVCenter
 
     def delegate(self):
         return ListDelegate()
