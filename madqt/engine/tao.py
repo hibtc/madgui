@@ -39,6 +39,8 @@ class Universe(Object):
     :ivar utool: Unit conversion tool for MAD-X.
     """
 
+    backend_name = 'Bmad/Tao'
+
     destroyed = Signal()
 
     def __init__(self, filename):
