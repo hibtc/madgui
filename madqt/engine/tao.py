@@ -101,10 +101,17 @@ class Universe(Object):
         with self.repo.filename(data['tao']['init']) as init_file:
             self.tao = Tao(
                 '-init', init_file,
+                '-noplot', '-gui_mode',
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 stdin=False)
         self.load_lattice_files(data['tao'].get('read', []))
+
+        # TODO: disable automatic curve + lattice recalculation:
+        #   - s%global%plot_on=False
+        #   - s%com%shell_interactive=True
+        #   - s%global%lattice_calc_on=False
+        self.tao.command('place * none')
 
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
@@ -250,12 +257,21 @@ class Segment(Object):
         #self.tw['posy'] = self.tw['y']
         self.updated.emit()
 
+    def plot_data(self, name, region='r11'):
+        tao = self.tao
+        tao.command('place', region, name)
+        try:
+            return {name+'.'+curve.split('.', 1)[1]: tao.curve_data(curve)
+                    for curve in tao.curve_names(region)}
+        finally:
+            tao.command('place', region, 'none')
+
     def raw_twiss(self, **kwargs):
         self.tao.update()
         curves = {
-            curve: self.tao.curve_data(curve)
+            curve: curve_data
             for plot in ('beta',)
-            for curve in self.tao.curve_names(plot)
+            for curve, curve_data in self.plot_data(plot).items()
         }
         twiss = {name: values[:,1] for name, values in curves.items()}
         twiss['s'] = next(iter(curves.values()))[:,0]
