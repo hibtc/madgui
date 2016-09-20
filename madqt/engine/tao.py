@@ -26,6 +26,18 @@ from madqt.resource.package import PackageResource
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
 
 
+def rename_key(d, name, new):
+    if name in d:
+        d[new] = d.pop(name)
+
+
+def merged(d1, *others):
+    r = d1.copy()
+    for d in others:
+        r.update(d)
+    return r
+
+
 class Universe(Object):
 
     """
@@ -49,7 +61,9 @@ class Universe(Object):
         self.segment = None
         self.repo = None
         self.init_files = []
+        self.index = 1
 
+        # TODO: use Bmad specific units!
         self.config = PackageResource('madqt.engine').yaml('madx.yml')
         self.utool = UnitConverter.from_config_dict(self.config['units'])
         self.load(filename)
@@ -139,7 +153,7 @@ class Universe(Object):
         self.segment = Segment(
             universe=self,
             sequence=data['sequence'],
-            range=data['range'],
+            range_=data['range'],
             beam=data['beam'],
             twiss_args=data['twiss'],
         )
@@ -168,25 +182,49 @@ class Segment(Object):
     destroyed = Signal()
     showIndicators = Signal()
     hideIndicators = Signal()
-    show_element_indicators = False
+    _show_element_indicators = False
 
-    def __init__(self, universe, sequence, range, beam, twiss_args):
+    def __init__(self, universe, sequence, range_, beam, twiss_args):
         """
         :param Universe universe:
         :param str sequence:
-        :param tuple range:
+        :param tuple range_:
         """
 
         super(Segment, self).__init__()
 
         self.universe = universe
         self.sequence = sequence
-        self.range = range
+        self.range = range_
         self.beam = beam
         self.twiss_args = twiss_args
         self.elements = []
 
+        lat_general = self.tao.python('lat_general', universe.index)
+        num_elements = {
+            seq.lower(): int(n_elem)
+            for i, seq, n_elem, n_max in lat_general
+        }
+        num_elements_seg = num_elements[self.sequence.lower()]
+
+        self.elements = [
+            self.get_element_data(i)
+            for i in range(num_elements_seg)]
+        self._el_indices = {el['name']: el['ix_ele']
+                            for el in self.elements}
+
         self.twiss()
+
+    def get_element_data(self, index):
+        data = merged(self.tao.get_element_data(index, who='general'),
+                      self.tao.get_element_data(index, who='parameters'),
+                      self.tao.get_element_data(index, who='multipole'))
+        data['name'] = data['name'].lower()
+        data['at'] = data['s'] - data['l']
+        # for compatibility with MAD-X:
+        rename_key(data, 'type', 'type_')
+        rename_key(data, 'key', 'type')
+        return self.utool.dict_add_unit(data)
 
     @property
     def tao(self):
@@ -207,7 +245,14 @@ class Segment(Object):
 
     def get_element_info(self, element):
         """Get :class:`ElementInfo` from element name or index."""
-        raise NotImplementedError
+        if isinstance(element, ElementInfo):
+            return element
+        if isinstance(element, basestring):
+            element =  self._el_indices[element]
+        if element < 0:
+            element += len(self.elements)
+        element_data = self.get_element_data(element)
+        return ElementInfo(element_data['name'], element, element_data['at'])
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
@@ -221,9 +266,15 @@ class Segment(Object):
         """Find optics element by longitudinal position."""
         return None
 
-    def get_element_index(self, elem):
-        """Get element index by it name."""
-        raise NotImplementedError
+    def element_by_position(self, pos):
+        """Find optics element by longitudinal position."""
+        if pos is None:
+            return None
+        for elem in self.elements:
+            at, L = elem['at'], elem['l']
+            if pos >= at and pos <= at+L:
+                return elem
+        return None
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
@@ -281,3 +332,34 @@ class Segment(Object):
 
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
+
+
+
+
+    @property
+    def show_element_indicators(self):
+        return self._show_element_indicators
+
+    @show_element_indicators.setter
+    def show_element_indicators(self, show):
+        if show == self._show_element_indicators:
+            return
+        self._show_element_indicators = show
+        if show:
+            self.showIndicators.emit()
+        else:
+            self.hideIndicators.emit()
+
+    def element_by_position(self, pos):
+        """Find optics element by longitudinal position."""
+        if pos is None:
+            return None
+        for elem in self.elements:
+            at, L = elem['at'], elem['l']
+            if pos >= at and pos <= at+L:
+                return elem
+        return None
+
+    def get_element_index(self, elem):
+        """Get element index by it name."""
+        return self.sequence.elements.index(elem)
