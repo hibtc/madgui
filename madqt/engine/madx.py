@@ -405,9 +405,8 @@ class Segment(Object):
         return None
 
     def get_element_data(self, elem):
-        elements = self.universe.madx.active_sequence.elements
-        raw_element = elements[self.el_name]
-        return self.utool.dict_add_unit(raw_element)
+        return self.utool.dict_add_unit(
+            self.universe.madx.active_sequence.elements[elem])
 
     def get_element_index(self, elem):
         """Get element index by it name."""

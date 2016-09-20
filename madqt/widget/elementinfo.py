@@ -93,7 +93,8 @@ class ElementInfoBox(tableview.TableView):
 
     @property
     def element(self):
-        return self.segment.get_element_data(self.el_name)
+        return self.segment.get_element_data(
+            self.segment.get_element_info(self.el_name).index)
 
     def update(self):
         """
