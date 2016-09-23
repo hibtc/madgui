@@ -146,7 +146,7 @@ class MainWindow(QtGui.QMainWindow):
         filters = [
             ("Model files", "*.cpymad.yml", "*.pytao.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
-            ("Bmad lattice", ".bmad", "*.lat"),
+            ("Bmad lattice", "*.bmad", "*.lat"),
             ("All files", "*"),
         ]
         filename = getOpenFileName(
@@ -238,10 +238,16 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
-        if filename.endswith('.cpymad.yml'):
-            from madqt.engine.madx import Universe
-        elif filename.endswith('.pytao.yml'):
-            from madqt.engine.tao import Universe
+        engine_exts = {
+            'madqt.engine.madx': ('.cpymad.yml', '.madx'),
+            'madqt.engine.tao': ('.pytao.yml', '.bmad', '.lat', '.init'),
+        }
+
+        for modname, exts in engine_exts.items():
+            if any(map(filename.endswith, exts)):
+                module = __import__(modname, None, None, '*')
+                Universe = module.Universe
+                break
         else:
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))

@@ -60,11 +60,10 @@ class Universe(Object):
         self.data = {}
         self.segment = None
         self.repo = None
-        self.init_files = []
         self.index = 1
 
         # TODO: use Bmad specific units!
-        self.config = PackageResource('madqt.engine').yaml('madx.yml')
+        self.config = PackageResource('madqt.engine').yaml('tao.yml')
         self.utool = UnitConverter.from_config_dict(self.config['units'])
         self.load(filename)
 
@@ -80,7 +79,6 @@ class Universe(Object):
     def call(self, name):
         with self.repo.filename(name) as f:
             self.tao.read(f)
-        self.init_files.append(name)
 
     @property
     def rpc_client(self):
@@ -102,61 +100,63 @@ class Universe(Object):
         elif ext.lower() == '.init':
             self.load_init_file(name)
         else:
-            self.load_lattice_files([name])
+            self.load_lattice_file(name)
 
     def load_model(self, filename):
         """Load model data from file."""
         data = self.repo.yaml(filename, encoding='utf-8')
         #self.check_compatibility(data)
-        self.data = data
+        self._load_params(data, 'beam')
+        self._load_params(data, 'twiss')
+
+        self.load_init_file(data['tao']['init'], data=data)
+        self.read_lattice_files(data['tao'].get('read', []))
+
+    def load_init_file(self, filename, **kw):
+        self.init('-init', filename, **kw)
+
+    def load_lattice_file(self, filename, **kw):
+        self.init('-lat', filename, '-noinit', **kw)
+
+    def init(self, fileflag, filename, *args, **kw):
+        self.data = kw.pop('data', {})
 
         # stdin=None leads to an error on windows when STDIN is broken.
         # therefore, we need set stdin=os.devnull by passing stdin=False:
-        with self.repo.filename(data['tao']['init']) as init_file:
+        with self.repo.filename(filename) as init_file:
             self.tao = Tao(
-                '-init', init_file,
+                fileflag, init_file,
                 '-noplot', '-gui_mode',
+                *args,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 stdin=False)
-        self.load_lattice_files(data['tao'].get('read', []))
 
         # TODO: disable automatic curve + lattice recalculation:
         #   - s%global%plot_on=False
         #   - s%com%shell_interactive=True
         #   - s%global%lattice_calc_on=False
         self.tao.command('place * none')
+        self.init_segment()
 
-        self._load_params(data, 'beam')
-        self._load_params(data, 'twiss')
-        segment_data = {'sequence', 'range', 'beam', 'twiss'}
-        if all(data.get(p) for p in segment_data):
-            self.init_segment(data)
-
-    def load_init_file(self, filename):
-        raise NotImplementedError
-
-    def load_lattice_files(self, filenames):
+    def read_lattice_files(self, filenames):
         """Load a plain Bmad lattice file."""
         for filename in filenames:
             self.call(filename)
 
     def _load_params(self, data, name):
         """Load parameter dict from file if necessary and add units."""
-        vals = self.data.get(name, {})
+        vals = data.get(name, {})
         if isinstance(vals, basestring):
             vals = self.repo.yaml(vals, encoding='utf-8')
         data[name] = self.utool.dict_add_unit(vals)
 
-    def init_segment(self, data):
+    def init_segment(self):
         """Create a segment."""
-        self.segment = Segment(
-            universe=self,
-            sequence=data['sequence'],
-            range_=data['range'],
-            beam=data['beam'],
-            twiss_args=data['twiss'],
-        )
+        self.segment = Segment(self, self.data.get('sequence'))
+        twiss_args = self.data.get('twiss')
+        if twiss_args:
+            self.segment.set_twiss_args(twiss_args)
 
 
 
@@ -170,41 +170,33 @@ class Segment(Object):
     :ivar dict twiss_args:
     """
 
-    _columns = [
-        'name', 'l', 'angle', 'k1l',
-        's',
-        'x', 'y',
-        'betx','bety',
-        'alfx', 'alfy',
-    ]
-
     updated = Signal()
     destroyed = Signal()
     showIndicators = Signal()
     hideIndicators = Signal()
     _show_element_indicators = False
 
-    def __init__(self, universe, sequence, range_, beam, twiss_args):
+    def __init__(self, universe, sequence):
         """
         :param Universe universe:
         :param str sequence:
-        :param tuple range_:
         """
 
         super(Segment, self).__init__()
 
         self.universe = universe
-        self.sequence = sequence
-        self.range = range_
-        self.beam = beam
-        self.twiss_args = twiss_args
-        self.elements = []
 
         lat_general = self.tao.python('lat_general', universe.index)
+
+        self.sequence = sequence or lat_general[0][1]
+        self.range = ('#s', '#e')
+        self.branch = 0
+
         num_elements = {
-            seq.lower(): int(n_elem)
-            for i, seq, n_elem, n_max in lat_general
+            seq.lower(): int(n_track)
+            for i, seq, n_track, n_max in lat_general
         }
+
         num_elements_seg = num_elements[self.sequence.lower()]
 
         self.elements = [
@@ -291,15 +283,14 @@ class Segment(Object):
         # Update TWISS results
         self.tw = self.utool.dict_add_unit(results)
 
-        # FIXME:
-        ex = self.data['beam']['ex']
-        ey = self.data['beam']['ey']
+        # FIXME: consider Bmad's beam_start as fallback
+        ex = self.beam['a_emit']
+        ey = self.beam['b_emit']
 
         # data post processing
         self.pos = self.tw['s']
         self.tw['envx'] = (self.tw['betx'] * ex)**0.5
         self.tw['envy'] = (self.tw['bety'] * ey)**0.5
-
 
         # Create aliases for x,y that have non-empty common prefix. The goal
         # is to make the config file entries less awkward that hold this
@@ -363,3 +354,54 @@ class Segment(Object):
     def get_element_index(self, elem):
         """Get element index by it name."""
         return self.sequence.elements.index(elem)
+
+    def get_beam(self):
+        beam = self.tao.properties('beam_init', self.unibra)
+        # FIXME: evaluate several possible sources for emittance/beam:
+        # - beam_init%a_emit        (tao)
+        # - beam_start%a_emit
+        # - lat%a%emit
+        # - beginning[emittance_a]
+        _translate_default(beam, 'a_emit', 0., 1.)
+        _translate_default(beam, 'b_emit', 0., 1.)
+        return self.utool.dict_add_unit(beam)
+
+    def set_beam(self, beam):
+        self.tao.set('beam_init', **beam)
+        # Bmad has also (unused?) `beam_start` parameter group:
+        #self.tao.change('beam_start', **beam)
+
+    beam = property(get_beam, set_beam)
+
+    _beam_params = {'x', 'px', 'y', 'py', 'z', 'pz', 't'}
+    _twiss_params = {'beta_a', 'beta_b', 'alpha_a', 'alpha_b',
+                     'eta_a', 'eta_b', 'etap_a', 'etap_b'}
+    _twiss_args = _beam_params | _twiss_params
+
+    def get_twiss_args(self, index=0):
+        data = merged(self.tao.get_element_data(index, who='orbit'),
+                      self.tao.get_element_data(index, who='twiss'))
+        return {k: v for k, v in data.items() if k in self._twiss_args}
+
+    def set_twiss_args(self, twiss):
+        beam_start = {param: twiss[param]
+                      for param in self._beam_params
+                      if param in twiss}
+        twiss_start = {param: twiss[param]
+                       for param in self._twiss_params
+                       if param in twiss}
+        self.tao.change('beam_start', **beam_start)
+        self.tao.change('element', 'beginning', **twiss_start)
+
+    twiss_args = property(get_twiss_args, set_twiss_args)
+
+
+    @property
+    def unibra(self):
+        """Tao string for univers@branch."""
+        return '{}@{}'.format(self.universe.index, self.branch)
+
+
+def _translate_default(d, name, old_default, new_default):
+    if d[name] == old_default:
+        d[name] = new_default
