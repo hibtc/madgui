@@ -470,25 +470,12 @@ class Segment(Object):
         return self.madx.get_transfer_map_7d(**twiss_args)
 
     def survey(self):
-        return list(self._survey_helper())
-
-    def _survey_helper(self):
+        # NOTE: SURVEY includes auto-generated DRIFTs, but segment.elements
+        # does not!
         table = self.madx.survey()
         names = map(name_from_internal, table['name'])
         array = np.array([table[key] for key in FloorCoords._fields])
-        elems = dict(zip(names, array.T))
-        for elem in self.raw_elements:
-            try:
-                coords = FloorCoords(*elems[elem['name']])
-            except KeyError:
-                # compute values for auto-generated drifts based on coords of
-                # previous element:
-                l = elem['l']
-                coords = FloorCoords(
-                    x=coords.x + l * sin(coords.theta),
-                    y=coords.y + l * sin(coords.phi),
-                    z=coords.z + l * cos(coords.theta),
-                    theta=coords.theta,
-                    phi=coords.phi,
-                    psi=coords.psi)
-            yield coords
+        return [FloorCoords(*row) for row in array.T]
+
+    def survey_elements(self):
+        return self.sequence.expanded_elements
