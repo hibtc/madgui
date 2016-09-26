@@ -1,12 +1,6 @@
-#!/usr/bin/env python
-
-
-#from tao_data import TaoData
-from PyQt4 import QtCore, QtGui, QtOpenGL
+from PyQt4 import QtCore, QtGui
 
 import math
-import sys
-import os
 
 
 eleColor={'E_GUN':'purple', 'SBEND':'red', 'QUADRUPOLE':'blue', 'DRIFT':'black', 'LCAVITY':'green', 'RFCAVITY':'green', 'SEXTUPOLE':'yellow', 'WIGGLER':'orange'}
@@ -78,7 +72,6 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
             path.lineTo(-w,  r1)
             path.lineTo(0, r1)
             path.lineTo(0, 0)
-            #path.closeSubpath()
         return path
 
     def boundingRect(self):
@@ -110,25 +103,11 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
         if self.isSelected():
             painter.drawRect(self.boundingRect())
 
-
-        # Draw Bounding rect
-        #painter.drawRect(self.boundingRect())
-
     def shape(self):
         return self._shape
 
-    def __printGeometryDetails(self):
-        print(self.name)
-        print('  pos (%.0f, %0.0f)' % (self.pos().x(), self.pos().y()) )
-        #print('    boundingRect (%.0f, %0.0f, %.0f, %0.0f)' % (self.boundingRect().x(), self.boundingRect().y(), self.boundingRect().width(), self.boundingRect().height()))
-        print('  boundingRect ', self.boundingRect().x(), self.boundingRect().y(), self.boundingRect().width(), self.boundingRect().height() )
-        print(self.ele)
-        print(self.pos().x())
 
 class LatticeView(QtGui.QGraphicsView):
-
-    #test signal
-    #trigger = QtCore.pyqtSignal()
 
     def __init__(self, lattice, parent = None):
         super(LatticeView, self).__init__(parent)
@@ -138,19 +117,11 @@ class LatticeView(QtGui.QGraphicsView):
         self.setInteractive(True)
         self.setGeometry(QtCore.QRect(200, 200, 400, 400))
 
-        # This makes the view OpenGL accelerated. This can lead to a crash:
-        #     QGLTempContext: No GL capable X visuals available.
-        #     Segmentation fault
-        #self.setViewport(QtOpenGL.QGLWidget())
-
         self.scene = QtGui.QGraphicsScene(self)
-        #self.scene.setSceneRect(QtCore.QRectF(-100, -100, 200, 200))
         self.setScene(self.scene)
         self.pt_to_meter = 1.0
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
 
-        #self.scale(10,10)
-        #scale = 100
         # Gather a list of x and y coordinates
         xlist = []
         ylist = []
@@ -158,7 +129,6 @@ class LatticeView(QtGui.QGraphicsView):
             item = EleGraphicsItem(ele, self._sc, self.units )
             item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
             item.setFlag(QtGui.QGraphicsItem.ItemIsMovable, True)
-            #item.setScale(1)
             xlist.append(self._sc*ele.floor.z)
             ylist.append(-self._sc*ele.floor.x)
             item.setPos( self._sc*ele.floor.z, -self._sc*ele.floor.x)
@@ -174,11 +144,6 @@ class LatticeView(QtGui.QGraphicsView):
         self.zoom(1/scale)
         self.scene.setSceneRect(QtCore.QRectF(1.05*scale*xmin, 1.05*scale*ymin, 1.1*scale*xsize, 1.1*scale*ysize))
 
-        # Scale to fit screen
-
-        #print('setting scale: ', scale)
-
-        #connect signals:
         self.scene.selectionChanged.connect(self.printSelectedItems)
 
     def ix_ele_SelectedItems(self):
@@ -187,30 +152,13 @@ class LatticeView(QtGui.QGraphicsView):
     def printSelectedItems(self):
         items = self.scene.selectedItems()
         names = [x.name for x in items]
-        print('Elements selected: ', names)
 
     def zoom(self, scale):
-        #Test to emit trigger
-        #self.trigger.emit()
         """ function to uniformly zoom, and keep track of the screen's scale"""
         self.pt_to_meter = self.pt_to_meter*scale
         self.scale(scale,scale)
         print('scale ', 1/self.pt_to_meter, ' m/pt')
 
-    #def drawForeground(self, painter, rect):
-        #painter.drawRects(rect)
-
-    def test(self):
-        print('test in lattice view')
-
     def wheelEvent(self, event):
-        #super(LatticeView, self).wheelEvent(event)
-        print("Mouse wheelEvent", event.delta())
         sc =  1.0 + event.delta()/1000.0
         self.zoom(sc)
-                #newHeight = self.parent.geometry().height() - event.delta()
-                #width       = self.parent.geometry().width()
-                #self.parent.resize(width, newHeight)
-
-if __name__ == "__main__":
-    print("Shouldn't be here!!")
