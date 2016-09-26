@@ -108,6 +108,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Log window', 'Ctrl+L',
                      'Show a log window.',
                      self.viewLog),
+                Item('&Floor plan', 'Ctrl+F',
+                     'Show a 2D floor plan of the lattice.',
+                     self.viewFloorPlan),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
@@ -194,6 +197,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def viewLog(self):
         pass
+
+    def viewFloorPlan(self):
+        from madqt.widget.floor_plan import LatticeView
+        self.latview = LatticeView(self.universe.segment.elements)
+        self.latview.show()
 
     def helpAboutMadQt(self):
         """Show about dialog."""
