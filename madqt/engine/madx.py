@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from collections import namedtuple
+import math
 import os
 import subprocess
 
@@ -15,7 +16,7 @@ import numpy as np
 import yaml
 
 from cpymad.madx import Madx
-from cpymad.util import normalize_range_name
+from cpymad.util import normalize_range_name, name_from_internal
 
 from madqt.core.base import Object, Signal
 
@@ -32,6 +33,7 @@ __all__ = [
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
+FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 class Universe(Object):
@@ -306,10 +308,10 @@ class Segment(Object):
         self._show_element_indicators = show_element_indicators
         self._use_beam(beam)
 
-        raw_elements = self.sequence.elements
+        self.raw_elements = self.sequence.elements
         # TODO: provide uncached version of elements with units:
         self.elements = list(map(
-            self.utool.dict_add_unit, raw_elements))
+            self.utool.dict_add_unit, self.raw_elements))
 
         self.twiss()
 
@@ -466,3 +468,14 @@ class Segment(Object):
         twiss_args['range_'] = (info(beg_elem).name, info(end_elem).name)
         twiss_args['tw_range'] = twiss_args.pop('range')
         return self.madx.get_transfer_map_7d(**twiss_args)
+
+    def survey(self):
+        # NOTE: SURVEY includes auto-generated DRIFTs, but segment.elements
+        # does not!
+        table = self.madx.survey()
+        names = map(name_from_internal, table['name'])
+        array = np.array([table[key] for key in FloorCoords._fields])
+        return [FloorCoords(*row) for row in array.T]
+
+    def survey_elements(self):
+        return self.sequence.expanded_elements

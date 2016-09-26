@@ -24,6 +24,7 @@ from madqt.resource.package import PackageResource
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
+FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 def rename_key(d, name, new):
@@ -199,15 +200,19 @@ class Segment(Object):
 
         num_elements_seg = num_elements[self.sequence.lower()]
 
-        self.elements = [
-            self.get_element_data(i)
+        self.raw_elements = [
+            self.get_element_data_raw(i)
             for i in range(num_elements_seg)]
+        self.elements = [
+            self.utool.dict_add_unit(elem)
+            for elem in self.raw_elements]
+
         self._el_indices = {el['name']: el['ix_ele']
                             for el in self.elements}
 
         self.twiss()
 
-    def get_element_data(self, index):
+    def get_element_data_raw(self, index):
         data = merged(self.tao.get_element_data(index, who='general'),
                       self.tao.get_element_data(index, who='parameters'),
                       self.tao.get_element_data(index, who='multipole'))
@@ -216,7 +221,17 @@ class Segment(Object):
         # for compatibility with MAD-X:
         rename_key(data, 'type', 'type_')
         rename_key(data, 'key', 'type')
-        return self.utool.dict_add_unit(data)
+        return data
+
+    def get_element_data(self, index):
+        return self.utool.dict_add_unit(self.get_element_data_raw(index))
+
+    def survey(self):
+        return [FloorCoords(*self.tao.get_element_floor(index).flat)
+                for index in range(len(self.elements))]
+
+    def survey_elements(self):
+        return self.raw_elements
 
     @property
     def tao(self):
@@ -325,8 +340,6 @@ class Segment(Object):
 
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
-
-
 
 
     @property
