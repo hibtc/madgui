@@ -302,10 +302,12 @@ class Segment(Object):
     def plot_data(self, name, region='r11'):
         tao = self.tao
         tao.command('place', region, name)
+        tao.command('set plot', region, 'visible = T')
         try:
             return {name+'.'+curve.split('.', 1)[1]: tao.curve_data(curve)
                     for curve in tao.curve_names(region)}
         finally:
+            tao.command('set plot', region, 'visible = F')
             tao.command('place', region, 'none')
 
     def raw_twiss(self, **kwargs):
