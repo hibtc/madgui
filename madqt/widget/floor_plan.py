@@ -26,24 +26,25 @@ ELEMENT_WIDTH = {
 
 
 def getElementColor(ele, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(ele.key, default))
+    return QtGui.QColor(ELEMENT_COLOR.get(ele['type'], default))
 
 def getElementWidth(ele, default=0.2):
-    return ELEMENT_WIDTH.get(ele.key, default)
+    return ELEMENT_WIDTH.get(ele['type'], default)
 
 
 class EleGraphicsItem(QtGui.QGraphicsItem):
-    def __init__(self, ele, scale=1, units='m', parent = None):
-        super(EleGraphicsItem, self).__init__(parent)
+
+    def __init__(self, ele, scale=1, units='m'):
+        super(EleGraphicsItem, self).__init__()
         self.setAcceptHoverEvents(True)
-        self.name = ele.name
+        self.name = ele['name']
         self.ele = ele
         self.units = units
         self._sc = scale
         self._r1 = self._sc*0.5*getElementWidth(self.ele) # Inner wall width
         self._r2 = self._sc*0.5*getElementWidth(self.ele) # Outer wall width
-        self._angle = self.ele.value['angle']
-        self._length = self._sc*self.ele.value['L']
+        self._angle = ele.get('angle', 0.0)
+        self._length = self._sc*ele['l'].magnitude
         self._width = self._r1+self._r2
         self._shape = self._EleShape()
 
@@ -122,7 +123,7 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
 
 class LatticeView(QtGui.QGraphicsView):
 
-    def __init__(self, lattice, parent = None):
+    def __init__(self, elements, parent = None):
         super(LatticeView, self).__init__(parent)
 
         self._sc = 100
@@ -138,14 +139,15 @@ class LatticeView(QtGui.QGraphicsView):
         # Gather a list of x and y coordinates
         xlist = []
         ylist = []
-        for ele in lattice.ele:
+        for ele in elements:
             item = EleGraphicsItem(ele, self._sc, self.units )
             item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
             item.setFlag(QtGui.QGraphicsItem.ItemIsMovable, True)
-            xlist.append(self._sc*ele.floor.z)
-            ylist.append(-self._sc*ele.floor.x)
-            item.setPos( self._sc*ele.floor.z, -self._sc*ele.floor.x)
-            item.setRotation(-ele.floor.theta*180/math.pi)
+            floor = ele['floor']
+            xlist.append(self._sc*floor.z)
+            ylist.append(-self._sc*floor.x)
+            item.setPos( self._sc*floor.z, -self._sc*floor.x)
+            item.setRotation(-floor.theta*180/math.pi)
             self.scene.addItem(item)
         xmin = min(xlist)
         xmax = max(xlist)
@@ -160,7 +162,7 @@ class LatticeView(QtGui.QGraphicsView):
         self.scene.selectionChanged.connect(self.printSelectedItems)
 
     def ix_ele_SelectedItems(self):
-        return [x.ele.ix_ele for x in self.scene.selectedItems()]
+        return [x.ele['ix_ele'] for x in self.scene.selectedItems()]
 
     def printSelectedItems(self):
         items = self.scene.selectedItems()

@@ -24,6 +24,7 @@ from madqt.resource.package import PackageResource
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
+FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 def rename_key(d, name, new):
@@ -211,6 +212,7 @@ class Segment(Object):
         data = merged(self.tao.get_element_data(index, who='general'),
                       self.tao.get_element_data(index, who='parameters'),
                       self.tao.get_element_data(index, who='multipole'))
+        data['floor'] = FloorCoords(*self.tao.get_element_floor(index).flat)
         data['name'] = data['name'].lower()
         data['at'] = data['s'] - data['l']
         # for compatibility with MAD-X:
@@ -323,8 +325,6 @@ class Segment(Object):
 
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
-
-
 
 
     @property
