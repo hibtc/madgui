@@ -199,8 +199,9 @@ class MainWindow(QtGui.QMainWindow):
         pass
 
     def viewFloorPlan(self):
-        from madqt.widget.floor_plan import LatticeView
-        self.latview = LatticeView(self.universe.segment.elements)
+        from madqt.widget.floor_plan import LatticeFloorPlan
+        self.latview = LatticeFloorPlan()
+        self.latview.setElements(self.universe.segment.elements)
         self.latview.show()
 
     def helpAboutMadQt(self):

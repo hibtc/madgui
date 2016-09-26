@@ -1,4 +1,10 @@
-from PyQt4 import QtCore, QtGui
+# encoding: utf-8
+
+from __future__ import absolute_import
+from __future__ import unicode_literals
+from __future__ import division
+
+from madqt.qt import Qt, QtCore, QtGui
 
 import math
 
@@ -26,25 +32,23 @@ ELEMENT_WIDTH = {
 
 
 def getElementColor(ele, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(ele['type'], default))
+    return QtGui.QColor(ELEMENT_COLOR.get(ele['type'].upper(), default))
 
 def getElementWidth(ele, default=0.2):
-    return ELEMENT_WIDTH.get(ele['type'], default)
+    return ELEMENT_WIDTH.get(ele['type'].upper(), default)
 
 
 class EleGraphicsItem(QtGui.QGraphicsItem):
 
-    def __init__(self, ele, scale=1, units='m'):
+    def __init__(self, ele, scale=1):
         super(EleGraphicsItem, self).__init__()
         self.setAcceptHoverEvents(True)
         self.name = ele['name']
         self.ele = ele
-        self.units = units
-        self._sc = scale
-        self._r1 = self._sc*0.5*getElementWidth(self.ele) # Inner wall width
-        self._r2 = self._sc*0.5*getElementWidth(self.ele) # Outer wall width
+        self._r1 = 0.5*getElementWidth(self.ele) # Inner wall width
+        self._r2 = 0.5*getElementWidth(self.ele) # Outer wall width
         self._angle = ele.get('angle', 0.0)
-        self._length = self._sc*ele['l'].magnitude
+        self._length = ele['l'].magnitude
         self._width = self._r1+self._r2
         self._shape = self._EleShape()
 
@@ -92,7 +96,7 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
         return  self._boundingRect
 
     def hoverEnterEvent(self, event):
-        self.__printGeometryDetails()
+        pass
 
     def paint(self, painter, option, widget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -121,59 +125,61 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
         return self._shape
 
 
-class LatticeView(QtGui.QGraphicsView):
+class LatticeFloorPlan(QtGui.QGraphicsView):
 
-    def __init__(self, elements, parent = None):
-        super(LatticeView, self).__init__(parent)
+    """
+    Graphics widget to draw 2D floor plan of given lattice.
+    """
 
-        self._sc = 100
-        self.units = 'cm'
+    def __init__(self, *args, **kwargs):
+        super(LatticeFloorPlan, self).__init__(*args, **kwargs)
         self.setInteractive(True)
-        self.setGeometry(QtCore.QRect(200, 200, 400, 400))
-
-        self.scene = QtGui.QGraphicsScene(self)
-        self.setScene(self.scene)
-        self.pt_to_meter = 1.0
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
 
-        # Gather a list of x and y coordinates
-        xlist = []
-        ylist = []
+    def setElements(self, elements):
+        self.setScene(QtGui.QGraphicsScene(self))
         for ele in elements:
-            item = EleGraphicsItem(ele, self._sc, self.units )
-            item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
-            item.setFlag(QtGui.QGraphicsItem.ItemIsMovable, True)
             floor = ele['floor']
-            xlist.append(self._sc*floor.z)
-            ylist.append(-self._sc*floor.x)
-            item.setPos( self._sc*floor.z, -self._sc*floor.x)
+            item = EleGraphicsItem(ele)
+            item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+            item.setPos(floor.z, -floor.x)
             item.setRotation(-floor.theta*180/math.pi)
-            self.scene.addItem(item)
-        xmin = min(xlist)
-        xmax = max(xlist)
-        ymin = min(ylist)
-        ymax = max(ylist)
-        xsize = (xmax-xmin)
-        ysize = (ymax-ymin)
-        scale = max(xsize, ysize)/200
-        self.zoom(1/scale)
-        self.scene.setSceneRect(QtCore.QRectF(1.05*scale*xmin, 1.05*scale*ymin, 1.1*scale*xsize, 1.1*scale*ysize))
+            self.scene().addItem(item)
+        self.setViewRect(self.scene().sceneRect())
 
-        self.scene.selectionChanged.connect(self.printSelectedItems)
+    def resizeEvent(self, event):
+        """Maintain visible region on resize."""
+        new, old = event.size(), event.oldSize()
+        if not old.isEmpty():
+            self.setViewRect(self.mapRectToScene(self.canvas_rect))
+        self.canvas_rect = self.viewport().rect()
+        super(LatticeFloorPlan, self).resizeEvent(event)
 
-    def ix_ele_SelectedItems(self):
-        return [x.ele['ix_ele'] for x in self.scene.selectedItems()]
+    def mapRectToScene(self, rect):
+        """
+        Map topleft/botright rect from viewport to scene coordinates.
 
-    def printSelectedItems(self):
-        items = self.scene.selectedItems()
-        names = [x.name for x in items]
+        This assumes there is no rotation/shearing.
+        """
+        return QtCore.QRectF(
+            self.mapToScene(rect.topLeft()),
+            self.mapToScene(rect.bottomRight()))
+
+    def setViewRect(self, rect):
+        """
+        Fit the given scene rectangle into the visible view.
+
+        This assumes there is no rotation/shearing.
+        """
+        cur = self.mapRectToScene(self.viewport().rect())
+        new = rect.intersected(self.scene().sceneRect())
+        self.zoom(min(cur.width()/new.width(),
+                      cur.height()/new.height()))
 
     def zoom(self, scale):
-        """ function to uniformly zoom, and keep track of the screen's scale"""
-        self.pt_to_meter = self.pt_to_meter*scale
-        self.scale(scale,scale)
-        print('scale ', 1/self.pt_to_meter, ' m/pt')
+        """Scale the figure uniformly along both axes."""
+        self.scale(scale, scale)
 
     def wheelEvent(self, event):
-        sc =  1.0 + event.delta()/1000.0
-        self.zoom(sc)
+        """Handle mouse wheel as zoom."""
+        self.zoom(1.0 + event.delta()/1000.0)
