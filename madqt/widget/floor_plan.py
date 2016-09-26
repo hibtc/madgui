@@ -3,20 +3,33 @@ from PyQt4 import QtCore, QtGui
 import math
 
 
-eleColor={'E_GUN':'purple', 'SBEND':'red', 'QUADRUPOLE':'blue', 'DRIFT':'black', 'LCAVITY':'green', 'RFCAVITY':'green', 'SEXTUPOLE':'yellow', 'WIGGLER':'orange'}
-eleWidth={'E_GUN':1.0, 'LCAVITY':0.4, 'RFCAVITY':0.4, 'SBEND':0.6, 'QUADRUPOLE':0.4, 'SEXTUPOLE':0.5, 'DRIFT':0.1}
+ELEMENT_COLOR = {
+    'E_GUN':       'purple',
+    'SBEND':       'red',
+    'QUADRUPOLE':  'blue',
+    'DRIFT':       'black',
+    'LCAVITY':     'green',
+    'RFCAVITY':    'green',
+    'SEXTUPOLE':   'yellow',
+    'WIGGLER':     'orange',
+}
 
-def EleWidth(ele, default=0.2):
-    if ele.key in eleWidth:
-        return eleWidth[ele.key]
-    else:
-        return default
+ELEMENT_WIDTH = {
+    'E_GUN':       1.0,
+    'LCAVITY':     0.4,
+    'RFCAVITY':    0.4,
+    'SBEND':       0.6,
+    'QUADRUPOLE':  0.4,
+    'SEXTUPOLE':   0.5,
+    'DRIFT':       0.1,
+}
 
-def EleColor(ele, default='black'):
-    if ele.key in eleColor:
-        return QtGui.QColor(eleColor[ele.key])
-    else:
-        return QtGui.QColor(default)
+
+def getElementColor(ele, default='black'):
+    return QtGui.QColor(ELEMENT_COLOR.get(ele.key, default))
+
+def getElementWidth(ele, default=0.2):
+    return ELEMENT_WIDTH.get(ele.key, default)
 
 
 class EleGraphicsItem(QtGui.QGraphicsItem):
@@ -27,8 +40,8 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
         self.ele = ele
         self.units = units
         self._sc = scale
-        self._r1 = self._sc*0.5*EleWidth(self.ele) # Inner wall width
-        self._r2 = self._sc*0.5*EleWidth(self.ele) # Outer wall width
+        self._r1 = self._sc*0.5*getElementWidth(self.ele) # Inner wall width
+        self._r2 = self._sc*0.5*getElementWidth(self.ele) # Outer wall width
         self._angle = self.ele.value['angle']
         self._length = self._sc*self.ele.value['L']
         self._width = self._r1+self._r2
@@ -85,7 +98,7 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
 
         # Draw and fill shape
         painter.drawPath(self._shape)
-        painter.fillPath(self._shape,  EleColor(self.ele))
+        painter.fillPath(self._shape,  getElementColor(self.ele))
 
         # Reference Orbit for curved and straight geometries
         painter.setPen(QtCore.Qt.DashLine)
