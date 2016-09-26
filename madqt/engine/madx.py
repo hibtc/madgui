@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from collections import namedtuple
+import math
 import os
 import subprocess
 
@@ -15,7 +16,7 @@ import numpy as np
 import yaml
 
 from cpymad.madx import Madx
-from cpymad.util import normalize_range_name
+from cpymad.util import normalize_range_name, name_from_internal
 
 from madqt.core.base import Object, Signal
 
@@ -32,6 +33,7 @@ __all__ = [
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
+FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 class Universe(Object):
@@ -306,10 +308,10 @@ class Segment(Object):
         self._show_element_indicators = show_element_indicators
         self._use_beam(beam)
 
-        raw_elements = self.sequence.elements
+        self.raw_elements = self.sequence.elements
         # TODO: provide uncached version of elements with units:
         self.elements = list(map(
-            self.utool.dict_add_unit, raw_elements))
+            self.utool.dict_add_unit, self.raw_elements))
 
         self.twiss()
 
@@ -466,3 +468,27 @@ class Segment(Object):
         twiss_args['range_'] = (info(beg_elem).name, info(end_elem).name)
         twiss_args['tw_range'] = twiss_args.pop('range')
         return self.madx.get_transfer_map_7d(**twiss_args)
+
+    def survey(self):
+        return list(self._survey_helper())
+
+    def _survey_helper(self):
+        table = self.madx.survey()
+        names = map(name_from_internal, table['name'])
+        array = np.array([table[key] for key in FloorCoords._fields])
+        elems = dict(zip(names, array.T))
+        for elem in self.raw_elements:
+            try:
+                coords = FloorCoords(*elems[elem['name']])
+            except KeyError:
+                # compute values for auto-generated drifts based on coords of
+                # previous element:
+                l = elem['l']
+                coords = FloorCoords(
+                    x=coords.x + l * sin(coords.theta),
+                    y=coords.y + l * sin(coords.phi),
+                    z=coords.z + l * cos(coords.theta),
+                    theta=coords.theta,
+                    phi=coords.phi,
+                    psi=coords.psi)
+            yield coords

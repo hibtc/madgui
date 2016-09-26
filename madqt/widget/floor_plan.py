@@ -8,6 +8,8 @@ from madqt.qt import Qt, QtCore, QtGui
 
 import math
 
+# TODO: compatibility with PyQt5
+
 
 ELEMENT_COLOR = {
     'E_GUN':       'purple',
@@ -34,6 +36,7 @@ ELEMENT_WIDTH = {
 def getElementColor(ele, default='black'):
     return QtGui.QColor(ELEMENT_COLOR.get(ele['type'].upper(), default))
 
+
 def getElementWidth(ele, default=0.2):
     return ELEMENT_WIDTH.get(ele['type'].upper(), default)
 
@@ -47,8 +50,8 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
         self.ele = ele
         self._r1 = 0.5*getElementWidth(self.ele) # Inner wall width
         self._r2 = 0.5*getElementWidth(self.ele) # Outer wall width
-        self._angle = ele.get('angle', 0.0)
-        self._length = ele['l'].magnitude
+        self._angle = float(ele.get('angle', 0.0))
+        self._length = float(ele['l'])
         self._width = self._r1+self._r2
         self._shape = self._EleShape()
 
@@ -59,7 +62,7 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
         length = self._length
         r1 = self._r1
         r2 = self._r2
-        if angle != 0:
+        if angle != 0.0:
             # Curved Geometry
             rho = length/angle
             st = math.sin(angle)
@@ -136,10 +139,9 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
 
-    def setElements(self, elements):
+    def setElements(self, elements, survey):
         self.setScene(QtGui.QGraphicsScene(self))
-        for ele in elements:
-            floor = ele['floor']
+        for ele, floor in zip(elements, survey):
             item = EleGraphicsItem(ele)
             item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
             item.setPos(floor.z, -floor.x)
