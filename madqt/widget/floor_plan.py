@@ -8,8 +8,6 @@ from madqt.qt import Qt, QtCore, QtGui
 
 import math
 
-# TODO: compatibility with PyQt5
-
 
 ELEMENT_COLOR = {
     'E_GUN':       'purple',
@@ -103,18 +101,32 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
 
     def paint(self, painter, option, widget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        pen = QtGui.QPen(Qt.SolidLine)
+        pen.setColor(QtGui.QColor('green'))
+        pen.setWidth(1)
+        pen.setCosmetic(True)
+        painter.setPen(pen)
+        painter.setBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
 
         # Draw and fill shape
         painter.drawPath(self._shape)
-        painter.fillPath(self._shape,  getElementColor(self.ele))
+        painter.fillPath(self._shape, getElementColor(self.ele))
+
+        # width needs to be set explicitly on Qt5:
+        pen = QtGui.QPen(Qt.DashLine)
+        pen.setWidth(1)
+        pen.setCosmetic(True)
+        painter.setPen(pen)
+
+        # needed on PyQt5 to avoid filling the following path:
+        painter.setBrush(Qt.NoBrush)
 
         # Reference Orbit for curved and straight geometries
-        painter.setPen(QtCore.Qt.DashLine)
-        if self._angle != 0:
+        if self._angle != 0.0:
             rho = self._length/self._angle
-            path2 = QtGui.QPainterPath()
-            path2.arcTo(-rho, 0, 2*rho, 2*rho, 90, self._angle*180/math.pi)
-            painter.drawPath(path2)
+            path = QtGui.QPainterPath()
+            path.arcTo(-rho, 0, 2*rho, 2*rho, 90, self._angle*180/math.pi)
+            painter.drawPath(path)
 
         else:
             line = QtCore.QLineF(-self._length, 0, 0, 0)
@@ -138,6 +150,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         super(LatticeFloorPlan, self).__init__(*args, **kwargs)
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
 
     def setElements(self, elements, survey):
         self.setScene(QtGui.QGraphicsScene(self))
@@ -184,4 +197,8 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
 
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
-        self.zoom(1.0 + event.delta()/1000.0)
+        try:
+            delta = event.delta()               # PyQt4
+        except AttributeError:
+            delta = event.angleDelta().y()      # PyQt5
+        self.zoom(1.0 + delta/1000.0)
