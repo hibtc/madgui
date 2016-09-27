@@ -68,10 +68,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
 
     def resizeEvent(self, event):
         """Maintain visible region on resize."""
-        new, old = event.size(), event.oldSize()
-        if not old.isEmpty():
-            self.setViewRect(self.mapRectToScene(self.canvas_rect))
-        self.canvas_rect = self.viewport().rect()
+        self.setViewRect(self.view_rect)
         super(LatticeFloorPlan, self).resizeEvent(event)
 
     def mapRectToScene(self, rect):
@@ -94,10 +91,12 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         new = rect.intersected(self.scene().sceneRect())
         self.zoom(min(cur.width()/new.width(),
                       cur.height()/new.height()))
+        self.view_rect = new
 
     def zoom(self, scale):
         """Scale the figure uniformly along both axes."""
         self.scale(scale, scale)
+        self.view_rect = self.mapRectToScene(self.viewport().rect())
 
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
