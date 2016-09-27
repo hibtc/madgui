@@ -5,16 +5,21 @@ Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 
 # TODO: show element info box on selection
 # TODO: improve display of elements with vertical angles
+# TODO: adjust display for custom entry/exit pole faces
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
 
+import math
+
 from six import integer_types
 
 from madqt.qt import Qt, QtCore, QtGui
 
-import math
+__all__ = [
+    'LatticeFloorPlan',
+]
 
 
 ELEMENT_COLOR = {
@@ -39,12 +44,16 @@ ELEMENT_WIDTH = {
 }
 
 
-def getElementColor(ele, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(ele['type'].upper(), default))
+def rad2deg(rad):
+    return rad * (180/math.pi)
 
 
-def getElementWidth(ele, default=0.2):
-    return ELEMENT_WIDTH.get(ele['type'].upper(), default)
+def getElementColor(element, default='black'):
+    return QtGui.QColor(ELEMENT_COLOR.get(element['type'].upper(), default))
+
+
+def getElementWidth(element, default=0.2):
+    return ELEMENT_WIDTH.get(element['type'].upper(), default)
 
 
 def createPen(style=Qt.SolidLine, color='black', width=1):
@@ -68,100 +77,116 @@ def createPen(style=Qt.SolidLine, color='black', width=1):
     return pen
 
 
-class EleGraphicsItem(QtGui.QGraphicsItem):
+def createElementGraphicsItem(element):
+    angle = float(element.get('angle', 0.0))
+    if angle == 0.0:
+        return StraightElementGraphicsItem(element)
+    else:
+        return CurvedElementGraphicsItem(element)
+
+
+class ElementGraphicsItem(QtGui.QGraphicsItem):
+
+    """Base class for element graphics items."""
 
     outline_pen = {'width': 1}
     orbit_pen = {'style': Qt.DashLine}
     select_pen = {'style': Qt.DashLine,
                   'color': 'green',
-                  'width': self.select_width}
+                  'width': 4}
 
-    def __init__(self, ele, scale=1):
-        super(EleGraphicsItem, self).__init__()
-        self.setAcceptHoverEvents(True)
-        self.name = ele['name']
-        self.ele = ele
-        self._r1 = 0.5*getElementWidth(self.ele) # Inner wall width
-        self._r2 = 0.5*getElementWidth(self.ele) # Outer wall width
-        self._angle = float(ele.get('angle', 0.0))
-        self._length = float(ele['l'])
-        self._width = self._r1+self._r2
-        self._shape = self._EleShape()
-
-    def _EleShape(self):
-        """ returns a QPainterPath that outlines the ele """
-        path = QtGui.QPainterPath()
-        angle = self._angle
-        length = self._length
-        r1 = self._r1
-        r2 = self._r2
-        if angle != 0.0:
-            # Curved Geometry
-            rho = length/angle
-            st = math.sin(angle)
-            ct = math.cos(angle)
-            path.moveTo(0, 0)
-            path.lineTo(0, r1)
-            path.arcTo(-rho+r1, r1, 2*(rho-r1), 2*(rho-r1), 90.0, angle*180.0/math.pi)
-            path.lineTo(-(rho+r2)*st, rho-ct*(rho+r2))
-            path.arcTo(-rho-r2,-r2, 2*(rho+r2), 2*(rho+r2), 90.0+angle*180.0/math.pi, -angle*180.0/math.pi)
-            path.lineTo(0, 0)
-            if angle > 0:
-                w = (r2+rho)*st
-                h = r2 + rho*(1-ct) + r1*ct
-                self._boundingRect = QtCore.QRectF(-1.05*w,-1.05*r2, 1.1*w, 1.1*h)
-            else:
-                w = (rho-r1)*st
-                h = r1 + r2*ct - rho*(1-ct)
-                self._boundingRect = QtCore.QRectF(-1.05*w, 1.05*(-h+r1), 1.1*w, 1.1*h)
-
-        else:
-            # Straight Geometry
-            w = self._length
-            h = self._width
-            self._boundingRect = QtCore.QRectF(-1.05*w, -1.1*r2, 1.1*w, 1.1*h)
-            path.moveTo(0, 0)
-            path.lineTo(0, -r2)
-            path.lineTo(-w, -r2)
-            path.lineTo(-w,  r1)
-            path.lineTo(0, r1)
-            path.lineTo(0, 0)
-        return path
-
-    def boundingRect(self):
-        return  self._boundingRect
-
-    def hoverEnterEvent(self, event):
-        pass
-
-    def paint(self, painter, option, widget):
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.setBrush(Qt.NoBrush)
-
-        # Draw and fill shape
-        painter.setPen(createPen(**self.outline_pen))
-        painter.fillPath(self._shape, getElementColor(self.ele))
-        painter.drawPath(self._shape)
-
-        # Reference Orbit for curved and straight geometries
-        painter.setPen(createPen(**self.orbit_pen))
-        if self._angle != 0.0:
-            rho = self._length/self._angle
-            path = QtGui.QPainterPath()
-            path.arcTo(-rho, 0, 2*rho, 2*rho, 90, self._angle*180/math.pi)
-            painter.drawPath(path)
-
-        else:
-            line = QtCore.QLineF(-self._length, 0, 0, 0)
-            painter.drawLine(line)
-
-        # isSelected highlighting
-        if self.isSelected():
-            painter.setPen(createPen(**self.select_pen)))
-            painter.drawPath(self._shape)
+    def __init__(self, element):
+        super(ElementGraphicsItem, self).__init__()
+        self.element = element
+        self.length = float(element.get('l', 0.0))
+        self.angle = float(element.get('angle', 0.0))
+        self.width = getElementWidth(element)
+        self.color = getElementColor(element)
+        self.walls = (0.5*self.width, 0.5*self.width) # inner/outer wall widths
+        self._outline = self.outline()
+        self._orbit = self.orbit()
 
     def shape(self):
-        return self._shape
+        return self._outline
+
+    def boundingRect(self):
+        return self._outline.boundingRect()
+
+    def paint(self, painter, option, widget):
+        """Paint element + orbit + selection frame."""
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setBrush(Qt.NoBrush)
+        # draw element outline:
+        painter.setPen(createPen(**self.outline_pen))
+        painter.fillPath(self._outline, self.color)
+        painter.drawPath(self._outline)
+        # draw beam orbit:
+        painter.setPen(createPen(**self.orbit_pen))
+        painter.drawPath(self._orbit)
+        # highlight selected elements:
+        if self.isSelected():
+            painter.setPen(createPen(**self.select_pen))
+            painter.drawPath(self._outline)
+
+    def outline(self):
+        """Return a QPainterPath that outlines the element."""
+        raise NotImplementedError("abstract method")
+
+    def orbit(self):
+        """Return a QPainterPath that shows the beam orbit."""
+        raise NotImplementedError("abstract method")
+
+
+
+
+class StraightElementGraphicsItem(ElementGraphicsItem):
+
+    def outline(self):
+        path = QtGui.QPainterPath()
+        r1, r2 = self.walls
+        w = self.length
+        path.moveTo(0, 0)
+        path.lineTo(0, -r2)
+        path.lineTo(-w, -r2)
+        path.lineTo(-w,  r1)
+        path.lineTo(0, r1)
+        path.lineTo(0, 0)
+        return path
+
+    def orbit(self):
+        path = QtGui.QPainterPath()
+        path.lineTo(-self.length, 0)
+        return path
+
+
+class CurvedElementGraphicsItem(ElementGraphicsItem):
+
+    def radius(self):
+        return self.length / self.angle
+
+    def outline(self):
+        angle = self.angle
+        rho = self.radius()
+        deg = rad2deg(angle)
+        cos = math.cos(angle)
+        sin = math.sin(angle)
+        w1, w2 = self.walls         # inner/outer wall widths
+        r1, r2 = rho-w1, rho+w2     # inner/outer wall radius
+        path = QtGui.QPainterPath()
+        path.moveTo(0, 0)
+        path.lineTo(0, w1)
+        path.arcTo(-r1, w1, 2*r1, 2*r1, 90, deg)
+        path.lineTo(-r2*sin, rho-cos*r2)
+        path.arcTo(-r2, -w2, 2*r2, 2*r2, 90+deg, -deg)
+        path.lineTo(0, 0)
+        return path
+
+    def orbit(self):
+        rho = self.radius()
+        deg = rad2deg(self.angle)
+        path = QtGui.QPainterPath()
+        path.arcTo(-rho, 0, 2*rho, 2*rho, 90, deg)
+        return path
 
 
 class LatticeFloorPlan(QtGui.QGraphicsView):
@@ -178,11 +203,11 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
 
     def setElements(self, elements, survey):
         self.setScene(QtGui.QGraphicsScene(self))
-        for ele, floor in zip(elements, survey):
-            item = EleGraphicsItem(ele)
+        for element, floor in zip(elements, survey):
+            item = createElementGraphicsItem(element)
             item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
             item.setPos(floor.z, -floor.x)
-            item.setRotation(-floor.theta*180/math.pi)
+            item.setRotation(-rad2deg(floor.theta))
             self.scene().addItem(item)
         self.setViewRect(self.scene().sceneRect())
 
