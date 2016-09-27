@@ -1,8 +1,16 @@
 # encoding: utf-8
+"""
+Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
+"""
+
+# TODO: show element info box on selection
+# TODO: improve display of elements with vertical angles
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
+
+from six import integer_types
 
 from madqt.qt import Qt, QtCore, QtGui
 
@@ -39,7 +47,34 @@ def getElementWidth(ele, default=0.2):
     return ELEMENT_WIDTH.get(ele['type'].upper(), default)
 
 
+def createPen(style=Qt.SolidLine, color='black', width=1):
+    """
+    Use this function to conveniently create a cosmetic pen with specified
+    width. Integer widths create cosmetic pens (default) and float widths
+    create scaling pens (this way you can set the figure style by changing a
+    number).
+
+    This is particularly important on PyQt5 where the default pen blacks out
+    large areas of the figure if not being careful.
+    """
+    pen = QtGui.QPen(style)
+    pen.setColor(QtGui.QColor(color))
+    if isinstance(width, integer_types):
+        pen.setWidth(width)
+        pen.setCosmetic(True)
+    else:
+        pen.setWidthF(width)
+        pen.setCosmetic(False)
+    return pen
+
+
 class EleGraphicsItem(QtGui.QGraphicsItem):
+
+    outline_pen = {'width': 1}
+    orbit_pen = {'style': Qt.DashLine}
+    select_pen = {'style': Qt.DashLine,
+                  'color': 'green',
+                  'width': self.select_width}
 
     def __init__(self, ele, scale=1):
         super(EleGraphicsItem, self).__init__()
@@ -101,27 +136,15 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
 
     def paint(self, painter, option, widget):
         painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        pen = QtGui.QPen(Qt.SolidLine)
-        pen.setColor(QtGui.QColor('green'))
-        pen.setWidth(1)
-        pen.setCosmetic(True)
-        painter.setPen(pen)
-        painter.setBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
-
-        # Draw and fill shape
-        painter.drawPath(self._shape)
-        painter.fillPath(self._shape, getElementColor(self.ele))
-
-        # width needs to be set explicitly on Qt5:
-        pen = QtGui.QPen(Qt.DashLine)
-        pen.setWidth(1)
-        pen.setCosmetic(True)
-        painter.setPen(pen)
-
-        # needed on PyQt5 to avoid filling the following path:
         painter.setBrush(Qt.NoBrush)
 
+        # Draw and fill shape
+        painter.setPen(createPen(**self.outline_pen))
+        painter.fillPath(self._shape, getElementColor(self.ele))
+        painter.drawPath(self._shape)
+
         # Reference Orbit for curved and straight geometries
+        painter.setPen(createPen(**self.orbit_pen))
         if self._angle != 0.0:
             rho = self._length/self._angle
             path = QtGui.QPainterPath()
@@ -134,7 +157,8 @@ class EleGraphicsItem(QtGui.QGraphicsItem):
 
         # isSelected highlighting
         if self.isSelected():
-            painter.drawRect(self.boundingRect())
+            painter.setPen(createPen(**self.select_pen)))
+            painter.drawPath(self._shape)
 
     def shape(self):
         return self._shape
