@@ -4,8 +4,11 @@ Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 """
 
 # TODO: show element info box on selection
-# TODO: improve display of elements with vertical angles
+# TODO: improve display of vertically oriented elements
 # TODO: adjust display for custom entry/exit pole faces
+# TODO: show scale indicator
+# TODO: load styles from config
+# TODO: rotate/place scene according to space requirements
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
