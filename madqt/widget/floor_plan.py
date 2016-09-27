@@ -44,151 +44,6 @@ ELEMENT_WIDTH = {
 }
 
 
-def rad2deg(rad):
-    return rad * (180/math.pi)
-
-
-def getElementColor(element, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(element['type'].upper(), default))
-
-
-def getElementWidth(element, default=0.2):
-    return ELEMENT_WIDTH.get(element['type'].upper(), default)
-
-
-def createPen(style=Qt.SolidLine, color='black', width=1):
-    """
-    Use this function to conveniently create a cosmetic pen with specified
-    width. Integer widths create cosmetic pens (default) and float widths
-    create scaling pens (this way you can set the figure style by changing a
-    number).
-
-    This is particularly important on PyQt5 where the default pen blacks out
-    large areas of the figure if not being careful.
-    """
-    pen = QtGui.QPen(style)
-    pen.setColor(QtGui.QColor(color))
-    if isinstance(width, integer_types):
-        pen.setWidth(width)
-        pen.setCosmetic(True)
-    else:
-        pen.setWidthF(width)
-        pen.setCosmetic(False)
-    return pen
-
-
-def createElementGraphicsItem(element):
-    angle = float(element.get('angle', 0.0))
-    if angle == 0.0:
-        return StraightElementGraphicsItem(element)
-    else:
-        return CurvedElementGraphicsItem(element)
-
-
-class ElementGraphicsItem(QtGui.QGraphicsItem):
-
-    """Base class for element graphics items."""
-
-    outline_pen = {'width': 1}
-    orbit_pen = {'style': Qt.DashLine}
-    select_pen = {'style': Qt.DashLine,
-                  'color': 'green',
-                  'width': 4}
-
-    def __init__(self, element):
-        super(ElementGraphicsItem, self).__init__()
-        self.element = element
-        self.length = float(element.get('l', 0.0))
-        self.angle = float(element.get('angle', 0.0))
-        self.width = getElementWidth(element)
-        self.color = getElementColor(element)
-        self.walls = (0.5*self.width, 0.5*self.width) # inner/outer wall widths
-        self._outline = self.outline()
-        self._orbit = self.orbit()
-
-    def shape(self):
-        return self._outline
-
-    def boundingRect(self):
-        return self._outline.boundingRect()
-
-    def paint(self, painter, option, widget):
-        """Paint element + orbit + selection frame."""
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        painter.setBrush(Qt.NoBrush)
-        # draw element outline:
-        painter.setPen(createPen(**self.outline_pen))
-        painter.fillPath(self._outline, self.color)
-        painter.drawPath(self._outline)
-        # draw beam orbit:
-        painter.setPen(createPen(**self.orbit_pen))
-        painter.drawPath(self._orbit)
-        # highlight selected elements:
-        if self.isSelected():
-            painter.setPen(createPen(**self.select_pen))
-            painter.drawPath(self._outline)
-
-    def outline(self):
-        """Return a QPainterPath that outlines the element."""
-        raise NotImplementedError("abstract method")
-
-    def orbit(self):
-        """Return a QPainterPath that shows the beam orbit."""
-        raise NotImplementedError("abstract method")
-
-
-
-
-class StraightElementGraphicsItem(ElementGraphicsItem):
-
-    def outline(self):
-        path = QtGui.QPainterPath()
-        r1, r2 = self.walls
-        w = self.length
-        path.moveTo(0, 0)
-        path.lineTo(0, -r2)
-        path.lineTo(-w, -r2)
-        path.lineTo(-w,  r1)
-        path.lineTo(0, r1)
-        path.lineTo(0, 0)
-        return path
-
-    def orbit(self):
-        path = QtGui.QPainterPath()
-        path.lineTo(-self.length, 0)
-        return path
-
-
-class CurvedElementGraphicsItem(ElementGraphicsItem):
-
-    def radius(self):
-        return self.length / self.angle
-
-    def outline(self):
-        angle = self.angle
-        rho = self.radius()
-        deg = rad2deg(angle)
-        cos = math.cos(angle)
-        sin = math.sin(angle)
-        w1, w2 = self.walls         # inner/outer wall widths
-        r1, r2 = rho-w1, rho+w2     # inner/outer wall radius
-        path = QtGui.QPainterPath()
-        path.moveTo(0, 0)
-        path.lineTo(0, w1)
-        path.arcTo(-r1, w1, 2*r1, 2*r1, 90, deg)
-        path.lineTo(-r2*sin, rho-cos*r2)
-        path.arcTo(-r2, -w2, 2*r2, 2*r2, 90+deg, -deg)
-        path.lineTo(0, 0)
-        return path
-
-    def orbit(self):
-        rho = self.radius()
-        deg = rad2deg(self.angle)
-        path = QtGui.QPainterPath()
-        path.arcTo(-rho, 0, 2*rho, 2*rho, 90, deg)
-        return path
-
-
 class LatticeFloorPlan(QtGui.QGraphicsView):
 
     """
@@ -251,3 +106,149 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         except AttributeError:
             delta = event.angleDelta().y()      # PyQt5
         self.zoom(1.0 + delta/1000.0)
+
+
+def createElementGraphicsItem(element):
+    angle = float(element.get('angle', 0.0))
+    if angle == 0.0:
+        return StraightElementGraphicsItem(element)
+    else:
+        return CurvedElementGraphicsItem(element)
+
+
+class ElementGraphicsItem(QtGui.QGraphicsItem):
+
+    """Base class for element graphics items."""
+
+    outline_pen = {'width': 1}
+    orbit_pen = {'style': Qt.DashLine}
+    select_pen = {'style': Qt.DashLine,
+                  'color': 'green',
+                  'width': 4}
+
+    def __init__(self, element):
+        super(ElementGraphicsItem, self).__init__()
+        self.element = element
+        self.length = float(element.get('l', 0.0))
+        self.angle = float(element.get('angle', 0.0))
+        self.width = getElementWidth(element)
+        self.color = getElementColor(element)
+        self.walls = (0.5*self.width, 0.5*self.width) # inner/outer wall widths
+        self._outline = self.outline()
+        self._orbit = self.orbit()
+
+    def shape(self):
+        return self._outline
+
+    def boundingRect(self):
+        return self._outline.boundingRect()
+
+    def paint(self, painter, option, widget):
+        """Paint element + orbit + selection frame."""
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setBrush(Qt.NoBrush)
+        # draw element outline:
+        painter.setPen(createPen(**self.outline_pen))
+        painter.fillPath(self._outline, self.color)
+        painter.drawPath(self._outline)
+        # draw beam orbit:
+        painter.setPen(createPen(**self.orbit_pen))
+        painter.drawPath(self._orbit)
+        # highlight selected elements:
+        if self.isSelected():
+            painter.setPen(createPen(**self.select_pen))
+            painter.drawPath(self._outline)
+
+    # NOTE: drawing "backwards" because the origin (0,0) as at the exit face
+    # of the element.
+
+    def outline(self):
+        """Return a QPainterPath that outlines the element."""
+        raise NotImplementedError("abstract method")
+
+    def orbit(self):
+        """Return a QPainterPath that shows the beam orbit."""
+        raise NotImplementedError("abstract method")
+
+
+class StraightElementGraphicsItem(ElementGraphicsItem):
+
+    def outline(self):
+        path = QtGui.QPainterPath()
+        r1, r2 = self.walls
+        w = self.length
+        path.moveTo(0, 0)
+        path.lineTo(0, -r2)
+        path.lineTo(-w, -r2)
+        path.lineTo(-w,  r1)
+        path.lineTo(0, r1)
+        path.lineTo(0, 0)
+        return path
+
+    def orbit(self):
+        path = QtGui.QPainterPath()
+        path.lineTo(-self.length, 0)
+        return path
+
+
+class CurvedElementGraphicsItem(ElementGraphicsItem):
+
+    def radius(self):
+        return self.length / self.angle
+
+    def outline(self):
+        angle = self.angle
+        rho = self.radius()
+        deg = rad2deg(angle)
+        cos = math.cos(angle)
+        sin = math.sin(angle)
+        w1, w2 = self.walls         # inner/outer wall widths
+        r1, r2 = rho-w1, rho+w2     # inner/outer wall radius
+        path = QtGui.QPainterPath()
+        path.moveTo(0, 0)
+        path.lineTo(0, w1)
+        path.arcTo(-r1, w1, 2*r1, 2*r1, 90, deg)
+        path.lineTo(-r2*sin, rho-cos*r2)
+        path.arcTo(-r2, -w2, 2*r2, 2*r2, 90+deg, -deg)
+        path.lineTo(0, 0)
+        return path
+
+    def orbit(self):
+        rho = self.radius()
+        deg = rad2deg(self.angle)
+        path = QtGui.QPainterPath()
+        path.arcTo(-rho, 0, 2*rho, 2*rho, 90, deg)
+        return path
+
+
+def rad2deg(rad):
+    return rad * (180/math.pi)
+
+
+def getElementColor(element, default='black'):
+    return QtGui.QColor(ELEMENT_COLOR.get(element['type'].upper(), default))
+
+
+def getElementWidth(element, default=0.2):
+    return ELEMENT_WIDTH.get(element['type'].upper(), default)
+
+
+def createPen(style=Qt.SolidLine, color='black', width=1):
+    """
+    Use this function to conveniently create a cosmetic pen with specified
+    width. Integer widths create cosmetic pens (default) and float widths
+    create scaling pens (this way you can set the figure style by changing a
+    number).
+
+    This is particularly important on PyQt5 where the default pen blacks out
+    large areas of the figure if not being careful.
+    """
+    pen = QtGui.QPen(style)
+    pen.setColor(QtGui.QColor(color))
+    if isinstance(width, integer_types):
+        pen.setWidth(width)
+        pen.setCosmetic(True)
+    else:
+        pen.setWidthF(width)
+        pen.setCosmetic(False)
+    return pen
