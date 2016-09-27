@@ -203,7 +203,10 @@ class MainWindow(QtGui.QMainWindow):
         self.latview = LatticeFloorPlan()
         self.latview.setElements(self.universe.segment.survey_elements(),
                                  self.universe.segment.survey())
-        self.latview.show()
+        dock = QtGui.QDockWidget()
+        dock.setWidget(self.latview)
+        dock.setWindowTitle("2D floor plan")
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)
 
     def helpAboutMadQt(self):
         """Show about dialog."""
