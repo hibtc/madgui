@@ -373,17 +373,18 @@ class Segment(Object):
     def get_beam(self):
         beam = self.tao.properties('beam_init', self.unibra)
         # FIXME: evaluate several possible sources for emittance/beam:
-        # - beam_init%a_emit        (tao)
-        # - beam_start%a_emit
-        # - lat%a%emit
-        # - beginning[emittance_a]
+        # - beam%beam_init%a_emit   (beam_init_struct -> a_emit, b_emit)
+        # - lat%beam_start          (coord_struct -> x, y, px, py, ...)
+        # - lat%a%emit              (mode_info_struct -> emit, sigma, ...)
+
+        # - beam_start[emittance_a]
         _translate_default(beam, 'a_emit', 0., 1.)
         _translate_default(beam, 'b_emit', 0., 1.)
         return self.utool.dict_add_unit(beam)
 
     def set_beam(self, beam):
         self.tao.set('beam_init', **beam)
-        # Bmad has also (unused?) `beam_start` parameter group:
+        # Bmad has also the (unused?) `beam_start` parameter group:
         #self.tao.change('beam_start', **beam)
 
     beam = property(get_beam, set_beam)
