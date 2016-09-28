@@ -22,8 +22,8 @@ __email__ = 't_glaessle@gmx.de'
 
 __support__ = __email__
 
-__license__ = 'MIT'
-__copyright__ = '(C) 2016 HIT Betriebs GmbH'
+__license__ = 'GPLv3+'
+__copyright__ = 'Copyright 2016 HIT Betriebs GmbH'
 
 __credits__ = """
 MadQt is developed for HIT Betriebs GmbH.
@@ -41,9 +41,10 @@ Special thanks to my supervisors for their help and support:
 # Trove classifiers: https://pypi.python.org/pypi?:action=list_classifiers
 __classifiers__ = [
     'Development Status :: 3 - Alpha',
+    'Environment :: X11 Applications :: Qt',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: MIT License',
+    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
     'Operating System :: OS Independent',
     'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 3',
@@ -53,4 +54,4 @@ __classifiers__ = [
 
 def get_copyright_notice():
     from pkg_resources import resource_string
-    return resource_string('madqt', 'LICENSE')
+    return resource_string('madqt', 'COPYING.txt')

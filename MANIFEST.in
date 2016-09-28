@@ -1,1 +1,3 @@
-include README.rst LICENSE
+include README.rst
+include COPYING.rst COPYING.GPLv3.txt
+include madqt/COPYING.txt

@@ -24,9 +24,21 @@ def exec_file(path):
     return namespace
 
 
+def get_long_description():
+    """Compose a long description for PyPI."""
+    long_description = None
+    try:
+        long_description = read_file('README.rst').decode('utf-8')
+        long_description += '\n' + read_file('COPYING.rst').decode('utf-8')
+        long_description += '\n' + read_file('CHANGES.rst').decode('utf-8')
+    except (IOError, UnicodeDecodeError):
+        pass
+    return long_description
+
+
 def main():
     """Execute setup."""
-    long_description = read_file('README.rst').decode('utf-8')
+    long_description = get_long_description()
     meta = exec_file('madqt/__init__.py')
     setup(
         name='MadQt',
@@ -69,7 +81,7 @@ def main():
         """,
         package_data={
             'madqt': [
-                'LICENSE',
+                'COPYING.txt',
                 'data/*.txt',
                 'data/*.yml',
                 'data/*.xpm',
