@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from collections import namedtuple
+import math
 import os
 import subprocess
 
@@ -15,7 +16,7 @@ import numpy as np
 import yaml
 
 from cpymad.madx import Madx
-from cpymad.util import normalize_range_name
+from cpymad.util import normalize_range_name, name_from_internal
 
 from madqt.core.base import Object, Signal
 
@@ -32,6 +33,7 @@ __all__ = [
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
+FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 class Universe(Object):
@@ -47,9 +49,11 @@ class Universe(Object):
     :ivar utool: Unit conversion tool for MAD-X.
     """
 
+    backend_name = 'MAD-X'
+
     destroyed = Signal()
 
-    def __init__(self):
+    def __init__(self, filename):
         super(Universe, self).__init__()
         self.data = {}
         self.segment = None
@@ -64,6 +68,7 @@ class Universe(Object):
             bufsize=0)
         self.config = PackageResource('madqt.engine').yaml('madx.yml')
         self.utool = UnitConverter.from_config_dict(self.config['units'])
+        self.load(filename)
 
     def destroy(self):
         """Annihilate current universe. Stop MAD-X interpreter."""
@@ -141,28 +146,27 @@ class Universe(Object):
     def load(self, filename):
         """Load model or plain MAD-X file."""
         path, name = os.path.split(filename)
-        repo = FileResource(path)
+        self.repo = FileResource(path)
         ext = os.path.splitext(name)[1]
         if ext.lower() in ('.yml', '.yaml'):
-            self.load_model(repo, name)
+            self.load_model(name)
         else:
-            self.load_madx_files(repo, [name])
+            self.load_madx_files([name])
 
-    def load_model(self, repo, filename):
+    def load_model(self, filename):
         """Load model data from file."""
-        data = repo.yaml(filename, encoding='utf-8')
+        data = self.repo.yaml(filename, encoding='utf-8')
         self.check_compatibility(data)
         self.data = data
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
-        self.load_madx_files(repo, data.get('init-files', []))
+        self.load_madx_files(data.get('init-files', []))
         segment_data = {'sequence', 'range', 'beam', 'twiss'}
         if all(data.get(p) for p in segment_data):
             self.init_segment(data)
 
-    def load_madx_files(self, repo, filenames):
+    def load_madx_files(self, filenames):
         """Load a plain MAD-X file."""
-        self.repo = repo
         for filename in filenames:
             self.call(filename)
 
@@ -304,10 +308,10 @@ class Segment(Object):
         self._show_element_indicators = show_element_indicators
         self._use_beam(beam)
 
-        raw_elements = self.sequence.elements
+        self.raw_elements = self.sequence.elements
         # TODO: provide uncached version of elements with units:
         self.elements = list(map(
-            self.utool.dict_add_unit, raw_elements))
+            self.utool.dict_add_unit, self.raw_elements))
 
         self.twiss()
 
@@ -402,6 +406,13 @@ class Segment(Object):
                 return elem
         return None
 
+    def get_element_by_name(self, name):
+        return self.elements[self.get_element_index(name)]
+
+    def get_element_data(self, elem):
+        return self.utool.dict_add_unit(
+            self.universe.madx.active_sequence.elements[elem])
+
     def get_element_index(self, elem):
         """Get element index by it name."""
         return self.sequence.elements.index(elem)
@@ -460,3 +471,14 @@ class Segment(Object):
         twiss_args['range_'] = (info(beg_elem).name, info(end_elem).name)
         twiss_args['tw_range'] = twiss_args.pop('range')
         return self.madx.get_transfer_map_7d(**twiss_args)
+
+    def survey(self):
+        # NOTE: SURVEY includes auto-generated DRIFTs, but segment.elements
+        # does not!
+        table = self.madx.survey()
+        names = map(name_from_internal, table['name'])
+        array = np.array([table[key] for key in FloorCoords._fields])
+        return [FloorCoords(*row) for row in array.T]
+
+    def survey_elements(self):
+        return self.sequence.expanded_elements

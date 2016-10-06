@@ -14,7 +14,7 @@ import numpy as np
 
 from madqt.qt import QtGui, Qt
 
-from madqt.util.qt import waitCursor, notifyCloseEvent, notifyEvent
+from madqt.util.qt import waitCursor
 from madqt.core.unit import units, strip_unit, from_config, get_unit_label, get_raw_label
 from madqt.resource.package import PackageResource
 from madqt.plot.base import SceneElement, SceneGraph
@@ -73,6 +73,8 @@ class TwissFigure(object):
             ElementIndicators(axes.x, self, elements_style),
             ElementIndicators(axes.y, self, elements_style),
         ])
+        self.markers = ElementMarkers(self, segment.universe.selection)
+        self.scene_graph.items.append(self.markers)
 
         # subscribe for updates
         self.segment.updated.connect(self.update)
@@ -528,9 +530,7 @@ class InfoTool(CaptureTool):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
         self.segment = plot.figure.segment
-        self._info_boxes = []
-        self.markers = ElementMarkers(self.plot.figure, self._info_boxes)
-        self.plot.figure.scene_graph.items.append(self.markers)
+        self.selection = self.segment.universe.selection
 
     def activate(self):
         """Start select mode."""
@@ -558,53 +558,22 @@ class InfoTool(CaptureTool):
 
         # By default, show info in an existing dialog. The shift/ctrl keys
         # are used to open more dialogs:
-        if self._info_boxes and not shift and not control:
-            box = self.activeBox()
-            box.widget().el_name = elem_name
-            box.setWindowTitle(elem_name)
-            self.markers.draw()
-            return
-
-        dock, info = self.create_info_box(elem_name)
-        notifyCloseEvent(dock, partial(self._onCloseBox, dock))
-        notifyEvent(info, 'focusInEvent', lambda event: self.setActiveBox(dock))
-
-        frame = self.plot.window()
-        frame.addDockWidget(Qt.RightDockWidgetArea, dock)
-        if self._info_boxes and shift:
-            frame.tabifyDockWidget(self.activeBox(), dock)
-            dock.show()
-            dock.raise_()
-        self.segment.universe.destroyed.connect(dock.close)
-
-        self._info_boxes.append(dock)
-        self.markers.draw()
+        selected = self.selection.elements
+        if selected and not shift and not control:
+            selected[self.selection.top] = elem_name
+        elif shift:
+            # stack box
+            selected.append(elem_name)
+        else:
+            selected.insert(0, elem_name)
 
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
         self.plot.canvas.setFocus()
 
-    def _onCloseBox(self, box):
-        self._info_boxes.remove(box)
-        self.markers.draw()
-
-    def activeBox(self):
-        return self._info_boxes[-1]
-
-    def setActiveBox(self, box):
-        self._info_boxes.remove(box)
-        self._info_boxes.append(box)
-
-    def create_info_box(self, elem_name):
-        from madqt.widget.elementinfo import ElementInfoBox
-        info = ElementInfoBox(self.segment, elem_name)
-        dock = QtGui.QDockWidget()
-        dock.setWidget(info)
-        dock.setWindowTitle(elem_name)
-        return dock, info
-
     def onKey(self, event):
-        if not self._info_boxes:
+        selected = self.selection.elements
+        if not selected:
             return
         if 'left' in event.key:
             move_step = -1
@@ -612,31 +581,36 @@ class InfoTool(CaptureTool):
             move_step = 1
         else:
             return
-        cur_box = self.activeBox().widget()
-        old_index = self.segment.get_element_index(cur_box.el_name)
-        new_index = old_index + move_step
+        top = self.selection.top
         elements = self.segment.elements
-        new_elem = elements[new_index % len(elements)]
-        cur_box.el_name = new_elem['name']
-        self.markers.draw()
+        old_name = selected[top]
+        old_index = self.segment.get_element_index(old_name)
+        new_index = old_index + move_step
+        new_name = elements[new_index % len(elements)]
+        selected[top] = new_name
 
 
 class ElementMarkers(object):
 
-    def __init__(self, figure, boxes):
+    def __init__(self, figure, selection):
         self.figure = figure
         self.style = figure.config['select_style']
         self.lines = []
-        self.boxes = boxes
+        self.selection = selection
+        selection.elements.update_after.connect(
+            lambda *args: self.draw())
 
     def draw(self):
         self.update()
         self.figure.draw()
 
     def plot(self):
-        for box in self.boxes:
-            self.plotMarker(self.figure.figure.axes.x, box.widget().element)
-            self.plotMarker(self.figure.figure.axes.y, box.widget().element)
+        axx, axy = self.figure.figure.axes
+        segment = self.figure.segment
+        for el_name in self.selection.elements:
+            element = segment.get_element_by_name(el_name)
+            self.plotMarker(axx, element)
+            self.plotMarker(axy, element)
 
     def update(self):
         self.remove()

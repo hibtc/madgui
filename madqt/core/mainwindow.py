@@ -13,18 +13,32 @@ import os
 
 from six import text_type as unicode
 
-from madqt.qt import QtCore, QtGui
+from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
+from madqt.util.collections import Selection
 
 import madqt.util.font as font
 import madqt.core.config as config
 import madqt.core.menu as menu
-import madqt.engine.madx as madx
 
 
 __all__ = [
     'MainWindow',
 ]
+
+
+def savedict(filename, data):
+    import numpy as np
+    from madqt.core.unit import get_unit_label
+    cols = list(data)
+    body = list(data.values())
+    for i, col in enumerate(body[:]):
+        try:
+            cols[i] += get_unit_label(col)
+            body[i] = col.magnitude
+        except AttributeError:
+            pass
+    np.savetxt(filename, np.array(body).T, header=' '.join(cols))
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -35,6 +49,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, options, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        self.user_ns = {}
         self.options = options
         self.config = config.load(options['--config'])
         self.universe = None
@@ -94,6 +109,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Log window', 'Ctrl+L',
                      'Show a log window.',
                      self.viewLog),
+                Item('&Floor plan', 'Ctrl+F',
+                     'Show a 2D floor plan of the lattice.',
+                     self.viewFloorPlan),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
@@ -130,8 +148,9 @@ class MainWindow(QtGui.QMainWindow):
     def fileOpen(self):
         from madqt.util.filedialog import getOpenFileName
         filters = [
-            ("Model files", "*.cpymad.yml"),
+            ("Model files", "*.cpymad.yml", "*.pytao.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
+            ("Bmad lattice", "*.bmad", "*.lat"),
             ("All files", "*"),
         ]
         filename = getOpenFileName(
@@ -180,6 +199,17 @@ class MainWindow(QtGui.QMainWindow):
     def viewLog(self):
         pass
 
+    def viewFloorPlan(self):
+        from madqt.widget.floor_plan import LatticeFloorPlan
+        self.latview = LatticeFloorPlan()
+        self.latview.setElements(self.universe.segment.survey_elements(),
+                                 self.universe.segment.survey(),
+                                 self.universe.selection)
+        dock = QtGui.QDockWidget()
+        dock.setWidget(self.latview)
+        dock.setWindowTitle("2D floor plan")
+        self.addDockWidget(Qt.LeftDockWidgetArea, dock)
+
     def helpAboutMadQt(self):
         """Show about dialog."""
         import madqt
@@ -212,7 +242,9 @@ class MainWindow(QtGui.QMainWindow):
         if not os.path.exists(path) and not os.path.isabs(path) and self.folder:
             path = os.path.join(self.folder, path)
         if os.path.isdir(path):
-            models = glob.glob(os.path.join(path, '*.cpymad.yml'))
+            models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
+                      glob.glob(os.path.join(path, '*.pytao.yml')) +
+                      glob.glob(os.path.join(path, '*.init')))
             if models:
                 path = models[0]
         if not os.path.isfile(path):
@@ -221,10 +253,23 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
+        engine_exts = {
+            'madqt.engine.madx': ('.cpymad.yml', '.madx'),
+            'madqt.engine.tao': ('.pytao.yml', '.bmad', '.lat', '.init'),
+        }
+
+        for modname, exts in engine_exts.items():
+            if any(map(filename.endswith, exts)):
+                module = __import__(modname, None, None, '*')
+                Universe = module.Universe
+                break
+        else:
+            raise NotImplementedError("Unsupported file format: {}"
+                                      .format(filename))
+
         filename = os.path.abspath(filename)
         self.folder, _ = os.path.split(filename)
-        self.setUniverse(madx.Universe())
-        self.universe.load(filename)
+        self.setUniverse(Universe(filename))
         self.showTwiss()
 
     def setUniverse(self, universe):
@@ -232,9 +277,14 @@ class MainWindow(QtGui.QMainWindow):
             return
         self.destroyUniverse()
         self.universe = universe
+        self.user_ns['universe'] = universe
+        self.user_ns['savedict'] = savedict
         if universe is None:
             return
         self._createLogTab()
+
+        universe.selection = Selection()
+        universe.box_group = InfoBoxGroup(self, universe.selection)
 
         madx_log = AsyncRead(universe.remote_process.stdout)
         madx_log.dataReceived.connect(self._log_stream.write)
@@ -246,12 +296,14 @@ class MainWindow(QtGui.QMainWindow):
     def destroyUniverse(self):
         if self.universe is None:
             return
+        del self.universe.selection.elements[:]
         try:
             self.universe.destroy()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
         self.universe = None
+        self.user_ns['universe'] = None
 
     def showTwiss(self):
         import madqt.plot.matplotlib as plot
@@ -284,12 +336,11 @@ class MainWindow(QtGui.QMainWindow):
     def _createShell(self):
         """Create a python shell widget."""
         import madqt.core.pyshell as pyshell
-        self.user_ns = {}
         self.shell = pyshell.create(self.user_ns)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
         dock.setWindowTitle("python shell")
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         self.shell.exit_requested.connect(dock.close)
 
     def _createLogTab(self):
@@ -298,8 +349,8 @@ class MainWindow(QtGui.QMainWindow):
         text.setReadOnly(True)
         dock = QtGui.QDockWidget()
         dock.setWidget(text)
-        dock.setWindowTitle("MAD-X output")
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
+        dock.setWindowTitle('{} output'.format(self.universe.backend_name))
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         # TODO: MAD-X log should be separate from basic logging
         self._basicConfig(text, logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
@@ -366,3 +417,67 @@ class TextCtrlStream(object):
     def write(self, text):
         """Append text."""
         self._ctrl.appendPlainText(text.rstrip())
+
+
+class InfoBoxGroup(object):
+
+    def __init__(self, mainwindow, selection):
+        """Add toolbar tool to panel and subscribe to capture events."""
+        super(InfoBoxGroup, self).__init__()
+        self.mainwindow = mainwindow
+        self.selection = selection
+        self.boxes = [self.create_info_box(elem)
+                      for elem in selection.elements]
+        selection.elements.insert_notify.connect(self._insert)
+        selection.elements.delete_notify.connect(self._delete)
+        selection.elements.modify_notify.connect(self._modify)
+
+    # keep info boxes in sync with current selection
+
+    def _insert(self, index, value):
+        self.boxes.insert(index, self.create_info_box(value, index != 0))
+
+    def _delete(self, index, value):
+        if self.boxes[index].isVisible():
+            self.boxes[index].close()
+        del self.boxes[index]
+
+    def _modify(self, index, old_value, new_value):
+        self.boxes[index].widget().el_name = new_value
+        self.boxes[index].setWindowTitle(new_value)
+
+    # utility methods
+
+    @property
+    def segment(self):
+        return self.mainwindow.universe.segment
+
+    def _on_close_box(self, box):
+        el_name = box.widget().el_name
+        if el_name in self.selection.elements:
+            self.selection.elements.remove(el_name)
+
+    def set_active_box(self, box):
+        self.selection.top = self.boxes.index(box)
+        box.raise_()
+
+    def create_info_box(self, elem_name, stack=True):
+        from madqt.widget.elementinfo import ElementInfoBox
+        from madqt.util.qt import notifyCloseEvent, notifyEvent
+        info = ElementInfoBox(self.segment, elem_name)
+        dock = QtGui.QDockWidget()
+        dock.setWidget(info)
+        dock.setWindowTitle(elem_name)
+        notifyCloseEvent(dock, lambda: self._on_close_box(dock))
+        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(dock))
+
+        frame = self.mainwindow
+        frame.addDockWidget(Qt.RightDockWidgetArea, dock)
+        order = self.selection.ordering
+        if len(order) >= 2 and stack:
+            frame.tabifyDockWidget(self.boxes[order[-2]], dock)
+        dock.show()
+        dock.raise_()
+        self.segment.universe.destroyed.connect(dock.close)
+
+        return dock

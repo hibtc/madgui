@@ -93,9 +93,8 @@ class ElementInfoBox(tableview.TableView):
 
     @property
     def element(self):
-        elements = self.segment.universe.madx.active_sequence.elements
-        raw_element = elements[self.el_name]
-        return self.segment.utool.dict_add_unit(raw_element)
+        return self.segment.get_element_data(
+            self.segment.get_element_info(self.el_name).index)
 
     def update(self):
         """
