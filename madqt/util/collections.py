@@ -15,18 +15,62 @@ from madqt.core.base import Object, Signal
 
 __all__ = [
     'List',
-    'UpdateNotifications',
+    'Selection'
 ]
 
 
-class List(MutableSequence):
+class List(Object):
 
     """A list-like class that can be observed for changes."""
 
+    # parameters: (slice, old_values, new_values)
+    update_before = Signal([object, object, object])
+    update_after = Signal([object, object, object])
+
+    insert_notify = Signal([int, object])
+    delete_notify = Signal([int, object])
+    modify_notify = Signal([int, object, object])
+
     def __init__(self, items=None):
         """Use the items object by reference."""
-        self._items = [] if items is None else items
-        self.update_notify = UpdateNotifications(self)
+        super(List, self).__init__()
+        self._items = list() if items is None else items
+        self.lock = Lock()
+
+    @contextmanager
+    def update_notify(self, slice, new_values):
+        """Emit update signals, only when ."""
+        with self.lock:
+            old_values = self[slice]
+            num_del, num_ins = len(old_values), len(new_values)
+            if slice.step not in (None, 1) and num_del != num_ins:
+                # This scenario is forbidden by `list` as well (even step=-1).
+                # Catch it before emitting the event.
+                raise ValueError(
+                    "attempt to assign sequence of size {} to extended slice of size {}"
+                    .format(num_ins, num_del))
+            self.update_before.emit(slice, old_values, new_values)
+            try:
+                yield None
+            finally:
+                self._emit_single_notify(slice, old_values, new_values)
+                self.update_after.emit(slice, old_values, new_values)
+
+    def _emit_single_notify(self, slice, old_values, new_values):
+        num_old = len(old_values)
+        num_new = len(new_values)
+        num_ins = num_new - num_old
+        old_len = len(self) - num_ins
+        indices = list(range(old_len))[slice]
+        for idx, old, new in zip(indices, old_values, new_values):
+            self.modify_notify.emit(idx, old, new)
+        if num_old > num_new:
+            for val in old_values[num_new:]:
+                self.delete_notify.emit(indices[0], val)
+        elif num_new > num_old:
+            start = (slice.start or 0) + num_old
+            for idx, val in enumerate(new_values[num_old:]):
+                self.insert_notify.emit(start+idx, val)
 
     # Sized
 
@@ -95,35 +139,46 @@ class List(MutableSequence):
         del self[:]
 
 
-class UpdateNotifications(Object):
+MutableSequence.register(List)
+
+
+class Selection(object):
 
     """
-    Provides notifications before/after an update operation.
+    List of elements with the additional notion of an *active* element
+    (determined by insertion order).
+
+    For simplicity, the track-record of insertion order is implemented as a
+    reordering of a list of elements - even though a selection of elements may
+    be represented somewhat more appropriately by an `OrderedSet`
+    (=`Set`+`List`).
     """
 
-    # parameters: (slice, old_values, new_values)
-    before = Signal([object, object, object])
-    after = Signal([object, object, object])
+    def __init__(self, elements=None):
+        self.elements = List() if elements is None else elements
+        self.ordering = list(range(len(self.elements)))
+        self.elements.insert_notify.connect(self._insert)
+        self.elements.delete_notify.connect(self._delete)
 
-    def __init__(self, obj):
-        super(UpdateNotifications, self).__init__()
-        self.lock = Lock()
-        self.obj = obj
+    def get_top(self):
+        """Get index of top element."""
+        return self.ordering[-1]
 
-    @contextmanager
-    def __call__(self, slice, new_values):
-        """Emit update signals, only when ."""
-        with self.lock:
-            old_values = self.obj[slice]
-            num_del, num_ins = len(old_values), len(new_values)
-            if slice.step not in (None, 1) and num_del != num_ins:
-                # This scenario is forbidden by `list` as well (even step=-1).
-                # Catch it before emitting the event.
-                raise ValueError(
-                    "attempt to assign sequence of size {} to extended slice of size {}"
-                    .format(num_ins, num_del))
-            self.before.emit(slice, old_values, new_values)
-            try:
-                yield None
-            finally:
-                self.after.emit(slice, old_values, new_values)
+    def set_top(self, index):
+        """Move element with specified index to top of the list."""
+        self.ordering.remove(index)
+        self.ordering.append(index)
+
+    top = property(get_top, set_top)
+
+    def _insert(self, index, value):
+        for i, v in enumerate(self.ordering):
+            if v >= index:
+                self.ordering[i] += 1
+        self.ordering.append(index)
+
+    def _delete(self, index, value):
+        self.ordering.remove(index)
+        for i, v in enumerate(self.ordering):
+            if v >= index:
+                self.ordering[i] -= 1

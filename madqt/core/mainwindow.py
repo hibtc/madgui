@@ -13,8 +13,9 @@ import os
 
 from six import text_type as unicode
 
-from madqt.qt import QtCore, QtGui
+from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
+from madqt.util.collections import Selection
 
 import madqt.util.font as font
 import madqt.core.config as config
@@ -206,7 +207,7 @@ class MainWindow(QtGui.QMainWindow):
         dock = QtGui.QDockWidget()
         dock.setWidget(self.latview)
         dock.setWindowTitle("2D floor plan")
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)
+        self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
     def helpAboutMadQt(self):
         """Show about dialog."""
@@ -281,6 +282,9 @@ class MainWindow(QtGui.QMainWindow):
             return
         self._createLogTab()
 
+        universe.selection = Selection()
+        universe.box_group = InfoBoxGroup(self, universe.selection)
+
         madx_log = AsyncRead(universe.remote_process.stdout)
         madx_log.dataReceived.connect(self._log_stream.write)
 
@@ -291,6 +295,7 @@ class MainWindow(QtGui.QMainWindow):
     def destroyUniverse(self):
         if self.universe is None:
             return
+        del self.universe.selection.elements[:]
         try:
             self.universe.destroy()
         except IOError:
@@ -334,7 +339,7 @@ class MainWindow(QtGui.QMainWindow):
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
         dock.setWindowTitle("python shell")
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         self.shell.exit_requested.connect(dock.close)
 
     def _createLogTab(self):
@@ -344,7 +349,7 @@ class MainWindow(QtGui.QMainWindow):
         dock = QtGui.QDockWidget()
         dock.setWidget(text)
         dock.setWindowTitle('{} output'.format(self.universe.backend_name))
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock)
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         # TODO: MAD-X log should be separate from basic logging
         self._basicConfig(text, logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
@@ -411,3 +416,64 @@ class TextCtrlStream(object):
     def write(self, text):
         """Append text."""
         self._ctrl.appendPlainText(text.rstrip())
+
+
+class InfoBoxGroup(object):
+
+    def __init__(self, mainwindow, selection):
+        """Add toolbar tool to panel and subscribe to capture events."""
+        super(InfoBoxGroup, self).__init__()
+        self.mainwindow = mainwindow
+        self.selection = selection
+        self.boxes = [self.create_info_box(elem)
+                      for elem in selection.elements]
+        selection.elements.insert_notify.connect(self._insert)
+        selection.elements.delete_notify.connect(self._delete)
+        selection.elements.modify_notify.connect(self._modify)
+
+    # keep info boxes in sync with current selection
+
+    def _insert(self, index, value):
+        self.boxes.insert(index, self.create_info_box(value, index != 0))
+
+    def _delete(self, index, value):
+        del self.boxes[index]
+
+    def _modify(self, index, old_value, new_value):
+        self.boxes[index].widget().el_name = new_value
+        self.boxes[index].setWindowTitle(new_value)
+
+    # utility methods
+
+    @property
+    def segment(self):
+        return self.mainwindow.universe.segment
+
+    def _on_close_box(self, box):
+        if box in self.boxes:
+            del self.selection.elements[self.boxes.index(box)]
+
+    def set_active_box(self, box):
+        self.selection.top = self.boxes.index(box)
+        box.raise_()
+
+    def create_info_box(self, elem_name, stack=True):
+        from madqt.widget.elementinfo import ElementInfoBox
+        from madqt.util.qt import notifyCloseEvent, notifyEvent
+        info = ElementInfoBox(self.segment, elem_name)
+        dock = QtGui.QDockWidget()
+        dock.setWidget(info)
+        dock.setWindowTitle(elem_name)
+        notifyCloseEvent(dock, lambda: self._on_close_box(dock))
+        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(dock))
+
+        frame = self.mainwindow
+        frame.addDockWidget(Qt.RightDockWidgetArea, dock)
+        order = self.selection.ordering
+        if len(order) >= 2 and stack:
+            frame.tabifyDockWidget(self.boxes[order[-2]], dock)
+        dock.show()
+        dock.raise_()
+        self.segment.universe.destroyed.connect(dock.close)
+
+        return dock

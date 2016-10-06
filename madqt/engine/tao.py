@@ -207,7 +207,7 @@ class Segment(Object):
             self.utool.dict_add_unit(elem)
             for elem in self.raw_elements]
 
-        self._el_indices = {el['name']: el['ix_ele']
+        self._el_indices = {el['name'].lower(): el['ix_ele']
                             for el in self.elements}
 
         self.twiss()
@@ -255,7 +255,7 @@ class Segment(Object):
         if isinstance(element, ElementInfo):
             return element
         if isinstance(element, basestring):
-            element =  self._el_indices[element]
+            element = self.get_element_index(element)
         if element < 0:
             element += len(self.elements)
         element_data = self.get_element_data(element)
@@ -341,7 +341,6 @@ class Segment(Object):
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
 
-
     @property
     def show_element_indicators(self):
         return self._show_element_indicators
@@ -366,9 +365,13 @@ class Segment(Object):
                 return elem
         return None
 
-    def get_element_index(self, elem):
+    def get_element_by_name(self, name):
+        # TODO: get current values?
+        return self.elements[self.get_element_index(name)]
+
+    def get_element_index(self, elem_name):
         """Get element index by it name."""
-        return self.sequence.elements.index(elem)
+        return self._el_indices[elem_name.lower()]
 
     def get_beam(self):
         beam = self.tao.properties('beam_init', self.unibra)

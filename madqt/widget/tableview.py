@@ -78,8 +78,8 @@ class TableModel(QtCore.QAbstractTableModel):
         super(TableModel, self).__init__()
         self.columns = columns
         self._rows = List()
-        self._rows.update_notify.before.connect(self._update_prepare)
-        self._rows.update_notify.after.connect(self._update_finalize)
+        self._rows.update_before.connect(self._update_prepare)
+        self._rows.update_after.connect(self._update_finalize)
 
     def _update_prepare(self, slice, old_values, new_values):
         self.layoutAboutToBeChanged.emit()
