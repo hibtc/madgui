@@ -1,14 +1,30 @@
 # encoding: utf-8
+"""
+Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
+"""
+
+# TODO: show element info box on selection
+# TODO: improve display of vertically oriented elements
+# TODO: adjust display for custom entry/exit pole faces
+# TODO: show scale indicator
+# TODO: load styles from config
+# TODO: rotate/place scene according to space requirements
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from __future__ import division
 
-from madqt.qt import Qt, QtCore, QtGui
-
 import math
 
-# TODO: compatibility with PyQt5
+from numpy import isclose
+
+from six import integer_types
+
+from madqt.qt import Qt, QtCore, QtGui
+
+__all__ = [
+    'LatticeFloorPlan',
+]
 
 
 ELEMENT_COLOR = {
@@ -33,101 +49,6 @@ ELEMENT_WIDTH = {
 }
 
 
-def getElementColor(ele, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(ele['type'].upper(), default))
-
-
-def getElementWidth(ele, default=0.2):
-    return ELEMENT_WIDTH.get(ele['type'].upper(), default)
-
-
-class EleGraphicsItem(QtGui.QGraphicsItem):
-
-    def __init__(self, ele, scale=1):
-        super(EleGraphicsItem, self).__init__()
-        self.setAcceptHoverEvents(True)
-        self.name = ele['name']
-        self.ele = ele
-        self._r1 = 0.5*getElementWidth(self.ele) # Inner wall width
-        self._r2 = 0.5*getElementWidth(self.ele) # Outer wall width
-        self._angle = float(ele.get('angle', 0.0))
-        self._length = float(ele['l'])
-        self._width = self._r1+self._r2
-        self._shape = self._EleShape()
-
-    def _EleShape(self):
-        """ returns a QPainterPath that outlines the ele """
-        path = QtGui.QPainterPath()
-        angle = self._angle
-        length = self._length
-        r1 = self._r1
-        r2 = self._r2
-        if angle != 0.0:
-            # Curved Geometry
-            rho = length/angle
-            st = math.sin(angle)
-            ct = math.cos(angle)
-            path.moveTo(0, 0)
-            path.lineTo(0, r1)
-            path.arcTo(-rho+r1, r1, 2*(rho-r1), 2*(rho-r1), 90.0, angle*180.0/math.pi)
-            path.lineTo(-(rho+r2)*st, rho-ct*(rho+r2))
-            path.arcTo(-rho-r2,-r2, 2*(rho+r2), 2*(rho+r2), 90.0+angle*180.0/math.pi, -angle*180.0/math.pi)
-            path.lineTo(0, 0)
-            if angle > 0:
-                w = (r2+rho)*st
-                h = r2 + rho*(1-ct) + r1*ct
-                self._boundingRect = QtCore.QRectF(-1.05*w,-1.05*r2, 1.1*w, 1.1*h)
-            else:
-                w = (rho-r1)*st
-                h = r1 + r2*ct - rho*(1-ct)
-                self._boundingRect = QtCore.QRectF(-1.05*w, 1.05*(-h+r1), 1.1*w, 1.1*h)
-
-        else:
-            # Straight Geometry
-            w = self._length
-            h = self._width
-            self._boundingRect = QtCore.QRectF(-1.05*w, -1.1*r2, 1.1*w, 1.1*h)
-            path.moveTo(0, 0)
-            path.lineTo(0, -r2)
-            path.lineTo(-w, -r2)
-            path.lineTo(-w,  r1)
-            path.lineTo(0, r1)
-            path.lineTo(0, 0)
-        return path
-
-    def boundingRect(self):
-        return  self._boundingRect
-
-    def hoverEnterEvent(self, event):
-        pass
-
-    def paint(self, painter, option, widget):
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
-        # Draw and fill shape
-        painter.drawPath(self._shape)
-        painter.fillPath(self._shape,  getElementColor(self.ele))
-
-        # Reference Orbit for curved and straight geometries
-        painter.setPen(QtCore.Qt.DashLine)
-        if self._angle != 0:
-            rho = self._length/self._angle
-            path2 = QtGui.QPainterPath()
-            path2.arcTo(-rho, 0, 2*rho, 2*rho, 90, self._angle*180/math.pi)
-            painter.drawPath(path2)
-
-        else:
-            line = QtCore.QLineF(-self._length, 0, 0, 0)
-            painter.drawLine(line)
-
-        # isSelected highlighting
-        if self.isSelected():
-            painter.drawRect(self.boundingRect())
-
-    def shape(self):
-        return self._shape
-
-
 class LatticeFloorPlan(QtGui.QGraphicsView):
 
     """
@@ -138,23 +59,19 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         super(LatticeFloorPlan, self).__init__(*args, **kwargs)
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
 
-    def setElements(self, elements, survey):
+    def setElements(self, elements, survey, selection):
         self.setScene(QtGui.QGraphicsScene(self))
-        for ele, floor in zip(elements, survey):
-            item = EleGraphicsItem(ele)
-            item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
-            item.setPos(floor.z, -floor.x)
-            item.setRotation(-floor.theta*180/math.pi)
-            self.scene().addItem(item)
+        for element, floor in zip(elements, survey):
+            self.scene().addItem(
+                createElementGraphicsItem(element, floor, selection))
         self.setViewRect(self.scene().sceneRect())
+        selection.elements.update_after.connect(self._update_selection)
 
     def resizeEvent(self, event):
         """Maintain visible region on resize."""
-        new, old = event.size(), event.oldSize()
-        if not old.isEmpty():
-            self.setViewRect(self.mapRectToScene(self.canvas_rect))
-        self.canvas_rect = self.viewport().rect()
+        self.setViewRect(self.view_rect)
         super(LatticeFloorPlan, self).resizeEvent(event)
 
     def mapRectToScene(self, rect):
@@ -177,11 +94,196 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         new = rect.intersected(self.scene().sceneRect())
         self.zoom(min(cur.width()/new.width(),
                       cur.height()/new.height()))
+        self.view_rect = new
 
     def zoom(self, scale):
         """Scale the figure uniformly along both axes."""
         self.scale(scale, scale)
+        self.view_rect = self.mapRectToScene(self.viewport().rect())
 
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
-        self.zoom(1.0 + event.delta()/1000.0)
+        try:
+            delta = event.delta()               # PyQt4
+        except AttributeError:
+            delta = event.angleDelta().y()      # PyQt5
+        self.zoom(1.0 + delta/1000.0)
+
+    def _update_selection(self, slice, old_values, new_values):
+        insert = set(new_values) - set(old_values)
+        delete = set(old_values) - set(new_values)
+        for item in self.scene().items():
+            if item.el_name in insert:
+                item.setSelected(True)
+            if item.el_name in delete:
+                item.setSelected(False)
+
+
+def createElementGraphicsItem(element, floor, selection):
+    angle = float(element.get('angle', 0.0))
+    if isclose(angle, 0.0):
+        return StraightElementGraphicsItem(element, floor, selection)
+    else:
+        return CurvedElementGraphicsItem(element, floor, selection)
+
+
+class ElementGraphicsItem(QtGui.QGraphicsItem):
+
+    """Base class for element graphics items."""
+
+    outline_pen = {'width': 1}
+    orbit_pen = {'style': Qt.DashLine}
+    select_pen = {'style': Qt.DashLine,
+                  'color': 'green',
+                  'width': 4}
+
+    def __init__(self, element, floor, selection):
+        super(ElementGraphicsItem, self).__init__()
+        self.element = element
+        self.length = float(element.get('l', 0.0))
+        self.angle = float(element.get('angle', 0.0))
+        self.width = getElementWidth(element)
+        self.color = getElementColor(element)
+        self.walls = (0.5*self.width, 0.5*self.width) # inner/outer wall widths
+        self.selection = selection
+        self._outline = self.outline()
+        self._orbit = self.orbit()
+
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+        self.setPos(floor.z, -floor.x)
+        self.setRotation(-rad2deg(floor.theta))
+
+        self.setSelected(self.el_name in selection.elements)
+
+    @property
+    def el_name(self):
+        return self.element['name']
+
+    def itemChange(self, change, value):
+        if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
+            self._on_select(value)
+        return value
+
+    def _on_select(self, select):
+        is_selected = self.el_name in self.selection.elements
+        if select and not is_selected:
+            # TODO: incorporate whether shift is clicked
+            self.selection.elements.append(self.el_name)
+        elif is_selected and not select:
+            self.selection.elements.remove(self.el_name)
+
+    def shape(self):
+        return self._outline
+
+    def boundingRect(self):
+        return self._outline.boundingRect()
+
+    def paint(self, painter, option, widget):
+        """Paint element + orbit + selection frame."""
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setBrush(Qt.NoBrush)
+        # draw element outline:
+        painter.setPen(createPen(**self.outline_pen))
+        painter.fillPath(self._outline, self.color)
+        painter.drawPath(self._outline)
+        # draw beam orbit:
+        painter.setPen(createPen(**self.orbit_pen))
+        painter.drawPath(self._orbit)
+        # highlight selected elements:
+        if self.isSelected():
+            painter.setPen(createPen(**self.select_pen))
+            painter.drawPath(self._outline)
+
+    # NOTE: drawing "backwards" because the origin (0,0) as at the exit face
+    # of the element.
+
+    def outline(self):
+        """Return a QPainterPath that outlines the element."""
+        raise NotImplementedError("abstract method")
+
+    def orbit(self):
+        """Return a QPainterPath that shows the beam orbit."""
+        raise NotImplementedError("abstract method")
+
+
+class StraightElementGraphicsItem(ElementGraphicsItem):
+
+    def outline(self):
+        path = QtGui.QPainterPath()
+        r1, r2 = self.walls
+        w = self.length
+        path.moveTo(0, 0)
+        path.lineTo(0, -r2)
+        path.lineTo(-w, -r2)
+        path.lineTo(-w,  r1)
+        path.lineTo(0, r1)
+        path.lineTo(0, 0)
+        return path
+
+    def orbit(self):
+        path = QtGui.QPainterPath()
+        path.lineTo(-self.length, 0)
+        return path
+
+
+class CurvedElementGraphicsItem(ElementGraphicsItem):
+
+    def radius(self):
+        return self.length / self.angle
+
+    def outline(self):
+        angle = self.angle
+        rho = self.radius()
+        deg = rad2deg(angle)
+        cos = math.cos(angle)
+        sin = math.sin(angle)
+        w1, w2 = self.walls         # inner/outer wall widths
+        r1, r2 = rho-w1, rho+w2     # inner/outer wall radius
+        path = QtGui.QPainterPath()
+        path.moveTo(0, 0)
+        path.lineTo(0, w1)
+        path.arcTo(-r1, w1, 2*r1, 2*r1, 90, deg)
+        path.lineTo(-r2*sin, rho-cos*r2)
+        path.arcTo(-r2, -w2, 2*r2, 2*r2, 90+deg, -deg)
+        path.lineTo(0, 0)
+        return path
+
+    def orbit(self):
+        rho = self.radius()
+        deg = rad2deg(self.angle)
+        path = QtGui.QPainterPath()
+        path.arcTo(-rho, 0, 2*rho, 2*rho, 90, deg)
+        return path
+
+
+def rad2deg(rad):
+    return rad * (180/math.pi)
+
+
+def getElementColor(element, default='black'):
+    return QtGui.QColor(ELEMENT_COLOR.get(element['type'].upper(), default))
+
+
+def getElementWidth(element, default=0.2):
+    return ELEMENT_WIDTH.get(element['type'].upper(), default)
+
+
+def createPen(style=Qt.SolidLine, color='black', width=1):
+    """
+    Use this function to conveniently create a cosmetic pen with specified
+    width. Integer widths create cosmetic pens (default) and float widths
+    create scaling pens (this way you can set the figure style by changing a
+    number).
+
+    This is particularly important on PyQt5 where the default pen blacks out
+    large areas of the figure if not being careful.
+    """
+    pen = QtGui.QPen(style)
+    pen.setColor(QtGui.QColor(color))
+    if isinstance(width, integer_types):
+        pen.setWidth(width)
+        pen.setCosmetic(True)
+    else:
+        pen.setWidthF(width)
+        pen.setCosmetic(False)
+    return pen

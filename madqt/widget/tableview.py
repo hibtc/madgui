@@ -17,13 +17,13 @@ from six import (python_2_unicode_compatible,
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
 from madqt.util.layout import HBoxLayout
+from madqt.util.collections import List
 
 import madqt.core.unit as unit
 
 
 __all__ = [
     'ColumnInfo',
-    'ItemsList',
     'TableModel'
     'TableView',
 ]
@@ -60,90 +60,6 @@ class ColumnInfo(object):
         return makeValue(value, self.types, **self.kwargs)
 
 
-class ItemsList(MutableSequence):
-
-    """
-    A list-like interface adapter for accessing the items (rows) in a
-    :class:`QtCore.QAbstractTableModel`.
-    """
-
-    def __init__(self, model, items):
-        """Use the items object by reference."""
-        self._model = model
-        self._items = items
-
-    # Sized
-
-    def __len__(self):
-        return len(self._items)
-
-    # Iterable
-
-    def __iter__(self):
-        return iter(self._items)
-
-    # Container
-
-    def __contains__(self, value):
-        return value in self._items
-
-    # Sequence
-
-    def __getitem__(self, index):
-        return self._items[index]
-
-    def __reversed__(self):
-        return reversed(self._items)
-
-    def index(self, value):
-        return self._items.index(value)
-
-    def count(self, value):
-        return self._items.count(value)
-
-    # MutableSequence
-
-    def __setitem__(self, index, value):
-        if isinstance(index, slice):
-            start = 0 if index.start is None else index.start
-            stop = -1 if index.stop is None else index.stop
-        else:
-            start, stop = index, index+1
-        with self._refresh(start, stop):
-            self._items[index] = value
-
-    def __delitem__(self, index):
-        with self._refresh(index, -1):
-            del self._items[index]
-
-    def insert(self, index, value):
-        with self._refresh(index, -1):
-            self._items.insert(index, value)
-
-    append = MutableSequence.append
-
-    def reverse(self):
-        with self._refresh(0, -1):
-            self._items.reverse()
-
-    def extend(self, values):
-        old_len = len(self._items)
-        with self._refresh(old_len, -1):
-            self._items.extend(values)
-
-    pop = MutableSequence.pop
-    remove = MutableSequence.remove
-    __iadd__ = MutableSequence.__iadd__
-
-    @contextmanager
-    def _refresh(self, begin, end):
-        self._model.layoutAboutToBeChanged.emit()
-        try:
-            yield None
-        finally:
-            self._model.layoutChanged.emit()
-
-
 class TableModel(QtCore.QAbstractTableModel):
 
     """
@@ -161,7 +77,15 @@ class TableModel(QtCore.QAbstractTableModel):
     def __init__(self, columns):
         super(TableModel, self).__init__()
         self.columns = columns
-        self._rows = ItemsList(self, [])
+        self._rows = List()
+        self._rows.update_before.connect(self._update_prepare)
+        self._rows.update_after.connect(self._update_finalize)
+
+    def _update_prepare(self, slice, old_values, new_values):
+        self.layoutAboutToBeChanged.emit()
+
+    def _update_finalize(self, slice, old_values, new_values):
+        self.layoutChanged.emit()
 
     # data accessors
 

@@ -207,7 +207,7 @@ class Segment(Object):
             self.utool.dict_add_unit(elem)
             for elem in self.raw_elements]
 
-        self._el_indices = {el['name']: el['ix_ele']
+        self._el_indices = {el['name'].lower(): el['ix_ele']
                             for el in self.elements}
 
         self.twiss()
@@ -255,7 +255,7 @@ class Segment(Object):
         if isinstance(element, ElementInfo):
             return element
         if isinstance(element, basestring):
-            element =  self._el_indices[element]
+            element = self.get_element_index(element)
         if element < 0:
             element += len(self.elements)
         element_data = self.get_element_data(element)
@@ -341,7 +341,6 @@ class Segment(Object):
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
 
-
     @property
     def show_element_indicators(self):
         return self._show_element_indicators
@@ -366,24 +365,29 @@ class Segment(Object):
                 return elem
         return None
 
-    def get_element_index(self, elem):
+    def get_element_by_name(self, name):
+        # TODO: get current values?
+        return self.elements[self.get_element_index(name)]
+
+    def get_element_index(self, elem_name):
         """Get element index by it name."""
-        return self.sequence.elements.index(elem)
+        return self._el_indices[elem_name.lower()]
 
     def get_beam(self):
         beam = self.tao.properties('beam_init', self.unibra)
         # FIXME: evaluate several possible sources for emittance/beam:
-        # - beam_init%a_emit        (tao)
-        # - beam_start%a_emit
-        # - lat%a%emit
-        # - beginning[emittance_a]
+        # - beam%beam_init%a_emit   (beam_init_struct -> a_emit, b_emit)
+        # - lat%beam_start          (coord_struct -> x, y, px, py, ...)
+        # - lat%a%emit              (mode_info_struct -> emit, sigma, ...)
+
+        # - beam_start[emittance_a]
         _translate_default(beam, 'a_emit', 0., 1.)
         _translate_default(beam, 'b_emit', 0., 1.)
         return self.utool.dict_add_unit(beam)
 
     def set_beam(self, beam):
         self.tao.set('beam_init', **beam)
-        # Bmad has also (unused?) `beam_start` parameter group:
+        # Bmad has also the (unused?) `beam_start` parameter group:
         #self.tao.change('beam_start', **beam)
 
     beam = property(get_beam, set_beam)
