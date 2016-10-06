@@ -1,7 +1,8 @@
 MadQt
 =====
 
-MadQt_ is a python GUI for interactive accelerator simulations using MAD-X_.
+MadQt_ is a python GUI for interactive accelerator simulations using MAD-X_
+or `Bmad/tao`_.
 
 
 Dependencies
@@ -9,7 +10,9 @@ Dependencies
 
 Needs to be built manually:
 
-- cpymad_ (see `installation instructions`_)
+- cpymad_ (for MAD-X_ models, see `installation instructions`_)
+- pytao_ (for `Bmad/tao`_ models)
+- minrpc_ (common dependency of both cpymad and pytao)
 
 These are likely to be available in your system repositories:
 
@@ -21,13 +24,21 @@ These can easily be installed via PyPI (``pip install ...``) if unavailable
 in your repositories:
 
 - docopt_
-- Pint_
-- pydicti_
+- Pint_ == 0.6
+- pydicti_ >= 0.5
 - PyYAML_
+- six_
+- docutils_
+- ipython_
+- qtconsole_
+- minrpc_
 
 .. _installation instructions: http://hibtc.github.io/cpymad/installation/index.html
 .. _MAD-X: http://madx.web.cern.ch/madx
+.. _Bmad/tao: http://www.lepp.cornell.edu/~dcs/bmad/
 .. _cpymad: https://github.com/hibtc/cpymad
+.. _pytao: https://github.com/hibtc/pytao
+.. _minrpc: https://pypi.python.org/pypi/minrpc
 .. _PyQt4: https://riverbankcomputing.com/software/pyqt/intro
 .. _matplotlib: http://matplotlib.org/
 .. _numpy: http://www.numpy.org
@@ -35,15 +46,23 @@ in your repositories:
 .. _Pint: http://pint.readthedocs.org/
 .. _pydicti: https://github.com/coldfix/pydicti
 .. _PyYAML: https://pypi.python.org/pypi/PyYAML
+.. _six: https://pypi.python.org/pypi/six
+.. _docutils: https://pypi.python.org/pypi/docutils
+.. _ipython: https://pypi.python.org/pypi/ipython
+.. _qtconsole: https://pypi.python.org/pypi/qtconsole
 
 
-Usage
-~~~~~
+Installation
+~~~~~~~~~~~~
 
 After installing the dependencies, open a terminal in the project folder and
 type::
 
     python setup.py install
+
+
+Usage
+~~~~~
 
 Now, you should be able to start MadQt with the command::
 
