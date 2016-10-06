@@ -16,6 +16,8 @@ from __future__ import division
 
 import math
 
+from numpy import isclose
+
 from six import integer_types
 
 from madqt.qt import Qt, QtCore, QtGui
@@ -59,15 +61,13 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
 
-    def setElements(self, elements, survey):
+    def setElements(self, elements, survey, selection):
         self.setScene(QtGui.QGraphicsScene(self))
         for element, floor in zip(elements, survey):
-            item = createElementGraphicsItem(element)
-            item.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
-            item.setPos(floor.z, -floor.x)
-            item.setRotation(-rad2deg(floor.theta))
-            self.scene().addItem(item)
+            self.scene().addItem(
+                createElementGraphicsItem(element, floor, selection))
         self.setViewRect(self.scene().sceneRect())
+        selection.elements.update_after.connect(self._update_selection)
 
     def resizeEvent(self, event):
         """Maintain visible region on resize."""
@@ -109,13 +109,22 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             delta = event.angleDelta().y()      # PyQt5
         self.zoom(1.0 + delta/1000.0)
 
+    def _update_selection(self, slice, old_values, new_values):
+        insert = set(new_values) - set(old_values)
+        delete = set(old_values) - set(new_values)
+        for item in self.scene().items():
+            if item.el_name in insert:
+                item.setSelected(True)
+            if item.el_name in delete:
+                item.setSelected(False)
 
-def createElementGraphicsItem(element):
+
+def createElementGraphicsItem(element, floor, selection):
     angle = float(element.get('angle', 0.0))
-    if angle == 0.0:
-        return StraightElementGraphicsItem(element)
+    if isclose(angle, 0.0):
+        return StraightElementGraphicsItem(element, floor, selection)
     else:
-        return CurvedElementGraphicsItem(element)
+        return CurvedElementGraphicsItem(element, floor, selection)
 
 
 class ElementGraphicsItem(QtGui.QGraphicsItem):
@@ -128,7 +137,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
                   'color': 'green',
                   'width': 4}
 
-    def __init__(self, element):
+    def __init__(self, element, floor, selection):
         super(ElementGraphicsItem, self).__init__()
         self.element = element
         self.length = float(element.get('l', 0.0))
@@ -136,8 +145,32 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self.width = getElementWidth(element)
         self.color = getElementColor(element)
         self.walls = (0.5*self.width, 0.5*self.width) # inner/outer wall widths
+        self.selection = selection
         self._outline = self.outline()
         self._orbit = self.orbit()
+
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+        self.setPos(floor.z, -floor.x)
+        self.setRotation(-rad2deg(floor.theta))
+
+        self.setSelected(self.el_name in selection.elements)
+
+    @property
+    def el_name(self):
+        return self.element['name']
+
+    def itemChange(self, change, value):
+        if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
+            self._on_select(value)
+        return value
+
+    def _on_select(self, select):
+        is_selected = self.el_name in self.selection.elements
+        if select and not is_selected:
+            # TODO: incorporate whether shift is clicked
+            self.selection.elements.append(self.el_name)
+        elif is_selected and not select:
+            self.selection.elements.remove(self.el_name)
 
     def shape(self):
         return self._outline

@@ -19,8 +19,7 @@ def notifyCloseEvent(widget, handler):
     #   - use installEventFilter / eventFilter
     #   - hook into the closeEvent method (see notifyEvent below)
     # We use the first option here since it is the simplest:
-    widget.setAttribute(Qt.WA_DeleteOnClose)
-    widget.destroyed.connect(handler)
+    notifyEvent(widget, 'closeEvent', lambda event: handler())
 
 
 def notifyEvent(widget, name, handler):

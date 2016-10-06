@@ -203,7 +203,8 @@ class MainWindow(QtGui.QMainWindow):
         from madqt.widget.floor_plan import LatticeFloorPlan
         self.latview = LatticeFloorPlan()
         self.latview.setElements(self.universe.segment.survey_elements(),
-                                 self.universe.segment.survey())
+                                 self.universe.segment.survey(),
+                                 self.universe.selection)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.latview)
         dock.setWindowTitle("2D floor plan")
@@ -437,6 +438,8 @@ class InfoBoxGroup(object):
         self.boxes.insert(index, self.create_info_box(value, index != 0))
 
     def _delete(self, index, value):
+        if self.boxes[index].isVisible():
+            self.boxes[index].close()
         del self.boxes[index]
 
     def _modify(self, index, old_value, new_value):
@@ -450,8 +453,9 @@ class InfoBoxGroup(object):
         return self.mainwindow.universe.segment
 
     def _on_close_box(self, box):
-        if box in self.boxes:
-            del self.selection.elements[self.boxes.index(box)]
+        el_name = box.widget().el_name
+        if el_name in self.selection.elements:
+            self.selection.elements.remove(el_name)
 
     def set_active_box(self, box):
         self.selection.top = self.boxes.index(box)
