@@ -3,6 +3,8 @@
 tao backend for MadQt.
 """
 
+# TODO: determine ex/ey when opening plain bmad lattice
+
 from __future__ import absolute_import
 from __future__ import unicode_literals
 

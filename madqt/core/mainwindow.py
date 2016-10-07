@@ -3,6 +3,8 @@
 Main window component for MadQt.
 """
 
+# TODO: about dialogs for Bmad/pytao
+
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
@@ -150,7 +152,7 @@ class MainWindow(QtGui.QMainWindow):
         filters = [
             ("Model files", "*.cpymad.yml", "*.pytao.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
-            ("Bmad lattice", "*.bmad", "*.lat"),
+            ("Bmad lattice", "*.bmad", "*.lat", "*.init"),
             ("All files", "*"),
         ]
         filename = getOpenFileName(
@@ -254,7 +256,7 @@ class MainWindow(QtGui.QMainWindow):
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
         engine_exts = {
-            'madqt.engine.madx': ('.cpymad.yml', '.madx'),
+            'madqt.engine.madx': ('.cpymad.yml', '.madx', '.str', '.seq'),
             'madqt.engine.tao': ('.pytao.yml', '.bmad', '.lat', '.init'),
         }
 

@@ -169,6 +169,9 @@ class Universe(Object):
         """Load a plain MAD-X file."""
         for filename in filenames:
             self.call(filename)
+        sequence = self._get_active_sequence()
+        data = self._get_seq_model(sequence)
+        self.init_segment(data)
 
     def _load_params(self, data, name):
         """Load parameter dict from file if necessary and add units."""
@@ -192,6 +195,18 @@ class Universe(Object):
             twiss_args=data['twiss'],
             show_element_indicators=data.get('indicators', True),
         )
+
+    def _get_active_sequence(self):
+        sequence = self.madx.active_sequence
+        if sequence:
+            return sequence.name
+        sequences = self.madx.sequences
+        if not sequences:
+            raise ValueError("No sequences defined!")
+        if len(sequences) != 1:
+            # TODO: ask user which one to use
+            raise ValueError("Multiple sequences defined, none active. Cannot uniquely determine which to use.")
+        return next(iter(sequences))
 
     def _get_seq_model(self, sequence_name):
         """
@@ -252,12 +267,23 @@ class Universe(Object):
         # TODO: this inefficiently copies over the whole table over the pipe
         # rather than just the first row.
         mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
+        optional_fields = {
+            'x', 'px', 'mux', 'dx', 'dpx',
+            'y', 'py', 'muy', 'dy', 'dpy',
+            't', 'pt',
+            'wx', 'phix', 'dmux', 'ddx', 'ddpx',
+            'wy', 'phiy', 'dmuy', 'ddy', 'ddpy',
+            'r11', 'r12', 'r21', 'r22',
+            'tolerance', 'deltap',   # TODO: deltap has special format!
+        }
+        # TODO: periodic lines -> only mux/muy/deltap
+        # TODO: logical parameters like CHROM
         twiss = {
             key: float(data[0])
             for key, data in table.items()
             if issubclass(data.dtype.type, np.number) and (
-                    key in mandatory_fields or
-                    data[0] != 0
+                    (key in mandatory_fields) or
+                    (key in optional_fields and data[0] != 0)
             )
         }
         return (first, last), twiss
