@@ -11,7 +11,7 @@ from collections import namedtuple
 import docutils.core
 
 from madqt.qt import QtCore, QtGui
-from madqt.util.layout import Dialog
+from madqt.widget.dialog import Dialog
 
 
 __all__ = [
@@ -81,6 +81,7 @@ def AboutDialog(version_info, *args, **kwargs):
     line = HLine()
     button = QtGui.QPushButton("&OK")
     button.setDefault(True)
-    dialog = Dialog([main, line, button], *args, **kwargs)
+    dialog = Dialog(*args, **kwargs)
+    dialog.setWidget([main, line, button])
     button.clicked.connect(dialog.accept)
     return dialog
