@@ -103,6 +103,15 @@ Development guidelines
 .. _`composition over inheritance`: https://www.youtube.com/watch?v=Tedt47e9qsQ
 .. _`sphinx`: http://sphinx-doc.org/
 
+**Naming:**
+
+- Stick to ``names_with_underscores`` for methods and variable names as
+  mandated by PEP8_ (I admit that the code base is currently very
+  inconsistent in this regard)
+- class names are in ``CamelCase``
+- only PyQt class method overrides and their parameters shall be written in
+  ``lowerCamelCase``
+
 **Version control:**
 
 Commits should be reversible, independent units if possible. Use descriptive
