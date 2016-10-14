@@ -175,9 +175,6 @@ class Segment(Object):
 
     updated = Signal()
     destroyed = Signal()
-    showIndicators = Signal()
-    hideIndicators = Signal()
-    _show_element_indicators = False
 
     def __init__(self, universe, sequence):
         """
@@ -342,20 +339,6 @@ class Segment(Object):
 
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
-
-    @property
-    def show_element_indicators(self):
-        return self._show_element_indicators
-
-    @show_element_indicators.setter
-    def show_element_indicators(self, show):
-        if show == self._show_element_indicators:
-            return
-        self._show_element_indicators = show
-        if show:
-            self.showIndicators.emit()
-        else:
-            self.hideIndicators.emit()
 
     def element_by_position(self, pos):
         """Find optics element by longitudinal position."""

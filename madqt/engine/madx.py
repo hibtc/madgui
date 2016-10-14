@@ -193,7 +193,6 @@ class Universe(Object):
             range=data['range'],
             beam=data['beam'],
             twiss_args=data['twiss'],
-            show_element_indicators=data.get('indicators', True),
         )
 
     def _get_active_sequence(self):
@@ -309,11 +308,8 @@ class Segment(Object):
 
     updated = Signal()
     destroyed = Signal()
-    showIndicators = Signal()
-    hideIndicators = Signal()
 
-    def __init__(self, universe, sequence, range, beam, twiss_args,
-                 show_element_indicators):
+    def __init__(self, universe, sequence, range, beam, twiss_args):
         """
         :param Universe universe:
         :param str sequence:
@@ -331,7 +327,6 @@ class Segment(Object):
 
         self._beam = beam
         self._twiss_args = twiss_args
-        self._show_element_indicators = show_element_indicators
         self._use_beam(beam)
 
         self.raw_elements = self.sequence.elements
@@ -381,20 +376,6 @@ class Segment(Object):
     def destroy(self):
         self.universe.segment = None
         self.destroyed.emit()
-
-    @property
-    def show_element_indicators(self):
-        return self._show_element_indicators
-
-    @show_element_indicators.setter
-    def show_element_indicators(self, show):
-        if show == self._show_element_indicators:
-            return
-        self._show_element_indicators = show
-        if show:
-            self.showIndicators.emit()
-        else:
-            self.hideIndicators.emit()
 
     @property
     def twiss_args(self):
