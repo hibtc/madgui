@@ -90,7 +90,7 @@ class TwissFigure(object):
 
     def format_coord(self, name, x, y):
         unit = self.unit
-        elem = self.segment.element_by_position(x * unit['s'])
+        elem = self.segment.get_element_by_position(x * unit['s'])
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format

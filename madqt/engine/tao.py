@@ -8,40 +8,19 @@ tao backend for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import namedtuple
-import os
-import subprocess
-
 from six import string_types as basestring
-import numpy as np
-import yaml
 
 from pytao.tao import Tao
 
-from madqt.core.base import Object, Signal
+from madqt.util.misc import (attribute_alias,
+                             rename_key, merged, translate_default)
 
-from madqt.core.unit import UnitConverter
-from madqt.resource.file import FileResource
-from madqt.resource.package import PackageResource
-
-
-ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
-FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
+from madqt.engine.common import (
+    FloorCoords, ElementInfo, EngineBase, SegmentBase
+)
 
 
-def rename_key(d, name, new):
-    if name in d:
-        d[new] = d.pop(name)
-
-
-def merged(d1, *others):
-    r = d1.copy()
-    for d in others:
-        r.update(d)
-    return r
-
-
-class Universe(Object):
+class Universe(EngineBase):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -54,53 +33,22 @@ class Universe(Object):
     :ivar utool: Unit conversion tool for MAD-X.
     """
 
-    backend_name = 'Bmad/Tao'
-
-    destroyed = Signal()
+    backend_libname = 'pytao'
+    backend_title = 'Bmad/Tao'
+    backend = attribute_alias('tao')
 
     def __init__(self, filename):
-        super(Universe, self).__init__()
         self.data = {}
         self.segment = None
         self.repo = None
         self.index = 1
+        super(Universe, self).__init__(filename)
 
-        # TODO: use Bmad specific units!
-        self.config = PackageResource('madqt.engine').yaml('tao.yml')
-        self.utool = UnitConverter.from_config_dict(self.config['units'])
-        self.load(filename)
-
-    def destroy(self):
-        """Annihilate current universe. Stop MAD-X interpreter."""
-        if self.rpc_client:
-            self.rpc_client.close()
-        self.tao = None
-        if self.segment is not None:
-            self.segment.destroy()
-        self.destroyed.emit()
-
-    def call(self, name):
-        with self.repo.filename(name) as f:
-            self.tao.read(f)
-
-    @property
-    def rpc_client(self):
-        """Low level MAD-X RPC client."""
-        return self.tao and self.tao._service
-
-    @property
-    def remote_process(self):
-        """MAD-X process."""
-        return self.tao and self.tao._process
-
-    def load(self, filename):
+    def load_dispatch(self, name, ext):
         """Load model or plain MAD-X file."""
-        path, name = os.path.split(filename)
-        self.repo = FileResource(path)
-        ext = os.path.splitext(name)[1]
-        if ext.lower() in ('.yml', '.yaml'):
+        if ext in ('.yml', '.yaml'):
             self.load_model(name)
-        elif ext.lower() == '.init':
+        elif ext == '.init':
             self.load_init_file(name)
         else:
             self.load_lattice_file(name)
@@ -113,7 +61,8 @@ class Universe(Object):
         self._load_params(data, 'twiss')
 
         self.load_init_file(data['tao']['init'], data=data)
-        self.read_lattice_files(data['tao'].get('read', []))
+        for filename in data['tao'].get('read', []):
+            self.read(filename)
 
     def load_init_file(self, filename, **kw):
         self.init('-init', filename, **kw)
@@ -124,28 +73,26 @@ class Universe(Object):
     def init(self, fileflag, filename, *args, **kw):
         self.data = kw.pop('data', {})
 
-        # stdin=None leads to an error on windows when STDIN is broken.
-        # therefore, we need set stdin=os.devnull by passing stdin=False:
         with self.repo.filename(filename) as init_file:
             self.tao = Tao(
                 fileflag, init_file,
                 '-noplot', '-gui_mode',
-                *args,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                stdin=False)
+                *args, **self.minrpc_flags())
 
         # TODO: disable automatic curve + lattice recalculation:
         #   - s%global%plot_on=False
         #   - s%com%shell_interactive=True
         #   - s%global%lattice_calc_on=False
         self.tao.command('place * none')
-        self.init_segment()
+        # init segment
+        self.segment = Segment(self, self.data.get('sequence'))
+        twiss_args = self.data.get('twiss')
+        if twiss_args:
+            self.segment.set_twiss_args(twiss_args)
 
-    def read_lattice_files(self, filenames):
-        """Load a plain Bmad lattice file."""
-        for filename in filenames:
-            self.call(filename)
+    def read(self, name):
+        with self.repo.filename(name) as f:
+            self.tao.read(f)
 
     def _load_params(self, data, name):
         """Load parameter dict from file if necessary and add units."""
@@ -154,16 +101,8 @@ class Universe(Object):
             vals = self.repo.yaml(vals, encoding='utf-8')
         data[name] = self.utool.dict_add_unit(vals)
 
-    def init_segment(self):
-        """Create a segment."""
-        self.segment = Segment(self, self.data.get('sequence'))
-        twiss_args = self.data.get('twiss')
-        if twiss_args:
-            self.segment.set_twiss_args(twiss_args)
 
-
-
-class Segment(Object):
+class Segment(SegmentBase):
 
     """
     Simulate one fixed segment, i.e. sequence + range.
@@ -172,9 +111,6 @@ class Segment(Object):
     :ivar list elements:
     :ivar dict twiss_args:
     """
-
-    updated = Signal()
-    destroyed = Signal()
 
     def __init__(self, universe, sequence):
         """
@@ -222,9 +158,6 @@ class Segment(Object):
         rename_key(data, 'key', 'type')
         return data
 
-    def get_element_data(self, index):
-        return self.utool.dict_add_unit(self.get_element_data_raw(index))
-
     def survey(self):
         return [FloorCoords(*self.tao.get_element_floor(index).flat)
                 for index in range(len(self.elements))]
@@ -236,57 +169,12 @@ class Segment(Object):
     def tao(self):
         return self.universe.tao
 
-    @property
-    def utool(self):
-        return self.universe.utool
-
-    @property
-    def data(self):
-        return {
-            'sequence': self.sequence,
-            'range': self.range,
-            'beam': self.beam,
-            'twiss': self.twiss_args,
-        }
-
-    def get_element_info(self, element):
-        """Get :class:`ElementInfo` from element name or index."""
-        if isinstance(element, ElementInfo):
-            return element
-        if isinstance(element, basestring):
-            element = self.get_element_index(element)
-        if element < 0:
-            element += len(self.elements)
-        element_data = self.get_element_data(element)
-        return ElementInfo(element_data['name'], element, element_data['at'])
-
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
         raise NotImplementedError
 
-    def destroy(self):
-        self.universe.segment = None
-        self.destroyed.emit()
-
-    def element_by_position(self, pos):
-        """Find optics element by longitudinal position."""
-        return None
-
-    def element_by_position(self, pos):
-        """Find optics element by longitudinal position."""
-        if pos is None:
-            return None
-        for elem in self.elements:
-            at, L = elem['at'], elem['l']
-            if pos >= at and pos <= at+L:
-                return elem
-        return None
-
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
-        raise NotImplementedError
-
-    def contains(self, element):
         raise NotImplementedError
 
     def twiss(self):
@@ -340,20 +228,6 @@ class Segment(Object):
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
 
-    def element_by_position(self, pos):
-        """Find optics element by longitudinal position."""
-        if pos is None:
-            return None
-        for elem in self.elements:
-            at, L = elem['at'], elem['l']
-            if pos >= at and pos <= at+L:
-                return elem
-        return None
-
-    def get_element_by_name(self, name):
-        # TODO: get current values?
-        return self.elements[self.get_element_index(name)]
-
     def get_element_index(self, elem_name):
         """Get element index by it name."""
         return self._el_indices[elem_name.lower()]
@@ -366,8 +240,8 @@ class Segment(Object):
         # - lat%a%emit              (mode_info_struct -> emit, sigma, ...)
 
         # - beam_start[emittance_a]
-        _translate_default(beam, 'a_emit', 0., 1.)
-        _translate_default(beam, 'b_emit', 0., 1.)
+        translate_default(beam, 'a_emit', 0., 1.)
+        translate_default(beam, 'b_emit', 0., 1.)
         return self.utool.dict_add_unit(beam)
 
     def set_beam(self, beam):
@@ -382,12 +256,12 @@ class Segment(Object):
                      'eta_a', 'eta_b', 'etap_a', 'etap_b'}
     _twiss_args = _beam_params | _twiss_params
 
-    def get_twiss_args(self, index=0):
+    def get_twiss_args_raw(self, index=0):
         data = merged(self.tao.get_element_data(index, who='orbit'),
                       self.tao.get_element_data(index, who='twiss'))
         return {k: v for k, v in data.items() if k in self._twiss_args}
 
-    def set_twiss_args(self, twiss):
+    def set_twiss_args_raw(self, twiss):
         beam_start = {param: twiss[param]
                       for param in self._beam_params
                       if param in twiss}
@@ -397,15 +271,7 @@ class Segment(Object):
         self.tao.change('beam_start', **beam_start)
         self.tao.change('element', 'beginning', **twiss_start)
 
-    twiss_args = property(get_twiss_args, set_twiss_args)
-
-
     @property
     def unibra(self):
         """Tao string for univers@branch."""
         return '{}@{}'.format(self.universe.index, self.branch)
-
-
-def _translate_default(d, name, old_default, new_default):
-    if d[name] == old_default:
-        d[name] = new_default

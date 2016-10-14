@@ -351,7 +351,7 @@ class MainWindow(QtGui.QMainWindow):
         text.setReadOnly(True)
         dock = QtGui.QDockWidget()
         dock.setWidget(text)
-        dock.setWindowTitle('{} output'.format(self.universe.backend_name))
+        dock.setWindowTitle('{} output'.format(self.universe.backend_title))
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         # TODO: MAD-X log should be separate from basic logging
         self._basicConfig(text, logging.INFO,

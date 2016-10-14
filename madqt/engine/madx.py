@@ -6,11 +6,6 @@ MAD-X backend for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import namedtuple
-import math
-import os
-import subprocess
-
 from six import string_types as basestring
 import numpy as np
 import yaml
@@ -18,11 +13,11 @@ import yaml
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name, name_from_internal
 
-from madqt.core.base import Object, Signal
+from madqt.util.misc import attribute_alias
 
-from madqt.core.unit import UnitConverter
-from madqt.resource.file import FileResource
-from madqt.resource.package import PackageResource
+from madqt.engine.common import (
+    FloorCoords, ElementInfo, EngineBase, SegmentBase
+)
 
 
 __all__ = [
@@ -32,11 +27,7 @@ __all__ = [
 ]
 
 
-ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
-FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
-
-
-class Universe(Object):
+class Universe(EngineBase):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -49,56 +40,27 @@ class Universe(Object):
     :ivar utool: Unit conversion tool for MAD-X.
     """
 
-    backend_name = 'MAD-X'
-
-    destroyed = Signal()
+    backend_libname = 'cpymad'
+    backend_title = 'MAD-X'
+    backend = attribute_alias('madx')
 
     def __init__(self, filename):
-        super(Universe, self).__init__()
         self.data = {}
         self.segment = None
         self.repo = None
         self.init_files = []
-        # stdin=None leads to an error on windows when STDIN is broken.
-        # therefore, we need set stdin=os.devnull by passing stdin=False:
-        self.madx = madx = Madx(
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            stdin=False,
-            bufsize=0)
-        self.config = PackageResource('madqt.engine').yaml('madx.yml')
-        self.utool = UnitConverter.from_config_dict(self.config['units'])
-        self.load(filename)
-
-    def destroy(self):
-        """Annihilate current universe. Stop MAD-X interpreter."""
-        if self.rpc_client:
-            self.rpc_client.close()
-        self.madx = None
-        if self.segment is not None:
-            self.segment.destroy()
-        self.destroyed.emit()
-
-    def call(self, name):
-        """Load a MAD-X file into the current universe."""
-        with self.repo.filename(name) as f:
-            self.madx.call(f, True)
-        self.init_files.append(name)
+        super(Universe, self).__init__(filename)
 
     @property
     def libmadx(self):
         """Access to the low level cpymad API."""
         return self.madx and self.madx._libmadx
 
-    @property
-    def rpc_client(self):
-        """Low level MAD-X RPC client."""
-        return self.madx and self.madx._service
-
-    @property
-    def remote_process(self):
-        """MAD-X process."""
-        return self.madx and self.madx._process
+    def call(self, name):
+        """Load a MAD-X file into the current universe."""
+        with self.repo.filename(name) as f:
+            self.madx.call(f, True)
+        self.init_files.append(name)
 
     #----------------------------------------
     # Serialization
@@ -143,21 +105,18 @@ class Universe(Object):
         data['range'] = list(data['range'])
         return data
 
-    def load(self, filename):
+    def load_dispatch(self, name, ext):
         """Load model or plain MAD-X file."""
-        path, name = os.path.split(filename)
-        self.repo = FileResource(path)
-        ext = os.path.splitext(name)[1]
-        if ext.lower() in ('.yml', '.yaml'):
+        self.madx = madx = Madx(**self.minrpc_flags())
+        if ext in ('.yml', '.yaml'):
             self.load_model(name)
         else:
             self.load_madx_file(name)
 
     def load_model(self, filename):
         """Load model data from file."""
-        data = self.repo.yaml(filename, encoding='utf-8')
+        self.data = data = self.repo.yaml(filename, encoding='utf-8')
         self.check_compatibility(data)
-        self.data = data
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
         for filename in data.get('init-files', []):
@@ -195,7 +154,8 @@ class Universe(Object):
             twiss_args=data['twiss'],
         )
 
-    def _get_active_sequence(self):
+    def _get_main_sequence(self):
+        """Try to guess the 'main' sequence to be viewed."""
         sequence = self.madx.active_sequence
         if sequence:
             return sequence.name
@@ -288,7 +248,7 @@ class Universe(Object):
         return (first, last), twiss
 
 
-class Segment(Object):
+class Segment(SegmentBase):
 
     """
     Simulate one fixed segment, i.e. sequence + range.
@@ -305,9 +265,6 @@ class Segment(Object):
         'betx','bety',
         'alfx', 'alfy',
     ]
-
-    updated = Signal()
-    destroyed = Signal()
 
     def __init__(self, universe, sequence, range, beam, twiss_args):
         """
@@ -326,7 +283,7 @@ class Segment(Object):
                       normalize_range_name(self.stop.name))
 
         self._beam = beam
-        self._twiss_args = twiss_args
+        self._twiss_args = self.utool.dict_strip_unit(twiss_args)
         self._use_beam(beam)
 
         self.raw_elements = self.sequence.elements
@@ -340,31 +297,6 @@ class Segment(Object):
     def madx(self):
         return self.universe.madx
 
-    @property
-    def utool(self):
-        return self.universe.utool
-
-    @property
-    def data(self):
-        return {
-            'sequence': self.sequence.name,
-            'range': self.range,
-            'beam': self.beam,
-            'twiss': self.twiss_args,
-        }
-
-    def get_element_info(self, element):
-        """Get :class:`ElementInfo` from element name or index."""
-        if isinstance(element, ElementInfo):
-            return element
-        if isinstance(element, (basestring, dict)):
-            element = self.sequence.elements.index(element)
-        element_data = self.utool.dict_add_unit(
-            self.sequence.elements[element])
-        if element < 0:
-            element += len(self.sequence.elements)
-        return ElementInfo(element_data['name'], element, element_data['at'])
-
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
         if isinstance(range, basestring):
@@ -373,17 +305,11 @@ class Segment(Object):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def destroy(self):
-        self.universe.segment = None
-        self.destroyed.emit()
-
-    @property
-    def twiss_args(self):
+    def get_twiss_args_raw(self):
         return self._twiss_args
 
-    @twiss_args.setter
-    def twiss_args(self, twiss_args):
-        self._twiss_args = twiss_args
+    def set_twiss_args_raw(self, twiss):
+        self._twiss_args = twiss
         self.twiss()
 
     @property
@@ -403,22 +329,8 @@ class Segment(Object):
         beam = dict(beam, sequence=self.sequence.name)
         self.madx.command.beam(**beam)
 
-    def element_by_position(self, pos):
-        """Find optics element by longitudinal position."""
-        if pos is None:
-            return None
-        for elem in self.elements:
-            at, L = elem['at'], elem['l']
-            if pos >= at and pos <= at+L:
-                return elem
-        return None
-
-    def get_element_by_name(self, name):
-        return self.elements[self.get_element_index(name)]
-
-    def get_element_data(self, elem):
-        return self.utool.dict_add_unit(
-            self.universe.madx.active_sequence.elements[elem])
+    def get_element_data_raw(self, elem):
+        return self.universe.madx.active_sequence.elements[elem]
 
     def get_element_index(self, elem):
         """Get element index by it name."""
@@ -430,10 +342,6 @@ class Segment(Object):
         if not self.contains(element):
             return None
         return self.tw[name][element.index - self.start.index]
-
-    def contains(self, element):
-        return (self.start.index <= element.index and
-                self.stop.index >= element.index)
 
     def twiss(self):
         """Recalculate TWISS parameters."""

@@ -131,7 +131,7 @@ class PlotWidget(QtGui.QWidget):
         name = mpl_event.inaxes.twiss_name
         xpos = mpl_event.xdata * self.figure.unit['s']
         ypos = mpl_event.ydata * self.figure.unit[name]
-        elem = self.figure.segment.element_by_position(xpos)
+        elem = self.figure.segment.get_element_by_position(xpos)
         event = MouseEvent(mpl_event.button, xpos, ypos,
                            axes, elem, mpl_event.guiEvent)
         self.buttonPress.emit(event)
