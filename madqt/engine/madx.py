@@ -151,7 +151,7 @@ class Universe(Object):
         if ext.lower() in ('.yml', '.yaml'):
             self.load_model(name)
         else:
-            self.load_madx_files([name])
+            self.load_madx_file(name)
 
     def load_model(self, filename):
         """Load model data from file."""
@@ -160,16 +160,16 @@ class Universe(Object):
         self.data = data
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
-        self.load_madx_files(data.get('init-files', []))
+        for filename in data.get('init-files', []):
+            self.call(filename)
         segment_data = {'sequence', 'range', 'beam', 'twiss'}
         if all(data.get(p) for p in segment_data):
             self.init_segment(data)
 
-    def load_madx_files(self, filenames):
+    def load_madx_file(self, filename):
         """Load a plain MAD-X file."""
-        for filename in filenames:
-            self.call(filename)
-        sequence = self._get_active_sequence()
+        self.call(filename)
+        sequence = self._get_main_sequence()
         data = self._get_seq_model(sequence)
         self.init_segment(data)
 
