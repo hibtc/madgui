@@ -94,13 +94,6 @@ class Universe(EngineBase):
         with self.repo.filename(name) as f:
             self.tao.read(f)
 
-    def _load_params(self, data, name):
-        """Load parameter dict from file if necessary and add units."""
-        vals = data.get(name, {})
-        if isinstance(vals, basestring):
-            vals = self.repo.yaml(vals, encoding='utf-8')
-        data[name] = self.utool.dict_add_unit(vals)
-
 
 class Segment(SegmentBase):
 
@@ -232,7 +225,7 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self._el_indices[elem_name.lower()]
 
-    def get_beam(self):
+    def get_beam_raw(self):
         beam = self.tao.properties('beam_init', self.unibra)
         # FIXME: evaluate several possible sources for emittance/beam:
         # - beam%beam_init%a_emit   (beam_init_struct -> a_emit, b_emit)
@@ -242,14 +235,12 @@ class Segment(SegmentBase):
         # - beam_start[emittance_a]
         translate_default(beam, 'a_emit', 0., 1.)
         translate_default(beam, 'b_emit', 0., 1.)
-        return self.utool.dict_add_unit(beam)
+        return beam
 
-    def set_beam(self, beam):
+    def set_beam_raw(self, beam):
         self.tao.set('beam_init', **beam)
         # Bmad has also the (unused?) `beam_start` parameter group:
         #self.tao.change('beam_start', **beam)
-
-    beam = property(get_beam, set_beam)
 
     _beam_params = {'x', 'px', 'y', 'py', 'z', 'pz', 't'}
     _twiss_params = {'beta_a', 'beta_b', 'alpha_a', 'alpha_b',

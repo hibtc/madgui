@@ -89,6 +89,12 @@ class EngineBase(Object):
         """Backend process."""
         return self.backend and self.backend._process
 
+    def _load_params(self, data, name):
+        """Load parameter dict from file if necessary."""
+        vals = data.get(name, {})
+        if isinstance(vals, basestring):
+            data[name] = self.repo.yaml(vals, encoding='utf-8')
+
 
 class SegmentBase(Object):
 
@@ -146,12 +152,19 @@ class SegmentBase(Object):
         element_data = self.get_element_data(element)
         return ElementInfo(element_data['name'], element, element_data['at'])
 
+    def get_beam(self):
+        return self.utool.dict_add_unit(self.get_beam_raw())
+
+    def set_beam(self, beam):
+        self.set_beam_raw(self.utool.dict_strip_unit(beam))
+
     def get_twiss_args(self):
         return self.utool.dict_add_unit(self.get_twiss_args_raw())
 
     def set_twiss_args(self, twiss):
         self.set_twiss_args_raw(self.utool.dict_strip_unit(twiss))
 
+    beam = property(get_beam, set_beam)
     twiss_args = property(get_twiss_args, set_twiss_args)
 
     def get_element_data(self, index):

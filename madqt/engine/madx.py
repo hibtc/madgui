@@ -100,8 +100,6 @@ class Universe(EngineBase):
             'api_version': self.API_VERSION,
             'init-files': self.init_files,
         })
-        self._serialize_params(data, 'twiss')
-        self._serialize_params(data, 'beam')
         data['range'] = list(data['range'])
         return data
 
@@ -131,18 +129,6 @@ class Universe(EngineBase):
         sequence = self._get_main_sequence()
         data = self._get_seq_model(sequence)
         self.init_segment(data)
-
-    def _load_params(self, data, name):
-        """Load parameter dict from file if necessary and add units."""
-        vals = self.data.get(name, {})
-        if isinstance(vals, basestring):
-            vals = self.repo.yaml(vals, encoding='utf-8')
-        data[name] = self.utool.dict_add_unit(vals)
-
-    def _serialize_params(self, data, name):
-        vals = data.get(name, {})
-        vals = self.utool.dict_strip_unit(vals)
-        data[name] = vals
 
     def init_segment(self, data):
         """Create a segment."""
@@ -206,8 +192,8 @@ class Universe(EngineBase):
         return {
             'sequence': sequence_name,
             'range': range,
-            'beam': self.utool.dict_add_unit(beam),
-            'twiss': self.utool.dict_add_unit(twiss),
+            'beam': beam,
+            'twiss': twiss,
         }
 
     def _get_twiss(self, sequence):
@@ -283,7 +269,7 @@ class Segment(SegmentBase):
                       normalize_range_name(self.stop.name))
 
         self._beam = beam
-        self._twiss_args = self.utool.dict_strip_unit(twiss_args)
+        self._twiss_args = twiss_args
         self._use_beam(beam)
 
         self.raw_elements = self.sequence.elements
@@ -312,20 +298,17 @@ class Segment(SegmentBase):
         self._twiss_args = twiss
         self.twiss()
 
-    @property
-    def beam(self):
+    def get_beam_raw(self):
         """Get the beam parameter dictionary."""
         return self._beam
 
-    @beam.setter
-    def beam(self, beam):
+    def set_beam_raw(self, beam):
         """Set beam from a parameter dictionary."""
         self._beam = beam
         self._use_beam(beam)
         self.twiss()
 
     def _use_beam(self, beam):
-        beam = self.utool.dict_strip_unit(beam)
         beam = dict(beam, sequence=self.sequence.name)
         self.madx.command.beam(**beam)
 
