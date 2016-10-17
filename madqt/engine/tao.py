@@ -88,7 +88,7 @@ class Universe(EngineBase):
         self.segment = Segment(self, self.data.get('sequence'))
         twiss_args = self.data.get('twiss')
         if twiss_args:
-            self.segment.set_twiss_args(twiss_args)
+            self.segment.set_twiss_args_raw(twiss_args)
 
     def read(self, name):
         with self.repo.filename(name) as f:
