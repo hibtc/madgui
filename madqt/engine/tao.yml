@@ -11,6 +11,8 @@ units:
   k1:       m^-2
   k1s:      m^-2
   k1l:      m^-2
+  ex:       m
+  ey:       m
   a_emit:   m
   b_emit:   m
   tilt:     rad
@@ -36,3 +38,13 @@ units:
   # TODO: THIS IS INCORRECT
   kick:     rad
 
+  posx:     m
+  posy:     m
+  envx:     m
+  envy:     m
+
+graphs:
+  beta:     [s, betx, bety]
+  alfa:     [s, alfx, alfy]
+  position: [s, posx, posy]
+  envelope: [s, envx, envy]

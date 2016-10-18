@@ -105,6 +105,7 @@ class TwissFigure(object):
 
     def plot(self):
         """Replot from clean state."""
+        self.update_graph_data()
         fig = self.figure
         fig.clear()
         fig.axes.x.set_ylabel(self.get_label(self.names.x))
@@ -118,6 +119,7 @@ class TwissFigure(object):
 
     def update(self):
         """Update existing plot after TWISS recomputation."""
+        self.update_graph_data()
         self.scene_graph.update()
         self.draw()
 
@@ -134,28 +136,31 @@ class TwissFigure(object):
     def get_conjugate(self, name):
         return self.names[1-self.names.index(name)]
 
-    def add_twiss_curve(self, basename, sname='s'):
+    def add_twiss_curve(self, basename):
         """
         Add an X/Y pair of lines of TWISS parameters into the figure.
 
         :param str basename: stem of the parameter name, e.g. 'bet'
-        :param str sname: data name of the shared s-axis
         """
+        sname = 's'
         xname = basename + 'x'
         yname = basename + 'y'
         style = self.config['curve_style']
         axes = self.figure.axes
-        get_sdata = partial(self.get_float_data, sname)
-        get_xdata = partial(self.get_float_data, xname)
-        get_ydata = partial(self.get_float_data, yname)
+        get_sdata = partial(self.get_float_data, 's', sname)
+        get_xdata = partial(self.get_float_data, 'x', xname)
+        get_ydata = partial(self.get_float_data, 'y', yname)
         self.scene_graph.items.extend([
             self.backend.Curve(axes.x, get_sdata, get_xdata, style['x']),
             self.backend.Curve(axes.y, get_sdata, get_ydata, style['y']),
         ])
 
-    def get_float_data(self, name):
+    def update_graph_data(self):
+        self.graph_data = self.segment.get_graph_data(self.plotname)
+
+    def get_float_data(self, name, quant_name):
         """Get data for the given parameter from segment."""
-        return strip_unit(self.segment.tw[name], self.unit[name])
+        return strip_unit(self.graph_data[name], self.unit[quant_name])
 
     @property
     def show_indicators(self):
@@ -169,6 +174,16 @@ class TwissFigure(object):
             self.scene_graph.items.append(self.indicators)
         else:
             self.scene_graph.items.remove(self.indicators)
+
+    @property
+    def plotname(self):
+        translate = {
+            'alf': 'alfa',
+            'bet': 'beta',
+            'env': 'envelope',
+            'pos': 'position',
+        }
+        return translate.get(self.basename, self.basename)
 
 
 class ElementIndicators(object):
@@ -353,7 +368,7 @@ class MatchTool(CaptureTool):
         self.addConstraint(Constraint(elem, name, event.y))
 
         # add another constraint to hold the orthogonal axis constant
-        orth_env = self.segment.get_twiss(elem, conj)
+        orth_env = self.segment.get_twiss(elem['name'], conj)
         self.addConstraint(Constraint(elem, conj, orth_env))
         self.markers.draw()
 
@@ -416,7 +431,7 @@ class MatchTool(CaptureTool):
                             vary=vary,
                             constraints=madx_constraints,
                             twiss_init=twiss_args)
-        segment.twiss()
+        segment.retrack()
 
     def findConstraint(self, elem, axis):
         """Find and return the constraint for the specified element."""

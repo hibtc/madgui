@@ -35,3 +35,14 @@ units:
 
   # TODO: THIS IS INCORRECT
   kick:     rad
+
+  posx:     m
+  posy:     m
+  envx:     m
+  envy:     m
+
+graphs:
+  beta:     [s, betx, bety]
+  alfa:     [s, alfx, alfy]
+  position: [s, posx, posy]
+  envelope: [s, envx, envy]

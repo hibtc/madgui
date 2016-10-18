@@ -38,6 +38,7 @@ class EngineBase(Object):
         backend             backend object
         backend_libname     name of the binding.
         backend_title       ui title of the backend accelerator code.
+        segment
     """
 
     destroyed = Signal()
@@ -182,3 +183,33 @@ class SegmentBase(Object):
 
     def get_element_by_name(self, name):
         return self.elements[self.get_element_index(name)]
+
+    # curves
+
+    def get_graph_data(self, name):
+        """Get the data for a particular graph as dict of numpy arrays."""
+        if name == 'envelope':
+            beta = self.get_graph_data('beta')
+            return {
+                's': beta['s'],
+                'x': (beta['x'] * self.ex())**0.5,
+                'y': (beta['y'] * self.ey())**0.5,
+            }
+
+        columns = dict(zip(
+            ['s', 'x', 'y'],
+            self.universe.config['graphs'].get(name, [])))
+
+        return {k: self.utool.add_unit(columns.get(k), v)
+                for k, v in self.get_graph_data_raw(name).items()}
+
+    def get_graph_data_raw(self, name):
+        """Get the data for a particular graph as dict of numpy arrays."""
+        raise NotImplementedError
+
+    def get_graph_names(self):
+        """Get a list of graph names."""
+        raise NotImplementedError
+
+    def retrack(self):
+        raise NotImplementedError

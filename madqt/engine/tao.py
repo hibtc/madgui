@@ -138,8 +138,6 @@ class Segment(SegmentBase):
         self._el_indices = {el['name'].lower(): el['ix_ele']
                             for el in self.elements}
 
-        self.twiss()
-
     def get_element_data_raw(self, index):
         data = merged(self.tao.get_element_data(index, who='general'),
                       self.tao.get_element_data(index, who='parameters'),
@@ -170,30 +168,6 @@ class Segment(SegmentBase):
         """Return beam envelope at element."""
         raise NotImplementedError
 
-    def twiss(self):
-        """Recalculate TWISS parameters."""
-        results = self.raw_twiss()
-        self.raw_tw = results
-
-        # Update TWISS results
-        self.tw = self.utool.dict_add_unit(results)
-
-        # FIXME: consider Bmad's beam_start as fallback
-        ex = self.beam['a_emit']
-        ey = self.beam['b_emit']
-
-        # data post processing
-        self.pos = self.tw['s']
-        self.tw['envx'] = (self.tw['betx'] * ex)**0.5
-        self.tw['envy'] = (self.tw['bety'] * ey)**0.5
-
-        # Create aliases for x,y that have non-empty common prefix. The goal
-        # is to make the config file entries less awkward that hold this
-        # prefix:
-        #self.tw['posx'] = self.tw['x']
-        #self.tw['posy'] = self.tw['y']
-        self.updated.emit()
-
     def plot_data(self, name, region='r11'):
         tao = self.tao
         tao.command('place', region, name)
@@ -204,19 +178,6 @@ class Segment(SegmentBase):
         finally:
             tao.command('set plot', region, 'visible = F')
             tao.command('place', region, 'none')
-
-    def raw_twiss(self, **kwargs):
-        self.tao.update()
-        curves = {
-            curve: curve_data
-            for plot in ('beta',)
-            for curve, curve_data in self.plot_data(plot).items()
-        }
-        twiss = {name: values[:,1] for name, values in curves.items()}
-        twiss['s'] = next(iter(curves.values()))[:,0]
-        twiss['betx'] = twiss['beta.g.a']
-        twiss['bety'] = twiss['beta.g.b']
-        return twiss
 
     def get_transfer_map(self, beg_elem, end_elem):
         raise NotImplementedError
@@ -266,3 +227,33 @@ class Segment(SegmentBase):
     def unibra(self):
         """Tao string for univers@branch."""
         return '{}@{}'.format(self.universe.index, self.branch)
+
+    def ex(self):
+        # FIXME: consider Bmad's beam_start as fallback
+        return self.beam['a_emit']
+
+    def ey(self):
+        return self.beam['b_emit']
+
+    # curves
+
+    def get_graph_data_raw(self, name):
+        def rename(curve_name):
+            """Normalize internal names 'beta.g.b' -> 'x'."""
+            if curve_name == name + '.g.a':
+                return 'x'
+            if curve_name == name + '.g.b':
+                return 'y'
+            return curve_name
+        curves = self.plot_data(name)
+        values = {rename(name): values[:,1] for name, values in curves.items()}
+        values['s'] = next(iter(curves.values()))[:,0]
+        return values
+
+    def get_graph_names(self):
+        """Get a list of curve names."""
+        return self.tao.plots()
+
+    def retrack(self):
+        self.tao.update()
+        self.updated.emit()
