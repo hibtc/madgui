@@ -38,6 +38,8 @@ line_view:
   title:
     pos: "beam position"
     env: "beam envelope"
+    alf: "alfa"
+    bet: "beta"
 
   # Plot style for the TWISS curve. The key is the suffix, e.g. "x" for the
   # "envx" curve. Any keyword argument to ``matplotlib.axes.Axes.plot`` is

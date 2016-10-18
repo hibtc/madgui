@@ -34,26 +34,71 @@ class TwissFigure(object):
 
     """A figure containing some X/Y twiss parameters."""
 
-    def __init__(self, backend, segment, basename, config):
+    def __init__(self, backend, segment, graphname, config):
 
         # create figure
         self.backend = backend
         self.segment = segment
-        self.basename = basename
         self.config = config
 
-        self.figure = figure = backend.FigurePair()
+        self.graphs = sorted(self.segment.get_graph_names())
+        combo = self.combo = QtGui.QComboBox()
+        combo.addItems(self.graphs)
 
-        self.title = config['title'][basename]
-        self.names = backend.Triple(basename+'x', basename+'y', 's')
+        self.figure = backend.FigurePair()
+        axes = self.figure.axes
+
+        # create scene
+        elements_style = config['element_style']
+        self.scene_graph = SceneGraph([None, None])
+        self.indicators = SceneGraph([
+            ElementIndicators(axes.x, self, elements_style),
+            ElementIndicators(axes.y, self, elements_style),
+        ])
+        self.markers = ElementMarkers(self, segment.universe.selection)
+        self.scene_graph.items.append(self.markers)
+
+        self.set_graph(graphname)
+        combo.currentIndexChanged.connect(self.change_figure)
+
+        # subscribe for updates
+        self.segment.updated.connect(self.update)
+
+    def attach(self, plot, canvas, toolbar):
+        plot.addTool(InfoTool(plot))
+        plot.addTool(MatchTool(plot))
+        plot.addTool(CompareTool(plot))
+
+    def ext_widgets(self):
+        return [self.combo]
+
+    def change_figure(self, index):
+        self.set_graph(self.combo.itemText(index))
+        self.plot()
+
+    def set_graph(self, graph_name):
+
+        self.combo.setCurrentIndex(self.graphs.index(graph_name))
+
+        translate = {
+            'alfa':     'alf',
+            'beta':     'bet',
+            'envelope': 'env',
+            'position': 'pos',
+        }
+
+        config = self.config
+        axes = self.figure.axes
+
+        self.basename = basename = translate.get(graph_name, graph_name)
+        self.title = config['title'].get(basename, graph_name)
+        self.names = self.backend.Triple(basename+'x', basename+'y', 's')
 
         # plot style
         self.label = config['label']
         unit_names = config['unit']
-        self.unit = {col: getattr(units, unit_names[col])
+        self.unit = {col: from_config(unit_names.get(col, 1))
                      for col in self.names}
-
-        axes = self.figure.axes
 
         # Store names
         axes.x.twiss_name = self.names.x
@@ -65,24 +110,7 @@ class TwissFigure(object):
         axes.x.format_coord = partial(self.format_coord, self.names.x)
         axes.y.format_coord = partial(self.format_coord, self.names.y)
 
-        # create scene
-        elements_style = config['element_style']
-        self.scene_graph = SceneGraph([])
-        self.add_twiss_curve(self.basename)
-        self.indicators = SceneGraph([
-            ElementIndicators(axes.x, self, elements_style),
-            ElementIndicators(axes.y, self, elements_style),
-        ])
-        self.markers = ElementMarkers(self, segment.universe.selection)
-        self.scene_graph.items.append(self.markers)
-
-        # subscribe for updates
-        self.segment.updated.connect(self.update)
-
-    def attach(self, plot, canvas, toolbar):
-        plot.addTool(InfoTool(plot))
-        plot.addTool(MatchTool(plot))
-        plot.addTool(CompareTool(plot))
+        self.set_twiss_curve(self.basename)
 
     @property
     def backend_figure(self):
@@ -101,7 +129,7 @@ class TwissFigure(object):
         return ', '.join(parts)
 
     def get_label(self, name):
-        return self.label[name] + ' ' + get_unit_label(self.unit[name])
+        return self.label.get(name, name) + ' ' + get_unit_label(self.unit.get(name))
 
     def plot(self):
         """Replot from clean state."""
@@ -136,7 +164,7 @@ class TwissFigure(object):
     def get_conjugate(self, name):
         return self.names[1-self.names.index(name)]
 
-    def add_twiss_curve(self, basename):
+    def set_twiss_curve(self, basename):
         """
         Add an X/Y pair of lines of TWISS parameters into the figure.
 
@@ -150,10 +178,12 @@ class TwissFigure(object):
         get_sdata = partial(self.get_float_data, 's', sname)
         get_xdata = partial(self.get_float_data, 'x', xname)
         get_ydata = partial(self.get_float_data, 'y', yname)
-        self.scene_graph.items.extend([
+        for curve in filter(None, self.scene_graph.items[0:2]):
+            curve.remove()
+        self.scene_graph.items[0:2] = [
             self.backend.Curve(axes.x, get_sdata, get_xdata, style['x']),
             self.backend.Curve(axes.y, get_sdata, get_ydata, style['y']),
-        ])
+        ]
 
     def update_graph_data(self):
         self.graph_data = self.segment.get_graph_data(self.plotname)

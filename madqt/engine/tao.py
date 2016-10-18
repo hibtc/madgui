@@ -240,9 +240,9 @@ class Segment(SegmentBase):
     def get_graph_data_raw(self, name):
         def rename(curve_name):
             """Normalize internal names 'beta.g.b' -> 'x'."""
-            if curve_name == name + '.g.a':
+            if curve_name in (name + '.g.a', name + '.g.x'):
                 return 'x'
-            if curve_name == name + '.g.b':
+            if curve_name in (name + '.g.b', name + '.g.y'):
                 return 'y'
             return curve_name
         curves = self.plot_data(name)
@@ -252,7 +252,7 @@ class Segment(SegmentBase):
 
     def get_graph_names(self):
         """Get a list of curve names."""
-        return self.tao.plots()
+        return self.tao.plots() + ['alfa', 'beta', 'envelope', 'position']
 
     def retrack(self):
         self.tao.update()

@@ -312,11 +312,11 @@ class MainWindow(QtGui.QMainWindow):
         import madqt.plot.twissfigure as figure
 
         segment = self.universe.segment
-        basename = 'env'
+        graphname = 'envelope'
         config = self.config['line_view'].copy()
         config['matching'] = self.config['matching']
 
-        figure = figure.TwissFigure(plot, segment, basename, config)
+        figure = figure.TwissFigure(plot, segment, graphname, config)
         figure.show_indicators = True
         widget = plot.PlotWidget(figure)
         self.universe.destroyed.connect(widget.close)
