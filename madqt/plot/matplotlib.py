@@ -29,12 +29,11 @@ from madqt.util.layout import VBoxLayout
 
 __all__ = [
     'PlotWidget',
-    'FigurePair',
+    'MultiFigure',
     'Curve',
 ]
 
 
-Pair = namedtuple('Pair', ['x', 'y'])
 Triple = namedtuple('Triple', ['x', 'y', 's'])
 
 MouseEvent = namedtuple('MouseEvent', [
@@ -141,22 +140,24 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-class FigurePair(object):
+class MultiFigure(object):
 
     """
-    A figure composed of two subplots with shared s-axis.
+    A figure composed of multiple subplots with shared x-axis.
 
     :ivar matplotlib.figure.Figure backend_figure: composed figure
-    :ivar matplotlib.axes.Axes axx: upper subplot
-    :ivar matplotlib.axes.Axes axy: lower subplot
+    :ivar list axes: the axes (:class:`~matplotlib.axes.Axes`)
     """
 
-    def __init__(self):
-        """Create an empty matplotlib figure with two subplots."""
+    def __init__(self, num_axes):
+        """Create an empty matplotlib figure with multiple subplots."""
         self.backend_figure = figure = Figure(tight_layout=True)
-        axx = figure.add_subplot(211)
-        axy = figure.add_subplot(212, sharex=axx)
-        self.axes = Pair(axx, axy)
+        self.axes = axes = []
+        if num_axes == 0:
+            return
+        axes.append(figure.add_subplot(num_axes, 1, 1))
+        for i in range(1, num_axes):
+            axes.append(figure.add_subplot(num_axes, 1, i+1, sharex=axes[0]))
 
     @property
     def canvas(self):
@@ -165,20 +166,19 @@ class FigurePair(object):
 
     def draw(self):
         """Draw the figure on its canvas."""
-        _autoscale_axes(self.axes.x)
-        _autoscale_axes(self.axes.y)
-        canvas = self.backend_figure.canvas
-        canvas.draw()
-        canvas.updateGeometry()
+        for ax in self.axes:
+            _autoscale_axes(ax)
+        self.canvas.draw()
+        self.canvas.updateGeometry()
 
     def set_slabel(self, label):
         """Set label on the s axis."""
-        self.axes.y.set_xlabel(label)
+        self.axes[-1].set_xlabel(label)
 
     def clear(self):
         """Start a fresh plot."""
-        _clear_ax(self.axes.x)
-        _clear_ax(self.axes.y)
+        for ax in self.axes:
+            _clear_ax(ax)
 
 
 def _clear_ax(ax):

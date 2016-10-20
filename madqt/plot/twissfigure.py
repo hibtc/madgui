@@ -45,15 +45,15 @@ class TwissFigure(object):
         combo = self.combo = QtGui.QComboBox()
         combo.addItems(self.graphs)
 
-        self.figure = backend.FigurePair()
+        self.figure = backend.MultiFigure(2)
         axes = self.figure.axes
 
         # create scene
         elements_style = config['element_style']
         self.scene_graph = SceneGraph([None, None])
         self.indicators = SceneGraph([
-            ElementIndicators(axes.x, self, elements_style),
-            ElementIndicators(axes.y, self, elements_style),
+            ElementIndicators(axes[0], self, elements_style),
+            ElementIndicators(axes[1], self, elements_style),
         ])
         self.markers = ElementMarkers(self, segment.universe.selection)
         self.scene_graph.items.append(self.markers)
@@ -101,14 +101,14 @@ class TwissFigure(object):
                      for col in self.names}
 
         # Store names
-        axes.x.twiss_name = self.names.x
-        axes.x.twiss_conj = self.names.y
-        axes.y.twiss_name = self.names.y
-        axes.y.twiss_conj = self.names.x
+        axes[0].twiss_name = self.names.x
+        axes[0].twiss_conj = self.names.y
+        axes[1].twiss_name = self.names.y
+        axes[1].twiss_conj = self.names.x
 
         # Tune the builtin coord status message on the toolbar:
-        axes.x.format_coord = partial(self.format_coord, self.names.x)
-        axes.y.format_coord = partial(self.format_coord, self.names.y)
+        axes[0].format_coord = partial(self.format_coord, self.names.x)
+        axes[1].format_coord = partial(self.format_coord, self.names.y)
 
         self.set_twiss_curve(self.basename)
 
@@ -136,8 +136,8 @@ class TwissFigure(object):
         self.update_graph_data()
         fig = self.figure
         fig.clear()
-        fig.axes.x.set_ylabel(self.get_label(self.names.x))
-        fig.axes.y.set_ylabel(self.get_label(self.names.y))
+        fig.axes[0].set_ylabel(self.get_label(self.names.x))
+        fig.axes[1].set_ylabel(self.get_label(self.names.y))
         fig.set_slabel(self.get_label(self.names.s))
         self.scene_graph.plot()
         fig.draw()
@@ -181,8 +181,8 @@ class TwissFigure(object):
         for curve in filter(None, self.scene_graph.items[0:2]):
             curve.remove()
         self.scene_graph.items[0:2] = [
-            self.backend.Curve(axes.x, get_sdata, get_xdata, style['x']),
-            self.backend.Curve(axes.y, get_sdata, get_ydata, style['y']),
+            self.backend.Curve(axes[0], get_sdata, get_xdata, style['x']),
+            self.backend.Curve(axes[1], get_sdata, get_ydata, style['y']),
         ]
 
     def update_graph_data(self):
@@ -723,8 +723,8 @@ class CompareTool(CheckTool):
             return
         figure = self.plot.figure
         self.curve = SceneGraph([
-            self.plot_ax(data, figure.figure.axes.x, figure.names.x),
-            self.plot_ax(data, figure.figure.axes.y, figure.names.y),
+            self.plot_ax(data, figure.figure.axes[0], figure.names.x),
+            self.plot_ax(data, figure.figure.axes[1], figure.names.y),
         ])
 
     def plot_ax(self, data, axes, name):
