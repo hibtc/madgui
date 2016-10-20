@@ -21,6 +21,7 @@ from madqt.plot.base import SceneElement, SceneGraph
 
 
 __all__ = [
+    'PlotSelector',
     'TwissFigure',
     'ElementIndicators',
 ]
@@ -29,6 +30,24 @@ __all__ = [
 #----------------------------------------
 # basic twiss figure
 #----------------------------------------
+
+class PlotSelector(QtGui.QComboBox):
+
+    def __init__(self, figure, *args, **kwargs):
+        super(PlotSelector, self).__init__(*args, **kwargs)
+        self.figure = figure
+        for graph in sorted(figure.segment.get_graph_names()):
+            self.addItem(graph, graph)
+        self.update_index()
+        self.currentIndexChanged.connect(self.change_figure)
+
+    def change_figure(self, index):
+        self.figure.set_graph(self.itemData(index))
+        self.figure.plot()
+
+    def update_index(self):
+        self.setCurrentIndex(self.findData(self.figure.graph_name))
+
 
 class TwissFigure(object):
 
@@ -40,10 +59,6 @@ class TwissFigure(object):
         self.backend = backend
         self.segment = segment
         self.config = config
-
-        self.graphs = sorted(self.segment.get_graph_names())
-        combo = self.combo = QtGui.QComboBox()
-        combo.addItems(self.graphs)
 
         self.figure = backend.MultiFigure(2)
         axes = self.figure.axes
@@ -59,7 +74,6 @@ class TwissFigure(object):
         self.scene_graph.items.append(self.markers)
 
         self.set_graph(graphname)
-        combo.currentIndexChanged.connect(self.change_figure)
 
         # subscribe for updates
         self.segment.updated.connect(self.update)
@@ -69,16 +83,9 @@ class TwissFigure(object):
         plot.addTool(MatchTool(plot))
         plot.addTool(CompareTool(plot))
 
-    def top_widget(self):
-        return self.combo
-
-    def change_figure(self, index):
-        self.set_graph(self.combo.itemText(index))
-        self.plot()
-
     def set_graph(self, graph_name):
 
-        self.combo.setCurrentIndex(self.graphs.index(graph_name))
+        self.graph_name = graph_name
 
         translate = {
             'alfa':     'alf',

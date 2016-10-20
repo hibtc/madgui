@@ -18,6 +18,7 @@ from six import text_type as unicode
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
 from madqt.util.collections import Selection
+from madqt.util.layout import VBoxLayout
 
 import madqt.util.font as font
 import madqt.core.config as config
@@ -309,16 +310,23 @@ class MainWindow(QtGui.QMainWindow):
 
     def showTwiss(self):
         import madqt.plot.matplotlib as plot
-        import madqt.plot.twissfigure as figure
+        import madqt.plot.twissfigure as twissfigure
 
         segment = self.universe.segment
         graphname = 'envelope'
         config = self.config['line_view'].copy()
         config['matching'] = self.config['matching']
 
-        figure = figure.TwissFigure(plot, segment, graphname, config)
+        figure = twissfigure.TwissFigure(plot, segment, graphname, config)
         figure.show_indicators = True
-        widget = plot.PlotWidget(figure)
+        figure.set_graph('envelope')
+        plot = plot.PlotWidget(figure)
+        select = twissfigure.PlotSelector(figure)
+        widget = QtGui.QWidget()
+        layout = VBoxLayout([select, plot])
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget.setLayout(layout)
+
         self.universe.destroyed.connect(widget.close)
         self.universe.destroyed.connect(figure.remove)
 
