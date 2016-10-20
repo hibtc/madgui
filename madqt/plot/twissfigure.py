@@ -69,8 +69,8 @@ class TwissFigure(object):
         plot.addTool(MatchTool(plot))
         plot.addTool(CompareTool(plot))
 
-    def ext_widgets(self):
-        return [self.combo]
+    def top_widget(self):
+        return self.combo
 
     def change_figure(self, index):
         self.set_graph(self.combo.itemText(index))
