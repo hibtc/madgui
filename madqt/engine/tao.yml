@@ -1,3 +1,4 @@
+# tao specific configuration file
 units:
   l:        m
   lrad:     m
@@ -43,8 +44,17 @@ units:
   envx:     m
   envy:     m
 
-graphs:
-  beta:     [s, betx, bety]
-  alfa:     [s, alfx, alfy]
-  position: [s, posx, posy]
-  envelope: [s, envx, envy]
+
+curve_style:
+  # currently, we support at most 4 curves per graph:
+  - &base_style
+    marker: null
+    linestyle: "-"
+    linewidth: 2
+    color: "#8b1a0e"
+  - <<: *base_style
+    color: "#005000"
+  - <<: *base_style
+    color: "#0044aa"
+  - <<: *base_style
+    color: "#444444"

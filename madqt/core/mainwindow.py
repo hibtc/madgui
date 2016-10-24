@@ -272,7 +272,7 @@ class MainWindow(QtGui.QMainWindow):
 
         filename = os.path.abspath(filename)
         self.folder, _ = os.path.split(filename)
-        self.setUniverse(Universe(filename))
+        self.setUniverse(Universe(filename, self.config))
         self.showTwiss()
 
     def setUniverse(self, universe):
@@ -309,26 +309,30 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['universe'] = None
 
     def showTwiss(self):
-        import madqt.plot.matplotlib as plot
+        import madqt.plot.matplotlib as plt
         import madqt.plot.twissfigure as twissfigure
 
         segment = self.universe.segment
-        graphname = 'envelope'
         config = self.config['line_view'].copy()
         config['matching'] = self.config['matching']
 
-        figure = twissfigure.TwissFigure(plot, segment, graphname, config)
-        figure.show_indicators = True
-        figure.set_graph('envelope')
-        plot = plot.PlotWidget(figure)
-        select = twissfigure.PlotSelector(figure)
+        figure = plt.MultiFigure()
+        plot = plt.PlotWidget(figure)
+
+        scene = twissfigure.TwissFigure(figure, segment, config)
+        scene.show_indicators = True
+        scene.graph_name = config['default_graph']
+        scene.attach(plot)
+        scene.plot()
+
+        select = twissfigure.PlotSelector(scene)
         widget = QtGui.QWidget()
         layout = VBoxLayout([select, plot])
         layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)
 
         self.universe.destroyed.connect(widget.close)
-        self.universe.destroyed.connect(figure.remove)
+        self.universe.destroyed.connect(scene.remove)
 
         self.setMainWidget(widget)
 

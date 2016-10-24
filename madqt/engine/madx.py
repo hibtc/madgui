@@ -13,10 +13,12 @@ import yaml
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name, name_from_internal
 
-from madqt.util.misc import attribute_alias
+from madqt.core.unit import from_config
+from madqt.util.misc import attribute_alias, cachedproperty
 
 from madqt.engine.common import (
-    FloorCoords, ElementInfo, EngineBase, SegmentBase
+    FloorCoords, ElementInfo, EngineBase, SegmentBase,
+    PlotInfo, CurveInfo,
 )
 
 
@@ -44,12 +46,12 @@ class Universe(EngineBase):
     backend_title = 'MAD-X'
     backend = attribute_alias('madx')
 
-    def __init__(self, filename):
+    def __init__(self, filename, app_config):
         self.data = {}
         self.segment = None
         self.repo = None
         self.init_files = []
-        super(Universe, self).__init__(filename)
+        super(Universe, self).__init__(filename, app_config)
 
     @property
     def libmadx(self):
@@ -387,17 +389,41 @@ class Segment(SegmentBase):
             self.cache[column] = self.do_get_twiss_column(column)
         return self.cache[column]
 
-    def get_graph_data(self, name):
-        graphs = self.universe.config['graphs']
-        labels = ['s', 'x', 'y']
-        data = {l: self.get_twiss_column(col)
-                for l, col in zip(labels, graphs[name])}
-        data['s'] += self.start.at
-        return data
+    @cachedproperty
+    def native_graph_data(self):
+        config = self.universe.config
+        styles = config['curve_style']
+        return {
+            info['name']: PlotInfo(
+                name=info['name'],
+                short=info['name'],
+                title=info['title'],
+                curves=[
+                    CurveInfo(
+                        name=name,
+                        short=name,
+                        label=label,
+                        style=style,
+                        unit=from_config(unit))
+                    for (name, unit, label), style in zip(info['curves'], styles)
+                ])
+            for info in config['graphs']
+        }
 
-    def get_graph_names(self):
+    def get_native_graph_data(self, name):
+        info = self.native_graph_data[name]
+        xdata = self.get_twiss_column('s') + self.start.at
+        data = {
+            curve.short: np.stack((xdata, ydata)).T
+            for curve in info.curves
+            for ydata in [self.get_twiss_column(curve.name)]
+        }
+        return info, data
+
+    def get_native_graphs(self):
         """Get a list of curve names."""
-        return set(self.universe.config['graphs'])
+        return {info.short: (info.name, info.title)
+                for info in self.native_graph_data.values()}
 
     def retrack(self):
         """Recalculate TWISS parameters."""

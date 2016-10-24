@@ -11,48 +11,8 @@
 # subcomponents):
 line_view:
 
-  # Displayed unit for TWISS functions.
-  # The following two formats are accepted for units:
-  #
-  #   func-name: unit name
-  #   func-name: dictionary of {unit name: power}
-  #
-  # Unit names must be valid arguments to a pint.UnitRegistry
-  unit:
-    s:      m
-    envx:   mm
-    envy:   mm
-    posx:   mm
-    posy:   mm
-
-  # Label to be put on the axis (``matplotlib.axes.Axes.set_xlabel``, etc.)
-  label:
-    s: "position $s$"
-    envx: "$\\Delta x$"
-    envy: "$\\Delta y$"
-    posx: "$x$"
-    posy: "$y$"
-
-  # Tab title for views. The key is the common prefix, e.g. "env" expands to
-  # "envx", "envy". The empty string "" expands to "x", "y".
-  title:
-    pos: "beam position"
-    env: "beam envelope"
-    alf: "alfa"
-    bet: "beta"
-
-  # Plot style for the TWISS curve. The key is the suffix, e.g. "x" for the
-  # "envx" curve. Any keyword argument to ``matplotlib.axes.Axes.plot`` is
-  # allowed:
-  curve_style:
-    x:
-      color: "#8b1a0e"
-      marker: "o"
-      linestyle: "-"
-    y:
-      color: "#005000"
-      marker: "o"
-      linestyle: "-"
+  x_label: s
+  x_unit: m
 
   # Plot style for the element indicators. Supports common keyword arguments
   # for ``matplotlib.patches.axvspan()`` and ``matplotlib.axes.axvlines()``:
@@ -86,6 +46,22 @@ line_view:
     marker: "x"
     linestyle: "-"
     color: "black"
+
+  default_graph: envelope
+
+builtin_graphs:
+  - name: envelope
+    short: envelope
+    title: Beam envelope
+    curves:
+      - name: envelope.x
+        short: envx
+        label: '$\Delta x$'
+        unit: m
+      - name: envelope.y
+        short: envy
+        label: '$\Delta y$'
+        unit: m
 
 
 # Select which element paramters can be varied when matching a TWISS function:

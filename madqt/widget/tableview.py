@@ -17,6 +17,7 @@ from six import (python_2_unicode_compatible,
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
 from madqt.util.layout import HBoxLayout
+from madqt.util.misc import cachedproperty
 from madqt.util.collections import List
 
 import madqt.core.unit as unit
@@ -389,12 +390,9 @@ class QuantityValue(FloatValue):
     def display(self):
         return unit.format_quantity(self.value, self.fmtspec)
 
+    @cachedproperty
     def delegate(self):
-        try:
-            delegate = self._delegate
-        except AttributeError:
-            delegate = self._delegate = QuantityDelegate()
-        return delegate
+        return QuantityDelegate()
 
 
 class ListValue(ValueProxy):

@@ -10,12 +10,15 @@ import os
 
 from collections import namedtuple
 
+import numpy as np
+
 from six import string_types as basestring
 
 from madqt.core.base import Object, Signal
-from madqt.core.unit import UnitConverter
+from madqt.core.unit import UnitConverter, from_config
 from madqt.resource.file import FileResource
 from madqt.resource.package import PackageResource
+from madqt.util.misc import cachedproperty
 
 
 __all__ = [
@@ -23,6 +26,22 @@ __all__ = [
     'FloorCoords',
     'minrpc_flags',
 ]
+
+
+PlotInfo = namedtuple('PlotInfo', [
+    'name',     # internal graph id (e.g. 'beta.g')
+    'short',    # short display name (e.g. 'beta')
+    'title',    # long display name ('Beta function')
+    'curves',   # [CurveInfo]
+])
+
+CurveInfo = namedtuple('CurveInfo', [
+    'name',     # internal curve id (e.g. 'beta.g.a')
+    'short',    # display name for statusbar ('beta_a')
+    'label',    # y-axis/legend label ('$\beta_a$')
+    'style',    # **kwargs for ax.plot
+    'unit',     # y unit
+])
 
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
@@ -43,8 +62,9 @@ class EngineBase(Object):
 
     destroyed = Signal()
 
-    def __init__(self, filename):
+    def __init__(self, filename, app_config):
         super(EngineBase, self).__init__()
+        self.app_config = app_config
         module = self.__class__.__module__.rsplit('.', 1)[-1]
         self.config = PackageResource('madqt.engine').yaml(module + '.yml')
         self.utool = UnitConverter.from_config_dict(self.config['units'])
@@ -186,28 +206,70 @@ class SegmentBase(Object):
 
     # curves
 
+    @property
+    def curve_style(self):
+        return self.universe.config['curve_style']
+
+    @cachedproperty
+    def builtin_graphs(self):
+        return {
+            info['short']: PlotInfo(
+                name=info['name'],
+                short=info['short'],
+                title=info['title'],
+                curves=[
+                    CurveInfo(
+                        name=curve['name'],
+                        short=curve['short'],
+                        label=curve['label'],
+                        style=self.curve_style[curve_index],
+                        unit=from_config(curve['unit']))
+                    for curve_index, curve in enumerate(info['curves'])
+                ])
+            for info in self.universe.app_config['builtin_graphs']
+        }
+
+    @cachedproperty
+    def native_graphs(self):
+        return self.get_native_graphs()
+
     def get_graph_data(self, name):
-        """Get the data for a particular graph as dict of numpy arrays."""
+        """
+        Get the data for a particular graph as dict of numpy arrays.
+
+        :rtype: PlotInfo
+        """
+        if name in self.native_graphs:
+            return self.get_native_graph_data(name)
+        info = self.builtin_graphs[name]
         if name == 'envelope':
-            beta = self.get_graph_data('beta')
-            return {
-                's': beta['s'],
-                'x': (beta['x'] * self.ex())**0.5,
-                'y': (beta['y'] * self.ey())**0.5,
+            beta, data = self.get_native_graph_data('beta')
+            emittances = self.ex(), self.ey()
+            data = {
+                env_i.name: np.hstack((
+                    data[beta_i.name][:,[0]],
+                    (data[beta_i.name][:,[1]] * emit)**0.5
+                ))
+                for beta_i, env_i, emit in zip(
+                        beta.curves, info.curves, emittances)
             }
+        else:
+            raise ValueError("Unknown graph: {}".format(name))
+        return info, data
 
-        columns = dict(zip(
-            ['s', 'x', 'y'],
-            self.universe.config['graphs'].get(name, [])))
+    def get_graphs(self):
+        graphs = {
+            info.short: (name, info.title)
+            for name, info in self.builtin_graphs.items()
+        }
+        graphs.update(self.native_graphs)
+        return graphs
 
-        return {k: self.utool.add_unit(columns.get(k), v)
-                for k, v in self.get_graph_data_raw(name).items()}
-
-    def get_graph_data_raw(self, name):
-        """Get the data for a particular graph as dict of numpy arrays."""
+    def get_native_graph_data(self, name):
+        """Get the data for a particular graph."""
         raise NotImplementedError
 
-    def get_graph_names(self):
+    def get_native_graphs(self):
         """Get a list of graph names."""
         raise NotImplementedError
 

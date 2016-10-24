@@ -34,13 +34,15 @@ class SceneElement(object):
         """Remove the element from the scene."""
         raise NotImplementedError
 
+    # TODO: show/hide
+
 
 class SceneGraph(SceneElement):
 
     """A scene element that is composed of multiple elements."""
 
-    def __init__(self, items):
-        self.items = items
+    def __init__(self, items=None):
+        self.items = [] if items is None else items
 
     def plot(self):
         for item in self.items:
@@ -51,6 +53,9 @@ class SceneGraph(SceneElement):
             item.update()
 
     def remove(self):
+        self.clear_items()
+        del self.items[:]
+
+    def clear_items(self):
         for item in self.items:
             item.remove()
-        del self.items[:]

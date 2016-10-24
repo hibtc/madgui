@@ -33,121 +33,113 @@ __all__ = [
 
 class PlotSelector(QtGui.QComboBox):
 
-    def __init__(self, figure, *args, **kwargs):
+    """Widget to choose the displayed graph in a TwissFigure."""
+
+    # TODO: show plot names in a first column?
+
+    def __init__(self, scene, *args, **kwargs):
         super(PlotSelector, self).__init__(*args, **kwargs)
-        self.figure = figure
-        for graph in sorted(figure.segment.get_graph_names()):
-            self.addItem(graph, graph)
+        self.scene = scene
+        graphs = scene.segment.get_graphs()
+        items = [(title, name) for name, (_, title) in graphs.items()]
+        for label, name in sorted(items):
+            self.addItem(label, name)
         self.update_index()
         self.currentIndexChanged.connect(self.change_figure)
 
     def change_figure(self, index):
-        self.figure.set_graph(self.itemData(index))
-        self.figure.plot()
+        self.scene.graph_name = self.itemData(index)
+        self.scene.plot()
 
     def update_index(self):
-        self.setCurrentIndex(self.findData(self.figure.graph_name))
+        self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
 class TwissFigure(object):
 
     """A figure containing some X/Y twiss parameters."""
 
-    def __init__(self, backend, segment, graphname, config):
-
-        # create figure
-        self.backend = backend
+    def __init__(self, figure, segment, config):
         self.segment = segment
         self.config = config
-
-        self.figure = backend.MultiFigure(2)
-        axes = self.figure.axes
-
-        # create scene
-        elements_style = config['element_style']
-        self.scene_graph = SceneGraph([None, None])
-        self.indicators = SceneGraph([
-            ElementIndicators(axes[0], self, elements_style),
-            ElementIndicators(axes[1], self, elements_style),
+        self.figure = figure
+        # scene
+        self.curves = SceneGraph()
+        self.indicators = SceneGraph()
+        self.markers = SceneGraph()
+        self.scene_graph = SceneGraph([
+            # self.indicators,
+            self.markers,
+            self.curves,
         ])
-        self.markers = ElementMarkers(self, segment.universe.selection)
-        self.scene_graph.items.append(self.markers)
-
-        self.set_graph(graphname)
-
-        # subscribe for updates
+        # style
+        self.x_name = 's'
+        self.x_label = config['x_label']
+        self.x_unit = from_config(config['x_unit'])
+        self.element_style = config['element_style']
+        # slots
         self.segment.updated.connect(self.update)
 
-    def attach(self, plot, canvas, toolbar):
+    def attach(self, plot):
+        plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
         plot.addTool(CompareTool(plot))
 
-    def set_graph(self, graph_name):
-
-        self.graph_name = graph_name
-
-        translate = {
-            'alfa':     'alf',
-            'beta':     'bet',
-            'envelope': 'env',
-            'position': 'pos',
-        }
-
-        config = self.config
-        axes = self.figure.axes
-
-        self.basename = basename = translate.get(graph_name, graph_name)
-        self.title = config['title'].get(basename, graph_name)
-        self.names = self.backend.Triple(basename+'x', basename+'y', 's')
-
-        # plot style
-        self.label = config['label']
-        unit_names = config['unit']
-        self.unit = {col: from_config(unit_names.get(col, 1))
-                     for col in self.names}
-
-        # Store names
-        axes[0].twiss_name = self.names.x
-        axes[0].twiss_conj = self.names.y
-        axes[1].twiss_name = self.names.y
-        axes[1].twiss_conj = self.names.x
-
-        # Tune the builtin coord status message on the toolbar:
-        axes[0].format_coord = partial(self.format_coord, self.names.x)
-        axes[1].format_coord = partial(self.format_coord, self.names.y)
-
-        self.set_twiss_curve(self.basename)
-
     @property
-    def backend_figure(self):
-        return self.figure.backend_figure
+    def graph_name(self):
+        return self._graph_name
 
-    def format_coord(self, name, x, y):
-        unit = self.unit
-        elem = self.segment.get_element_by_position(x * unit['s'])
-        # TODO: in some cases, it might be necessary to adjust the
-        # precision to the displayed xlim/ylim.
-        coord_fmt = "{0}={1:.6f}{2}".format
-        parts = [coord_fmt('s', x, get_raw_label(unit['s'])),
-                 coord_fmt(name, y, get_raw_label(unit[name]))]
-        if elem and 'name' in elem:
-            parts.insert(0, 'elem={0}'.format(elem['name']))
-        return ', '.join(parts)
-
-    def get_label(self, name):
-        return self.label.get(name, name) + ' ' + get_unit_label(self.unit.get(name))
+    @graph_name.setter
+    def graph_name(self, graph_name):
+        self._graph_name = graph_name
+        self.update_graph_data()
+        self.scene_graph.clear_items()
+        self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
+        self.indicators.items.extend([
+            ElementIndicators(ax, self, self.element_style)
+            for ax in axes
+        ])
+        self.markers.items.extend([
+            ElementMarkers(ax, self, self.segment.universe.selection)
+            for ax in axes
+        ])
+        self.curves.items.extend([
+            self.figure.Curve(
+                ax,
+                partial(self.get_float_data, curve_info, 0),
+                partial(self.get_float_data, curve_info, 1),
+                curve_info.style)
+            for ax, curve_info in zip(axes, self.graph_info.curves)
+        ])
 
     def plot(self):
         """Replot from clean state."""
-        self.update_graph_data()
-        fig = self.figure
-        fig.clear()
-        fig.axes[0].set_ylabel(self.get_label(self.names.x))
-        fig.axes[1].set_ylabel(self.get_label(self.names.y))
-        fig.set_slabel(self.get_label(self.names.s))
+        for ax, curve_info in zip(self.axes, self.graph_info.curves):
+            ax.cla()
+            ax.set_ylabel(ax_label(curve_info.label, curve_info.unit))
+            # replace formatter method for mouse status:
+            ax.format_coord = partial(self.format_coord, ax)
+            # set axes properties for convenient access:
+            ax.curve_info = curve_info
+            ax.x_unit = self.x_unit
+            ax.x_name = self.x_name
+            ax.y_unit = curve_info.unit
+            ax.y_name = curve_info.short
+        self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.plot()
-        fig.draw()
+        self.figure.draw()
+
+    def format_coord(self, ax, x, y):
+        # TODO: in some cases, it might be necessary to adjust the
+        # precision to the displayed xlim/ylim.
+        coord_fmt = "{0}={1:.6f}{2}".format
+        parts = [coord_fmt(ax.x_name, x, get_raw_label(ax.x_unit)),
+                 coord_fmt(ax.y_name, y, get_raw_label(ax.y_unit))]
+        elem = self.segment.get_element_by_position(x * ax.x_unit)
+        if elem and 'name' in elem:
+            parts.insert(0, 'elem={0}'.format(elem['name']))
+        return ', '.join(parts)
 
     def draw(self):
         self.figure.draw()
@@ -162,43 +154,19 @@ class TwissFigure(object):
         self.scene_graph.remove()
         self.segment.updated.disconnect(self.update)
 
-    def get_ax_by_name(self, name):
-        return self.figure.axes[self.names.index(name)]
-
-    def get_axes_name(self, axes):
-        return self.names[self.figure.axes.index(axes)]
-
-    def get_conjugate(self, name):
-        return self.names[1-self.names.index(name)]
-
-    def set_twiss_curve(self, basename):
-        """
-        Add an X/Y pair of lines of TWISS parameters into the figure.
-
-        :param str basename: stem of the parameter name, e.g. 'bet'
-        """
-        sname = 's'
-        xname = basename + 'x'
-        yname = basename + 'y'
-        style = self.config['curve_style']
-        axes = self.figure.axes
-        get_sdata = partial(self.get_float_data, 's', sname)
-        get_xdata = partial(self.get_float_data, 'x', xname)
-        get_ydata = partial(self.get_float_data, 'y', yname)
-        for curve in filter(None, self.scene_graph.items[0:2]):
-            curve.remove()
-        self.scene_graph.items[0:2] = [
-            self.backend.Curve(axes[0], get_sdata, get_xdata, style['x']),
-            self.backend.Curve(axes[1], get_sdata, get_ydata, style['y']),
-        ]
-
     def update_graph_data(self):
-        self.graph_data = self.segment.get_graph_data(self.plotname)
+        self.graph_info, self.graph_data = \
+            self.segment.get_graph_data(self.graph_name)
+        self._graph_name = self.graph_info.short
 
-    def get_float_data(self, name, quant_name):
+    def get_float_data(self, curve_info, column):
         """Get data for the given parameter from segment."""
-        return strip_unit(self.graph_data[name], self.unit[quant_name])
+        return self.graph_data[curve_info.name][:,column]
 
+    def get_ax_by_name(self, name):
+        return next(ax for ax in self.axes if ax.y_name == name)
+
+    # TODO: scene.show_indicators -> scene.indicators.show()
     @property
     def show_indicators(self):
         return self.indicators in self.scene_graph.items
@@ -212,16 +180,6 @@ class TwissFigure(object):
         else:
             self.scene_graph.items.remove(self.indicators)
 
-    @property
-    def plotname(self):
-        translate = {
-            'alf': 'alfa',
-            'bet': 'beta',
-            'env': 'envelope',
-            'pos': 'position',
-        }
-        return translate.get(self.basename, self.basename)
-
 
 class ElementIndicators(object):
 
@@ -229,35 +187,24 @@ class ElementIndicators(object):
     Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
     """
 
-    def __init__(self, axes, figure, style):
+    def __init__(self, axes, scene, style):
         self.axes = axes
-        self.figure = figure
+        self.scene = scene
         self.style = style
         self.lines = []
 
     @property
-    def s_unit(self):
-        return self.figure.unit[self.figure.names.s]
-
-    @property
     def elements(self):
-        return self.figure.segment.elements
+        return self.scene.segment.elements
 
     def plot(self):
         """Draw the elements into the canvas."""
-        axes = self.axes
-        s_unit = self.s_unit
-        for elem in self.elements:
-            elem_type = self.get_element_type(elem)
-            if elem_type is None:
-                continue
-            at = strip_unit(elem['at'], s_unit)
-            if strip_unit(elem['l']) != 0:
-                patch_w = strip_unit(elem['l'], s_unit)
-                line = axes.axvspan(at, at + patch_w, **elem_type)
-            else:
-                line = axes.vlines(at, **elem_type)
-            self.lines.append(line)
+        self.lines.extend([
+            self.make_element_indicator(elem, style)
+            for elem in self.elements
+            for style in [self.get_element_style(elem)]
+            if style is not None
+        ])
 
     def update(self):
         pass
@@ -267,7 +214,16 @@ class ElementIndicators(object):
             line.remove()
         del self.lines[:]
 
-    def get_element_type(self, elem):
+    def make_element_indicator(self, elem, style):
+        x_unit = self.scene.x_unit
+        at = strip_unit(elem['at'], x_unit)
+        if strip_unit(elem['l']) != 0:
+            patch_w = strip_unit(elem['l'], x_unit)
+            return self.axes.axvspan(at, at + patch_w, **style)
+        else:
+            return self.axes.vlines(at, **style)
+
+    def get_element_style(self, elem):
         """Return the element type name used for properties like coloring."""
         if 'type' not in elem or 'at' not in elem:
             return None
@@ -335,6 +291,8 @@ class MatchTool(CaptureTool):
     via mouse clicks into the plot window.
     """
 
+    # TODO: define matching via config file and fix implementation
+
     mode = 'MATCH'
     short = 'match constraints'
     text = 'Match for desired target value'
@@ -347,10 +305,10 @@ class MatchTool(CaptureTool):
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.segment = plot.figure.segment
-        self.rules = plot.figure.config['matching']
+        self.segment = plot.scene.segment
+        self.rules = plot.scene.config['matching']
         self.constraints = []
-        self.markers = ConstraintMarkers(plot.figure, self.constraints)
+        self.markers = ConstraintMarkers(plot.scene, self.constraints)
 
     @property
     def elements(self):
@@ -360,14 +318,14 @@ class MatchTool(CaptureTool):
         """Start matching mode."""
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
-        self.plot.figure.scene_graph.items.append(self.markers)
+        self.plot.scene.scene_graph.items.append(self.markers)
         # TODO: insert markers
 
     def deactivate(self):
         """Stop matching mode."""
         self.clearConstraints()
         self.markers.draw()
-        self.plot.figure.scene_graph.items.remove(self.markers)
+        self.plot.scene.scene_graph.items.remove(self.markers)
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
@@ -380,15 +338,17 @@ class MatchTool(CaptureTool):
         """
 
         elem = event.elem
-        name = event.axes.twiss_name
-        conj = event.axes.twiss_conj
 
         if elem is None or 'name' not in elem:
             return
 
+        name = event.axes.y_name
+        axes = self.plot.scene.axes
+
         if event.button == 2:
-            self.removeConstraint(elem, name)
-            self.removeConstraint(elem, conj)
+            for ax in axes:
+                self.removeConstraint(elem, ax.y_name)
+            self.markers.draw()
             return
         elif event.button != 1:
             return
@@ -405,8 +365,13 @@ class MatchTool(CaptureTool):
         self.addConstraint(Constraint(elem, name, event.y))
 
         # add another constraint to hold the orthogonal axis constant
-        orth_env = self.segment.get_twiss(elem['name'], conj)
-        self.addConstraint(Constraint(elem, conj, orth_env))
+        for ax in axes:
+            if ax.y_name == name:
+                continue
+            # TODO: tao can do this with exact s positions
+            value = self.segment.get_twiss(elem['name'], ax.y_name)
+            self.addConstraint(Constraint(elem, ax.y_name, value))
+
         self.markers.draw()
 
         with waitCursor():
@@ -422,6 +387,8 @@ class MatchTool(CaptureTool):
     def match(self):
 
         """Perform matching according to current constraints."""
+
+        # FIXME: the following is not generic in number of axes
 
         segment = self.segment
         universe = self.segment.universe
@@ -504,15 +471,8 @@ class MatchTransform(object):
     def envy(self, val):
         return 'bety', val*val/self._ey
 
-    def x(self, val):
-        return 'x', val
-
-    posx = x
-
-    def y(self, val):
-        return 'y', val
-
-    posy = y
+    def __getattr__(self, name):
+        return lambda val: (name, val)
 
 
 def _get_any_elem_param(elem, params):
@@ -529,15 +489,15 @@ def _get_any_elem_param(elem, params):
 
 class ConstraintMarkers(SceneElement):
 
-    def __init__(self, figure, constraints):
-        self.figure = figure
-        self.style = figure.config['constraint_style']
+    def __init__(self, scene, constraints):
+        self.scene = scene
+        self.style = scene.config['constraint_style']
         self.lines = []
         self.constraints = constraints
 
     def draw(self):
         self.update()
-        self.figure.draw()
+        self.scene.draw()
 
     def plot(self):
         for constraint in self.constraints:
@@ -552,14 +512,14 @@ class ConstraintMarkers(SceneElement):
             line.remove()
         del self.lines[:]
 
-    def plotConstraint(self, elem, axis, envelope):
+    def plotConstraint(self, elem, axis, val):
         """Draw one constraint representation in the graph."""
-        figure = self.figure
-        ax = figure.get_ax_by_name(axis)
-        at = elem['at'] + elem['l']         # TODO: how to match at center?
+        scene = self.scene
+        ax = scene.get_ax_by_name(axis)
+        pos = elem['at'] + elem['l']         # TODO: how to match at center?
         self.lines.extend(ax.plot(
-            strip_unit(at, figure.unit[figure.names.s]),
-            strip_unit(envelope, figure.unit[axis]),
+            strip_unit(pos, ax.x_unit),
+            strip_unit(val, ax.y_unit),
             **self.style))
 
 
@@ -581,7 +541,7 @@ class InfoTool(CaptureTool):
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.segment = plot.figure.segment
+        self.segment = plot.scene.segment
         self.selection = self.segment.universe.selection
 
     def activate(self):
@@ -624,14 +584,14 @@ class InfoTool(CaptureTool):
         self.plot.canvas.setFocus()
 
     def onKey(self, event):
+        if 'left' in event.key:
+            self.advance_selection(-1)
+        elif 'right' in event.key:
+            self.advance_selection(+1)
+
+    def advance_selection(self, move_step):
         selected = self.selection.elements
         if not selected:
-            return
-        if 'left' in event.key:
-            move_step = -1
-        elif 'right' in event.key:
-            move_step = 1
-        else:
             return
         top = self.selection.top
         elements = self.segment.elements
@@ -644,9 +604,14 @@ class InfoTool(CaptureTool):
 
 class ElementMarkers(object):
 
-    def __init__(self, figure, selection):
-        self.figure = figure
-        self.style = figure.config['select_style']
+    """
+    In-figure markers for active/selected elements.
+    """
+
+    def __init__(self, axes, scene, selection):
+        self.axes = axes
+        self.scene = scene
+        self.style = scene.config['select_style']
         self.lines = []
         self.selection = selection
         selection.elements.update_after.connect(
@@ -654,15 +619,13 @@ class ElementMarkers(object):
 
     def draw(self):
         self.update()
-        self.figure.draw()
+        self.scene.draw()
 
     def plot(self):
-        axx, axy = self.figure.figure.axes
-        segment = self.figure.segment
-        for el_name in self.selection.elements:
-            element = segment.get_element_by_name(el_name)
-            self.plotMarker(axx, element)
-            self.plotMarker(axy, element)
+        segment = self.scene.segment
+        elements = [segment.get_element_by_name(el_name)
+                    for el_name in self.selection.elements]
+        self.lines.extend(map(self.plot_marker, elements))
 
     def update(self):
         self.remove()
@@ -673,17 +636,15 @@ class ElementMarkers(object):
             line.remove()
         del self.lines[:]
 
-    def plotMarker(self, ax, element):
+    def plot_marker(self, element):
         """Draw the elements into the canvas."""
-        s_unit = self.figure.unit[self.figure.names.s]
-        at = strip_unit(element['at'], s_unit)
-        self.lines.append(ax.axvline(at, **self.style))
+        at = strip_unit(element['at'], self.scene.x_unit)
+        return self.axes.axvline(at, **self.style)
 
 
 #----------------------------------------
 # Compare tool
 #----------------------------------------
-
 
 class CompareTool(CheckTool):
 
@@ -702,7 +663,7 @@ class CompareTool(CheckTool):
         The reference curve is NOT visible by default.
         """
         self.plot = plot
-        self.style = plot.figure.config['reference_style']
+        self.style = plot.scene.config['reference_style']
         self.curve = None
 
     def activate(self):
@@ -710,16 +671,16 @@ class CompareTool(CheckTool):
             self.createCurve()
         if self.curve:
             self.curve.plot()
-            self.plot.figure.scene_graph.items.append(self.curve)
-            self.plot.figure.draw()
+            self.plot.scene.scene_graph.items.append(self.curve)
+            self.plot.scene.draw()
         else:
             self.setChecked(False)
 
     def deactivate(self):
         if self.curve:
             self.curve.remove()
-            self.plot.figure.scene_graph.items.remove(self.curve)
-            self.plot.figure.draw()
+            self.plot.scene.scene_graph.items.remove(self.curve)
+            self.plot.scene.draw()
             self.curve = None
 
     def createCurve(self):
@@ -728,37 +689,44 @@ class CompareTool(CheckTool):
             data = self.getData()
         except KeyError:
             return
-        figure = self.plot.figure
         self.curve = SceneGraph([
-            self.plot_ax(data, figure.figure.axes[0], figure.names.x),
-            self.plot_ax(data, figure.figure.axes[1], figure.names.y),
+            self.plot_ax(data, ax)
+            for ax in self.plot.scene.axes
         ])
 
-    def plot_ax(self, data, axes, name):
+    def plot_ax(self, data, axes):
         """Plot the envelope into the figure."""
-        figure = self.plot.figure
-        sname = figure.names.s
-        return figure.backend.Curve(
+        scene = self.plot.scene
+        curve = axes.curve_info
+        return scene.figure.Curve(
             axes,
-            lambda: strip_unit(data[sname], figure.unit[sname]),
-            lambda: strip_unit(data[name], figure.unit[name]),
+            lambda: strip_unit(data[axes.x_name], axes.x_unit),
+            lambda: strip_unit(data[axes.y_name], axes.y_unit),
             self.style)
 
     def getData(self):
         metadata, resource = self.getMeta()
         column_info = metadata['columns']
-        figure = self.plot.figure
-        columns = [column_info[ax] for ax in figure.names]
-        usecols = [column['column'] for column in columns]
+        scene = self.plot.scene
+        col_names = [curve.short for curve in scene.graph_info.curves]
+        col_names += [scene.x_name]
+        col_infos = [column_info[col_name] for col_name in col_names]
+        usecols = [col_info['column'] for col_info in col_infos]
         with resource.filename() as f:
             ref_data = np.loadtxt(f, usecols=usecols, unpack=True)
         return {
             name: from_config(column['unit']) * data
-            for name, column, data in zip(figure.names, columns, ref_data)
+            for name, column, data in zip(col_names, col_infos, ref_data)
         }
 
     def getMeta(self):
-        universe = self.plot.figure.segment.universe
+        universe = self.plot.scene.segment.universe
         metadata = universe.data['review']
         resource = universe.repo.get(metadata['file'])
         return metadata, resource
+
+
+def ax_label(label, unit):
+    if unit in (1, None):
+        return label
+    return "{} [{}]".format(label, get_raw_label(unit))

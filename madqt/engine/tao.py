@@ -8,16 +8,26 @@ tao backend for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from collections import namedtuple
+
+import re
+
 from six import string_types as basestring
 
 from pytao.tao import Tao
 
+import madqt.core.unit as unit
 from madqt.util.misc import (attribute_alias,
                              rename_key, merged, translate_default)
 
 from madqt.engine.common import (
-    FloorCoords, ElementInfo, EngineBase, SegmentBase
+    FloorCoords, ElementInfo, EngineBase, SegmentBase,
+    PlotInfo, CurveInfo,
 )
+
+
+PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
+CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
 
 
 class Universe(EngineBase):
@@ -37,12 +47,12 @@ class Universe(EngineBase):
     backend_title = 'Bmad/Tao'
     backend = attribute_alias('tao')
 
-    def __init__(self, filename):
+    def __init__(self, filename, app_config):
         self.data = {}
         self.segment = None
         self.repo = None
         self.index = 1
-        super(Universe, self).__init__(filename)
+        super(Universe, self).__init__(filename, app_config)
 
     def load_dispatch(self, name, ext):
         """Load model or plain MAD-X file."""
@@ -79,10 +89,6 @@ class Universe(EngineBase):
                 '-noplot', '-gui_mode',
                 *args, **self.minrpc_flags())
 
-        # TODO: disable automatic curve + lattice recalculation:
-        #   - s%global%plot_on=False
-        #   - s%com%shell_interactive=True
-        #   - s%global%lattice_calc_on=False
         self.tao.command('place * none')
         # init segment
         self.segment = Segment(self, self.data.get('sequence'))
@@ -168,13 +174,31 @@ class Segment(SegmentBase):
         """Return beam envelope at element."""
         raise NotImplementedError
 
-    def plot_data(self, name, region='r11'):
+    def plot_data(self, plot_name, region='r11'):
         tao = self.tao
-        tao.command('place', region, name)
+        tao.command('place', region, plot_name)
         tao.command('set plot', region, 'visible = T')
         try:
-            return {name+'.'+curve.split('.', 1)[1]: tao.curve_data(curve)
-                    for curve in tao.curve_names(region)}
+            plot_info = tao.properties('plot1', region)
+            graphs = plot_info.get('graph', [])
+            if len(graphs) != 1:
+                raise ValueError("Need exactly one graph, found {} graphs."
+                                 .format(len(graphs)))
+            graph_name, = graphs
+            graph_path = region + '.' + graph_name
+            graph_info = tao.properties('plot_graph', graph_path)
+            if not graph_info.get('valid'):
+                raise ValueError("Invalid plot.")
+            graph_alias = plot_info['name'] + '.' + graph_name
+
+            return PlotData(plot_info, graph_info, [
+                CurveData(curve_alias, curve_info, curve_data)
+                for curve_name in graph_info.get('curve', [])
+                for curve_path in [graph_path + '.' + curve_name]
+                for curve_info in [tao.properties('plot_curve', curve_path)]
+                for curve_data in [tao.curve_data(curve_path)]
+                for curve_alias in [graph_alias + '.' + curve_name]
+            ])
         finally:
             tao.command('set plot', region, 'visible = F')
             tao.command('place', region, 'none')
@@ -237,23 +261,74 @@ class Segment(SegmentBase):
 
     # curves
 
-    def get_graph_data_raw(self, name):
-        def rename(curve_name):
-            """Normalize internal names 'beta.g.b' -> 'x'."""
-            if curve_name in (name + '.g.a', name + '.g.x'):
-                return 'x'
-            if curve_name in (name + '.g.b', name + '.g.y'):
-                return 'y'
-            return curve_name
-        curves = self.plot_data(name)
-        values = {rename(name): values[:,1] for name, values in curves.items()}
-        values['s'] = next(iter(curves.values()))[:,0]
-        return values
+    def get_native_graph_data(self, name):
+        plot_data = self.plot_data(name)
+        info = PlotInfo(
+            name=plot_data.plot_info['name']+'.'+plot_data.graph_info['name'],
+            short=plot_data.plot_info['name'],
+            title=plot_data.graph_info['title'],
+            curves=[
+                CurveInfo(
+                    name=curve.name,
+                    short=curve_short_name(plot_data, curve.info),
+                    label=tao_legend_to_latex(curve.info['legend_text']),
+                    style=self.curve_style[curve_index],
+                    unit=unit.from_config(curve.info['units'] or 1))
+                for curve_index, curve in enumerate(plot_data.curves)
+            ])
+        data = {curve.name: curve.data for curve in plot_data.curves}
+        return info, data
 
-    def get_graph_names(self):
-        """Get a list of curve names."""
-        return self.tao.plots() + ['alfa', 'beta', 'envelope', 'position']
+    def get_native_graphs(self):
+        """Get a dict of graphs."""
+        return {name.split('.')[0]: (name, info['graph']['title'])
+                for name, info in self.tao.valid_graphs()}
 
     def retrack(self):
         self.tao.update()
         self.updated.emit()
+
+
+# http://plplot.sourceforge.net/docbook-manual/plplot-html-5.11.1/characters.html#greek
+ROMAN_TO_GREEK = {
+    'a': 'alpha',   'b': 'beta',    'g': 'gamma',   'd': 'delta',
+    'e': 'epsilon', 'z': 'zeta',    'y': 'eta',     'h': 'theta',
+    'i': 'iota',    'k': 'kappa',   'l': 'lambda',  'm': 'mu',
+    'n': 'nu',      'c': 'xi',      'o': 'o',       'p': 'pi',
+    'r': 'rho',     's': 'sigma',   't': 'tau',     'u': 'upsilon',
+    'f': 'phi',     'x': 'chi',     'q': 'psi',     'w': 'omega',
+}
+
+
+def tao_legend_to_latex(text):
+    """Translate a pgplot (?) legend text to a matplotlib legend (LaTeX)."""
+    # superscript/subscript
+    while True:
+        up   = text.find('\\u')
+        down = text.find('\\d')
+        if up == -1 or down == -1:
+            break
+        if up < down:
+            mod = '^'
+            beg = up
+            end = down
+        else:
+            mod = '_'
+            beg = down
+            end = up
+        text = text[:beg] + '$' + mod + '{' + text[beg+2:end] + '}$' + text[end+2:]
+    # greek letters
+    while True:
+        pos = text.find('\\g')
+        if pos == -1:
+            break
+        roman = text[pos+2]
+        greek = ROMAN_TO_GREEK[roman]
+        text = '{}$\\{}${}'.format(text[:pos], greek, text[pos+3:])
+    # join adjacent math sections
+    text = text.replace('$$', '')
+    return text
+
+
+def curve_short_name(plot_data, curve_info):
+    return '{}_{}'.format(plot_data.plot_info['name'], curve_info['name'])
