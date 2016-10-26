@@ -282,7 +282,8 @@ class Segment(SegmentBase):
     def get_native_graphs(self):
         """Get a dict of graphs."""
         return {name.split('.')[0]: (name, info['graph']['title'])
-                for name, info in self.tao.valid_graphs()}
+                for name, info in self.tao.valid_graphs()
+                if info['plot']['x_axis_type'] == 's'}
 
     def retrack(self):
         self.tao.update()
