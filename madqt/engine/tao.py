@@ -100,29 +100,6 @@ class Universe(EngineBase):
         with self.repo.filename(name) as f:
             self.tao.read(f)
 
-    def get_beam_conf(self):
-        return {
-            'title': 'Beam settings',
-            'data_key': 'beam',
-            'params': self._get_param_conf('beam'),
-        }
-
-    def get_twiss_conf(self):
-        return {
-            'title': 'TWISS initial conditions',
-            'data_key': 'twiss',
-            'params': self._get_param_conf('twiss'),
-        }
-
-    def _get_param_conf(self, name):
-        # TODO: use the data type information from segment._get_params
-        # TODO: include read-only parameters
-        return [
-            {name: 0.0}
-            for group in self.config['parameter_sets'][name]
-            for name in group.get('readwrite', []) + group.get('auto', [])
-        ]
-
 
 class Segment(SegmentBase):
 
@@ -237,12 +214,37 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self._el_indices[elem_name.lower()]
 
+    def get_beam_conf(self):
+        return self._get_param_conf('beam', self.get_beam_raw())
+
+    def get_twiss_conf(self):
+        return self._get_param_conf('twiss', self.get_twiss_args_raw())
+
+    def _param_set(self, name):
+        return self.config['parameter_sets'][name]
+
+    def _get_param_conf(self, name, data):
+        # TODO: include read-only parameters
+        param_set = self._param_set(name)
+        params = [
+            {name: data[name]}
+            for group in param_set['params']
+            for name in group.get('readwrite', []) + group.get('auto', [])
+            if name in data
+        ]
+        conf = {
+            'title': param_set['title'],
+            'data_key': param_set['data_key'],
+            'params': params,
+        }
+        return conf, self.utool.dict_add_unit(data)
+
     def _get_params(self, name):
         return merged(*(self.tao.properties(group['query'].format(self.unibra))
-                        for group in self.config['parameter_sets'][name]))
+                        for group in self._param_set(name)['params']))
 
     def _set_params(self, name, data):
-        for group in self.config['parameter_sets']['beam']:
+        for group in self._param_set(name)['params']:
             for key in group.get('readwrite', []) + group.get('auto', []):
                 val = data.get(key)
                 if val is not None:

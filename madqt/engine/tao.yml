@@ -62,55 +62,61 @@ curve_style:
 
 parameter_sets:
   beam:
-  - query: 'beam_init {}'
-    write: 'set beam_init {} = {}'
-    auto: [
-      file_name,
-      a_norm_emit,  b_norm_emit,
-      a_emit,       b_emit,
-      sig_z_jitter, sig_e_jitter,
-      sig_z,        sig_e,
-      n_particle,
-      renorm_center, renorm_sigma,
-      random_engine, random_gauss_converter, random_sigma_cutoff,
-      dpz_dz,
-      dt_bunch,
-      bunch_charge,
-      n_bunch,
-      species,
-      init_spin,
-      full_6d_coupling_calc,
-      use_lattice_center,
-      use_t_coords,
-      use_z_as_t,
-    ]
+    title: Beam settings
+    data_key: beam
+    params:
+    - query: 'beam_init {}'
+      write: 'set beam_init {} = {}'
+      auto: [
+        file_name,
+        a_norm_emit,  b_norm_emit,
+        a_emit,       b_emit,
+        sig_z_jitter, sig_e_jitter,
+        sig_z,        sig_e,
+        n_particle,
+        renorm_center, renorm_sigma,
+        random_engine, random_gauss_converter, random_sigma_cutoff,
+        dpz_dz,
+        dt_bunch,
+        bunch_charge,
+        n_bunch,
+        species,
+        init_spin,
+        full_6d_coupling_calc,
+        use_lattice_center,
+        use_t_coords,
+        use_z_as_t,
+      ]
 
   twiss:
-  - query: 'lat_ele1 {}>>0|model orbit'
-    write: 'change beam_start {} @{}'
-    readwrite: [
-      x, y, z,
-      px, py, pz,
-      t,
-      spin_x, spin_y, spin_z,
-      field_x, field_y,
-      phase_x, phase_y,
-      charge,
-    ]
-    readonly: [
-      s, path_len, ix_ele, p0c,
-      beta, state, species, location,
-      direction, # CRASHES when trying to change
-    ]
-  - query: 'lat_ele1 {}>>0|model twiss'
-    write: 'change element beginning {} @{}'
-    readwrite: [
-      beta_a,   beta_b,
-      alpha_a,  alpha_b,
-      phi_a,    phi_b,
-      eta_a,    eta_b,
-      etap_a,   etap_b,
-    ]
-    readonly: [
-      gamma_a,  gamma_b,
-    ]
+    title: TWISS initial conditions
+    data_key: twiss
+    params:
+    - query: 'lat_ele1 {}>>0|model orbit'
+      write: 'change beam_start {} @{}'
+      readwrite: [
+        x, y, z,
+        px, py, pz,
+        t,
+        spin_x, spin_y, spin_z,
+        field_x, field_y,
+        phase_x, phase_y,
+        charge,
+      ]
+      readonly: [
+        s, path_len, ix_ele, p0c,
+        beta, state, species, location,
+        direction, # CRASHES when trying to change
+      ]
+    - query: 'lat_ele1 {}>>0|model twiss'
+      write: 'change element beginning {} @{}'
+      readwrite: [
+        beta_a,   beta_b,
+        alpha_a,  alpha_b,
+        phi_a,    phi_b,
+        eta_a,    eta_b,
+        etap_a,   etap_b,
+      ]
+      readonly: [
+        gamma_a,  gamma_b,
+      ]

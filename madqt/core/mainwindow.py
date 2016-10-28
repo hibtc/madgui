@@ -165,42 +165,31 @@ class MainWindow(QtGui.QMainWindow):
         pass
 
     def editTwiss(self):
+        self._edit_params(self.setTwiss,
+                          *self.universe.segment.get_twiss_conf())
+
+    def editBeam(self):
+        self._edit_params(self.setBeam,
+                          *self.universe.segment.get_beam_conf())
+
+    def _edit_params(self, set_data, conf, data):
         # TODO: inhibit multiple dialogs
-        # TODO: deduplicate editBeam/editTwiss code
         from madqt.widget.dialog import Dialog
         from madqt.widget.params import ParamTable, process_spec
 
-        conf = self.universe.get_twiss_conf()
         spec = process_spec(conf['params'])
         widget = ParamTable(spec, self.universe.utool)
-        widget.setData(self.universe.segment.twiss_args)
+        widget.setData(data)
         widget.data_key = conf['data_key']
 
         dialog = Dialog(self)
-        dialog.applied.connect(lambda: self.setTwiss(widget.data()))
+        dialog.applied.connect(lambda: set_data(widget.data()))
         dialog.setExportWidget(widget, self.folder)
         dialog.setWindowTitle(conf['title'])
         dialog.show()
 
     def setTwiss(self, data):
         self.universe.segment.twiss_args = data
-
-    def editBeam(self):
-        # TODO: inhibit multiple dialogs
-        from madqt.widget.dialog import Dialog
-        from madqt.widget.params import ParamTable, process_spec
-
-        conf = self.universe.get_beam_conf()
-        spec = process_spec(conf['params'])
-        widget = ParamTable(spec, self.universe.utool)
-        widget.setData(self.universe.segment.beam)
-        widget.data_key = conf['data_key']
-
-        dialog = Dialog(self)
-        dialog.applied.connect(lambda: self.setBeam(widget.data()))
-        dialog.setExportWidget(widget, self.folder)
-        dialog.setWindowTitle(conf['title'])
-        dialog.show()
 
     def setBeam(self, data):
         self.universe.segment.beam = data

@@ -235,12 +235,6 @@ class Universe(EngineBase):
         }
         return (first, last), twiss
 
-    def get_beam_conf(self):
-        return self.config['parameter_sets']['beam']
-
-    def get_twiss_conf(self):
-        return self.config['parameter_sets']['twiss']
-
 
 class Segment(SegmentBase):
 
@@ -299,6 +293,12 @@ class Segment(SegmentBase):
         start_name, stop_name = range
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
+
+    def get_beam_conf(self):
+        return self.univers.config['parameter_sets']['beam'], self.beam
+
+    def get_twiss_conf(self):
+        return self.univers.config['parameter_sets']['twiss'], self.twiss
 
     def get_twiss_args_raw(self):
         return self._twiss_args
