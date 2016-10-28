@@ -248,11 +248,11 @@ class ValueProxy(Object):
                  types=None):
         """Store the value."""
         super(ValueProxy, self).__init__()
-        self.value = value
         if default is not None: self.default = default
         if editable is not None: self.editable = editable
         if fmtspec is not None: self.fmtspec = fmtspec
         if types is not None: self.types = types
+        self.value = value
 
     def __str__(self):
         """Render the value."""
@@ -354,6 +354,13 @@ class BoolValue(ValueProxy):
     """Boolean value."""
 
     default = False
+
+    # FIXME: distinguish `None` values, gray out?
+    def get_value(self):
+        return self._value
+    def set_value(self, value):
+        self._value = self.default if value is None else value
+    value = property(get_value, set_value)
 
     def checked(self):
         return self.value
