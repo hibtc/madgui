@@ -1,7 +1,6 @@
 # encoding: utf-8
 """
-Parameter input dialog as used for :class:`TwissParamsWidget` and
-:class:`BeamParamsWidget`.
+Parameter input dialog.
 """
 
 from __future__ import absolute_import
@@ -9,6 +8,7 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
+from six import string_types as basestring
 import yaml
 
 from madqt.qt import QtCore, QtGui, Qt
@@ -18,60 +18,41 @@ from madqt.core.unit import get_raw_label, strip_unit, units
 
 
 __all__ = [
-    'Bools',
-    'Strings',
-    'Floats',
-    'Matrix',
+    'process_spec',
     'ParamTable',
 ]
 
 
 # ParamGroups
 
-class ParamGroup(object):
+def process_spec(prespec):
+    return [
+        spec
+        for item in prespec
+        for k, v in item.items()
+        for spec in process_spec_item(k, v)
+    ]
 
-    """Group of corresponding parameters."""
-
-    def __init__(self, valueType, params):
-        """Initialize with names and defaults."""
-        self.valueType = valueType
-        self._defaults = OrderedDict((k, params[k]) for k in sorted(params))
-
-    def names(self):
-        """Get all parameter names in this group."""
-        return self._defaults.keys()
-
-    def default(self, param):
-        """Get the default value for a specific parameter name."""
-        return self._defaults[param]
-
-
-def Bools(**params):
-    return ParamGroup(tableview.BoolValue, params)
-
-
-def Strings(**params):
-    return ParamGroup(tableview.QuotedStringValue, params)
-
-
-def Floats(**params):
-    return ParamGroup(tableview.FloatValue, params)
-
-
-def Matrix(**params):
-    """
-    Initialize from the given matrix definition.
-
-    Implicitly assumes that len(kwargs) == 1 and the value is a
-    consistent non-empty matrix.
-    """
-    (key, val), = params.items()
-    rows = len(val)
-    cols = len(val[0])
-    params = {"{}{}{}".format(key, row, col): val[row][col]
-              for col in range(cols)
-              for row in range(rows)}
-    return ParamGroup(tableview.FloatValue, params)
+# TODO: support expressions
+def process_spec_item(key, value):
+    if isinstance(value, bool):
+        return [(key, (tableview.BoolValue, value))]
+    if isinstance(value, (int, float)):
+        return [(key, (tableview.FloatValue, value))]
+    if isinstance(value, (basestring)):
+        return [(key, (tableview.QuotedStringValue, value))]
+    if isinstance(value, list):
+        rows = len(value)
+        if rows > 0 and isinstance(value[0], list):
+            cols = len(value[0])
+            return [
+                ("{}{}{}".format(key, row+1, col+1),
+                 (tableview.FloatValue, value[row][col]))
+                for row in range(rows)
+                for col in range(cols)
+            ]
+        # TODO: VectorValue
+    raise ValueError("Unknown parameter type: {}={}".format(key, value))
 
 
 # TODO: def Vector(Float)
@@ -118,10 +99,7 @@ class ParamTable(tableview.TableView):
 
         self.utool = utool
         self.units = utool._units
-        self.params = OrderedDict(
-            (param, group)
-            for group in spec
-            for param in group.names())
+        self.params = OrderedDict(spec)
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
@@ -160,7 +138,7 @@ class ParamTable(tableview.TableView):
         # iterating over `params` (rather than `data`) enforces a particular
         # order in the GUI:
         self.rows = [self.makeParamInfo(param, data.get(param))
-                     for param, group in self.params.items()]
+                     for param in self.params]
         self.selectRow(0)
         # Set initial size:
         if not self.isVisible():
@@ -174,9 +152,9 @@ class ParamTable(tableview.TableView):
 
     def makeParamInfo(self, param, quantity):
         unit = self.units.get(param)
-        group = self.params[param]
+        vtype, default = self.params[param]
         value = strip_unit(quantity, unit)
-        proxy = group.valueType(value, default=group.default(param))
+        proxy = vtype(value, default=default)
         return ParamInfo(param, proxy, unit)
 
     def keyPressEvent(self, event):
