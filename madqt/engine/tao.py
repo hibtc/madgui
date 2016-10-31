@@ -244,7 +244,8 @@ class Segment(SegmentBase):
             return group['implicit']
 
         def editable(mode, auto):
-            return mode == 'readwrite' or (mode == 'auto' and auto)
+            return (mode == 'readwrite' or mode == True or
+                    mode == 'auto' and auto)
 
         query = self.tao.parameters
         conf = self._param_set(name)
@@ -253,7 +254,7 @@ class Segment(SegmentBase):
             for group in map(prepare_group, conf['params'])
             for param in query(group['query'].format(self.unibra)).values()
             for mode in [param_mode(param.name, group)]
-            if mode
+            if mode in ('readwrite', 'readonly', 'auto', True, False)
         ]
         data = {param.name: param.value for param in spec}
         return (spec, self.utool.dict_add_unit(data), conf)
