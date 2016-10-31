@@ -215,24 +215,47 @@ class Segment(SegmentBase):
         return self._el_indices[elem_name.lower()]
 
     def get_beam_conf(self):
-        return self._get_param_conf('beam', self.get_beam_raw())
+        return self._get_param_conf('beam')
 
     def get_twiss_conf(self):
-        return self._get_param_conf('twiss', self.get_twiss_args_raw())
+        return self._get_param_conf('twiss')
 
     def _param_set(self, name):
         return self.config['parameter_sets'][name]
 
-    def _get_param_conf(self, name, data):
+    def _get_param_conf(self, name):
         from madqt.widget.params import ParamSpec
-        # TODO: include read-only parameters
+
+        def prepare_group(group):
+            group['readonly']  = readonly  = set(group.get('readonly', ()))
+            group['readwrite'] = readwrite = set(group.get('readwrite', ()))
+            group['auto']      = auto      = set(group.get('auto', ()))
+            group['explicit']  = readonly | readwrite | auto
+            group.setdefault('implicit', 'auto')
+            return group
+
+        def param_mode(name, group):
+            if name in group['readwrite']:
+                return 'readwrite'
+            if name in group['readonly']:
+                return 'readonly'
+            if name in group['auto']:
+                return 'auto'
+            return group['implicit']
+
+        def editable(mode, auto):
+            return mode == 'readwrite' or (mode == 'auto' and auto)
+
+        query = self.tao.parameters
         conf = self._param_set(name)
         spec = [
-            ParamSpec(name, data[name])
-            for group in conf['params']
-            for name in group.get('readwrite', []) + group.get('auto', [])
-            if name in data
+            ParamSpec(param.name, param.value, editable(mode, param.vary))
+            for group in map(prepare_group, conf['params'])
+            for param in query(group['query'].format(self.unibra)).values()
+            for mode in [param_mode(param.name, group)]
+            if mode
         ]
+        data = {param.name: param.value for param in spec}
         return (spec, self.utool.dict_add_unit(data), conf)
 
     def _get_params(self, name):
