@@ -300,7 +300,7 @@ class Segment(SegmentBase):
 
     def get_twiss_conf(self):
         conf = self.universe.config['parameter_sets']['twiss']
-        return (process_spec(conf['params']), self.beam, conf)
+        return (process_spec(conf['params']), self.twiss_args, conf)
 
     def get_twiss_args_raw(self):
         return self._twiss_args
