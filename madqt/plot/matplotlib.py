@@ -29,12 +29,11 @@ from madqt.util.layout import VBoxLayout
 
 __all__ = [
     'PlotWidget',
-    'FigurePair',
+    'MultiFigure',
     'Curve',
 ]
 
 
-Pair = namedtuple('Pair', ['x', 'y'])
 Triple = namedtuple('Triple', ['x', 'y', 's'])
 
 MouseEvent = namedtuple('MouseEvent', [
@@ -72,7 +71,7 @@ class PlotWidget(QtGui.QWidget):
         self.setLayout(VBoxLayout([canvas, toolbar]))
         # Needed on PyQt5 with tight_layout=True to prevent crash due to
         # singular matrix if size=0:
-        self.canvas.setMinimumSize(QtCore.QSize(100, 100))
+        canvas.setMinimumSize(QtCore.QSize(100, 100))
 
         self._cid_mouse = canvas.mpl_connect(
             'button_press_event', self.onButtonPress)
@@ -83,10 +82,10 @@ class PlotWidget(QtGui.QWidget):
         self._updateCapture.connect(toolbar._update_buttons_checked)
         toolbar._update_buttons_checked = self._updateCapture.emit
 
-        # setup the figure
         self._actions = []
-        figure.attach(self, canvas, toolbar)
-        figure.plot()
+
+    def set_scene(self, scene):
+        self.scene = scene
 
     def addCapture(self, mode, update):
         self._updateCapture.connect(
@@ -128,10 +127,9 @@ class PlotWidget(QtGui.QWidget):
         if mpl_event.inaxes is None:
             return
         axes = mpl_event.inaxes
-        name = mpl_event.inaxes.twiss_name
-        xpos = mpl_event.xdata * self.figure.unit['s']
-        ypos = mpl_event.ydata * self.figure.unit[name]
-        elem = self.figure.segment.get_element_by_position(xpos)
+        xpos = mpl_event.xdata * axes.x_unit
+        ypos = mpl_event.ydata * axes.y_unit
+        elem = self.scene.segment.get_element_by_position(xpos)
         event = MouseEvent(mpl_event.button, xpos, ypos,
                            axes, elem, mpl_event.guiEvent)
         self.buttonPress.emit(event)
@@ -139,60 +137,6 @@ class PlotWidget(QtGui.QWidget):
     def onKeyPress(self, mpl_event):
         event = KeyboardEvent(mpl_event.key, mpl_event.guiEvent)
         self.keyPress.emit(event)
-
-
-class FigurePair(object):
-
-    """
-    A figure composed of two subplots with shared s-axis.
-
-    :ivar matplotlib.figure.Figure backend_figure: composed figure
-    :ivar matplotlib.axes.Axes axx: upper subplot
-    :ivar matplotlib.axes.Axes axy: lower subplot
-    """
-
-    def __init__(self):
-        """Create an empty matplotlib figure with two subplots."""
-        self.backend_figure = figure = Figure(tight_layout=True)
-        axx = figure.add_subplot(211)
-        axy = figure.add_subplot(212, sharex=axx)
-        self.axes = Pair(axx, axy)
-
-    @property
-    def canvas(self):
-        """Get the canvas."""
-        return self.backend_figure.canvas
-
-    def draw(self):
-        """Draw the figure on its canvas."""
-        _autoscale_axes(self.axes.x)
-        _autoscale_axes(self.axes.y)
-        canvas = self.backend_figure.canvas
-        canvas.draw()
-        canvas.updateGeometry()
-
-    def set_slabel(self, label):
-        """Set label on the s axis."""
-        self.axes.y.set_xlabel(label)
-
-    def clear(self):
-        """Start a fresh plot."""
-        _clear_ax(self.axes.x)
-        _clear_ax(self.axes.y)
-
-
-def _clear_ax(ax):
-    """Clear a single :class:`matplotlib.axes.Axes` instance."""
-    ax.cla()
-    ax.grid(True)
-    ax.get_xaxis().set_minor_locator(AutoMinorLocator())
-    ax.get_yaxis().set_minor_locator(AutoMinorLocator())
-
-
-def _autoscale_axes(axes):
-    """Autoscale a :class:`matplotlib.axes.Axes` to its contents."""
-    axes.relim()
-    axes.autoscale()
 
 
 class Curve(object):
@@ -223,3 +167,65 @@ class Curve(object):
         if self.line is not None:
             self.line.remove()
             self.line = None
+
+
+class MultiFigure(object):
+
+    """
+    A figure composed of multiple subplots with shared x-axis.
+
+    :ivar matplotlib.figure.Figure backend_figure: composed figure
+    :ivar list axes: the axes (:class:`~matplotlib.axes.Axes`)
+    """
+
+    def __init__(self):
+        """Create an empty matplotlib figure with multiple subplots."""
+        self.backend_figure = Figure(tight_layout=True)
+
+    def set_num_axes(self, num_axes):
+        figure = self.backend_figure
+        figure.clear()
+        self.axes = axes = []
+        if num_axes == 0:
+            return
+        axes.append(figure.add_subplot(num_axes, 1, 1))
+        for i in range(1, num_axes):
+            axes.append(figure.add_subplot(num_axes, 1, i+1, sharex=axes[0]))
+        return axes
+
+    @property
+    def canvas(self):
+        """Get the canvas."""
+        return self.backend_figure.canvas
+
+    def draw(self):
+        """Draw the figure on its canvas."""
+        for ax in self.axes:
+            _autoscale_axes(ax)
+        self.canvas.draw()
+        self.canvas.updateGeometry()
+
+    def set_xlabel(self, label):
+        """Set label on the s axis."""
+        self.axes[-1].set_xlabel(label)
+
+    def clear(self):
+        """Start a fresh plot."""
+        for ax in self.axes:
+            _clear_ax(ax)
+
+    Curve = Curve
+
+
+def _clear_ax(ax):
+    """Clear a single :class:`matplotlib.axes.Axes` instance."""
+    ax.cla()
+    ax.grid(True)
+    ax.get_xaxis().set_minor_locator(AutoMinorLocator())
+    ax.get_yaxis().set_minor_locator(AutoMinorLocator())
+
+
+def _autoscale_axes(axes):
+    """Autoscale a :class:`matplotlib.axes.Axes` to its contents."""
+    axes.relim()
+    axes.autoscale()

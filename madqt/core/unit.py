@@ -71,7 +71,10 @@ def strip_unit(quantity, unit=None):
         # FIXME: 'zip' truncates without warning if not enough units
         # are defined
         return [q.to(u).magnitude for q, u in zip(quantity, unit)]
-    return quantity.to(unit).magnitude
+    try:
+        return quantity.to(unit).magnitude
+    except AttributeError:
+        return quantity
 
 
 def tounit(quantity, unit):
@@ -99,6 +102,8 @@ def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
     if quantity is None:
         return ''
+    if not isinstance(quantity, units.Quantity):
+        return str(quantity)
     short = pint.unit.UnitsContainer(
         {units._get_symbol(key): value
          for key, value in quantity.units.items()})

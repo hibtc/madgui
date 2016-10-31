@@ -35,3 +35,33 @@ units:
 
   # TODO: THIS IS INCORRECT
   kick:     rad
+
+  posx:     m
+  posy:     m
+  envx:     m
+  envy:     m
+
+curve_style:
+  - &base_style
+    color: "#8b1a0e"
+    marker: "o"
+    linestyle: "-"
+  - <<: *base_style
+    color: "#005000"
+
+graphs:
+  - name: beta
+    title: Beta function
+    curves:
+      - [betx, m, '$\beta x$']
+      - [bety, m, '$\beta y$']
+  - name: alpha
+    title: Alpha function
+    curves:
+      - [alfx, 1, '$\alpha x$']
+      - [alfy, 1, '$\alpha y$']
+  - name: orbit
+    title: Particle orbit
+    curves:
+      - [x, m, '$x$']
+      - [y, m, '$y$']

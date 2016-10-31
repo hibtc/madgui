@@ -13,10 +13,12 @@ import yaml
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name, name_from_internal
 
-from madqt.util.misc import attribute_alias
+from madqt.core.unit import from_config
+from madqt.util.misc import attribute_alias, cachedproperty
 
 from madqt.engine.common import (
-    FloorCoords, ElementInfo, EngineBase, SegmentBase
+    FloorCoords, ElementInfo, EngineBase, SegmentBase,
+    PlotInfo, CurveInfo,
 )
 
 
@@ -44,12 +46,12 @@ class Universe(EngineBase):
     backend_title = 'MAD-X'
     backend = attribute_alias('madx')
 
-    def __init__(self, filename):
+    def __init__(self, filename, app_config):
         self.data = {}
         self.segment = None
         self.repo = None
         self.init_files = []
-        super(Universe, self).__init__(filename)
+        super(Universe, self).__init__(filename, app_config)
 
     @property
     def libmadx(self):
@@ -277,7 +279,8 @@ class Segment(SegmentBase):
         self.elements = list(map(
             self.utool.dict_add_unit, self.raw_elements))
 
-        self.twiss()
+        self.cache = {}
+        self.retrack()
 
     @property
     def madx(self):
@@ -296,7 +299,6 @@ class Segment(SegmentBase):
 
     def set_twiss_args_raw(self, twiss):
         self._twiss_args = twiss
-        self.twiss()
 
     def get_beam_raw(self):
         """Get the beam parameter dictionary."""
@@ -306,7 +308,6 @@ class Segment(SegmentBase):
         """Set beam from a parameter dictionary."""
         self._beam = beam
         self._use_beam(beam)
-        self.twiss()
 
     def _use_beam(self, beam):
         beam = dict(beam, sequence=self.sequence.name)
@@ -324,25 +325,11 @@ class Segment(SegmentBase):
         element = self.get_element_info(elem)
         if not self.contains(element):
             return None
-        return self.tw[name][element.index - self.start.index]
+        return self.get_twiss_column(name)[element.index - self.start.index]
 
-    def twiss(self):
-        """Recalculate TWISS parameters."""
-        results = self.raw_twiss()
-        # Update TWISS results
-        self.tw = self.utool.dict_add_unit(results)
-        self.summary = self.utool.dict_add_unit(results.summary)
-        # data post processing
-        self.tw['s'] += self.start.at
-        self.pos = self.tw['s']
-        self.tw['envx'] = (self.tw['betx'] * self.summary['ex'])**0.5
-        self.tw['envy'] = (self.tw['bety'] * self.summary['ey'])**0.5
-        # Create aliases for x,y that have non-empty common prefix. The goal
-        # is to make the config file entries less awkward that hold this
-        # prefix:
-        self.tw['posx'] = self.tw['x']
-        self.tw['posy'] = self.tw['y']
-        self.updated.emit()
+    def contains(self, element):
+        return (self.start.index <= element.index and
+                self.stop.index >= element.index)
 
     def _get_twiss_args(self, **kwargs):
         twiss_init = self.utool.dict_strip_unit(self.twiss_args)
@@ -354,9 +341,6 @@ class Segment(SegmentBase):
         }
         twiss_args.update(kwargs)
         return twiss_args
-
-    def raw_twiss(self, **kwargs):
-        return self.madx.twiss(**self._get_twiss_args(**kwargs))
 
     def get_transfer_map(self, beg_elem, end_elem):
         """
@@ -380,3 +364,70 @@ class Segment(SegmentBase):
 
     def survey_elements(self):
         return self.sequence.expanded_elements
+
+    def ex(self):
+        return self.summary['ex']
+
+    def ey(self):
+        return self.summary['ey']
+
+    # curves
+
+    def do_get_twiss_column(self, name):
+        if name == 'envx':
+            return (self.get_twiss_column('betx') * self.ex())**0.5
+        if name == 'envy':
+            return (self.get_twiss_column('bety') * self.ey())**0.5
+        if name == 'posx':
+            return self.get_twiss_column('x')
+        if name == 'posy':
+            return self.get_twiss_column('y')
+        return self.utool.add_unit(name, self.madx.get_table('twiss')[name])
+
+    def get_twiss_column(self, column):
+        if column not in self.cache:
+            self.cache[column] = self.do_get_twiss_column(column)
+        return self.cache[column]
+
+    @cachedproperty
+    def native_graph_data(self):
+        config = self.universe.config
+        styles = config['curve_style']
+        return {
+            info['name']: PlotInfo(
+                name=info['name'],
+                short=info['name'],
+                title=info['title'],
+                curves=[
+                    CurveInfo(
+                        name=name,
+                        short=name,
+                        label=label,
+                        style=style,
+                        unit=from_config(unit))
+                    for (name, unit, label), style in zip(info['curves'], styles)
+                ])
+            for info in config['graphs']
+        }
+
+    def get_native_graph_data(self, name):
+        info = self.native_graph_data[name]
+        xdata = self.get_twiss_column('s') + self.start.at
+        data = {
+            curve.short: np.stack((xdata, ydata)).T
+            for curve in info.curves
+            for ydata in [self.get_twiss_column(curve.name)]
+        }
+        return info, data
+
+    def get_native_graphs(self):
+        """Get a list of curve names."""
+        return {info.short: (info.name, info.title)
+                for info in self.native_graph_data.values()}
+
+    def retrack(self):
+        """Recalculate TWISS parameters."""
+        self.cache.clear()
+        results = self.madx.twiss(**self._get_twiss_args())
+        self.summary = self.utool.dict_add_unit(results.summary)
+        self.updated.emit()

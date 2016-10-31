@@ -6,8 +6,12 @@ Misc programming toolbox.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import functools
+
+
 __all__ = [
     'attribute_alias',
+    'cachedproperty',
     'rename_key',
     'merged',
     'translate_default',
@@ -23,6 +27,20 @@ def attribute_alias(alias):
         lambda self, value: setattr(self, alias, value),
         lambda self:        delattr(self, alias),
         "Alias for '{}'".format(alias))
+
+
+def cachedproperty(func):
+    """A memoize decorator for class properties."""
+    key = '_' + func.__name__
+    @functools.wraps(func)
+    def get(self):
+        try:
+            return getattr(self, key)
+        except AttributeError:
+            val = func(self)
+            setattr(self, key, val)
+            return val
+    return property(get)
 
 
 # dictionary utils
