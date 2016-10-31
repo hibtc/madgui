@@ -12,6 +12,7 @@ import functools
 __all__ = [
     'attribute_alias',
     'cachedproperty',
+    'update_property',
     'rename_key',
     'merged',
     'translate_default',
@@ -41,6 +42,26 @@ def cachedproperty(func):
             setattr(self, key, val)
             return val
     return property(get)
+
+
+def update_property(update, name=None):
+    key = '_' + update.__name__
+    @functools.wraps(update)
+    def wrapper(self, *args, **kwargs):
+        old = getattr(self, key, None)
+        new = update(self, old, *args, **kwargs)
+        setattr(self, key, new)
+        return new
+    return wrapper
+
+
+def update_decorator(update):
+    def decorator(func):
+        def updater(self, saved, *args):
+            return update(self, func, saved, *args)
+        updater.__name__ = func.__name__
+        return update_property(updater)
+    return decorator
 
 
 # dictionary utils

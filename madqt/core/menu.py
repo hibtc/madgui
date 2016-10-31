@@ -22,17 +22,19 @@ __all__ = [
 
 class Item(object):
 
-    def __init__(self, label, shortcut, description, action, icon=None):
+    def __init__(self, label, shortcut, description, action, icon=None,
+                 checkable=False):
         self.label = label
         self.shortcut = shortcut
         self.description = description
         self.action = action
         self.icon = icon
+        self.checkable = checkable
 
     def append_to(self, menu, parent=None):
         if parent is None:
             parent = menu
-        action = QtGui.QAction(self.label, parent)
+        action = QtGui.QAction(self.label, parent, checkable=self.checkable)
         if self.shortcut is not None:
             action.setShortcut(self.shortcut)
         if self.description is not None:
