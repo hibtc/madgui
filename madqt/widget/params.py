@@ -1,7 +1,6 @@
 # encoding: utf-8
 """
-Parameter input dialog as used for :class:`TwissParamsWidget` and
-:class:`BeamParamsWidget`.
+Parameter input dialog.
 """
 
 from __future__ import absolute_import
@@ -9,6 +8,7 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
+from six import string_types as basestring
 import yaml
 
 from madqt.qt import QtCore, QtGui, Qt
@@ -18,67 +18,35 @@ from madqt.core.unit import get_raw_label, strip_unit, units
 
 
 __all__ = [
-    'Bools',
-    'Strings',
-    'Floats',
-    'Matrix',
+    'ParamSpec',
     'ParamTable',
 ]
 
 
-# ParamGroups
+class ParamSpec(object):
 
-class ParamGroup(object):
+    """Input parameter specification."""
 
-    """Group of corresponding parameters."""
+    def __init__(self, name, value, editable=True):
+        self.name = name
+        self.value = value
+        self.editable = editable
 
-    def __init__(self, valueType, params):
-        """Initialize with names and defaults."""
-        self.valueType = valueType
-        self._defaults = OrderedDict((k, params[k]) for k in sorted(params))
-
-    def names(self):
-        """Get all parameter names in this group."""
-        return self._defaults.keys()
-
-    def default(self, param):
-        """Get the default value for a specific parameter name."""
-        return self._defaults[param]
-
-
-def Bools(**params):
-    return ParamGroup(tableview.BoolValue, params)
-
-
-def Strings(**params):
-    return ParamGroup(tableview.QuotedStringValue, params)
-
-
-def Floats(**params):
-    return ParamGroup(tableview.FloatValue, params)
-
-
-def Matrix(**params):
-    """
-    Initialize from the given matrix definition.
-
-    Implicitly assumes that len(kwargs) == 1 and the value is a
-    consistent non-empty matrix.
-    """
-    (key, val), = params.items()
-    rows = len(val)
-    cols = len(val[0])
-    params = {"{}{}{}".format(key, row, col): val[row][col]
-              for col in range(cols)
-              for row in range(rows)}
-    return ParamGroup(tableview.FloatValue, params)
-
-
-# TODO: def Vector(Float)
-# unlike Matrix this represents a single MAD-X parameter of type ARRAY.
+    def value_type(self):
+        if isinstance(self.value, bool):
+            return tableview.BoolValue
+        if isinstance(self.value, (int, float)):
+            return tableview.FloatValue
+        if isinstance(self.value, (basestring)):
+            return tableview.QuotedStringValue
+        # TODO: list -> VectorValue (single MAD-X parameter of type ARRAY)
+        raise ValueError("Unknown parameter type: {}={}"
+                         .format(self.name, self.value))
 
 
 class ParamInfo(object):
+
+    """Internal parameter description for the TableView."""
 
     def __init__(self, name, valueProxy, unit):
         self.name = tableview.StringValue(name, editable=False)
@@ -118,10 +86,7 @@ class ParamTable(tableview.TableView):
 
         self.utool = utool
         self.units = utool._units
-        self.params = OrderedDict(
-            (param, group)
-            for group in spec
-            for param in group.names())
+        self.params = OrderedDict((param.name, param) for param in spec)
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
@@ -160,7 +125,7 @@ class ParamTable(tableview.TableView):
         # iterating over `params` (rather than `data`) enforces a particular
         # order in the GUI:
         self.rows = [self.makeParamInfo(param, data.get(param))
-                     for param, group in self.params.items()]
+                     for param in self.params]
         self.selectRow(0)
         # Set initial size:
         if not self.isVisible():
@@ -174,10 +139,11 @@ class ParamTable(tableview.TableView):
 
     def makeParamInfo(self, param, quantity):
         unit = self.units.get(param)
-        group = self.params[param]
+        param = self.params[param]
         value = strip_unit(quantity, unit)
-        proxy = group.valueType(value, default=group.default(param))
-        return ParamInfo(param, proxy, unit)
+        proxy = param.value_type()(value, default=param.value,
+                                   editable=param.editable)
+        return ParamInfo(param.name, proxy, unit)
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""

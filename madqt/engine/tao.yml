@@ -6,8 +6,9 @@ units:
   s:        m
   x:        m
   y:        m
-  betx:     m
-  bety:     m
+  z:        m
+  beta_a:   m
+  beta_b:   m
   angle:    rad
   k1:       m^-2
   k1s:      m^-2
@@ -58,3 +59,32 @@ curve_style:
     color: "#0044aa"
   - <<: *base_style
     color: "#444444"
+
+
+parameter_sets:
+  beam:
+    title: Beam settings
+    data_key: beam
+    params:
+    - query: 'beam_init {}'
+      write: 'set beam_init {} = {}'
+      implicit: auto
+
+  twiss:
+    title: TWISS initial conditions
+    data_key: twiss
+    params:
+    - query: 'lat_ele1 {}>>0|model orbit'
+      write: 'change beam_start {} @{}'
+      implicit: readwrite
+      readonly: [
+        s, path_len, ix_ele, p0c,
+        beta, state, species, location,
+        direction, # CRASHES when trying to change
+      ]
+    - query: 'lat_ele1 {}>>0|model twiss'
+      write: 'change element beginning {} @{}'
+      implicit: readwrite
+      readonly: [
+        gamma_a,  gamma_b,
+      ]

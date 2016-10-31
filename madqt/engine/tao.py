@@ -166,6 +166,10 @@ class Segment(SegmentBase):
     def tao(self):
         return self.universe.tao
 
+    @property
+    def config(self):
+        return self.universe.config
+
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
         raise NotImplementedError
@@ -210,42 +214,83 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self._el_indices[elem_name.lower()]
 
-    def get_beam_raw(self):
-        beam = self.tao.properties('beam_init', self.unibra)
-        # FIXME: evaluate several possible sources for emittance/beam:
-        # - beam%beam_init%a_emit   (beam_init_struct -> a_emit, b_emit)
-        # - lat%beam_start          (coord_struct -> x, y, px, py, ...)
-        # - lat%a%emit              (mode_info_struct -> emit, sigma, ...)
+    def get_beam_conf(self):
+        return self._get_param_conf('beam')
 
-        # - beam_start[emittance_a]
+    def get_twiss_conf(self):
+        return self._get_param_conf('twiss')
+
+    def _param_set(self, name):
+        return self.config['parameter_sets'][name]
+
+    def _get_param_conf(self, name):
+        from madqt.widget.params import ParamSpec
+
+        def prepare_group(group):
+            group['readonly']  = readonly  = set(group.get('readonly', ()))
+            group['readwrite'] = readwrite = set(group.get('readwrite', ()))
+            group['auto']      = auto      = set(group.get('auto', ()))
+            group['explicit']  = readonly | readwrite | auto
+            group.setdefault('implicit', 'auto')
+            return group
+
+        def param_mode(name, group):
+            if name in group['readwrite']:
+                return 'readwrite'
+            if name in group['readonly']:
+                return 'readonly'
+            if name in group['auto']:
+                return 'auto'
+            return group['implicit']
+
+        def editable(mode, auto):
+            return mode == 'readwrite' or (mode == 'auto' and auto)
+
+        query = self.tao.parameters
+        conf = self._param_set(name)
+        spec = [
+            ParamSpec(param.name, param.value, editable(mode, param.vary))
+            for group in map(prepare_group, conf['params'])
+            for param in query(group['query'].format(self.unibra)).values()
+            for mode in [param_mode(param.name, group)]
+            if mode
+        ]
+        data = {param.name: param.value for param in spec}
+        return (spec, self.utool.dict_add_unit(data), conf)
+
+    def _get_params(self, name):
+        return merged(*(self.tao.properties(group['query'].format(self.unibra))
+                        for group in self._param_set(name)['params']))
+
+    def _set_params(self, name, data):
+        for group in self._param_set(name)['params']:
+            for key in group.get('readwrite', []):
+                val = data.get(key)
+                if val is not None:
+                    command = group['write'].format(key, val)
+                    self.tao.command(command)
+
+    def get_beam_raw(self):
+        beam = self._get_params('beam')
         translate_default(beam, 'a_emit', 0., 1.)
         translate_default(beam, 'b_emit', 0., 1.)
         return beam
 
     def set_beam_raw(self, beam):
-        self.tao.set('beam_init', **beam)
-        # Bmad has also the (unused?) `beam_start` parameter group:
-        #self.tao.change('beam_start', **beam)
+        self._set_params('beam', beam)
 
-    _beam_params = {'x', 'px', 'y', 'py', 'z', 'pz', 't'}
-    _twiss_params = {'beta_a', 'beta_b', 'alpha_a', 'alpha_b',
-                     'eta_a', 'eta_b', 'etap_a', 'etap_b'}
-    _twiss_args = _beam_params | _twiss_params
+        # NOTE: species can be `set beam_init species = NUMBER`, where
+        #  NUMBER = charge_sign * (
+        #       mass_number +
+        #       atomic_number * 100000 +
+        #       charge_number * 100000000)
+        # see: sim_utils/interfaces/particle_species_mod.f90 -> species_id()
 
     def get_twiss_args_raw(self, index=0):
-        data = merged(self.tao.get_element_data(index, who='orbit'),
-                      self.tao.get_element_data(index, who='twiss'))
-        return {k: v for k, v in data.items() if k in self._twiss_args}
+        return self._get_params('twiss')
 
     def set_twiss_args_raw(self, twiss):
-        beam_start = {param: twiss[param]
-                      for param in self._beam_params
-                      if param in twiss}
-        twiss_start = {param: twiss[param]
-                       for param in self._twiss_params
-                       if param in twiss}
-        self.tao.change('beam_start', **beam_start)
-        self.tao.change('element', 'beginning', **twiss_start)
+        return self._set_params('twiss', twiss)
 
     @property
     def unibra(self):

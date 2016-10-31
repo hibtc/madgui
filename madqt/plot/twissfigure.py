@@ -37,6 +37,11 @@ class PlotSelector(QtGui.QComboBox):
 
     # TODO: show plot names in a first column?
 
+    # TODO: show multiple combobox widgets:
+    # - category (e.g. 'Bunch phase space' or 'Radiation integrals')
+    # - graph (e.g. 'Integrated I4A Radiation Integral')
+    # - curves: all-curves-separate-axes / all-curves-joint-axes / single-curve
+
     def __init__(self, scene, *args, **kwargs):
         super(PlotSelector, self).__init__(*args, **kwargs)
         self.scene = scene
@@ -598,7 +603,7 @@ class InfoTool(CaptureTool):
         old_name = selected[top]
         old_index = self.segment.get_element_index(old_name)
         new_index = old_index + move_step
-        new_name = elements[new_index % len(elements)]
+        new_name = elements[new_index % len(elements)]['name']
         selected[top] = new_name
 
 
