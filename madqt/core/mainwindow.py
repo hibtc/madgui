@@ -172,12 +172,11 @@ class MainWindow(QtGui.QMainWindow):
         self._edit_params(self.setBeam,
                           *self.universe.segment.get_beam_conf())
 
-    def _edit_params(self, set_data, conf, data):
+    def _edit_params(self, set_data, spec, data, conf):
         # TODO: inhibit multiple dialogs
         from madqt.widget.dialog import Dialog
-        from madqt.widget.params import ParamTable, process_spec
+        from madqt.widget.params import ParamTable
 
-        spec = process_spec(conf['params'])
         widget = ParamTable(spec, self.universe.utool)
         widget.setData(data)
         widget.data_key = conf['data_key']

@@ -224,20 +224,16 @@ class Segment(SegmentBase):
         return self.config['parameter_sets'][name]
 
     def _get_param_conf(self, name, data):
+        from madqt.widget.params import ParamSpec
         # TODO: include read-only parameters
-        param_set = self._param_set(name)
-        params = [
-            {name: data[name]}
-            for group in param_set['params']
+        conf = self._param_set(name)
+        spec = [
+            ParamSpec(name, data[name])
+            for group in conf['params']
             for name in group.get('readwrite', []) + group.get('auto', [])
             if name in data
         ]
-        conf = {
-            'title': param_set['title'],
-            'data_key': param_set['data_key'],
-            'params': params,
-        }
-        return conf, self.utool.dict_add_unit(data)
+        return (spec, self.utool.dict_add_unit(data), conf)
 
     def _get_params(self, name):
         return merged(*(self.tao.properties(group['query'].format(self.unibra))
@@ -245,7 +241,7 @@ class Segment(SegmentBase):
 
     def _set_params(self, name, data):
         for group in self._param_set(name)['params']:
-            for key in group.get('readwrite', []) + group.get('auto', []):
+            for key in group.get('readwrite', []):
                 val = data.get(key)
                 if val is not None:
                     command = group['write'].format(key, val)

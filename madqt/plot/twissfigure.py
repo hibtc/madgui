@@ -603,7 +603,7 @@ class InfoTool(CaptureTool):
         old_name = selected[top]
         old_index = self.segment.get_element_index(old_name)
         new_index = old_index + move_step
-        new_name = elements[new_index % len(elements)]
+        new_name = elements[new_index % len(elements)]['name']
         selected[top] = new_name
 
 

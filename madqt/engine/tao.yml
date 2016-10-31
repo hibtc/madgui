@@ -6,8 +6,9 @@ units:
   s:        m
   x:        m
   y:        m
-  betx:     m
-  bety:     m
+  z:        m
+  beta_a:   m
+  beta_b:   m
   angle:    rad
   k1:       m^-2
   k1s:      m^-2

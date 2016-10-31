@@ -18,48 +18,35 @@ from madqt.core.unit import get_raw_label, strip_unit, units
 
 
 __all__ = [
-    'process_spec',
+    'ParamSpec',
     'ParamTable',
 ]
 
 
-# ParamGroups
+class ParamSpec(object):
 
-def process_spec(prespec):
-    return [
-        spec
-        for item in prespec
-        for k, v in item.items()
-        for spec in process_spec_item(k, v)
-    ]
+    """Input parameter specification."""
 
-# TODO: support expressions
-def process_spec_item(key, value):
-    if isinstance(value, bool):
-        return [(key, (tableview.BoolValue, value))]
-    if isinstance(value, (int, float)):
-        return [(key, (tableview.FloatValue, value))]
-    if isinstance(value, (basestring)):
-        return [(key, (tableview.QuotedStringValue, value))]
-    if isinstance(value, list):
-        rows = len(value)
-        if rows > 0 and isinstance(value[0], list):
-            cols = len(value[0])
-            return [
-                ("{}{}{}".format(key, row+1, col+1),
-                 (tableview.FloatValue, value[row][col]))
-                for row in range(rows)
-                for col in range(cols)
-            ]
-        # TODO: VectorValue
-    raise ValueError("Unknown parameter type: {}={}".format(key, value))
+    def __init__(self, name, value, editable=True):
+        self.name = name
+        self.value = value
+        self.editable = editable
 
-
-# TODO: def Vector(Float)
-# unlike Matrix this represents a single MAD-X parameter of type ARRAY.
+    def value_type(self):
+        if isinstance(self.value, bool):
+            return tableview.BoolValue
+        if isinstance(self.value, (int, float)):
+            return tableview.FloatValue
+        if isinstance(self.value, (basestring)):
+            return tableview.QuotedStringValue
+        # TODO: list -> VectorValue (single MAD-X parameter of type ARRAY)
+        raise ValueError("Unknown parameter type: {}={}"
+                         .format(self.name, self.value))
 
 
 class ParamInfo(object):
+
+    """Internal parameter description for the TableView."""
 
     def __init__(self, name, valueProxy, unit):
         self.name = tableview.StringValue(name, editable=False)
@@ -99,7 +86,7 @@ class ParamTable(tableview.TableView):
 
         self.utool = utool
         self.units = utool._units
-        self.params = OrderedDict(spec)
+        self.params = OrderedDict((param.name, param) for param in spec)
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
@@ -152,10 +139,11 @@ class ParamTable(tableview.TableView):
 
     def makeParamInfo(self, param, quantity):
         unit = self.units.get(param)
-        vtype, default = self.params[param]
+        param = self.params[param]
         value = strip_unit(quantity, unit)
-        proxy = vtype(value, default=default)
-        return ParamInfo(param, proxy, unit)
+        proxy = param.value_type()(value, default=param.value,
+                                   editable=param.editable)
+        return ParamInfo(param.name, proxy, unit)
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""

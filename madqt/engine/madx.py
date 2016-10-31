@@ -295,10 +295,12 @@ class Segment(SegmentBase):
                 self.get_element_info(stop_name))
 
     def get_beam_conf(self):
-        return self.univers.config['parameter_sets']['beam'], self.beam
+        conf = self.universe.config['parameter_sets']['beam']
+        return (process_spec(conf['params']), self.beam, conf)
 
     def get_twiss_conf(self):
-        return self.univers.config['parameter_sets']['twiss'], self.twiss
+        conf = self.universe.config['parameter_sets']['twiss']
+        return (process_spec(conf['params']), self.beam, conf)
 
     def get_twiss_args_raw(self):
         return self._twiss_args
@@ -437,3 +439,25 @@ class Segment(SegmentBase):
         results = self.madx.twiss(**self._get_twiss_args())
         self.summary = self.utool.dict_add_unit(results.summary)
         self.updated.emit()
+
+
+def process_spec(prespec):
+    from madqt.widget.params import ParamSpec
+    return [
+        ParamSpec(k, v)
+        for item in prespec
+        for spec in item.items()
+        for k, v in process_spec_item(*spec)
+    ]
+
+
+# TODO: support expressions
+def process_spec_item(key, value):
+    if isinstance(value, list):
+        rows = len(value)
+        if rows > 0 and isinstance(value[0], list):
+            cols = len(value[0])
+            return [("{}{}{}".format(key, row+1, col+1), value[row][col])
+                    for row in range(rows)
+                    for col in range(cols)]
+    return [(key, value)]
