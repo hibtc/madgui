@@ -22,25 +22,29 @@ __all__ = [
 
 class Item(object):
 
-    def __init__(self, label, shortcut, description, action, icon=None,
-                 checkable=False):
+    def __init__(self, label, shortcut, description, callback, icon=None,
+                 enabled=True, checked=None):
         self.label = label
         self.shortcut = shortcut
         self.description = description
-        self.action = action
+        # NOTE: the extra lambda is required to prevent deletion of bound
+        # methods upon disabling the action in PyQt4.
+        self.callback = lambda: callback()
         self.icon = icon
-        self.checkable = checkable
+        self.enabled = enabled
+        self.checked = checked
 
-    def append_to(self, menu, parent=None):
+    def action(self, parent):
         if parent is None:
             parent = menu
-        action = QtGui.QAction(self.label, parent, checkable=self.checkable)
+        checkable = self.checked is not None
+        action = QtGui.QAction(self.label, parent, checkable=checkable)
         if self.shortcut is not None:
             action.setShortcut(self.shortcut)
         if self.description is not None:
             action.setStatusTip(self.description)
-        if self.action is not None:
-            action.triggered.connect(self.action)
+        if self.callback is not None:
+            action.triggered.connect(self.callback)
         if self.icon is not None:
             if isinstance(self.icon, QtGui.QStyle.StandardPixmap):
                 icon = parent.style().standardIcon(self.icon)
@@ -49,16 +53,22 @@ class Item(object):
             else:
                 icon = self.icon
             action.setIcon(icon)
-        menu.addAction(action)
+        if self.enabled is not None:
+            self._dynamic_property(self.enabled, action.setEnabled)
+        if checkable:
+            self._dynamic_property(self.checked, action.setChecked)
+        return action
 
+    def append_to(self, menu, parent=None):
+        menu.addAction(self.action(parent))
 
-def CondItem(label, description, action, enable):
-    # TODO: use 'enable' function to determine and update enabled state
-    return Item(
-        label,
-        shortcut=None,
-        description=description,
-        action=action)
+    def _dynamic_property(self, prop, setter):
+        try:
+            cur = prop.value
+            prop.changed.connect(setter)
+        except AttributeError:
+            cur = prop
+        setter(cur)
 
 
 class Menu(object):

@@ -11,6 +11,8 @@ from functools import partial
 from pkg_resources import iter_entry_points
 
 from madqt.qt import QtGui
+from madqt.core.base import Object, Signal
+from madqt.util.collections import Bool
 import madqt.core.menu as menu
 
 from . import elements
@@ -19,7 +21,7 @@ from . import elements
 # TODO: automate loading DVM parameters via model and/or named hook
 
 
-class Control(object):
+class Control(Object):
 
     """
     Plugin class for MadGUI.
@@ -36,6 +38,11 @@ class Control(object):
         """
         self._frame = frame
         self._plugin = None
+        # menu conditions
+        self.is_connected = Bool(False)
+        self.can_connect = self._frame.has_universe & ~self.is_connected
+        self.has_sequence = self._frame.has_universe & self.is_connected
+        # plugins
         loaders = [
             loader
             for ep in iter_entry_points('madqt.online.PluginLoader')
@@ -48,63 +55,54 @@ class Control(object):
 
     def create_menu(self, loaders):
         """Create menu."""
-        Item = menu.CondItem
+        Item = menu.Item
         Separator = menu.Separator
         items = []
         for loader in loaders:
             items.append(
-                Item('Connect ' + loader.title,
+                Item('Connect ' + loader.title, None,
                      'Connect ' + loader.descr,
                      partial(self.connect, loader),
-                     lambda: bool(self._segment) and not self.is_connected())
-            )
+                     enabled=self.can_connect))
         items += [
-            Item('&Disconnect',
+            Item('&Disconnect', None,
                  'Disconnect online control interface',
                  self.disconnect,
-                 self.is_connected),
+                 enabled=self.is_connected),
             Separator,
-            Item('&Read strengths',
+            Item('&Read strengths', None,
                  'Read magnet strengths from the online database',
                  self.read_all,
-                 self.has_sequence),
-            Item('&Write strengths',
+                 enabled=self.has_sequence),
+            Item('&Write strengths', None,
                  'Write magnet strengths to the online database',
                  self.write_all,
-                 self.has_sequence),
+                 enabled=self.has_sequence),
             Separator,
-            Item('Read &monitors',
+            Item('Read &monitors', None,
                  'Read SD values (beam envelope/position) from monitors',
                  self.read_monitors,
-                 self.has_sequence),
+                 enabled=self.has_sequence),
             Separator,
-            Item('&Orbit correction (2 optics)',
+            Item('&Orbit correction (2 optics)', None,
                  'Perform orbit correction (2 optics method)',
                  self.on_find_initial_position,
-                 self.has_sequence),
+                 enabled=self.has_sequence),
         ]
         return menu.Menu('&Online control', items)
-
-    # menu conditions
-
-    def is_connected(self):
-        """Check if the online control is connected."""
-        return bool(self._plugin)
-
-    def has_sequence(self):
-        """Check if online control is connected and a sequence is loaded."""
-        return self.is_connected() and bool(self._segment)
 
     # menu handlers
 
     def connect(self, loader):
         self._plugin = loader.load(self._frame)
         self._frame.user_ns['dvm'] = self._plugin._dvm
+        self.is_connected.value = True
 
     def disconnect(self):
         del self._frame.user_ns['dvm']
         self._plugin.disconnect()
         self._plugin = None
+        self.is_connected.value = False
 
     def iter_elements(self, kind=None):
         """Iterate :class:`elements.BaseElement` in the sequence."""

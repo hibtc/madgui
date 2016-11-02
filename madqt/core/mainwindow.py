@@ -17,7 +17,7 @@ from six import text_type as unicode
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
-from madqt.util.collections import Selection
+from madqt.util.collections import Selection, Bool
 from madqt.util.layout import VBoxLayout
 from madqt.util.misc import update_decorator
 
@@ -46,7 +46,7 @@ def savedict(filename, data):
 
 
 @update_decorator
-def toggle_window(self, create_window, saved_window, show):
+def toggle_window(self, create_window, saved_window):
     if saved_window:
         saved_window.close()
     else:
@@ -54,7 +54,7 @@ def toggle_window(self, create_window, saved_window, show):
 
 
 @update_decorator
-def single_window(self, create_window, saved_window, show):
+def single_window(self, create_window, saved_window):
     return saved_window if saved_window else create_window(self)
 
 
@@ -66,6 +66,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, options, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
+        self.has_universe = Bool(False)
         self.user_ns = {}
         self.options = options
         self.config = config.load(options['--config'])
@@ -128,7 +129,7 @@ class MainWindow(QtGui.QMainWindow):
                      self.viewLog),
                 Item('&Floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
-                     self.viewFloorPlan, checkable=True),
+                     self.viewFloorPlan, checked=False),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
@@ -318,10 +319,12 @@ class MainWindow(QtGui.QMainWindow):
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
         QtGui.qApp.aboutToQuit.connect(self.destroyUniverse)
+        self.has_universe.value = True
 
     def destroyUniverse(self):
         if self.universe is None:
             return
+        self.has_universe.value = False
         del self.universe.selection.elements[:]
         try:
             self.universe.destroy()

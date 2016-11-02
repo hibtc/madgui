@@ -8,7 +8,9 @@ from __future__ import unicode_literals
 
 from collections import MutableSequence
 from contextlib import contextmanager
+from functools import wraps
 from threading import Lock
+import operator
 
 from madqt.core.base import Object, Signal
 
@@ -17,6 +19,48 @@ __all__ = [
     'List',
     'Selection'
 ]
+
+
+def _operator(get, rtype=None):
+    @wraps(get)
+    def operation(*operands):
+        rtype_ = operands[0].__class__ if rtype is None else rtype
+        values = lambda: [operand.value for operand in operands]
+        result = rtype_(get(*values()))
+        update = lambda *args: result.set_value(get(*values()))
+        for operand in operands:
+            operand.changed.connect(update)
+        return result
+    return operation
+
+
+class Bool(Object):
+
+    """A bool-like value that can be observed for changes."""
+
+    changed = Signal(bool)
+
+    def __init__(self, value):
+        super(Bool, self).__init__()
+        self._value = bool(value)
+
+    def get_value(self):
+        return self._value
+
+    def set_value(self, value):
+        value = bool(value)
+        if value != self._value:
+            self._value = value
+            self.changed.emit(value)
+
+    value = property(get_value, set_value)
+
+    __eq__  = _operator(operator.__eq__)
+    __ne__  = _operator(operator.__ne__)
+    __and__ = _operator(operator.__and__)
+    __or__  = _operator(operator.__or__)
+    __xor__ = _operator(operator.__xor__)
+    __invert__ = _operator(operator.__not__)
 
 
 class List(Object):
