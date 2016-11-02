@@ -52,6 +52,15 @@ class Item(object):
         menu.addAction(action)
 
 
+def CondItem(label, description, action, enable):
+    # TODO: use 'enable' function to determine and update enabled state
+    return Item(
+        label,
+        shortcut=None,
+        description=description,
+        action=action)
+
+
 class Menu(object):
 
     def __init__(self, label, items):

@@ -146,6 +146,9 @@ class MainWindow(QtGui.QMainWindow):
             ]),
         ])
 
+        import madqt.online.control as control
+        self.control = control.Control(self, menubar)
+
     def createControls(self):
         # Create an empty container as central widget in advance. For more
         # info, see the MainWindow.setCentralWidget method.
