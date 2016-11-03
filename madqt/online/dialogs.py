@@ -52,23 +52,17 @@ class ListSelectWidget(QtGui.QWidget):
         #    self.grid.Select(idx)
 
 
-def format_dvm_value(param, value, prec=None):
-    value = tounit(value, param.ui_unit)
-    fmt_code = '.{}f'.format(param.ui_prec if prec is None else prec)
-    return format_quantity(value, fmt_code)
-
-
 def _format_param(item):
     param, dvm_value, mad_value = item
     return param.name
 
 def _format_dvm_value(item):
     param, dvm_value, mad_value = item
-    return format_dvm_value(param, dvm_value, 7)
+    return tounit(dvm_value, param.ui_unit)
 
 def _format_madx_value(item):
     param, dvm_value, mad_value = item
-    return format_dvm_value(param, mad_value, 7)
+    return tounit(mad_value, param.ui_unit)
 
 
 class SyncParamWidget(ListSelectWidget):
@@ -107,10 +101,7 @@ def _format_monitor_name(item):
 
 def _format_sd_value(name, item):
     el_name, values = item
-    value = values.get(name)
-    if value is None:
-        return ''
-    return format_quantity(value)
+    return values.get(name)
 
 
 class MonitorWidget(ListSelectWidget):
