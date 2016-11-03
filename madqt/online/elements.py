@@ -101,8 +101,18 @@ class BaseElement(api._Interface):
         self.elements = (element,)
         self._segment = segment
         self._plugin = plugin
-        self.mad_converter, self.mad_backend = self._mad_backend()
-        self.dvm_converter, self.dvm_backend = self._dvm_backend()
+        try:
+            self.mad_converter, self.mad_backend = self._mad_backend()
+            self.dvm_converter, self.dvm_backend = self._dvm_backend()
+        except api.UnknownElement:
+            self._valid = False
+        else:
+            self._valid = True
+
+    def __bool__(self):
+        return self._valid
+
+    __nonzero__ = __bool__
 
     @api.abstractproperty
     def parameter_info(self):

@@ -106,10 +106,12 @@ class Control(Object):
 
     def iter_elements(self, kind):
         """Iterate :class:`~madqt.online.elements.BaseElement` in the sequence."""
-        return [cls(self._segment, el, self._plugin)
-                for el in self._segment.elements
-                for cls in [elements.get_element_class(el)]
-                if cls and issubclass(cls, kind)]
+        return filter(None, [
+            cls(self._segment, el, self._plugin)
+            for el in self._segment.elements
+            for cls in [elements.get_element_class(el)]
+            if cls and issubclass(cls, kind)
+        ])
 
     def _params(self):
         # TODO: cache and reuse 'active' flag for each parameter
