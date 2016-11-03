@@ -11,7 +11,7 @@ from functools import partial
 from madqt.qt import QtCore, QtGui
 from madqt.core.unit import format_quantity, tounit
 from madqt.util.layout import VBoxLayout
-import madqt.widget.tableview as tableview
+from madqt.widget.tableview import TableView, ColumnInfo
 
 
 # TODO: use UI units
@@ -31,7 +31,7 @@ class ListSelectWidget(QtGui.QWidget):
     def __init__(self, columns, headline):
         """Create sizer with content area, i.e. input fields."""
         super(ListSelectWidget, self).__init__()
-        self.grid = grid = tableview.TableView(columns)
+        self.grid = grid = TableView(columns)
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, grid]))
 
@@ -75,9 +75,9 @@ class SyncParamWidget(ListSelectWidget):
     """
 
     columns = [
-        tableview.ColumnInfo("Param", _format_param),
-        tableview.ColumnInfo("DVM value", _format_dvm_value),
-        tableview.ColumnInfo("MAD-X value", _format_madx_value),
+        ColumnInfo("Param", _format_param),
+        ColumnInfo("DVM value", _format_dvm_value),
+        ColumnInfo("MAD-X value", _format_madx_value),
     ]
 
     def __init__(self, title, headline):
@@ -120,11 +120,11 @@ class MonitorWidget(ListSelectWidget):
     headline = "Import selected monitor measurements:"
 
     columns = [
-        tableview.ColumnInfo("Monitor", _format_monitor_name),
-        tableview.ColumnInfo("x", partial(_format_sd_value, 'posx')),
-        tableview.ColumnInfo("y", partial(_format_sd_value, 'posy')),
-        tableview.ColumnInfo("x width", partial(_format_sd_value, 'widthx')),
-        tableview.ColumnInfo("y width", partial(_format_sd_value, 'widthy')),
+        ColumnInfo("Monitor", _format_monitor_name),
+        ColumnInfo("x", partial(_format_sd_value, 'posx')),
+        ColumnInfo("y", partial(_format_sd_value, 'posy')),
+        ColumnInfo("x width", partial(_format_sd_value, 'widthx')),
+        ColumnInfo("y width", partial(_format_sd_value, 'widthy')),
     ]
 
     def __init__(self):
