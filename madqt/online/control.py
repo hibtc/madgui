@@ -95,30 +95,23 @@ class Control(Object):
 
     def connect(self, loader):
         self._plugin = loader.load(self._frame)
-        self._frame.user_ns['dvm'] = self._plugin._dvm
+        self._frame.user_ns['csys'] = self._plugin
         self.is_connected.value = True
 
     def disconnect(self):
-        del self._frame.user_ns['dvm']
+        self._frame.user_ns.pop('csys', None)
         self._plugin.disconnect()
         self._plugin = None
         self.is_connected.value = False
 
-    def iter_elements(self, kind=None):
-        """Iterate :class:`elements.BaseElement` in the sequence."""
-        from .api import UnknownElement
-        if kind is None:
-            kind = elements.BaseElement
-        for el in self._segment.elements:
-            try:
-                cls = elements.get_element_class(el)
-                if issubclass(cls, kind):
-                    yield cls(self._segment, el, self._plugin)
-            except UnknownElement:
-                pass
+    def iter_elements(self, kind):
+        """Iterate :class:`~madqt.online.elements.BaseElement` in the sequence."""
+        return [cls(self._segment, el, self._plugin)
+                for el in self._segment.elements
+                for cls in [elements.get_element_class(el)]
+                if cls and issubclass(cls, kind)]
 
-    def read_all(self):
-        """Read all parameters from the online database."""
+    def _params(self):
         # TODO: cache and reuse 'active' flag for each parameter
         elems = [
             (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
@@ -132,55 +125,31 @@ class Control(Object):
         if not rows:
             QtGui.QMessageBox.warning(
                 self._frame,
-                'No readable parameters available',
-                'There are no readable DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
+                'No parameters available'
+                'There are no DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
+        return elems, rows
+
+    def read_all(self):
+        """Read all parameters from the online database."""
+        elems, rows = self._params()
+        if not rows:
             return
-
         from madqt.online.dialogs import ImportParamWidget
-        from madqt.widget.dialog import Dialog
-
         widget = ImportParamWidget()
         widget.data = rows
         widget.data_key = 'dvm_parameters'
-
-        dialog = Dialog(self._frame)
-        dialog.applied.connect(lambda: self.read_these(elems))
-        dialog.setExportWidget(widget, self._frame.folder)
-        # dialog.setWindowTitle()
-        dialog.show()
-        return dialog
+        self._show_dialog(widget, lambda: self.read_these(elems))
 
     def write_all(self):
         """Write all parameters to the online database."""
-        elems = [
-            (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
-            for el in self.iter_elements(elements.BaseMagnet)
-        ]
-        rows = [
-            (el.dvm_params[k], dv, mvals[k])
-            for el, dvals, mvals in elems
-            for k, dv in dvals.items()
-        ]
+        elems, rows = self._params()
         if not rows:
-            QtGui.QMessageBox.critical(
-                self._frame,
-                'No writable parameters available',
-                'There are no writable DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
             return
-
         from madqt.online.dialogs import ExportParamWidget
-        from madqt.widget.dialog import Dialog
-
         widget = ExportParamWidget()
         widget.data = rows
         widget.data_key = 'dvm_parameters'
-
-        dialog = Dialog(self._frame)
-        dialog.applied.connect(lambda: self.write_these(elems))
-        dialog.setExportWidget(widget, self._frame.folder)
-        # dialog.setWindowTitle()
-        dialog.show()
-        return dialog
+        self._show_dialog(widget, lambda: self.write_these(elems))
 
     def read_monitors(self):
         """Read out SD values (beam position/envelope)."""
@@ -195,19 +164,21 @@ class Control(Object):
             return
 
         from madqt.online.dialogs import MonitorWidget
-        from madqt.widget.dialog import Dialog
-
         widget = MonitorWidget()
         widget.data = rows
         widget.data_key = 'monitor_values'
+        self._show_dialog(widget)
+        # TODO: show SD values in plot?
 
+    def _show_dialog(self, widget, apply=None):
+        from madqt.widget.dialog import Dialog
         dialog = Dialog(self._frame)
         dialog.setExportWidget(widget, self._frame.folder)
         # dialog.setWindowTitle()
+        if apply is not None:
+            dialog.applied.connect(apply)
         dialog.show()
         return dialog
-
-        # TODO: show SD values in plot?
 
     def on_find_initial_position(self):
         from . import ovm

@@ -67,15 +67,15 @@ def get_element_class(element):
     if el_type == 'solenoid':
         return Solenoid
     if el_type == 'multipole':
-        n = detect_multipole_order(element.get('knl', []))
-        if n == 0: return MultipoleNDP
-        if n == 1: return MultipoleNQP
-        if n != None:
-            raise api.UnknownElement
-        n = detect_multipole_order(element.get('ksl', []))
-        if n == 0: return MultipoleSDP
-        if n == 1: return MultipoleSQP
-        raise api.UnknownElement
+        knl = detect_multipole_order(element.get('knl', []))
+        if knl == 0: return MultipoleNDP
+        if knl == 1: return MultipoleNQP
+        if knl != None:
+            return None
+        ksl = detect_multipole_order(element.get('ksl', []))
+        if ksl == 0: return MultipoleSDP
+        if ksl == 1: return MultipoleSQP
+        return None
         # TODO: handle mixed dip/quadp coefficients?
         # TODO: handle mixed knl/ksl coefficients?
         # TODO: handle higher order multipoles
@@ -83,7 +83,7 @@ def get_element_class(element):
         return HKicker
     if el_type == 'vkicker':
         return VKicker
-    raise api.UnknownElement
+    return None
 
 
 class BaseElement(api._Interface):
