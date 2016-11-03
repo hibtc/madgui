@@ -11,7 +11,7 @@ from functools import partial
 from madqt.qt import QtCore, QtGui
 from madqt.core.unit import format_quantity, tounit
 from madqt.util.layout import VBoxLayout
-from madqt.widget.tableview import TableView, ColumnInfo
+from madqt.widget.tableview import TableView, ColumnInfo, makeValue
 
 
 # TODO: use UI units
@@ -52,17 +52,15 @@ class ListSelectWidget(QtGui.QWidget):
         #    self.grid.Select(idx)
 
 
-def _format_param(item):
-    param, dvm_value, mad_value = item
-    return param.name
+class SyncParamItem(object):
 
-def _format_dvm_value(item):
-    param, dvm_value, mad_value = item
-    return tounit(dvm_value, param.ui_unit)
-
-def _format_madx_value(item):
-    param, dvm_value, mad_value = item
-    return tounit(mad_value, param.ui_unit)
+    def __init__(self, param, dvm_value, mad_value):
+        self.param = param
+        self.name = param.name
+        self.dvm_value = makeValue(tounit(dvm_value, param.ui_unit),
+                                   editable=False)
+        self.mad_value = makeValue(tounit(mad_value, param.ui_unit),
+                                   editable=False)
 
 
 class SyncParamWidget(ListSelectWidget):
@@ -72,9 +70,9 @@ class SyncParamWidget(ListSelectWidget):
     """
 
     columns = [
-        ColumnInfo("Param", _format_param),
-        ColumnInfo("DVM value", _format_dvm_value),
-        ColumnInfo("MAD-X value", _format_madx_value),
+        ColumnInfo("Param", 'name'),
+        ColumnInfo("DVM value", 'dvm_value'),
+        ColumnInfo("MAD-X value", 'mad_value'),
     ]
 
     def __init__(self, title, headline):
@@ -94,14 +92,15 @@ def ExportParamWidget():
         'Overwrite selected DVM parameters.')
 
 
-def _format_monitor_name(item):
-    el_name, values = item
-    return el_name
+class MonitorItem(object):
 
+    _attrs = ('posx', 'posy', 'widthx', 'widthy')
 
-def _format_sd_value(name, item):
-    el_name, values = item
-    return values.get(name)
+    def __init__(self, el_name, values):
+        self.name = el_name
+        for name in self._attrs:
+            proxy = makeValue(values.get(name), editable=False)
+            setattr(self, name, proxy)
 
 
 class MonitorWidget(ListSelectWidget):
@@ -114,11 +113,11 @@ class MonitorWidget(ListSelectWidget):
     headline = "Import selected monitor measurements:"
 
     columns = [
-        ColumnInfo("Monitor", _format_monitor_name),
-        ColumnInfo("x", partial(_format_sd_value, 'posx')),
-        ColumnInfo("y", partial(_format_sd_value, 'posy')),
-        ColumnInfo("x width", partial(_format_sd_value, 'widthx')),
-        ColumnInfo("y width", partial(_format_sd_value, 'widthy')),
+        ColumnInfo("Monitor", 'name'),
+        ColumnInfo("x", 'posx'),
+        ColumnInfo("y", 'posy'),
+        ColumnInfo("x width", 'widthx'),
+        ColumnInfo("y width", 'widthy'),
     ]
 
     def __init__(self):

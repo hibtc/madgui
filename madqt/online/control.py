@@ -115,12 +115,13 @@ class Control(Object):
 
     def _params(self):
         # TODO: cache and reuse 'active' flag for each parameter
+        from madqt.online.dialogs import SyncParamItem
         elems = [
             (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
             for el in self.iter_elements(elements.BaseMagnet)
         ]
         rows = [
-            (el.dvm_params[k], dv, mvals[k])
+            SyncParamItem(el.dvm_params[k], dv, mvals[k])
             for el, dvals, mvals in elems
             for k, dv in dvals.items()
         ]
@@ -155,8 +156,10 @@ class Control(Object):
 
     def read_monitors(self):
         """Read out SD values (beam position/envelope)."""
+        from madqt.online.dialogs import MonitorWidget, MonitorItem
+
         # TODO: cache list of used SD monitors
-        rows = [(m.name, m.dvm_backend.get())
+        rows = [MonitorItem(m.name, m.dvm_backend.get())
                 for m in self.iter_elements(elements.Monitor)]
         if not rows:
             QtGui.QMessageBox.critical(
@@ -165,7 +168,6 @@ class Control(Object):
                 'There are no usable SD monitors in the current sequence.')
             return
 
-        from madqt.online.dialogs import MonitorWidget
         widget = MonitorWidget()
         widget.data = rows
         widget.data_key = 'monitor_values'
