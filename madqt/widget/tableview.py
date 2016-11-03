@@ -220,7 +220,7 @@ class ValueProxy(Object):
 
     default = ""
     fmtspec = ''
-    editable = True
+    editable = False
     dataChanged = Signal(object)
     types = defaultTypes
 
@@ -311,6 +311,9 @@ class ValueProxy(Object):
 
     def checked(self):
         return None
+
+    def textAlignment(self):
+        return Qt.AlignLeft | Qt.AlignVCenter
 
     # TODO: delegate functions (initiateEdit / createEditor)
 

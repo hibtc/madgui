@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from madqt.qt import QtCore, QtGui
 
-import madqt.widget.tableview as tableview
+from madqt.widget.tableview import TableView, ColumnInfo
 
 
 __all__ = [
@@ -23,16 +23,8 @@ def makeIndex(values):
 class ParamInfo(object):
 
     def __init__(self, name, value):
-        self._name = tableview.StringValue(name, editable=False)
-        self._value = tableview.makeValue(value, editable=False)
-
-    @property
-    def name(self):
-        return self._name.value
-
-    @property
-    def value(self):
-        return self._value.value
+        self.name = name
+        self.value = value
 
     # sort preferred elements to top:
     sortTop = makeIndex([
@@ -49,11 +41,11 @@ class ParamInfo(object):
                 self.name, self.value)
 
 
-class ElementInfoBox(tableview.TableView):
+class ElementInfoBox(TableView):
 
     columns = [
-        tableview.ColumnInfo('Parameter', '_name'),
-        tableview.ColumnInfo('Value', '_value'),
+        ColumnInfo('Parameter', 'name'),
+        ColumnInfo('Value', 'value'),
     ]
 
     def __init__(self, segment, el_name, *args, **kwargs):

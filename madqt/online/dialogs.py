@@ -57,10 +57,8 @@ class SyncParamItem(object):
     def __init__(self, param, dvm_value, mad_value):
         self.param = param
         self.name = param.name
-        self.dvm_value = makeValue(tounit(dvm_value, param.ui_unit),
-                                   editable=False)
-        self.mad_value = makeValue(tounit(mad_value, param.ui_unit),
-                                   editable=False)
+        self.dvm_value = tounit(dvm_value, param.ui_unit)
+        self.mad_value = tounit(mad_value, param.ui_unit)
 
 
 class SyncParamWidget(ListSelectWidget):
@@ -94,13 +92,12 @@ def ExportParamWidget():
 
 class MonitorItem(object):
 
-    _attrs = ('posx', 'posy', 'widthx', 'widthy')
-
     def __init__(self, el_name, values):
         self.name = el_name
-        for name in self._attrs:
-            proxy = makeValue(values.get(name), editable=False)
-            setattr(self, name, proxy)
+        self.posx = values.get('posx')
+        self.posy = values.get('posy')
+        self.widthx = values.get('widthx')
+        self.widthy = values.get('widthy')
 
 
 class MonitorWidget(ListSelectWidget):
