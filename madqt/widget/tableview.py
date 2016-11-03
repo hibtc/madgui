@@ -472,6 +472,7 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
         editor = QtGui.QLineEdit(parent)
         #editor.setFrame(False)
         editor.setReadOnly(True)
+        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor
 
     def setEditorData(self, editor, index):
