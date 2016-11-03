@@ -106,14 +106,6 @@ class ParamTable(tableview.TableView):
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Preferred)
 
-    @property
-    def _setColumnResizeMode(self):
-        header = self.horizontalHeader()
-        try:
-            return header.setResizeMode
-        except AttributeError:  # PyQt5
-            return header.setSectionResizeMode
-
     def data(self):
         """Get dictionary with all input values from dialog."""
         return {row.name.value: row.quantity

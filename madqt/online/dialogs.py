@@ -32,6 +32,9 @@ class ListSelectWidget(QtGui.QWidget):
         """Create sizer with content area, i.e. input fields."""
         super(ListSelectWidget, self).__init__()
         self.grid = grid = TableView(columns)
+        grid._setColumnResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        for idx in range(1, len(columns)):
+            grid._setColumnResizeMode(idx, QtGui.QHeaderView.Stretch)
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, grid]))
 

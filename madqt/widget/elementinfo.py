@@ -61,10 +61,7 @@ class ElementInfoBox(tableview.TableView):
 
         # control resize behaviour:
         header = self.horizontalHeader()
-        try:
-            setResizeMode = header.setResizeMode
-        except AttributeError:  # PyQt5
-            setResizeMode = header.setSectionResizeMode
+        setResizeMode = self._setColumnResizeMode
         setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
         setResizeMode(1, QtGui.QHeaderView.Stretch)
         header.hide()

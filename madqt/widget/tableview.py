@@ -176,6 +176,14 @@ class TableView(QtGui.QTableView):
         height = super(TableView, self).sizeHint().height()
         return QtCore.QSize(total_width, height)
 
+    @property
+    def _setColumnResizeMode(self):
+        header = self.horizontalHeader()
+        try:
+            return header.setResizeMode
+        except AttributeError:  # PyQt5
+            return header.setSectionResizeMode
+
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
