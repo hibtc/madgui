@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OVM_Select</class>
+ <widget class="QWidget" name="OVM_Select">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>269</width>
+    <height>250</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Select elements</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_monitor">
+     <property name="text">
+      <string>Monitor:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_qp1">
+     <property name="text">
+      <string>Quadrupole 1:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_qp2">
+     <property name="text">
+      <string>Quadrupole 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_hsteer1">
+     <property name="text">
+      <string>H-Steerer 1:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_hsteer2">
+     <property name="text">
+      <string>H-Steerer 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label_vsteer1">
+     <property name="text">
+      <string>V-Steerer 1:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_vsteer2">
+     <property name="text">
+      <string>V-Steerer 2:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="choice_monitor"/>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="choice_qp1"/>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="choice_qp2"/>
+   </item>
+   <item row="3" column="1">
+    <widget class="QComboBox" name="choice_hsteer1"/>
+   </item>
+   <item row="4" column="1">
+    <widget class="QComboBox" name="choice_hsteer2"/>
+   </item>
+   <item row="5" column="1">
+    <widget class="QComboBox" name="choice_vsteer1"/>
+   </item>
+   <item row="6" column="1">
+    <widget class="QComboBox" name="choice_vsteer2"/>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

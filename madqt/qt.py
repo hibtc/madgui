@@ -19,3 +19,8 @@ api_opts = api_pref.lower().split(',')
 QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
 
 Qt = QtCore.Qt
+
+if QT_API == 'pyqt':
+    from PyQt4 import uic
+elif QT_API == 'pyqt5':
+    from PyQt5 import uic

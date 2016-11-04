@@ -7,24 +7,25 @@ alignment.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from pkg_resources import resource_filename
+
 import numpy as np
 
-from madqt.qt import QtGui
-from madqt.util.unit import format_quantity, strip_unit, get_raw_label
-from madqt.widget.input import Widget
-from madqt.widget.listview import ListCtrl, ColumnInfo
-from madqt.widget import wizard
+from madqt.qt import Qt, QtCore, QtGui, uic
+from madqt.core.app import safe_timer
+from madqt.core.unit import format_quantity, strip_unit, get_raw_label
+from madqt.widget.tableview import TableView, ColumnInfo
+from madqt.util.layout import VBoxLayout
 
-from .dialogs import format_dvm_value
 
 # TODO: use UI units
 
 __all__ = [
-    'OpticSelectWidget',
     'OpticVariationMethod',
-    'OpticVariationWizard',
-    'OVM_Summary',
-    'OVM_Step',
+    'ProgressWizard',
+    'SelectWidget',
+    'SummaryWidget',
+    'StepWidget',
 ]
 
 
@@ -36,24 +37,18 @@ def _is_steerer(el):
             el['ksl'][0] != 0)
 
 
+def display_name(name):
+    return name.upper()
+
+
 def el_names(elems):
-    return [el['name'] for el in elems]
+    return [display_name(el['name']) for el in elems]
 
 
-def _static_box(window, title, orient):
-    box = wx.StaticBox(window, wx.ID_ANY, title)
-    sizer = wx.StaticBoxSizer(box, orient)
-    return window, sizer
-
-
-def set_value(ctrl, text):
-    if ctrl.GetValue() != text:
-        ctrl.SetValue(text)
-
-
-def set_label(ctrl, text):
-    if ctrl.GetLabel() != text:
-        ctrl.SetLabel(text)
+def set_text(ctrl, text):
+    """Update text in a control, but avoid flicker/deselection."""
+    if ctrl.text() != text:
+        ctrl.setText(text)
 
 
 class OpticVariationMethod(object):
@@ -115,7 +110,7 @@ class OpticVariationMethod(object):
         init_twiss = {}
         init_twiss.update(self.segment.twiss_args)
         init_twiss.update(init_pos)
-        self.segment._twiss_args = init_twiss
+        self.segment.twiss_args = init_twiss
 
         # match final conditions
         constraints = []
@@ -135,7 +130,7 @@ class OpticVariationMethod(object):
             vary=match_names,
             constraints=constraints,
             twiss_init=self.utool.dict_strip_unit(init_twiss))
-        self.segment.hook.update()
+        self.segment.retrack()
 
         # save kicker corrections
         steerer_corrections = [
@@ -180,121 +175,150 @@ def _compute_initial_position(A, a, B, b):
     return np.linalg.lstsq(M, m)[0][:4]
 
 
-class OpticVariationWizard(wizard.Wizard):
+class ProgressWizard(QtGui.QWizard):
 
-    def __init__(self, parent, ovm):
-        super(OpticVariationWizard, self).__init__(parent)
-        self.ovm = ovm
-        # TODO: also include the OVM element selection page
-        self._step_widgets = [
-            self._add_step_page("1st optic"),
-            self._add_step_page("2nd optic"),
-        ]
-        self._add_confirm_page()
-
-    def _add_step_page(self, title):
-        page = self.AddPage(title)
-        widget = OVM_Step(page.canvas)
-        widget.SetData(self.ovm)
-        return widget
-
-    def _add_confirm_page(self):
-        page = self.AddPage("Confirm steerer corrections")
-        widget = OVM_Summary(page.canvas)
-        widget.SetData(self.ovm)
-        self.summary = widget
-
-    def NextPage(self):
-        if self.cur_page in (0, 1):
-            self.ovm.record_measurement(self.cur_page)
-        if self.cur_page == 1:
-            self._step_widgets[0].OnApply(None)
-        super(OpticVariationWizard, self).NextPage()
-        if self.cur_page == 2:
-            self.summary.Update()
-
-    def OnFinishButton(self, event):
-        for el, vals in self.summary.steerer_corrections:
-            el.mad_backend.set(vals)
-            el.dvm_backend.set(el.mad2dvm(vals))
-        self.ovm.control._plugin.execute()
-        self.ovm.segment.twiss()
-        self.EndModal(wx.ID_OK)
+    def __init__(self, ovm):
+        super(ProgressWizard, self).__init__()
+        self.addPage(StepPage(ovm, "1st optic", 0))
+        self.addPage(StepPage(ovm, "2nd optic", 1))
+        self.addPage(SummaryPage(ovm))
 
 
-class OpticSelectWidget(Widget):
+class StepPage(QtGui.QWizardPage):
+
+    def __init__(self, ovm, title, index):
+        super(StepPage, self).__init__()
+        self.widget = StepWidget(ovm)
+        self.index = index
+        self.setLayout(VBoxLayout([self.widget]))
+        self.setTitle(title)
+        self.update_ui_timer = QtCore.QTimer()
+        self.update_ui_timer.timeout.connect(self.widget.update_ui)
+
+    def initializePage(self):
+        """
+        initializePage() is called to initialize the page's contents when the
+        user clicks the wizard's Next button. If you want to derive the page's
+        default from what the user entered on previous pages, this is the
+        function to reimplement.
+        """
+        self.widget.update_ui()
+        self.update_ui_timer.start(100)
+
+    def cleanupPage(self):
+        """
+        cleanupPage() is called to reset the page's contents when the user
+        clicks the wizard's Back button.
+        """
+        self.initializePage()
+
+    def validatePage(self):
+        """
+        validatePage() validates the page when the user clicks Next or Finish.
+        It is often used to show an error message if the user has entered
+        incomplete or invalid information.
+        """
+        self.update_ui_timer.stop()
+        self.widget.ovm.record_measurement(self.index)
+        return True
+
+    def isComplete(self):
+        """
+        isComplete() is called to determine whether the Next and/or Finish
+        button should be enabled or disabled. If you reimplement isComplete(),
+        also make sure that completeChanged() is emitted whenever the complete
+        state changes.
+        """
+        # TODO: should use validators of input controls and ensure that second
+        # optic differs from the first
+        return True
+
+
+class SummaryPage(QtGui.QWizardPage):
+
+    def __init__(self, ovm):
+        super(SummaryPage, self).__init__()
+        self.widget = SummaryWidget(ovm)
+        self.setLayout(VBoxLayout([self.widget]))
+        self.setTitle("Confirm steerer corrections")
+
+    def initializePage(self):
+        """
+        initializePage() is called to initialize the page's contents when the
+        user clicks the wizard's Next button. If you want to derive the page's
+        default from what the user entered on previous pages, this is the
+        function to reimplement.
+        """
+        self.widget.update()
+
+
+class SelectWidget(QtGui.QWidget):
 
     """
     Select elements for "optik-varianz" method.
     """
 
-    def CreateControls(self, window):
-        sizer = wx.FlexGridSizer(7, 3)
-        sizer.AddGrowableCol(1)
-        def _Add(label):
-            ctrl = wx.Choice(window)
-            sizer.Add(wx.StaticText(window, label=label), border=5,
-                      flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL)
-            sizer.AddSpacer(10)
-            sizer.Add(ctrl, border=5,
-                      flag=wx.ALL|wx.EXPAND|wx.ALIGN_CENTER_VERTICAL)
-            return ctrl
-        self.ctrl_mon = _Add("Monitor:")
-        self.ctrl_qps = (_Add("Quadrupole 1:"), _Add("Quadrupole 2:"))
-        self.ctrl_hst = (_Add("H-Steerer 1:"), _Add("H-Steerer 2:"))
-        self.ctrl_vst = (_Add("V-Steerer 1:"), _Add("V-Steerer 2:"))
-        self.ctrl_mon.Bind(wx.EVT_CHOICE, self.OnChangeMonitor)
-        outer = wx.BoxSizer(wx.VERTICAL)
-        text = "Select elements for beam alignment:"
-        outer.Add(wx.StaticText(window, label=text), flag=wx.ALL, border=5)
-        outer.Add(sizer, 1, flag=wx.ALL|wx.EXPAND, border=5)
-        return outer
+    # TODO: integrate into wizard?
 
-    def OnChangeMonitor(self, event=None):
-        try:
-            conf = self.config[self.ctrl_mon.GetStringSelection().upper()]
-        except KeyError:
-            return
-        elem_ctrls = self.ctrl_qps + self.ctrl_hst + self.ctrl_vst
-        elem_names = conf['qp'] + conf['h-steerer'] + conf['v-steerer']
-        for ctrl, name in zip(elem_ctrls, elem_names):
-            ctrl.SetStringSelection(name.lower())
+    def __init__(self, elements, config):
+        super(SelectWidget, self).__init__()
+        uic.loadUi(resource_filename(__name__, 'ovm_select.ui'), self)
+        self.choice_monitor.currentIndexChanged.connect(self.on_change_monitor)
+        self.ctrl_qps = (self.choice_qp1, self.choice_qp2)
+        self.ctrl_hst = (self.choice_hsteer1, self.choice_hsteer2)
+        self.ctrl_vst = (self.choice_vsteer1, self.choice_vsteer2)
+        self.set_elements(elements, config)
 
-    def GetData(self):
-        mon = self.ctrl_mon.GetStringSelection()
-        qps = tuple(c.GetStringSelection() for c in self.ctrl_qps)
-        hst = tuple(c.GetStringSelection() for c in self.ctrl_hst)
-        vst = tuple(c.GetStringSelection() for c in self.ctrl_vst)
-        return mon, qps, hst, vst
-
-    def SetData(self, elements, config):
-        # TODO: check config (length/content of individual fields)
-        self.config = config
-        self.elem_mon = [el for el in elements
-                         if el['type'].endswith('monitor')]
-        self.elem_qps = [el for el in elements
-                         if el['type'] == 'quadrupole']
-        self.elem_dip = [el for el in elements
-                         if _is_steerer(el)]
-        self.ctrl_mon.SetItems(el_names(self.elem_mon))
+    def set_elements(self, elements, config):
+        """Set valid elements and default choices."""
+        self.config = config if config else {}
+        self.elements = elements
+        self.elem_mon = [el for el in elements if el['type'].endswith('monitor')]
+        self.elem_qps = [el for el in elements if el['type'] == 'quadrupole']
+        self.elem_dip = [el for el in elements if _is_steerer(el)]
+        self.choice_monitor.addItems(el_names(self.elem_mon))
         for ctrl in self.ctrl_qps:
-            ctrl.SetItems(el_names(self.elem_qps))
+            ctrl.addItems(el_names(self.elem_qps))
         for ctrl in self.ctrl_hst + self.ctrl_vst:
-            ctrl.SetItems(el_names(self.elem_dip))
-        # TODO: remember selection
+            ctrl.addItems(el_names(self.elem_dip))
         if config:
-            sel = max(self.ctrl_mon.FindString(mon.lower()) for mon in config)
+            sel = max(self.choice_monitor.findText(display_name(mon))
+                      for mon in config)
         else:
             sel = len(self.elem_mon) - 1
-        self.ctrl_mon.SetSelection(sel)
-        self.OnChangeMonitor()
+        self.choice_monitor.setCurrentIndex(sel)
 
-    def Validate(self):
-        sel_mon = self.ctrl_mon.GetSelection()
-        sel_qp = tuple(ctrl.GetSelection() for ctrl in self.ctrl_qps)
-        sel_st = tuple(ctrl.GetSelection() for ctrl in self.ctrl_hst + self.ctrl_vst)
+    def on_change_monitor(self):
+        """Update QP/steerer choices when selecting a configured monitor."""
+        conf = self.config.get(self.choice_monitor.currentText().upper(), {})
+        elem_ctrls = (self.ctrl_qps, self.ctrl_hst, self.ctrl_vst)
+        conf_sects = ('qp', 'h-steerer', 'v-steerer')
+        # handle sections individually to allow partial config:
+        for ctrls, sect in zip(elem_ctrls, conf_sects):
+            for ctrl, name in zip(ctrls, conf.get(sect, ())):
+                ctrl.setCurrentIndex(ctrl.findText(display_name(name)))
+
+    def get_data(self):
+        """Get current monitor/QP/H-/V-steerer choices."""
+        get_choice = lambda ctrl: ctrl.currentText().lower()
+        mon = get_choice(self.choice_monitor)
+        qps = tuple(map(get_choice, self.ctrl_qps))
+        hst = tuple(map(get_choice, self.ctrl_hst))
+        vst = tuple(map(get_choice, self.ctrl_vst))
+        return mon, qps, hst, vst
+
+    def set_data(self, choices):
+        # TODO: check config (length/content of individual fields)
+        # TODO: remember selection
+        pass
+
+    def validate(self):
+        get_index = lambda ctrl: ctrl.currentIndex()
+        sel_mon = get_index(self.choice_monitor)
+        sel_qp = tuple(map(get_index, self.ctrl_qps))
+        sel_st = tuple(map(get_index, self.ctrl_hst + self.ctrl_vst))
         def _at(sel, elems):
-            if sel == wx.NOT_FOUND:
+            if sel == -1:
                 raise ValueError
             return elems[sel]['at']
         try:
@@ -306,7 +330,7 @@ class OpticSelectWidget(Widget):
         return all(at <= at_mon for at in at_qp + at_st)
 
 
-class OVM_Step(Widget):
+class StepWidget(QtGui.QWidget):
 
     """
     Page that allows setting an optic and then measuring the MONITOR.
@@ -314,306 +338,161 @@ class OVM_Step(Widget):
 
     # TODO: CanForward() -> BeamIsStable()
 
-    def CreateControls(self, window):
-        outer = wx.BoxSizer(wx.VERTICAL)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        outer.Add(sizer, 0, flag=wx.EXPAND)
+    def __init__(self, ovm, num_focus_levels=6):
+        super(StepWidget, self).__init__()
+        uic.loadUi(resource_filename(__name__, 'ovm_step.ui'), self)
+        self.ovm = ovm
+        focus_choices = ["Manual"]
+        focus_choices += ["Focus {}".format(i+1)
+                          for i in range(num_focus_levels)]
+        self.focus_choice.addItems(focus_choices)
+        self.focus_choice.currentIndexChanged.connect(self.on_change_focus)
+        self.focus_choice.setCurrentIndex(0)
+        self.exec_button.clicked.connect(self.on_exec)
+        self._update_static_text()
+        # PyQt4 fails to use the correct alignment from the .ui file:
+        self.exec_layout.setAlignment(self.line_above, Qt.AlignHCenter)
+        self.exec_layout.setAlignment(self.line_below, Qt.AlignHCenter)
+        # load initial values:
+        self._load_csys_qp_value(0, self.input_qp1_value)
+        self._load_csys_qp_value(1, self.input_qp2_value)
+        self.input_qp1_value.setValidator(QtGui.QDoubleValidator())
+        self.input_qp2_value.setValidator(QtGui.QDoubleValidator())
 
-        def box(title, label1, label2, style):
-            vsizer = wx.BoxSizer(wx.VERTICAL)
-            bsizer = wx.FlexGridSizer(cols=4)
+    def _update_static_text(self):
+        qp1 = self.ovm.get_qp(0)
+        qp2 = self.ovm.get_qp(1)
+        self._update_qp_labels(qp1, self.input_qp1_label, self.input_qp1_unit)
+        self._update_qp_labels(qp1, self.displ_qp1_label, self.displ_qp1_unit)
+        self._update_qp_labels(qp2, self.input_qp2_label, self.input_qp2_unit)
+        self._update_qp_labels(qp2, self.displ_qp2_label, self.displ_qp2_unit)
 
-            if isinstance(title, basestring):
-                ctrl_title = wx.StaticText(window, label=title)
-            else:
-                ctrl_title = title
+    def _update_qp_labels(self, qp_elem, label, unit):
+        param_info = qp_elem.dvm_converter.param_info['kL']
+        set_text(label, param_info.name + ':')
+        set_text(unit, get_raw_label(param_info.ui_unit))
 
-            ctrl_label1 = wx.StaticText(window, label=label1)
-            ctrl_label2 = wx.StaticText(window, label=label2)
-            ctrl_input1 = wx.TextCtrl(window, style=style)
-            ctrl_input2 = wx.TextCtrl(window, style=style)
-            ctrl_unit1 = wx.StaticText(window)
-            ctrl_unit2 = wx.StaticText(window)
-
-            bsizer.Add(ctrl_label1,
-                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
-                       border=5)
-            bsizer.AddSpacer(10)
-            bsizer.Add(ctrl_input1,
-                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
-                       border=5)
-            bsizer.Add(ctrl_unit1,
-                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
-                       border=5)
-
-            bsizer.Add(ctrl_label2,
-                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
-                       border=5)
-            bsizer.AddSpacer(10)
-            bsizer.Add(ctrl_input2,
-                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
-                       border=5)
-            bsizer.Add(ctrl_unit2,
-                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
-                       border=5)
-
-            vsizer.Add(ctrl_title,
-                       flag=wx.ALL|wx.ALIGN_LEFT|wx.ALIGN_CENTER_VERTICAL,
-                       border=5)
-            vsizer.Add(bsizer, flag=wx.ALL|wx.ALIGN_LEFT|wx.EXPAND,
-                       border=5)
-
-            sizer.Add(vsizer, flag=wx.ALL|wx.EXPAND|wx.ALIGN_TOP, border=5)
-
-            return (ctrl_title,
-                    (ctrl_label1, ctrl_label2),
-                    (ctrl_input1, ctrl_input2),
-                    (ctrl_unit1, ctrl_unit2))
-
-        num_focus_levels = 6
-        choices = ["Manual"]
-        choices += ["Focus {}".format(i+1) for i in range(num_focus_levels)]
-
-        self.method_label = wx.StaticText(window, label="Enter QP settings:")
-        self.method_choice = wx.Choice(window, choices=choices)
-        hsizer = wx.BoxSizer(wx.HORIZONTAL)
-        hsizer.Add(self.method_label, 5, flag=wx.ALL|wx.ALIGN_CENTER)
-        hsizer.AddSpacer(10)
-        hsizer.Add(self.method_choice, 5, flag=wx.ALL|wx.ALIGN_CENTER)
-
-        _, self.label_edit_qp, self.edit_qp, self.edit_qp_unit = \
-            box(hsizer, "QP 1:", "QP 2:", wx.TE_RIGHT)
-
-        self.method_choice.Bind(wx.EVT_CHOICE, self.OnChangeInputMethod)
-        self.edit_qp[0].Bind(wx.EVT_UPDATE_UI, self.OnUpdateQPSelect)
-        self.method_choice.SetSelection(0)
-
-        sizer.AddSpacer(5)
-        sep_sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(sep_sizer, flag=wx.EXPAND)
-        sizer.AddSpacer(5)
-
-        button_apply = wx.Button(window, label=">>", style=wx.BU_EXACTFIT)
-        sep_sizer.Add(wx.StaticLine(window, style=wx.LI_VERTICAL), 1,
-                      flag=wx.ALIGN_CENTER)
-        sep_sizer.Add(button_apply, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
-        sep_sizer.Add(wx.StaticLine(window, style=wx.LI_VERTICAL), 1,
-                      flag=wx.ALIGN_CENTER)
-
-        _, self.label_disp_qp, self.disp_qp, self.disp_qp_unit = \
-            box("Current QP settings:", "QP 1:", "QP 2:", wx.TE_RIGHT|wx.TE_READONLY)
-
-        sizer.AddSpacer(5)
-        line = wx.StaticLine(window, style=wx.LI_VERTICAL)
-        sizer.Add(line, flag=wx.ALL|wx.EXPAND, border=5)
-        sizer.AddSpacer(5)
-
-        _, _, self.disp_mon, self.disp_mon_unit = \
-            box("Monitor readout:", "x:", "y:", wx.TE_RIGHT|wx.TE_READONLY)
-
-        button_apply.Bind(wx.EVT_BUTTON, self.OnApply)
-
-        self.timer = wx.Timer(window)
-        window.Bind(wx.EVT_TIMER, self.UpdateStatus, self.timer)
-
-        return outer
-
-    def OnChangeInputMethod(self, event):
-        focus = event.GetInt()
+    def on_change_focus(self, focus):
+        """Update focus level and automatically load QP values."""
         if focus == 0:
             return
+        # TODO: this should be done with a more generic API
+        # TODO: do this without beamoptikdll to decrease the waiting time
         dvm = self.ovm.control._plugin._dvm
         values, channels = dvm.GetMEFIValue()
         vacc = dvm.GetSelectedVAcc()
         if focus != channels.focus:
             dvm.SelectMEFI(vacc, *channels._replace(focus=focus))
-        self._InitManualQP(0)
-        self._InitManualQP(1)
+        self._load_csys_qp_value(0, self.input_qp1_value)
+        self._load_csys_qp_value(1, self.input_qp2_value)
         if focus != channels.focus:
             dvm.SelectMEFI(vacc, *channels)
 
-    def OnUpdateQPSelect(self, event):
-        cur_style = self.edit_qp[0].GetWindowStyle()
-        if self.method_choice.GetSelection() > 0:
-            new_style = cur_style | wx.TE_READONLY
-        else:
-            new_style = cur_style & ~wx.TE_READONLY
-        if cur_style != new_style:
-            self.edit_qp[0].SetWindowStyle(new_style)
-            self.edit_qp[1].SetWindowStyle(new_style)
-
-    def GetData(self):
-        pass
-
-    def SetData(self, ovm):
-        self.ovm = ovm
-        self.qp_ui_units = [None, None]
-        self._InitManualQP(0)
-        self._InitManualQP(1)
-        self.UpdateStatus()
-        self.timer.Start(100)
-
-    def _InitManualQP(self, index):
-        qp_elem = self.ovm.get_qp(index)
-        param_info = qp_elem.dvm_converter.param_info['kL']
-        ui_unit = self.qp_ui_units[index] = param_info.ui_unit
-        unit_label = get_raw_label(ui_unit)
-
-        qp_value = qp_elem.dvm_backend.get()['kL']
-        self.edit_qp[index].SetValue(self._fmt_kl(qp_value, index))
-
-        param_name = param_info.name
-        self.label_edit_qp[index].SetLabel(param_name + ':')
-        self.label_disp_qp[index].SetLabel(param_name + ':')
-        self.edit_qp_unit[index].SetLabel(unit_label)
-        self.disp_qp_unit[index].SetLabel(unit_label)
-
-    def OnApply(self, event):
-        self._SetQP(0)
-        self._SetQP(1)
+    def on_exec(self):
+        """Write QP values to the control system."""
+        self._write_qp_value(0, self.input_qp1_value)
+        self._write_qp_value(1, self.input_qp2_value)
         self.ovm.control._plugin.execute()
 
-    def _SetQP(self, index):
+    def _write_qp_value(self, index, ctrl):
+        """Transmit the value of a single QP to the control system."""
         qp_elem = self.ovm.get_qp(index)
-        qp_value = float(self.edit_qp[index].GetValue())
-        qp_value = qp_value * self.qp_ui_units[index]
+        param_info = qp_elem.dvm_converter.param_info['kL']
+        qp_value = float(ctrl.text())
+        qp_value = qp_value * param_info.ui_unit
         values = {'kL': qp_value}
         qp_elem.mad_backend.set(qp_elem.mad_converter.to_backend(values))
         qp_elem.dvm_backend.set(qp_elem.dvm_converter.to_backend(values))
 
-    def UpdateStatus(self, event=None):
-        self.UpdateBeam()
-        self.UpdateQPs()
-
-    def UpdateBeam(self):
+    def update_ui(self):
+        # update monitor data
         data = self.ovm.get_monitor().dvm_backend.get()
-        set_value(self.disp_mon[0], '{:5}'.format(data['posx'].magnitude))
-        set_value(self.disp_mon[1], '{:5}'.format(data['posy'].magnitude))
-        set_label(self.disp_mon_unit[0], get_raw_label(data['posx']))
-        set_label(self.disp_mon_unit[1], get_raw_label(data['posy']))
+        set_text(self.monitor_x_value, '{:5}'.format(data['posx'].magnitude))
+        set_text(self.monitor_y_value, '{:5}'.format(data['posy'].magnitude))
+        set_text(self.monitor_x_unit, get_raw_label(data['posx']))
+        set_text(self.monitor_y_unit, get_raw_label(data['posy']))
+        # update qps
+        self._load_csys_qp_value(0, self.displ_qp1_value)
+        self._load_csys_qp_value(1, self.displ_qp2_value)
 
-    def UpdateQPs(self):
-        self._UpdateQP(0)
-        self._UpdateQP(1)
-
-    def _UpdateQP(self, index):
-        data = self.ovm.get_qp(index).dvm_backend.get()
-        set_value(self.disp_qp[index], self._fmt_kl(data['kL'], index))
-
-    def _fmt_kl(self, value, index):
-        return '{:5}'.format(strip_unit(value, self.qp_ui_units[index]))
+    def _load_csys_qp_value(self, index, ctrl):
+        """Get QP value from control system."""
+        qp_elem = self.ovm.get_qp(index)
+        param_info = qp_elem.dvm_converter.param_info['kL']
+        data = qp_elem.dvm_backend.get()
+        text = '{:5}'.format(strip_unit(data['kL'], param_info.ui_unit))
+        set_text(ctrl, text)
 
 
-class OVM_Summary(Widget):
+class ParameterInfo(object):
+
+    def __init__(self, param, value):
+        self.name = param
+        self.value = value
+
+
+class SummaryWidget(QtGui.QWidget):
 
     """
     Final summary + confirm page for the OVM wizard. Shows calculated initial
     position and steerer corrections.
     """
 
-    def CreateControls(self, window):
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        def box(title, columns):
-            label = wx.StaticText(window, label=title)
-            lctrl = ListCtrl(window, columns, style=wx.LC_NO_HEADER)
-            lctrl.SetMinSize(wx.Size(250, 150))
-            vsizer = wx.BoxSizer(wx.VERTICAL)
-            vsizer.Add(label, flag=wx.ALL|wx.ALIGN_TOP, border=5)
-            vsizer.Add(lctrl, 1, flag=wx.ALL|wx.EXPAND, border=5)
-            sizer.Add(vsizer, 1, flag=wx.ALL|wx.EXPAND, border=5)
-            return lctrl
+    steerer_cols = twiss_cols = [
+        ColumnInfo("Param", 'name'),
+        ColumnInfo("Value", 'value'),
+    ]
 
-        self.xcheck = wx.CheckBox(window, label="X target value [m]:")
-        self.ycheck = wx.CheckBox(window, label="Y target value [m]:")
-        self.xcheck.SetValue(True)
-        self.ycheck.SetValue(True)
-        self.xtarget = wx.TextCtrl(window, value="0")
-        self.ytarget = wx.TextCtrl(window, value="0")
-        self.xtarget.Bind(wx.EVT_UPDATE_UI, self.OnUpdateTarget)
-        button_update = wx.Button(window, label="Update")
-        button_update.Bind(wx.EVT_BUTTON, self.OnUpdate)
-        button_update.Bind(wx.EVT_UPDATE_UI, self.OnUpdateButton)
+    # TODO: dynamically enable update/calculate buttons
 
-        bsizer = wx.FlexGridSizer(3, 3)
-        bsizer.AddGrowableCol(1)
-        bsizer.Add(self.xcheck, 5, flag=wx.ALL|wx.ALIGN_CENTER)
-        bsizer.AddSpacer(5)
-        bsizer.Add(self.xtarget, 5, flag=wx.ALL|wx.ALIGN_CENTER)
-        bsizer.Add(self.ycheck, 5, flag=wx.ALL|wx.ALIGN_CENTER)
-        bsizer.AddSpacer(5)
-        bsizer.Add(self.ytarget, 5, flag=wx.ALL|wx.ALIGN_CENTER)
-        bsizer.Add(button_update, 5, flag=wx.ALL|wx.ALIGN_CENTER)
-        sizer.Add(bsizer)
-        sizer.AddSpacer(10)
-
-        self.twiss_init = box("Initial position:", self.GetTwissCols())
-        self.steerer_corr = box("Steerer corrections:", self.GetSteererCols())
-        # TODO: add a restart button
-        return sizer
-
-    def GetData(self):
-        pass
-
-    def SetData(self, ovm):
+    def __init__(self, ovm):
+        super(SummaryWidget, self).__init__()
+        uic.loadUi(resource_filename(__name__, 'ovm_summary.ui'), self)
+        self.update_button.clicked.connect(self.update)
+        self.execute_button.clicked.connect(self.execute)
         self.ovm = ovm
+        self.beaminit_table = TableView(self.twiss_cols)
+        self.beaminit_layout.addWidget(self.beaminit_table)
+        self.corrections_table = TableView(self.steerer_cols)
+        self.corrections_layout.addWidget(self.corrections_table)
+        self.x_target_check.toggled.connect(self.on_check)
+        self.y_target_check.toggled.connect(self.on_check)
+        self.x_target_value.setValidator(QtGui.QDoubleValidator())
+        self.y_target_value.setValidator(QtGui.QDoubleValidator())
 
-    def OnUpdate(self, event):
-        self.Update()
+        # TODO: add a restart button
 
-    def OnUpdateButton(self, event):
-        event.Enable(self.xcheck.GetValue() or self.ycheck.GetValue())
+    def on_check(self):
+        enable = (self.x_target_check.isChecked() or
+                  self.y_target_check.isChecked())
+        self.update_button.setEnabled(enable)
 
-    def OnUpdateTarget(self, event):
-        self.xtarget.Enable(self.xcheck.GetValue())
-        self.ytarget.Enable(self.ycheck.GetValue())
-
-    def Update(self):
+    def update(self):
+        """Calculate initial positions / corrections."""
+        data = self.ovm.measurement[0]
+        set_text(self.x_target_unit, get_raw_label(data['posx']))
+        set_text(self.y_target_unit, get_raw_label(data['posy']))
         pos = self.ovm.compute_initial_position()
-        xpos = float(self.xtarget.GetValue()) if self.xcheck.GetValue() else None
-        ypos = float(self.ytarget.GetValue()) if self.ycheck.GetValue() else None
+        xpos = float(self.x_target_value.text()) if self.x_target_check.isChecked() else None
+        ypos = float(self.y_target_value.text()) if self.y_target_check.isChecked() else None
         self.steerer_corrections = self.ovm.compute_steerer_corrections(pos, xpos, ypos)
         steerer_corrections_rows = [
-            (el.dvm_params[k], v)
+            ParameterInfo(el.dvm_params[k].name, v)
             for el, vals in self.steerer_corrections
             for k, v in el.mad2dvm(vals).items()
         ]
-        self.twiss_init.items = sorted(pos.items(), key=lambda item: item[0])
-        self.steerer_corr.items = steerer_corrections_rows
-
-    def GetTwissCols(self):
-        """Column description for the calculated initial conditions."""
-        return [
-            ColumnInfo(
-                "Param",
-                lambda item: item[0],
-                wx.LIST_FORMAT_LEFT,
-                wx.LIST_AUTOSIZE),
-            ColumnInfo(
-                "Value",
-                lambda item: format_quantity(item[1]),
-                wx.LIST_FORMAT_RIGHT,
-                wx.LIST_AUTOSIZE),
+        beaminit_rows = [
+            ParameterInfo(name, value)
+            for name, value in pos.items()
         ]
+        self.beaminit_table.rows = sorted(beaminit_rows,
+                                          key=lambda item: item.name)
+        self.corrections_table.rows = steerer_corrections_rows
 
-    def GetSteererCols(self):
-        """Column description for the calculated steerer corrections."""
-        return [
-            ColumnInfo(
-                "Param",
-                self._format_param,
-                wx.LIST_FORMAT_LEFT,
-                wx.LIST_AUTOSIZE),
-            ColumnInfo(
-                "Value",
-                self._format_dvm_value,
-                wx.LIST_FORMAT_RIGHT,
-                wx.LIST_AUTOSIZE),
-        ]
-
-    def _format_param(self, item):
-        param, val = item
-        return param.name
-
-    def _format_dvm_value(self, item):
-        param, val = item
-        return format_dvm_value(param, val, 7)
+    def execute(self):
+        """Apply calculated corrections."""
+        for el, vals in self.steerer_corrections:
+            el.mad_backend.set(vals)
+            el.dvm_backend.set(el.mad2dvm(vals))
+        self.ovm.control._plugin.execute()
+        self.ovm.segment.retrack()

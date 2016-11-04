@@ -185,17 +185,25 @@ class Control(Object):
         return dialog
 
     def on_find_initial_position(self):
+        from madqt.widget.dialog import Dialog
         from . import ovm
         segment = self._segment
         # TODO: sync elements attributes
-        elems = segment.sequence.elements
+        elements = segment.sequence.elements
         varyconf = segment.universe.data.get('align', {})
         # TODO: …
-        with Dialog(self._frame) as dialog:
-            elems = ovm.OpticSelectWidget(dialog).Query(elems, varyconf)
-        data = ovm.OpticVariationMethod(self, *elems)
-        with ovm.OpticVariationWizard(self._frame, data) as dialog:
-            ShowModal(dialog)
+
+        widget = ovm.SelectWidget(elements, varyconf)
+        dialog = Dialog(self._frame)
+        dialog.setExportWidget(widget, self._frame.folder)
+        dialog.exec_()
+
+        choices = widget.get_data()
+
+        method = ovm.OpticVariationMethod(self, *choices)
+        wizard = ovm.ProgressWizard(method)
+        wizard.exec_()
+
 
     # helper functions
 
@@ -227,7 +235,7 @@ class Control(Object):
         self._plugin.execute()
 
     def get_element(self, elem_name):
-        index = self._segment.get_element_index(elem_name)
+        index = self._segment.get_element_index(elem_name.lower())
         elem = self._segment.elements[index]
         cls = elements.get_element_class(elem)
         return cls(self._segment, elem, self._plugin)
