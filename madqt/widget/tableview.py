@@ -39,14 +39,16 @@ class ColumnInfo(object):
 
     types = defaultTypes
 
-    def __init__(self, title, getter, types=None, **kwargs):
+    def __init__(self, title, getter, resize=None, types=None, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> :class:`ValueProxy`
+        :param QtGui.QHeaderView.ResizeMode resize:
         :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
         self.title = title
         self.getter = getter
+        self.resize = resize
         self.kwargs = kwargs
         if types is not None:
             self.types = types
@@ -140,6 +142,9 @@ class TableView(QtGui.QTableView):
 
     """A table widget using a :class:`TableModel` to handle the data."""
 
+    _default_resize_modes = [QtGui.QHeaderView.ResizeToContents,
+                             QtGui.QHeaderView.Stretch]
+
     def __init__(self, columns, *args, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super(TableView, self).__init__(*args, **kwargs)
@@ -147,6 +152,11 @@ class TableView(QtGui.QTableView):
         self.setShowGrid(False)
         self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
+        for index, column in enumerate(columns):
+            resize = (self._default_resize_modes[index > 0]
+                      if column.resize is None
+                      else column.resize)
+            self._setColumnResizeMode(index, resize)
 
     @property
     def rows(self):

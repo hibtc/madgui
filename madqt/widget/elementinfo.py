@@ -51,12 +51,7 @@ class ElementInfoBox(TableView):
     def __init__(self, segment, el_name, *args, **kwargs):
         super(ElementInfoBox, self).__init__(self.columns, *args, **kwargs)
 
-        # control resize behaviour:
-        header = self.horizontalHeader()
-        setResizeMode = self._setColumnResizeMode
-        setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
-        setResizeMode(1, QtGui.QHeaderView.Stretch)
-        header.hide()
+        self.horizontalHeader().hide()
 
         sizePolicy = self.sizePolicy()
         sizePolicy.setVerticalPolicy(QtGui.QSizePolicy.Preferred)
