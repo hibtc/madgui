@@ -17,7 +17,7 @@ from six import (python_2_unicode_compatible,
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
 from madqt.util.layout import HBoxLayout
-from madqt.util.misc import cachedproperty
+from madqt.util.misc import memoize
 from madqt.util.collections import List
 
 import madqt.core.unit as unit
@@ -39,14 +39,16 @@ class ColumnInfo(object):
 
     types = defaultTypes
 
-    def __init__(self, title, getter, types=None, **kwargs):
+    def __init__(self, title, getter, resize=None, types=None, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> :class:`ValueProxy`
+        :param QtGui.QHeaderView.ResizeMode resize:
         :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
         self.title = title
         self.getter = getter
+        self.resize = resize
         self.kwargs = kwargs
         if types is not None:
             self.types = types
@@ -140,6 +142,9 @@ class TableView(QtGui.QTableView):
 
     """A table widget using a :class:`TableModel` to handle the data."""
 
+    _default_resize_modes = [QtGui.QHeaderView.ResizeToContents,
+                             QtGui.QHeaderView.Stretch]
+
     def __init__(self, columns, *args, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super(TableView, self).__init__(*args, **kwargs)
@@ -147,6 +152,11 @@ class TableView(QtGui.QTableView):
         self.setShowGrid(False)
         self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
+        for index, column in enumerate(columns):
+            resize = (self._default_resize_modes[index > 0]
+                      if column.resize is None
+                      else column.resize)
+            self._setColumnResizeMode(index, resize)
 
     @property
     def rows(self):
@@ -175,6 +185,14 @@ class TableView(QtGui.QTableView):
                        scrollbar_width)
         height = super(TableView, self).sizeHint().height()
         return QtCore.QSize(total_width, height)
+
+    @property
+    def _setColumnResizeMode(self):
+        header = self.horizontalHeader()
+        try:
+            return header.setResizeMode
+        except AttributeError:  # PyQt5
+            return header.setSectionResizeMode
 
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
@@ -212,7 +230,7 @@ class ValueProxy(Object):
 
     default = ""
     fmtspec = ''
-    editable = True
+    editable = False
     dataChanged = Signal(object)
     types = defaultTypes
 
@@ -303,6 +321,9 @@ class ValueProxy(Object):
 
     def checked(self):
         return None
+
+    def textAlignment(self):
+        return Qt.AlignLeft | Qt.AlignVCenter
 
     # TODO: delegate functions (initiateEdit / createEditor)
 
@@ -397,7 +418,7 @@ class QuantityValue(FloatValue):
     def display(self):
         return unit.format_quantity(self.value, self.fmtspec)
 
-    @cachedproperty
+    @memoize
     def delegate(self):
         return QuantityDelegate()
 
@@ -464,6 +485,7 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
         editor = QtGui.QLineEdit(parent)
         #editor.setFrame(False)
         editor.setReadOnly(True)
+        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor
 
     def setEditorData(self, editor, index):

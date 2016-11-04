@@ -11,6 +11,7 @@ import functools
 
 __all__ = [
     'attribute_alias',
+    'memoize',
     'cachedproperty',
     'update_property',
     'rename_key',
@@ -30,8 +31,7 @@ def attribute_alias(alias):
         "Alias for '{}'".format(alias))
 
 
-def cachedproperty(func):
-    """A memoize decorator for class properties."""
+def memoize(func):
     key = '_' + func.__name__
     @functools.wraps(func)
     def get(self):
@@ -41,7 +41,12 @@ def cachedproperty(func):
             val = func(self)
             setattr(self, key, val)
             return val
-    return property(get)
+    return get
+
+
+def cachedproperty(func):
+    """A memoize decorator for class properties."""
+    return property(memoize(func))
 
 
 def update_property(update, name=None):

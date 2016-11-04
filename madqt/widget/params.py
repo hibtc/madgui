@@ -49,11 +49,11 @@ class ParamInfo(object):
     """Internal parameter description for the TableView."""
 
     def __init__(self, name, valueProxy, unit):
-        self.name = tableview.StringValue(name, editable=False)
+        self.name = tableview.StringValue(name)
         self.value = valueProxy
         self._unit = unit
         unit_display = '' if unit is None else get_raw_label(unit)
-        self.unit = tableview.StringValue(unit_display, editable=False)
+        self.unit = tableview.StringValue(unit_display)
 
     @property
     def quantity(self):
@@ -91,28 +91,15 @@ class ParamTable(tableview.TableView):
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
             tableview.ColumnInfo("Value", 'value'),
-            tableview.ColumnInfo("Unit", 'unit'),
+            tableview.ColumnInfo("Unit", 'unit', QtGui.QHeaderView.ResizeToContents),
         ]
 
         super(ParamTable, self).__init__(columns, *args, **kwargs)
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
-        setResizeMode = self._setColumnResizeMode
-        setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
-        setResizeMode(1, QtGui.QHeaderView.Stretch)
-        setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
-
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Preferred)
-
-    @property
-    def _setColumnResizeMode(self):
-        header = self.horizontalHeader()
-        try:
-            return header.setResizeMode
-        except AttributeError:  # PyQt5
-            return header.setSectionResizeMode
 
     def data(self):
         """Get dictionary with all input values from dialog."""
