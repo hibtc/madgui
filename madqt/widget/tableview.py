@@ -19,6 +19,7 @@ from madqt.core.base import Object, Signal
 from madqt.util.layout import HBoxLayout
 from madqt.util.misc import memoize
 from madqt.util.collections import List
+from madqt.widget.spinbox import QuantitySpinBox
 
 import madqt.core.unit as unit
 
@@ -401,26 +402,34 @@ class QuantityValue(FloatValue):
 
     fmtspec = '.4g'
 
-    def __init__(self, value, unit=None, **kwargs):
-        self.unit = value.units if unit is None else unit
+    def __init__(self, value, **kwargs):
+        if value is not None:
+            self.unit = unit.get_unit(value)
+        else:
+            self.unit = unit.get_unit(kwargs.get('default'))
         super(QuantityValue, self).__init__(value, **kwargs)
 
     @property
     def value(self):
         if self.magnitude is None or self.unit is None:
             return self.magnitude
-        return unit.units.Quantity(self.magnitude, self.unit)
+        return self.magnitude * self.unit
 
     @value.setter
     def value(self, value):
         self.magnitude = unit.strip_unit(value, self.unit)
 
     def display(self):
-        return unit.format_quantity(self.value, self.fmtspec)
+        value = self.value
+        units = self.unit
+        if value is None:
+            return "" if units is None else unit.get_raw_label(units)
+        if isinstance(self.value, (float, unit.units.Quantity)):
+            return unit.format_quantity(self.value, self.fmtspec)
+        return format(self.value)
 
-    @memoize
     def delegate(self):
-        return QuantityDelegate()
+        return QuantityDelegate(self.unit)
 
 
 class ListValue(ValueProxy):
@@ -534,31 +543,20 @@ class FloatDelegate(QtGui.QStyledItemDelegate):
 
 class QuantityDelegate(QtGui.QStyledItemDelegate):
 
-    unit = None
-
-    # TODO: *infer* number of decimals from the value in a sensible manner
-    # TODO: use same inference for ordinary FloatValue's as well
+    def __init__(self, unit):
+        super(QuantityDelegate, self).__init__()
+        self.unit = unit
 
     def createEditor(self, parent, option, index):
-        editor = QtGui.QDoubleSpinBox(parent)
-        editor.setFrame(False)
+        editor = QuantitySpinBox(unit=self.unit)
+        editor.setParent(parent)
         return editor
 
     def setEditorData(self, editor, index):
-        quantity = index.data(Qt.EditRole)
-        unit_label = unit.get_raw_label(quantity)
-        suffix = ' ' + unit_label if unit_label else ''
-        editor.setSuffix(suffix)
-        decimals = 3
-        editor.setDecimals(decimals)
-        editor.setSingleStep(10**-decimals)
-        editor.setValue(quantity.magnitude)
-        self.units = quantity.units
+        editor.set_quantity_checked(index.data(Qt.EditRole))
 
     def setModelData(self, editor, model, index):
-        value = editor.value()
-        quantity = unit.units.Quantity(value, self.units)
-        model.setData(index, quantity)
+        model.setData(index, editor.quantity)
 
 
 class InfixLineEdit(QtGui.QWidget):

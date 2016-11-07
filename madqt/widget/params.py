@@ -14,7 +14,7 @@ import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
-from madqt.core.unit import get_raw_label, strip_unit, units
+from madqt.core.unit import get_raw_label, strip_unit
 
 
 __all__ = [
@@ -36,7 +36,7 @@ class ParamSpec(object):
         if isinstance(self.value, bool):
             return tableview.BoolValue
         if isinstance(self.value, (int, float)):
-            return tableview.FloatValue
+            return tableview.QuantityValue
         if isinstance(self.value, (basestring)):
             return tableview.QuotedStringValue
         # TODO: list -> VectorValue (single MAD-X parameter of type ARRAY)
@@ -48,20 +48,13 @@ class ParamInfo(object):
 
     """Internal parameter description for the TableView."""
 
-    def __init__(self, name, valueProxy, unit):
-        self.name = tableview.StringValue(name)
-        self.value = valueProxy
-        self._unit = unit
-        unit_display = '' if unit is None else get_raw_label(unit)
-        self.unit = tableview.StringValue(unit_display)
+    def __init__(self, name, valueProxy):
+        self.name = name
+        self._value = valueProxy
 
     @property
-    def quantity(self):
-        value = self.value.value
-        unit = self._unit
-        if value is None or unit is None:
-            return value
-        return units.Quantity(value, unit)
+    def value(self):
+        return self._value.value
 
 
 class ParamTable(tableview.TableView):
@@ -90,11 +83,11 @@ class ParamTable(tableview.TableView):
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
-            tableview.ColumnInfo("Value", 'value'),
-            tableview.ColumnInfo("Unit", 'unit', QtGui.QHeaderView.ResizeToContents),
+            tableview.ColumnInfo("Value", '_value'),
         ]
 
         super(ParamTable, self).__init__(columns, *args, **kwargs)
+        self.horizontalHeader().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
@@ -103,9 +96,9 @@ class ParamTable(tableview.TableView):
 
     def data(self):
         """Get dictionary with all input values from dialog."""
-        return {row.name.value: row.quantity
+        return {row.name: row.value
                 for row in self.rows
-                if row.value.value is not None}
+                if row.value is not None}
 
     def setData(self, data):
         """Update dialog with initial values."""
@@ -125,12 +118,15 @@ class ParamTable(tableview.TableView):
         return baseValue
 
     def makeParamInfo(self, param, quantity):
+        # TODO: use UI units
         unit = self.units.get(param)
         param = self.params[param]
-        value = strip_unit(quantity, unit)
-        proxy = param.value_type()(value, default=param.value,
+        default = param.value
+        if unit is not None:
+            default = param.value * unit
+        proxy = param.value_type()(quantity, default=default,
                                    editable=param.editable)
-        return ParamInfo(param.name, proxy, unit)
+        return ParamInfo(param.name, proxy)
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""

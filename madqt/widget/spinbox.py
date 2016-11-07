@@ -10,7 +10,7 @@ import math
 
 from madqt.qt import Qt, QtCore, QtGui
 
-from madqt.core.unit import units, get_raw_label, get_unit
+from madqt.core.unit import units, get_raw_label, get_unit, tounit
 from madqt.core.base import Signal
 
 
@@ -94,7 +94,7 @@ class AbstractSpinBox(QtGui.QAbstractSpinBox):
     def stripped(self, text):
         if text.startswith(self.prefix):
             text = text[len(self.prefix):]
-        if text.endswith(self.suffix):
+        if text.endswith(self.suffix) and self.suffix:
             text = text[:-len(self.suffix)]
         return text.strip()
 
@@ -150,6 +150,7 @@ class AbstractSpinBox(QtGui.QAbstractSpinBox):
     def valueFromText(self, text):
         if text == self.specialValueText():
             return None
+        print("valueFromText", self.specialValueText(), text)
         return self.parse(self.stripped(text))
 
     def textFromValue(self, value):
@@ -210,6 +211,10 @@ class AbstractSpinBox(QtGui.QAbstractSpinBox):
 
     def keyPressEvent(self, event):
 
+        if event.key() == Qt.Key_Tab:
+            self.editingFinished.emit()
+            return
+
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             self.editingFinished.emit()
             self.selectAll()
@@ -262,7 +267,8 @@ class AbstractSpinBox(QtGui.QAbstractSpinBox):
         # strip suffix
         if not text.endswith(self.suffix):
             return QtGui.QValidator.Invalid, text, pos
-        text = text[:-len(self.suffix)]
+        if self.suffix:
+            text = text[:-len(self.suffix)]
         if pos >= len(text):
             pos = len(text)
         # allow empty value
@@ -389,5 +395,4 @@ class QuantitySpinBox(AbstractSpinBox):
     def set_quantity_checked(self, value):
         scaled = tounit(value, self.unit)
         self.set_magnitude(scaled.magnitude)
-
 
