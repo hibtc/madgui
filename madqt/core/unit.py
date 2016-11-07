@@ -58,6 +58,12 @@ def initialize():
 units = initialize()
 
 
+def get_unit(quantity):
+    if isinstance(quantity, units.Quantity):
+        return units.Quantity(1, quantity.units)
+    return None
+
+
 def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
     if quantity is None:
@@ -77,9 +83,21 @@ def strip_unit(quantity, unit=None):
         return quantity
 
 
+def toquantity(value):
+    if value is None:
+        return None
+    if isinstance(value, units.Quantity):
+        return value
+    return units.Quantity(value)
+
+
 def tounit(quantity, unit):
     """Cast the quantity to a specific unit."""
-    return quantity.to(unit)
+    if quantity is None:
+        return None
+    if unit is None:
+        unit = 1
+    return toquantity(quantity).to(toquantity(unit))
 
 
 def get_unit_label(quantity):
