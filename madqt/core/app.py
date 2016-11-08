@@ -50,6 +50,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
     app = QtGui.QApplication(argv)
+    sys.excepthook = excepthook_print
     setup_interrupt_handling(app)
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
@@ -95,3 +96,14 @@ def safe_timer(timeout, func, *args, **kwargs):
         finally:
             QtCore.QTimer.singleShot(timeout, timer_event)
     QtCore.QTimer.singleShot(timeout, timer_event)
+
+
+def excepthook_print(*exc_info):
+    """
+    Print uncaught exceptions.
+
+    This changes the default behaviour on PyQt5, where an uncaught exception
+    would usually cause the program to abort.
+    """
+    import traceback
+    traceback.print_exception(*exc_info)
