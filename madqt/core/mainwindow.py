@@ -12,6 +12,7 @@ import glob
 import logging
 import threading
 import os
+from functools import wraps
 
 from six import text_type as unicode
 
@@ -19,7 +20,8 @@ from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
 from madqt.util.collections import Selection, Bool
 from madqt.util.layout import VBoxLayout
-from madqt.util.misc import update_decorator
+from madqt.util.misc import Property
+from madqt.util.qt import notifyCloseEvent
 
 import madqt.util.font as font
 import madqt.core.config as config
@@ -45,17 +47,18 @@ def savedict(filename, data):
     np.savetxt(filename, np.array(body).T, header=' '.join(cols))
 
 
-@update_decorator
-def toggle_window(self, create_window, saved_window):
-    if saved_window:
-        saved_window.close()
-    else:
-        return create_window(self)
+class SingleWindow(Property):
 
+    def _del(self):
+        self.val.close()
 
-@update_decorator
-def single_window(self, create_window, saved_window):
-    return saved_window if saved_window else create_window(self)
+    def _closed(self):
+        super(SingleWindow, self)._del()
+
+    def _new(self):
+        window = super(SingleWindow, self)._new()
+        notifyCloseEvent(window, self._closed)
+        return window
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -115,32 +118,32 @@ class MainWindow(QtGui.QMainWindow):
             Menu('&Edit', [
                 Item('&TWISS initial conditions', 'Ctrl+T',
                      'Modify the initial conditions.',
-                     self.editTwiss),
+                     self.editTwiss.create),
                 Item('&Beam parameters', 'Ctrl+B',
                      'Change the beam parameters.',
-                     self.editBeam),
+                     self.editBeam.create),
             ]),
             Menu('&View', [
                 Item('&Python shell', 'Ctrl+P',
                      'Show a python shell.',
-                     self.viewShell),
+                     self.viewShell.toggle, checked=False),
                 Item('&Log window', 'Ctrl+L',
                      'Show a log window.',
                      self.viewLog),
                 Item('&Floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
-                     self.viewFloorPlan, checked=False),
+                     self.viewFloorPlan.toggle, checked=False),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
                      'About the MadQt GUI application.',
-                     self.helpAboutMadQt),
+                     self.helpAboutMadQt.create),
                 Item('About &CPyMAD', None,
                      'About the cpymad python binding to MAD-X.',
-                     self.helpAboutCPyMAD),
+                     self.helpAboutCPyMAD.create),
                 Item('About MAD-&X', None,
                      'About the included MAD-X backend.',
-                     self.helpAboutMadX),
+                     self.helpAboutMadX.create),
                 Item('About Q&t', None,
                      'About Qt.',
                      self.helpAboutQt),
@@ -182,12 +185,12 @@ class MainWindow(QtGui.QMainWindow):
     def fileSave(self):
         pass
 
-    @single_window
+    @SingleWindow.factory
     def editTwiss(self):
         return self._edit_params(
             self.setTwiss, *self.universe.segment.get_twiss_conf())
 
-    @single_window
+    @SingleWindow.factory
     def editBeam(self):
         return self._edit_params(
             self.setBeam, *self.universe.segment.get_beam_conf())
@@ -213,14 +216,14 @@ class MainWindow(QtGui.QMainWindow):
     def setBeam(self, data):
         self.universe.segment.beam = data
 
-    @toggle_window
+    @SingleWindow.factory
     def viewShell(self):
         return self._createShell()
 
     def viewLog(self):
         pass
 
-    @toggle_window
+    @SingleWindow.factory
     def viewFloorPlan(self):
         from madqt.widget.floor_plan import LatticeFloorPlan
         latview = LatticeFloorPlan()
@@ -233,19 +236,19 @@ class MainWindow(QtGui.QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
         return dock
 
-    @single_window
+    @SingleWindow.factory
     def helpAboutMadQt(self):
         """Show about dialog."""
         import madqt
         return self._showAboutDialog(madqt)
 
-    @single_window
+    @SingleWindow.factory
     def helpAboutCPyMAD(self):
         """Show about dialog."""
         import cpymad
         return self._showAboutDialog(cpymad)
 
-    @single_window
+    @SingleWindow.factory
     def helpAboutMadX(self):
         """Show about dialog."""
         import cpymad.madx

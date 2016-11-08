@@ -32,7 +32,9 @@ def notifyEvent(widget, name, handler):
 
 
 @contextmanager
-def waitCursor(cursor=QtGui.QCursor(Qt.WaitCursor)):
+def waitCursor(cursor=None):
+    if cursor is None:
+        cursor = QtGui.QCursor(Qt.WaitCursor)
     QtGui.QApplication.setOverrideCursor(cursor)
     try:
         yield None

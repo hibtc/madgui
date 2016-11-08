@@ -83,6 +83,7 @@ class Dialog(QtGui.QDialog):
         super(Dialog, self).__init__(*args, **kwargs)
         self.setSizeGripEnabled(True)
         self.accepted.connect(self.apply)
+        self.finished.connect(self.close)
 
     def setWidget(self, widget):
         if isinstance(widget, list):
