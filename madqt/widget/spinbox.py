@@ -150,7 +150,6 @@ class AbstractSpinBox(QtGui.QAbstractSpinBox):
     def valueFromText(self, text):
         if text == self.specialValueText():
             return None
-        print("valueFromText", self.specialValueText(), text)
         return self.parse(self.stripped(text))
 
     def textFromValue(self, value):
