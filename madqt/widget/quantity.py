@@ -90,8 +90,8 @@ class InfixControlBase(object):
             text = text[:-len(self.suffix)]
         return text
 
-    def text(self):
-        return self.line_edit().text()
+    # def text(self):
+    #     return self.line_edit().text()
 
     # QAbstractSpinBox replacements (non-virtual methods)
 
@@ -242,7 +242,7 @@ class ValueControlBase(InfixControlBase):
         return self.valueFromText(self.textFromValue(value))
 
 
-class QuantityControlBase(object):
+class QuantityControlBase(ValueControlBase):
 
     """
     Base class for widgets displaying physical quantities.
@@ -289,7 +289,8 @@ class QuantityControlBase(object):
     def set_unit(self, unit):
         self._unit = unit
         self.suffix = "" if unit is None else " " + get_raw_label(unit)
-        self.setSpecialValueText(self.suffix)
+        self.placeholder_text = self.suffix
+        self.updateEdit()
 
     def get_quantity(self):
         magnitude = self.magnitude
