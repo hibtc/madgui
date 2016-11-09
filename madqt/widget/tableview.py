@@ -552,9 +552,7 @@ class QuantityDelegate(QtGui.QStyledItemDelegate):
         self.unit = unit
 
     def createEditor(self, parent, option, index):
-        editor = QuantitySpinBox(unit=self.unit)
-        editor.setParent(parent)
-        return editor
+        return QuantitySpinBox(parent, unit=self.unit)
 
     def setEditorData(self, editor, index):
         editor.set_quantity_checked(index.data(Qt.EditRole))

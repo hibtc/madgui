@@ -85,8 +85,8 @@ class AbstractSpinBox(QtGui.QAbstractSpinBox):
 
     #
 
-    def __init__(self):
-        super(AbstractSpinBox, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(AbstractSpinBox, self).__init__(*args, **kwargs)
         self.setAlignment(Qt.AlignRight)
         self.editingFinished.connect(self.updateEdit)
         self.lineEdit().textChanged.connect(self.interpretText)
@@ -326,8 +326,8 @@ class QuantitySpinBox(AbstractSpinBox):
 
     decimals = asb_property('decimals')
 
-    def __init__(self, value=None, unit=None):
-        super(QuantitySpinBox, self).__init__()
+    def __init__(self, parent=None, value=None, unit=None):
+        super(QuantitySpinBox, self).__init__(parent)
         self.valueChanged.connect(self.update_step)
         self.validator = QtGui.QDoubleValidator()
         self.unit = unit
