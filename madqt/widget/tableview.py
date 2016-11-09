@@ -558,6 +558,7 @@ class QuantityDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         editor.set_quantity_checked(index.data(Qt.EditRole))
+        editor.selectAll()
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.quantity)
