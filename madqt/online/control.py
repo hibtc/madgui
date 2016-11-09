@@ -187,6 +187,7 @@ class Control(Object):
     def on_find_initial_position(self):
         from madqt.widget.dialog import Dialog
         from . import ovm
+
         segment = self._segment
         # TODO: sync elements attributes
         elements = segment.sequence.elements
@@ -201,8 +202,10 @@ class Control(Object):
         choices = widget.get_data()
 
         method = ovm.OpticVariationMethod(self, *choices)
-        wizard = ovm.ProgressWizard(method)
-        wizard.exec_()
+        widget = ovm.OVM_Widget(method)
+        dialog = Dialog(self._frame)
+        dialog.setWidget(widget)
+        dialog.exec_()
 
 
     # helper functions
