@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>536</width>
-    <height>146</height>
+    <width>787</width>
+    <height>232</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -138,6 +138,9 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="TableView" name="beaminit_table"/>
+     </item>
     </layout>
    </item>
    <item>
@@ -149,10 +152,20 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="TableView" name="corrections_table"/>
+     </item>
     </layout>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QTableView</extends>
+   <header>madqt/widget/tableview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

@@ -31,7 +31,7 @@ class ListSelectWidget(QtGui.QWidget):
     def __init__(self, columns, headline):
         """Create sizer with content area, i.e. input fields."""
         super(ListSelectWidget, self).__init__()
-        self.grid = grid = TableView(columns)
+        self.grid = grid = TableView(columns=columns)
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, grid]))
 

@@ -14,7 +14,7 @@ import numpy as np
 from madqt.qt import Qt, QtCore, QtGui, uic
 from madqt.core.app import safe_timer
 from madqt.core.unit import format_quantity, strip_unit, get_raw_label
-from madqt.widget.tableview import TableView, ColumnInfo
+from madqt.widget.tableview import ColumnInfo
 from madqt.util.layout import VBoxLayout
 
 
@@ -451,10 +451,8 @@ class SummaryWidget(QtGui.QWidget):
         self.update_button.clicked.connect(self.update)
         self.execute_button.clicked.connect(self.execute)
         self.ovm = ovm
-        self.beaminit_table = TableView(self.twiss_cols)
-        self.beaminit_layout.addWidget(self.beaminit_table)
-        self.corrections_table = TableView(self.steerer_cols)
-        self.corrections_layout.addWidget(self.corrections_table)
+        self.beaminit_table.set_columns(self.twiss_cols)
+        self.corrections_table.set_columns(self.steerer_cols)
         self.x_target_check.toggled.connect(self.on_check)
         self.y_target_check.toggled.connect(self.on_check)
         self.x_target_value.setValidator(QtGui.QDoubleValidator())
