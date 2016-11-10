@@ -354,9 +354,15 @@ class OVM_Widget(QtGui.QWidget):
         uic.loadUi(resource_filename(__name__, 'ovm_dialog.ui'), self)
 
         self.ovm = ovm
-        # init controls…
+        self.init_controls()
+        self.set_initial_values()
+        # connect signals after setting the initial values to avoid duplicate
+        # calls to update routines and ensure well-behaved values during the
+        # first update:
+        self.connect_signals()
 
-        # …input group
+    def init_controls(self):
+        # input group
         focus_choices = ["Focus {}".format(i+1)
                          for i in range(self.num_focus_levels)]
         self.focus_choice.addItems(focus_choices)
@@ -374,10 +380,7 @@ class OVM_Widget(QtGui.QWidget):
         beam = self.ovm.get_monitor().dvm_backend.get()
         self.x_target_value.unit = get_unit(beam['posx'])
         self.y_target_value.unit = get_unit(beam['posx'])
-        self.x_target_value.value = 0
-        self.y_target_value.value = 0
-
-        # …result groups
+        # result groups
         # TODO: change records_columns names?
         self.records_table.set_columns(self.records_columns)
         self.twiss_table.set_columns(self.twiss_columns)
@@ -385,12 +388,24 @@ class OVM_Widget(QtGui.QWidget):
         self.records_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.records_table.horizontalHeader().setHighlightSections(False)
 
-        # …update button states
-        self.ovm.records.update_after.connect(self.update_clear_button)
-        self.ovm.records.update_after.connect(self.update_record_button)
-        self.displ_qp1_value.valueChanged.connect(self.update_record_button)
-        self.displ_qp2_value.valueChanged.connect(self.update_record_button)
-        # self.execute_corrections is updated in self.update_corrections()
+    def set_initial_values(self):
+        self.x_target_value.value = 0
+        self.y_target_value.value = 0
+        self._load_csys_qp_value(0, self.input_qp1_value)
+        self._load_csys_qp_value(1, self.input_qp2_value)
+        self.input_qp1_value.selectAll()
+        self.focus_choice.setCurrentIndex(3)
+        self.records_table.rows = self.ovm.records
+        self.update_twiss()
+        self.update_corrections()
+        self.update_clear_button()
+        self.update_record_button()
+        self.update_csys_values()
+
+    def connect_signals(self):
+        self.update_csys_values_timer = QtCore.QTimer()
+        self.update_csys_values_timer.timeout.connect(self.update_csys_values)
+        self.update_csys_values_timer.start(100)
 
         # connect signals
         # …perform action upon explicit user request
@@ -419,23 +434,20 @@ class OVM_Widget(QtGui.QWidget):
         self.ovm.records.update_after.connect(
             lambda *args: self.update_twiss())
 
+        # NOTE: self.update_corrections() is called in update_twiss(), so we
+        # don't need to connect something like twiss_table.valueChanged.
+
+        # …update button states
+        self.ovm.records.update_after.connect(self.update_clear_button)
+        self.ovm.records.update_after.connect(self.update_record_button)
+        self.displ_qp1_value.valueChanged.connect(self.update_record_button)
+        self.displ_qp2_value.valueChanged.connect(self.update_record_button)
+        # self.execute_corrections is updated in self.update_corrections()
+
         # TODO:
-        # - self.twiss_table.valueChanged.connect(self.update_steerer)
         # - handle DELETE keypress in recorded optics
-        # - select monitor in beam group?
-
-        # set up regular updates for tracking control-system values
-        self.update_csys_values()
-        self.update_csys_values_timer = QtCore.QTimer()
-        self.update_csys_values_timer.timeout.connect(self.update_csys_values)
-        self.update_csys_values_timer.start(100)
-
-        # load initial values:
-        self._load_csys_qp_value(0, self.input_qp1_value)
-        self._load_csys_qp_value(1, self.input_qp2_value)
-        self.input_qp1_value.selectAll()
-        self.focus_choice.setCurrentIndex(3)
-        self.records_table.rows = ovm.records
+        # - allow to select monitor (in beam group)?
+        # - set selection from update_record_index
 
     def on_load_preset_execute(self):
         """Update focus level and automatically load QP values."""
