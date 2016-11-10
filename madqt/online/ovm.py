@@ -20,10 +20,12 @@ from madqt.util.collections import List
 
 
 # TODO:
-# - automatically switch to "orbit" plot and display with current
-#   self.computed_twiss_initial)
+# - automatically plot "orbit" and using computed_twiss_initial
 # - use UI units
 # - set beam units
+# - handle DELETE keypress in recorded optics
+# - allow to select monitor (in beam group)?
+# - prettier E notation (only for display)
 
 __all__ = [
     'OpticVariationMethod',
@@ -249,8 +251,6 @@ class SelectWidget(QtGui.QWidget):
     Select elements for "optik-varianz" method.
     """
 
-    # TODO: integrate into wizard?
-
     def __init__(self, elements, config):
         super(SelectWidget, self).__init__()
         uic.loadUi(resource_filename(__name__, 'ovm_select.ui'), self)
@@ -456,11 +456,6 @@ class OVM_Widget(QtGui.QWidget):
         self.input_qp1_value.valueChanged.connect(self.update_execute_button)
         self.input_qp2_value.valueChanged.connect(self.update_execute_button)
         # self.execute_corrections is updated in self.update_corrections()
-
-        # TODO:
-        # - handle DELETE keypress in recorded optics
-        # - allow to select monitor (in beam group)?
-        # - set selection from update_record_index
 
     def on_load_preset_execute(self):
         """Update focus level and automatically load QP values."""
