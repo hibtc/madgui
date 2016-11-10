@@ -556,6 +556,7 @@ class OVM_Widget(QtGui.QWidget):
             beaminit_rows = []
 
         self.twiss_table.rows = beaminit_rows
+        self.twiss_table.resizeColumnToContents(0)
         self.update_corrections()
 
     def update_corrections(self):
@@ -577,6 +578,7 @@ class OVM_Widget(QtGui.QWidget):
             for k, v in el.mad2dvm(mad_vals).items()
         ]
         self.corrections_table.rows = steerer_corrections_rows
+        self.corrections_table.resizeColumnToContents(0)
 
         # TODO: make 'optimal'-column in corrections_table editable and update
         #       self.execute_corrections.setEnabled according to its values
