@@ -392,6 +392,7 @@ class OVM_Widget(QtGui.QWidget):
         self.corrections_table.set_columns(self.steerer_columns)
         self.records_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.records_table.horizontalHeader().setHighlightSections(False)
+        self.twiss_table.horizontalHeader().hide()
 
     def set_initial_values(self):
         self.x_target_value.value = 0

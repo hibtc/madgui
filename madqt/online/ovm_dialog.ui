@@ -226,7 +226,7 @@
    <item row="3" column="0">
     <widget class="QGroupBox" name="group_twiss">
      <property name="title">
-      <string>Resulting beam initial conditions</string>
+      <string>Fit for beam initial conditions</string>
      </property>
      <layout class="QVBoxLayout" name="group_twiss_layout">
       <item>
