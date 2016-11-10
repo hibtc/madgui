@@ -11,18 +11,20 @@ from pkg_resources import resource_filename
 
 import numpy as np
 
-from madqt.qt import QtCore, QtGui, uic
+from madqt.qt import Qt, QtCore, QtGui, uic
 from madqt.core.unit import get_unit, strip_unit, tounit
 from madqt.widget.tableview import ColumnInfo
 from madqt.util.collections import List
+from madqt.util.qt import notifyEvent
 
 
 # TODO:
 # - automatically plot "orbit" and using computed_twiss_initial
 # - use UI units
-# - handle DELETE keypress in recorded optics
-# - allow to select monitor (in beam group)?
+# - allow to select target (in beam group)?
 # - prettier E notation (only for display)
+# - let user specify target angle
+# - display monitor name
 
 __all__ = [
     'OpticVariationMethod',
@@ -422,6 +424,8 @@ class OVM_Widget(QtGui.QWidget):
 
         # …update records display
         self.ovm.records.mirror(self.records_table.rows)
+        notifyEvent(self.records_table, 'keyPressEvent',
+                    self._records_keyPressEvent)
 
         # …update steerer calculations when changing the target values:
         self.x_target_value.editingFinished.connect(self.update_corrections)
@@ -452,6 +456,13 @@ class OVM_Widget(QtGui.QWidget):
         self.input_qp1_value.valueChanged.connect(self.update_execute_button)
         self.input_qp2_value.valueChanged.connect(self.update_execute_button)
         # self.execute_corrections is updated in self.update_corrections()
+
+    def _records_keyPressEvent(self, event):
+        if self.records_table.state() == QtGui.QAbstractItemView.NoState:
+            if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
+                selection = self.records_table.selectedIndexes()
+                if selection:
+                    del self.ovm.records[selection[0].row()]
 
     def on_load_preset_execute(self):
         """Update focus level and automatically load QP values."""
