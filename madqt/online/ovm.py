@@ -11,21 +11,23 @@ from pkg_resources import resource_filename
 
 import numpy as np
 
-from madqt.qt import Qt, QtCore, QtGui, uic
-from madqt.core.app import safe_timer
-from madqt.core.unit import format_quantity, strip_unit, get_raw_label
-from madqt.widget.tableview import TableView, ColumnInfo
-from madqt.util.layout import VBoxLayout
+from madqt.qt import QtCore, QtGui, uic
+from madqt.core.unit import get_unit, strip_unit, tounit
+from madqt.widget.tableview import ColumnInfo
+from madqt.util.collections import List
 
 
-# TODO: use UI units
+# TODO:
+# - automatically plot "orbit" and using computed_twiss_initial
+# - use UI units
+# - handle DELETE keypress in recorded optics
+# - allow to select monitor (in beam group)?
+# - prettier E notation (only for display)
 
 __all__ = [
     'OpticVariationMethod',
-    'ProgressWizard',
     'SelectWidget',
-    'SummaryWidget',
-    'StepWidget',
+    'OVM_Widget',
 ]
 
 
@@ -51,6 +53,40 @@ def set_text(ctrl, text):
         ctrl.setText(text)
 
 
+def isclose(q1, q2):
+    m1 = strip_unit(q1, get_unit(q1))
+    m2 = strip_unit(q2, get_unit(q1))
+    return np.isclose(m1, m2)
+
+
+def allclose(q1, q2):
+    return all(isclose(a, b) for a, b in zip(q1, q2))
+
+
+class RecordInfo(object):
+
+    def __init__(self, optics, beam, sectormap):
+        self.optics = tuple(optics)
+        self.beam = beam
+        self.sectormap = sectormap
+
+    @property
+    def kL_1(self):
+        return self.optics[0]
+
+    @property
+    def kL_2(self):
+        return self.optics[1]
+
+    @property
+    def x(self):
+        return self.beam['posx']
+
+    @property
+    def y(self):
+        return self.beam['posy']
+
+
 class OpticVariationMethod(object):
 
     """
@@ -65,8 +101,7 @@ class OpticVariationMethod(object):
         self.vst = vst
         self.utool = control._segment.universe.utool
         self.segment = control._segment
-        self.sectormap = [None, None]
-        self.measurement = [None, None]
+        self.records = List()
 
     def get_monitor(self):
         return self.control.get_element(self.mon)
@@ -79,22 +114,42 @@ class OpticVariationMethod(object):
             self.segment.start,
             self.segment.get_element_info(self.mon))
 
-    def record_measurement(self, index):
+    def record_measurement(self, index=None):
         monitor = self.get_monitor()
-        self.sectormap[index] = self.get_transfer_map()
-        self.measurement[index] = monitor.dvm_converter.to_standard(
-            monitor.dvm_backend.get())
+        qps = (self.get_qp(0), self.get_qp(1))
+
+        dvm_data = [qp.dvm_converter.to_standard(qp.dvm_backend.get())
+                    for qp in qps]
+
+        # update MAD backend
+        for qp, data in zip(qps, dvm_data):
+            qp.mad_backend.set(qp.mad_converter.to_backend(data))
+
+        optics = tuple(data['kL'] for data in dvm_data)
+        beam = monitor.dvm_converter.to_standard(monitor.dvm_backend.get())
+        record = RecordInfo(optics, beam, self.get_transfer_map())
+        if index is None:
+            self.records.append(record)
+        else:
+            self.records[index] = record
+
+    def clear(self):
+        self.records.clear()
 
     def compute_initial_position(self):
-        x, px, y, py = _compute_initial_position(
-            self.sectormap[0], self._strip_sd_pair(self.measurement[0]),
-            self.sectormap[1], self._strip_sd_pair(self.measurement[1]))
+        fit_results = _compute_initial_position(
+            (r.sectormap, self._strip_sd_pair(r.beam))
+            for r in self.records)
+        self.solution, chi_squared, singular = fit_results
+        x, px, y, py = self.solution
         return self.utool.dict_add_unit({
             'x': x, 'px': px,
             'y': y, 'py': py,
-        })
+        }), chi_squared, singular
 
-    def compute_steerer_corrections(self, init_pos, xpos=0, ypos=0):
+    def compute_steerer_corrections(self, init_pos, xpos, ypos):
+
+        strip_unit = self.utool.strip_unit
 
         steerer_names = []
         if xpos is not None: steerer_names.extend(self.hst)
@@ -116,12 +171,12 @@ class OpticVariationMethod(object):
         constraints = []
         if xpos is not None:
             constraints.extend([
-                {'range': self.mon, 'x': xpos},
+                {'range': self.mon, 'x': strip_unit('x', xpos)},
                 {'range': self.mon, 'px': 0},
             ])
         if ypos is not None:
             constraints.extend([
-                {'range': self.mon, 'y': ypos},
+                {'range': self.mon, 'y': strip_unit('y', ypos)},
                 {'range': self.mon, 'py': 0},
             ])
         # TODO: also set betx, bety unchanged?
@@ -134,7 +189,7 @@ class OpticVariationMethod(object):
 
         # save kicker corrections
         steerer_corrections = [
-            (el, el.mad_backend.get())
+            (el, el.mad_backend.get(), el.dvm_backend.get())
             for el in steerer_elems
         ]
 
@@ -150,115 +205,47 @@ class OpticVariationMethod(object):
                 strip_unit('y', sd_values[prefix + 'y']))
 
 
-def _compute_initial_position(A, a, B, b):
+def _compute_initial_position(records):
     """
     Compute initial beam position from two monitor read-outs at different
     quadrupole settings.
 
-    A, B are the 7D SECTORMAPs from start to the monitor.
-    a, b are the 2D measurement vectors (x, y)
+    Call as follows:
+
+        >>> _compute_initial_position([(A, a), (B, b), …])
+
+    where
+
+        A, B, … are the 7D SECTORMAPs from start to the monitor.
+        a, b, … are the 2D measurement vectors (x, y)
 
     This function solves the linear system:
 
             Ax = a
             Bx = b
+            …
 
     for the 4D phase space vector x = (x, px, y, py).
     """
+    AB_, ab_ = zip(*records)
+    # use only the relevant submatrices:
     rows = (0,2)
     cols = (0,1,2,3,6)
-    M1 = A[rows,:][:,cols]
-    M2 = B[rows,:][:,cols]
-    M3 = np.eye(1, 5, 4)
-    M = np.vstack((M1, M2, M3))
-    m = np.hstack((a, b, 1))
-    return np.linalg.lstsq(M, m)[0][:4]
-
-
-class ProgressWizard(QtGui.QWizard):
-
-    def __init__(self, ovm):
-        super(ProgressWizard, self).__init__()
-        self.addPage(StepPage(ovm, "1st optic", 0))
-        self.addPage(StepPage(ovm, "2nd optic", 1))
-        self.addPage(SummaryPage(ovm))
-
-
-class StepPage(QtGui.QWizardPage):
-
-    def __init__(self, ovm, title, index):
-        super(StepPage, self).__init__()
-        self.widget = StepWidget(ovm)
-        self.index = index
-        self.setLayout(VBoxLayout([self.widget]))
-        self.setTitle(title)
-        self.update_ui_timer = QtCore.QTimer()
-        self.update_ui_timer.timeout.connect(self.widget.update_ui)
-
-    def initializePage(self):
-        """
-        initializePage() is called to initialize the page's contents when the
-        user clicks the wizard's Next button. If you want to derive the page's
-        default from what the user entered on previous pages, this is the
-        function to reimplement.
-        """
-        self.widget.update_ui()
-        self.update_ui_timer.start(100)
-
-    def cleanupPage(self):
-        """
-        cleanupPage() is called to reset the page's contents when the user
-        clicks the wizard's Back button.
-        """
-        self.initializePage()
-
-    def validatePage(self):
-        """
-        validatePage() validates the page when the user clicks Next or Finish.
-        It is often used to show an error message if the user has entered
-        incomplete or invalid information.
-        """
-        self.update_ui_timer.stop()
-        self.widget.ovm.record_measurement(self.index)
-        return True
-
-    def isComplete(self):
-        """
-        isComplete() is called to determine whether the Next and/or Finish
-        button should be enabled or disabled. If you reimplement isComplete(),
-        also make sure that completeChanged() is emitted whenever the complete
-        state changes.
-        """
-        # TODO: should use validators of input controls and ensure that second
-        # optic differs from the first
-        return True
-
-
-class SummaryPage(QtGui.QWizardPage):
-
-    def __init__(self, ovm):
-        super(SummaryPage, self).__init__()
-        self.widget = SummaryWidget(ovm)
-        self.setLayout(VBoxLayout([self.widget]))
-        self.setTitle("Confirm steerer corrections")
-
-    def initializePage(self):
-        """
-        initializePage() is called to initialize the page's contents when the
-        user clicks the wizard's Next button. If you want to derive the page's
-        default from what the user entered on previous pages, this is the
-        function to reimplement.
-        """
-        self.widget.update()
-
+    M = np.vstack([X[rows,:][:,cols] for X in AB_])
+    m = np.hstack(ab_)
+    # demand x[4] = m[-1] = 1
+    M = np.vstack((M, np.eye(1, 5, 4)))
+    m = np.hstack((m, 1))
+    x, residuals, rank, singular = np.linalg.lstsq(M, m)
+    return (x[:4],
+            0 if len(residuals) == 0 else residuals[0],
+            rank < 5)
 
 class SelectWidget(QtGui.QWidget):
 
     """
     Select elements for "optik-varianz" method.
     """
-
-    # TODO: integrate into wizard?
 
     def __init__(self, elements, config):
         super(SelectWidget, self).__init__()
@@ -330,50 +317,145 @@ class SelectWidget(QtGui.QWidget):
         return all(at <= at_mon for at in at_qp + at_st)
 
 
-class StepWidget(QtGui.QWidget):
+class ParameterInfo(object):
 
-    """
-    Page that allows setting an optic and then measuring the MONITOR.
-    """
+    def __init__(self, param, value, current=None):
+        self.name = param
+        self.value = value
+        self.current = current
 
-    # TODO: CanForward() -> BeamIsStable()
 
-    def __init__(self, ovm, num_focus_levels=6):
-        super(StepWidget, self).__init__()
-        uic.loadUi(resource_filename(__name__, 'ovm_step.ui'), self)
+class OVM_Widget(QtGui.QWidget):
+
+    records_columns = [
+        ColumnInfo("QP1", 'kL_1', QtGui.QHeaderView.Stretch),
+        ColumnInfo("QP2", 'kL_2'),
+        ColumnInfo("x", 'x'),
+        ColumnInfo("y", 'y'),
+    ]
+
+    twiss_columns = [
+        ColumnInfo("Param", 'name'),
+        ColumnInfo("Value", 'value'),
+    ]
+
+    steerer_columns = [
+        ColumnInfo("Steerer", 'name'),
+        ColumnInfo("Optimal", 'value'),
+        ColumnInfo("Current", 'current'),
+    ]
+
+    num_focus_levels = 6
+    computed_twiss_initial = None
+    steerer_corrections = None
+    update_record_index = None
+
+    def __init__(self, ovm):
+        super(OVM_Widget, self).__init__()
+        uic.loadUi(resource_filename(__name__, 'ovm_dialog.ui'), self)
+
         self.ovm = ovm
-        focus_choices = ["Manual"]
-        focus_choices += ["Focus {}".format(i+1)
-                          for i in range(num_focus_levels)]
-        self.focus_choice.addItems(focus_choices)
-        self.focus_choice.currentIndexChanged.connect(self.on_change_focus)
-        self.focus_choice.setCurrentIndex(0)
-        self.exec_button.clicked.connect(self.on_exec)
-        self._update_static_text()
-        # PyQt4 fails to use the correct alignment from the .ui file:
-        self.exec_layout.setAlignment(self.line_above, Qt.AlignHCenter)
-        self.exec_layout.setAlignment(self.line_below, Qt.AlignHCenter)
-        # load initial values:
-        self._load_csys_qp_value(0, self.input_qp1_value)
-        self._load_csys_qp_value(1, self.input_qp2_value)
-        self.input_qp1_value.setValidator(QtGui.QDoubleValidator())
-        self.input_qp2_value.setValidator(QtGui.QDoubleValidator())
+        self.init_controls()
+        self.set_initial_values()
+        # connect signals after setting the initial values to avoid duplicate
+        # calls to update routines and ensure well-behaved values during the
+        # first update:
+        self.connect_signals()
 
-    def _update_static_text(self):
+    def init_controls(self):
+        # input group
+        focus_choices = ["Focus {}".format(i+1)
+                         for i in range(self.num_focus_levels)]
+        self.focus_choice.addItems(focus_choices)
+        self.focus_choice.setCurrentIndex(0)
         qp1 = self.ovm.get_qp(0)
         qp2 = self.ovm.get_qp(1)
-        self._update_qp_labels(qp1, self.input_qp1_label, self.input_qp1_unit)
-        self._update_qp_labels(qp1, self.displ_qp1_label, self.displ_qp1_unit)
-        self._update_qp_labels(qp2, self.input_qp2_label, self.input_qp2_unit)
-        self._update_qp_labels(qp2, self.displ_qp2_label, self.displ_qp2_unit)
+        par1 = qp1.dvm_converter.param_info['kL']
+        par2 = qp2.dvm_converter.param_info['kL']
+        self.input_qp1_label.setText(par1.name + ':')
+        self.input_qp2_label.setText(par2.name + ':')
+        self.input_qp1_value.unit = par1.ui_unit
+        self.input_qp2_value.unit = par2.ui_unit
+        self.displ_qp1_value.unit = par1.ui_unit
+        self.displ_qp2_value.unit = par2.ui_unit
+        beam = self.ovm.get_monitor().dvm_backend.get()
+        self.x_target_value.unit = get_unit(beam['posx'])
+        self.y_target_value.unit = get_unit(beam['posx'])
+        # result groups
+        # TODO: change records_columns names?
+        self.records_table.set_columns(self.records_columns)
+        self.twiss_table.set_columns(self.twiss_columns)
+        self.corrections_table.set_columns(self.steerer_columns)
+        self.records_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.records_table.horizontalHeader().setHighlightSections(False)
+        self.twiss_table.horizontalHeader().hide()
 
-    def _update_qp_labels(self, qp_elem, label, unit):
-        param_info = qp_elem.dvm_converter.param_info['kL']
-        set_text(label, param_info.name + ':')
-        set_text(unit, get_raw_label(param_info.ui_unit))
+    def set_initial_values(self):
+        self.x_target_value.value = 0
+        self.y_target_value.value = 0
+        self._load_csys_qp_value(0, self.input_qp1_value)
+        self._load_csys_qp_value(1, self.input_qp2_value)
+        self.input_qp1_value.selectAll()
+        self.focus_choice.setCurrentIndex(3)
+        self.update_csys_values()
+        # update table views
+        self.update_records()
+        self.update_twiss()
+        self.update_corrections()
+        # update button states
+        self.update_clear_button()
+        self.update_record_button()
+        self.update_execute_button()
 
-    def on_change_focus(self, focus):
+    def connect_signals(self):
+        self.update_csys_values_timer = QtCore.QTimer()
+        self.update_csys_values_timer.timeout.connect(self.update_csys_values)
+        self.update_csys_values_timer.start(100)
+
+        # connect signals
+        # …perform action upon explicit user request
+        self.load_preset_execute.clicked.connect(self.on_load_preset_execute)
+        self.qp_settings_execute.clicked.connect(self.on_qp_settings_execute)
+        self.qp_settings_record.clicked.connect(self.on_qp_settings_record)
+        self.clear_records.clicked.connect(self.ovm.clear)
+        self.execute_corrections.clicked.connect(self.on_execute_corrections)
+
+        # …update records display
+        self.ovm.records.mirror(self.records_table.rows)
+
+        # …update steerer calculations when changing the target values:
+        self.x_target_value.editingFinished.connect(self.update_corrections)
+        self.y_target_value.editingFinished.connect(self.update_corrections)
+        self.x_target_check.toggled.connect(self.update_corrections)
+        self.y_target_check.toggled.connect(self.update_corrections)
+
+        # …at least one target has to be on
+        self.x_target_check.toggled.connect(
+            lambda checked: checked or self.y_target_check.setChecked(True))
+        self.y_target_check.toggled.connect(
+            lambda checked: checked or self.x_target_check.setChecked(True))
+
+        # …update beam initial conditions, when records have changed
+        self.ovm.records.update_after.connect(
+            lambda *args: self.update_twiss())
+
+        # NOTE: self.update_corrections() is called in update_twiss(), so we
+        # don't need to connect something like twiss_table.valueChanged.
+
+        # …update button states
+        self.ovm.records.update_after.connect(self.update_clear_button)
+        self.ovm.records.update_after.connect(self.update_record_button)
+        self.displ_qp1_value.valueChanged.connect(self.update_record_button)
+        self.displ_qp2_value.valueChanged.connect(self.update_record_button)
+        self.displ_qp1_value.valueChanged.connect(self.update_execute_button)
+        self.displ_qp2_value.valueChanged.connect(self.update_execute_button)
+        self.input_qp1_value.valueChanged.connect(self.update_execute_button)
+        self.input_qp2_value.valueChanged.connect(self.update_execute_button)
+        # self.execute_corrections is updated in self.update_corrections()
+
+    def on_load_preset_execute(self):
         """Update focus level and automatically load QP values."""
+        focus = self.focus_choice.currentIndex() + 1
         if focus == 0:
             return
         # TODO: this should be done with a more generic API
@@ -388,7 +470,10 @@ class StepWidget(QtGui.QWidget):
         if focus != channels.focus:
             dvm.SelectMEFI(vacc, *channels)
 
-    def on_exec(self):
+    def on_qp_settings_record(self):
+        self.ovm.record_measurement(self.update_record_index)
+
+    def on_qp_settings_execute(self):
         """Write QP values to the control system."""
         self._write_qp_value(0, self.input_qp1_value)
         self._write_qp_value(1, self.input_qp2_value)
@@ -397,102 +482,109 @@ class StepWidget(QtGui.QWidget):
     def _write_qp_value(self, index, ctrl):
         """Transmit the value of a single QP to the control system."""
         qp_elem = self.ovm.get_qp(index)
-        param_info = qp_elem.dvm_converter.param_info['kL']
-        qp_value = float(ctrl.text())
-        qp_value = qp_value * param_info.ui_unit
-        values = {'kL': qp_value}
-        qp_elem.mad_backend.set(qp_elem.mad_converter.to_backend(values))
+        values = {'kL': ctrl.quantity}
         qp_elem.dvm_backend.set(qp_elem.dvm_converter.to_backend(values))
 
-    def update_ui(self):
+    def update_csys_values(self):
         # update monitor data
         data = self.ovm.get_monitor().dvm_backend.get()
-        set_text(self.monitor_x_value, '{:5}'.format(data['posx'].magnitude))
-        set_text(self.monitor_y_value, '{:5}'.format(data['posy'].magnitude))
-        set_text(self.monitor_x_unit, get_raw_label(data['posx']))
-        set_text(self.monitor_y_unit, get_raw_label(data['posy']))
+        self.x_monitor_value.quantity = data['posx']
+        self.y_monitor_value.quantity = data['posy']
         # update qps
         self._load_csys_qp_value(0, self.displ_qp1_value)
         self._load_csys_qp_value(1, self.displ_qp2_value)
+        return data
 
     def _load_csys_qp_value(self, index, ctrl):
         """Get QP value from control system."""
         qp_elem = self.ovm.get_qp(index)
-        param_info = qp_elem.dvm_converter.param_info['kL']
         data = qp_elem.dvm_backend.get()
-        text = '{:5}'.format(strip_unit(data['kL'], param_info.ui_unit))
-        set_text(ctrl, text)
+        ctrl.set_quantity_checked(data['kL'])
 
+    def update_execute_button(self):
+        input_optics = [self.input_qp1_value.quantity,
+                        self.input_qp2_value.quantity]
+        displ_optics = [self.displ_qp1_value.quantity,
+                        self.displ_qp2_value.quantity]
+        self.qp_settings_execute.setEnabled(
+            not allclose(input_optics, displ_optics))
 
-class ParameterInfo(object):
+    def update_clear_button(self, *args):
+        self.clear_records.setEnabled(bool(self.ovm.records))
 
-    def __init__(self, param, value):
-        self.name = param
-        self.value = value
+    def update_record_button(self, *args):
+        current_optics = [self.displ_qp1_value.quantity,
+                          self.displ_qp2_value.quantity]
+        same_values = (i for i, record in enumerate(self.ovm.records)
+                       if allclose(record.optics, current_optics))
+        self.update_record_index = next(same_values, None)
+        self.qp_settings_record.setEnabled(self.update_record_index is None)
+        self.records_table.clearSelection()
+        if self.update_record_index is not None:
+            self.records_table.selectRow(self.update_record_index)
+        # new_text = "Record" if self.update_record_index is None else "Update"
+        # set_text(self.qp_settings_record, new_text)
 
+    def update_records(self):
+        self.records_table.rows = self.ovm.records
 
-class SummaryWidget(QtGui.QWidget):
-
-    """
-    Final summary + confirm page for the OVM wizard. Shows calculated initial
-    position and steerer corrections.
-    """
-
-    steerer_cols = twiss_cols = [
-        ColumnInfo("Param", 'name'),
-        ColumnInfo("Value", 'value'),
-    ]
-
-    # TODO: dynamically enable update/calculate buttons
-
-    def __init__(self, ovm):
-        super(SummaryWidget, self).__init__()
-        uic.loadUi(resource_filename(__name__, 'ovm_summary.ui'), self)
-        self.update_button.clicked.connect(self.update)
-        self.execute_button.clicked.connect(self.execute)
-        self.ovm = ovm
-        self.beaminit_table = TableView(self.twiss_cols)
-        self.beaminit_layout.addWidget(self.beaminit_table)
-        self.corrections_table = TableView(self.steerer_cols)
-        self.corrections_layout.addWidget(self.corrections_table)
-        self.x_target_check.toggled.connect(self.on_check)
-        self.y_target_check.toggled.connect(self.on_check)
-        self.x_target_value.setValidator(QtGui.QDoubleValidator())
-        self.y_target_value.setValidator(QtGui.QDoubleValidator())
-
-        # TODO: add a restart button
-
-    def on_check(self):
-        enable = (self.x_target_check.isChecked() or
-                  self.y_target_check.isChecked())
-        self.update_button.setEnabled(enable)
-
-    def update(self):
+    def update_twiss(self):
         """Calculate initial positions / corrections."""
-        data = self.ovm.measurement[0]
-        set_text(self.x_target_unit, get_raw_label(data['posx']))
-        set_text(self.y_target_unit, get_raw_label(data['posy']))
-        pos = self.ovm.compute_initial_position()
-        xpos = float(self.x_target_value.text()) if self.x_target_check.isChecked() else None
-        ypos = float(self.y_target_value.text()) if self.y_target_check.isChecked() else None
-        self.steerer_corrections = self.ovm.compute_steerer_corrections(pos, xpos, ypos)
-        steerer_corrections_rows = [
-            ParameterInfo(el.dvm_params[k].name, v)
-            for el, vals in self.steerer_corrections
-            for k, v in el.mad2dvm(vals).items()
-        ]
-        beaminit_rows = [
-            ParameterInfo(name, value)
-            for name, value in pos.items()
-        ]
-        self.beaminit_table.rows = sorted(beaminit_rows,
-                                          key=lambda item: item.name)
-        self.corrections_table.rows = steerer_corrections_rows
+        if len(self.ovm.records) >= 2:
+            self.computed_twiss_initial, chi_squared, singular = \
+                self.ovm.compute_initial_position()
+            if singular:
+                self.computed_twiss_initial = None
+                beaminit_rows = [
+                    ParameterInfo("", "SINGULAR MATRIX")]
+            else:
+                x = tounit(self.computed_twiss_initial['x'], self.x_target_value.unit)
+                y = tounit(self.computed_twiss_initial['y'], self.y_target_value.unit)
+                px = self.computed_twiss_initial['px']
+                py = self.computed_twiss_initial['py']
+                beaminit_rows = [
+                    ParameterInfo("red χ²", chi_squared),
+                    ParameterInfo('x', x),
+                    ParameterInfo('y', y),
+                    ParameterInfo('px/p₀', px),
+                    ParameterInfo('py/p₀', py),
+                ]
+        else:
+            self.computed_twiss_initial = None
+            beaminit_rows = []
 
-    def execute(self):
+        self.twiss_table.rows = beaminit_rows
+        self.twiss_table.resizeColumnToContents(0)
+        self.update_corrections()
+
+    def update_corrections(self):
+        pos = self.computed_twiss_initial
+        xpos = self.x_target_value.quantity if self.x_target_check.isChecked() else None
+        ypos = self.y_target_value.quantity if self.y_target_check.isChecked() else None
+        if pos is None or (xpos is None and ypos is None):
+            self.steerer_corrections = None
+            self.execute_corrections.setEnabled(False)
+            # TODO: always display current steerer values
+            self.corrections_table.rows = []
+            return
+        self.steerer_corrections = self.ovm.compute_steerer_corrections(pos, xpos, ypos)
+        self.execute_corrections.setEnabled(True)
+        # update table view
+        steerer_corrections_rows = [
+            ParameterInfo(el.dvm_params[k].name, v, dvm_vals[k])
+            for el, mad_vals, dvm_vals in self.steerer_corrections
+            for k, v in el.mad2dvm(mad_vals).items()
+        ]
+        self.corrections_table.rows = steerer_corrections_rows
+        self.corrections_table.resizeColumnToContents(0)
+
+        # TODO: make 'optimal'-column in corrections_table editable and update
+        #       self.execute_corrections.setEnabled according to its values
+
+    def on_execute_corrections(self):
         """Apply calculated corrections."""
-        for el, vals in self.steerer_corrections:
-            el.mad_backend.set(vals)
-            el.dvm_backend.set(el.mad2dvm(vals))
+        for el, mad_vals, dvm_vals in self.steerer_corrections:
+            el.mad_backend.set(mad_vals)
+            el.dvm_backend.set(el.mad2dvm(mad_vals))
         self.ovm.control._plugin.execute()
         self.ovm.segment.retrack()

@@ -48,8 +48,8 @@ class ElementInfoBox(TableView):
         ColumnInfo('Value', 'value'),
     ]
 
-    def __init__(self, segment, el_name, *args, **kwargs):
-        super(ElementInfoBox, self).__init__(self.columns, *args, **kwargs)
+    def __init__(self, segment, el_name, **kwargs):
+        super(ElementInfoBox, self).__init__(columns=self.columns, **kwargs)
 
         self.horizontalHeader().hide()
 

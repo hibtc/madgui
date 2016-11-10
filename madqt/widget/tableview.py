@@ -146,13 +146,17 @@ class TableView(QtGui.QTableView):
     _default_resize_modes = [QtGui.QHeaderView.ResizeToContents,
                              QtGui.QHeaderView.Stretch]
 
-    def __init__(self, columns, *args, **kwargs):
+    def __init__(self, parent=None, columns=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
-        super(TableView, self).__init__(*args, **kwargs)
-        self.setModel(TableModel(columns))
+        super(TableView, self).__init__(parent, **kwargs)
         self.setShowGrid(False)
         self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
+        if columns is not None:
+            self.set_columns(columns)
+
+    def set_columns(self, columns):
+        self.setModel(TableModel(columns))
         for index, column in enumerate(columns):
             resize = (self._default_resize_modes[index > 0]
                       if column.resize is None
@@ -548,12 +552,11 @@ class QuantityDelegate(QtGui.QStyledItemDelegate):
         self.unit = unit
 
     def createEditor(self, parent, option, index):
-        editor = QuantitySpinBox(unit=self.unit)
-        editor.setParent(parent)
-        return editor
+        return QuantitySpinBox(parent, unit=self.unit)
 
     def setEditorData(self, editor, index):
         editor.set_quantity_checked(index.data(Qt.EditRole))
+        editor.selectAll()
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.quantity)

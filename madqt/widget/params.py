@@ -74,7 +74,7 @@ class ParamTable(tableview.TableView):
 
     data_key = ''
 
-    def __init__(self, spec, utool, *args, **kwargs):
+    def __init__(self, spec, utool, **kwargs):
         """Initialize data."""
 
         self.utool = utool
@@ -86,7 +86,10 @@ class ParamTable(tableview.TableView):
             tableview.ColumnInfo("Value", '_value'),
         ]
 
-        super(ParamTable, self).__init__(columns, *args, **kwargs)
+        super(ParamTable, self).__init__(columns=columns, **kwargs)
+        # configure the header's selection behaviour in case anyone turns on
+        # the horizontalHeader again:
+        self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
