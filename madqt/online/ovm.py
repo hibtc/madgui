@@ -23,6 +23,7 @@ from madqt.util.collections import List
 # - automatically switch to "orbit" plot and display with current
 #   self.computed_twiss_initial)
 # - use UI units
+# - set beam units
 
 __all__ = [
     'OpticVariationMethod',
@@ -433,9 +434,9 @@ class OVM_Widget(QtGui.QWidget):
 
         # …at least one target has to be on
         self.x_target_check.toggled.connect(
-            lambda checked: self.y_target_check.setChecked(not checked))
+            lambda checked: checked or self.y_target_check.setChecked(True))
         self.y_target_check.toggled.connect(
-            lambda checked: self.x_target_check.setChecked(not checked))
+            lambda checked: checked or self.x_target_check.setChecked(True))
 
         # …update beam initial conditions, when records have changed
         self.ovm.records.update_after.connect(
