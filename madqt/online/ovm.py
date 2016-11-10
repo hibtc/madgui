@@ -19,10 +19,10 @@ from madqt.util.layout import VBoxLayout
 from madqt.util.collections import List
 
 
-# TODO: automatically switch to "orbit" plot and display with current
-#       self.computed_twiss_initial)
-
-# TODO: use UI units
+# TODO:
+# - automatically switch to "orbit" plot and display with current
+#   self.computed_twiss_initial)
+# - use UI units
 
 __all__ = [
     'OpticVariationMethod',
@@ -138,13 +138,15 @@ class OpticVariationMethod(object):
         self.records.clear()
 
     def compute_initial_position(self):
-        x, px, y, py = _compute_initial_position(
+        fit_results = _compute_initial_position(
             (r.sectormap, self._strip_sd_pair(r.beam))
             for r in self.records)
+        self.solution, chi_squared, singular = fit_results
+        x, px, y, py = self.solution
         return self.utool.dict_add_unit({
             'x': x, 'px': px,
             'y': y, 'py': py,
-        })
+        }), chi_squared, singular
 
     def compute_steerer_corrections(self, init_pos, xpos, ypos):
 
@@ -235,8 +237,10 @@ def _compute_initial_position(records):
     # demand x[4] = m[-1] = 1
     M = np.vstack((M, np.eye(1, 5, 4)))
     m = np.hstack((m, 1))
-    return np.linalg.lstsq(M, m)[0][:4]
-
+    x, residuals, rank, singular = np.linalg.lstsq(M, m)
+    return (x[:4],
+            0 if len(residuals) == 0 else residuals[0],
+            rank < 5)
 
 class SelectWidget(QtGui.QWidget):
 
@@ -534,16 +538,23 @@ class OVM_Widget(QtGui.QWidget):
     def update_twiss(self):
         """Calculate initial positions / corrections."""
         if len(self.ovm.records) >= 2:
-            self.computed_twiss_initial = self.ovm.compute_initial_position()
-            beaminit_rows = [
-                ParameterInfo(name, value)
-                for name, value in self.computed_twiss_initial.items()
-            ]
+            self.computed_twiss_initial, chi_squared, singular = \
+                self.ovm.compute_initial_position()
+            if singular:
+                self.computed_twiss_initial = None
+                beaminit_rows = [
+                    ParameterInfo("", "SINGULAR MATRIX")]
+            else:
+                beaminit_rows = [
+                    ParameterInfo("red χ²", chi_squared)]
+                beaminit_rows += [
+                    ParameterInfo(name, self.computed_twiss_initial[name])
+                    for name in ('x', 'y', 'px', 'py')]
         else:
             self.computed_twiss_initial = None
             beaminit_rows = []
 
-        self.twiss_table.rows = sorted(beaminit_rows, key=lambda item: item.name)
+        self.twiss_table.rows = beaminit_rows
         self.update_corrections()
 
     def update_corrections(self):
