@@ -13,7 +13,7 @@ import numpy as np
 
 from madqt.qt import Qt, QtCore, QtGui, uic
 from madqt.core.app import safe_timer
-from madqt.core.unit import get_unit, strip_unit, get_raw_label
+from madqt.core.unit import get_unit, strip_unit, get_raw_label, tounit
 from madqt.widget.tableview import ColumnInfo
 from madqt.util.layout import VBoxLayout
 from madqt.util.collections import List
@@ -22,7 +22,6 @@ from madqt.util.collections import List
 # TODO:
 # - automatically plot "orbit" and using computed_twiss_initial
 # - use UI units
-# - set beam units
 # - handle DELETE keypress in recorded optics
 # - allow to select monitor (in beam group)?
 # - prettier E notation (only for display)
@@ -542,11 +541,17 @@ class OVM_Widget(QtGui.QWidget):
                 beaminit_rows = [
                     ParameterInfo("", "SINGULAR MATRIX")]
             else:
+                x = tounit(self.computed_twiss_initial['x'], self.x_target_value.unit)
+                y = tounit(self.computed_twiss_initial['y'], self.y_target_value.unit)
+                px = self.computed_twiss_initial['px']
+                py = self.computed_twiss_initial['py']
                 beaminit_rows = [
-                    ParameterInfo("red χ²", chi_squared)]
-                beaminit_rows += [
-                    ParameterInfo(name, self.computed_twiss_initial[name])
-                    for name in ('x', 'y', 'px', 'py')]
+                    ParameterInfo("red χ²", chi_squared),
+                    ParameterInfo('x', x),
+                    ParameterInfo('y', y),
+                    ParameterInfo('px/p₀', px),
+                    ParameterInfo('py/p₀', py),
+                ]
         else:
             self.computed_twiss_initial = None
             beaminit_rows = []
