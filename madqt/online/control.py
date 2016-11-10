@@ -186,7 +186,7 @@ class Control(Object):
 
     def on_find_initial_position(self):
         from madqt.widget.dialog import Dialog
-        from . import ovm
+        from . import optic_variation
 
         segment = self._segment
         # TODO: sync elements attributes
@@ -194,15 +194,15 @@ class Control(Object):
         varyconf = segment.universe.data.get('align', {})
         # TODO: …
 
-        widget = ovm.SelectWidget(elements, varyconf)
+        widget = optic_variation.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
         dialog.setExportWidget(widget, self._frame.folder)
         dialog.exec_()
 
         choices = widget.get_data()
 
-        method = ovm.OpticVariationMethod(self, *choices)
-        widget = ovm.OVM_Widget(method)
+        method = optic_variation.OpticVariationMethod(self, *choices)
+        widget = optic_variation.OVM_Widget(method)
         dialog = Dialog(self._frame)
         dialog.setWidget(widget)
         dialog.exec_()
