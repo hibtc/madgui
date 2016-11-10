@@ -519,9 +519,12 @@ class OVM_Widget(QtGui.QWidget):
         same_values = (i for i, record in enumerate(self.ovm.records)
                        if allclose(record.optics, current_optics))
         self.update_record_index = next(same_values, None)
-        # self.qp_settings_record.setEnabled(self.update_record_index is None)
-        new_text = "Record" if self.update_record_index is None else "Update"
-        set_text(self.qp_settings_record, new_text)
+        self.qp_settings_record.setEnabled(self.update_record_index is None)
+        self.records_table.clearSelection()
+        if self.update_record_index is not None:
+            self.records_table.selectRow(self.update_record_index)
+        # new_text = "Record" if self.update_record_index is None else "Update"
+        # set_text(self.qp_settings_record, new_text)
 
     def update_twiss(self):
         """Calculate initial positions / corrections."""
