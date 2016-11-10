@@ -128,7 +128,7 @@
    <item row="0" column="1">
     <widget class="QGroupBox" name="group_beam">
      <property name="title">
-      <string>Beam at destination</string>
+      <string>Beam at target</string>
      </property>
      <layout class="QGridLayout" name="group_beam_layout" columnstretch="0,1,1">
       <item row="0" column="1">

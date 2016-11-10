@@ -24,7 +24,6 @@ from madqt.util.qt import notifyEvent
 # - allow to select target (in beam group)?
 # - prettier E notation (only for display)
 # - let user specify target angle
-# - display monitor name
 
 __all__ = [
     'OpticVariationMethod',
@@ -384,7 +383,11 @@ class OVM_Widget(QtGui.QWidget):
         self.x_target_value.unit = get_unit(beam['posx'])
         self.y_target_value.unit = get_unit(beam['posx'])
         # result groups
-        # TODO: change records_columns names?
+        self.group_beam.setTitle("Beam at target {}"
+                                 .format(display_name(self.ovm.mon)))
+        self.records_columns[0].title = par1.name
+        self.records_columns[1].title = par2.name
+        # TODO: also set target name in records_columns?
         self.records_table.set_columns(self.records_columns)
         self.twiss_table.set_columns(self.twiss_columns)
         self.corrections_table.set_columns(self.steerer_columns)
