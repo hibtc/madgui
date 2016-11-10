@@ -87,6 +87,9 @@ class ParamTable(tableview.TableView):
         ]
 
         super(ParamTable, self).__init__(columns=columns, **kwargs)
+        # configure the header's selection behaviour in case anyone turns on
+        # the horizontalHeader again:
+        self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
