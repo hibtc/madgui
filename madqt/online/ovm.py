@@ -395,13 +395,15 @@ class OVM_Widget(QtGui.QWidget):
         self._load_csys_qp_value(1, self.input_qp2_value)
         self.input_qp1_value.selectAll()
         self.focus_choice.setCurrentIndex(3)
-        self.records_table.rows = self.ovm.records
+        self.update_csys_values()
+        # update table views
+        self.update_records()
         self.update_twiss()
         self.update_corrections()
+        # update button states
         self.update_clear_button()
         self.update_record_button()
         self.update_execute_button()
-        self.update_csys_values()
 
     def connect_signals(self):
         self.update_csys_values_timer = QtCore.QTimer()
@@ -525,6 +527,9 @@ class OVM_Widget(QtGui.QWidget):
             self.records_table.selectRow(self.update_record_index)
         # new_text = "Record" if self.update_record_index is None else "Update"
         # set_text(self.qp_settings_record, new_text)
+
+    def update_records(self):
+        self.records_table.rows = self.ovm.records
 
     def update_twiss(self):
         """Calculate initial positions / corrections."""
