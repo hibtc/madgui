@@ -138,10 +138,9 @@ class OpticVariationMethod(object):
         self.records.clear()
 
     def compute_initial_position(self):
-        r0, r1 = self.records
         x, px, y, py = _compute_initial_position(
-            r0.sectormap, self._strip_sd_pair(r0.beam),
-            r1.sectormap, self._strip_sd_pair(r1.beam))
+            (r.sectormap, self._strip_sd_pair(r.beam))
+            for r in self.records)
         return self.utool.dict_add_unit({
             'x': x, 'px': px,
             'y': y, 'py': py,
@@ -205,28 +204,37 @@ class OpticVariationMethod(object):
                 strip_unit('y', sd_values[prefix + 'y']))
 
 
-def _compute_initial_position(A, a, B, b):
+def _compute_initial_position(records):
     """
     Compute initial beam position from two monitor read-outs at different
     quadrupole settings.
 
-    A, B are the 7D SECTORMAPs from start to the monitor.
-    a, b are the 2D measurement vectors (x, y)
+    Call as follows:
+
+        >>> _compute_initial_position([(A, a), (B, b), …])
+
+    where
+
+        A, B, … are the 7D SECTORMAPs from start to the monitor.
+        a, b, … are the 2D measurement vectors (x, y)
 
     This function solves the linear system:
 
             Ax = a
             Bx = b
+            …
 
     for the 4D phase space vector x = (x, px, y, py).
     """
+    AB_, ab_ = zip(*records)
+    # use only the relevant submatrices:
     rows = (0,2)
     cols = (0,1,2,3,6)
-    M1 = A[rows,:][:,cols]
-    M2 = B[rows,:][:,cols]
-    M3 = np.eye(1, 5, 4)
-    M = np.vstack((M1, M2, M3))
-    m = np.hstack((a, b, 1))
+    M = np.vstack([X[rows,:][:,cols] for X in AB_])
+    m = np.hstack(ab_)
+    # demand x[4] = m[-1] = 1
+    M = np.vstack((M, np.eye(1, 5, 4)))
+    m = np.hstack((m, 1))
     return np.linalg.lstsq(M, m)[0][:4]
 
 
@@ -492,7 +500,7 @@ class OVM_Widget(QtGui.QWidget):
 
     def update_twiss(self):
         """Calculate initial positions / corrections."""
-        if len(self.ovm.records) == 2:
+        if len(self.ovm.records) >= 2:
             self.computed_twiss_initial = self.ovm.compute_initial_position()
             beaminit_rows = [
                 ParameterInfo(name, value)
