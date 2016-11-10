@@ -11,11 +11,9 @@ from pkg_resources import resource_filename
 
 import numpy as np
 
-from madqt.qt import Qt, QtCore, QtGui, uic
-from madqt.core.app import safe_timer
-from madqt.core.unit import get_unit, strip_unit, get_raw_label, tounit
+from madqt.qt import QtCore, QtGui, uic
+from madqt.core.unit import get_unit, strip_unit, tounit
 from madqt.widget.tableview import ColumnInfo
-from madqt.util.layout import VBoxLayout
 from madqt.util.collections import List
 
 
@@ -29,8 +27,7 @@ from madqt.util.collections import List
 __all__ = [
     'OpticVariationMethod',
     'SelectWidget',
-    'SummaryWidget',
-    'StepWidget',
+    'OVM_Widget',
 ]
 
 
