@@ -400,6 +400,7 @@ class OVM_Widget(QtGui.QWidget):
         self.update_corrections()
         self.update_clear_button()
         self.update_record_button()
+        self.update_execute_button()
         self.update_csys_values()
 
     def connect_signals(self):
@@ -442,6 +443,10 @@ class OVM_Widget(QtGui.QWidget):
         self.ovm.records.update_after.connect(self.update_record_button)
         self.displ_qp1_value.valueChanged.connect(self.update_record_button)
         self.displ_qp2_value.valueChanged.connect(self.update_record_button)
+        self.displ_qp1_value.valueChanged.connect(self.update_execute_button)
+        self.displ_qp2_value.valueChanged.connect(self.update_execute_button)
+        self.input_qp1_value.valueChanged.connect(self.update_execute_button)
+        self.input_qp2_value.valueChanged.connect(self.update_execute_button)
         # self.execute_corrections is updated in self.update_corrections()
 
         # TODO:
@@ -496,6 +501,14 @@ class OVM_Widget(QtGui.QWidget):
         qp_elem = self.ovm.get_qp(index)
         data = qp_elem.dvm_backend.get()
         ctrl.set_quantity_checked(data['kL'])
+
+    def update_execute_button(self):
+        input_optics = [self.input_qp1_value.quantity,
+                        self.input_qp2_value.quantity]
+        displ_optics = [self.displ_qp1_value.quantity,
+                        self.displ_qp2_value.quantity]
+        self.qp_settings_execute.setEnabled(
+            not allclose(input_optics, displ_optics))
 
     def update_clear_button(self, *args):
         self.clear_records.setEnabled(bool(self.ovm.records))
