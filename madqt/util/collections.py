@@ -72,14 +72,20 @@ class List(Object):
     update_after = Signal([object, object, object])
 
     insert_notify = Signal([int, object])
-    delete_notify = Signal([int, object])
-    modify_notify = Signal([int, object, object])
+    delete_notify = Signal([int])
+    modify_notify = Signal([int, object])
 
     def __init__(self, items=None):
         """Use the items object by reference."""
         super(List, self).__init__()
         self._items = list() if items is None else items
         self.lock = Lock()
+
+    def mirror(self, other):
+        """Connect another list to be mirror of oneself."""
+        self.insert_notify.connect(other.insert)
+        self.delete_notify.connect(other.__delitem__)
+        self.modify_notify.connect(other.__setitem__)
 
     @contextmanager
     def update_notify(self, slice, new_values):
@@ -107,10 +113,10 @@ class List(Object):
         old_len = len(self) - num_ins
         indices = list(range(old_len))[slice]
         for idx, old, new in zip(indices, old_values, new_values):
-            self.modify_notify.emit(idx, old, new)
+            self.modify_notify.emit(idx, new)
         if num_old > num_new:
             for val in old_values[num_new:]:
-                self.delete_notify.emit(indices[0], val)
+                self.delete_notify.emit(indices[0])
         elif num_new > num_old:
             start = (slice.start or 0) + num_old
             for idx, val in enumerate(new_values[num_old:]):
@@ -221,7 +227,7 @@ class Selection(object):
                 self.ordering[i] += 1
         self.ordering.append(index)
 
-    def _delete(self, index, value):
+    def _delete(self, index):
         self.ordering.remove(index)
         for i, v in enumerate(self.ordering):
             if v >= index:

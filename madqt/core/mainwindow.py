@@ -482,12 +482,12 @@ class InfoBoxGroup(object):
     def _insert(self, index, value):
         self.boxes.insert(index, self.create_info_box(value, index != 0))
 
-    def _delete(self, index, value):
+    def _delete(self, index):
         if self.boxes[index].isVisible():
             self.boxes[index].close()
         del self.boxes[index]
 
-    def _modify(self, index, old_value, new_value):
+    def _modify(self, index, new_value):
         self.boxes[index].widget().el_name = new_value
         self.boxes[index].setWindowTitle(new_value)
 
