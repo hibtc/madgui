@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from abc import abstractmethod
 
-from madqt.qt import Qt, QtGui
+from madqt.qt import Qt, QtCore, QtGui
 
 from madqt.core.unit import units, get_raw_label, get_unit, tounit
 from madqt.core.base import Signal
@@ -108,7 +108,7 @@ class InfixControlBase(object):
         if new == old:
             return
         edit = self.line_edit()
-        pos = edit.cursorPosition()
+        pos = edit.cursorPosition() # TODO: must use selectionStart()?
         sel = len(edit.selectedText())
         sb = edit.blockSignals(True)
         edit.setText(new)
@@ -123,11 +123,12 @@ class InfixControlBase(object):
 
     def selectAll(self):
         if self.value is None:
-            self.line_edit().selectAll()
+            beg = 0
+            end = len(self.text())
         else:
             beg = len(self.prefix)
             end = len(self.text()) - len(self.suffix)
-            self.line_edit().setSelection(beg, end-beg)
+        self.line_edit().setSelection(beg, end-beg)
 
     def valueFromText(self, text):
         if text == self.placeholder_text:
@@ -167,12 +168,18 @@ class InfixControlBase(object):
     # QWidget overrides
 
     def focusInEvent(self, event):
-        self.line_edit().event(event)
+        edit = self.line_edit()
+        if edit is self:
+            # avoid infinite recursion
+            super(InfixControlBase, self).focusInEvent(event)
+        else:
+            self.line_edit().event(event)
+            # skip QAbstractSpinBox::focusInEvent (which would call the
+            # non-virtual selectAll)
+            QtGui.QWidget.focusInEvent(self, event)
+
         if event.reason() in (Qt.TabFocusReason, Qt.BacktabFocusReason):
             self.selectAll()
-        # skip QAbstractSpinBox::focusInEvent (which would call the
-        # non-virtual selectAll)
-        QtGui.QWidget.focusInEvent(self, event)
 
     def keyPressEvent(self, event):
 
@@ -326,6 +333,26 @@ class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
         super(QuantityDisplay, self).__init__(*args, **kwargs)
         self.setAlignment(Qt.AlignRight)
         self.setReadOnly(True)
+        self.selectionChanged.connect(self.clear_selectall_pending)
 
     def line_edit(self):
         return self
+
+    # TODO: make this work for SpinBox as well
+
+    _selectall_pending = False
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self._selectall_pending = True
+        super(QuantityDisplay, self).mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            if self._selectall_pending:
+                self._selectall_pending = False
+                self.selectAll()
+        super(QuantityDisplay, self).mouseReleaseEvent(event)
+
+    def clear_selectall_pending(self):
+        self._selectall_pending = False
