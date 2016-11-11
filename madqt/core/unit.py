@@ -10,8 +10,9 @@ import sys
 
 from pkg_resources import resource_filename
 
-import pint
+import numpy as np
 from six import string_types as basestring
+import pint
 
 from pydicti import dicti
 from cpymad.types import Expression
@@ -22,6 +23,8 @@ from madqt.util.symbol import SymbolicValue
 __all__ = [
     'units',
     'strip_unit',
+    'isclose',
+    'allclose',
     'tounit',
     'get_unit_label',
     'format_quantity',
@@ -56,6 +59,16 @@ def initialize():
 
 
 units = initialize()
+
+
+def isclose(q1, q2):
+    m1 = strip_unit(q1, get_unit(q1))
+    m2 = strip_unit(q2, get_unit(q1))
+    return np.isclose(m1, m2)
+
+
+def allclose(q1, q2):
+    return all(isclose(a, b) for a, b in zip(q1, q2))
 
 
 def get_unit(quantity):

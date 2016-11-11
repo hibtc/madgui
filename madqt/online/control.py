@@ -84,9 +84,9 @@ class Control(Object):
                  self.read_monitors,
                  enabled=self.has_sequence),
             Separator,
-            Item('&Orbit correction (2 optics)', None,
-                 'Perform orbit correction (2 optics method)',
-                 self.on_find_initial_position,
+            Item('&Optic variation', 'Ctrl+V',
+                 'Perform orbit correction via 2-optics method',
+                 self.on_correct_optic_variation_method,
                  enabled=self.has_sequence),
         ]
         return menu.Menu('&Online control', items)
@@ -184,29 +184,28 @@ class Control(Object):
         dialog.show()
         return dialog
 
-    def on_find_initial_position(self):
-        from madqt.widget.dialog import Dialog
+    def on_correct_optic_variation_method(self):
         from . import optic_variation
+        from madqt.widget.dialog import Dialog
+        config_key = 'optic_variation'
 
+        # TODO: sync elements
         segment = self._segment
-        # TODO: sync elements attributes
         elements = segment.sequence.elements
-        varyconf = segment.universe.data.get('align', {})
-        # TODO: …
+        varyconf = segment.universe.data.get(config_key, {})
 
-        widget = optic_variation.SelectWidget(elements, varyconf)
+        select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
-        dialog.setExportWidget(widget, self._frame.folder)
+        dialog.setExportWidget(select, self._frame.folder)
         dialog.exec_()
+        if dialog.result() != QtGui.QDialog.Accepted:
+            return
 
-        choices = widget.get_data()
-
-        method = optic_variation.OpticVariationMethod(self, *choices)
-        widget = optic_variation.OVM_Widget(method)
+        method = module.Corrector(self, *select.get_data())
+        widget = module.CorrectorWidget(method)
         dialog = Dialog(self._frame)
         dialog.setWidget(widget)
         dialog.exec_()
-
 
     # helper functions
 
