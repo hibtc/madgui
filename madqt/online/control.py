@@ -199,21 +199,20 @@ class Control(Object):
         return dialog
 
     def on_correct_optic_variation_method(self):
-        from . import optic_variation
-        self._correct(optic_variation, 'optic_variation')
+        self._correct('optic_variation')
 
     def on_correct_multi_grid_method(self):
-        from . import multi_grid
-        self._correct(multi_grid, 'multi_grid')
+        self._correct('multi_grid')
 
-    def _correct(self, module, config_key):
+    def _correct(self, name):
         from madqt.widget.dialog import Dialog
+        module = __import__('madqt.correct.' + name, None, None, '*')
 
         self.read_all()
 
         segment = self._segment
         elements = segment.sequence.elements
-        varyconf = segment.universe.data.get(config_key, {})
+        varyconf = segment.universe.data.get(name, {})
 
         select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)

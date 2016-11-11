@@ -14,7 +14,7 @@ from madqt.core.unit import get_unit, allclose
 from madqt.widget.tableview import ColumnInfo
 from madqt.util.qt import notifyEvent
 
-from .correct_base import (
+from ._base import (
     OrbitCorrectorBase,
     CorrectorWidgetBase,
     _is_steerer,
