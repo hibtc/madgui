@@ -307,28 +307,29 @@ class CorrectorWidgetBase(QtGui.QWidget):
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
-        if len(self.corrector.orbit_records) >= 2:
-            self.initial_particle_orbit, chi_squared, singular = \
-                self.corrector.fit_particle_orbit()
-            if singular:
-                self.initial_particle_orbit = None
-                beaminit_rows = [
-                    ParameterInfo("", "SINGULAR MATRIX")]
-            else:
-                x = tounit(self.initial_particle_orbit['x'], self.x_target_value.unit)
-                y = tounit(self.initial_particle_orbit['y'], self.y_target_value.unit)
-                px = self.initial_particle_orbit['px']
-                py = self.initial_particle_orbit['py']
-                beaminit_rows = [
-                    ParameterInfo("red χ²", chi_squared),
-                    ParameterInfo('x', x),
-                    ParameterInfo('y', y),
-                    ParameterInfo('px/p₀', px),
-                    ParameterInfo('py/p₀', py),
-                ]
-        else:
-            self.initial_particle_orbit = None
-            beaminit_rows = []
+        if len(self.corrector.orbit_records) < 2:
+            self._update_fit_table(None, [])
+            return
+        init_orbit, chi_squared, singular = \
+            self.corrector.fit_particle_orbit()
+        if singular:
+            self._update_fit_table(None, [
+                ParameterInfo("", "SINGULAR MATRIX")])
+            return
+        x = tounit(init_orbit['x'], self.x_target_value.unit)
+        y = tounit(init_orbit['y'], self.y_target_value.unit)
+        px = init_orbit['px']
+        py = init_orbit['py']
+        self._update_fit_table(init_orbit, [
+            ParameterInfo("red χ²", chi_squared),
+            ParameterInfo('x', x),
+            ParameterInfo('y', y),
+            ParameterInfo('px/p₀', px),
+            ParameterInfo('py/p₀', py),
+        ])
+
+    def _update_fit_table(self, initial_particle_orbit, beaminit_rows):
+        self.initial_particle_orbit = initial_particle_orbit
         self.fit_table.rows = beaminit_rows
         self.fit_table.resizeColumnToContents(0)
         self.update_corrections()
