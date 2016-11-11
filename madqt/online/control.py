@@ -60,7 +60,7 @@ class Control(Object):
         items = []
         for loader in loaders:
             items.append(
-                Item('Connect ' + loader.title, None,
+                Item('Connect ' + loader.title, loader.hotkey,
                      'Connect ' + loader.descr,
                      partial(self.connect, loader),
                      enabled=self.can_connect))
@@ -84,10 +84,16 @@ class Control(Object):
                  self.read_monitors,
                  enabled=self.has_sequence),
             Separator,
-            Item('&Optic variation', 'Ctrl+V',
-                 'Perform orbit correction via 2-optics method',
-                 self.on_correct_optic_variation_method,
-                 enabled=self.has_sequence),
+            menu.Menu('&Orbit correction', [
+                Item('&Optic variation', 'Ctrl+V',
+                     'Perform orbit correction via 2-optics method',
+                     self.on_correct_optic_variation_method,
+                     enabled=self.has_sequence),
+                Item('Multi &grid', 'Ctrl+G',
+                     'Perform orbit correction via 2-grids method',
+                     self.on_correct_multi_grid_method,
+                     enabled=self.has_sequence),
+            ]),
         ]
         return menu.Menu('&Online control', items)
 
@@ -186,8 +192,14 @@ class Control(Object):
 
     def on_correct_optic_variation_method(self):
         from . import optic_variation
+        self._correct(optic_variation, 'optic_variation')
+
+    def on_correct_multi_grid_method(self):
+        from . import multi_grid
+        self._correct(multi_grid, 'multi_grid')
+
+    def _correct(self, module, config_key):
         from madqt.widget.dialog import Dialog
-        config_key = 'optic_variation'
 
         # TODO: sync elements
         segment = self._segment

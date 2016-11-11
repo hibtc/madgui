@@ -10,12 +10,13 @@ from __future__ import unicode_literals
 from pkg_resources import resource_filename
 
 from madqt.qt import Qt, QtCore, QtGui, uic
-from madqt.core.unit import get_unit, tounit, allclose
+from madqt.core.unit import get_unit, allclose
 from madqt.widget.tableview import ColumnInfo
 from madqt.util.qt import notifyEvent
 
 from .correct_base import (
     OrbitCorrectorBase,
+    CorrectorWidgetBase,
     _is_steerer,
     display_name,
     el_names,
@@ -93,7 +94,7 @@ class SelectWidget(QtGui.QWidget):
         """Update QP/steerer choices when selecting a configured monitor."""
         conf = self.config.get(self.choice_monitor.currentText().upper(), {})
         elem_ctrls = (self.ctrl_qps, self.ctrl_hst, self.ctrl_vst)
-        conf_sects = ('qp', 'h-steerer', 'v-steerer')
+        conf_sects = ('quadrupole', 'x_steerer', 'y_steerer')
         # handle sections individually to allow partial config:
         for ctrls, sect in zip(elem_ctrls, conf_sects):
             for ctrl, name in zip(ctrls, conf.get(sect, ())):
@@ -131,21 +132,15 @@ class SelectWidget(QtGui.QWidget):
         return all(at <= at_mon for at in at_qp + at_st)
 
 
-class ParameterInfo(object):
-
-    def __init__(self, param, value, current=None):
-        self.name = param
-        self.value = value
-        self.current = current
-
-
 def get_kL(index):
     def getter(record):
         return record.optics[index]['kL']
     return getter
 
 
-class CorrectorWidget(QtGui.QWidget):
+class CorrectorWidget(CorrectorWidgetBase):
+
+    ui_file = 'ovm_dialog.ui'
 
     records_columns = [
         ColumnInfo("QP1", get_kL(0), QtGui.QHeaderView.Stretch),
@@ -154,29 +149,8 @@ class CorrectorWidget(QtGui.QWidget):
         ColumnInfo("y", 'y'),
     ]
 
-    twiss_columns = [
-        ColumnInfo("Param", 'name'),
-        ColumnInfo("Value", 'value'),
-    ]
-
-    steerer_columns = [
-        ColumnInfo("Steerer", 'name'),
-        ColumnInfo("Optimal", 'value'),
-        ColumnInfo("Current", 'current'),
-    ]
-
     num_focus_levels = 6
-    initial_particle_orbit = None
-    steerer_corrections = None
     update_record_index = None
-
-    def __init__(self, corrector):
-        super(CorrectorWidget, self).__init__()
-        uic.loadUi(resource_filename(__name__, 'ovm_dialog.ui'), self)
-        self.corrector = corrector
-        self.init_controls()
-        self.set_initial_values()
-        self.connect_signals()
 
     def init_controls(self):
         # input group
@@ -355,72 +329,3 @@ class CorrectorWidget(QtGui.QWidget):
             self.records_table.selectRow(self.update_record_index)
         # new_text = "Record" if self.update_record_index is None else "Update"
         # set_text(self.qp_settings_record, new_text)
-
-    def update_records(self):
-        self.records_table.rows = self.corrector.orbit_records
-
-    def update_fit(self):
-        """Calculate initial positions / corrections."""
-        if len(self.corrector.orbit_records) >= 2:
-            self.initial_particle_orbit, chi_squared, singular = \
-                self.corrector.fit_particle_orbit()
-            if singular:
-                self.initial_particle_orbit = None
-                beaminit_rows = [
-                    ParameterInfo("", "SINGULAR MATRIX")]
-            else:
-                x = tounit(self.initial_particle_orbit['x'], self.x_target_value.unit)
-                y = tounit(self.initial_particle_orbit['y'], self.y_target_value.unit)
-                px = self.initial_particle_orbit['px']
-                py = self.initial_particle_orbit['py']
-                beaminit_rows = [
-                    ParameterInfo("red χ²", chi_squared),
-                    ParameterInfo('x', x),
-                    ParameterInfo('y', y),
-                    ParameterInfo('px/p₀', px),
-                    ParameterInfo('py/p₀', py),
-                ]
-        else:
-            self.initial_particle_orbit = None
-            beaminit_rows = []
-        self.twiss_table.rows = beaminit_rows
-        self.twiss_table.resizeColumnToContents(0)
-        self.update_corrections()
-
-    def update_corrections(self):
-        init = self.initial_particle_orbit
-        design = {}
-        if self.x_target_check.isChecked():
-            design['x'] = self.x_target_value.quantity
-            design['px'] = 0
-        if self.y_target_check.isChecked():
-            design['y'] = self.y_target_value.quantity
-            design['py'] = 0
-        if init is None or not design:
-            self.steerer_corrections = None
-            self.execute_corrections.setEnabled(False)
-            # TODO: always display current steerer values
-            self.corrections_table.rows = []
-            return
-        self.steerer_corrections = \
-            self.corrector.compute_steerer_corrections(init, [design])
-        self.execute_corrections.setEnabled(True)
-        # update table view
-        steerer_corrections_rows = [
-            ParameterInfo(el.dvm_params[k].name, v, dvm_vals[k])
-            for el, mad_vals, dvm_vals in self.steerer_corrections
-            for k, v in el.mad2dvm(mad_vals).items()
-        ]
-        self.corrections_table.rows = steerer_corrections_rows
-        self.corrections_table.resizeColumnToContents(0)
-
-        # TODO: make 'optimal'-column in corrections_table editable and update
-        #       self.execute_corrections.setEnabled according to its values
-
-    def on_execute_corrections(self):
-        """Apply calculated corrections."""
-        for el, mad_vals, dvm_vals in self.steerer_corrections:
-            el.mad_backend.set(mad_vals)
-            el.dvm_backend.set(el.mad2dvm(mad_vals))
-        self.corrector.control._plugin.execute()
-        self.corrector.segment.retrack()

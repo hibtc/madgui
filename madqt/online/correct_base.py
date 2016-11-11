@@ -6,11 +6,18 @@ Shared utilities for orbit correction.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import numpy as np
+from abc import abstractmethod
 
+from pkg_resources import resource_filename
+
+import numpy as np
 from six import string_types as basestring
 
+from madqt.qt import QtGui, uic
+
+from madqt.core.unit import tounit
 from madqt.util.collections import List
+from madqt.widget.tableview import ColumnInfo
 
 
 class OrbitRecord(object):
@@ -28,6 +35,14 @@ class OrbitRecord(object):
     @property
     def y(self):
         return self.orbit['posy']
+
+
+class ParameterInfo(object):
+
+    def __init__(self, param, value, current=None):
+        self.name = param
+        self.value = value
+        self.current = current
 
 
 class OrbitCorrectorBase(object):
@@ -249,3 +264,109 @@ def _fit_particle_orbit(records):
     return (x[:4],
             0 if len(residuals) == 0 else residuals[0],
             rank < 5)
+
+
+class CorrectorWidgetBase(QtGui.QWidget):
+
+    initial_particle_orbit = None
+    steerer_corrections = None
+
+    twiss_columns = [
+        ColumnInfo("Param", 'name'),
+        ColumnInfo("Value", 'value'),
+    ]
+
+    steerer_columns = [
+        ColumnInfo("Steerer", 'name'),
+        ColumnInfo("Optimal", 'value'),
+        ColumnInfo("Current", 'current'),
+    ]
+
+    def __init__(self, corrector):
+        super(CorrectorWidgetBase, self).__init__()
+        uic.loadUi(resource_filename(__name__, self.ui_file), self)
+        self.corrector = corrector
+        self.init_controls()
+        self.set_initial_values()
+        self.connect_signals()
+
+    @abstractmethod
+    def init_controls(self):
+        pass
+
+    @abstractmethod
+    def set_initial_values(self):
+        pass
+
+    @abstractmethod
+    def connect_signals(self):
+        pass
+
+    def update_records(self):
+        self.records_table.rows = self.corrector.orbit_records
+
+    def update_fit(self):
+        """Calculate initial positions / corrections."""
+        if len(self.corrector.orbit_records) >= 2:
+            self.initial_particle_orbit, chi_squared, singular = \
+                self.corrector.fit_particle_orbit()
+            if singular:
+                self.initial_particle_orbit = None
+                beaminit_rows = [
+                    ParameterInfo("", "SINGULAR MATRIX")]
+            else:
+                x = tounit(self.initial_particle_orbit['x'], self.x_target_value.unit)
+                y = tounit(self.initial_particle_orbit['y'], self.y_target_value.unit)
+                px = self.initial_particle_orbit['px']
+                py = self.initial_particle_orbit['py']
+                beaminit_rows = [
+                    ParameterInfo("red χ²", chi_squared),
+                    ParameterInfo('x', x),
+                    ParameterInfo('y', y),
+                    ParameterInfo('px/p₀', px),
+                    ParameterInfo('py/p₀', py),
+                ]
+        else:
+            self.initial_particle_orbit = None
+            beaminit_rows = []
+        self.twiss_table.rows = beaminit_rows
+        self.twiss_table.resizeColumnToContents(0)
+        self.update_corrections()
+
+    def update_corrections(self):
+        init = self.initial_particle_orbit
+        design = {}
+        if self.x_target_check.isChecked():
+            design['x'] = self.x_target_value.quantity
+            design['px'] = 0
+        if self.y_target_check.isChecked():
+            design['y'] = self.y_target_value.quantity
+            design['py'] = 0
+        if init is None or not design:
+            self.steerer_corrections = None
+            self.execute_corrections.setEnabled(False)
+            # TODO: always display current steerer values
+            self.corrections_table.rows = []
+            return
+        self.steerer_corrections = \
+            self.corrector.compute_steerer_corrections(init, [design])
+        self.execute_corrections.setEnabled(True)
+        # update table view
+        steerer_corrections_rows = [
+            ParameterInfo(el.dvm_params[k].name, v, dvm_vals[k])
+            for el, mad_vals, dvm_vals in self.steerer_corrections
+            for k, v in el.mad2dvm(mad_vals).items()
+        ]
+        self.corrections_table.rows = steerer_corrections_rows
+        self.corrections_table.resizeColumnToContents(0)
+
+        # TODO: make 'optimal'-column in corrections_table editable and update
+        #       self.execute_corrections.setEnabled according to its values
+
+    def on_execute_corrections(self):
+        """Apply calculated corrections."""
+        for el, mad_vals, dvm_vals in self.steerer_corrections:
+            el.mad_backend.set(mad_vals)
+            el.dvm_backend.set(el.mad2dvm(mad_vals))
+        self.corrector.control._plugin.execute()
+        self.corrector.segment.retrack()
