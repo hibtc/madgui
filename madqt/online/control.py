@@ -85,7 +85,7 @@ class Control(Object):
                  enabled=self.has_sequence),
             Separator,
             menu.Menu('&Orbit correction', [
-                Item('&Optic variation', 'Ctrl+V',
+                Item('Optic &variation', 'Ctrl+V',
                      'Perform orbit correction via 2-optics method',
                      self.on_correct_optic_variation_method,
                      enabled=self.has_sequence),

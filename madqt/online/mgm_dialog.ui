@@ -132,13 +132,13 @@
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QGroupBox" name="group_twiss">
+    <widget class="QGroupBox" name="group_fit">
      <property name="title">
       <string>Fit for beam initial conditions</string>
      </property>
-     <layout class="QVBoxLayout" name="group_twiss_layout">
+     <layout class="QVBoxLayout" name="group_fit_layout">
       <item>
-       <widget class="TableView" name="twiss_table">
+       <widget class="TableView" name="fit_table">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>

@@ -271,7 +271,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
     initial_particle_orbit = None
     steerer_corrections = None
 
-    twiss_columns = [
+    fit_columns = [
         ColumnInfo("Param", 'name'),
         ColumnInfo("Value", 'value'),
     ]
@@ -329,8 +329,8 @@ class CorrectorWidgetBase(QtGui.QWidget):
         else:
             self.initial_particle_orbit = None
             beaminit_rows = []
-        self.twiss_table.rows = beaminit_rows
-        self.twiss_table.resizeColumnToContents(0)
+        self.fit_table.rows = beaminit_rows
+        self.fit_table.resizeColumnToContents(0)
         self.update_corrections()
 
     def update_corrections(self):

@@ -110,9 +110,9 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.x_target_value.unit = get_unit(orbit['posx'])
         self.y_target_value.unit = get_unit(orbit['posy'])
         # result groups
-        self.twiss_table.set_columns(self.twiss_columns)
+        self.fit_table.set_columns(self.fit_columns)
         self.corrections_table.set_columns(self.steerer_columns)
-        self.twiss_table.horizontalHeader().hide()
+        self.fit_table.horizontalHeader().hide()
 
     def set_initial_values(self):
         self.x_target_value.value = 0
@@ -146,7 +146,7 @@ class CorrectorWidget(CorrectorWidgetBase):
             lambda checked: checked or self.x_target_check.setChecked(True))
 
         # NOTE: self.update_corrections() is called in update_fit(), so we
-        # don't need to connect something like twiss_table.valueChanged.
+        # don't need to connect something like fit_table.valueChanged.
 
     def update_csys_values(self):
         self._load_csys_mon_value(0, self.mon1_x_value, self.mon1_y_value)

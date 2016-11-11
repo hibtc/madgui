@@ -176,11 +176,11 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.records_columns[1].title = par2.name
         # TODO: also set target name in records_columns?
         self.records_table.set_columns(self.records_columns)
-        self.twiss_table.set_columns(self.twiss_columns)
+        self.fit_table.set_columns(self.fit_columns)
         self.corrections_table.set_columns(self.steerer_columns)
         self.records_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.records_table.horizontalHeader().setHighlightSections(False)
-        self.twiss_table.horizontalHeader().hide()
+        self.fit_table.horizontalHeader().hide()
 
     def set_initial_values(self):
         self.x_target_value.value = 0
@@ -233,7 +233,7 @@ class CorrectorWidget(CorrectorWidgetBase):
             lambda *args: self.update_fit())
 
         # NOTE: self.update_corrections() is called in update_fit(), so we
-        # don't need to connect something like twiss_table.valueChanged.
+        # don't need to connect something like fit_table.valueChanged.
 
         # …update button states
         self.corrector.orbit_records.update_after.connect(self.update_clear_button)
