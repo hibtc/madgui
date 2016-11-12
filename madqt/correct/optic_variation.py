@@ -251,7 +251,7 @@ class CorrectorWidget(CorrectorWidgetBase):
             if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
                 selection = self.records_table.selectedIndexes()
                 if selection:
-                    del self.orbit_corrector.records[selection[0].row()]
+                    del self.corrector.orbit_records[selection[0].row()]
 
     def on_load_preset_execute(self):
         """Update focus level and automatically load QP values."""
