@@ -100,17 +100,16 @@ class OrbitCorrectorBase(object):
             self.segment.start if orig is None else orig,
             self.segment.get_element_info(dest))
 
-    def sync_csys_to_mad(self, elements):
+    def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
-        optics = [self.get_dvm(elem) for elem in elements]
-        for elem, optic in zip(elements, optics):
-            self.set_mad(elem, optic)
-        return optics
+        self.control.read_all()
 
     # record monitor/model
 
     def current_orbit_records(self):
-        magnet_optics = self.sync_csys_to_mad(self.magnets)
+        self.sync_csys_to_mad()
+        magnet_optics = [self.get_mad(magnet)
+                         for magnet in self.magnets]
         return [
             OrbitRecord(
                 monitor,
@@ -153,6 +152,7 @@ class OrbitCorrectorBase(object):
         """
 
         # TODO: make this work with backends other than MAD-X…
+        self.sync_csys_to_mad()
 
         if correct_x is None:
             correct_x = any(('x' in orbit or 'px' in orbit)
@@ -168,6 +168,7 @@ class OrbitCorrectorBase(object):
 
         # backup  MAD-X values
         steerer_values_backup = [self.get_mad(el) for el in steerer_elems]
+        twiss_args_backup = self.segment.twiss_args.copy()
 
         try:
             # construct initial conditions
@@ -198,6 +199,7 @@ class OrbitCorrectorBase(object):
 
         # restore MAD-X values
         finally:
+            self.segment.twiss_args = twiss_args_backup
             for el, val in zip(steerer_elems, steerer_values_backup):
                 self.set_mad(el, val)
 
@@ -371,3 +373,4 @@ class CorrectorWidgetBase(QtGui.QWidget):
             el.dvm_backend.set(el.mad2dvm(mad_vals))
         self.corrector.control._plugin.execute()
         self.corrector.segment.retrack()
+        self.corrector.clear_orbit_records()
