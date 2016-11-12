@@ -17,7 +17,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QGroupBox" name="group_input">
      <property name="title">
-      <string>Enter new QP setting:</string>
+      <string>Monitor readouts:</string>
      </property>
      <layout class="QGridLayout" name="group_input_layout" columnstretch="0,1,1,0,0,1">
       <item row="0" column="1" alignment="Qt::AlignRight">
@@ -166,14 +166,14 @@
    <item row="2" column="0">
     <widget class="QPushButton" name="update_fit_button">
      <property name="text">
-      <string>Update fit</string>
+      <string>Fit</string>
      </property>
     </widget>
    </item>
    <item row="2" column="1">
     <widget class="QPushButton" name="execute_corrections">
      <property name="text">
-      <string>Execute steerer corrections</string>
+      <string>Apply steerer corrections</string>
      </property>
     </widget>
    </item>

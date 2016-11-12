@@ -94,7 +94,6 @@ class SelectWidget(OVM_SelectWidget):
                 ctrl.setCurrentIndex(ctrl.findText(display_name(name)))
 
 
-
 class CorrectorWidget(CorrectorWidgetBase):
 
     ui_file = 'mgm_dialog.ui'
