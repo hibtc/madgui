@@ -53,8 +53,10 @@ def main():
         packages=[
             'madqt',
             'madqt.core',
+            'madqt.correct',
             'madqt.data',
             'madqt.engine',
+            'madqt.online',
             'madqt.plot',
             'madqt.resource',
             'madqt.util',

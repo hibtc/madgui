@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OVM_Dialog</class>
+ <widget class="QWidget" name="OVM_Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>584</width>
+    <height>398</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Optic variation method (orbit flattening)</string>
+  </property>
+  <layout class="QGridLayout" name="toplevel_layout" columnstretch="1,1">
+   <item row="0" column="0" colspan="2">
+    <widget class="QGroupBox" name="group_input">
+     <property name="title">
+      <string>Monitor readouts:</string>
+     </property>
+     <layout class="QGridLayout" name="group_input_layout" columnstretch="0,1,1,0,0,1">
+      <item row="0" column="1" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="mon1_title">
+        <property name="text">
+         <string>Monitor 1:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" alignment="Qt::AlignRight">
+       <widget class="QLabel" name="mon2_title">
+        <property name="text">
+         <string>Monitor 2:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="x_label">
+        <property name="text">
+         <string>x:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QuantityDisplay" name="mon1_x_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QuantityDisplay" name="mon2_x_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="y_label">
+        <property name="text">
+         <string>y:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QuantityDisplay" name="mon1_y_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QuantityDisplay" name="mon2_y_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3" rowspan="3">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="4" colspan="2">
+       <widget class="QLabel" name="target_title">
+        <property name="text">
+         <string>Design values at target:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="4" alignment="Qt::AlignRight">
+       <widget class="QCheckBox" name="y_target_check">
+        <property name="text">
+         <string>y:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="5">
+       <widget class="QuantitySpinBox" name="y_target_value"/>
+      </item>
+      <item row="1" column="4" alignment="Qt::AlignRight">
+       <widget class="QCheckBox" name="x_target_check">
+        <property name="text">
+         <string>x:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QuantitySpinBox" name="x_target_value"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="group_fit">
+     <property name="title">
+      <string>Fit for beam initial conditions</string>
+     </property>
+     <layout class="QVBoxLayout" name="group_fit_layout">
+      <item>
+       <widget class="TableView" name="fit_table">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QGroupBox" name="group_steerer">
+     <property name="title">
+      <string>Calculated steerer corrections</string>
+     </property>
+     <layout class="QVBoxLayout" name="group_steerer_layout">
+      <item>
+       <widget class="TableView" name="corrections_table">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QPushButton" name="update_fit_button">
+     <property name="text">
+      <string>Fit</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPushButton" name="execute_corrections">
+     <property name="text">
+      <string>Apply steerer corrections</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QTableView</extends>
+   <header>madqt/widget/tableview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QuantitySpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>madqt/widget/spinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QuantityDisplay</class>
+   <extends>QLineEdit</extends>
+   <header>madqt/widget/quantity.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>x_target_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>x_target_value</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>327</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>392</x>
+     <y>72</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>y_target_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>y_target_value</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>98</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>373</x>
+     <y>98</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

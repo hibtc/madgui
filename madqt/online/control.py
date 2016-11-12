@@ -60,7 +60,7 @@ class Control(Object):
         items = []
         for loader in loaders:
             items.append(
-                Item('Connect ' + loader.title, None,
+                Item('Connect ' + loader.title, loader.hotkey,
                      'Connect ' + loader.descr,
                      partial(self.connect, loader),
                      enabled=self.can_connect))
@@ -72,22 +72,28 @@ class Control(Object):
             Separator,
             Item('&Read strengths', None,
                  'Read magnet strengths from the online database',
-                 self.read_all,
+                 self.on_read_all,
                  enabled=self.has_sequence),
             Item('&Write strengths', None,
                  'Write magnet strengths to the online database',
-                 self.write_all,
+                 self.on_write_all,
                  enabled=self.has_sequence),
             Separator,
             Item('Read &monitors', None,
                  'Read SD values (beam envelope/position) from monitors',
-                 self.read_monitors,
+                 self.on_read_monitors,
                  enabled=self.has_sequence),
             Separator,
-            Item('&Orbit correction (2 optics)', None,
-                 'Perform orbit correction (2 optics method)',
-                 self.on_find_initial_position,
-                 enabled=self.has_sequence),
+            menu.Menu('&Orbit correction', [
+                Item('Optic &variation', 'Ctrl+V',
+                     'Perform orbit correction via 2-optics method',
+                     self.on_correct_optic_variation_method,
+                     enabled=self.has_sequence),
+                Item('Multi &grid', 'Ctrl+G',
+                     'Perform orbit correction via 2-grids method',
+                     self.on_correct_multi_grid_method,
+                     enabled=self.has_sequence),
+            ]),
         ]
         return menu.Menu('&Online control', items)
 
@@ -132,7 +138,7 @@ class Control(Object):
                 'There are no DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
         return elems, rows
 
-    def read_all(self):
+    def on_read_all(self):
         """Read all parameters from the online database."""
         elems, rows = self._params()
         if not rows:
@@ -143,7 +149,7 @@ class Control(Object):
         widget.data_key = 'dvm_parameters'
         self._show_dialog(widget, lambda: self.read_these(elems))
 
-    def write_all(self):
+    def on_write_all(self):
         """Write all parameters to the online database."""
         elems, rows = self._params()
         if not rows:
@@ -154,7 +160,15 @@ class Control(Object):
         widget.data_key = 'dvm_parameters'
         self._show_dialog(widget, lambda: self.write_these(elems))
 
-    def read_monitors(self):
+    def read_all(self):
+        elems, rows = self._params()
+        self.read_these(elems)
+
+    def write_all(self):
+        elems, rows = self._params()
+        self.write_these(elems)
+
+    def on_read_monitors(self):
         """Read out SD values (beam position/envelope)."""
         from madqt.online.dialogs import MonitorWidget, MonitorItem
 
@@ -184,29 +198,34 @@ class Control(Object):
         dialog.show()
         return dialog
 
-    def on_find_initial_position(self):
+    def on_correct_optic_variation_method(self):
+        self._correct('optic_variation')
+
+    def on_correct_multi_grid_method(self):
+        self._correct('multi_grid')
+
+    def _correct(self, name):
         from madqt.widget.dialog import Dialog
-        from . import optic_variation
+        module = __import__('madqt.correct.' + name, None, None, '*')
+
+        self.read_all()
 
         segment = self._segment
-        # TODO: sync elements attributes
         elements = segment.sequence.elements
-        varyconf = segment.universe.data.get('align', {})
-        # TODO: …
+        varyconf = segment.universe.data.get(name, {})
 
-        widget = optic_variation.SelectWidget(elements, varyconf)
+        select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
-        dialog.setExportWidget(widget, self._frame.folder)
+        dialog.setExportWidget(select, self._frame.folder)
         dialog.exec_()
+        if dialog.result() != QtGui.QDialog.Accepted:
+            return
 
-        choices = widget.get_data()
-
-        method = optic_variation.OpticVariationMethod(self, *choices)
-        widget = optic_variation.OVM_Widget(method)
+        method = module.Corrector(self, *select.get_data())
+        widget = module.CorrectorWidget(method)
         dialog = Dialog(self._frame)
         dialog.setWidget(widget)
         dialog.exec_()
-
 
     # helper functions
 
