@@ -88,6 +88,8 @@ class MainWindow(QtGui.QMainWindow):
         self.createMenu()
         self.createControls()
         self.createStatusBar()
+        screen = QtGui.QDesktopWidget().availableGeometry()
+        self.resize(screen.size()*0.8)
 
     def loadDefault(self):
         filename = self.options['FILE']
