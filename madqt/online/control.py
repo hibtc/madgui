@@ -225,7 +225,7 @@ class Control(Object):
         widget = module.CorrectorWidget(method)
         dialog = Dialog(self._frame)
         dialog.setWidget(widget)
-        dialog.exec_()
+        dialog.show()
 
     # helper functions
 
