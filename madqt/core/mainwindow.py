@@ -214,9 +214,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def setTwiss(self, data):
         self.universe.segment.twiss_args = data
+        self.universe.segment.retrack()
 
     def setBeam(self, data):
         self.universe.segment.beam = data
+        self.universe.segment.retrack()
 
     @SingleWindow.factory
     def viewShell(self):
