@@ -27,7 +27,7 @@ def asb_property(name):
     return property(get, set)
 
 
-class InfixControlBase(object):
+class AffixControlBase(object):
 
     """
     Base class for controls showing a prefix/suffix surrounding an editable
@@ -37,7 +37,7 @@ class InfixControlBase(object):
     validator = None
 
     def __init__(self, *args, **kwargs):
-        super(InfixControlBase, self).__init__(*args, **kwargs)
+        super(AffixControlBase, self).__init__(*args, **kwargs)
         self.line_edit().textChanged.connect(self.interpretText)
 
     # imitate QAbstractSpinBox/QSpinBox/QDoubleSpinBox API
@@ -171,7 +171,7 @@ class InfixControlBase(object):
         edit = self.line_edit()
         if edit is self:
             # avoid infinite recursion
-            super(InfixControlBase, self).focusInEvent(event)
+            super(AffixControlBase, self).focusInEvent(event)
         else:
             self.line_edit().event(event)
             # skip QAbstractSpinBox::focusInEvent (which would call the
@@ -208,10 +208,10 @@ class InfixControlBase(object):
             event.accept()
             return
 
-        super(InfixControlBase, self).keyPressEvent(event)
+        super(AffixControlBase, self).keyPressEvent(event)
 
 
-class ValueControlBase(InfixControlBase):
+class ValueControlBase(AffixControlBase):
 
     """
     Base class for widgets displaying values from an ordered set.
