@@ -442,7 +442,7 @@ class MatchTool(CaptureTool):
     def findConstraint(self, elem, axis):
         """Find and return the constraint for the specified element."""
         return [c for c in self.constraints
-                if c.elem['name'] == elem['name'] and c.axis == axis]
+                if c.elem['el_id'] == elem['el_id'] and c.axis == axis]
 
     def addConstraint(self, constraint):
         """Add constraint and perform matching."""
@@ -453,7 +453,7 @@ class MatchTool(CaptureTool):
         """Remove the constraint for elem."""
         self.constraints[:] = [
             c for c in self.constraints
-            if c.elem['name'] != elem['name'] or c.axis != axis]
+            if c.elem['el_id'] != elem['el_id'] or c.axis != axis]
 
     def clearConstraints(self):
         """Remove all constraints."""
@@ -562,10 +562,9 @@ class InfoTool(CaptureTool):
     def onClick(self, event):
         """Display a popup window with info about the selected element."""
 
-        elem = event.elem
-        if event.elem is None or 'el_id' not in elem:
+        if event.elem is None:
             return
-        el_id = elem['el_id']
+        el_id = event.elem['el_id']
 
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
