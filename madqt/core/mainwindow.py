@@ -88,6 +88,8 @@ class MainWindow(QtGui.QMainWindow):
         self.createMenu()
         self.createControls()
         self.createStatusBar()
+        screen = QtGui.QDesktopWidget().availableGeometry()
+        self.resize(screen.size()*0.8)
 
     def loadDefault(self):
         filename = self.options['FILE']
@@ -212,9 +214,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def setTwiss(self, data):
         self.universe.segment.twiss_args = data
+        self.universe.segment.retrack()
 
     def setBeam(self, data):
         self.universe.segment.beam = data
+        self.universe.segment.retrack()
 
     @SingleWindow.factory
     def viewShell(self):

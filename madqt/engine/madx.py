@@ -422,7 +422,7 @@ class Segment(SegmentBase):
         info = self.native_graph_data[name]
         xdata = self.get_twiss_column('s') + self.start.at
         data = {
-            curve.short: np.stack((xdata, ydata)).T
+            curve.short: np.vstack((xdata, ydata)).T
             for curve in info.curves
             for ydata in [self.get_twiss_column(curve.name)]
         }
