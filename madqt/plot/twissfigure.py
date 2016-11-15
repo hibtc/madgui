@@ -286,7 +286,7 @@ class CaptureTool(CheckTool):
 # Toolbar item for matching
 #----------------------------------------
 
-Constraint = namedtuple('Constraint', ['elem', 'axis', 'value'])
+Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
 
 
 class MatchTool(CaptureTool):
@@ -342,7 +342,7 @@ class MatchTool(CaptureTool):
         Invoked after the user clicks in matching mode.
         """
 
-        elem = self.segment.get_best_match_elem(event.x)
+        elem, pos = self.segment.get_best_match_pos(event.x)
 
         name = event.axes.y_name
         axes = self.plot.scene.axes
@@ -364,7 +364,7 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        self.addConstraint(Constraint(elem, name, event.y))
+        self.addConstraint(Constraint(elem, pos, name, event.y))
 
         # add another constraint to hold the orthogonal axis constant
         for ax in axes:
@@ -372,7 +372,7 @@ class MatchTool(CaptureTool):
                 continue
             # TODO: tao can do this with exact s positions
             value = self.segment.get_twiss(elem['name'], ax.y_name)
-            self.addConstraint(Constraint(elem, ax.y_name, value))
+            self.addConstraint(Constraint(elem, pos, ax.y_name, value))
 
         self.markers.draw()
 
@@ -402,7 +402,7 @@ class MatchTool(CaptureTool):
 
         # transform constraints (envx => betx, etc)
         constraints = [
-            Constraint(c.elem, *getattr(transform, c.axis)(c.value))
+            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
             for c in self.constraints]
 
         # The following uses a greedy algorithm to select all elements that
@@ -434,7 +434,7 @@ class MatchTool(CaptureTool):
         madx_constraints = [
             {'range': elem['name'],
              axis: universe.utool.strip_unit(axis, val)}
-            for elem, axis, val in constraints]
+            for elem, pos, axis, val in constraints]
 
         twiss_args = universe.utool.dict_strip_unit(segment.twiss_args)
         universe.madx.match(sequence=segment.sequence.name,
@@ -517,11 +517,10 @@ class ConstraintMarkers(SceneElement):
             line.remove()
         del self.lines[:]
 
-    def plotConstraint(self, elem, axis, val):
+    def plotConstraint(self, elem, pos, axis, val):
         """Draw one constraint representation in the graph."""
         scene = self.scene
         ax = scene.get_ax_by_name(axis)
-        pos = elem['at'] + elem['l']         # TODO: how to match at center?
         self.lines.extend(ax.plot(
             strip_unit(pos, ax.x_unit),
             strip_unit(val, ax.y_unit),

@@ -264,19 +264,22 @@ class SegmentBase(Object):
         graphs.update(self.native_graphs)
         return graphs
 
+    @abstractmethod
     def get_native_graph_data(self, name):
         """Get the data for a particular graph."""
         raise NotImplementedError
 
+    @abstractmethod
     def get_native_graphs(self):
         """Get a list of graph names."""
         raise NotImplementedError
 
+    @abstractmethod
     def retrack(self):
         raise NotImplementedError
 
     @abstractmethod
-    def get_best_match_elem(self, s):
+    def get_best_match_pos(self, s):
         raise NotImplementedError
 
 
