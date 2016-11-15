@@ -18,7 +18,7 @@ from madqt.util.misc import attribute_alias, cachedproperty
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
-    PlotInfo, CurveInfo,
+    PlotInfo, CurveInfo, ElementList,
 )
 
 
@@ -273,10 +273,8 @@ class Segment(SegmentBase):
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
-        self.raw_elements = self.sequence.elements
-        # TODO: provide uncached version of elements with units:
-        self.elements = list(map(
-            self.utool.dict_add_unit, self.raw_elements))
+        el_names = self.sequence.expanded_element_names()
+        self.elements = ElementList(el_names, self.get_element_data)
 
         self.start, self.stop = self.parse_range(range)
         self.range = (normalize_range_name(self.start.name),
@@ -331,7 +329,7 @@ class Segment(SegmentBase):
 
     def get_element_index(self, elem):
         """Get element index by it name."""
-        return self.sequence.expanded_elements.index(elem)
+        return self.elements.index(elem)
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
