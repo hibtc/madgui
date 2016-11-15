@@ -480,17 +480,17 @@ class InfoBoxGroup(object):
 
     # keep info boxes in sync with current selection
 
-    def _insert(self, index, value):
-        self.boxes.insert(index, self.create_info_box(value, index != 0))
+    def _insert(self, index, el_id):
+        self.boxes.insert(index, self.create_info_box(el_id, index != 0))
 
     def _delete(self, index):
         if self.boxes[index].isVisible():
             self.boxes[index].close()
         del self.boxes[index]
 
-    def _modify(self, index, new_value):
-        self.boxes[index].widget().el_name = new_value
-        self.boxes[index].setWindowTitle(new_value)
+    def _modify(self, index, el_id):
+        self.boxes[index].widget().el_id = el_id
+        self.boxes[index].setWindowTitle(self.segment.elements[el_id]['name'])
 
     # utility methods
 
@@ -499,21 +499,21 @@ class InfoBoxGroup(object):
         return self.mainwindow.universe.segment
 
     def _on_close_box(self, box):
-        el_name = box.widget().el_name
-        if el_name in self.selection.elements:
-            self.selection.elements.remove(el_name)
+        el_id = box.widget().el_id
+        if el_id in self.selection.elements:
+            self.selection.elements.remove(el_id)
 
     def set_active_box(self, box):
         self.selection.top = self.boxes.index(box)
         box.raise_()
 
-    def create_info_box(self, elem_name, stack=True):
+    def create_info_box(self, el_id, stack=True):
         from madqt.widget.elementinfo import ElementInfoBox
         from madqt.util.qt import notifyCloseEvent, notifyEvent
-        info = ElementInfoBox(self.segment, elem_name)
+        info = ElementInfoBox(self.segment, el_id)
         dock = QtGui.QDockWidget()
         dock.setWidget(info)
-        dock.setWindowTitle(elem_name)
+        dock.setWindowTitle(self.segment.elements[el_id]['name'])
         notifyCloseEvent(dock, lambda: self._on_close_box(dock))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(dock))
 

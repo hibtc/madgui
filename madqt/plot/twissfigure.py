@@ -566,9 +566,9 @@ class InfoTool(CaptureTool):
         """Display a popup window with info about the selected element."""
 
         elem = event.elem
-        if event.elem is None or 'name' not in elem:
+        if event.elem is None or 'el_id' not in elem:
             return
-        elem_name = elem['name']
+        el_id = elem['el_id']
 
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
@@ -577,12 +577,12 @@ class InfoTool(CaptureTool):
         # are used to open more dialogs:
         selected = self.selection.elements
         if selected and not shift and not control:
-            selected[self.selection.top] = elem_name
+            selected[self.selection.top] = el_id
         elif shift:
             # stack box
-            selected.append(elem_name)
+            selected.append(el_id)
         else:
-            selected.insert(0, elem_name)
+            selected.insert(0, el_id)
 
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
@@ -600,11 +600,11 @@ class InfoTool(CaptureTool):
             return
         top = self.selection.top
         elements = self.segment.elements
-        old_name = selected[top]
-        old_index = self.segment.get_element_index(old_name)
+        old_el_id = selected[top]
+        old_index = self.segment.get_element_index(old_el_id)
         new_index = old_index + move_step
-        new_name = elements[new_index % len(elements)]['name']
-        selected[top] = new_name
+        new_el_id = self.segment.elements[new_index % len(elements)]['el_id']
+        selected[top] = new_el_id
 
 
 class ElementMarkers(object):
@@ -628,8 +628,8 @@ class ElementMarkers(object):
 
     def plot(self):
         segment = self.scene.segment
-        elements = [segment.get_element_by_name(el_name)
-                    for el_name in self.selection.elements]
+        elements = [segment.elements[el_id]
+                    for el_id in self.selection.elements]
         self.lines.extend(map(self.plot_marker, elements))
 
     def update(self):

@@ -325,7 +325,9 @@ class Segment(SegmentBase):
         self.madx.command.beam(**beam)
 
     def get_element_data_raw(self, elem):
-        return self.universe.madx.active_sequence.expanded_elements[elem]
+        data = self.universe.madx.active_sequence.expanded_elements[elem]
+        data['el_id'] = data['index']
+        return data
 
     def get_element_index(self, elem):
         """Get element index by it name."""

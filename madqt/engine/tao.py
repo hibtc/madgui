@@ -148,6 +148,7 @@ class Segment(SegmentBase):
         data = merged(self.tao.get_element_data(index, who='general'),
                       self.tao.get_element_data(index, who='parameters'),
                       self.tao.get_element_data(index, who='multipole'))
+        data['el_id'] = data['ix_ele']
         data['name'] = data['name'].lower()
         data['at'] = data['s'] - data['l']
         # for compatibility with MAD-X:
