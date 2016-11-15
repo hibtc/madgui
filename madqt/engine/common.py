@@ -193,6 +193,7 @@ class SegmentBase(Object):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
+        # TODO: solve more efficiently via binary search?
         for elem in self.elements:
             at, L = elem['at'], elem['l']
             if pos >= at and pos <= at+L:
@@ -272,6 +273,10 @@ class SegmentBase(Object):
         raise NotImplementedError
 
     def retrack(self):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_best_match_elem(self, s):
         raise NotImplementedError
 
 

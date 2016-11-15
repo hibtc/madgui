@@ -342,10 +342,7 @@ class MatchTool(CaptureTool):
         Invoked after the user clicks in matching mode.
         """
 
-        elem = event.elem
-
-        if elem is None or 'name' not in elem:
-            return
+        elem = self.segment.get_best_match_elem(event.x)
 
         name = event.axes.y_name
         axes = self.plot.scene.axes

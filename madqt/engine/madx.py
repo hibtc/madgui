@@ -439,6 +439,15 @@ class Segment(SegmentBase):
         self.summary = self.utool.dict_add_unit(results.summary)
         self.updated.emit()
 
+    def get_best_match_elem(self, pos):
+        """Find optics element by longitudinal position."""
+        el_pos = lambda el: el['at'] + el['l']
+        return min(filter(self.can_match_at, self.elements),
+                   key=lambda el: abs(el_pos(el)-pos))
+
+    def can_match_at(self, elem):
+        return not elem['name'].endswith('[0]')
+
 
 def process_spec(prespec):
     from madqt.widget.params import ParamSpec
