@@ -382,9 +382,13 @@ class MatchTool(CaptureTool):
     def _allvars(self, axis):
         # filter element list for usable types:
         param_spec = self.rules.get(axis, {})
-        return [(elem, param_spec[elem['type']])
-                for elem in self.elements
-                if elem['type'] in param_spec]
+        return [
+            (elem['at'], expr)
+            for elem in self.elements
+            for attr in param_spec.get(elem['type'], [])
+            for expr in [_get_elem_attr_expr(elem, attr)]
+            if expr is not None
+        ]
 
     def match(self):
 
@@ -410,21 +414,21 @@ class MatchTool(CaptureTool):
         vary = []
         for c in constraints:
             at = c.elem['at']
-            allowed = [v for v in allvars[c.axis] if v[0]['at'] < at]
+            allowed = [(pos, expr)
+                       for pos, expr in allvars[c.axis]
+                       if pos < at]
             if not allowed:
                 # No variable in range found! Ok.
                 continue
-            v = max(allowed, key=lambda v: v[0]['at'])
-            expr = _get_any_elem_param(v[0], v[1])
-            if expr is None:
-                allvars[c.axis].remove(v)
-            else:
-                vary.append(expr)
-                for c in allvars.values():
-                    try:
-                        c.remove(v)
-                    except ValueError:
-                        pass
+
+            pos, expr = allowed[-1]
+
+            vary.append(expr)
+            for c in allvars.values():
+                try:
+                    c.remove((pos, expr))
+                except ValueError:
+                    pass
 
         # create constraints list to be passed to Madx.match
         madx_constraints = [
@@ -477,16 +481,15 @@ class MatchTransform(object):
         return lambda val: (name, val)
 
 
-def _get_any_elem_param(elem, params):
-    for param in params:
-        try:
-            return elem[param]._expression
-        except KeyError:
-            pass
-        except AttributeError:
-            if strip_unit(elem[param]) != 0.0:
-                return elem['name'] + '->' + param
-    raise ValueError()
+def _get_elem_attr_expr(elem, attr):
+    try:
+        return elem[attr]._expression
+    except KeyError:
+        return None
+    except AttributeError:
+        if strip_unit(elem[attr]) != 0.0:
+            return elem['name'] + '->' + attr
+    return None
 
 
 class ConstraintMarkers(SceneElement):
