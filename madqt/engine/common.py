@@ -137,9 +137,6 @@ class SegmentBase(Object):
     def survey(self):
         raise NotImplementedError
 
-    def survey_elements(self):
-        raise NotImplementedError
-
     def get_twiss_args_raw(self, elem):
         raise NotImplementedError
 

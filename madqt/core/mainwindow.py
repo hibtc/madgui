@@ -227,7 +227,8 @@ class MainWindow(QtGui.QMainWindow):
     def viewFloorPlan(self):
         from madqt.widget.floor_plan import LatticeFloorPlan
         latview = LatticeFloorPlan()
-        latview.setElements(self.universe.segment.survey_elements(),
+        latview.setElements(self.universe.utool,
+                            self.universe.segment.elements,
                             self.universe.segment.survey(),
                             self.universe.selection)
         dock = QtGui.QDockWidget()

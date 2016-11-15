@@ -159,9 +159,6 @@ class Segment(SegmentBase):
         return [FloorCoords(*self.tao.get_element_floor(index).flat)
                 for index in range(len(self.elements))]
 
-    def survey_elements(self):
-        return self.raw_elements
-
     @property
     def tao(self):
         return self.universe.tao

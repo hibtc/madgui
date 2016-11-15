@@ -60,9 +60,10 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
 
-    def setElements(self, elements, survey, selection):
+    def setElements(self, utool, elements, survey, selection):
         self.setScene(QtGui.QGraphicsScene(self))
         for element, floor in zip(elements, survey):
+            element = utool.dict_strip_unit(element)
             self.scene().addItem(
                 createElementGraphicsItem(element, floor, selection))
         self.setViewRect(self.scene().sceneRect())
