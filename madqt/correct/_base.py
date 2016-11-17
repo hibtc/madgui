@@ -95,7 +95,7 @@ class OrbitCorrectorBase(object):
         elem.mad_backend.set(elem.mad_converter.to_backend(data))
 
     def get_transfer_map(self, dest, orig=None, optics=(), init_orbit=None):
-        self.apply_csys_optics_to_mad(optics)
+        self.apply_mad_optics(optics)
         # TODO: get multiple transfer maps in one TWISS call
 
         # update initial conditions to compute sectormaps accounting for the
@@ -120,13 +120,13 @@ class OrbitCorrectorBase(object):
     def get_csys_optics(self):
         from madqt.online.elements import BaseMagnet
         return [
-            (el, el.dvm_backend.get())
+            (el, el.dvm2mad(el.dvm_backend.get()))
             for el in self.control.iter_elements(BaseMagnet)
         ]
 
-    def apply_csys_optics_to_mad(self, optics):
-        for elem, dvm_value in optics:
-            elem.mad_backend.set(elem.dvm2mad(dvm_value))
+    def apply_mad_optics(self, optics):
+        for elem, mad_value in optics:
+            elem.mad_backend.set(mad_value)
 
     # record monitor/model
 
