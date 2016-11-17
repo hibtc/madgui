@@ -134,7 +134,7 @@ class SelectWidget(QtGui.QWidget):
 
 def get_kL(index):
     def getter(record):
-        return record.optics[index]['kL']
+        return record.gui_optics[index]['kL']
     return getter
 
 
@@ -232,6 +232,9 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.corrector.orbit_records.update_after.connect(
             lambda *args: self.update_fit())
 
+        self.fit_iterations_spinbox.valueChanged.connect(
+            self.set_fit_iterations)
+
         # NOTE: self.update_corrections() is called in update_fit(), so we
         # don't need to connect something like fit_table.valueChanged.
 
@@ -317,7 +320,7 @@ class CorrectorWidget(CorrectorWidgetBase):
         current_optics = [self.displ_qp1_value.quantity,
                           self.displ_qp2_value.quantity]
         kL_values = [[optic['kL']
-                      for optic in record.optics]
+                      for optic in record.gui_optics]
                      for record in self.corrector.orbit_records]
         same_values = (
             idx for idx, optics in enumerate(kL_values)
@@ -329,3 +332,7 @@ class CorrectorWidget(CorrectorWidgetBase):
             self.records_table.selectRow(self.update_record_index)
         # new_text = "Record" if self.update_record_index is None else "Update"
         # set_text(self.qp_settings_record, new_text)
+
+    def set_fit_iterations(self, num):
+        self.fit_iterations = num
+        self.update_fit()

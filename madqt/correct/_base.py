@@ -22,11 +22,11 @@ from madqt.widget.tableview import ColumnInfo
 
 class OrbitRecord(object):
 
-    def __init__(self, monitor, orbit, sectormap, optics):
+    def __init__(self, monitor, orbit, csys_optics, gui_optics):
         self.monitor = monitor
         self.orbit = orbit
-        self.sectormap = sectormap
-        self.optics = optics
+        self.csys_optics = csys_optics
+        self.gui_optics = gui_optics
 
     @property
     def x(self):
@@ -94,27 +94,51 @@ class OrbitCorrectorBase(object):
         elem = self.get_element(elem)
         elem.mad_backend.set(elem.mad_converter.to_backend(data))
 
-    def get_transfer_map(self, dest, orig=None):
+    def get_transfer_map(self, dest, orig=None, optics=(), init_orbit=None):
+        self.apply_mad_optics(optics)
         # TODO: get multiple transfer maps in one TWISS call
-        return self.segment.get_transfer_map(
-            self.segment.start if orig is None else orig,
-            self.segment.get_element_info(dest))
+
+        # update initial conditions to compute sectormaps accounting for the
+        # given initial conditions:
+        twiss_args_backup = self.segment.twiss_args.copy()
+        if init_orbit:
+            init_twiss = self.segment.twiss_args.copy()
+            init_twiss.update(init_orbit)
+            self.segment.twiss_args = init_twiss
+
+        try:
+            return self.segment.get_transfer_map(
+                self.segment.start if orig is None else orig,
+                self.segment.get_element_info(dest))
+        finally:
+            self.segment.twiss_args = twiss_args_backup
 
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
         self.control.read_all()
 
+    def get_csys_optics(self):
+        from madqt.online.elements import BaseMagnet
+        return [
+            (el, el.dvm2mad(el.dvm_backend.get()))
+            for el in self.control.iter_elements(BaseMagnet)
+        ]
+
+    def apply_mad_optics(self, optics):
+        for elem, mad_value in optics:
+            elem.mad_backend.set(mad_value)
+
     # record monitor/model
 
     def current_orbit_records(self):
-        self.sync_csys_to_mad()
-        magnet_optics = [self.get_mad(magnet)
+        csys_optics = self.get_csys_optics()
+        magnet_optics = [self.get_dvm(magnet)
                          for magnet in self.magnets]
         return [
             OrbitRecord(
                 monitor,
                 self.get_dvm(monitor),
-                self.get_transfer_map(monitor),
+                csys_optics,
                 magnet_optics)
             for monitor in self.monitors
         ]
@@ -130,10 +154,29 @@ class OrbitCorrectorBase(object):
 
     # computations
 
-    def fit_particle_orbit(self):
+    def fit_particle_orbit_repeat(self, times=1, records=None):
+        # TODO: add thresholds / abort conditions for bad initial conditions
+        # TODO: save initial optics
+        init_orbit = {}
+        for _ in range(times):
+            init_orbit, chi_squared, singular = \
+                self.fit_particle_orbit(records, init_orbit)
+            if singular:
+                break
+        return init_orbit, chi_squared, singular
+
+    def fit_particle_orbit(self, records=None, init_orbit=None):
+        if records is None:
+            records = self.orbit_records
+        sectormaps = [
+            self.get_transfer_map(record.monitor,
+                                  optics=record.csys_optics,
+                                  init_orbit=init_orbit)
+            for record in records
+        ]
         self.fit_results = _fit_particle_orbit(
-            (record.sectormap, self._strip_sd_pair(record.orbit))
-            for record in self.orbit_records)
+            (sectormap, self._strip_sd_pair(record.orbit))
+            for record, sectormap in zip(records, sectormaps))
         initial_orbit, chi_squared, singular = self.fit_results
         x, px, y, py = initial_orbit
         return self.utool.dict_add_unit({
@@ -142,7 +185,8 @@ class OrbitCorrectorBase(object):
         }), chi_squared, singular
 
     def compute_steerer_corrections(self, init_orbit, design_orbit,
-                                    correct_x=None, correct_y=None):
+                                    correct_x=None, correct_y=None,
+                                    targets=None):
 
         """
         Compute corrections for the x_steerers, y_steerers.
@@ -152,7 +196,9 @@ class OrbitCorrectorBase(object):
         """
 
         # TODO: make this work with backends other than MAD-X…
-        self.sync_csys_to_mad()
+
+        if targets is None:
+            targets = self.targets
 
         if correct_x is None:
             correct_x = any(('x' in orbit or 'px' in orbit)
@@ -272,6 +318,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
 
     initial_particle_orbit = None
     steerer_corrections = None
+    fit_iterations = 1
 
     fit_columns = [
         ColumnInfo("Param", 'name'),
@@ -313,7 +360,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
             self._update_fit_table(None, [])
             return
         init_orbit, chi_squared, singular = \
-            self.corrector.fit_particle_orbit()
+            self.corrector.fit_particle_orbit_repeat(self.fit_iterations)
         if singular:
             self._update_fit_table(None, [
                 ParameterInfo("", "SINGULAR MATRIX")])
@@ -351,6 +398,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
             # TODO: always display current steerer values
             self.corrections_table.rows = []
             return
+        self.corrector.sync_csys_to_mad()
         self.steerer_corrections = \
             self.corrector.compute_steerer_corrections(init, [design])
         self.execute_corrections.setEnabled(True)
