@@ -22,7 +22,7 @@ from madqt.util.misc import (attribute_alias,
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
-    PlotInfo, CurveInfo,
+    PlotInfo, CurveInfo, ElementList,
 )
 
 
@@ -134,20 +134,14 @@ class Segment(SegmentBase):
 
         num_elements_seg = num_elements[self.sequence.lower()]
 
-        self.raw_elements = [
-            self.get_element_data_raw(i)
-            for i in range(num_elements_seg)]
-        self.elements = [
-            self.utool.dict_add_unit(elem)
-            for elem in self.raw_elements]
-
-        self._el_indices = {el['name'].lower(): el['ix_ele']
-                            for el in self.elements}
+        el_names = self.tao.get_list('lat_ele_list', self.unibra)
+        self.elements = ElementList(el_names, self.get_element_data)
 
     def get_element_data_raw(self, index):
         data = merged(self.tao.get_element_data(index, who='general'),
                       self.tao.get_element_data(index, who='parameters'),
                       self.tao.get_element_data(index, who='multipole'))
+        data['el_id'] = data['ix_ele']
         data['name'] = data['name'].lower()
         data['at'] = data['s'] - data['l']
         # for compatibility with MAD-X:
@@ -158,9 +152,6 @@ class Segment(SegmentBase):
     def survey(self):
         return [FloorCoords(*self.tao.get_element_floor(index).flat)
                 for index in range(len(self.elements))]
-
-    def survey_elements(self):
-        return self.raw_elements
 
     @property
     def tao(self):
@@ -212,7 +203,7 @@ class Segment(SegmentBase):
 
     def get_element_index(self, elem_name):
         """Get element index by it name."""
-        return self._el_indices[elem_name.lower()]
+        return self.elements.index(elem_name)
 
     def get_beam_conf(self):
         return self._get_param_conf('beam')

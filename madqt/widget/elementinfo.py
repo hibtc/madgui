@@ -48,7 +48,7 @@ class ElementInfoBox(TableView):
         ColumnInfo('Value', 'value'),
     ]
 
-    def __init__(self, segment, el_name, **kwargs):
+    def __init__(self, segment, el_id, **kwargs):
         super(ElementInfoBox, self).__init__(columns=self.columns, **kwargs)
 
         self.horizontalHeader().hide()
@@ -58,7 +58,7 @@ class ElementInfoBox(TableView):
         self.setSizePolicy(sizePolicy)
 
         self.segment = segment
-        self.el_name = el_name
+        self.el_id = el_id
 
         self.segment.updated.connect(self.update)
 
@@ -67,18 +67,17 @@ class ElementInfoBox(TableView):
         event.accept()
 
     @property
-    def el_name(self):
-        return self._el_name
+    def el_id(self):
+        return self._el_id
 
-    @el_name.setter
-    def el_name(self, name):
-        self._el_name = name
+    @el_id.setter
+    def el_id(self, name):
+        self._el_id = name
         self.update()
 
     @property
     def element(self):
-        return self.segment.get_element_data(
-            self.segment.get_element_info(self.el_name).index)
+        return self.segment.elements[self.el_id]
 
     def update(self):
         """

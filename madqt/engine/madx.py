@@ -18,7 +18,7 @@ from madqt.util.misc import attribute_alias, cachedproperty
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
-    PlotInfo, CurveInfo,
+    PlotInfo, CurveInfo, ElementList,
 )
 
 
@@ -209,7 +209,7 @@ class Universe(EngineBase):
             first, last = table.range
         except ValueError:
             raise RuntimeError("TWISS table inaccessible or nonsensical.")
-        if first not in sequence.elements or last not in sequence.elements:
+        if first not in sequence.expanded_elements or last not in sequence.expanded_elements:
             raise RuntimeError("The TWISS table appears to belong to a different sequence.")
         # TODO: this inefficiently copies over the whole table over the pipe
         # rather than just the first row.
@@ -266,18 +266,19 @@ class Segment(SegmentBase):
         self.universe = universe
         self.sequence = universe.madx.sequences[sequence]
 
-        self.start, self.stop = self.parse_range(range)
-        self.range = (normalize_range_name(self.start.name),
-                      normalize_range_name(self.stop.name))
-
         self._beam = beam
         self._twiss_args = twiss_args
         self._use_beam(beam)
+        self.sequence.use()
 
-        self.raw_elements = self.sequence.elements
-        # TODO: provide uncached version of elements with units:
-        self.elements = list(map(
-            self.utool.dict_add_unit, self.raw_elements))
+        # Use `expanded_elements` rather than `elements` to have a one-to-one
+        # correspondence with the data points of TWISS/SURVEY:
+        el_names = self.sequence.expanded_element_names()
+        self.elements = ElementList(el_names, self.get_element_data)
+
+        self.start, self.stop = self.parse_range(range)
+        self.range = (normalize_range_name(self.start.name),
+                      normalize_range_name(self.stop.name))
 
         self.cache = {}
         self.retrack()
@@ -322,11 +323,13 @@ class Segment(SegmentBase):
         self.madx.command.beam(**beam)
 
     def get_element_data_raw(self, elem):
-        return self.universe.madx.active_sequence.elements[elem]
+        data = self.universe.madx.active_sequence.expanded_elements[elem]
+        data['el_id'] = data['index']
+        return data
 
     def get_element_index(self, elem):
         """Get element index by it name."""
-        return self.sequence.elements.index(elem)
+        return self.elements.index(elem)
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
@@ -366,12 +369,8 @@ class Segment(SegmentBase):
         # NOTE: SURVEY includes auto-generated DRIFTs, but segment.elements
         # does not!
         table = self.madx.survey()
-        names = map(name_from_internal, table['name'])
         array = np.array([table[key] for key in FloorCoords._fields])
         return [FloorCoords(*row) for row in array.T]
-
-    def survey_elements(self):
-        return self.sequence.expanded_elements
 
     def ex(self):
         return self.summary['ex']
@@ -439,6 +438,16 @@ class Segment(SegmentBase):
         results = self.madx.twiss(**self._get_twiss_args())
         self.summary = self.utool.dict_add_unit(results.summary)
         self.updated.emit()
+
+    def get_best_match_pos(self, pos):
+        """Find optics element by longitudinal position."""
+        el_pos = lambda el: el['at'] + el['l']
+        elem = min(filter(self.can_match_at, self.elements),
+                   key=lambda el: abs(el_pos(el)-pos))
+        return (elem, el_pos(elem))
+
+    def can_match_at(self, elem):
+        return not elem['name'].endswith('[0]')
 
 
 def process_spec(prespec):

@@ -286,7 +286,7 @@ class CaptureTool(CheckTool):
 # Toolbar item for matching
 #----------------------------------------
 
-Constraint = namedtuple('Constraint', ['elem', 'axis', 'value'])
+Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
 
 
 class MatchTool(CaptureTool):
@@ -342,10 +342,7 @@ class MatchTool(CaptureTool):
         Invoked after the user clicks in matching mode.
         """
 
-        elem = event.elem
-
-        if elem is None or 'name' not in elem:
-            return
+        elem, pos = self.segment.get_best_match_pos(event.x)
 
         name = event.axes.y_name
         axes = self.plot.scene.axes
@@ -367,7 +364,7 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        self.addConstraint(Constraint(elem, name, event.y))
+        self.addConstraint(Constraint(elem, pos, name, event.y))
 
         # add another constraint to hold the orthogonal axis constant
         for ax in axes:
@@ -375,7 +372,7 @@ class MatchTool(CaptureTool):
                 continue
             # TODO: tao can do this with exact s positions
             value = self.segment.get_twiss(elem['name'], ax.y_name)
-            self.addConstraint(Constraint(elem, ax.y_name, value))
+            self.addConstraint(Constraint(elem, pos, ax.y_name, value))
 
         self.markers.draw()
 
@@ -385,9 +382,13 @@ class MatchTool(CaptureTool):
     def _allvars(self, axis):
         # filter element list for usable types:
         param_spec = self.rules.get(axis, {})
-        return [(elem, param_spec[elem['type']])
-                for elem in self.elements
-                if elem['type'] in param_spec]
+        return [
+            (elem['at'], expr)
+            for elem in self.elements
+            for attr in param_spec.get(elem['type'], [])
+            for expr in [_get_elem_attr_expr(elem, attr)]
+            if expr is not None
+        ]
 
     def match(self):
 
@@ -401,7 +402,7 @@ class MatchTool(CaptureTool):
 
         # transform constraints (envx => betx, etc)
         constraints = [
-            Constraint(c.elem, *getattr(transform, c.axis)(c.value))
+            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
             for c in self.constraints]
 
         # The following uses a greedy algorithm to select all elements that
@@ -413,27 +414,27 @@ class MatchTool(CaptureTool):
         vary = []
         for c in constraints:
             at = c.elem['at']
-            allowed = [v for v in allvars[c.axis] if v[0]['at'] < at]
+            allowed = [(pos, expr)
+                       for pos, expr in allvars[c.axis]
+                       if pos < at]
             if not allowed:
                 # No variable in range found! Ok.
                 continue
-            v = max(allowed, key=lambda v: v[0]['at'])
-            expr = _get_any_elem_param(v[0], v[1])
-            if expr is None:
-                allvars[c.axis].remove(v)
-            else:
-                vary.append(expr)
-                for c in allvars.values():
-                    try:
-                        c.remove(v)
-                    except ValueError:
-                        pass
+
+            pos, expr = allowed[-1]
+
+            vary.append(expr)
+            for c in allvars.values():
+                try:
+                    c.remove((pos, expr))
+                except ValueError:
+                    pass
 
         # create constraints list to be passed to Madx.match
         madx_constraints = [
             {'range': elem['name'],
              axis: universe.utool.strip_unit(axis, val)}
-            for elem, axis, val in constraints]
+            for elem, pos, axis, val in constraints]
 
         twiss_args = universe.utool.dict_strip_unit(segment.twiss_args)
         universe.madx.match(sequence=segment.sequence.name,
@@ -445,7 +446,7 @@ class MatchTool(CaptureTool):
     def findConstraint(self, elem, axis):
         """Find and return the constraint for the specified element."""
         return [c for c in self.constraints
-                if c.elem['name'] == elem['name'] and c.axis == axis]
+                if c.elem['el_id'] == elem['el_id'] and c.axis == axis]
 
     def addConstraint(self, constraint):
         """Add constraint and perform matching."""
@@ -456,7 +457,7 @@ class MatchTool(CaptureTool):
         """Remove the constraint for elem."""
         self.constraints[:] = [
             c for c in self.constraints
-            if c.elem['name'] != elem['name'] or c.axis != axis]
+            if c.elem['el_id'] != elem['el_id'] or c.axis != axis]
 
     def clearConstraints(self):
         """Remove all constraints."""
@@ -480,16 +481,15 @@ class MatchTransform(object):
         return lambda val: (name, val)
 
 
-def _get_any_elem_param(elem, params):
-    for param in params:
-        try:
-            return elem[param]._expression
-        except KeyError:
-            pass
-        except AttributeError:
-            if strip_unit(elem[param]) != 0.0:
-                return elem['name'] + '->' + param
-    raise ValueError()
+def _get_elem_attr_expr(elem, attr):
+    try:
+        return elem[attr]._expression
+    except KeyError:
+        return None
+    except AttributeError:
+        if strip_unit(elem[attr]) != 0.0:
+            return elem['name'] + '->' + attr
+    return None
 
 
 class ConstraintMarkers(SceneElement):
@@ -517,11 +517,10 @@ class ConstraintMarkers(SceneElement):
             line.remove()
         del self.lines[:]
 
-    def plotConstraint(self, elem, axis, val):
+    def plotConstraint(self, elem, pos, axis, val):
         """Draw one constraint representation in the graph."""
         scene = self.scene
         ax = scene.get_ax_by_name(axis)
-        pos = elem['at'] + elem['l']         # TODO: how to match at center?
         self.lines.extend(ax.plot(
             strip_unit(pos, ax.x_unit),
             strip_unit(val, ax.y_unit),
@@ -565,10 +564,9 @@ class InfoTool(CaptureTool):
     def onClick(self, event):
         """Display a popup window with info about the selected element."""
 
-        elem = event.elem
-        if event.elem is None or 'name' not in elem:
+        if event.elem is None:
             return
-        elem_name = elem['name']
+        el_id = event.elem['el_id']
 
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
@@ -577,12 +575,12 @@ class InfoTool(CaptureTool):
         # are used to open more dialogs:
         selected = self.selection.elements
         if selected and not shift and not control:
-            selected[self.selection.top] = elem_name
+            selected[self.selection.top] = el_id
         elif shift:
             # stack box
-            selected.append(elem_name)
+            selected.append(el_id)
         else:
-            selected.insert(0, elem_name)
+            selected.insert(0, el_id)
 
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
@@ -600,11 +598,11 @@ class InfoTool(CaptureTool):
             return
         top = self.selection.top
         elements = self.segment.elements
-        old_name = selected[top]
-        old_index = self.segment.get_element_index(old_name)
+        old_el_id = selected[top]
+        old_index = self.segment.get_element_index(old_el_id)
         new_index = old_index + move_step
-        new_name = elements[new_index % len(elements)]['name']
-        selected[top] = new_name
+        new_el_id = self.segment.elements[new_index % len(elements)]['el_id']
+        selected[top] = new_el_id
 
 
 class ElementMarkers(object):
@@ -628,8 +626,8 @@ class ElementMarkers(object):
 
     def plot(self):
         segment = self.scene.segment
-        elements = [segment.get_element_by_name(el_name)
-                    for el_name in self.selection.elements]
+        elements = [segment.elements[el_id]
+                    for el_id in self.selection.elements]
         self.lines.extend(map(self.plot_marker, elements))
 
     def update(self):

@@ -211,7 +211,7 @@ class Control(Object):
         self.read_all()
 
         segment = self._segment
-        elements = segment.sequence.elements
+        elements = segment.elements
         varyconf = segment.universe.data.get(name, {})
 
         select = module.SelectWidget(elements, varyconf)

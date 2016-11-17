@@ -60,9 +60,10 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
 
-    def setElements(self, elements, survey, selection):
+    def setElements(self, utool, elements, survey, selection):
         self.setScene(QtGui.QGraphicsScene(self))
         for element, floor in zip(elements, survey):
+            element = utool.dict_strip_unit(element)
             self.scene().addItem(
                 createElementGraphicsItem(element, floor, selection))
         self.setViewRect(self.scene().sceneRect())
@@ -112,9 +113,9 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         insert = set(new_values) - set(old_values)
         delete = set(old_values) - set(new_values)
         for item in self.scene().items():
-            if item.el_name in insert:
+            if item.el_id in insert:
                 item.setSelected(True)
-            if item.el_name in delete:
+            if item.el_id in delete:
                 item.setSelected(False)
 
 
@@ -152,11 +153,11 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self.setPos(floor.z, -floor.x)
         self.setRotation(-rad2deg(floor.theta))
 
-        self.setSelected(self.el_name in selection.elements)
+        self.setSelected(self.el_id in selection.elements)
 
     @property
-    def el_name(self):
-        return self.element['name']
+    def el_id(self):
+        return self.element['el_id']
 
     def itemChange(self, change, value):
         if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
@@ -164,12 +165,12 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         return value
 
     def _on_select(self, select):
-        is_selected = self.el_name in self.selection.elements
+        is_selected = self.el_id in self.selection.elements
         if select and not is_selected:
             # TODO: incorporate whether shift is clicked
-            self.selection.elements.append(self.el_name)
+            self.selection.elements.append(self.el_id)
         elif is_selected and not select:
-            self.selection.elements.remove(self.el_name)
+            self.selection.elements.remove(self.el_id)
 
     def shape(self):
         return self._outline

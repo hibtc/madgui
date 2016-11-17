@@ -8,7 +8,8 @@ from __future__ import unicode_literals
 
 import os
 
-from collections import namedtuple
+from abc import abstractmethod
+from collections import namedtuple, Sequence
 
 import numpy as np
 
@@ -137,9 +138,6 @@ class SegmentBase(Object):
     def survey(self):
         raise NotImplementedError
 
-    def survey_elements(self):
-        raise NotImplementedError
-
     def get_twiss_args_raw(self, elem):
         raise NotImplementedError
 
@@ -195,6 +193,7 @@ class SegmentBase(Object):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
+        # TODO: solve more efficiently via binary search?
         for elem in self.elements:
             at, L = elem['at'], elem['l']
             if pos >= at and pos <= at+L:
@@ -265,13 +264,131 @@ class SegmentBase(Object):
         graphs.update(self.native_graphs)
         return graphs
 
+    @abstractmethod
     def get_native_graph_data(self, name):
         """Get the data for a particular graph."""
         raise NotImplementedError
 
+    @abstractmethod
     def get_native_graphs(self):
         """Get a list of graph names."""
         raise NotImplementedError
 
+    @abstractmethod
     def retrack(self):
         raise NotImplementedError
+
+    @abstractmethod
+    def get_best_match_pos(self, s):
+        raise NotImplementedError
+
+
+class ElementList(Sequence):
+
+    """
+    Immutable list of beam line elements.
+
+    Each element is a dictionary containing its properties.
+    """
+
+    def __init__(self, el_names, get_data):
+        self._el_names = el_names
+        self._get_data = get_data
+        self._indices = {n.lower(): i for i, n in enumerate(el_names)}
+
+    def __contains__(self, element):
+        """
+        Check if sequence contains element with specified name.
+
+        Can be invoked with either the element dict or the element name.
+        """
+        try:
+            self.index(element)
+            return True
+        except ValueError:
+            return False
+
+    def __getitem__(self, index):
+        """Return element with specified index."""
+        # allow element dicts/names to be passed for convenience:
+        if isinstance(index, int):
+            return self._get_by_index(index)
+        if isinstance(index, dict):
+            return self._get_by_dict(index)
+        if isinstance(index, ElementInfo):
+            return self._get_by_dict({
+                'name': index.name,
+                'el_id': index.index,
+            })
+        if isinstance(index, basestring):
+            return self._get_by_name(index)
+        raise ValueError("Unhandled type: {!r}", type(index))
+
+    def __len__(self):
+        """Get number of elements."""
+        return len(self._el_names)
+
+    def index(self, element):
+        """
+        Find index of element with specified name.
+
+        Can be invoked with either the element dict or the element name.
+
+        :raises ValueError: if the element is not found
+        """
+        if isinstance(element, int):
+            return element
+        if isinstance(element, dict):
+            return self._index_by_dict(element)
+        if isinstance(element, ElementInfo):
+            return self._index_by_dict({
+                'name': element.name,
+                'el_id': element.index,
+            })
+        if isinstance(element, basestring):
+            return self._index_by_name(element)
+        raise ValueError("Unhandled type: {!r}", type(element))
+
+    def _get_by_dict(self, elem):
+        if 'el_id' not in elem:
+            raise TypeError("Not an element dict: {!r}".format(elem))
+        index = elem['el_id']
+        data = self._get_by_index(index)
+        if elem['name'] != data['name']:
+            raise ValueError("Element name mismatch: expected {}, got {}."
+                             .format(data['name'], elem['name']))
+        return data
+
+    def _get_by_name(self, name):
+        index = self._index_by_name(name)
+        return self._get_by_index(index)
+
+    def _get_by_index(self, index):
+        # Support a range of [-len, len+1] similar to builtin lists:
+        _len = len(self)
+        if index < -_len or index >= _len:
+            raise IndexError("Index out of bounds: {}, length is: {}"
+                             .format(index, _len))
+        if index < 0:
+            index += _len
+        return self._get_data(index)
+
+    def _index_by_dict(self, elem):
+        if 'el_id' not in elem:
+            raise TypeError("Not an element dict: {!r}".format(elem))
+        index = elem['el_id']
+        if elem['name'].lower() != self._el_names[index].lower():
+            raise ValueError("Element name mismatch: expected {}, got {}."
+                             .format(self._el_names[index], elem['name']))
+        return index
+
+    def _index_by_name(self, name):
+        # TODO: warning – names do not always uniquely identify elements:
+        #       auto-generated DRIFTs in MAD-X.
+        name = name.lower()
+        if len(self) != 0:
+            if name in ('#s', 'beginning'):
+                return 0
+            elif name in ('#e', 'end'):
+                return len(self) - 1
+        return self._indices[name]
