@@ -94,12 +94,24 @@ class OrbitCorrectorBase(object):
         elem = self.get_element(elem)
         elem.mad_backend.set(elem.mad_converter.to_backend(data))
 
-    def get_transfer_map(self, dest, orig=None, optics=()):
+    def get_transfer_map(self, dest, orig=None, optics=(), init_orbit=None):
         self.apply_csys_optics_to_mad(optics)
         # TODO: get multiple transfer maps in one TWISS call
-        return self.segment.get_transfer_map(
-            self.segment.start if orig is None else orig,
-            self.segment.get_element_info(dest))
+
+        # update initial conditions to compute sectormaps accounting for the
+        # given initial conditions:
+        twiss_args_backup = self.segment.twiss_args.copy()
+        if init_orbit:
+            init_twiss = self.segment.twiss_args.copy()
+            init_twiss.update(init_orbit)
+            self.segment.twiss_args = init_twiss
+
+        try:
+            return self.segment.get_transfer_map(
+                self.segment.start if orig is None else orig,
+                self.segment.get_element_info(dest))
+        finally:
+            self.segment.twiss_args = twiss_args_backup
 
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
@@ -142,11 +154,13 @@ class OrbitCorrectorBase(object):
 
     # computations
 
-    def fit_particle_orbit(self, records=None):
+    def fit_particle_orbit(self, records=None, init_orbit=None):
         if records is None:
             records = self.orbit_records
         sectormaps = [
-            self.get_transfer_map(record.monitor, optics=record.csys_optics)
+            self.get_transfer_map(record.monitor,
+                                  optics=record.csys_optics,
+                                  init_orbit=init_orbit)
             for record in records
         ]
         self.fit_results = _fit_particle_orbit(
