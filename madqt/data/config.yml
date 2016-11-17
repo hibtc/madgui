@@ -15,7 +15,7 @@ line_view:
   x_unit: m
 
   # Plot style for the element indicators. Supports common keyword arguments
-  # for ``matplotlib.patches.axvspan()`` and ``matplotlib.axes.axvlines()``:
+  # for ``matplotlib.axes.Axes.axvspan`` and ``matplotlib.axes.Axes.axvline``:
   element_style:
     f-quadrupole: {color: "#ff0000", alpha: 0.3, ymin: 0.1, ymax: 0.9}
     d-quadrupole: {color: "#0000ff", alpha: 0.3, ymin: 0.1, ymax: 0.9}

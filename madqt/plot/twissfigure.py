@@ -226,7 +226,7 @@ class ElementIndicators(object):
             patch_w = strip_unit(elem['l'], x_unit)
             return self.axes.axvspan(at, at + patch_w, **style)
         else:
-            return self.axes.vlines(at, **style)
+            return self.axes.axvline(at, **style)
 
     def get_element_style(self, elem):
         """Return the element type name used for properties like coloring."""
