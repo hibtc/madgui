@@ -70,7 +70,9 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, options, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.has_universe = Bool(False)
-        self.user_ns = {}
+        self.user_ns = {
+            'frame': self,
+        }
         self.options = options
         self.config = config.load(options['--config'])
         self.universe = None
@@ -357,6 +359,14 @@ class MainWindow(QtGui.QMainWindow):
         scene.graph_name = config['default_graph']
         scene.attach(plot)
         scene.plot()
+
+        # for convenience when debugging:
+        self.user_ns.update({
+            'plot': plot,
+            'figure': figure.backend_figure,
+            'canvas': plot.canvas,
+            'scene': scene,
+        })
 
         select = twissfigure.PlotSelector(scene)
         widget = QtGui.QWidget()
