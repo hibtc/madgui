@@ -378,6 +378,9 @@ class MainWindow(QtGui.QMainWindow):
         self.universe.destroyed.connect(widget.close)
         self.universe.destroyed.connect(scene.remove)
 
+        self.scene = scene
+        self.selector = select
+
         self.setMainWidget(widget)
 
     def setMainWidget(self, widget):
@@ -401,6 +404,10 @@ class MainWindow(QtGui.QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         self.shell.exit_requested.connect(dock.close)
         return dock
+
+    def show_graph(self, graph_name):
+        self.scene.graph_name = graph_name
+        self.selector.update_index()
 
     # TODO: show/hide log
     def _createLogTab(self):

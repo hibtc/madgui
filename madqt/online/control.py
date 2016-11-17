@@ -209,6 +209,7 @@ class Control(Object):
         module = __import__('madqt.correct.' + name, None, None, '*')
 
         self.read_all()
+        self._frame.show_graph('orbit')
 
         segment = self._segment
         elements = segment.elements
