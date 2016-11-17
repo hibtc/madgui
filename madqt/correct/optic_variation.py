@@ -134,7 +134,7 @@ class SelectWidget(QtGui.QWidget):
 
 def get_kL(index):
     def getter(record):
-        return record.optics[index]['kL']
+        return record.gui_optics[index]['kL']
     return getter
 
 
@@ -317,7 +317,7 @@ class CorrectorWidget(CorrectorWidgetBase):
         current_optics = [self.displ_qp1_value.quantity,
                           self.displ_qp2_value.quantity]
         kL_values = [[optic['kL']
-                      for optic in record.optics]
+                      for optic in record.gui_optics]
                      for record in self.corrector.orbit_records]
         same_values = (
             idx for idx, optics in enumerate(kL_values)

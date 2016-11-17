@@ -22,11 +22,11 @@ from madqt.widget.tableview import ColumnInfo
 
 class OrbitRecord(object):
 
-    def __init__(self, monitor, orbit, sectormap, optics):
+    def __init__(self, monitor, orbit, csys_optics, gui_optics):
         self.monitor = monitor
         self.orbit = orbit
-        self.sectormap = sectormap
-        self.optics = optics
+        self.csys_optics = csys_optics
+        self.gui_optics = gui_optics
 
     @property
     def x(self):
@@ -94,7 +94,8 @@ class OrbitCorrectorBase(object):
         elem = self.get_element(elem)
         elem.mad_backend.set(elem.mad_converter.to_backend(data))
 
-    def get_transfer_map(self, dest, orig=None):
+    def get_transfer_map(self, dest, orig=None, optics=()):
+        self.apply_csys_optics_to_mad(optics)
         # TODO: get multiple transfer maps in one TWISS call
         return self.segment.get_transfer_map(
             self.segment.start if orig is None else orig,
@@ -104,17 +105,28 @@ class OrbitCorrectorBase(object):
         """Update element settings in MAD-X from control system."""
         self.control.read_all()
 
+    def get_csys_optics(self):
+        from madqt.online.elements import BaseMagnet
+        return [
+            (el, el.dvm_backend.get())
+            for el in self.control.iter_elements(BaseMagnet)
+        ]
+
+    def apply_csys_optics_to_mad(self, optics):
+        for elem, dvm_value in optics:
+            elem.mad_backend.set(elem.dvm2mad(dvm_value))
+
     # record monitor/model
 
     def current_orbit_records(self):
-        self.sync_csys_to_mad()
-        magnet_optics = [self.get_mad(magnet)
+        csys_optics = self.get_csys_optics()
+        magnet_optics = [self.get_dvm(magnet)
                          for magnet in self.magnets]
         return [
             OrbitRecord(
                 monitor,
                 self.get_dvm(monitor),
-                self.get_transfer_map(monitor),
+                csys_optics,
                 magnet_optics)
             for monitor in self.monitors
         ]
@@ -131,9 +143,13 @@ class OrbitCorrectorBase(object):
     # computations
 
     def fit_particle_orbit(self):
+        sectormaps = [
+            self.get_transfer_map(record.monitor, optics=record.csys_optics)
+            for record in self.orbit_records
+        ]
         self.fit_results = _fit_particle_orbit(
-            (record.sectormap, self._strip_sd_pair(record.orbit))
-            for record in self.orbit_records)
+            (sectormap, self._strip_sd_pair(record.orbit))
+            for record, sectormap in zip(self.orbit_records, sectormaps))
         initial_orbit, chi_squared, singular = self.fit_results
         x, px, y, py = initial_orbit
         return self.utool.dict_add_unit({
