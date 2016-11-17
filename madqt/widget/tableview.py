@@ -562,12 +562,12 @@ class QuantityDelegate(QtGui.QStyledItemDelegate):
         model.setData(index, editor.quantity)
 
 
-class InfixLineEdit(QtGui.QWidget):
+class AffixLineEdit(QtGui.QWidget):
 
     """Single-line edit control with prefix/suffix text."""
 
     def __init__(self, *args, **kwargs):
-        super(InfixLineEdit, self).__init__(*args, **kwargs)
+        super(AffixLineEdit, self).__init__(*args, **kwargs)
         self.prefix = QtGui.QLabel()
         self.suffix = QtGui.QLabel()
         self.edit = QtGui.QLineEdit()
@@ -596,7 +596,7 @@ class ListDelegate(QtGui.QStyledItemDelegate):
     # TODO: intercept and handle <Enter>
 
     def createEditor(self, parent, option, index):
-        editor = InfixLineEdit(parent)
+        editor = AffixLineEdit(parent)
         editor.prefix.setText('[')
         editor.suffix.setText(']')
         return editor
