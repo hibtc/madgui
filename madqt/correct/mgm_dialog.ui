@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>584</width>
-    <height>398</height>
+    <width>595</width>
+    <height>401</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -144,6 +144,50 @@
         </property>
        </widget>
       </item>
+      <item>
+       <layout class="QHBoxLayout" name="fit_iterations_layout">
+        <item>
+         <widget class="QLabel" name="fit_iterations_label">
+          <property name="text">
+           <string>Fit iterations:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="fit_iterations_spinbox">
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="minimum">
+           <number>1</number>
+          </property>
+          <property name="maximum">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="fit_iterations_spacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="update_fit_button">
+          <property name="text">
+           <string>Fit</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </item>
@@ -160,21 +204,14 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="execute_corrections">
+        <property name="text">
+         <string>Apply steerer corrections</string>
+        </property>
+       </widget>
+      </item>
      </layout>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="update_fit_button">
-     <property name="text">
-      <string>Fit</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QPushButton" name="execute_corrections">
-     <property name="text">
-      <string>Apply steerer corrections</string>
-     </property>
     </widget>
    </item>
   </layout>

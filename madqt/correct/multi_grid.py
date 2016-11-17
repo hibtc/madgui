@@ -147,6 +147,9 @@ class CorrectorWidget(CorrectorWidgetBase):
         # NOTE: self.update_corrections() is called in update_fit(), so we
         # don't need to connect something like fit_table.valueChanged.
 
+        self.fit_iterations_spinbox.valueChanged.connect(
+            self.set_fit_iterations)
+
     def update_csys_values(self):
         self._load_csys_mon_value(0, self.mon1_x_value, self.mon1_y_value)
         self._load_csys_mon_value(1, self.mon2_x_value, self.mon2_y_value)
@@ -162,3 +165,6 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.corrector.add_orbit_records(
             self.corrector.current_orbit_records())
         super(CorrectorWidget, self).update_fit()
+
+    def set_fit_iterations(self, num):
+        self.fit_iterations = num
