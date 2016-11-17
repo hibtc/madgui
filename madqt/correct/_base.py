@@ -142,14 +142,16 @@ class OrbitCorrectorBase(object):
 
     # computations
 
-    def fit_particle_orbit(self):
+    def fit_particle_orbit(self, records=None):
+        if records is None:
+            records = self.orbit_records
         sectormaps = [
             self.get_transfer_map(record.monitor, optics=record.csys_optics)
-            for record in self.orbit_records
+            for record in records
         ]
         self.fit_results = _fit_particle_orbit(
             (sectormap, self._strip_sd_pair(record.orbit))
-            for record, sectormap in zip(self.orbit_records, sectormaps))
+            for record, sectormap in zip(records, sectormaps))
         initial_orbit, chi_squared, singular = self.fit_results
         x, px, y, py = initial_orbit
         return self.utool.dict_add_unit({
@@ -158,7 +160,8 @@ class OrbitCorrectorBase(object):
         }), chi_squared, singular
 
     def compute_steerer_corrections(self, init_orbit, design_orbit,
-                                    correct_x=None, correct_y=None):
+                                    correct_x=None, correct_y=None,
+                                    targets=None):
 
         """
         Compute corrections for the x_steerers, y_steerers.
@@ -168,7 +171,9 @@ class OrbitCorrectorBase(object):
         """
 
         # TODO: make this work with backends other than MAD-X…
-        self.sync_csys_to_mad()
+
+        if targets is None:
+            targets = self.targets
 
         if correct_x is None:
             correct_x = any(('x' in orbit or 'px' in orbit)
@@ -367,6 +372,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
             # TODO: always display current steerer values
             self.corrections_table.rows = []
             return
+        self.corrector.sync_csys_to_mad()
         self.steerer_corrections = \
             self.corrector.compute_steerer_corrections(init, [design])
         self.execute_corrections.setEnabled(True)
