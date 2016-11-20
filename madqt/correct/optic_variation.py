@@ -256,6 +256,9 @@ class CorrectorWidget(CorrectorWidgetBase):
                 if selection:
                     del self.corrector.orbit_records[selection[0].row()]
 
+    def closeEvent(self, event):
+        self.update_csys_values_timer.stop()
+
     def on_load_preset_execute(self):
         """Update focus level and automatically load QP values."""
         focus = self.focus_choice.currentIndex() + 1
