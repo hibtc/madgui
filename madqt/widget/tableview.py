@@ -20,6 +20,7 @@ from madqt.util.layout import HBoxLayout
 from madqt.util.misc import memoize
 from madqt.util.collections import List
 from madqt.widget.spinbox import QuantitySpinBox
+from madqt.widget.quantity import DoubleValidator as _DoubleValidator
 
 import madqt.core.unit as unit
 
@@ -509,7 +510,7 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
         pass
 
 
-class DoubleValidator(QtGui.QDoubleValidator):
+class DoubleValidator(_DoubleValidator):
 
     def validate(self, text, pos):
         # Allow to delete values

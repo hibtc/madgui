@@ -7,6 +7,8 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from abc import abstractmethod
+import string
+import re
 
 from madqt.qt import Qt, QtCore, QtGui
 
@@ -211,6 +213,48 @@ class AffixControlBase(object):
         super(AffixControlBase, self).keyPressEvent(event)
 
 
+class DoubleValidator(QtGui.QValidator):
+
+    """
+    Use this validator instead of QtGui.QDoubleValidator to avoid allowing
+    numbers in the current locale…
+    """
+
+    minimum = None
+    maximum = None
+    decimals = 4
+
+    _ALLOWED_CHARS = set(string.digits + "eE+-.")
+    _INTERMEDIATE = re.compile(r'^[+-]?\d*\.?\d*[eE]?[+-]?\d*$')
+
+    def validate(self, text, pos):
+        text = text.replace(",", ".")
+        if not (set(text) <= self._ALLOWED_CHARS):
+            return QtGui.QValidator.Invalid, text, pos
+        try:
+            value = float(text)
+        except ValueError:
+            return self._check_invalid(text, pos)
+        return self._check_valid(value), text, pos
+
+    def _check_valid(self, value):
+        minimum, maximum = self.minimum, self.maximum
+        if minimum is not None and value < minimum:
+            return QtGui.QValidator.Intermediate
+        if maximum is not None and value > maximum:
+            return QtGui.QValidator.Intermediate
+        return QtGui.QValidator.Acceptable
+
+    def _check_invalid(self, text, pos):
+        # TODO: get smarter, i.e. require
+        #   - single edit
+        #   - at current position
+        # or similar? —I guess, that's not worth the effort…
+        if self._INTERMEDIATE.match(text):
+            return QtGui.QValidator.Intermediate, text, pos
+        return QtGui.QValidator.Invalid, text, pos
+
+
 class ValueControlBase(AffixControlBase):
 
     """
@@ -261,7 +305,7 @@ class QuantityControlBase(ValueControlBase):
 
     def __init__(self, parent=None, value=None, unit=None):
         super(QuantityControlBase, self).__init__(parent)
-        self.validator = QtGui.QDoubleValidator()
+        self.validator = DoubleValidator()
         self.unit = unit
         if isinstance(value, units.Quantity):
             if self.unit is None:
