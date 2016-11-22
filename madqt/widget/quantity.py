@@ -158,14 +158,16 @@ class AffixControlBase(object):
         if pos >= len(text):
             pos = len(text)
         # allow empty value
-        if text and self.validator is not None:
-            state, text, pos = self.validator.validate(text, pos)
-        else:
-            state = QtGui.QValidator.Acceptable
+        state, text, pos = self._validate_value(text, pos)
         # fix prefix/suffix
         text = self.prefix + text + self.suffix
         pos += len(self.prefix)
         return state, text, pos
+
+    def _validate_value(self, text, pos):
+        if not text or self.validator is None:
+            return QtGui.QValidator.Acceptable, text, pos
+        return self.validator.validate(text, pos)
 
     # QWidget overrides
 
@@ -314,6 +316,13 @@ class QuantityControlBase(ValueControlBase):
                 self.set_quantity_checked(value)
         else:
             self.set_magnitude(value)
+
+    def _validate_value(self, text, pos):
+        if not text or self.validator is None:
+            return QtGui.QValidator.Acceptable, text, pos
+        self.validator.minimum = self.minimum
+        self.validator.maximum = self.minimum
+        return self.validator.validate(text, pos)
 
     def parse(self, text):
         return float(text)
