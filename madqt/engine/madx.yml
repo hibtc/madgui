@@ -128,7 +128,7 @@ parameter_sets:
     # sequence: "",             # line/sequence is passed by madqt
       bunched:  True,
       radiate:  True,
-      mass:     'emass',
+      mass:     1,      # TODO: default is actually 'emass'
       charge:   1,
       energy:   1,
       pc:       0,
