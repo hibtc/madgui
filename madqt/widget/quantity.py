@@ -16,6 +16,11 @@ from madqt.core.unit import units, get_raw_label, get_unit, tounit
 from madqt.core.base import Signal
 
 
+Acceptable = QtGui.QValidator.Acceptable
+Intermediate = QtGui.QValidator.Intermediate
+Invalid = QtGui.QValidator.Invalid
+
+
 def asb_property(name):
     key = '_' + name
     def get(self):
@@ -100,7 +105,7 @@ class AffixControlBase(object):
     def interpretText(self):
         edit = self.line_edit()
         state, text, pos = self.validate(edit.text(), edit.cursorPosition())
-        if state == QtGui.QValidator.Acceptable:
+        if state == Acceptable:
             self.set_value(self.valueFromText(text), update=False)
 
     def updateEdit(self):
@@ -145,14 +150,14 @@ class AffixControlBase(object):
     def validate(self, text, pos):
         # strip prefix
         if not text.startswith(self.prefix):
-            return QtGui.QValidator.Invalid, text, pos
+            return Invalid, text, pos
         text = text[len(self.prefix):]
         pos -= len(self.prefix)
         if pos < 0:
             pos = 0
         # strip suffix
         if not text.endswith(self.suffix):
-            return QtGui.QValidator.Invalid, text, pos
+            return Invalid, text, pos
         if self.suffix:
             text = text[:-len(self.suffix)]
         if pos >= len(text):
@@ -166,7 +171,7 @@ class AffixControlBase(object):
 
     def _validate_value(self, text, pos):
         if not text or self.validator is None:
-            return QtGui.QValidator.Acceptable, text, pos
+            return Acceptable, text, pos
         return self.validator.validate(text, pos)
 
     # QWidget overrides
@@ -232,7 +237,7 @@ class DoubleValidator(QtGui.QValidator):
     def validate(self, text, pos):
         text = text.replace(",", ".")
         if not (set(text) <= self._ALLOWED_CHARS):
-            return QtGui.QValidator.Invalid, text, pos
+            return Invalid, text, pos
         try:
             value = float(text)
         except ValueError:
@@ -242,10 +247,10 @@ class DoubleValidator(QtGui.QValidator):
     def _check_valid(self, value):
         minimum, maximum = self.minimum, self.maximum
         if minimum is not None and value < minimum:
-            return QtGui.QValidator.Intermediate
+            return Intermediate
         if maximum is not None and value > maximum:
-            return QtGui.QValidator.Intermediate
-        return QtGui.QValidator.Acceptable
+            return Intermediate
+        return Acceptable
 
     def _check_invalid(self, text, pos):
         # TODO: get smarter, i.e. require
@@ -253,8 +258,8 @@ class DoubleValidator(QtGui.QValidator):
         #   - at current position
         # or similar? —I guess, that's not worth the effort…
         if self._INTERMEDIATE.match(text):
-            return QtGui.QValidator.Intermediate, text, pos
-        return QtGui.QValidator.Invalid, text, pos
+            return Intermediate, text, pos
+        return Invalid, text, pos
 
 
 class ValueControlBase(AffixControlBase):
@@ -319,7 +324,7 @@ class QuantityControlBase(ValueControlBase):
 
     def _validate_value(self, text, pos):
         if not text or self.validator is None:
-            return QtGui.QValidator.Acceptable, text, pos
+            return Acceptable, text, pos
         self.validator.minimum = self.minimum
         self.validator.maximum = self.minimum
         return self.validator.validate(text, pos)
