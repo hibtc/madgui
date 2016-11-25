@@ -1,6 +1,6 @@
 # encoding: utf-8
 """
-MadX string expression that can automatically evaluate to a float.
+MAD-X string expression that can automatically evaluate to a float.
 """
 
 from __future__ import absolute_import
@@ -15,7 +15,7 @@ __all__ = [
 class SymbolicValue(object):
 
     """
-    Representation of a symbolic MADX expression.
+    Representation of a symbolic MAD-X expression with a unit.
 
     Needs to be evaluated via model.evaluate.
     """
