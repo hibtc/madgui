@@ -7,11 +7,18 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from abc import abstractmethod
+import string
+import re
 
 from madqt.qt import Qt, QtCore, QtGui
 
 from madqt.core.unit import units, get_raw_label, get_unit, tounit
 from madqt.core.base import Signal
+
+
+Acceptable = QtGui.QValidator.Acceptable
+Intermediate = QtGui.QValidator.Intermediate
+Invalid = QtGui.QValidator.Invalid
 
 
 def asb_property(name):
@@ -98,7 +105,7 @@ class AffixControlBase(object):
     def interpretText(self):
         edit = self.line_edit()
         state, text, pos = self.validate(edit.text(), edit.cursorPosition())
-        if state == QtGui.QValidator.Acceptable:
+        if state == Acceptable:
             self.set_value(self.valueFromText(text), update=False)
 
     def updateEdit(self):
@@ -143,27 +150,29 @@ class AffixControlBase(object):
     def validate(self, text, pos):
         # strip prefix
         if not text.startswith(self.prefix):
-            return QtGui.QValidator.Invalid, text, pos
+            return Invalid, text, pos
         text = text[len(self.prefix):]
         pos -= len(self.prefix)
         if pos < 0:
             pos = 0
         # strip suffix
         if not text.endswith(self.suffix):
-            return QtGui.QValidator.Invalid, text, pos
+            return Invalid, text, pos
         if self.suffix:
             text = text[:-len(self.suffix)]
         if pos >= len(text):
             pos = len(text)
         # allow empty value
-        if text and self.validator is not None:
-            state, text, pos = self.validator.validate(text, pos)
-        else:
-            state = QtGui.QValidator.Acceptable
+        state, text, pos = self._validate_value(text, pos)
         # fix prefix/suffix
         text = self.prefix + text + self.suffix
         pos += len(self.prefix)
         return state, text, pos
+
+    def _validate_value(self, text, pos):
+        if not text or self.validator is None:
+            return Acceptable, text, pos
+        return self.validator.validate(text, pos)
 
     # QWidget overrides
 
@@ -209,6 +218,48 @@ class AffixControlBase(object):
             return
 
         super(AffixControlBase, self).keyPressEvent(event)
+
+
+class DoubleValidator(QtGui.QValidator):
+
+    """
+    Use this validator instead of QtGui.QDoubleValidator to avoid allowing
+    numbers in the current locale…
+    """
+
+    minimum = None
+    maximum = None
+    decimals = 4
+
+    _ALLOWED_CHARS = set(string.digits + "eE+-.")
+    _INTERMEDIATE = re.compile(r'^[+-]?\d*\.?\d*[eE]?[+-]?\d*$')
+
+    def validate(self, text, pos):
+        text = text.replace(",", ".")
+        if not (set(text) <= self._ALLOWED_CHARS):
+            return Invalid, text, pos
+        try:
+            value = float(text)
+        except ValueError:
+            return self._check_invalid(text, pos)
+        return self._check_valid(value), text, pos
+
+    def _check_valid(self, value):
+        minimum, maximum = self.minimum, self.maximum
+        if minimum is not None and value < minimum:
+            return Intermediate
+        if maximum is not None and value > maximum:
+            return Intermediate
+        return Acceptable
+
+    def _check_invalid(self, text, pos):
+        # TODO: get smarter, i.e. require
+        #   - single edit
+        #   - at current position
+        # or similar? —I guess, that's not worth the effort…
+        if self._INTERMEDIATE.match(text):
+            return Intermediate, text, pos
+        return Invalid, text, pos
 
 
 class ValueControlBase(AffixControlBase):
@@ -261,7 +312,7 @@ class QuantityControlBase(ValueControlBase):
 
     def __init__(self, parent=None, value=None, unit=None):
         super(QuantityControlBase, self).__init__(parent)
-        self.validator = QtGui.QDoubleValidator()
+        self.validator = DoubleValidator()
         self.unit = unit
         if isinstance(value, units.Quantity):
             if self.unit is None:
@@ -270,6 +321,13 @@ class QuantityControlBase(ValueControlBase):
                 self.set_quantity_checked(value)
         else:
             self.set_magnitude(value)
+
+    def _validate_value(self, text, pos):
+        if not text or self.validator is None:
+            return Acceptable, text, pos
+        self.validator.minimum = self.minimum
+        self.validator.maximum = self.minimum
+        return self.validator.validate(text, pos)
 
     def parse(self, text):
         return float(text)

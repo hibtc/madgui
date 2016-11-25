@@ -188,7 +188,6 @@ class UnitConverter(object):
     """
 
     def __init__(self, units):
-        """Store Madx instance for later use."""
         self._units = dicti(units)
 
     @classmethod
@@ -221,7 +220,7 @@ class UnitConverter(object):
             return unit * value
 
     def strip_unit(self, name, value):
-        """Convert to madx units."""
+        """Convert to MAD-X units."""
         units = self._units
         return strip_unit(value, units[name]) if name in units else value
 
