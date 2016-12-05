@@ -49,8 +49,8 @@ units:
 curve_style:
   # currently, we support at most 4 curves per graph:
   - &base_style
-    marker: null
     linestyle: "-"
+    marker: 'o'
     linewidth: 2
     color: "#8b1a0e"
   - <<: *base_style

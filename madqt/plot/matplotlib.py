@@ -214,6 +214,14 @@ class MultiFigure(object):
         for ax in self.axes:
             _clear_ax(ax)
 
+    def connect(self, *args):
+        for ax in self.axes:
+            ax.callbacks.connect(*args)
+
+    def disconnect(self, *args):
+        for ax in self.axes:
+            ax.callbacks.disconnect(*args)
+
     Curve = Curve
 
 

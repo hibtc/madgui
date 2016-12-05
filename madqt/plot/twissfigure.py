@@ -64,6 +64,8 @@ class TwissFigure(object):
 
     """A figure containing some X/Y twiss parameters."""
 
+    xlim = None
+
     def __init__(self, figure, segment, config):
         self.segment = segment
         self.config = config
@@ -134,6 +136,7 @@ class TwissFigure(object):
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.plot()
         self.figure.draw()
+        self.figure.connect('xlim_changed', self.xlim_changed)
 
     def format_coord(self, ax, x, y):
         # TODO: in some cases, it might be necessary to adjust the
@@ -161,7 +164,7 @@ class TwissFigure(object):
 
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
-            self.segment.get_graph_data(self.graph_name)
+            self.segment.get_graph_data(self.graph_name, self.xlim)
         self._graph_name = self.graph_info.short
 
     def get_float_data(self, curve_info, column):
@@ -170,6 +173,14 @@ class TwissFigure(object):
 
     def get_ax_by_name(self, name):
         return next(ax for ax in self.axes if ax.y_name == name)
+
+    def xlim_changed(self, ax):
+        xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
+        lim = (self.x_unit * xstart,
+               self.x_unit * (xstart + xdelta))
+        if lim != self.xlim:
+            self.xlim = lim
+            self.update_graph_data()
 
     # TODO: scene.show_indicators -> scene.indicators.show()
     @property

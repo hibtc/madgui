@@ -417,7 +417,7 @@ class Segment(SegmentBase):
             for info in config['graphs']
         }
 
-    def get_native_graph_data(self, name):
+    def get_native_graph_data(self, name, xlim):
         info = self.native_graph_data[name]
         xdata = self.get_twiss_column('s') + self.start.at
         data = {

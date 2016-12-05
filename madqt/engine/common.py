@@ -232,18 +232,25 @@ class SegmentBase(Object):
     def native_graphs(self):
         return self.get_native_graphs()
 
-    def get_graph_data(self, name):
+    def get_graph_data(self, name, xlim):
         """
         Get the data for a particular graph as dict of numpy arrays.
 
         :rtype: PlotInfo
         """
         if name in self.native_graphs:
-            return self.get_native_graph_data(name)
+            return self.get_native_graph_data(name, xlim)
         info = self.builtin_graphs[name]
         if name == 'envelope':
-            beta, data = self.get_native_graph_data('beta')
             emittances = self.ex(), self.ey()
+            # beta = env^2 / emit
+            # env = sqrt(beta * emit)
+            if xlim is not None:
+                lim_betx = xlim[0]**2 / emittances[0]
+                lim_bety = xlim[1]**2 / emittances[1]
+                xlim = (self.utool.strip_unit('betx', lim_betx),
+                        self.utool.strip_unit('bety', lim_bety))
+            beta, data = self.get_native_graph_data('beta', xlim)
             data = {
                 env_i.name: np.hstack((
                     data[beta_i.name][:,[0]],
@@ -265,7 +272,7 @@ class SegmentBase(Object):
         return graphs
 
     @abstractmethod
-    def get_native_graph_data(self, name):
+    def get_native_graph_data(self, name, xlim):
         """Get the data for a particular graph."""
         raise NotImplementedError
 
