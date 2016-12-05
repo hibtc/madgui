@@ -65,7 +65,7 @@ def main(argv=None):
     opts = docopt(__doc__, args, version=__version__)
     mainwindow = MainWindow(opts)
     mainwindow.show()
-    app.setStyleSheet(resource_string('madqt.data', 'style.css'))
+    app.setStyleSheet(resource_string('madqt.data', 'style.css').decode('utf-8'))
     return sys.exit(app.exec_())
 
 
