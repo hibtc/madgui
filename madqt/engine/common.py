@@ -238,6 +238,9 @@ class SegmentBase(Object):
 
         :rtype: PlotInfo
         """
+        if xlim is not None:
+            xlim = tuple(self.utool.strip_unit('s', lim)
+                         for lim in self.elements.bound_range(xlim))
         if name in self.native_graphs:
             return self.get_native_graph_data(name, xlim)
         info = self.builtin_graphs[name]
@@ -245,11 +248,6 @@ class SegmentBase(Object):
             emittances = self.ex(), self.ey()
             # beta = env^2 / emit
             # env = sqrt(beta * emit)
-            if xlim is not None:
-                lim_betx = xlim[0]**2 / emittances[0]
-                lim_bety = xlim[1]**2 / emittances[1]
-                xlim = (self.utool.strip_unit('betx', lim_betx),
-                        self.utool.strip_unit('bety', lim_bety))
             beta, data = self.get_native_graph_data('beta', xlim)
             data = {
                 env_i.name: np.hstack((
@@ -302,6 +300,15 @@ class ElementList(Sequence):
         self._el_names = el_names
         self._get_data = get_data
         self._indices = {n.lower(): i for i, n in enumerate(el_names)}
+        beg, end = self[0], self[-1]
+        self.min_x = beg['at']
+        self.max_x = end['at'] + end['l']
+
+    def bound_x(self, x_value):
+        return min(self.max_x, max(self.min_x, x_value))
+
+    def bound_range(self, xlim):
+        return tuple(map(self.bound_x, xlim))
 
     def __contains__(self, element):
         """

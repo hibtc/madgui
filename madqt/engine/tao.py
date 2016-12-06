@@ -172,9 +172,9 @@ class Segment(SegmentBase):
     def plot_data(self, plot_name, xlim, region='r11'):
         tao = self.tao
         tao.command('place', region, plot_name)
-        tao.command('x_scale', region, *(xlim or ()))
         tao.command('set plot', region, 'visible = T')
         try:
+            tao.command('x_scale', region, *(xlim or ()))
             plot_info = tao.properties('plot1', region)
             graphs = plot_info.get('graph', [])
             if len(graphs) != 1:
