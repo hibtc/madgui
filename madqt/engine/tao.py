@@ -169,11 +169,12 @@ class Segment(SegmentBase):
         """Return beam envelope at element."""
         raise NotImplementedError
 
-    def plot_data(self, plot_name, region='r11'):
+    def plot_data(self, plot_name, xlim, region='r11'):
         tao = self.tao
         tao.command('place', region, plot_name)
         tao.command('set plot', region, 'visible = T')
         try:
+            tao.command('x_scale', region, *(xlim or ()))
             plot_info = tao.properties('plot1', region)
             graphs = plot_info.get('graph', [])
             if len(graphs) != 1:
@@ -298,8 +299,8 @@ class Segment(SegmentBase):
 
     # curves
 
-    def get_native_graph_data(self, name):
-        plot_data = self.plot_data(name)
+    def get_native_graph_data(self, name, xlim):
+        plot_data = self.plot_data(name, xlim)
         info = PlotInfo(
             name=plot_data.plot_info['name']+'.'+plot_data.graph_info['name'],
             short=plot_data.plot_info['name'],

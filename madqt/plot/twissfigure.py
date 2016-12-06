@@ -15,7 +15,8 @@ import numpy as np
 from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
-from madqt.core.unit import units, strip_unit, from_config, get_unit_label, get_raw_label
+from madqt.core.unit import (
+    units, strip_unit, from_config, get_unit_label, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
 from madqt.plot.base import SceneElement, SceneGraph
 
@@ -63,6 +64,8 @@ class PlotSelector(QtGui.QComboBox):
 class TwissFigure(object):
 
     """A figure containing some X/Y twiss parameters."""
+
+    xlim = None
 
     def __init__(self, figure, segment, config):
         self.segment = segment
@@ -133,7 +136,9 @@ class TwissFigure(object):
             ax.y_name = curve_info.short
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.plot()
+        self.figure.autoscale()
         self.figure.draw()
+        self.figure.connect('xlim_changed', self.xlim_changed)
 
     def format_coord(self, ax, x, y):
         # TODO: in some cases, it might be necessary to adjust the
@@ -149,10 +154,12 @@ class TwissFigure(object):
     def draw(self):
         self.figure.draw()
 
-    def update(self):
+    def update(self, autoscale=True):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
         self.scene_graph.update()
+        if autoscale:
+            self.figure.autoscale()
         self.draw()
 
     def remove(self):
@@ -161,7 +168,7 @@ class TwissFigure(object):
 
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
-            self.segment.get_graph_data(self.graph_name)
+            self.segment.get_graph_data(self.graph_name, self.xlim)
         self._graph_name = self.graph_info.short
 
     def get_float_data(self, curve_info, column):
@@ -170,6 +177,22 @@ class TwissFigure(object):
 
     def get_ax_by_name(self, name):
         return next(ax for ax in self.axes if ax.y_name == name)
+
+    def xlim_changed(self, ax):
+        xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
+        xend = xstart + xdelta
+        self.xlim = self.segment.elements.bound_range((
+            self.x_unit * xstart,
+            self.x_unit * xend))
+        if not allclose(self.xlim, self.data_lim()):
+            ax.set_autoscale_on(False)
+            self.update(autoscale=False)
+
+    def data_lim(self):
+        curve = next(iter(self.graph_data))
+        xdata = self.graph_data[curve][:,0]
+        return (self.x_unit * xdata[0],
+                self.x_unit * xdata[-1])
 
     # TODO: scene.show_indicators -> scene.indicators.show()
     @property

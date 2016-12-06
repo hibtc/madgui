@@ -232,18 +232,23 @@ class SegmentBase(Object):
     def native_graphs(self):
         return self.get_native_graphs()
 
-    def get_graph_data(self, name):
+    def get_graph_data(self, name, xlim):
         """
         Get the data for a particular graph as dict of numpy arrays.
 
         :rtype: PlotInfo
         """
+        if xlim is not None:
+            xlim = tuple(self.utool.strip_unit('s', lim)
+                         for lim in self.elements.bound_range(xlim))
         if name in self.native_graphs:
-            return self.get_native_graph_data(name)
+            return self.get_native_graph_data(name, xlim)
         info = self.builtin_graphs[name]
         if name == 'envelope':
-            beta, data = self.get_native_graph_data('beta')
             emittances = self.ex(), self.ey()
+            # beta = env^2 / emit
+            # env = sqrt(beta * emit)
+            beta, data = self.get_native_graph_data('beta', xlim)
             data = {
                 env_i.name: np.hstack((
                     data[beta_i.name][:,[0]],
@@ -265,7 +270,7 @@ class SegmentBase(Object):
         return graphs
 
     @abstractmethod
-    def get_native_graph_data(self, name):
+    def get_native_graph_data(self, name, xlim):
         """Get the data for a particular graph."""
         raise NotImplementedError
 
@@ -295,6 +300,15 @@ class ElementList(Sequence):
         self._el_names = el_names
         self._get_data = get_data
         self._indices = {n.lower(): i for i, n in enumerate(el_names)}
+        beg, end = self[0], self[-1]
+        self.min_x = beg['at']
+        self.max_x = end['at'] + end['l']
+
+    def bound_x(self, x_value):
+        return min(self.max_x, max(self.min_x, x_value))
+
+    def bound_range(self, xlim):
+        return tuple(map(self.bound_x, xlim))
 
     def __contains__(self, element):
         """

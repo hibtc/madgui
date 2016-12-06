@@ -160,6 +160,7 @@ class Curve(object):
 
     def update(self):
         """Update the y values for one subplot."""
+        self.line.set_xdata(self.get_xdata())
         self.line.set_ydata(self.get_ydata())
 
     def remove(self):
@@ -198,10 +199,12 @@ class MultiFigure(object):
         """Get the canvas."""
         return self.backend_figure.canvas
 
-    def draw(self):
-        """Draw the figure on its canvas."""
+    def autoscale(self):
         for ax in self.axes:
             _autoscale_axes(ax)
+
+    def draw(self):
+        """Draw the figure on its canvas."""
         self.canvas.draw()
         self.canvas.updateGeometry()
 
@@ -213,6 +216,14 @@ class MultiFigure(object):
         """Start a fresh plot."""
         for ax in self.axes:
             _clear_ax(ax)
+
+    def connect(self, *args):
+        for ax in self.axes:
+            ax.callbacks.connect(*args)
+
+    def disconnect(self, *args):
+        for ax in self.axes:
+            ax.callbacks.disconnect(*args)
 
     Curve = Curve
 
