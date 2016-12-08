@@ -174,9 +174,11 @@ class OrbitCorrectorBase(object):
                                   init_orbit=init_orbit)
             for record in records
         ]
-        self.fit_results = _fit_particle_orbit(
-            (sectormap, self._strip_sd_pair(record.orbit))
-            for record, sectormap in zip(records, sectormaps))
+        self.fit_results = _fit_particle_orbit(*[
+            (sectormap[:,:6], sectormap[:,6],
+             self._strip_sd_pair(record.orbit))
+            for record, sectormap in zip(records, sectormaps)
+        ])
         initial_orbit, chi_squared, singular = self.fit_results
         x, px, y, py = initial_orbit
         return self.utool.dict_add_unit({
@@ -279,37 +281,35 @@ def set_text(ctrl, text):
 
 def _fit_particle_orbit(records):
     """
-    Compute initial beam position from two monitor read-outs at different
-    quadrupole settings.
+    Compute initial beam position/momentum from multiple recorded monitor
+    readouts + associated transfer maps.
 
     Call as follows:
 
-        >>> _fit_particle_orbit([(A, a), (B, b), …])
+        >>> _fit_particle_orbit((T1, K1, Y1), (T2, K2, Y2), …)
 
     where
 
-        A, B, … are the 7D SECTORMAPs from start to the monitor.
-        a, b, … are the 2D measurement vectors (x, y)
+        T are the 4D/6D SECTORMAPs from start to the monitor.
+        K are the 4D/6D KICKs of the map from the start to the monitor.
+        Y are the 2D measurement vectors (x, y)
 
     This function solves the linear system:
 
-            Ax = a
-            Bx = b
+            T1 X + K1 = Y1
+            T2 X + K2 = Y2
             …
 
-    for the 4D phase space vector x = (x, px, y, py).
+    for the 4D phase space vector X = (x, px, y, py).
 
     Returns:    [x,px,y,py],    chi_squared,    underdetermined
     """
-    AB_, ab_ = zip(*records)
-    rows = (0,2)
-    cols = (0,1,2,3)
-    kick = 6
-    T = np.vstack([X[rows,:][:,cols] for X in AB_])
-    K = np.hstack([X[rows,:][:,kick] for X in AB_])
-    Y = np.hstack(ab_)
+    T_, K_, Y_ = zip(*records)
+    T = np.vstack([T[[0,2]] for T in T_])[:,:4]
+    K = np.hstack([K[[0,2]] for K in K_])
+    Y = np.hstack(Y_)
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K)
-    return x, sum(residuals), (rank<4)
+    return x, sum(residuals), (rank<len(x))
 
 
 class CorrectorWidgetBase(QtGui.QWidget):
