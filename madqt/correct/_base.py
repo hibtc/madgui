@@ -298,20 +298,18 @@ def _fit_particle_orbit(records):
             …
 
     for the 4D phase space vector x = (x, px, y, py).
+
+    Returns:    [x,px,y,py],    chi_squared,    underdetermined
     """
     AB_, ab_ = zip(*records)
-    # use only the relevant submatrices:
     rows = (0,2)
-    cols = (0,1,2,3,6)
-    M = np.vstack([X[rows,:][:,cols] for X in AB_])
-    m = np.hstack(ab_)
-    # demand x[4] = m[-1] = 1
-    M = np.vstack((M, np.eye(1, 5, 4)))
-    m = np.hstack((m, 1))
-    x, residuals, rank, singular = np.linalg.lstsq(M, m)
-    return (x[:4],
-            0 if len(residuals) == 0 else residuals[0],
-            rank < 5)
+    cols = (0,1,2,3)
+    kick = 6
+    T = np.vstack([X[rows,:][:,cols] for X in AB_])
+    K = np.hstack([X[rows,:][:,kick] for X in AB_])
+    Y = np.hstack(ab_)
+    x, residuals, rank, singular = np.linalg.lstsq(T, Y-K)
+    return x, sum(residuals), (rank<4)
 
 
 class CorrectorWidgetBase(QtGui.QWidget):
