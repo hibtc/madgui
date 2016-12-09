@@ -279,7 +279,7 @@ def set_text(ctrl, text):
         ctrl.setText(text)
 
 
-def _fit_particle_orbit(records):
+def _fit_particle_orbit(*records):
     """
     Compute initial beam position/momentum from multiple recorded monitor
     readouts + associated transfer maps.
