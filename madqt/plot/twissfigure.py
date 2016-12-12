@@ -453,18 +453,7 @@ class MatchTool(CaptureTool):
                 except ValueError:
                     pass
 
-        # create constraints list to be passed to Madx.match
-        madx_constraints = [
-            {'range': elem['name'],
-             axis: universe.utool.strip_unit(axis, val)}
-            for elem, pos, axis, val in constraints]
-
-        twiss_args = universe.utool.dict_strip_unit(segment.twiss_args)
-        universe.madx.match(sequence=segment.sequence.name,
-                            vary=vary,
-                            constraints=madx_constraints,
-                            twiss_init=twiss_args)
-        segment.retrack()
+        self.segment.match(vary, constraints)
 
     def findConstraint(self, elem, axis):
         """Find and return the constraint for the specified element."""

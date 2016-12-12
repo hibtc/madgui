@@ -29,6 +29,15 @@ from madqt.engine.common import (
 PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
 CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
 
+DATA_TYPES = {
+    'betx': 'beta.a',
+    'bety': 'beta.b',
+    'x': 'orbit.x',
+    'y': 'orbit.y',
+    'posx': 'orbit.x',
+    'posy': 'orbit.y',
+}
+
 
 class Universe(EngineBase):
 
@@ -326,6 +335,59 @@ class Segment(SegmentBase):
     def retrack(self):
         self.tao.update()
         self.updated.emit()
+
+    def get_best_match_pos(self, pos):
+        """Find optics element by longitudinal position."""
+        el_pos = lambda el: el['at'] + el['l']
+        elem = min(filter(self.can_match_at, self.elements),
+                   key=lambda el: abs(el_pos(el)-pos))
+        return (elem, el_pos(elem))
+
+    def create_constraint(self, at, key, value):
+        pass
+
+    def match(self, variables, constraints):
+        tao = self.tao
+
+        # make sure recalculation is disabled during setup
+        tao.set('global', lattice_calc_on='F')
+        tao.command('veto', 'var', '*')
+        tao.command('veto', 'dat', '*@*')
+
+        # setup data/variable structures
+        data_d2 = '1@madqt_data_temp'
+        vars_v1 = 'madqt_vars_temp'
+        tao.python('var_create', vars_v1, 1, len(variables))
+        tao.python('data_create', data_d2, 1, 1, len(constraints))
+
+        for i, expr in enumerate(variables):
+            elem, attr = expr.split('->')
+            index = self.get_element_index(elem)
+            what = vars_v1 + '|ele_name'
+            value = '{}>>{}[{}]'.format(self.unibra, index, attr)
+            tao.set('var', **{what: value})
+
+        for i, c in enumerate(constraints):
+            dtype = DATA_TYPES[c.axis]
+            data_d1 = '{}[{}]'.format(data_d2, i+1)
+            tao.set('data', **{data_d1+'|ele_name': c.elem})
+            tao.set('data', **{data_d1+'|data_type': dtype})
+            tao.set('data', **{data_d1+'|meas': c.value})
+
+        tao.command('use', 'var', vars_v1)
+        tao.command('use', 'dat', data_d2)
+
+        # re-enable recalculation
+        tao.set('global', optimizer='lmdif')
+        tao.set('global', lattice_calc_on='T')
+        # TODO: extract variables?
+
+        # cleanup behind us, leave recalculation disabled by default
+        tao.set('global', lattice_calc_on='F')
+        tao.python('var_destroy', data_d2)
+        tao.python('data_destroy', data_d2)
+
+        self.retrack()
 
 
 # http://plplot.sourceforge.net/docbook-manual/plplot-html-5.11.1/characters.html#greek

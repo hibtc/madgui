@@ -449,6 +449,21 @@ class Segment(SegmentBase):
     def can_match_at(self, elem):
         return not elem['name'].endswith('[0]')
 
+    def match(self, variables, constraints):
+        # create constraints list to be passed to Madx.match
+        madx_constraints = [
+            {'range': elem['name'],
+             axis: self.utool.strip_unit(axis, val)}
+            for elem, pos, axis, val in constraints]
+
+        twiss_args = self.utool.dict_strip_unit(self.twiss_args)
+        self.madx.match(sequence=self.sequence.name,
+                        vary=variables,
+                        constraints=madx_constraints,
+                        twiss_init=twiss_args)
+        self.retrack()
+
+
 
 def process_spec(prespec):
     from madqt.widget.params import ParamSpec

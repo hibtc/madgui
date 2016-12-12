@@ -287,6 +287,10 @@ class SegmentBase(Object):
     def get_best_match_pos(self, s):
         raise NotImplementedError
 
+    @abstractmethod
+    def match(self, variables, constraints):
+        pass
+
 
 class ElementList(Sequence):
 
