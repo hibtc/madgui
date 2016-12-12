@@ -26,6 +26,10 @@ from madqt.engine.common import (
 )
 
 
+# stuff for online control:
+import madqt.online.api as api
+
+
 PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
 CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
 
@@ -389,6 +393,12 @@ class Segment(SegmentBase):
 
         self.retrack()
 
+    def get_magnet(self, elem, conv):
+        return MagnetBackend(self, elem, conv.backend_keys)
+
+    def get_monitor(self, elem):
+        return MonitorBackend(self, elem)
+
 
 # http://plplot.sourceforge.net/docbook-manual/plplot-html-5.11.1/characters.html#greek
 ROMAN_TO_GREEK = {
@@ -433,3 +443,56 @@ def tao_legend_to_latex(text):
 
 def curve_short_name(plot_data, curve_info):
     return '{}_{}'.format(plot_data.plot_info['name'], curve_info['name'])
+
+
+#----------------------------------------
+# stuff for online control
+#----------------------------------------
+
+class MagnetBackend(api.ElementBackend):
+
+    """Mitigates r/w access to the properties of an element."""
+
+    def __init__(self, segment, elem, keys):
+        self._segment = segment
+        self._elem = elem
+        self._keys = keys
+
+    def get(self):
+        """Get dict of values from MAD-X."""
+        data = self._segment.elements[self._elem]
+        return {key: data[key] for key in self._keys}
+
+    def set(self, values):
+        """Store values to MAD-X."""
+        seg = self._segment
+        index = seg.get_element_index(self._elem)
+        elem = '{}>>{}'.format(seg.unibra, index)
+        values = self._segment.utool.dict_strip_unit(values)
+        self._segment.tao.set('element', elem, **values)
+
+
+class MonitorBackend(api.ElementBackend):
+
+    """Mitigates read access to a monitor."""
+
+    # TODO: handle split h-/v-monitor
+
+    def __init__(self, segment, element):
+        self._segment = segment
+        self._element = element
+
+    def get(self, values):
+        tao = self._segment.tao
+        index = self._segment.get_element_index(self._element)
+        orbit = tao.get_element_data(index, who='orbit')
+        twiss = tao.get_element_data(index, who='twiss')
+        return self._segment.utool.dict_add_unit({
+            'betx': twiss['beta_a'],
+            'bety': twiss['beta_b'],
+            'x': orbit['x'],
+            'y': orbit['y'],
+        })
+
+    def set(self, values):
+        raise NotImplementedError("Can't set TWISS: monitors are read-only!")

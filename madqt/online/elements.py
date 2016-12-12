@@ -57,7 +57,7 @@ def detect_multipole_order(coefs):
 def get_element_class(element):
     """Get the implementing class for a given MAD-X element."""
     el_type = element['type'].lower()
-    if el_type.endswith('monitor'):
+    if el_type.endswith('monitor') or el_type == 'instrument':
         return Monitor
     # TODO: pass dvm params
     if el_type == 'sbend':
@@ -139,13 +139,7 @@ class BaseElement(api._Interface):
     # mixin:
     def _construct(self, conv):
         elem = self.elements[0]
-        madx = self._segment.madx
-        utool = self._segment.universe.utool
-        lval = {
-            key: mad_backend._get_property_lval(elem, key)
-            for key in conv.backend_keys
-        }
-        back = mad_backend.MagnetBackend(madx, utool, elem, lval)
+        back = self._segment.get_magnet(elem, conv)
         return conv, back
 
 
@@ -162,8 +156,8 @@ class Monitor(BaseElement):
 
     def _mad_backend(self):
         segment = self._segment
-        conv = mad_backend.Monitor(segment.beam['ex'], segment.beam['ey'])
-        back = mad_backend.MonitorBackend(segment, self.elements[0])
+        conv = mad_backend.Monitor(segment.ex(), segment.ey())
+        back = segment.get_monitor(self.elements[0])
         return conv, back
 
     def _dvm_backend(self):

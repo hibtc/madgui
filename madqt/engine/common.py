@@ -289,7 +289,13 @@ class SegmentBase(Object):
 
     @abstractmethod
     def match(self, variables, constraints):
-        pass
+        raise NotImplementedError
+
+    def get_magnet(self, elem, conv):
+        raise NotImplementedError
+
+    def get_monitor(self, elem):
+        raise NotImplementedError
 
 
 class ElementList(Sequence):

@@ -22,6 +22,13 @@ from madqt.engine.common import (
 )
 
 
+# stuff for online control:
+import madqt.online.api as api
+from cpymad.types import Expression
+from cpymad.util import is_identifier
+from madqt.util.symbol import SymbolicValue
+
+
 __all__ = [
     'ElementInfo',
     'Universe',
@@ -463,6 +470,14 @@ class Segment(SegmentBase):
                         twiss_init=twiss_args)
         self.retrack()
 
+    def get_magnet(self, elem, conv):
+        return MagnetBackend(self.madx, self.utool, elem, {
+            key: _get_property_lval(elem, key)
+            for key in conv.backend_keys
+        })
+
+    def get_monitor(self, elem):
+        return MonitorBackend(self, elem)
 
 
 def process_spec(prespec):
@@ -485,3 +500,104 @@ def process_spec_item(key, value):
                     for row in range(rows)
                     for col in range(cols)]
     return [(key, value)]
+
+
+#----------------------------------------
+# stuff for online control
+#----------------------------------------
+
+def _get_identifier(expr):
+    if isinstance(expr, SymbolicValue):
+        return str(expr._expression)
+    elif isinstance(expr, Expression):
+        return str(expr)
+    else:
+        return ''
+
+
+def _get_property_lval(elem, attr):
+    """
+    Return lvalue name for a given element attribute from MAD-X.
+
+    >>> get_element_attribute(elements['r1qs1'], 'k1')
+    'r1qs1->k1'
+    """
+    expr = elem[attr]
+    if isinstance(expr, list):
+        names = [_get_identifier(v) for v in expr]
+        if not any(names):
+            raise api.UnknownElement
+        return names
+    else:
+        name = _get_identifier(expr)
+        if is_identifier(name):
+            return name
+        return elem['name'] + '->' + attr
+
+
+def _value(v):
+    if isinstance(v, list):
+        return [_value(x) for x in v]
+    try:
+        return v.value
+    except AttributeError:
+        return v
+
+def _evaluate(madx, v):
+    if isinstance(v, list):
+        return [madx.evaluate(x) for x in v]
+    return madx.evaluate(v)
+
+
+class MagnetBackend(api.ElementBackend):
+
+    """Mitigates r/w access to the properties of an element."""
+
+    def __init__(self, madx, utool, elem, lval):
+        self._madx = madx
+        self._lval = lval
+        self._elem = elem
+        self._utool = utool
+
+    def get(self):
+        """Get dict of values from MAD-X."""
+        return {key: self._utool.add_unit(key, _evaluate(self._madx, lval))
+                for key, lval in self._lval.items()}
+
+    def set(self, values):
+        """Store values to MAD-X."""
+        madx = self._madx
+        for key, val in values.items():
+            plain_value = self._utool.strip_unit(key, val)
+            lval = self._lval[key]
+            if isinstance(val, list):
+                for k, v in zip(lval, plain_value):
+                    if k:
+                        madx.set_value(k, v)
+            else:
+                madx.set_value(lval, plain_value)
+
+
+class MonitorBackend(api.ElementBackend):
+
+    """Mitigates read access to a monitor."""
+
+    # TODO: handle split h-/v-monitor
+
+    def __init__(self, segment, element):
+        self._segment = segment
+        self._element = element
+
+    def get(self, values):
+        twiss = self._segment.tw
+        index = self._segment.get_element_index(self._element)
+        return {
+            'betx': twiss['betx'][index],
+            'bety': twiss['bety'][index],
+            'x': twiss['posx'][index],
+            'y': twiss['posy'][index],
+        }
+
+    def set(self, values):
+        raise NotImplementedError("Can't set TWISS: monitors are read-only!")
+
