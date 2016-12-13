@@ -408,7 +408,7 @@ class MatchTool(CaptureTool):
         return [
             (elem['at'], expr)
             for elem in self.elements
-            for attr in param_spec.get(elem['type'], [])
+            for attr in param_spec.get(elem['type'].lower(), [])
             for expr in [_get_elem_attr_expr(elem, attr)]
             if expr is not None
         ]
@@ -480,8 +480,8 @@ class MatchTool(CaptureTool):
 class MatchTransform(object):
 
     def __init__(self, segment):
-        self._ex = segment.summary['ex']
-        self._ey = segment.summary['ey']
+        self._ex = segment.ex()
+        self._ey = segment.ey()
 
     def envx(self, val):
         return 'betx', val*val/self._ex

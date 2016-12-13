@@ -180,7 +180,26 @@ class Segment(SegmentBase):
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
-        raise NotImplementedError
+        replace = {
+            'betx': 'beta_a',
+            'bety': 'beta_b',
+            'x': 'x',
+            'y': 'y',
+        }
+        twiss = self.get_twiss_at(elem)
+        if name == 'envx':
+            return (twiss['beta_a'] * self.ex())**0.5
+        elif name == 'envy':
+            return (twiss['beta_b'] * self.ey())**0.5
+        name = replace.get(name, name)
+        return twiss[name]
+
+    def get_twiss_at(self, elem):
+        """Return beam envelope at element."""
+        index = self.get_element_index(elem)
+        data = merged(self.tao.get_element_data(index, who='orbit'),
+                      self.tao.get_element_data(index, who='twiss'))
+        return self.utool.dict_add_unit(data)
 
     def plot_data(self, plot_name, xlim, region='r11'):
         tao = self.tao
@@ -252,12 +271,13 @@ class Segment(SegmentBase):
             return (mode == 'readwrite' or mode == True or
                     mode == 'auto' and auto)
 
+        kwargs = {'universe': self.universe.index, 'branch': self.branch}
         query = self.tao.parameters
         conf = self._param_set(name)
         spec = [
             ParamSpec(param.name, param.value, editable(mode, param.vary))
             for group in map(prepare_group, conf['params'])
-            for param in query(group['query'].format(self.unibra)).values()
+            for param in query(group['query'].format(**kwargs)).values()
             for mode in [param_mode(param.name, group)]
             if mode in ('readwrite', 'readonly', 'auto', True, False)
         ]
@@ -265,7 +285,8 @@ class Segment(SegmentBase):
         return (spec, self.utool.dict_add_unit(data), conf)
 
     def _get_params(self, name):
-        return merged(*(self.tao.properties(group['query'].format(self.unibra))
+        kwargs = {'universe': self.universe.index, 'branch': self.branch}
+        return merged(*(self.tao.properties(group['query'].format(**kwargs))
                         for group in self._param_set(name)['params']))
 
     def _set_params(self, name, data):
@@ -343,7 +364,7 @@ class Segment(SegmentBase):
     def get_best_match_pos(self, pos):
         """Find optics element by longitudinal position."""
         el_pos = lambda el: el['at'] + el['l']
-        elem = min(filter(self.can_match_at, self.elements),
+        elem = min(self.elements,
                    key=lambda el: abs(el_pos(el)-pos))
         return (elem, el_pos(elem))
 
@@ -355,6 +376,8 @@ class Segment(SegmentBase):
 
         # make sure recalculation is disabled during setup
         tao.set('global', lattice_calc_on='F')
+
+        tao.python('var_destroy', '*')
         tao.command('veto', 'var', '*')
         tao.command('veto', 'dat', '*@*')
 
@@ -367,16 +390,24 @@ class Segment(SegmentBase):
         for i, expr in enumerate(variables):
             elem, attr = expr.split('->')
             index = self.get_element_index(elem)
-            what = vars_v1 + '|ele_name'
+            what = '{}[{}]|ele_name'.format(vars_v1, i+1)
             value = '{}>>{}[{}]'.format(self.unibra, index, attr)
             tao.set('var', **{what: value})
+            # tao.set('var', **{vars_v1+'|ele_name': elem}
+            # tao.set('var', **{vars_v1+'|attrib_name': attr}
+            # tao.set('var', **{vars_v1+'|ix_ele': index}
 
         for i, c in enumerate(constraints):
             dtype = DATA_TYPES[c.axis]
-            data_d1 = '{}[{}]'.format(data_d2, i+1)
-            tao.set('data', **{data_d1+'|ele_name': c.elem})
+            value = self.utool.strip_unit(c.axis, c.value)
+            elem = c.elem['name']
+            data_d1 = '{}.1[{}]'.format(data_d2, i+1)
+            tao.set('data', **{data_d1+'|merit_type': 'target'})
+            tao.set('data', **{data_d1+'|weight': 1})
+            tao.set('data', **{data_d1+'|data_source': 'lat'})
             tao.set('data', **{data_d1+'|data_type': dtype})
-            tao.set('data', **{data_d1+'|meas': c.value})
+            tao.set('data', **{data_d1+'|meas': value})
+            tao.set('data', **{data_d1+'|ele_name': elem})
 
         tao.command('use', 'var', vars_v1)
         tao.command('use', 'dat', data_d2)
@@ -384,11 +415,15 @@ class Segment(SegmentBase):
         # re-enable recalculation
         tao.set('global', optimizer='lmdif')
         tao.set('global', lattice_calc_on='T')
+
+        tao.command('run_optimizer')
+        tao.command('run_optimizer')
+
         # TODO: extract variables?
 
         # cleanup behind us, leave recalculation disabled by default
         tao.set('global', lattice_calc_on='F')
-        tao.python('var_destroy', data_d2)
+        tao.python('var_destroy', vars_v1)
         tao.python('data_destroy', data_d2)
 
         self.retrack()
