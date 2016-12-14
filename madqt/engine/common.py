@@ -310,6 +310,10 @@ class ElementList(Sequence):
         self._el_names = el_names
         self._get_data = get_data
         self._indices = {n.lower(): i for i, n in enumerate(el_names)}
+        self.update()
+
+    def update(self):
+        self._cached = [None] * len(self._el_names)
         beg, end = self[0], self[-1]
         self.min_x = beg['at']
         self.max_x = end['at'] + end['l']
@@ -346,7 +350,7 @@ class ElementList(Sequence):
             })
         if isinstance(index, basestring):
             return self._get_by_name(index)
-        raise ValueError("Unhandled type: {!r}", type(index))
+        raise TypeError("Unhandled type: {!r}", type(index))
 
     def __len__(self):
         """Get number of elements."""
@@ -395,7 +399,10 @@ class ElementList(Sequence):
                              .format(index, _len))
         if index < 0:
             index += _len
-        return self._get_data(index)
+        el = self._cached[index]
+        if el is None:
+            el = self._cached[index] = self._get_data(index)
+        return el
 
     def _index_by_dict(self, elem):
         if 'el_id' not in elem:

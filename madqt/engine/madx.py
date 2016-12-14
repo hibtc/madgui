@@ -468,6 +468,8 @@ class Segment(SegmentBase):
                         vary=variables,
                         constraints=madx_constraints,
                         twiss_init=twiss_args)
+        # TODO: update only modified elements
+        self.elements.update()
         self.retrack()
 
     def get_magnet(self, elem, conv):
@@ -566,6 +568,7 @@ class MagnetBackend(api.ElementBackend):
 
     def set(self, values):
         """Store values to MAD-X."""
+        # TODO: update cache
         madx = self._madx
         for key, val in values.items():
             plain_value = self._utool.strip_unit(key, val)

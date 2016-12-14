@@ -426,6 +426,8 @@ class Segment(SegmentBase):
         tao.python('var_destroy', vars_v1)
         tao.python('data_destroy', data_d2)
 
+        # TODO: update only modified elements
+        self.elements.update()
         self.retrack()
 
     def get_magnet(self, elem, conv):
@@ -500,6 +502,7 @@ class MagnetBackend(api.ElementBackend):
 
     def set(self, values):
         """Store values to MAD-X."""
+        # TODO: update cache
         seg = self._segment
         index = seg.get_element_index(self._elem)
         elem = '{}>>{}'.format(seg.unibra, index)
