@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 import os
 
 from abc import abstractmethod
+from bisect import bisect_right
 from collections import namedtuple, Sequence
 
 import numpy as np
@@ -194,12 +195,15 @@ class SegmentBase(Object):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
-        # TODO: solve more efficiently via binary search?
-        for elem in self.elements:
-            at, L = elem['at'], elem['l']
-            if pos >= at and pos <= at+L:
-                return elem
-        return None
+        val = self.utool.strip_unit('s', pos)
+        i0 = bisect_right(self.positions, val)
+        if i0 == 0:
+            return None
+        elem = self.elements[i0-1]
+        at, L = elem['at'], elem['l']
+        if pos < at or pos > at+L:
+            return None
+        return elem
 
     def get_element_by_name(self, name):
         return self.elements[self.get_element_index(name)]
