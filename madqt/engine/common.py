@@ -141,7 +141,7 @@ class SegmentBase(Object):
     def get_twiss_args_raw(self, elem):
         raise NotImplementedError
 
-    def get_element_data_raw(self, elem):
+    def get_element_data_raw(self, elem, which=None):
         raise NotImplementedError
 
     def get_element_index(self, elem):
@@ -168,7 +168,7 @@ class SegmentBase(Object):
             element = self.get_element_index(element)
         if element < 0:
             element += len(self.elements)
-        element_data = self.get_element_data(element)
+        element_data = self.get_element_data(element, ['name', 'at'])
         return ElementInfo(element_data['name'], element, element_data['at'])
 
     def get_beam(self):
@@ -186,8 +186,9 @@ class SegmentBase(Object):
     beam = property(get_beam, set_beam)
     twiss_args = property(get_twiss_args, set_twiss_args)
 
-    def get_element_data(self, index):
-        return self.utool.dict_add_unit(self.get_element_data_raw(index))
+    def get_element_data(self, index, which=None):
+        """``None`` actually means 'all'."""
+        return self.utool.dict_add_unit(self.get_element_data_raw(index, which))
 
     def get_element_by_position(self, pos):
         """Find optics element by longitudinal position."""
