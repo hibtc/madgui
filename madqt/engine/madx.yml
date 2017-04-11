@@ -55,6 +55,11 @@ graphs:
     curves:
       - [betx, m, '$\beta x$']
       - [bety, m, '$\beta y$']
+  - name: envelope
+    title: Beam envelope
+    curves:
+      - [envx, m, '$\Delta x$']
+      - [envy, m, '$\Delta y$']
   - name: alpha
     title: Alpha function
     curves:
