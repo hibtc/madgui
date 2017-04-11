@@ -45,6 +45,10 @@ units:
   envx:     m
   envy:     m
 
+  # FIXME: these are needed because my code is so bad
+  betx:   m
+  bety:   m
+
 
 curve_style:
   # currently, we support at most 4 curves per graph:
@@ -65,7 +69,7 @@ parameter_sets:
     title: Beam settings
     data_key: beam
     params:
-    - query: 'beam_init {}'
+    - query: 'beam_init {universe}'
       write: 'set beam_init {} = {}'
       implicit: auto
 
@@ -73,7 +77,7 @@ parameter_sets:
     title: TWISS initial conditions
     data_key: twiss
     params:
-    - query: 'lat_ele1 {}>>0|model orbit'
+    - query: 'lat_ele1 {universe}@{branch}>>0|model orbit'
       write: 'change beam_start {} @{}'
       implicit: readwrite
       readonly: [
@@ -81,7 +85,7 @@ parameter_sets:
         beta, state, species, location,
         direction, # CRASHES when trying to change
       ]
-    - query: 'lat_ele1 {}>>0|model twiss'
+    - query: 'lat_ele1 {universe}@{branch}>>0|model twiss'
       write: 'change element beginning {} @{}'
       implicit: readwrite
       readonly: [

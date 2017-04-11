@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 import os
 
 from abc import abstractmethod
+from bisect import bisect_right
 from collections import namedtuple, Sequence
 
 import numpy as np
@@ -141,7 +142,7 @@ class SegmentBase(Object):
     def get_twiss_args_raw(self, elem):
         raise NotImplementedError
 
-    def get_element_data_raw(self, elem):
+    def get_element_data_raw(self, elem, which=None):
         raise NotImplementedError
 
     def get_element_index(self, elem):
@@ -168,7 +169,7 @@ class SegmentBase(Object):
             element = self.get_element_index(element)
         if element < 0:
             element += len(self.elements)
-        element_data = self.get_element_data(element)
+        element_data = self.get_element_data(element, ['name', 'at'])
         return ElementInfo(element_data['name'], element, element_data['at'])
 
     def get_beam(self):
@@ -186,22 +187,40 @@ class SegmentBase(Object):
     beam = property(get_beam, set_beam)
     twiss_args = property(get_twiss_args, set_twiss_args)
 
-    def get_element_data(self, index):
-        return self.utool.dict_add_unit(self.get_element_data_raw(index))
+    def get_element_data(self, index, which=None):
+        """``None`` actually means 'all'."""
+        return self.utool.dict_add_unit(self.get_element_data_raw(index, which))
 
     def get_element_by_position(self, pos):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
-        # TODO: solve more efficiently via binary search?
-        for elem in self.elements:
-            at, L = elem['at'], elem['l']
-            if pos >= at and pos <= at+L:
-                return elem
-        return None
+        val = self.utool.strip_unit('s', pos)
+        i0 = bisect_right(self.positions, val)
+        if i0 == 0:
+            return None
+        elem = self.elements[i0-1]
+        at, L = elem['at'], elem['l']
+        if pos < at or pos > at+L:
+            return None
+        return elem
 
     def get_element_by_name(self, name):
         return self.elements[self.get_element_index(name)]
+
+    def get_best_match_pos(self, pos):
+        """Find optics element by longitudinal position."""
+        return self.get_nearest_element(pos)
+
+    def get_nearest_element(self, pos):
+        """Find optics element by longitudinal position."""
+        el_pos = lambda el: el['at'] + el['l']
+        elem = min(filter(self.can_match_at, self.elements),
+                   key=lambda el: abs(el_pos(el)-pos))
+        return (elem, el_pos(elem))
+
+    def can_match_at(self, element):
+        return True
 
     # curves
 
@@ -284,7 +303,13 @@ class SegmentBase(Object):
         raise NotImplementedError
 
     @abstractmethod
-    def get_best_match_pos(self, s):
+    def match(self, variables, constraints):
+        raise NotImplementedError
+
+    def get_magnet(self, elem, conv):
+        raise NotImplementedError
+
+    def get_monitor(self, elem):
         raise NotImplementedError
 
 
@@ -300,6 +325,10 @@ class ElementList(Sequence):
         self._el_names = el_names
         self._get_data = get_data
         self._indices = {n.lower(): i for i, n in enumerate(el_names)}
+        self.update()
+
+    def update(self):
+        self._cached = [None] * len(self._el_names)
         beg, end = self[0], self[-1]
         self.min_x = beg['at']
         self.max_x = end['at'] + end['l']
@@ -336,7 +365,7 @@ class ElementList(Sequence):
             })
         if isinstance(index, basestring):
             return self._get_by_name(index)
-        raise ValueError("Unhandled type: {!r}", type(index))
+        raise TypeError("Unhandled type: {!r}", type(index))
 
     def __len__(self):
         """Get number of elements."""
@@ -385,7 +414,10 @@ class ElementList(Sequence):
                              .format(index, _len))
         if index < 0:
             index += _len
-        return self._get_data(index)
+        el = self._cached[index]
+        if el is None:
+            el = self._cached[index] = self._get_data(index)
+        return el
 
     def _index_by_dict(self, elem):
         if 'el_id' not in elem:

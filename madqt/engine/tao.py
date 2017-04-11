@@ -26,8 +26,21 @@ from madqt.engine.common import (
 )
 
 
+# stuff for online control:
+import madqt.online.api as api
+
+
 PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
 CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
+
+DATA_TYPES = {
+    'betx': 'beta.a',
+    'bety': 'beta.b',
+    'x': 'orbit.x',
+    'y': 'orbit.y',
+    'posx': 'orbit.x',
+    'posy': 'orbit.y',
+}
 
 
 class Universe(EngineBase):
@@ -136,8 +149,11 @@ class Segment(SegmentBase):
 
         el_names = self.tao.get_list('lat_ele_list', self.unibra)
         self.elements = ElementList(el_names, self.get_element_data)
+        self.positions = [
+            self.utool.strip_unit('s', el['at']) for el in self.elements
+        ]
 
-    def get_element_data_raw(self, index):
+    def get_element_data_raw(self, index, which=None):
         data = merged(self.tao.get_element_data(index, who='general'),
                       self.tao.get_element_data(index, who='parameters'),
                       self.tao.get_element_data(index, who='multipole'))
@@ -167,7 +183,26 @@ class Segment(SegmentBase):
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
-        raise NotImplementedError
+        replace = {
+            'betx': 'beta_a',
+            'bety': 'beta_b',
+            'x': 'x',
+            'y': 'y',
+        }
+        twiss = self.get_twiss_at(elem)
+        if name == 'envx':
+            return (twiss['beta_a'] * self.ex())**0.5
+        elif name == 'envy':
+            return (twiss['beta_b'] * self.ey())**0.5
+        name = replace.get(name, name)
+        return twiss[name]
+
+    def get_twiss_at(self, elem):
+        """Return beam envelope at element."""
+        index = self.get_element_index(elem)
+        data = merged(self.tao.get_element_data(index, who='orbit'),
+                      self.tao.get_element_data(index, who='twiss'))
+        return self.utool.dict_add_unit(data)
 
     def plot_data(self, plot_name, xlim, region='r11'):
         tao = self.tao
@@ -239,12 +274,13 @@ class Segment(SegmentBase):
             return (mode == 'readwrite' or mode == True or
                     mode == 'auto' and auto)
 
+        kwargs = {'universe': self.universe.index, 'branch': self.branch}
         query = self.tao.parameters
         conf = self._param_set(name)
         spec = [
             ParamSpec(param.name, param.value, editable(mode, param.vary))
             for group in map(prepare_group, conf['params'])
-            for param in query(group['query'].format(self.unibra)).values()
+            for param in query(group['query'].format(**kwargs)).values()
             for mode in [param_mode(param.name, group)]
             if mode in ('readwrite', 'readonly', 'auto', True, False)
         ]
@@ -252,7 +288,8 @@ class Segment(SegmentBase):
         return (spec, self.utool.dict_add_unit(data), conf)
 
     def _get_params(self, name):
-        return merged(*(self.tao.properties(group['query'].format(self.unibra))
+        kwargs = {'universe': self.universe.index, 'branch': self.branch}
+        return merged(*(self.tao.properties(group['query'].format(**kwargs))
                         for group in self._param_set(name)['params']))
 
     def _set_params(self, name, data):
@@ -327,6 +364,74 @@ class Segment(SegmentBase):
         self.tao.update()
         self.updated.emit()
 
+    def create_constraint(self, at, key, value):
+        pass
+
+    def match(self, variables, constraints):
+        tao = self.tao
+
+        # make sure recalculation is disabled during setup
+        tao.set('global', lattice_calc_on='F')
+
+        tao.python('var_destroy', '*')
+        tao.command('veto', 'var', '*')
+        tao.command('veto', 'dat', '*@*')
+
+        # setup data/variable structures
+        data_d2 = '1@madqt_data_temp'
+        vars_v1 = 'madqt_vars_temp'
+        tao.python('var_create', vars_v1, 1, len(variables))
+        tao.python('data_create', data_d2, 1, 1, len(constraints))
+
+        for i, expr in enumerate(variables):
+            elem, attr = expr.split('->')
+            index = self.get_element_index(elem)
+            what = '{}[{}]|ele_name'.format(vars_v1, i+1)
+            value = '{}>>{}[{}]'.format(self.unibra, index, attr)
+            tao.set('var', **{what: value})
+            # tao.set('var', **{vars_v1+'|ele_name': elem}
+            # tao.set('var', **{vars_v1+'|attrib_name': attr}
+            # tao.set('var', **{vars_v1+'|ix_ele': index}
+
+        for i, c in enumerate(constraints):
+            dtype = DATA_TYPES[c.axis]
+            value = self.utool.strip_unit(c.axis, c.value)
+            elem = c.elem['name']
+            data_d1 = '{}.1[{}]'.format(data_d2, i+1)
+            tao.set('data', **{data_d1+'|merit_type': 'target'})
+            tao.set('data', **{data_d1+'|weight': 1})
+            tao.set('data', **{data_d1+'|data_source': 'lat'})
+            tao.set('data', **{data_d1+'|data_type': dtype})
+            tao.set('data', **{data_d1+'|meas': value})
+            tao.set('data', **{data_d1+'|ele_name': elem})
+
+        tao.command('use', 'var', vars_v1)
+        tao.command('use', 'dat', data_d2)
+
+        # re-enable recalculation
+        tao.set('global', optimizer='lmdif')
+        tao.set('global', lattice_calc_on='T')
+
+        tao.command('run_optimizer')
+        tao.command('run_optimizer')
+
+        # TODO: extract variables?
+
+        # cleanup behind us, leave recalculation disabled by default
+        tao.set('global', lattice_calc_on='F')
+        tao.python('var_destroy', vars_v1)
+        tao.python('data_destroy', data_d2)
+
+        # TODO: update only modified elements
+        self.elements.update()
+        self.retrack()
+
+    def get_magnet(self, elem, conv):
+        return MagnetBackend(self, elem, conv.backend_keys)
+
+    def get_monitor(self, elem):
+        return MonitorBackend(self, elem)
+
 
 # http://plplot.sourceforge.net/docbook-manual/plplot-html-5.11.1/characters.html#greek
 ROMAN_TO_GREEK = {
@@ -371,3 +476,57 @@ def tao_legend_to_latex(text):
 
 def curve_short_name(plot_data, curve_info):
     return '{}_{}'.format(plot_data.plot_info['name'], curve_info['name'])
+
+
+#----------------------------------------
+# stuff for online control
+#----------------------------------------
+
+class MagnetBackend(api.ElementBackend):
+
+    """Mitigates r/w access to the properties of an element."""
+
+    def __init__(self, segment, elem, keys):
+        self._segment = segment
+        self._elem = elem
+        self._keys = keys
+
+    def get(self):
+        """Get dict of values from MAD-X."""
+        data = self._segment.elements[self._elem]
+        return {key: data[key] for key in self._keys}
+
+    def set(self, values):
+        """Store values to MAD-X."""
+        # TODO: update cache
+        seg = self._segment
+        index = seg.get_element_index(self._elem)
+        elem = '{}>>{}'.format(seg.unibra, index)
+        values = self._segment.utool.dict_strip_unit(values)
+        self._segment.tao.set('element', elem, **values)
+
+
+class MonitorBackend(api.ElementBackend):
+
+    """Mitigates read access to a monitor."""
+
+    # TODO: handle split h-/v-monitor
+
+    def __init__(self, segment, element):
+        self._segment = segment
+        self._element = element
+
+    def get(self, values):
+        tao = self._segment.tao
+        index = self._segment.get_element_index(self._element)
+        orbit = tao.get_element_data(index, who='orbit')
+        twiss = tao.get_element_data(index, who='twiss')
+        return self._segment.utool.dict_add_unit({
+            'betx': twiss['beta_a'],
+            'bety': twiss['beta_b'],
+            'x': orbit['x'],
+            'y': orbit['y'],
+        })
+
+    def set(self, values):
+        raise NotImplementedError("Can't set TWISS: monitors are read-only!")

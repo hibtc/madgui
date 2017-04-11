@@ -408,7 +408,7 @@ class MatchTool(CaptureTool):
         return [
             (elem['at'], expr)
             for elem in self.elements
-            for attr in param_spec.get(elem['type'], [])
+            for attr in param_spec.get(elem['type'].lower(), [])
             for expr in [_get_elem_attr_expr(elem, attr)]
             if expr is not None
         ]
@@ -453,18 +453,7 @@ class MatchTool(CaptureTool):
                 except ValueError:
                     pass
 
-        # create constraints list to be passed to Madx.match
-        madx_constraints = [
-            {'range': elem['name'],
-             axis: universe.utool.strip_unit(axis, val)}
-            for elem, pos, axis, val in constraints]
-
-        twiss_args = universe.utool.dict_strip_unit(segment.twiss_args)
-        universe.madx.match(sequence=segment.sequence.name,
-                            vary=vary,
-                            constraints=madx_constraints,
-                            twiss_init=twiss_args)
-        segment.retrack()
+        self.segment.match(vary, constraints)
 
     def findConstraint(self, elem, axis):
         """Find and return the constraint for the specified element."""
@@ -491,8 +480,8 @@ class MatchTool(CaptureTool):
 class MatchTransform(object):
 
     def __init__(self, segment):
-        self._ex = segment.summary['ex']
-        self._ey = segment.summary['ey']
+        self._ex = segment.ex()
+        self._ey = segment.ey()
 
     def envx(self, val):
         return 'betx', val*val/self._ex
