@@ -361,13 +361,6 @@ class Segment(SegmentBase):
         self.tao.update()
         self.updated.emit()
 
-    def get_best_match_pos(self, pos):
-        """Find optics element by longitudinal position."""
-        el_pos = lambda el: el['at'] + el['l']
-        elem = min(self.elements,
-                   key=lambda el: abs(el_pos(el)-pos))
-        return (elem, el_pos(elem))
-
     def create_constraint(self, at, key, value):
         pass
 

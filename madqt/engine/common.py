@@ -204,6 +204,20 @@ class SegmentBase(Object):
     def get_element_by_name(self, name):
         return self.elements[self.get_element_index(name)]
 
+    def get_best_match_pos(self, pos):
+        """Find optics element by longitudinal position."""
+        return self.get_nearest_element(pos)
+
+    def get_nearest_element(self, pos):
+        """Find optics element by longitudinal position."""
+        el_pos = lambda el: el['at'] + el['l']
+        elem = min(filter(self.can_match_at, self.elements),
+                   key=lambda el: abs(el_pos(el)-pos))
+        return (elem, el_pos(elem))
+
+    def can_match_at(self, element):
+        return True
+
     # curves
 
     @property
@@ -282,10 +296,6 @@ class SegmentBase(Object):
 
     @abstractmethod
     def retrack(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_best_match_pos(self, s):
         raise NotImplementedError
 
     @abstractmethod

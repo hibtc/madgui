@@ -446,13 +446,6 @@ class Segment(SegmentBase):
         self.summary = self.utool.dict_add_unit(results.summary)
         self.updated.emit()
 
-    def get_best_match_pos(self, pos):
-        """Find optics element by longitudinal position."""
-        el_pos = lambda el: el['at'] + el['l']
-        elem = min(filter(self.can_match_at, self.elements),
-                   key=lambda el: abs(el_pos(el)-pos))
-        return (elem, el_pos(elem))
-
     def can_match_at(self, elem):
         return not elem['name'].endswith('[0]')
 
