@@ -149,6 +149,9 @@ class Segment(SegmentBase):
 
         el_names = self.tao.get_list('lat_ele_list', self.unibra)
         self.elements = ElementList(el_names, self.get_element_data)
+        self.positions = [
+            self.utool.strip_unit('s', el['at']) for el in self.elements
+        ]
 
     def get_element_data_raw(self, index, which=None):
         data = merged(self.tao.get_element_data(index, who='general'),

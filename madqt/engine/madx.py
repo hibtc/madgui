@@ -282,6 +282,7 @@ class Segment(SegmentBase):
         # correspondence with the data points of TWISS/SURVEY:
         el_names = self.sequence.expanded_element_names()
         self.elements = ElementList(el_names, self.get_element_data)
+        self.positions = self.sequence.expanded_element_positions()
 
         self.start, self.stop = self.parse_range(range)
         self.range = (normalize_range_name(self.start.name),
