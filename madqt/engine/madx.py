@@ -252,6 +252,12 @@ class Segment(SegmentBase):
         'x', 'y',
         'betx','bety',
         'alfx', 'alfy',
+        'sig11', 'sig12', 'sig13', 'sig14', 'sig15', 'sig16',
+        'sig21', 'sig22', 'sig23', 'sig24', 'sig25', 'sig26',
+        'sig31', 'sig32', 'sig33', 'sig34', 'sig35', 'sig36',
+        'sig41', 'sig42', 'sig43', 'sig44', 'sig45', 'sig46',
+        'sig51', 'sig52', 'sig53', 'sig54', 'sig55', 'sig56',
+        'sig61', 'sig62', 'sig63', 'sig64', 'sig65', 'sig66',
     ]
 
     def __init__(self, universe, sequence, range, beam, twiss_args):
@@ -382,9 +388,9 @@ class Segment(SegmentBase):
 
     def do_get_twiss_column(self, name):
         if name == 'envx':
-            return (self.get_twiss_column('betx') * self.ex())**0.5
+            return self.utool.add_unit(name, self.get_twiss_column('sig11')**0.5)
         if name == 'envy':
-            return (self.get_twiss_column('bety') * self.ey())**0.5
+            return self.utool.add_unit(name, self.get_twiss_column('sig33')**0.5)
         if name == 'posx':
             return self.get_twiss_column('x')
         if name == 'posy':
