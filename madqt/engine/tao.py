@@ -373,7 +373,6 @@ class Segment(SegmentBase):
         # make sure recalculation is disabled during setup
         tao.set('global', lattice_calc_on='F')
 
-        tao.python('var_destroy', '*')
         tao.command('veto', 'var', '*')
         tao.command('veto', 'dat', '*@*')
 
@@ -389,9 +388,6 @@ class Segment(SegmentBase):
             what = '{}[{}]|ele_name'.format(vars_v1, i+1)
             value = '{}>>{}[{}]'.format(self.unibra, index, attr)
             tao.set('var', **{what: value})
-            # tao.set('var', **{vars_v1+'|ele_name': elem}
-            # tao.set('var', **{vars_v1+'|attrib_name': attr}
-            # tao.set('var', **{vars_v1+'|ix_ele': index}
 
         for i, c in enumerate(constraints):
             dtype = DATA_TYPES[c.axis]
