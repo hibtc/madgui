@@ -63,7 +63,7 @@ def main():
             'madqt.widget',
         ],
         install_requires=[
-            'cpymad>=0.14.1',   # MAD-X backend
+            'cpymad>=0.17.1',   # MAD-X backend
             'docopt',           # command line parsing
             'matplotlib',
             'numpy',

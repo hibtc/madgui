@@ -26,7 +26,6 @@ from madqt.util.misc import cachedproperty
 __all__ = [
     'ElementInfo',
     'FloorCoords',
-    'minrpc_flags',
 ]
 
 
@@ -85,13 +84,7 @@ class EngineBase(Object):
     def minrpc_flags(self):
         """Flags for launching the backend library in a remote process."""
         import subprocess
-        return dict(
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            # stdin=None leads to an error on windows when STDIN is broken.
-            # Therefore, we need set stdin=os.devnull by passing stdin=False:
-            stdin=False,
-            bufsize=0)
+        return dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def destroy(self):
         """Annihilate current workspace. Stop interpreter."""
