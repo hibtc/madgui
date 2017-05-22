@@ -41,8 +41,8 @@ class Control(Object):
         self._plugin = None
         # menu conditions
         self.is_connected = Bool(False)
-        self.can_connect = self._frame.has_universe & ~self.is_connected
-        self.has_sequence = self._frame.has_universe & self.is_connected
+        self.can_connect = self._frame.has_workspace & ~self.is_connected
+        self.has_sequence = self._frame.has_workspace & self.is_connected
         # plugins
         loaders = [
             loader
@@ -214,7 +214,7 @@ class Control(Object):
 
         segment = self._segment
         elements = segment.elements
-        varyconf = segment.universe.data.get(name, {})
+        varyconf = segment.workspace.data.get(name, {})
 
         select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
@@ -234,8 +234,8 @@ class Control(Object):
     @property
     def _segment(self):
         """Return the online control."""
-        universe = self._frame.universe
-        return universe and universe.segment
+        workspace = self._frame.workspace
+        return workspace and workspace.segment
 
     def read_these(self, params):
         """

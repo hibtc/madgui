@@ -94,7 +94,7 @@ class EngineBase(Object):
             bufsize=0)
 
     def destroy(self):
-        """Annihilate current universe. Stop interpreter."""
+        """Annihilate current workspace. Stop interpreter."""
         if self.rpc_client:
             self.rpc_client.close()
         self.backend = None
@@ -130,7 +130,7 @@ class SegmentBase(Object):
     destroyed = Signal()
 
     def destroy(self):
-        self.universe.segment = None
+        self.workspace.segment = None
         self.destroyed.emit()
 
     def elements(self):
@@ -159,7 +159,7 @@ class SegmentBase(Object):
 
     @property
     def utool(self):
-        return self.universe.utool
+        return self.workspace.utool
 
     def get_element_info(self, element):
         """Get :class:`ElementInfo` from element name or index."""
@@ -226,7 +226,7 @@ class SegmentBase(Object):
 
     @property
     def curve_style(self):
-        return self.universe.config['curve_style']
+        return self.workspace.config['curve_style']
 
     @cachedproperty
     def builtin_graphs(self):
@@ -244,7 +244,7 @@ class SegmentBase(Object):
                         unit=from_config(curve['unit']))
                     for curve_index, curve in enumerate(info['curves'])
                 ])
-            for info in self.universe.app_config['builtin_graphs']
+            for info in self.workspace.app_config['builtin_graphs']
         }
 
     @cachedproperty

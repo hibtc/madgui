@@ -69,13 +69,13 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, options, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.has_universe = Bool(False)
+        self.has_workspace = Bool(False)
         self.user_ns = {
             'frame': self,
         }
         self.options = options
         self.config = config.load(options['--config'])
-        self.universe = None
+        self.workspace = None
         self.folder = self.config.get('model_path', '')
         self.initUI()
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
@@ -192,18 +192,18 @@ class MainWindow(QtGui.QMainWindow):
     @SingleWindow.factory
     def editTwiss(self):
         return self._edit_params(
-            self.setTwiss, *self.universe.segment.get_twiss_conf())
+            self.setTwiss, *self.workspace.segment.get_twiss_conf())
 
     @SingleWindow.factory
     def editBeam(self):
         return self._edit_params(
-            self.setBeam, *self.universe.segment.get_beam_conf())
+            self.setBeam, *self.workspace.segment.get_beam_conf())
 
     def _edit_params(self, set_data, spec, data, conf):
         from madqt.widget.dialog import Dialog
         from madqt.widget.params import ParamTable
 
-        widget = ParamTable(spec, self.universe.utool)
+        widget = ParamTable(spec, self.workspace.utool)
         widget.setData(data)
         widget.data_key = conf['data_key']
 
@@ -215,12 +215,12 @@ class MainWindow(QtGui.QMainWindow):
         return dialog
 
     def setTwiss(self, data):
-        self.universe.segment.twiss_args = data
-        self.universe.segment.retrack()
+        self.workspace.segment.twiss_args = data
+        self.workspace.segment.retrack()
 
     def setBeam(self, data):
-        self.universe.segment.beam = data
-        self.universe.segment.retrack()
+        self.workspace.segment.beam = data
+        self.workspace.segment.retrack()
 
     @SingleWindow.factory
     def viewShell(self):
@@ -233,10 +233,10 @@ class MainWindow(QtGui.QMainWindow):
     def viewFloorPlan(self):
         from madqt.widget.floor_plan import LatticeFloorPlan
         latview = LatticeFloorPlan()
-        latview.setElements(self.universe.utool,
-                            self.universe.segment.elements,
-                            self.universe.segment.survey(),
-                            self.universe.selection)
+        latview.setElements(self.workspace.utool,
+                            self.workspace.segment.elements,
+                            self.workspace.segment.survey(),
+                            self.workspace.selection)
         dock = QtGui.QDockWidget()
         dock.setWidget(latview)
         dock.setWindowTitle("2D floor plan")
@@ -298,7 +298,7 @@ class MainWindow(QtGui.QMainWindow):
         for modname, exts in engine_exts.items():
             if any(map(filename.endswith, exts)):
                 module = __import__(modname, None, None, '*')
-                Universe = module.Universe
+                Workspace = module.Workspace
                 break
         else:
             raise NotImplementedError("Unsupported file format: {}"
@@ -306,49 +306,49 @@ class MainWindow(QtGui.QMainWindow):
 
         filename = os.path.abspath(filename)
         self.folder, _ = os.path.split(filename)
-        self.setUniverse(Universe(filename, self.config))
+        self.setWorkspace(Workspace(filename, self.config))
         self.showTwiss()
 
-    def setUniverse(self, universe):
-        if universe is self.universe:
+    def setWorkspace(self, workspace):
+        if workspace is self.workspace:
             return
-        self.destroyUniverse()
-        self.universe = universe
-        self.user_ns['universe'] = universe
+        self.destroyWorkspace()
+        self.workspace = workspace
+        self.user_ns['workspace'] = workspace
         self.user_ns['savedict'] = savedict
-        if universe is None:
+        if workspace is None:
             return
         self._createLogTab()
 
-        universe.selection = Selection()
-        universe.box_group = InfoBoxGroup(self, universe.selection)
+        workspace.selection = Selection()
+        workspace.box_group = InfoBoxGroup(self, workspace.selection)
 
-        madx_log = AsyncRead(universe.remote_process.stdout)
+        madx_log = AsyncRead(workspace.remote_process.stdout)
         madx_log.dataReceived.connect(self._log_stream.write)
 
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
-        QtGui.qApp.aboutToQuit.connect(self.destroyUniverse)
-        self.has_universe.value = True
+        QtGui.qApp.aboutToQuit.connect(self.destroyWorkspace)
+        self.has_workspace.value = True
 
-    def destroyUniverse(self):
-        if self.universe is None:
+    def destroyWorkspace(self):
+        if self.workspace is None:
             return
-        self.has_universe.value = False
-        del self.universe.selection.elements[:]
+        self.has_workspace.value = False
+        del self.workspace.selection.elements[:]
         try:
-            self.universe.destroy()
+            self.workspace.destroy()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
-        self.universe = None
-        self.user_ns['universe'] = None
+        self.workspace = None
+        self.user_ns['workspace'] = None
 
     def showTwiss(self):
         import madqt.plot.matplotlib as plt
         import madqt.plot.twissfigure as twissfigure
 
-        segment = self.universe.segment
+        segment = self.workspace.segment
         config = self.config['line_view'].copy()
         config['matching'] = self.config['matching']
 
@@ -375,8 +375,8 @@ class MainWindow(QtGui.QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         widget.setLayout(layout)
 
-        self.universe.destroyed.connect(widget.close)
-        self.universe.destroyed.connect(scene.remove)
+        self.workspace.destroyed.connect(widget.close)
+        self.workspace.destroyed.connect(scene.remove)
 
         self.scene = scene
         self.selector = select
@@ -416,13 +416,13 @@ class MainWindow(QtGui.QMainWindow):
         text.setReadOnly(True)
         dock = QtGui.QDockWidget()
         dock.setWidget(text)
-        dock.setWindowTitle('{} output'.format(self.universe.backend_title))
+        dock.setWindowTitle('{} output'.format(self.workspace.backend_title))
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         # TODO: MAD-X log should be separate from basic logging
         self._basicConfig(text, logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
                           '%H:%M:%S')
-        self.universe.destroyed.connect(dock.close)
+        self.workspace.destroyed.connect(dock.close)
 
     def _basicConfig(self, widget, level, fmt, datefmt=None):
         """Configure logging."""
@@ -443,7 +443,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         # Terminate the remote session, otherwise `_readLoop()` may hang:
-        self.destroyUniverse()
+        self.destroyWorkspace()
         event.accept()
 
 
@@ -517,7 +517,7 @@ class InfoBoxGroup(object):
 
     @property
     def segment(self):
-        return self.mainwindow.universe.segment
+        return self.mainwindow.workspace.segment
 
     def _on_close_box(self, box):
         el_id = box.widget().el_id
@@ -545,6 +545,6 @@ class InfoBoxGroup(object):
             frame.tabifyDockWidget(self.boxes[order[-2]], dock)
         dock.show()
         dock.raise_()
-        self.segment.universe.destroyed.connect(dock.close)
+        self.segment.workspace.destroyed.connect(dock.close)
 
         return dock

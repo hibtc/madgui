@@ -31,12 +31,12 @@ from madqt.util.symbol import SymbolicValue
 
 __all__ = [
     'ElementInfo',
-    'Universe',
+    'Workspace',
     'Segment',
 ]
 
 
-class Universe(EngineBase):
+class Workspace(EngineBase):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -58,7 +58,7 @@ class Universe(EngineBase):
         self.segment = None
         self.repo = None
         self.init_files = []
-        super(Universe, self).__init__(filename, app_config)
+        super(Workspace, self).__init__(filename, app_config)
 
     @property
     def libmadx(self):
@@ -66,7 +66,7 @@ class Universe(EngineBase):
         return self.madx and self.madx._libmadx
 
     def call(self, name):
-        """Load a MAD-X file into the current universe."""
+        """Load a MAD-X file into the current workspace."""
         with self.repo.filename(name) as f:
             self.madx.call(f, True)
         self.init_files.append(name)
@@ -92,7 +92,7 @@ class Universe(EngineBase):
                               "              Required version: {!r}")
                              .format(model_api, cls.API_VERSION))
 
-    # TODO: save reproducible state of universe?
+    # TODO: save reproducible state of workspace?
     def save(self, filename):
         """Save model to file."""
         data = self.model_data()
@@ -142,7 +142,7 @@ class Universe(EngineBase):
     def init_segment(self, data):
         """Create a segment."""
         self.segment = Segment(
-            universe=self,
+            workspace=self,
             sequence=data['sequence'],
             range=data['range'],
             beam=data['beam'],
@@ -267,17 +267,17 @@ class Segment(SegmentBase):
         'sig61', 'sig62', 'sig63', 'sig64', 'sig65', 'sig66',
     ]
 
-    def __init__(self, universe, sequence, range, beam, twiss_args):
+    def __init__(self, workspace, sequence, range, beam, twiss_args):
         """
-        :param Universe universe:
+        :param Workspace workspace:
         :param str sequence:
         :param tuple range:
         """
 
         super(Segment, self).__init__()
 
-        self.universe = universe
-        self.sequence = universe.madx.sequences[sequence]
+        self.workspace = workspace
+        self.sequence = workspace.madx.sequences[sequence]
 
         self._beam = beam
         self._twiss_args = twiss_args
@@ -299,7 +299,7 @@ class Segment(SegmentBase):
 
     @property
     def madx(self):
-        return self.universe.madx
+        return self.workspace.madx
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
@@ -310,11 +310,11 @@ class Segment(SegmentBase):
                 self.get_element_info(stop_name))
 
     def get_beam_conf(self):
-        conf = self.universe.config['parameter_sets']['beam']
+        conf = self.workspace.config['parameter_sets']['beam']
         return (process_spec(conf['params']), self.beam, conf)
 
     def get_twiss_conf(self):
-        conf = self.universe.config['parameter_sets']['twiss']
+        conf = self.workspace.config['parameter_sets']['twiss']
         return (process_spec(conf['params']), self.twiss_args, conf)
 
     def get_twiss_args_raw(self):
@@ -337,7 +337,7 @@ class Segment(SegmentBase):
         self.madx.command.beam(**beam)
 
     def get_element_data_raw(self, elem, which=None):
-        data = self.universe.madx.active_sequence.expanded_elements[elem]
+        data = self.workspace.madx.active_sequence.expanded_elements[elem]
         data['el_id'] = data['index']
         return data
 
@@ -412,7 +412,7 @@ class Segment(SegmentBase):
 
     @cachedproperty
     def native_graph_data(self):
-        config = self.universe.config
+        config = self.workspace.config
         styles = config['curve_style']
         return {
             info['name']: PlotInfo(

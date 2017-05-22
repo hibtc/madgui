@@ -43,7 +43,7 @@ DATA_TYPES = {
 }
 
 
-class Universe(EngineBase):
+class Workspace(EngineBase):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -64,8 +64,8 @@ class Universe(EngineBase):
         self.data = {}
         self.segment = None
         self.repo = None
-        self.index = 1
-        super(Universe, self).__init__(filename, app_config)
+        self.universe = 1
+        super(Workspace, self).__init__(filename, app_config)
 
     def load_dispatch(self, name, ext):
         """Load model or plain MAD-X file."""
@@ -124,17 +124,17 @@ class Segment(SegmentBase):
     :ivar dict twiss_args:
     """
 
-    def __init__(self, universe, sequence):
+    def __init__(self, workspace, sequence):
         """
-        :param Universe universe:
+        :param Workspace workspace:
         :param str sequence:
         """
 
         super(Segment, self).__init__()
 
-        self.universe = universe
+        self.workspace = workspace
 
-        lat_general = self.tao.python('lat_general', universe.index)
+        lat_general = self.tao.python('lat_general', workspace.universe)
 
         self.sequence = sequence or lat_general[0][1]
         self.range = ('#s', '#e')
@@ -171,11 +171,11 @@ class Segment(SegmentBase):
 
     @property
     def tao(self):
-        return self.universe.tao
+        return self.workspace.tao
 
     @property
     def config(self):
-        return self.universe.config
+        return self.workspace.config
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
@@ -274,7 +274,7 @@ class Segment(SegmentBase):
             return (mode == 'readwrite' or mode == True or
                     mode == 'auto' and auto)
 
-        kwargs = {'universe': self.universe.index, 'branch': self.branch}
+        kwargs = {'universe': self.workspace.universe, 'branch': self.branch}
         query = self.tao.parameters
         conf = self._param_set(name)
         spec = [
@@ -288,7 +288,7 @@ class Segment(SegmentBase):
         return (spec, self.utool.dict_add_unit(data), conf)
 
     def _get_params(self, name):
-        kwargs = {'universe': self.universe.index, 'branch': self.branch}
+        kwargs = {'universe': self.workspace.universe, 'branch': self.branch}
         return merged(*(self.tao.properties(group['query'].format(**kwargs))
                         for group in self._param_set(name)['params']))
 
@@ -325,7 +325,7 @@ class Segment(SegmentBase):
     @property
     def unibra(self):
         """Tao string for univers@branch."""
-        return '{}@{}'.format(self.universe.index, self.branch)
+        return '{}@{}'.format(self.workspace.universe, self.branch)
 
     def ex(self):
         # FIXME: consider Bmad's beam_start as fallback

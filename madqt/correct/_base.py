@@ -55,7 +55,7 @@ class OrbitCorrectorBase(object):
                  targets, magnets, monitors,
                  x_steerers, y_steerers):
         self.control = control
-        self.utool = control._segment.universe.utool
+        self.utool = control._segment.workspace.utool
         self.segment = control._segment
         # save elements
         self.targets = targets

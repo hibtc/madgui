@@ -109,7 +109,7 @@ class TwissFigure(object):
             for ax in axes
         ])
         self.markers.items.extend([
-            ElementMarkers(ax, self, self.segment.universe.selection)
+            ElementMarkers(ax, self, self.segment.workspace.selection)
             for ax in axes
         ])
         self.curves.items.extend([
@@ -420,7 +420,7 @@ class MatchTool(CaptureTool):
         # FIXME: the following is not generic in number of axes
 
         segment = self.segment
-        universe = self.segment.universe
+        workspace = self.segment.workspace
         transform = MatchTransform(segment)
 
         # transform constraints (envx => betx, etc)
@@ -558,7 +558,7 @@ class InfoTool(CaptureTool):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
         self.segment = plot.scene.segment
-        self.selection = self.segment.universe.selection
+        self.selection = self.segment.workspace.selection
 
     def activate(self):
         """Start select mode."""
@@ -735,9 +735,9 @@ class CompareTool(CheckTool):
         }
 
     def getMeta(self):
-        universe = self.plot.scene.segment.universe
-        metadata = universe.data['review']
-        resource = universe.repo.get(metadata['file'])
+        workspace = self.plot.scene.segment.workspace
+        metadata = workspace.data['review']
+        resource = workspace.repo.get(metadata['file'])
         return metadata, resource
 
 
