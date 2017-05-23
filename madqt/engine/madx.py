@@ -449,6 +449,8 @@ class Segment(SegmentBase):
     def retrack(self):
         """Recalculate TWISS parameters."""
         self.cache.clear()
+        self.madx.command.select(flag='interpolate', clear=True)
+        self.madx.command.select(flag='interpolate', step=0.2)
         results = self.madx.twiss(**self._get_twiss_args())
         self.summary = self.utool.dict_add_unit(results.summary)
         self.updated.emit()
