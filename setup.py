@@ -63,7 +63,6 @@ def main():
             'madqt.widget',
         ],
         install_requires=[
-            'cpymad>=0.17.1',   # MAD-X backend
             'docopt',           # command line parsing
             'matplotlib',
             'numpy',
@@ -77,6 +76,11 @@ def main():
             'qtconsole',
             # 'PyQt4',
         ],
+        # Make sure to always have at least one of these installed:
+        extras_require={
+            'madx': ['cpymad>=0.17.1'],
+            'bmad': ['pytao'],
+        }
         entry_points="""
             [gui_scripts]
             madqt = madqt.core.app:main
