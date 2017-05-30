@@ -110,6 +110,8 @@ class EngineBase(Object):
         vals = data.get(name, {})
         if isinstance(vals, basestring):
             data[name] = self.repo.yaml(vals, encoding='utf-8')
+            if len(data[name]) == 1 and name in data[name]:
+                data[name] = data[name][name]
 
 
 class SegmentBase(Object):
