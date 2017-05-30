@@ -80,7 +80,7 @@ def main():
         extras_require={
             'madx': ['cpymad>=0.17.1'],
             'bmad': ['pytao'],
-        }
+        },
         entry_points="""
             [gui_scripts]
             madqt = madqt.core.app:main
