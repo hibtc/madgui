@@ -6,6 +6,8 @@
 #
 # NOTE: Use lower-case keys, unless there is a special reason.
 
+mainwindow:
+  init_size: [1000, 800]
 
 # Settings for beam line and TWISS function display (component.TwissView and
 # subcomponents):
