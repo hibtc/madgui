@@ -107,7 +107,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def createMenu(self):
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
-        menubar = self.menuBar()
+        # Manually create menu bar rather than using self.menuBar() because of
+        # issues on MAC where sometimes the menu bar isn't shown:
+        menubar = QtGui.QMenuBar(self)
+        self.setMenuBar(menubar)
         menu.extend(self, menubar, [
             Menu('&File', [
                 Item('&Open', 'Ctrl+O',
