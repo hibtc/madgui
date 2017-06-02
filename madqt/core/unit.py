@@ -15,9 +15,14 @@ from six import string_types as basestring
 import pint
 
 from pydicti import dicti
-from cpymad.types import Expression
 
 from madqt.util.symbol import SymbolicValue
+
+try:
+    # special handling for cpymad.Expression if available
+    from cpymad.types import Expression
+except ImportError:
+    Expression = ()
 
 
 __all__ = [
