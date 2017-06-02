@@ -367,6 +367,7 @@ class MainWindow(QtGui.QMainWindow):
         select = twissfigure.PlotSelector(scene)
         widget = Dialog(self)
         widget.setWidget([select, plot])
+        widget.resize(self.size().width(), widget.sizeHint().height())
         widget.show()
 
         self.workspace.destroyed.connect(widget.close)
