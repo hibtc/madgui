@@ -14,6 +14,8 @@ from madqt.qt import Qt, QtCore, QtGui
 
 from madqt.core.unit import units, get_raw_label, get_unit, tounit
 from madqt.core.base import Signal
+from madqt.core.config import NumberFormat
+from madqt.util.misc import rw_property
 
 
 Acceptable = QtGui.QValidator.Acceptable
@@ -229,7 +231,6 @@ class DoubleValidator(QtGui.QValidator):
 
     minimum = None
     maximum = None
-    decimals = 4
 
     _ALLOWED_CHARS = set(string.digits + "eE+-.")
     _INTERMEDIATE = re.compile(r'^[+-]?\d*\.?\d*[eE]?[+-]?\d*$')
@@ -284,7 +285,7 @@ class ValueControlBase(AffixControlBase):
 
     def __init__(self, *args, **kwargs):
         super(ValueControlBase, self).__init__(*args, **kwargs)
-        self.setAlignment(Qt.AlignNumber)
+        self.setAlignment(NumberFormat.align)
 
     def sanitize(self, value):
         if value is None:
@@ -307,8 +308,6 @@ class QuantityControlBase(ValueControlBase):
     """
 
     _unit = None
-    _decimals = 4
-    decimals = asb_property('decimals')
 
     def __init__(self, parent=None, value=None, unit=None):
         super(QuantityControlBase, self).__init__(parent)
@@ -336,9 +335,9 @@ class QuantityControlBase(ValueControlBase):
         num_fmt = '{:' + self.fmtspec + '}'
         return num_fmt.format(value)
 
-    @property
+    @rw_property
     def fmtspec(self):
-        return '.{}g'.format(self.decimals)
+        return NumberFormat.fmtspec
 
     # own methods
 
@@ -389,7 +388,7 @@ class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
 
     def __init__(self, *args, **kwargs):
         super(QuantityDisplay, self).__init__(*args, **kwargs)
-        self.setAlignment(Qt.AlignNumber)
+        self.setAlignment(NumberFormat.align)
         self.setReadOnly(True)
         self.selectionChanged.connect(self.clear_selectall_pending)
 

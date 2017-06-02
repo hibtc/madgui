@@ -10,6 +10,8 @@ import os
 
 from madqt.resource.file import FileResource
 from madqt.resource.package import PackageResource
+from madqt.core.base import Object, Signal
+from madqt.qt import Qt
 
 
 __all__ = [
@@ -55,3 +57,12 @@ def load(*config_files):
             continue
         update_recursive(config, merge)
     return config
+
+
+class NumberFormat(Object):
+    changed = Signal()
+    fmtspec = '.4g'
+    align = Qt.AlignLeft
+
+# Global format, as singleton, for now:
+NumberFormat = NumberFormat()

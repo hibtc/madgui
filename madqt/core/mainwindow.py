@@ -83,10 +83,8 @@ class MainWindow(QtGui.QMainWindow):
         }
         self.options = options
         self.config = config.load(options['--config'])
-        if self.config['format']['align'] == 'left':
-            Qt.AlignNumber = Qt.AlignLeft
         self.workspace = None
-        self.folder = self.config.get('model_path', '')
+        self.configure()
         self.initUI()
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
         # the main loop is entered: (Being in the mainloop simplifies
@@ -95,6 +93,13 @@ class MainWindow(QtGui.QMainWindow):
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
         QtCore.QTimer.singleShot(0, self.loadDefault)
+
+    def configure(self):
+        self.folder = self.config.get('model_path', '')
+        align = {'left': Qt.AlignLeft, 'right': Qt.AlignRight}
+        config.NumberFormat.align = align[self.config['number']['align']]
+        config.NumberFormat.fmtspec = self.config['number']['fmtspec']
+        config.NumberFormat.changed.emit()
 
     def initUI(self):
         self.createMenu()

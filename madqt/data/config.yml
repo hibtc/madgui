@@ -8,6 +8,7 @@
 
 number:
   align: left
+  fmtspec: .4g
 
 mainwindow:
   init_size: [1000, 300]
