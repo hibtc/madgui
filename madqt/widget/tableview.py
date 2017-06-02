@@ -360,7 +360,7 @@ class FloatValue(ValueProxy):
     fmtspec = '.4g'
 
     def textAlignment(self):
-        return Qt.AlignRight | Qt.AlignVCenter
+        return Qt.AlignLeft | Qt.AlignVCenter
 
     def delegate(self):
         return FloatDelegate()
@@ -373,7 +373,7 @@ class IntValue(ValueProxy):
     default = 0
 
     def textAlignment(self):
-        return Qt.AlignRight | Qt.AlignVCenter
+        return Qt.AlignLeft | Qt.AlignVCenter
 
 
 class BoolValue(ValueProxy):
@@ -449,7 +449,7 @@ class ListValue(ValueProxy):
         return makeValue(value, self.types).display()
 
     def textAlignment(self):
-        return Qt.AlignRight | Qt.AlignVCenter
+        return Qt.AlignLeft | Qt.AlignVCenter
 
     def delegate(self):
         return ListDelegate()
