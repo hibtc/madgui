@@ -375,17 +375,6 @@ class MainWindow(QtGui.QMainWindow):
         self.scene = scene
         self.selector = select
 
-    def setMainWidget(self, widget):
-        """Set the central widget."""
-        # On PyQt4, if the central widget is replaced after having created a
-        # dock widget, the layout gets messed up (in this case the central
-        # widget does not respect the preferred size hints). Therefore, we
-        # have to just update its contents:
-        layout = self.centralWidget().layout()
-        layout.takeAt(0)            # safe to call on empty layouts
-        layout.addWidget(widget)
-        self.updateGeometry()
-
     def _createShell(self):
         """Create a python shell widget."""
         import madqt.core.pyshell as pyshell
