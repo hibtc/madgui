@@ -140,9 +140,6 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Python shell', 'Ctrl+P',
                      'Show a python shell.',
                      self.viewShell.toggle, checked=False),
-                Item('&Log window', 'Ctrl+L',
-                     'Show a log window.',
-                     self.viewLog),
                 Item('&Floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
                      self.viewFloorPlan.toggle, checked=False),
@@ -167,13 +164,7 @@ class MainWindow(QtGui.QMainWindow):
         self.control = control.Control(self, menubar)
 
     def createControls(self):
-        # Create an empty container as central widget in advance. For more
-        # info, see the MainWindow.setCentralWidget method.
-        widget = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        widget.setLayout(layout)
-        self.setCentralWidget(widget)
+        self.createLogWindow()
 
     def createStatusBar(self):
         self.statusBar()
@@ -233,9 +224,6 @@ class MainWindow(QtGui.QMainWindow):
     @SingleWindow.factory
     def viewShell(self):
         return self._createShell()
-
-    def viewLog(self):
-        pass
 
     @SingleWindow.factory
     def viewFloorPlan(self):
@@ -326,7 +314,6 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['savedict'] = savedict
         if workspace is None:
             return
-        self._createLogTab()
 
         workspace.selection = Selection()
         workspace.box_group = InfoBoxGroup(self, workspace.selection)
@@ -414,20 +401,15 @@ class MainWindow(QtGui.QMainWindow):
         self.scene.graph_name = graph_name
         self.selector.update_index()
 
-    # TODO: show/hide log
-    def _createLogTab(self):
+    def createLogWindow(self):
         text = QtGui.QPlainTextEdit()
         text.setFont(font.monospace())
         text.setReadOnly(True)
-        dock = QtGui.QDockWidget()
-        dock.setWidget(text)
-        dock.setWindowTitle('{} output'.format(self.workspace.backend_title))
-        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
+        self.setCentralWidget(text)
         # TODO: MAD-X log should be separate from basic logging
         self._basicConfig(text, logging.INFO,
                           '%(asctime)s %(levelname)s %(name)s: %(message)s',
                           '%H:%M:%S')
-        self.workspace.destroyed.connect(dock.close)
 
     def _basicConfig(self, widget, level, fmt, datefmt=None):
         """Configure logging."""
