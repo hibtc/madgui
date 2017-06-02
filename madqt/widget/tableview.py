@@ -153,6 +153,7 @@ class TableView(QtGui.QTableView):
         self.setShowGrid(False)
         self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
+        self.setAlternatingRowColors(True)
         if columns is not None:
             self.set_columns(columns)
 
