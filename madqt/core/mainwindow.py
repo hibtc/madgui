@@ -22,6 +22,7 @@ from madqt.util.collections import Selection, Bool
 from madqt.util.layout import VBoxLayout
 from madqt.util.misc import Property
 from madqt.util.qt import notifyCloseEvent
+from madqt.widget.dialog import Dialog
 
 import madqt.util.font as font
 import madqt.core.config as config
@@ -125,7 +126,7 @@ class MainWindow(QtGui.QMainWindow):
                      QtGui.QStyle.SP_DialogCloseButton),
             ]),
             Menu('&Edit', [
-                Item('&TWISS initial conditions', 'Ctrl+T',
+                Item('&TWISS initial conditions', 'Ctrl+I',
                      'Modify the initial conditions.',
                      self.editTwiss.create),
                 Item('&Beam parameters', 'Ctrl+B',
@@ -133,6 +134,9 @@ class MainWindow(QtGui.QMainWindow):
                      self.editBeam.create),
             ]),
             Menu('&View', [
+                Item('Plo&t window', 'Ctrl+T',
+                     'Open a new plot window.',
+                     self.showTwiss),
                 Item('&Python shell', 'Ctrl+P',
                      'Show a python shell.',
                      self.viewShell.toggle, checked=False),
@@ -205,7 +209,6 @@ class MainWindow(QtGui.QMainWindow):
             self.setBeam, *self.workspace.segment.get_beam_conf())
 
     def _edit_params(self, set_data, spec, data, conf):
-        from madqt.widget.dialog import Dialog
         from madqt.widget.params import ParamTable
 
         widget = ParamTable(spec, self.workspace.utool)
@@ -375,18 +378,15 @@ class MainWindow(QtGui.QMainWindow):
         })
 
         select = twissfigure.PlotSelector(scene)
-        widget = QtGui.QWidget()
-        layout = VBoxLayout([select, plot])
-        layout.setContentsMargins(0, 0, 0, 0)
-        widget.setLayout(layout)
+        widget = Dialog(self)
+        widget.setWidget([select, plot])
+        widget.show()
 
         self.workspace.destroyed.connect(widget.close)
         self.workspace.destroyed.connect(scene.remove)
 
         self.scene = scene
         self.selector = select
-
-        self.setMainWidget(widget)
 
     def setMainWidget(self, widget):
         """Set the central widget."""
