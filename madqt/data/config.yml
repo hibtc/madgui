@@ -6,6 +6,9 @@
 #
 # NOTE: Use lower-case keys, unless there is a special reason.
 
+format:
+  number_align: left
+
 mainwindow:
   init_size: [1000, 300]
 
