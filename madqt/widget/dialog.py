@@ -86,8 +86,10 @@ class Dialog(QtGui.QDialog):
         self.finished.connect(self.close)
 
     def setWidget(self, widget):
+        self._widget = widget
         if isinstance(widget, list):
             layout = VBoxLayout(widget)
+            layout.setContentsMargins(0, 0, 0, 0)
         elif isinstance(widget, QtGui.QLayout):
             layout = widget
         elif isinstance(widget, QtGui.QWidget):
@@ -96,6 +98,9 @@ class Dialog(QtGui.QDialog):
         else:
             raise NotImplementedError
         self.setLayout(layout)
+
+    def widget(self):
+        return self._widget
 
     def apply(self):
         self.applied.emit()

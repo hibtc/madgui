@@ -233,10 +233,10 @@ class MainWindow(QtGui.QMainWindow):
                             self.workspace.segment.elements,
                             self.workspace.segment.survey(),
                             self.workspace.selection)
-        dock = QtGui.QDockWidget()
+        dock = Dialog(self)
         dock.setWidget(latview)
         dock.setWindowTitle("2D floor plan")
-        self.addDockWidget(Qt.LeftDockWidgetArea, dock)
+        dock.show()
         return dock
 
     @SingleWindow.factory
@@ -519,17 +519,15 @@ class InfoBoxGroup(object):
         from madqt.widget.elementinfo import ElementInfoBox
         from madqt.util.qt import notifyCloseEvent, notifyEvent
         info = ElementInfoBox(self.segment, el_id)
-        dock = QtGui.QDockWidget()
+        dock = Dialog(self.mainwindow)
         dock.setWidget(info)
         dock.setWindowTitle(self.segment.elements[el_id]['name'])
         notifyCloseEvent(dock, lambda: self._on_close_box(dock))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(dock))
 
-        frame = self.mainwindow
-        frame.addDockWidget(Qt.RightDockWidgetArea, dock)
         order = self.selection.ordering
         if len(order) >= 2 and stack:
-            frame.tabifyDockWidget(self.boxes[order[-2]], dock)
+            self.mainwindow.tabifyDockWidget(self.boxes[order[-2]], dock)
         dock.show()
         dock.raise_()
         self.segment.workspace.destroyed.connect(dock.close)
