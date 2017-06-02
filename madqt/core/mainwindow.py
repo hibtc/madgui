@@ -364,9 +364,11 @@ class MainWindow(QtGui.QMainWindow):
             'scene': scene,
         })
 
+        menubar = QtGui.QMenuBar()
         select = twissfigure.PlotSelector(scene)
         widget = Dialog(self)
         widget.setWidget([select, plot])
+        widget.layout().setMenuBar(menubar)
         widget.resize(self.size().width(), widget.sizeHint().height())
         widget.show()
 
@@ -375,6 +377,20 @@ class MainWindow(QtGui.QMainWindow):
 
         self.scene = scene
         self.selector = select
+
+        Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
+        menu.extend(widget, menubar, [
+            Menu('&View', [
+                Item('&Shared plot', 'Ctrl+M',
+                     'Plot all curves into the same plot - more compact format.',
+                     self.toggleShareAxes, checked=False),
+            ]),
+        ])
+
+    def toggleShareAxes(self):
+        self.scene.figure.share_axes = not self.scene.figure.share_axes
+        self.scene.relayout()
+        self.scene.plot()
 
     def _createShell(self):
         """Create a python shell widget."""

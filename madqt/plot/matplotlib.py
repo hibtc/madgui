@@ -143,12 +143,14 @@ class Curve(object):
 
     """Plot a TWISS parameter curve segment into a 2D figure."""
 
-    def __init__(self, axes, get_xdata, get_ydata, style):
+    def __init__(self, axes, get_xdata, get_ydata, style, label=None, info=None):
         """Store meta data."""
         self.axes = axes
         self.get_xdata = get_xdata
         self.get_ydata = get_ydata
         self.style = style
+        self.label = label
+        self.info = info
         self.line = None
 
     def plot(self):
@@ -156,7 +158,7 @@ class Curve(object):
         xdata = self.get_xdata()
         ydata = self.get_ydata()
         self.axes.set_xlim(xdata[0], xdata[-1])
-        self.line = self.axes.plot(xdata, ydata, **self.style)[0]
+        self.line = self.axes.plot(xdata, ydata, label=self.label, **self.style)[0]
 
     def update(self):
         """Update the y values for one subplot."""
@@ -179,19 +181,24 @@ class MultiFigure(object):
     :ivar list axes: the axes (:class:`~matplotlib.axes.Axes`)
     """
 
-    def __init__(self):
+    def __init__(self, share_axes=False):
         """Create an empty matplotlib figure with multiple subplots."""
         self.backend_figure = Figure(tight_layout=True)
+        self.share_axes = share_axes
 
-    def set_num_axes(self, num_axes):
+    def set_num_axes(self, num_axes, shared=False):
         figure = self.backend_figure
         figure.clear()
         self.axes = axes = []
         if num_axes == 0:
             return
-        axes.append(figure.add_subplot(num_axes, 1, 1))
-        for i in range(1, num_axes):
-            axes.append(figure.add_subplot(num_axes, 1, i+1, sharex=axes[0]))
+        if self.share_axes:
+            axes.append(figure.add_subplot(1, 1, 1))
+            axes *= num_axes
+        else:
+            axes.append(figure.add_subplot(num_axes, 1, 1))
+            for i in range(1, num_axes):
+                axes.append(figure.add_subplot(num_axes, 1, i+1, sharex=axes[0]))
         return axes
 
     @property

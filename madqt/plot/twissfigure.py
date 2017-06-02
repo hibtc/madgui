@@ -101,6 +101,9 @@ class TwissFigure(object):
     @graph_name.setter
     def graph_name(self, graph_name):
         self._graph_name = graph_name
+        self.relayout()
+
+    def relayout(self):
         self.update_graph_data()
         self.scene_graph.clear_items()
         self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
@@ -117,36 +120,47 @@ class TwissFigure(object):
                 ax,
                 partial(self.get_float_data, curve_info, 0),
                 partial(self.get_float_data, curve_info, 1),
-                curve_info.style)
+                curve_info.style,
+                label=ax_label(curve_info.label, curve_info.unit),
+                info=curve_info,
+            )
             for ax, curve_info in zip(axes, self.graph_info.curves)
         ])
 
     def plot(self):
         """Replot from clean state."""
-        for ax, curve_info in zip(self.axes, self.graph_info.curves):
+        for curve in self.curves.items:
+            ax = curve.axes
             ax.cla()
-            ax.set_ylabel(ax_label(curve_info.label, curve_info.unit))
+            if not self.figure.share_axes:
+                ax.set_ylabel(curve.label)
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
             # set axes properties for convenient access:
-            ax.curve_info = curve_info
-            ax.x_unit = self.x_unit
-            ax.x_name = self.x_name
-            ax.y_unit = curve_info.unit
-            ax.y_name = curve_info.short
+            curve.x_unit = self.x_unit
+            curve.x_name = self.x_name
+            curve.y_unit = curve.info.unit
+            curve.y_name = curve.info.short
+            ax.x_unit = curve.x_unit
+            ax.y_unit = curve.y_unit
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.plot()
         self.figure.autoscale()
-        self.figure.draw()
         self.figure.connect('xlim_changed', self.xlim_changed)
+        if self.figure.share_axes:
+            ax = self.figure.axes[0]
+            legend = ax.legend(loc='upper center', fancybox=True, shadow=True, ncol=4)
+            legend.draggable()
+        self.figure.draw()
 
     def format_coord(self, ax, x, y):
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format
-        parts = [coord_fmt(ax.x_name, x, get_raw_label(ax.x_unit)),
-                 coord_fmt(ax.y_name, y, get_raw_label(ax.y_unit))]
-        elem = self.segment.get_element_by_position(x * ax.x_unit)
+        curve = next(c for c in self.curves.items if c.axes is ax)
+        parts = [coord_fmt(curve.x_name, x, get_raw_label(curve.x_unit)),
+                 coord_fmt(curve.y_name, y, get_raw_label(curve.y_unit))]
+        elem = self.segment.get_element_by_position(x * curve.x_unit)
         if elem and 'name' in elem:
             parts.insert(0, 'elem={0}'.format(elem['name']))
         return ', '.join(parts)
@@ -175,8 +189,8 @@ class TwissFigure(object):
         """Get data for the given parameter from segment."""
         return self.graph_data[curve_info.name][:,column]
 
-    def get_ax_by_name(self, name):
-        return next(ax for ax in self.axes if ax.y_name == name)
+    def get_curve_by_name(self, name):
+        return next(c for c in self.curves.items if c.y_name == name)
 
     def xlim_changed(self, ax):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
@@ -367,12 +381,18 @@ class MatchTool(CaptureTool):
 
         elem, pos = self.segment.get_best_match_pos(event.x)
 
-        name = event.axes.y_name
+        curves = self.plot.scene.curves.items
+        index = int(bool(self.plot.scene.figure.share_axes and
+                         event.guiEvent.modifiers() & Qt.AltModifier and
+                         len(curves) > 1))
+        curve = [c for c in curves if c.axes is event.axes][index]
+
+        name = curve.y_name
         axes = self.plot.scene.axes
 
         if event.button == 2:
-            for ax in axes:
-                self.removeConstraint(elem, ax.y_name)
+            for c in curves:
+                self.removeConstraint(elem, c.y_name)
             self.markers.draw()
             return
         elif event.button != 1:
@@ -390,12 +410,13 @@ class MatchTool(CaptureTool):
         self.addConstraint(Constraint(elem, pos, name, event.y))
 
         # add another constraint to hold the orthogonal axis constant
-        for ax in axes:
-            if ax.y_name == name:
+        # TODO: should do this only once for each yname!
+        for c in curves:
+            if c.y_name == name:
                 continue
             # TODO: tao can do this with exact s positions
-            value = self.segment.get_twiss(elem['name'], ax.y_name)
-            self.addConstraint(Constraint(elem, pos, ax.y_name, value))
+            value = self.segment.get_twiss(elem['name'], c.y_name)
+            self.addConstraint(Constraint(elem, pos, c.y_name, value))
 
         self.markers.draw()
 
@@ -532,10 +553,10 @@ class ConstraintMarkers(SceneElement):
     def plotConstraint(self, elem, pos, axis, val):
         """Draw one constraint representation in the graph."""
         scene = self.scene
-        ax = scene.get_ax_by_name(axis)
-        self.lines.extend(ax.plot(
-            strip_unit(pos, ax.x_unit),
-            strip_unit(val, ax.y_unit),
+        curve = scene.get_curve_by_name(axis)
+        self.lines.extend(curve.axes.plot(
+            strip_unit(pos, curve.x_unit),
+            strip_unit(val, curve.y_unit),
             **self.style))
 
 
@@ -704,20 +725,17 @@ class CompareTool(CheckTool):
             data = self.getData()
         except KeyError:
             return
-        self.curve = SceneGraph([
-            self.plot_ax(data, ax)
-            for ax in self.plot.scene.axes
-        ])
-
-    def plot_ax(self, data, axes):
-        """Plot the envelope into the figure."""
         scene = self.plot.scene
-        curve = axes.curve_info
-        return scene.figure.Curve(
-            axes,
-            lambda: strip_unit(data[axes.x_name], axes.x_unit),
-            lambda: strip_unit(data[axes.y_name], axes.y_unit),
-            self.style)
+        self.curve = SceneGraph([
+            scene.figure.Curve(
+                curve.axes,
+                partial(strip_unit, data[curve.x_name], curve.x_unit),
+                partial(strip_unit, data[curve.y_name], curve.y_unit),
+                self.style,
+                label=None, # TODO
+            )
+            for curve in scene.curves.items
+        ])
 
     def getData(self):
         metadata, resource = self.getMeta()
