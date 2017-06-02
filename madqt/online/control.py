@@ -210,7 +210,8 @@ class Control(Object):
         module = __import__('madqt.correct.' + name, None, None, '*')
 
         self.read_all()
-        self._frame.show_graph('orbit')
+        # TODO: open an orbit plot if none is present
+        # self._frame.showTwiss('orbit')
 
         segment = self._segment
         elements = segment.elements

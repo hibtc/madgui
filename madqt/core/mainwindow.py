@@ -339,7 +339,7 @@ class MainWindow(QtGui.QMainWindow):
         self.workspace = None
         self.user_ns['workspace'] = None
 
-    def showTwiss(self):
+    def showTwiss(self, name=None):
         import madqt.plot.matplotlib as plt
         import madqt.plot.twissfigure as twissfigure
 
@@ -352,7 +352,7 @@ class MainWindow(QtGui.QMainWindow):
 
         scene = twissfigure.TwissFigure(figure, segment, config)
         scene.show_indicators = True
-        scene.graph_name = config['default_graph']
+        scene.graph_name = name or config['default_graph']
         scene.attach(plot)
         scene.plot()
 
@@ -375,22 +375,20 @@ class MainWindow(QtGui.QMainWindow):
         self.workspace.destroyed.connect(widget.close)
         self.workspace.destroyed.connect(scene.remove)
 
-        self.scene = scene
-        self.selector = select
+        def toggleShareAxes():
+            scene.figure.share_axes = not scene.figure.share_axes
+            scene.relayout()
+            scene.plot()
 
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [
             Menu('&View', [
                 Item('&Shared plot', 'Ctrl+M',
                      'Plot all curves into the same plot - more compact format.',
-                     self.toggleShareAxes, checked=False),
+                     toggleShareAxes, checked=False),
             ]),
         ])
-
-    def toggleShareAxes(self):
-        self.scene.figure.share_axes = not self.scene.figure.share_axes
-        self.scene.relayout()
-        self.scene.plot()
+        return scene
 
     def _createShell(self):
         """Create a python shell widget."""
@@ -402,10 +400,6 @@ class MainWindow(QtGui.QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         self.shell.exit_requested.connect(dock.close)
         return dock
-
-    def show_graph(self, graph_name):
-        self.scene.graph_name = graph_name
-        self.selector.update_index()
 
     def createLogWindow(self):
         text = QtGui.QPlainTextEdit()
