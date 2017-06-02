@@ -183,16 +183,22 @@ class SegmentBase(Object):
     def get_element_by_name(self, name):
         return self.elements[self.get_element_index(name)]
 
+    def el_pos(self, el):
+        """Position for matching / output."""
+        return el['at'] + el['l']
+
+    def adjust_match_pos(self, el, pos):
+        return self.el_pos(el)
+
     def get_best_match_pos(self, pos):
         """Find optics element by longitudinal position."""
-        return self.get_nearest_element(pos)
-
-    def get_nearest_element(self, pos):
-        """Find optics element by longitudinal position."""
-        el_pos = lambda el: el['at'] + el['l']
         elem = min(filter(self.can_match_at, self.elements),
-                   key=lambda el: abs(el_pos(el)-pos))
-        return (elem, el_pos(elem))
+                   key=lambda el: abs(self.adjust_match_pos(el, pos)-pos))
+        return min([
+            (el, self.adjust_match_pos(el, pos))
+            for el in self.elements
+            if self.can_match_at(el)
+        ], key=lambda x: abs(x[1]-pos))
 
     def can_match_at(self, element):
         return True

@@ -3,7 +3,7 @@ MAD-X backend for MadQt.
 """
 
 import os
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import partial
 import itertools
 import logging
@@ -520,13 +520,30 @@ class Segment(SegmentBase):
 
         # TODO: update elements
 
-    def can_match_at(self, elem):
-        return not elem['name'].endswith('[0]')
-
     def match(self, variables, constraints):
+
+        # list intermediate positions
+        elem_positions = defaultdict(set)
+        for elem, pos, axis, val in constraints:
+            if pos < elem['at']+elem['l']:
+                elem_positions[elem['name']].add(pos)
+        elem_positions = {name: sorted(positions)
+                          for name, positions in elem_positions.items()}
+
+        # activate matching at specified positions
+        self.madx.command.select(flag='interpolate', clear=True)
+        for name, positions in elem_positions.items():
+            at = self.elements[name]['at']
+            l = self.elements[name]['l']
+            for pos in positions:
+                if pos < at+l:
+                    self.madx.command.select(
+                        flag='interpolate', range=name, at=[float((pos-at)/l)])
+
         # create constraints list to be passed to Madx.match
         madx_constraints = [
             {'range': elem['name'],
+             'iindex': elem_positions[elem['name']].index(pos),
              axis: self.utool.strip_unit(axis, val)}
             for elem, pos, axis, val in constraints]
 
@@ -558,6 +575,12 @@ class Segment(SegmentBase):
             self.set_element_attribute(elem, attr, value)
         else:
             self.madx.set_value(knob, value)
+
+    def adjust_match_pos(self, el, pos):
+        at, l = el['at'], el['l']
+        if pos <= at:   return at
+        if pos >= at+l: return at+l
+        return pos
 
 
 def process_spec(prespec, data):
