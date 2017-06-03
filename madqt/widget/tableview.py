@@ -151,7 +151,6 @@ class TableView(QtGui.QTableView):
     def __init__(self, parent=None, columns=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super(TableView, self).__init__(parent, **kwargs)
-        self.setShowGrid(False)
         self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
