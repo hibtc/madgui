@@ -20,6 +20,7 @@ import madqt.core.unit as unit
 from madqt.util.datastore import DataStore, SuperStore
 from madqt.util.misc import (attribute_alias, sort_to_top,
                              rename_key, merged, translate_default)
+from madqt.util.enum import make_enum
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
@@ -103,6 +104,9 @@ class Workspace(EngineBase):
                 '-noplot', '-gui_mode',
                 *args, **self.minrpc_flags())
 
+        self.enums = {}     # cache: name -> class
+        self.tao._create_enum_value = self._create_enum_value
+
         self.tao.command('place * none')
         # init segment
         self.segment = Segment(self, self.data.get('sequence'))
@@ -113,6 +117,12 @@ class Workspace(EngineBase):
     def read(self, name):
         with self.repo.filename(name) as f:
             self.tao.read(f)
+
+    def _create_enum_value(self, name, value):
+        if name not in self.enums:
+            values = self.tao.get_list('enum', name)
+            self.enums[name] = make_enum(name, values)
+        return self.enums[name](value)
 
 
 class Segment(SegmentBase):
