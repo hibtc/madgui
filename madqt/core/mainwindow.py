@@ -83,7 +83,7 @@ class MainWindow(QtGui.QMainWindow):
         }
         self.options = options
         self.config = config.load(options['--config'])
-        if self.config['format']['number_align'] == 'left':
+        if self.config['format']['align'] == 'left':
             Qt.AlignNumber = Qt.AlignLeft
         self.workspace = None
         self.folder = self.config.get('model_path', '')
