@@ -21,6 +21,7 @@ from madqt.core.config import NumberFormat
 from madqt.util.layout import HBoxLayout
 from madqt.util.misc import rw_property
 from madqt.util.collections import List
+from madqt.util.enum import Enum
 from madqt.widget.spinbox import QuantitySpinBox
 from madqt.widget.quantity import DoubleValidator as _DoubleValidator
 
@@ -473,6 +474,16 @@ class ListValue(ValueProxy):
         return ListDelegate()
 
 
+class EnumValue(StringValue):
+
+    def __init__(self, value, **kwargs):
+        self.enum = type(value)
+        super(EnumValue, self).__init__(value, **kwargs)
+
+    def delegate(self):
+        return EnumDelegate(self.enum)
+
+
 defaultTypes.update({
     float: FloatValue,
     int: IntValue,
@@ -482,6 +493,7 @@ defaultTypes.update({
     list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,
     Expression: QuantityValue,
+    Enum: EnumValue,
 })
 
 
@@ -630,3 +642,23 @@ class ListDelegate(QtGui.QStyledItemDelegate):
         value = editor.edit.text()
         items = [unit.from_config(item) for item in value.split(',')]
         model.setData(index, items)
+
+
+class EnumDelegate(QtGui.QStyledItemDelegate):
+
+    def __init__(self, enum):
+        super(EnumDelegate, self).__init__()
+        self.enum = enum
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QComboBox(parent)
+        return editor
+
+    def setEditorData(self, editor, index):
+        editor.clear()
+        editor.addItems(self.enum._values)
+        editor.setCurrentIndex(editor.findText(str(index.data())))
+
+    def setModelData(self, editor, model, index):
+        value = editor.currentText()
+        model.setData(index, self.enum(value))
