@@ -316,18 +316,17 @@ class MainWindow(QtGui.QMainWindow):
                         '.init', '.lat', '.madx', '.bmad']
 
     def searchFile(self, path):
-        if not os.path.exists(path) and not os.path.isabs(path) and self.folder:
-            path = os.path.join(self.folder, path)
-        if os.path.isdir(path):
-            models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
-                      glob.glob(os.path.join(path, '*.pytao.yml')) +
-                      glob.glob(os.path.join(path, '*.init')))
-            if models:
-                path = models[0]
-        path = expand_ext(path, '', *self.known_extensions)
-        if not os.path.isfile(path):
-            raise OSError("File not found: {!r}".format(path))
-        return path
+        for path in [path, os.path.join(self.folder or '.', path)]:
+            if os.path.isdir(path):
+                models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
+                        glob.glob(os.path.join(path, '*.pytao.yml')) +
+                        glob.glob(os.path.join(path, '*.init')))
+                if models:
+                    path = models[0]
+            path = expand_ext(path, '', *self.known_extensions)
+            if os.path.isfile(path):
+                return path
+        raise OSError("File not found: {!r}".format(path))
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
