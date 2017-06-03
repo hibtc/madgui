@@ -16,8 +16,9 @@ from six import (python_2_unicode_compatible,
 
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
+from madqt.core.config import NumberFormat
 from madqt.util.layout import HBoxLayout
-from madqt.util.misc import memoize
+from madqt.util.misc import rw_property
 from madqt.util.collections import List
 from madqt.widget.spinbox import QuantitySpinBox
 from madqt.widget.quantity import DoubleValidator as _DoubleValidator
@@ -156,6 +157,13 @@ class TableView(QtGui.QTableView):
         self.setAlternatingRowColors(True)
         if columns is not None:
             self.set_columns(columns)
+        NumberFormat.changed.connect(self.format_changed)
+
+    def format_changed(self):
+        # NOTE: this is only okay as long as there is only a single view for
+        # each model (otherwise the signals will be emitted multiple times!):
+        self.model().layoutAboutToBeChanged.emit()
+        self.model().layoutChanged.emit()
 
     def set_columns(self, columns):
         self.setModel(TableModel(columns))
@@ -358,13 +366,16 @@ class FloatValue(ValueProxy):
     """Float value."""
 
     default = 0.0
-    fmtspec = '.4g'
 
     def textAlignment(self):
-        return Qt.AlignNumber | Qt.AlignVCenter
+        return NumberFormat.align | Qt.AlignVCenter
 
     def delegate(self):
         return FloatDelegate()
+
+    @rw_property
+    def fmtspec(self):
+        return NumberFormat.fmtspec
 
 
 class IntValue(ValueProxy):
@@ -374,7 +385,7 @@ class IntValue(ValueProxy):
     default = 0
 
     def textAlignment(self):
-        return Qt.AlignNumber | Qt.AlignVCenter
+        return NumberFormat.align | Qt.AlignVCenter
 
 
 class BoolValue(ValueProxy):
@@ -405,8 +416,6 @@ class BoolValue(ValueProxy):
 
 
 class QuantityValue(FloatValue):
-
-    fmtspec = '.4g'
 
     def __init__(self, value, **kwargs):
         if value is not None:
@@ -450,7 +459,7 @@ class ListValue(ValueProxy):
         return makeValue(value, self.types).display()
 
     def textAlignment(self):
-        return Qt.AlignNumber | Qt.AlignVCenter
+        return NumberFormat.align | Qt.AlignVCenter
 
     def delegate(self):
         return ListDelegate()

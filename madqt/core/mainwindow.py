@@ -83,10 +83,8 @@ class MainWindow(QtGui.QMainWindow):
         }
         self.options = options
         self.config = config.load(options['--config'])
-        if self.config['format']['align'] == 'left':
-            Qt.AlignNumber = Qt.AlignLeft
         self.workspace = None
-        self.folder = self.config.get('model_path', '')
+        self.configure()
         self.initUI()
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
         # the main loop is entered: (Being in the mainloop simplifies
@@ -95,6 +93,13 @@ class MainWindow(QtGui.QMainWindow):
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
         QtCore.QTimer.singleShot(0, self.loadDefault)
+
+    def configure(self):
+        self.folder = self.config.get('model_path', '')
+        align = {'left': Qt.AlignLeft, 'right': Qt.AlignRight}
+        config.NumberFormat.align = align[self.config['number']['align']]
+        config.NumberFormat.fmtspec = self.config['number']['fmtspec']
+        config.NumberFormat.changed.emit()
 
     def initUI(self):
         self.createMenu()
@@ -152,6 +157,14 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
                      self.viewFloorPlan.toggle, checked=False),
+            ]),
+            Menu('&Settings', [
+                Item('&Number format', None,
+                     'Set the number format/precision used in dialogs',
+                     self.setNumberFormat),
+                Item('&Wheels', None,
+                     'Display spinboxes for number input controls',
+                     self.setSpinBox, checked=config.NumberFormat.spinbox),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
@@ -247,6 +260,25 @@ class MainWindow(QtGui.QMainWindow):
         dock.setWindowTitle("2D floor plan")
         dock.show()
         return dock
+
+    def setNumberFormat(self):
+        fmtspec, ok = QtGui.QInputDialog.getText(
+            self, "Set number format", "Number format:",
+            text=config.NumberFormat.fmtspec)
+        if not ok:
+            return
+        try:
+            format(1.1, fmtspec)
+        except ValueError:
+            # TODO: show warning
+            return
+        config.NumberFormat.fmtspec = fmtspec
+        config.NumberFormat.changed.emit()
+
+    def setSpinBox(self):
+        # TODO: sync with menu state
+        config.NumberFormat.spinbox = not config.NumberFormat.spinbox
+        config.NumberFormat.changed.emit()
 
     @SingleWindow.factory
     def helpAboutMadQt(self):

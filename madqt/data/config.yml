@@ -8,6 +8,8 @@
 
 number:
   align: left
+  fmtspec: .4g
+  spinbox: false
 
 mainwindow:
   init_size: [1000, 300]
