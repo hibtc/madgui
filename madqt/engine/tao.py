@@ -159,7 +159,7 @@ class Segment(SegmentBase):
                       self.tao.get_element_data(index, who='multipole'))
         data['el_id'] = data['ix_ele']
         data['name'] = data['name'].lower()
-        data['at'] = data['s'] - data['l']
+        data['at'] = data['s'] - data.setdefault('l', 0)
         # for compatibility with MAD-X:
         rename_key(data, 'type', 'type_')
         rename_key(data, 'key', 'type')
