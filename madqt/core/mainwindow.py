@@ -533,7 +533,7 @@ class InfoBoxGroup(object):
     # keep info boxes in sync with current selection
 
     def _insert(self, index, el_id):
-        self.boxes.insert(index, self.create_info_box(el_id, index != 0))
+        self.boxes.insert(index, self.create_info_box(el_id))
 
     def _delete(self, index):
         if self.boxes[index].isVisible():
@@ -559,7 +559,7 @@ class InfoBoxGroup(object):
         self.selection.top = self.boxes.index(box)
         box.raise_()
 
-    def create_info_box(self, el_id, stack=True):
+    def create_info_box(self, el_id):
         from madqt.widget.elementinfo import ElementInfoBox
         from madqt.util.qt import notifyCloseEvent, notifyEvent
         info = ElementInfoBox(self.segment, el_id)
@@ -569,9 +569,6 @@ class InfoBoxGroup(object):
         notifyCloseEvent(dock, lambda: self._on_close_box(dock))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(dock))
 
-        order = self.selection.ordering
-        if len(order) >= 2 and stack:
-            self.mainwindow.tabifyDockWidget(self.boxes[order[-2]], dock)
         dock.show()
         dock.raise_()
         self.segment.workspace.destroyed.connect(dock.close)
