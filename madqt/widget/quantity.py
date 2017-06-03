@@ -320,6 +320,7 @@ class QuantityControlBase(ValueControlBase):
                 self.set_quantity_checked(value)
         else:
             self.set_magnitude(value)
+        NumberFormat.changed.connect(self.updateEdit)
 
     def _validate_value(self, text, pos):
         if not text or self.validator is None:

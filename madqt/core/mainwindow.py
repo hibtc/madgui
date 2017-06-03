@@ -158,6 +158,11 @@ class MainWindow(QtGui.QMainWindow):
                      'Show a 2D floor plan of the lattice.',
                      self.viewFloorPlan.toggle, checked=False),
             ]),
+            Menu('&Settings', [
+                Item('&Number format', None,
+                     'Set the number format/precision used in dialogs',
+                     self.setNumberFormat),
+            ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
                      'About the MadQt GUI application.',
@@ -252,6 +257,20 @@ class MainWindow(QtGui.QMainWindow):
         dock.setWindowTitle("2D floor plan")
         dock.show()
         return dock
+
+    def setNumberFormat(self):
+        fmtspec, ok = QtGui.QInputDialog.getText(
+            self, "Set number format", "Number format:",
+            text=config.NumberFormat.fmtspec)
+        if not ok:
+            return
+        try:
+            format(1.1, fmtspec)
+        except ValueError:
+            # TODO: show warning
+            return
+        config.NumberFormat.fmtspec = fmtspec
+        config.NumberFormat.changed.emit()
 
     @SingleWindow.factory
     def helpAboutMadQt(self):

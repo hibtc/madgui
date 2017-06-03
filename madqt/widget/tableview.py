@@ -157,6 +157,13 @@ class TableView(QtGui.QTableView):
         self.setAlternatingRowColors(True)
         if columns is not None:
             self.set_columns(columns)
+        NumberFormat.changed.connect(self.format_changed)
+
+    def format_changed(self):
+        # NOTE: this is only okay as long as there is only a single view for
+        # each model (otherwise the signals will be emitted multiple times!):
+        self.model().layoutAboutToBeChanged.emit()
+        self.model().layoutChanged.emit()
 
     def set_columns(self, columns):
         self.setModel(TableModel(columns))
