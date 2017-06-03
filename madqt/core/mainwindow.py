@@ -48,6 +48,13 @@ def savedict(filename, data):
     np.savetxt(filename, np.array(body).T, header=' '.join(cols))
 
 
+def expand_ext(path, *exts):
+    for ext in exts:
+        if os.path.isfile(path+ext):
+            return path+ext
+    return path
+
+
 class SingleWindow(Property):
 
     def _del(self):
@@ -273,6 +280,9 @@ class MainWindow(QtGui.QMainWindow):
     # Update state
     #----------------------------------------
 
+    known_extensions = ['.cpymad.yml', '.pytao.yml',
+                        '.init', '.lat', '.madx', '.bmad']
+
     def searchFile(self, path):
         if not os.path.exists(path) and not os.path.isabs(path) and self.folder:
             path = os.path.join(self.folder, path)
@@ -282,6 +292,7 @@ class MainWindow(QtGui.QMainWindow):
                       glob.glob(os.path.join(path, '*.init')))
             if models:
                 path = models[0]
+        path = expand_ext(path, '', *self.known_extensions)
         if not os.path.isfile(path):
             raise OSError("File not found: {!r}".format(path))
         return path
