@@ -12,6 +12,7 @@ from madqt.qt import Qt, QtCore, QtGui
 
 from madqt.widget.quantity import ValueControlBase, QuantityControlBase
 from madqt.core.base import Signal
+from madqt.core.config import NumberFormat
 
 
 class AbstractSpinBox(ValueControlBase, QtGui.QAbstractSpinBox):
@@ -147,6 +148,7 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
     def __init__(self, *args, **kwargs):
         super(QuantitySpinBox, self).__init__(*args, **kwargs)
         self.valueChanged.connect(self.update_step)
+        self.updateEdit()
 
     def update_step(self, value):
         if value is None or value == 0:
@@ -156,3 +158,9 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
 
     def line_edit(self):
         return self.lineEdit()
+
+    def updateEdit(self):
+        buttons = [QtGui.QAbstractSpinBox.NoButtons,
+                   QtGui.QAbstractSpinBox.UpDownArrows]
+        self.setButtonSymbols(buttons[bool(NumberFormat.spinbox)])
+        super(QuantitySpinBox, self).updateEdit()

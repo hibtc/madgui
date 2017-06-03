@@ -61,6 +61,7 @@ def load(*config_files):
 
 class NumberFormat(Object):
     changed = Signal()
+    spinbox = False
     fmtspec = '.4g'
     align = Qt.AlignLeft
 

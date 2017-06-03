@@ -162,6 +162,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Number format', None,
                      'Set the number format/precision used in dialogs',
                      self.setNumberFormat),
+                Item('&Wheels', None,
+                     'Display spinboxes for number input controls',
+                     self.setSpinBox, checked=config.NumberFormat.spinbox),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
@@ -270,6 +273,11 @@ class MainWindow(QtGui.QMainWindow):
             # TODO: show warning
             return
         config.NumberFormat.fmtspec = fmtspec
+        config.NumberFormat.changed.emit()
+
+    def setSpinBox(self):
+        # TODO: sync with menu state
+        config.NumberFormat.spinbox = not config.NumberFormat.spinbox
         config.NumberFormat.changed.emit()
 
     @SingleWindow.factory
