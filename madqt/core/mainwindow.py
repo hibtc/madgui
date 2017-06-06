@@ -537,11 +537,11 @@ class InfoBoxGroup(object):
 
     def _delete(self, index):
         if self.boxes[index].isVisible():
-            self.boxes[index].close()
+            self.boxes[index].parent().close()
         del self.boxes[index]
 
     def _modify(self, index, el_id):
-        self.boxes[index].widget().el_id = el_id
+        self.boxes[index].el_id = el_id
         self.boxes[index].setWindowTitle(self.segment.elements[el_id]['name'])
 
     # utility methods
@@ -551,7 +551,7 @@ class InfoBoxGroup(object):
         return self.mainwindow.workspace.segment
 
     def _on_close_box(self, box):
-        el_id = box.widget().el_id
+        el_id = box.el_id
         if el_id in self.selection.elements:
             self.selection.elements.remove(el_id)
 
@@ -564,13 +564,14 @@ class InfoBoxGroup(object):
         from madqt.util.qt import notifyCloseEvent, notifyEvent
         info = ElementInfoBox(self.segment, el_id)
         dock = Dialog(self.mainwindow)
-        dock.setWidget(info)
+        dock.setExportWidget(info, None)
         dock.setWindowTitle(self.segment.elements[el_id]['name'])
-        notifyCloseEvent(dock, lambda: self._on_close_box(dock))
-        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(dock))
+        notifyCloseEvent(dock, lambda: self._on_close_box(info))
+        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
+        dock.applied.connect(info.applied)
 
         dock.show()
         dock.raise_()
         self.segment.workspace.destroyed.connect(dock.close)
 
-        return dock
+        return info

@@ -71,6 +71,7 @@ class ParamTable(tableview.TableView):
     :ivar dict data: initial/final parameter values
     """
 
+    # TODO: add "single" mode: update after changing individual rows
     # TODO: visually indicate rows with default or unset values (gray)
     # TODO: move rows with default or unset values to bottom?
 
@@ -81,7 +82,7 @@ class ParamTable(tableview.TableView):
 
         self.utool = utool
         self.units = utool._units
-        self.params = OrderedDict((param.name, param) for param in spec)
+        self.set_spec(spec)
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
@@ -98,6 +99,9 @@ class ParamTable(tableview.TableView):
 
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Preferred)
+
+    def set_spec(self, spec):
+        self.params = OrderedDict((param.name, param) for param in spec)
 
     def data(self):
         """Get dictionary with all input values from dialog."""
