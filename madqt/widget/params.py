@@ -14,7 +14,7 @@ import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
-from madqt.core.unit import get_raw_label, strip_unit
+from madqt.core.unit import get_raw_label, strip_unit, Expression, units
 
 
 __all__ = [
@@ -35,13 +35,15 @@ class ParamSpec(object):
     def value_type(self):
         if isinstance(self.value, bool):
             return tableview.BoolValue
-        if isinstance(self.value, (int, float)):
+        if isinstance(self.value, (int, float, units.Quantity, Expression)):
             return tableview.QuantityValue
         if isinstance(self.value, (basestring)):
             return tableview.QuotedStringValue
+        if isinstance(self.value, (list)):
+            return tableview.ListValue
         # TODO: list -> VectorValue (single MAD-X parameter of type ARRAY)
-        raise ValueError("Unknown parameter type: {}={}"
-                         .format(self.name, self.value))
+        raise ValueError("Unknown parameter type: {}={} {}"
+                         .format(self.name, self.value, type(self.value)))
 
 
 class ParamInfo(object):
@@ -122,11 +124,8 @@ class ParamTable(tableview.TableView):
 
     def makeParamInfo(self, param, quantity):
         # TODO: use UI units
-        unit = self.units.get(param)
         param = self.params[param]
-        default = param.value
-        if unit is not None:
-            default = param.value * unit
+        default = self.utool.add_unit(param, param.value)
         textcolor = Qt.black if param.editable else Qt.darkGray
         proxy = param.value_type()(quantity, default=default,
                                    editable=param.editable,
