@@ -311,11 +311,13 @@ class Segment(SegmentBase):
 
     def get_beam_conf(self):
         conf = self.workspace.config['parameter_sets']['beam']
-        return (process_spec(conf['params']), self.beam, conf)
+        prespec, data = conf['params'], self.beam
+        return process_spec(prespec, data), data, conf
 
     def get_twiss_conf(self):
         conf = self.workspace.config['parameter_sets']['twiss']
-        return (process_spec(conf['params']), self.twiss_args, conf)
+        prespec, data = conf['params'], self.twiss_args
+        return process_spec(prespec, data), data, conf
 
     def get_twiss_args_raw(self):
         return self._twiss_args
@@ -491,14 +493,29 @@ class Segment(SegmentBase):
         return MonitorBackend(self, elem)
 
 
-def process_spec(prespec):
+def process_spec(prespec, data):
     from madqt.widget.params import ParamSpec
-    return [
+    # TODO: Handle defaults for hard-coded and ad-hoc keys homogeniously.
+    # The simplest option would be to simply specify list of priority keys in
+    # the config file…
+    # TODO: properly detect which items are mutable
+    spec = [
         ParamSpec(k, v)
         for item in prespec
         for spec in item.items()
         for k, v in process_spec_item(*spec)
+        # TODO: distinguish items that are not in `data` (we can't just
+        # filter, because that prevents editting defaulted parameters)
+        # if k in data
     ]
+    # Add keys that were not hard-coded in config:
+    prespec_items = {k for item in prespec for k in item}
+    spec += [
+        ParamSpec(k, v)
+        for k, v in data.items()
+        if k not in prespec_items
+    ]
+    return spec
 
 
 # TODO: support expressions
