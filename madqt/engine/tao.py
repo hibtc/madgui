@@ -8,7 +8,7 @@ tao backend for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 import re
 
@@ -17,6 +17,7 @@ from six import string_types as basestring
 from pytao.tao import Tao
 
 import madqt.core.unit as unit
+from madqt.util.datastore import DataStore
 from madqt.util.misc import (attribute_alias, sort_to_top,
                              rename_key, merged, translate_default)
 
@@ -241,60 +242,17 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self.elements.index(elem_name)
 
-    def get_beam_conf(self):
-        return self._get_param_conf('beam')
+    def get_beam_ds(self):
+        return TaoDataStore(self, 'beam')
 
-    def get_twiss_conf(self):
-        return self._get_param_conf('twiss')
+    def get_twiss_ds(self):
+        return TaoDataStore(self, 'twiss')
 
-    def get_elem_conf(self, elem_index):
-        spec, data, conf = self._get_param_conf('element', element=elem_index)
-        # TODO: rename keys, like in tao.get_element_data_raw
-        spec = sort_to_top(spec, [
-            'Name',
-            'Key',
-            'S',
-            'L',
-        ], key=lambda param: param.name)
-        return spec, data, conf
+    def get_elem_ds(self, elem_index):
+        return ElementDataStore(self, 'element', element=elem_index)
 
     def _param_set(self, name):
         return self.config['parameter_sets'][name]
-
-    # TODO: dumb this down…
-    def _get_param_conf(self, name, **kw):
-        from madqt.widget.params import ParamSpec
-
-        def prepare_group(group):
-            group['readonly']  = readonly  = set(group.get('readonly', ()))
-            group['readwrite'] = readwrite = set(group.get('readwrite', ()))
-            group['auto']      = auto      = set(group.get('auto', ()))
-            group['explicit']  = readonly | readwrite | auto
-            group.setdefault('implicit', 'auto')
-            return group
-
-        def param_mode(name, group):
-            if name in group['readwrite']:  return 'readwrite'
-            if name in group['readonly']:   return 'readonly'
-            if name in group['auto']:       return 'auto'
-            return group['implicit']
-
-        def editable(mode, auto):
-            return (mode == 'readwrite' or mode == True or
-                    mode == 'auto' and auto)
-
-        kwargs = dict(kw, universe=self.workspace.universe, branch=self.branch)
-        query = self.tao.parameters
-        conf = self._param_set(name)
-        spec = [
-            ParamSpec(param.name.title(), param.value, editable(mode, param.vary))
-            for group in map(prepare_group, conf['params'])
-            for param in query(group['query'].format(**kwargs)).values()
-            for mode in [param_mode(param.name, group)]
-            if mode in ('readwrite', 'readonly', 'auto', True, False)
-        ]
-        data = {param.name: param.value for param in spec}
-        return (spec, self.utool.dict_add_unit(data), conf)
 
     def _get_params(self, name):
         kwargs = {'universe': self.workspace.universe, 'branch': self.branch}
@@ -441,6 +399,76 @@ class Segment(SegmentBase):
 
     def get_monitor(self, elem):
         return MonitorBackend(self, elem)
+
+
+# TODO: dumb this down…
+class TaoDataStore(DataStore):
+
+    def __init__(self, segment, name, **kw):
+        self.segment = segment
+        self.name = name
+        self.kw = kw
+        self.conf = segment._param_set(name)
+
+    def _update_params(self):
+
+        def prepare_group(group):
+            group['readonly']  = readonly  = set(group.get('readonly', ()))
+            group['readwrite'] = readwrite = set(group.get('readwrite', ()))
+            group['auto']      = auto      = set(group.get('auto', ()))
+            group['explicit']  = readonly | readwrite | auto
+            group.setdefault('implicit', 'auto')
+            return group
+
+        def param_mode(name, group):
+            if name in group['readwrite']:  return 'readwrite'
+            if name in group['readonly']:   return 'readonly'
+            if name in group['auto']:       return 'auto'
+            return group['implicit']
+
+        def editable(mode, auto):
+            return (mode == 'readwrite' or mode == True or
+                    mode == 'auto' and auto)
+
+        self.groups = list(map(prepare_group, self.conf['params']))
+
+        kwargs = dict(self.kw, universe=self.segment.workspace.universe,
+                      branch=self.segment.branch)
+        query = self.segment.tao.parameters
+        self.params = OrderedDict(
+            (param.name.lower(),
+             (param, editable(param_mode(param.name, group), param.vary)))
+            for group in self.groups
+            for param in query(group['query'].format(**kwargs)).values()
+        )
+
+    def get(self):
+        self._update_params()
+        return self.segment.utool.dict_add_unit(OrderedDict(
+            (param.name.title(), param.value)
+            for param, edittable in self.params.values()))
+
+    def update(self, values):
+        self.segment._set_params(self.name, values, *self.kw.values())
+
+    def mutable(self, key):
+        return self.params[key.lower()][1]
+
+    def default(self, key):
+        return self.params[key.lower()][0].value    # I know…
+
+
+class ElementDataStore(TaoDataStore):
+
+    def get(self):
+        data = super(ElementDataStore, self).get()
+        # TODO: rename keys, like in tao.get_element_data_raw
+        return sort_to_top(data, [
+            'Name',
+            'Key',
+            'S',
+            'L',
+        ])
 
 
 # http://plplot.sourceforge.net/docbook-manual/plplot-html-5.11.1/characters.html#greek

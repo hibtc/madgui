@@ -213,35 +213,24 @@ class MainWindow(QtGui.QMainWindow):
 
     @SingleWindow.factory
     def editTwiss(self):
-        return self._edit_params(
-            self.setTwiss, *self.workspace.segment.get_twiss_conf())
+        return self._edit_params(self.workspace.segment.get_twiss_ds())
 
     @SingleWindow.factory
     def editBeam(self):
-        return self._edit_params(
-            self.setBeam, *self.workspace.segment.get_beam_conf())
+        return self._edit_params(self.workspace.segment.get_beam_ds())
 
-    def _edit_params(self, set_data, spec, data, conf):
+    def _edit_params(self, datastore):
         from madqt.widget.params import ParamTable
 
-        widget = ParamTable(spec, self.workspace.utool)
-        widget.setData(data)
-        widget.data_key = conf['data_key']
+        widget = ParamTable(datastore, self.workspace.utool)
+        widget.data_key = datastore.conf['data_key']
+        widget.update()
 
         dialog = Dialog(self)
-        dialog.applied.connect(lambda: set_data(widget.data()))
         dialog.setExportWidget(widget, self.folder)
-        dialog.setWindowTitle(conf['title'])
+        dialog.setWindowTitle(datastore.conf['title'])
         dialog.show()
         return dialog
-
-    def setTwiss(self, data):
-        self.workspace.segment.twiss_args = data
-        self.workspace.segment.retrack()
-
-    def setBeam(self, data):
-        self.workspace.segment.beam = data
-        self.workspace.segment.retrack()
 
     @SingleWindow.factory
     def viewShell(self):
@@ -568,7 +557,6 @@ class InfoBoxGroup(object):
         dock.setWindowTitle(self.segment.elements[el_id]['name'])
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
-        dock.applied.connect(info.applied)
 
         dock.show()
         dock.raise_()

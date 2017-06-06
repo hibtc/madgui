@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from madqt.qt import QtCore, QtGui
 
-from madqt.widget.params import ParamSpec, ParamTable
+from madqt.widget.params import ParamTable
 
 
 __all__ = [
@@ -46,12 +46,6 @@ class ElementInfoBox(ParamTable):
         """
         Update the contents of the managed popup window.
         """
-        blacklist = {'vary'}
-        spec, data, conf = self.segment.get_elem_conf(self.el_id)
-        self.set_spec(spec)
-        self.setData(data)
+        self.datastore = self.segment.get_elem_ds(self.el_id)
+        super(ElementInfoBox, self).update()
         self.resizeColumnsToContents()
-
-    def applied(self):
-        self.segment.set_element(self.el_id, self.data())
-        self.segment.retrack()
