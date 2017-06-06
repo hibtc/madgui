@@ -247,10 +247,22 @@ class Segment(SegmentBase):
     def get_twiss_conf(self):
         return self._get_param_conf('twiss')
 
+    def get_elem_conf(self, elem_index):
+        spec, data, conf = self._get_param_conf('element', element=elem_index)
+        # TODO: rename keys, like in tao.get_element_data_raw
+        spec = sort_to_top(spec, [
+            'Name',
+            'Key',
+            'S',
+            'L',
+        ], key=lambda param: param.name)
+        return spec, data, conf
+
     def _param_set(self, name):
         return self.config['parameter_sets'][name]
 
-    def _get_param_conf(self, name):
+    # TODO: dumb this down…
+    def _get_param_conf(self, name, **kw):
         from madqt.widget.params import ParamSpec
 
         def prepare_group(group):
@@ -262,23 +274,20 @@ class Segment(SegmentBase):
             return group
 
         def param_mode(name, group):
-            if name in group['readwrite']:
-                return 'readwrite'
-            if name in group['readonly']:
-                return 'readonly'
-            if name in group['auto']:
-                return 'auto'
+            if name in group['readwrite']:  return 'readwrite'
+            if name in group['readonly']:   return 'readonly'
+            if name in group['auto']:       return 'auto'
             return group['implicit']
 
         def editable(mode, auto):
             return (mode == 'readwrite' or mode == True or
                     mode == 'auto' and auto)
 
-        kwargs = {'universe': self.workspace.universe, 'branch': self.branch}
+        kwargs = dict(kw, universe=self.workspace.universe, branch=self.branch)
         query = self.tao.parameters
         conf = self._param_set(name)
         spec = [
-            ParamSpec(param.name, param.value, editable(mode, param.vary))
+            ParamSpec(param.name.title(), param.value, editable(mode, param.vary))
             for group in map(prepare_group, conf['params'])
             for param in query(group['query'].format(**kwargs)).values()
             for mode in [param_mode(param.name, group)]
@@ -292,12 +301,13 @@ class Segment(SegmentBase):
         return merged(*(self.tao.properties(group['query'].format(**kwargs))
                         for group in self._param_set(name)['params']))
 
-    def _set_params(self, name, data):
+    def _set_params(self, name, data, *extra):
         for group in self._param_set(name)['params']:
+            # TODO: this means, we can set only explicitly listed params... SAD
             for key in group.get('readwrite', []):
                 val = data.get(key)
                 if val is not None:
-                    command = group['write'].format(key, val)
+                    command = group['write'].format(key, val, *extra)
                     self.tao.command(command)
 
     def get_beam_raw(self):
@@ -321,6 +331,10 @@ class Segment(SegmentBase):
 
     def set_twiss_args_raw(self, twiss):
         return self._set_params('twiss', twiss)
+
+    # TODO: …
+    def set_element(self, element, data):
+        return self._set_params('element', data, element)
 
     @property
     def unibra(self):

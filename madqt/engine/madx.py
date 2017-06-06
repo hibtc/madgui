@@ -312,19 +312,34 @@ class Segment(SegmentBase):
     def get_beam_conf(self):
         conf = self.workspace.config['parameter_sets']['beam']
         prespec, data = conf['params'], self.beam
-        return process_spec(prespec, data), data, conf
+        mutable = lambda k, v: True
+        return process_spec(prespec, data, mutable), data, conf
 
     def get_twiss_conf(self):
         conf = self.workspace.config['parameter_sets']['twiss']
         prespec, data = conf['params'], self.twiss_args
-        return process_spec(prespec, data), data, conf
+        mutable = lambda k, v: True
+        return process_spec(prespec, data, mutable), data, conf
 
+    # TODO…
+    def _is_mutable_attribute(self, k, v):
+        blacklist = self.workspace.config['parameter_sets']['element']['readonly']
+        return isinstance(v, (int, list, float)) and k not in blacklist
+
+    def get_elem_conf(self, elem_index):
+        conf = self.workspace.config['parameter_sets']['element']
+        prespec, data = conf['params'], self.elements[elem_index]
+        mutable = self._is_mutable_attribute
+        return process_spec(prespec, data, mutable), data, conf
+
+    # TODO: get data from MAD-X
     def get_twiss_args_raw(self):
         return self._twiss_args
 
     def set_twiss_args_raw(self, twiss):
         self._twiss_args = twiss
 
+    # TODO: get data from MAD-X
     def get_beam_raw(self):
         """Get the beam parameter dictionary."""
         return self._beam
@@ -333,6 +348,15 @@ class Segment(SegmentBase):
         """Set beam from a parameter dictionary."""
         self._beam = beam
         self._use_beam(beam)
+
+    def set_element(self, elem, data):
+        # TODO: this crashes
+        # - proper mutability detection
+        # - update only changed values
+        elem = self.elements[elem]['name']
+        d = {k: v for k, v in data.items()
+             if self._is_mutable_attribute(k, v)}
+        self.madx.command(elem, **d)
 
     def _use_beam(self, beam):
         beam = dict(beam, sequence=self.sequence.name)
@@ -493,14 +517,14 @@ class Segment(SegmentBase):
         return MonitorBackend(self, elem)
 
 
-def process_spec(prespec, data):
+def process_spec(prespec, data, mutable):
     from madqt.widget.params import ParamSpec
     # TODO: Handle defaults for hard-coded and ad-hoc keys homogeniously.
     # The simplest option would be to simply specify list of priority keys in
     # the config file…
     # TODO: properly detect which items are mutable
     spec = [
-        ParamSpec(k, v)
+        ParamSpec(k, v, mutable(k, v))
         for item in prespec
         for spec in item.items()
         for k, v in process_spec_item(*spec)
@@ -511,7 +535,7 @@ def process_spec(prespec, data):
     # Add keys that were not hard-coded in config:
     prespec_items = {k for item in prespec for k in item}
     spec += [
-        ParamSpec(k, v)
+        ParamSpec(k, v, mutable(k, v))
         for k, v in data.items()
         if k not in prespec_items
     ]

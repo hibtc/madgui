@@ -159,3 +159,16 @@ parameter_sets:
     # pdamp:    [1, 1, 2],
       n1min:    -1,
     ]
+
+  element:
+    title: Element attributes
+    data_key: element
+    readonly: [at, l, s, el_id]
+    params: [
+      name:  "",
+      type:  "",
+      at:    0,
+      l:     0,
+      ksl:   [],
+      knl:   [],
+    ]
