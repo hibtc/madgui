@@ -16,6 +16,7 @@ from six import (python_2_unicode_compatible,
 
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
+from madqt.core.unit import Expression
 from madqt.core.config import NumberFormat
 from madqt.util.layout import HBoxLayout
 from madqt.util.misc import rw_property
@@ -237,6 +238,7 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
 # Value types
 
 
+# TODO: rename to ItemProxy (or ItemDelegate if that were available).
 @python_2_unicode_compatible
 class ValueProxy(Object):
 
@@ -420,6 +422,7 @@ class BoolValue(ValueProxy):
         return super(BoolValue, self).setData(value, role)
 
 
+# TODO: use UI units
 class QuantityValue(FloatValue):
 
     def __init__(self, value, **kwargs):
@@ -476,8 +479,9 @@ defaultTypes.update({
     bool: BoolValue,
     unicode: StringValue,
     bytes: StringValue,
-    list: ListValue,
+    list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,
+    Expression: QuantityValue,
 })
 
 
