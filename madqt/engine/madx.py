@@ -14,7 +14,7 @@ from cpymad.madx import Madx
 from cpymad.util import normalize_range_name, name_from_internal
 
 from madqt.core.unit import from_config
-from madqt.util.misc import attribute_alias, cachedproperty
+from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
@@ -339,7 +339,14 @@ class Segment(SegmentBase):
     def get_element_data_raw(self, elem, which=None):
         data = self.workspace.madx.active_sequence.expanded_elements[elem]
         data['el_id'] = data['index']
-        return data
+        return sort_to_top(data, [
+            'Name',
+            'Type',
+            'At',
+            'L',
+            'Ksl',
+            'Knl',
+        ])
 
     def get_element_index(self, elem):
         """Get element index by it name."""

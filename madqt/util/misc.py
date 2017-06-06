@@ -7,6 +7,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import functools
+import collections
 
 
 __all__ = [
@@ -19,6 +20,8 @@ __all__ = [
     'rename_key',
     'merged',
     'translate_default',
+    'make_index',
+    'sort_to_top',
 ]
 
 
@@ -157,3 +160,23 @@ def merged(d1, *others):
 def translate_default(d, name, old_default, new_default):
     if d[name] == old_default:
         d[name] = new_default
+
+
+def make_index(values):
+    return {k: i for i, k in enumerate(values)}
+
+
+def sort_to_top(values, top_keys, key=None):
+    """Prioritized keys + alphabetical sort."""
+    index = make_index(top_keys)
+    if key is None:
+        key = lambda x: x
+    def sort_key(value):
+        k = key(value)
+        return (index.get(k, len(index)), k)
+    if isinstance(values, collections.Mapping):
+        return collections.OrderedDict(sorted(
+            values.items(), key=lambda x: sort_key(x[0])
+        ))
+    else:
+        return sorted(values, key=sort_key)

@@ -17,7 +17,7 @@ from six import string_types as basestring
 from pytao.tao import Tao
 
 import madqt.core.unit as unit
-from madqt.util.misc import (attribute_alias,
+from madqt.util.misc import (attribute_alias, sort_to_top,
                              rename_key, merged, translate_default)
 
 from madqt.engine.common import (

@@ -16,29 +16,11 @@ __all__ = [
 ]
 
 
-def makeIndex(values):
-    return {k: i for i, k in enumerate(values)}
-
-
 class ParamInfo(object):
 
     def __init__(self, name, value):
         self.name = name
         self.value = value
-
-    # sort preferred elements to top:
-    sortTop = makeIndex([
-        'Name',
-        'Type',
-        'At',
-        'L',
-        'Ksl',
-        'Knl',
-    ])
-
-    def sortKey(self):
-        return (self.sortTop.get(self.name, len(self.sortTop)),
-                self.name, self.value)
 
 
 class ElementInfoBox(TableView):
@@ -87,5 +69,5 @@ class ElementInfoBox(TableView):
         rows = [ParamInfo(k.title(), v)
                 for k, v in self.element.items()
                 if k.lower() not in blacklist]
-        self.rows = sorted(rows, key=ParamInfo.sortKey)
+        self.rows = rows
         self.resizeColumnsToContents()
