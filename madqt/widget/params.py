@@ -127,8 +127,10 @@ class ParamTable(tableview.TableView):
         default = param.value
         if unit is not None:
             default = param.value * unit
+        textcolor = Qt.black if param.editable else Qt.darkGray
         proxy = param.value_type()(quantity, default=default,
-                                   editable=param.editable)
+                                   editable=param.editable,
+                                   textcolor=textcolor)
         return ParamInfo(param.name, proxy)
 
     def keyPressEvent(self, event):

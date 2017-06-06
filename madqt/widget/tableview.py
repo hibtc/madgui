@@ -247,6 +247,7 @@ class ValueProxy(Object):
     editable = False
     dataChanged = Signal(object)
     types = defaultTypes
+    textbrush = None
 
     # data role, see: http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
     roles = {
@@ -264,7 +265,7 @@ class ValueProxy(Object):
         Qt.BackgroundRole:              'background',
         Qt.BackgroundColorRole:         'backgroundColor',
         Qt.ForegroundRole:              'foreground',
-        Qt.TextColorRole:               'textColor',
+        #Qt.TextColorRole:               'textColor',   # = ForegroundRole
         Qt.CheckStateRole:              'checkState',
         Qt.InitialSortOrderRole:        'initialSortOrder',
         # Accessibility roles
@@ -277,13 +278,15 @@ class ValueProxy(Object):
                  default=None,
                  editable=None,
                  fmtspec=None,
-                 types=None):
+                 types=None,
+                 textcolor=None):
         """Store the value."""
         super(ValueProxy, self).__init__()
         if default is not None: self.default = default
         if editable is not None: self.editable = editable
         if fmtspec is not None: self.fmtspec = fmtspec
         if types is not None: self.types = types
+        if textcolor is not None: self.textbrush = QtGui.QBrush(textcolor)
         self.value = value
 
     def __str__(self):
@@ -338,6 +341,9 @@ class ValueProxy(Object):
 
     def textAlignment(self):
         return Qt.AlignLeft | Qt.AlignVCenter
+
+    def foreground(self):
+        return self.textbrush
 
     # TODO: delegate functions (initiateEdit / createEditor)
 
