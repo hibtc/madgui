@@ -72,8 +72,9 @@ class SuperStore(DataStore):
 
     """DataStore that is composed of substores."""
 
-    def __init__(self, substores):
+    def __init__(self, substores, utool=None):
         self.substores = substores
+        self.utool = utool
 
     def get(self):
         """Get a dictionary with all values."""

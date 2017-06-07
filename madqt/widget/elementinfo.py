@@ -18,7 +18,6 @@ class ElementInfoBox(TabParamTables):
 
     def __init__(self, segment, el_id, **kwargs):
         datastore = segment.get_elem_ds(el_id)
-        datastore.utool = segment.utool
         super(ElementInfoBox, self).__init__(datastore, **kwargs)
 
         self.segment = segment

@@ -316,12 +316,12 @@ class Segment(SegmentBase):
         return SuperStore(OrderedDict([
             ('beam', MadxDataStore(self, 'beam')),
             ('twiss', MadxDataStore(self, 'twiss')),
-        ]))
+        ]), utool=self.utool)
 
     def get_elem_ds(self, elem_index):
         return SuperStore(OrderedDict([
             ('attributes', ElementDataStore(self, 'element', elem_index=elem_index)),
-        ]))
+        ]), utool=self.utool)
 
     # TODO…
     def _is_mutable_attribute(self, k, v):
@@ -552,6 +552,7 @@ class MadxDataStore(DataStore):
 
     def __init__(self, segment, name, **kw):
         self.segment = segment
+        self.utool = segment.utool
         self.name = name
         self.label = name.title()
         self.data_key = name

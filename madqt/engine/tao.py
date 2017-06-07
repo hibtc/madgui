@@ -260,7 +260,7 @@ class Segment(SegmentBase):
         return SuperStore(OrderedDict([
             (name, DS(self, name, item, **kw))
             for name, item in self._param_set(name).items()
-        ]))
+        ]), utool=self.utool)
 
     def _param_set(self, name):
         return self.config['parameter_sets'][name]
