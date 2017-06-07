@@ -4,6 +4,10 @@ tao backend for MadQt.
 """
 
 # TODO: determine ex/ey when opening plain bmad lattice
+# - update model <-> update values
+# - fix beam/twiss handling: remove redundant accessor methods
+# - store + save separately: only overrides / all
+# - use units provided by tao
 
 from __future__ import absolute_import
 from __future__ import unicode_literals

@@ -84,6 +84,7 @@ class ParamTable(tableview.TableView):
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
         if self.state() == QtGui.QAbstractItemView.NoState:
+            # TODO: deletion does not work currently.
             if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
                 self.setRowValue(self.curRow(), None)
                 event.accept()
@@ -147,11 +148,3 @@ class TabParamTables(QtGui.QTabWidget):
         # DO NOT call into `self.update` from here. Otherwise there will be
         # infinite recursions for `ElementInfoBox`
         self.tabs[self.currentIndex()].update()
-
-
-# TODO:
-# - update model <-> update values
-# - fix beam/twiss handling:
-# - store + save separately: only overrides / all
-# - use units provided by tao
-# - consistent behaviour/use of controls

@@ -36,6 +36,9 @@ __all__ = [
 defaultTypes = {}       # default {type: value proxy} mapping
 
 
+# TODO: more consistent behaviour/feel of controls: Quantity vs Bare
+
+
 class ColumnInfo(object):
 
     """Column specification for a table widget."""
