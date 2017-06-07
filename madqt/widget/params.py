@@ -17,6 +17,7 @@ import madqt.widget.tableview as tableview
 from madqt.core.unit import get_raw_label, strip_unit, Expression, units
 from madqt.util.layout import VBoxLayout
 from madqt.util.datastore import DataStore, SuperStore
+from madqt.util.enum import Enum
 
 
 __all__ = [
