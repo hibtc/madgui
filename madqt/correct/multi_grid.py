@@ -6,14 +6,8 @@ Multi grid correction method.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from pkg_resources import resource_filename
-
-import numpy as np
-
-from madqt.qt import QtCore, QtGui, uic
-from madqt.core.unit import get_unit, allclose
-from madqt.widget.tableview import ColumnInfo
-from madqt.util.collections import List
+from madqt.qt import QtCore
+from madqt.core.unit import get_unit
 
 from ._base import (
     OrbitCorrectorBase,
@@ -21,7 +15,6 @@ from ._base import (
     _is_steerer,
     display_name,
     el_names,
-    set_text,
 )
 
 from .optic_variation import (

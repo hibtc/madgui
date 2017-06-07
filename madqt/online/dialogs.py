@@ -6,12 +6,10 @@ Dialog for selecting DVM parameters to be synchronized.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from functools import partial
-
-from madqt.qt import QtCore, QtGui
-from madqt.core.unit import format_quantity, tounit
+from madqt.qt import QtGui
+from madqt.core.unit import tounit
 from madqt.util.layout import VBoxLayout
-from madqt.widget.tableview import TableView, ColumnInfo, makeValue
+from madqt.widget.tableview import TableView, ColumnInfo
 
 
 # TODO: use UI units

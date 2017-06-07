@@ -6,16 +6,14 @@ About dialog that provides version and license information for the user.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import namedtuple
-
 import docutils.core
 
-from madqt.qt import QtCore, QtGui
+from madqt.qt import QtGui
 from madqt.widget.dialog import Dialog
 
 
 __all__ = [
-    'show_about_dialog',
+    'AboutDialog',
 ]
 
 

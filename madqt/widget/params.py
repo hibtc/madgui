@@ -6,18 +6,11 @@ Parameter input dialog.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import OrderedDict
-
-from six import string_types as basestring
-
 from madqt.resource import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
-from madqt.core.unit import get_raw_label, strip_unit, Expression, units
 from madqt.util.layout import VBoxLayout
-from madqt.util.datastore import DataStore, SuperStore
-from madqt.util.enum import Enum
 
 
 __all__ = [

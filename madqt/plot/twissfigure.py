@@ -16,7 +16,7 @@ from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
 from madqt.core.unit import (
-    units, strip_unit, from_config, get_unit_label, get_raw_label, allclose)
+    strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
 from madqt.plot.base import SceneElement, SceneGraph
 
@@ -388,7 +388,6 @@ class MatchTool(CaptureTool):
         curve = [c for c in curves if c.axes is event.axes][index]
 
         name = curve.y_name
-        axes = self.plot.scene.axes
 
         if event.button == 2:
             for c in curves:
@@ -441,7 +440,6 @@ class MatchTool(CaptureTool):
         # FIXME: the following is not generic in number of axes
 
         segment = self.segment
-        workspace = self.segment.workspace
         transform = MatchTransform(segment)
 
         # transform constraints (envx => betx, etc)

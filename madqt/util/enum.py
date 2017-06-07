@@ -27,7 +27,7 @@ class Enum(object):
                              .format(self.__class__, value, self._values))
         self.value = value
 
-    def __str__():
+    def __str__(self):
         return self.value
 
     def __repr__(self):

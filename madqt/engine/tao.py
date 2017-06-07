@@ -10,10 +10,6 @@ from __future__ import unicode_literals
 
 from collections import namedtuple, OrderedDict
 
-import re
-
-from six import string_types as basestring
-
 from pytao.tao import Tao
 
 import madqt.core.unit as unit
@@ -23,7 +19,7 @@ from madqt.util.misc import (attribute_alias, sort_to_top,
 from madqt.util.enum import make_enum
 
 from madqt.engine.common import (
-    FloorCoords, ElementInfo, EngineBase, SegmentBase,
+    FloorCoords, EngineBase, SegmentBase,
     PlotInfo, CurveInfo, ElementList,
 )
 
@@ -155,8 +151,6 @@ class Segment(SegmentBase):
             seq.lower(): int(n_track)
             for i, seq, n_track, n_max in lat_general
         }
-
-        num_elements_seg = num_elements[self.sequence.lower()]
 
         el_names = self.tao.get_list('lat_ele_list', self.unibra)
         self.elements = ElementList(el_names, self.get_element_data)

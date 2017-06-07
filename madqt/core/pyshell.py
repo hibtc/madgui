@@ -2,7 +2,7 @@
 Open an ipython shell in a widget
 """
 
-from madqt.qt import QtCore, QtGui
+from madqt.qt import QtGui
 
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager

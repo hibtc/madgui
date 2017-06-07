@@ -7,12 +7,12 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 
-from madqt.qt import QtCore, QtGui
+from madqt.qt import QtGui
 
 
 __all__ = [
-    'VBox',
-    'HBox',
+    'VBoxLayout',
+    'HBoxLayout',
 ]
 
 

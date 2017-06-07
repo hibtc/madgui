@@ -11,7 +11,7 @@ from functools import partial
 from pkg_resources import iter_entry_points
 
 from madqt.qt import QtGui
-from madqt.core.base import Object, Signal
+from madqt.core.base import Object
 from madqt.util.collections import Bool
 import madqt.core.menu as menu
 

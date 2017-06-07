@@ -10,7 +10,7 @@ from abc import abstractmethod
 import string
 import re
 
-from madqt.qt import Qt, QtCore, QtGui
+from madqt.qt import Qt, QtGui
 
 from madqt.core.unit import units, get_raw_label, get_unit, tounit
 from madqt.core.base import Signal

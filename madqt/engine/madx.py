@@ -12,7 +12,7 @@ from six import string_types as basestring
 import numpy as np
 
 from cpymad.madx import Madx
-from cpymad.util import normalize_range_name, name_from_internal
+from cpymad.util import normalize_range_name
 
 from madqt.resource import yaml
 from madqt.core.unit import from_config
@@ -117,7 +117,7 @@ class Workspace(EngineBase):
 
     def load_dispatch(self, name, ext):
         """Load model or plain MAD-X file."""
-        self.madx = madx = Madx(**self.minrpc_flags())
+        self.madx = Madx(**self.minrpc_flags())
         if ext in ('.yml', '.yaml'):
             self.load_model(name)
         else:

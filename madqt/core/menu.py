@@ -8,12 +8,11 @@ from __future__ import unicode_literals
 
 from six import string_types
 
-from madqt.qt import QtCore, QtGui
+from madqt.qt import QtGui
 
 
 __all__ = [
     'Item',
-    'CondItem',
     'Menu',
     'Separator',
     'extend',
@@ -35,8 +34,6 @@ class Item(object):
         self.checked = checked
 
     def action(self, parent):
-        if parent is None:
-            parent = menu
         checkable = self.checked is not None
         action = QtGui.QAction(self.label, parent, checkable=checkable)
         if self.shortcut is not None:

@@ -11,7 +11,6 @@ import sys
 from pkg_resources import resource_filename
 
 import numpy as np
-from six import string_types as basestring
 import pint
 
 from pydicti import dicti
@@ -35,7 +34,6 @@ __all__ = [
     'format_quantity',
     'get_raw_label',
     'from_config',
-    'from_config_dict',
     'UnitConverter',
 ]
 
@@ -43,6 +41,7 @@ __all__ = [
 def initialize():
     # Make sure 'constants_en.txt' exists as well (it is imported by
     # 'default_en.txt'):
+    # TODO: use consts?
     consts_spec = resource_filename('madqt.data', 'constants_en.txt')
     units_spec = resource_filename('madqt.data', 'default_en.txt')
     units = pint.UnitRegistry(units_spec)

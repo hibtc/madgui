@@ -8,9 +8,9 @@ from __future__ import unicode_literals
 
 import os
 
-from madqt.qt import Qt, QtCore, QtGui
+from madqt.qt import Qt, QtGui
 
-from madqt.core.base import Object, Signal
+from madqt.core.base import Signal
 from madqt.util.layout import HBoxLayout, VBoxLayout, Stretch, Spacing
 
 

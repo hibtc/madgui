@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from contextlib import contextmanager
 
-from madqt.qt import QtCore, QtGui, Qt
+from madqt.qt import QtGui, Qt
 
 
 def notifyCloseEvent(widget, handler):

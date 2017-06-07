@@ -13,6 +13,16 @@ from qtconsole.qt_loaders import load_qt
 
 import os
 
+
+__all__ = [
+    'Qt',
+    'QtCore',
+    'QtGui',
+    'QtSvg',
+    'QT_API',
+    'uic',
+]
+
 api_pref = os.environ.get('PYQT_API') or 'pyqt,pyqt5'
 api_opts = api_pref.lower().split(',')
 

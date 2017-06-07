@@ -12,14 +12,12 @@ import glob
 import logging
 import threading
 import os
-from functools import wraps
 
 from six import text_type as unicode
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
 from madqt.util.collections import Selection, Bool
-from madqt.util.layout import VBoxLayout
 from madqt.util.misc import Property
 from madqt.util.qt import notifyCloseEvent
 from madqt.widget.dialog import Dialog

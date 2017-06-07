@@ -6,8 +6,6 @@ Table widget specified by column behaviour.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import MutableSequence
-from contextlib import contextmanager
 from inspect import getmro
 
 from six import (python_2_unicode_compatible,
@@ -30,7 +28,7 @@ import madqt.core.unit as unit
 
 __all__ = [
     'ColumnInfo',
-    'TableModel'
+    'TableModel',
     'TableView',
 ]
 
