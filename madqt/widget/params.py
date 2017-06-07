@@ -15,6 +15,7 @@ from madqt.util.layout import VBoxLayout
 
 __all__ = [
     'ParamTable',
+    'TabParamTables',
 ]
 
 
@@ -151,7 +152,11 @@ class ParamTable(tableview.TableView):
             yaml.safe_dump(raw_data, f, default_flow_style=False)
 
 
-class ParamBox(QtGui.QWidget):
+class TabParamTables(QtGui.QTabWidget):
+
+    """
+    TabWidget that manages multiple ParamTables inside.
+    """
 
     def __init__(self, datastore, utool, index=0, **kwargs):
         super(ParamBox, self).__init__()
@@ -165,29 +170,18 @@ class ParamBox(QtGui.QWidget):
         ]
 
         # TODO: move this to update()
+        self.setTabsClosable(False)
+        for tab in tabs:
+            # TODO: suppress empty tabs
+            self.addTab(tab, tab.datastore.label)
+        self.setCurrentIndex(index)
+        self.currentChanged.connect(self.update)
+
         if len(tabs) == 1:
-            widget = self.widget = tabs[0]
-        else:
-            widget = self.widget = QtGui.QTabWidget()
-            widget.setTabsClosable(False)
-            for tab in tabs:
-                # TODO: suppress empty tabs
-                widget.addTab(tab, tab.datastore.label)
-            widget.setCurrentIndex(index)
-            widget.currentChanged.connect(self.update)
-
-        self.widget = widget
-        layout = VBoxLayout([widget])
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
-    @property
-    def active_index(self):
-        return 0 if len(self.tabs) == 1 else self.widget.currentIndex()
+            self.tabBar().hide()
 
     def update(self, index=None):
-        if index is None: index = self.active_index
-        self.tabs[index].update()
+        self.tabs[self.currentIndex()].update()
 
     # TODO: inherit from common base class `DSExportWidget` or similar
     exportFilters = ParamTable.exportFilters

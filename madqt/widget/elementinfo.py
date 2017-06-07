@@ -6,7 +6,7 @@ Info boxes to display element detail.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from madqt.widget.params import ParamBox
+from madqt.widget.params import TabParamTables
 
 
 __all__ = [
@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 
-class ElementInfoBox(ParamBox):
+class ElementInfoBox(TabParamTables):
 
     data_key = 'element'
 
