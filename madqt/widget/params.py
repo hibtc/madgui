@@ -113,26 +113,39 @@ class TabParamTables(QtGui.QTabWidget):
 
     def __init__(self, datastore, index=0, **kwargs):
         super(TabParamTables, self).__init__()
-
+        self.index = index
+        self.kwargs = kwargs
         self.datastore = datastore
+        self.setTabsClosable(False)
+        self.currentChanged.connect(self.index_changed)
 
+    @property
+    def datastore(self):
+        return self._datastore
+
+    @datastore.setter
+    def datastore(self, datastore):
+        self._datastore = datastore
+        # TODO: keep+reuse existing tabs as far as possible (?)
+        self.clear()
         self.tabs = tabs = [
-            ParamTable(ds, **kwargs)
+            ParamTable(ds, **self.kwargs)
             for ds in datastore.substores.values()
         ]
-
-        # TODO: move this to update()
-        self.setTabsClosable(False)
         for tab in tabs:
             # TODO: suppress empty tabs
             self.addTab(tab, tab.datastore.label)
-        self.setCurrentIndex(index)
-        self.currentChanged.connect(self.update)
+        if self.index != self.currentIndex():
+            self.setCurrentIndex(self.index)
+        self.tabBar().setVisible(len(tabs) > 1)
 
-        if len(tabs) == 1:
-            self.tabBar().hide()
+    def update(self):
+        self.tabs[self.currentIndex()].update()
 
-    def update(self, index=None):
+    def index_changed(self, index):
+        self.index = index
+        # DO NOT call into `self.update` from here. Otherwise there will be
+        # infinite recursions for `ElementInfoBox`
         self.tabs[self.currentIndex()].update()
 
 
