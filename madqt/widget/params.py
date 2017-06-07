@@ -168,8 +168,6 @@ class ParamBox(QtGui.QWidget):
         if len(tabs) == 1:
             widget = self.widget = tabs[0]
         else:
-            # TODO: set layout hints so that we don't get twice the padding
-            # for the tab widget…
             widget = self.widget = QtGui.QTabWidget()
             widget.setTabsClosable(False)
             for tab in tabs:
@@ -179,7 +177,9 @@ class ParamBox(QtGui.QWidget):
             widget.currentChanged.connect(self.update)
 
         self.widget = widget
-        self.setLayout(VBoxLayout([widget]))
+        layout = VBoxLayout([widget])
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
     @property
     def active_index(self):
