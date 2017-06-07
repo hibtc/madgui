@@ -17,7 +17,7 @@ from six import string_types as basestring
 from pytao.tao import Tao
 
 import madqt.core.unit as unit
-from madqt.util.datastore import DataStore
+from madqt.util.datastore import DataStore, SuperStore
 from madqt.util.misc import (attribute_alias, sort_to_top,
                              rename_key, merged, translate_default)
 
@@ -242,14 +242,21 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self.elements.index(elem_name)
 
+    # TODO: merge beam + twiss into `inititial conditions` with multiple tabs…
     def get_beam_ds(self):
-        return TaoDataStore(self, 'beam')
+        return self._get_ds('beam', TaoDataStore)
 
     def get_twiss_ds(self):
-        return TaoDataStore(self, 'twiss')
+        return self._get_ds('twiss', TaoDataStore)
 
     def get_elem_ds(self, elem_index):
-        return ElementDataStore(self, 'element', element=elem_index)
+        return self._get_ds('element', ElementDataStore, element=elem_index)
+
+    def _get_ds(self, name, DS, **kw):
+        return SuperStore(OrderedDict([
+            (item['label'], DS(self, item, **kw))
+            for item in self._param_set(name)
+        ]))
 
     def _param_set(self, name):
         return self.config['parameter_sets'][name]
@@ -257,8 +264,9 @@ class Segment(SegmentBase):
     def _get_params(self, name):
         kwargs = {'universe': self.workspace.universe, 'branch': self.branch}
         return merged(*(self.tao.properties(group['query'].format(**kwargs))
-                        for group in self._param_set(name)['params']))
+                        for group in self._param_set(name)))
 
+    # TODO: remove. this is not functional anyways
     def _set_params(self, name, data, *extra):
         for group in self._param_set(name)['params']:
             # TODO: this means, we can set only explicitly listed params... SAD
@@ -268,6 +276,8 @@ class Segment(SegmentBase):
                     command = group['write'].format(key, val, *extra)
                     self.tao.command(command)
 
+    # TODO: replace beam/twiss accessor functions with datastore mechanism.
+    # They are not fully functional anyway (no updates!).
     def get_beam_raw(self):
         beam = self._get_params('beam')
         translate_default(beam, 'a_emit', 0., 1.)
@@ -404,58 +414,60 @@ class Segment(SegmentBase):
 # TODO: dumb this down…
 class TaoDataStore(DataStore):
 
-    def __init__(self, segment, name, **kw):
+    def __init__(self, segment, conf, **kw):
         self.segment = segment
-        self.name = name
+        self.conf = conf
+        self.label = conf['label'].title()
+        self.data_key = conf['label']
         self.kw = kw
-        self.conf = segment._param_set(name)
+
+        group = conf
+        group['readonly']  = readonly  = set(group.get('readonly', ()))
+        group['readwrite'] = readwrite = set(group.get('readwrite', ()))
+        group['auto']      = auto      = set(group.get('auto', ()))
+        group['explicit']  = readonly | readwrite | auto
+        group.setdefault('implicit', 'auto')
+
+    def param_mode(self, name):
+        group = self.conf
+        if name in group['readwrite']:  return 'readwrite'
+        if name in group['readonly']:   return 'readonly'
+        if name in group['auto']:       return 'auto'
+        return group['implicit']
+
+    def editable(self, param):
+        mode = self.param_mode(param.name)
+        return (mode == 'readwrite' or mode == True or
+                mode == 'auto' and param.vary)
 
     def _update_params(self):
-
-        def prepare_group(group):
-            group['readonly']  = readonly  = set(group.get('readonly', ()))
-            group['readwrite'] = readwrite = set(group.get('readwrite', ()))
-            group['auto']      = auto      = set(group.get('auto', ()))
-            group['explicit']  = readonly | readwrite | auto
-            group.setdefault('implicit', 'auto')
-            return group
-
-        def param_mode(name, group):
-            if name in group['readwrite']:  return 'readwrite'
-            if name in group['readonly']:   return 'readonly'
-            if name in group['auto']:       return 'auto'
-            return group['implicit']
-
-        def editable(mode, auto):
-            return (mode == 'readwrite' or mode == True or
-                    mode == 'auto' and auto)
-
-        self.groups = list(map(prepare_group, self.conf['params']))
-
         kwargs = dict(self.kw, universe=self.segment.workspace.universe,
                       branch=self.segment.branch)
         query = self.segment.tao.parameters
         self.params = OrderedDict(
-            (param.name.lower(),
-             (param, editable(param_mode(param.name, group), param.vary)))
-            for group in self.groups
-            for param in query(group['query'].format(**kwargs)).values()
+            (param.name.lower(), param)
+            for param in query(self.conf['query'].format(**kwargs)).values()
         )
 
     def get(self):
         self._update_params()
         return self.segment.utool.dict_add_unit(OrderedDict(
             (param.name.title(), param.value)
-            for param, edittable in self.params.values()))
+            for param in self.params.values()))
 
     def update(self, values):
-        self.segment._set_params(self.name, values, *self.kw.values())
+        for key, val in values.items():
+            key = key.lower()
+            par = self.params.get(key)
+            if par and self.editable(par) and val is not None:
+                command = self.conf['write'].format(key=key, val=val, **self.kw)
+                self.segment.tao.command(command)
 
     def mutable(self, key):
-        return self.params[key.lower()][1]
+        return self.editable(self.params[key.lower()])
 
     def default(self, key):
-        return self.params[key.lower()][0].value    # I know…
+        return self.params[key.lower()].value    # I know…
 
 
 class ElementDataStore(TaoDataStore):

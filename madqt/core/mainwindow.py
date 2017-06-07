@@ -220,15 +220,15 @@ class MainWindow(QtGui.QMainWindow):
         return self._edit_params(self.workspace.segment.get_beam_ds())
 
     def _edit_params(self, datastore):
-        from madqt.widget.params import ParamTable
+        from madqt.widget.params import ParamBox
 
-        widget = ParamTable(datastore, self.workspace.utool)
-        widget.data_key = datastore.conf['data_key']
+        widget = ParamBox(datastore, self.workspace.utool)
+        #widget.data_key = datastore.data_key
         widget.update()
 
         dialog = Dialog(self)
         dialog.setExportWidget(widget, self.folder)
-        dialog.setWindowTitle(datastore.conf['title'])
+        #dialog.setWindowTitle(datastore.label)
         dialog.show()
         return dialog
 

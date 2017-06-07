@@ -15,6 +15,8 @@ from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
 from madqt.core.unit import get_raw_label, strip_unit, Expression, units
+from madqt.util.layout import VBoxLayout
+from madqt.util.datastore import DataStore, SuperStore
 
 
 __all__ = [
@@ -153,3 +155,54 @@ class ParamTable(tableview.TableView):
             raw_data = {self.data_key: raw_data}
         with open(filename, 'wt') as f:
             yaml.safe_dump(raw_data, f, default_flow_style=False)
+
+
+class ParamBox(QtGui.QWidget):
+
+    def __init__(self, datastore, utool, **kwargs):
+        super(ParamBox, self).__init__()
+
+        self.datastore = datastore
+        self.utool = utool
+
+        self.tabs = tabs = [
+            ParamTable(ds, utool, **kwargs)
+            for ds in datastore.substores.values()
+        ]
+
+        if len(tabs) == 1:
+            widget = self.widget = tabs[0]
+        else:
+            # TODO: set layout hints so that we don't get twice the padding
+            # for the tab widget…
+            widget = self.widget = QtGui.QTabWidget()
+            widget.setTabsClosable(False)
+            for tab in tabs:
+                widget.addTab(tab, tab.datastore.label)
+            widget.currentChanged.connect(self.update)
+
+        self.widget = widget
+        self.setLayout(VBoxLayout([widget]))
+
+    @property
+    def active_index(self):
+        return 0 if len(self.tabs) == 1 else self.widget.currentIndex()
+
+    def update(self, index=None):
+        if index is None: index = self.active_index
+        self.tabs[index].update()
+
+    # TODO: inherit from common base class `DSExportWidget` or similar
+    exportFilters = ParamTable.exportFilters
+    importFilters = ParamTable.importFilters
+    importFrom = ParamTable.importFrom
+    exportTo = ParamTable.exportTo
+
+
+# TODO:
+# - remove mutability overrides
+# - merge enums branch
+# - update model <-> update values
+# - use units provided by tao
+# - consistent behaviour/use of controls
+# - titles

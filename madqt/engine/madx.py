@@ -17,7 +17,7 @@ from cpymad.util import normalize_range_name, name_from_internal
 
 from madqt.core.unit import from_config
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
-from madqt.util.datastore import DataStore
+from madqt.util.datastore import DataStore, SuperStore
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
@@ -313,13 +313,19 @@ class Segment(SegmentBase):
                 self.get_element_info(stop_name))
 
     def get_beam_ds(self):
-        return MadxDataStore(self, 'beam')
+        return SuperStore(OrderedDict([
+            ('beam', MadxDataStore(self, 'beam')),
+        ]))
 
     def get_twiss_ds(self):
-        return MadxDataStore(self, 'twiss_args')
+        return SuperStore(OrderedDict([
+            ('twiss', MadxDataStore(self, 'twiss_args')),
+        ]))
 
     def get_elem_ds(self, elem_index):
-        return ElementDataStore(self, 'element', elem_index=elem_index)
+        return SuperStore(OrderedDict([
+            ('attributes', ElementDataStore(self, 'element', elem_index=elem_index)),
+        ]))
 
     # TODO…
     def _is_mutable_attribute(self, k, v):

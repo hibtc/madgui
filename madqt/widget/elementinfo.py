@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 from madqt.qt import QtCore, QtGui
 
-from madqt.widget.params import ParamTable
+from madqt.widget.params import ParamBox
 
 
 __all__ = [
@@ -16,10 +16,11 @@ __all__ = [
 ]
 
 
-class ElementInfoBox(ParamTable):
+class ElementInfoBox(ParamBox):
 
     def __init__(self, segment, el_id, **kwargs):
-        super(ElementInfoBox, self).__init__([], segment.utool, **kwargs)
+        datastore = segment.get_elem_ds(el_id)
+        super(ElementInfoBox, self).__init__(datastore, segment.utool, **kwargs)
 
         self.segment = segment
         self.el_id = el_id
@@ -46,6 +47,8 @@ class ElementInfoBox(ParamTable):
         """
         Update the contents of the managed popup window.
         """
-        self.datastore = self.segment.get_elem_ds(self.el_id)
+        # FIXME: this does not update substores/tabs
+        if hasattr(self, 'segment'):
+            self.datastore = self.segment.get_elem_ds(self.el_id)
         super(ElementInfoBox, self).update()
-        self.resizeColumnsToContents()
+        self.tabs[self.active_index].resizeColumnsToContents()
