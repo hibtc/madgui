@@ -86,7 +86,7 @@ parameter_sets:
         direction, # CRASHES when trying to change
       ]
     - query: 'lat_ele1 {universe}@{branch}>>0|model twiss'
-      write: 'change element beginning {} @{}'
+      write: 'set element beginning {} = {}'
       implicit: readwrite
       readonly: [
         gamma_a,  gamma_b,
@@ -97,8 +97,8 @@ parameter_sets:
     data_key: element
     params:
     - query: 'lat_ele1 {universe}@{branch}>>{element}|model general'
-      write: 'change element {2} {0} @{1}'
+      write: 'set element {2} {0} = {1}'
     - query: 'lat_ele1 {universe}@{branch}>>{element}|model parameters'
-      write: 'change element {2} {0} @{1}'
+      write: 'set element {2} {0} = {1}'
     - query: 'lat_ele1 {universe}@{branch}>>{element}|model multipole'
-      write: 'change element {2} {0} @{1}'
+      write: 'set element {2} {0} = {1}'
