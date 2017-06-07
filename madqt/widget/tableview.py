@@ -42,16 +42,19 @@ class ColumnInfo(object):
 
     types = defaultTypes
 
-    def __init__(self, title, getter, resize=None, types=None, **kwargs):
+    def __init__(self, title, getter, resize=None, types=None, padding=0,
+                 **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> :class:`ValueProxy`
         :param QtGui.QHeaderView.ResizeMode resize:
+        :param int padding:
         :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
         self.title = title
         self.getter = getter
         self.resize = resize
+        self.padding = padding
         self.kwargs = kwargs
         if types is not None:
             self.types = types
@@ -199,6 +202,10 @@ class TableView(QtGui.QTableView):
                        scrollbar_width)
         height = super(TableView, self).sizeHint().height()
         return QtCore.QSize(total_width, height)
+
+    def sizeHintForColumn(self, column):
+        return (super(TableView, self).sizeHintForColumn(column)
+                + self.model().columns[column].padding)
 
     @property
     def _setColumnResizeMode(self):

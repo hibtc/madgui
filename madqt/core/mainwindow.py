@@ -226,10 +226,11 @@ class MainWindow(QtGui.QMainWindow):
         from madqt.widget.params import TabParamTables
 
         datastore = self.workspace.segment.get_init_ds()
+        datastore.utool = self.workspace.utool
         index = next((i for i, l in enumerate(datastore.substores)
                       if l == self.init_tab), 0)
 
-        widget = TabParamBox(datastore, self.workspace.utool, index=index)
+        widget = TabParamTables(datastore, index=index)
         widget.data_key = 'init'
         widget.update()
 

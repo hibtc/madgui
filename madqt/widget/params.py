@@ -21,7 +21,7 @@ __all__ = [
 
 class ParamInfo(object):
 
-    """Internal parameter description for the TableView."""
+    """Row info for the TableView [internal]."""
 
     def __init__(self, datastore, key, value):
         self.name = key
@@ -29,15 +29,11 @@ class ParamInfo(object):
         default = datastore.default(key)
         editable = datastore.mutable(key)
         textcolor = Qt.black if editable else Qt.darkGray
-        self._value = tableview.makeValue(
+        self.proxy = tableview.makeValue(
             value, default=default,
             editable=editable,
             textcolor=textcolor)
-        self._value.dataChanged.connect(self.on_edit)
-
-    @property
-    def value(self):
-        return self._value.value
+        self.proxy.dataChanged.connect(self.on_edit)
 
     def on_edit(self, value):
         self.datastore.update({self.name: value})
@@ -51,29 +47,26 @@ class ParamTable(tableview.TableView):
     The parameters are displayed in 3 columns: name / value / unit.
     """
 
-    # TODO: add "single" mode: update after changing individual rows
-    # TODO: visually indicate rows with default or unset values (gray)
-    # TODO: move rows with default or unset values to bottom?
+    # TODO: disable/remove Cancel/Apply buttons in non-transactional mode
+    # TODO: add "transactional" mode: update only after *applying*
+    # TODO: visually indicate rows with non-default values: "bold"
+    # TODO: move rows with default or unset values to bottom? [MAD-X]
+    # TODO: move the export/import methods to the datastore?
 
-    data_key = ''
+    data_key = None
 
-    # TODO: drop utool parameter - just save the unit into the YAML file
-
-    def __init__(self, datastore, utool, **kwargs):
+    def __init__(self, datastore, **kwargs):
         """Initialize data."""
 
-        self.utool = utool
-        self.units = utool._units
         self.datastore = datastore
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
-            tableview.ColumnInfo("Value", '_value'),
+            tableview.ColumnInfo("Value", 'proxy', padding=50),
         ]
 
         super(ParamTable, self).__init__(columns=columns, **kwargs)
-        # configure the header's selection behaviour in case anyone turns on
-        # the horizontalHeader again:
+        # in case anyone turns the horizontalHeader back on:
         self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -83,19 +76,14 @@ class ParamTable(tableview.TableView):
                            QtGui.QSizePolicy.Preferred)
 
     def update(self):
-        """Update dialog with initial values."""
+        """Update dialog from the datastore."""
         self.rows = [ParamInfo(self.datastore, k, v)
                      for k, v in self.datastore.get().items()]
         self.selectRow(0)
         # Set initial size:
         if not self.isVisible():
+            self.resizeColumnsToContents()
             self.updateGeometries()
-
-    def sizeHintForColumn(self, column):
-        baseValue = super(ParamTable, self).sizeHintForColumn(column)
-        if column == 1:
-            return baseValue + 50
-        return baseValue
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
@@ -139,13 +127,14 @@ class ParamTable(tableview.TableView):
             raw_data = yaml.safe_load(f)
         if self.data_key:
             raw_data = raw_data[self.data_key]
-        data = self.utool.dict_add_unit(raw_data)
+        # TODO: drop utool parameter - just save the units into the YAML file
+        data = self.datastore.utool.dict_add_unit(raw_data)
         self.datastore.set(data)
 
     def exportTo(self, filename):
         """Export parameters to YAML file."""
         data = self.datastore.get()
-        raw_data = self.utool.dict_strip_unit(data)
+        raw_data = self.datastore.utool.dict_strip_unit(data)
         if self.data_key:
             raw_data = {self.data_key: raw_data}
         with open(filename, 'wt') as f:
@@ -158,14 +147,13 @@ class TabParamTables(QtGui.QTabWidget):
     TabWidget that manages multiple ParamTables inside.
     """
 
-    def __init__(self, datastore, utool, index=0, **kwargs):
-        super(ParamBox, self).__init__()
+    def __init__(self, datastore, index=0, **kwargs):
+        super(TabParamTables, self).__init__()
 
         self.datastore = datastore
-        self.utool = utool
 
         self.tabs = tabs = [
-            ParamTable(ds, utool, **kwargs)
+            ParamTable(ds, **kwargs)
             for ds in datastore.substores.values()
         ]
 
@@ -192,5 +180,7 @@ class TabParamTables(QtGui.QTabWidget):
 
 # TODO:
 # - update model <-> update values
+# - fix beam/twiss handling:
+# - store + save separately: only overrides / all
 # - use units provided by tao
 # - consistent behaviour/use of controls
