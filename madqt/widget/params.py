@@ -197,8 +197,6 @@ class ParamBox(QtGui.QWidget):
 
 
 # TODO:
-# - merge enums branch
 # - update model <-> update values
 # - use units provided by tao
 # - consistent behaviour/use of controls
-# - titles

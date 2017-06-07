@@ -226,17 +226,16 @@ class MainWindow(QtGui.QMainWindow):
         from madqt.widget.params import ParamBox
 
         datastore = self.workspace.segment.get_init_ds()
-
         index = next((i for i, l in enumerate(datastore.substores)
                       if l == self.init_tab), 0)
 
         widget = ParamBox(datastore, self.workspace.utool, index=index)
-        #widget.data_key = datastore.data_key
+        widget.data_key = 'init'
         widget.update()
 
         dialog = Dialog(self)
         dialog.setExportWidget(widget, self.folder)
-        #dialog.setWindowTitle(datastore.label)
+        dialog.setWindowTitle("Initial conditions")
         dialog.show()
         return dialog
 
@@ -316,8 +315,8 @@ class MainWindow(QtGui.QMainWindow):
         for path in [path, os.path.join(self.folder or '.', path)]:
             if os.path.isdir(path):
                 models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
-                        glob.glob(os.path.join(path, '*.pytao.yml')) +
-                        glob.glob(os.path.join(path, '*.init')))
+                          glob.glob(os.path.join(path, '*.pytao.yml')) +
+                          glob.glob(os.path.join(path, '*.init')))
                 if models:
                     path = models[0]
             path = expand_ext(path, '', *self.known_extensions)
@@ -562,7 +561,7 @@ class InfoBoxGroup(object):
         info = ElementInfoBox(self.segment, el_id)
         dock = Dialog(self.mainwindow)
         dock.setExportWidget(info, None)
-        dock.setWindowTitle(self.segment.elements[el_id]['name'])
+        dock.setWindowTitle(u"Element details: " + self.segment.elements[el_id]['name'])
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
 

@@ -16,6 +16,8 @@ __all__ = [
 
 class ElementInfoBox(ParamBox):
 
+    data_key = 'element'
+
     def __init__(self, segment, el_id, **kwargs):
         datastore = segment.get_elem_ds(el_id)
         super(ElementInfoBox, self).__init__(datastore, segment.utool, **kwargs)
