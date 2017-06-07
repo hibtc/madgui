@@ -16,8 +16,6 @@ __all__ = [
 
 class ElementInfoBox(TabParamTables):
 
-    data_key = 'element'
-
     def __init__(self, segment, el_id, **kwargs):
         datastore = segment.get_elem_ds(el_id)
         datastore.utool = segment.utool

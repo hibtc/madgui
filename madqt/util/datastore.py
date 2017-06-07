@@ -3,8 +3,8 @@ from __future__ import absolute_import
 from abc import abstractmethod
 from collections import OrderedDict
 
+from madqt.resource import yaml
 
-# TODO: datastores should have labels
 
 class DataStore(object):
 
@@ -13,7 +13,10 @@ class DataStore(object):
     ParamTable.
     """
 
+    # TODO: drop utool parameter - just save the units into the YAML file
+    utool = None
     label = None
+    data_key = None
 
     @abstractmethod
     def get(self):
@@ -30,6 +33,39 @@ class DataStore(object):
     @abstractmethod
     def default(self, key):
         """Get default value for the given key."""
+
+    # data im-/export
+
+    exportFilters = [
+        ("YAML file", "*.yml", "*.yaml"),
+        ("JSON file", "*.json"),
+    ]
+
+    importFilters = [
+        ("YAML file", "*.yml", "*.yaml"),
+    ]
+
+    def importFrom(self, filename):
+        """Import data from JSON/YAML file."""
+        with open(filename, 'rt') as f:
+            # Since JSON is a subset of YAML there is no need to invoke a
+            # different parser (unless we want to validate the file):
+            data = yaml.safe_load(f)
+        if self.data_key:
+            data = data[self.data_key]
+        if self.utool:
+            data = self.utool.dict_add_unit(data)
+        self.set(data)
+
+    def exportTo(self, filename):
+        """Export parameters to YAML file."""
+        data = self.get()
+        if self.utool:
+            data = self.utool.dict_strip_unit(data)
+        if self.data_key:
+            data = {self.data_key: data}
+        with open(filename, 'wt') as f:
+            yaml.safe_dump(data, f, default_flow_style=False)
 
 
 class SuperStore(DataStore):
@@ -49,4 +85,5 @@ class SuperStore(DataStore):
     def update(self, values):
         """Update values from dictionary."""
         for key, vals in values.items():
+            # TODO: warning if no substore for a key available 
             self.substores[key].update(vals)

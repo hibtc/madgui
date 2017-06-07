@@ -6,7 +6,6 @@ Parameter input dialog.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from madqt.resource import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
@@ -51,9 +50,6 @@ class ParamTable(tableview.TableView):
     # TODO: add "transactional" mode: update only after *applying*
     # TODO: visually indicate rows with non-default values: "bold"
     # TODO: move rows with default or unset values to bottom? [MAD-X]
-    # TODO: move the export/import methods to the datastore?
-
-    data_key = None
 
     def __init__(self, datastore, **kwargs):
         """Initialize data."""
@@ -108,38 +104,6 @@ class ParamTable(tableview.TableView):
         index = model.index(row, 1)
         model.setData(index, value)
 
-    # data im-/export
-
-    exportFilters = [
-        ("YAML file", "*.yml", "*.yaml"),
-        ("JSON file", "*.json"),
-    ]
-
-    importFilters = [
-        ("YAML file", "*.yml", "*.yaml"),
-    ]
-
-    def importFrom(self, filename):
-        """Import data from JSON/YAML file."""
-        with open(filename, 'rt') as f:
-            # Since JSON is a subset of YAML there is no need to invoke a
-            # different parser (unless we want to validate the file):
-            raw_data = yaml.safe_load(f)
-        if self.data_key:
-            raw_data = raw_data[self.data_key]
-        # TODO: drop utool parameter - just save the units into the YAML file
-        data = self.datastore.utool.dict_add_unit(raw_data)
-        self.datastore.set(data)
-
-    def exportTo(self, filename):
-        """Export parameters to YAML file."""
-        data = self.datastore.get()
-        raw_data = self.datastore.utool.dict_strip_unit(data)
-        if self.data_key:
-            raw_data = {self.data_key: raw_data}
-        with open(filename, 'wt') as f:
-            yaml.safe_dump(raw_data, f, default_flow_style=False)
-
 
 class TabParamTables(QtGui.QTabWidget):
 
@@ -170,12 +134,6 @@ class TabParamTables(QtGui.QTabWidget):
 
     def update(self, index=None):
         self.tabs[self.currentIndex()].update()
-
-    # TODO: inherit from common base class `DSExportWidget` or similar
-    exportFilters = ParamTable.exportFilters
-    importFilters = ParamTable.importFilters
-    importFrom = ParamTable.importFrom
-    exportTo = ParamTable.exportTo
 
 
 # TODO:

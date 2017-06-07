@@ -231,7 +231,6 @@ class MainWindow(QtGui.QMainWindow):
                       if l == self.init_tab), 0)
 
         widget = TabParamTables(datastore, index=index)
-        widget.data_key = 'init'
         widget.update()
 
         dialog = Dialog(self)

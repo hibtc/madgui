@@ -60,7 +60,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
             self.window(), 'Import values', self.folder,
             self.widget.exportFilters)
         if filename:
-            self.widget.importFrom(filename)
+            self.widget.datastore.importFrom(filename)
             self.folder, _ = os.path.split(filename)
 
     def onExport(self):
@@ -70,7 +70,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
             self.window(), 'Export values', self.folder,
             self.widget.importFilters)
         if filename:
-            self.widget.exportTo(filename)
+            self.widget.datastore.exportTo(filename)
             self.folder, _ = os.path.split(filename)
 
 
