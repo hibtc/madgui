@@ -69,25 +69,14 @@ parameter_sets:
     - query: 'beam_init {universe}'
       write: 'set beam_init {key} = {val}'
       label: beam
-      implicit: auto
 
   twiss:
     - query: 'lat_ele1 {universe}@{branch}>>0|model orbit'
       write: 'change beam_start {key} @{val}'
       label: orbit
-      implicit: readwrite
-      readonly: [
-        s, path_len, ix_ele, p0c,
-        beta, state, species, location,
-        direction, # CRASHES when trying to change
-      ]
     - query: 'lat_ele1 {universe}@{branch}>>0|model twiss'
       write: 'set element beginning {key} = {val}'
       label: twiss
-      implicit: readwrite
-      readonly: [
-        gamma_a,  gamma_b,
-      ]
 
   element:
     - query: 'lat_ele1 {universe}@{branch}>>{element}|model general'

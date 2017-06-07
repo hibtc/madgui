@@ -268,13 +268,7 @@ class Segment(SegmentBase):
 
     # TODO: remove. this is not functional anyways
     def _set_params(self, name, data, *extra):
-        for group in self._param_set(name)['params']:
-            # TODO: this means, we can set only explicitly listed params... SAD
-            for key in group.get('readwrite', []):
-                val = data.get(key)
-                if val is not None:
-                    command = group['write'].format(key, val, *extra)
-                    self.tao.command(command)
+        pass
 
     # TODO: replace beam/twiss accessor functions with datastore mechanism.
     # They are not fully functional anyway (no updates!).
@@ -421,25 +415,6 @@ class TaoDataStore(DataStore):
         self.data_key = conf['label']
         self.kw = kw
 
-        group = conf
-        group['readonly']  = readonly  = set(group.get('readonly', ()))
-        group['readwrite'] = readwrite = set(group.get('readwrite', ()))
-        group['auto']      = auto      = set(group.get('auto', ()))
-        group['explicit']  = readonly | readwrite | auto
-        group.setdefault('implicit', 'auto')
-
-    def param_mode(self, name):
-        group = self.conf
-        if name in group['readwrite']:  return 'readwrite'
-        if name in group['readonly']:   return 'readonly'
-        if name in group['auto']:       return 'auto'
-        return group['implicit']
-
-    def editable(self, param):
-        mode = self.param_mode(param.name)
-        return (mode == 'readwrite' or mode == True or
-                mode == 'auto' and param.vary)
-
     def _update_params(self):
         kwargs = dict(self.kw, universe=self.segment.workspace.universe,
                       branch=self.segment.branch)
@@ -459,12 +434,12 @@ class TaoDataStore(DataStore):
         for key, val in values.items():
             key = key.lower()
             par = self.params.get(key)
-            if par and self.editable(par) and val is not None:
+            if par is not None and par.vary and val is not None:
                 command = self.conf['write'].format(key=key, val=val, **self.kw)
                 self.segment.tao.command(command)
 
     def mutable(self, key):
-        return self.editable(self.params[key.lower()])
+        return self.params[key.lower()].vary
 
     def default(self, key):
         return self.params[key.lower()].value    # I know…

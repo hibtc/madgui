@@ -200,7 +200,6 @@ class ParamBox(QtGui.QWidget):
 
 
 # TODO:
-# - remove mutability overrides
 # - merge enums branch
 # - update model <-> update values
 # - use units provided by tao
