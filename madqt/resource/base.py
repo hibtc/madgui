@@ -109,13 +109,9 @@ class ResourceProvider(object):
         this function can also be used to load JSON resources. The input is
         not checked to be valid JSON!
         """
-        import yaml
-        try:
-            Loader = yaml.CSafeLoader
-        except AttributeError:
-            Loader = yaml.SafeLoader
+        from . import yaml
         with self.open(name, encoding=encoding) as f:
-            return yaml.load(f, Loader)
+            return yaml.safe_load(f)
 
     # backward compatibility alias
     json = yaml

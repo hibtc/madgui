@@ -9,54 +9,43 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 
 from six import string_types as basestring
-import yaml
 
+from madqt.resource import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
 from madqt.core.unit import get_raw_label, strip_unit, Expression, units
+from madqt.util.layout import VBoxLayout
+from madqt.util.datastore import DataStore, SuperStore
 
 
 __all__ = [
-    'ParamSpec',
     'ParamTable',
 ]
-
-
-class ParamSpec(object):
-
-    """Input parameter specification."""
-
-    def __init__(self, name, value, editable=True):
-        self.name = name
-        self.value = value
-        self.editable = editable
-
-    def value_type(self):
-        if isinstance(self.value, bool):
-            return tableview.BoolValue
-        if isinstance(self.value, (int, float, units.Quantity, Expression)):
-            return tableview.QuantityValue
-        if isinstance(self.value, (basestring)):
-            return tableview.QuotedStringValue
-        if isinstance(self.value, (list)):
-            return tableview.ListValue
-        # TODO: list -> VectorValue (single MAD-X parameter of type ARRAY)
-        raise ValueError("Unknown parameter type: {}={} {}"
-                         .format(self.name, self.value, type(self.value)))
 
 
 class ParamInfo(object):
 
     """Internal parameter description for the TableView."""
 
-    def __init__(self, name, valueProxy):
-        self.name = name
-        self._value = valueProxy
+    def __init__(self, datastore, key, value):
+        self.name = key
+        self.datastore = datastore
+        default = datastore.default(key)
+        editable = datastore.mutable(key)
+        textcolor = Qt.black if editable else Qt.darkGray
+        self._value = tableview.makeValue(
+            value, default=default,
+            editable=editable,
+            textcolor=textcolor)
+        self._value.dataChanged.connect(self.on_edit)
 
     @property
     def value(self):
         return self._value.value
+
+    def on_edit(self, value):
+        self.datastore.update({self.name: value})
 
 
 class ParamTable(tableview.TableView):
@@ -65,23 +54,22 @@ class ParamTable(tableview.TableView):
     Input controls to show and edit key-value pairs.
 
     The parameters are displayed in 3 columns: name / value / unit.
-
-    :ivar UnitConverter utool: tool to add/remove units from input values
-    :ivar list params: all possible ParamGroups
-    :ivar dict data: initial/final parameter values
     """
 
+    # TODO: add "single" mode: update after changing individual rows
     # TODO: visually indicate rows with default or unset values (gray)
     # TODO: move rows with default or unset values to bottom?
 
     data_key = ''
 
-    def __init__(self, spec, utool, **kwargs):
+    # TODO: drop utool parameter - just save the unit into the YAML file
+
+    def __init__(self, datastore, utool, **kwargs):
         """Initialize data."""
 
         self.utool = utool
         self.units = utool._units
-        self.params = OrderedDict((param.name, param) for param in spec)
+        self.datastore = datastore
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
@@ -99,18 +87,10 @@ class ParamTable(tableview.TableView):
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Preferred)
 
-    def data(self):
-        """Get dictionary with all input values from dialog."""
-        return {row.name: row.value
-                for row in self.rows
-                if row.value is not None}
-
-    def setData(self, data):
+    def update(self):
         """Update dialog with initial values."""
-        # iterating over `params` (rather than `data`) enforces a particular
-        # order in the GUI:
-        self.rows = [self.makeParamInfo(param, data.get(param))
-                     for param in self.params]
+        self.rows = [ParamInfo(self.datastore, k, v)
+                     for k, v in self.datastore.get().items()]
         self.selectRow(0)
         # Set initial size:
         if not self.isVisible():
@@ -121,16 +101,6 @@ class ParamTable(tableview.TableView):
         if column == 1:
             return baseValue + 50
         return baseValue
-
-    def makeParamInfo(self, param, quantity):
-        # TODO: use UI units
-        param = self.params[param]
-        default = self.utool.add_unit(param, param.value)
-        textcolor = Qt.black if param.editable else Qt.darkGray
-        proxy = param.value_type()(quantity, default=default,
-                                   editable=param.editable,
-                                   textcolor=textcolor)
-        return ParamInfo(param.name, proxy)
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
@@ -154,7 +124,6 @@ class ParamTable(tableview.TableView):
         model = self.model()
         index = model.index(row, 1)
         model.setData(index, value)
-        model.dataChanged.emit(index, index)
 
     # data im-/export
 
@@ -176,13 +145,66 @@ class ParamTable(tableview.TableView):
         if self.data_key:
             raw_data = raw_data[self.data_key]
         data = self.utool.dict_add_unit(raw_data)
-        self.setData(data)
+        self.datastore.set(data)
 
     def exportTo(self, filename):
         """Export parameters to YAML file."""
-        data = self.data()
+        data = self.datastore.get()
         raw_data = self.utool.dict_strip_unit(data)
         if self.data_key:
             raw_data = {self.data_key: raw_data}
         with open(filename, 'wt') as f:
             yaml.safe_dump(raw_data, f, default_flow_style=False)
+
+
+class ParamBox(QtGui.QWidget):
+
+    def __init__(self, datastore, utool, index=0, **kwargs):
+        super(ParamBox, self).__init__()
+
+        self.datastore = datastore
+        self.utool = utool
+
+        self.tabs = tabs = [
+            ParamTable(ds, utool, **kwargs)
+            for ds in datastore.substores.values()
+        ]
+
+        # TODO: move this to update()
+        if len(tabs) == 1:
+            widget = self.widget = tabs[0]
+        else:
+            # TODO: set layout hints so that we don't get twice the padding
+            # for the tab widget…
+            widget = self.widget = QtGui.QTabWidget()
+            widget.setTabsClosable(False)
+            for tab in tabs:
+                # TODO: suppress empty tabs
+                widget.addTab(tab, tab.datastore.label)
+            widget.setCurrentIndex(index)
+            widget.currentChanged.connect(self.update)
+
+        self.widget = widget
+        self.setLayout(VBoxLayout([widget]))
+
+    @property
+    def active_index(self):
+        return 0 if len(self.tabs) == 1 else self.widget.currentIndex()
+
+    def update(self, index=None):
+        if index is None: index = self.active_index
+        self.tabs[index].update()
+
+    # TODO: inherit from common base class `DSExportWidget` or similar
+    exportFilters = ParamTable.exportFilters
+    importFilters = ParamTable.importFilters
+    importFrom = ParamTable.importFrom
+    exportTo = ParamTable.exportTo
+
+
+# TODO:
+# - merge enums branch
+# - update model <-> update values
+# - use units provided by tao
+# - consistent behaviour/use of controls
+# - titles

@@ -142,10 +142,10 @@ class MainWindow(QtGui.QMainWindow):
             Menu('&Edit', [
                 Item('&TWISS initial conditions', 'Ctrl+I',
                      'Modify the initial conditions.',
-                     self.editTwiss.create),
+                     self.editTwiss),
                 Item('&Beam parameters', 'Ctrl+B',
                      'Change the beam parameters.',
-                     self.editBeam.create),
+                     self.editBeam),
             ]),
             Menu('&View', [
                 Item('Plo&t window', 'Ctrl+T',
@@ -211,37 +211,36 @@ class MainWindow(QtGui.QMainWindow):
     def fileSave(self):
         pass
 
-    @SingleWindow.factory
+    init_tab = None
+
     def editTwiss(self):
-        return self._edit_params(
-            self.setTwiss, *self.workspace.segment.get_twiss_conf())
+        # TODO: rework window management, switch tab if dialog exists
+        self.init_tab = 'twiss'
+        return self.editInitialConditions.create()
+
+    def editBeam(self):
+        # TODO: rework window management, switch tab if dialog exists
+        self.init_tab = 'beam'
+        return self.editInitialConditions.create()
 
     @SingleWindow.factory
-    def editBeam(self):
-        return self._edit_params(
-            self.setBeam, *self.workspace.segment.get_beam_conf())
+    def editInitialConditions(self):
+        from madqt.widget.params import ParamBox
 
-    def _edit_params(self, set_data, spec, data, conf):
-        from madqt.widget.params import ParamTable
+        datastore = self.workspace.segment.get_init_ds()
 
-        widget = ParamTable(spec, self.workspace.utool)
-        widget.setData(data)
-        widget.data_key = conf['data_key']
+        index = next((i for i, l in enumerate(datastore.substores)
+                      if l == self.init_tab), 0)
+
+        widget = ParamBox(datastore, self.workspace.utool, index=index)
+        #widget.data_key = datastore.data_key
+        widget.update()
 
         dialog = Dialog(self)
-        dialog.applied.connect(lambda: set_data(widget.data()))
         dialog.setExportWidget(widget, self.folder)
-        dialog.setWindowTitle(conf['title'])
+        #dialog.setWindowTitle(datastore.label)
         dialog.show()
         return dialog
-
-    def setTwiss(self, data):
-        self.workspace.segment.twiss_args = data
-        self.workspace.segment.retrack()
-
-    def setBeam(self, data):
-        self.workspace.segment.beam = data
-        self.workspace.segment.retrack()
 
     @SingleWindow.factory
     def viewShell(self):
@@ -537,11 +536,11 @@ class InfoBoxGroup(object):
 
     def _delete(self, index):
         if self.boxes[index].isVisible():
-            self.boxes[index].close()
+            self.boxes[index].parent().close()
         del self.boxes[index]
 
     def _modify(self, index, el_id):
-        self.boxes[index].widget().el_id = el_id
+        self.boxes[index].el_id = el_id
         self.boxes[index].setWindowTitle(self.segment.elements[el_id]['name'])
 
     # utility methods
@@ -551,7 +550,7 @@ class InfoBoxGroup(object):
         return self.mainwindow.workspace.segment
 
     def _on_close_box(self, box):
-        el_id = box.widget().el_id
+        el_id = box.el_id
         if el_id in self.selection.elements:
             self.selection.elements.remove(el_id)
 
@@ -564,13 +563,13 @@ class InfoBoxGroup(object):
         from madqt.util.qt import notifyCloseEvent, notifyEvent
         info = ElementInfoBox(self.segment, el_id)
         dock = Dialog(self.mainwindow)
-        dock.setWidget(info)
+        dock.setExportWidget(info, None)
         dock.setWindowTitle(self.segment.elements[el_id]['name'])
-        notifyCloseEvent(dock, lambda: self._on_close_box(dock))
-        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(dock))
+        notifyCloseEvent(dock, lambda: self._on_close_box(info))
+        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
 
         dock.show()
         dock.raise_()
         self.segment.workspace.destroyed.connect(dock.close)
 
-        return dock
+        return info

@@ -198,7 +198,7 @@ class UnitConverter(object):
     @classmethod
     def from_config_dict(cls, conf_dict):
         """Convert a config dict of units to their in-memory representation."""
-        return cls({k: from_config(v) for k, v in conf_dict.items()})
+        return cls((k, from_config(v)) for k, v in conf_dict.items())
 
     def get_unit_label(self, name):
         """Get the name of the unit for the specified parameter name."""
@@ -231,11 +231,11 @@ class UnitConverter(object):
 
     def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
-        return obj.__class__({k: self.add_unit(k, obj[k]) for k in obj})
+        return obj.__class__((k, self.add_unit(k, obj[k])) for k in obj)
 
     def dict_strip_unit(self, obj):
         """Remove units from all elements in a dictionary."""
-        return obj.__class__({k: self.strip_unit(k, obj[k]) for k in obj})
+        return obj.__class__((k, self.strip_unit(k, obj[k])) for k in obj)
 
     def normalize_unit(self, name, value):
         """Normalize unit to unit used in MAD-X."""
@@ -247,4 +247,4 @@ class UnitConverter(object):
 
     def dict_normalize_unit(self, obj):
         """Normalize unit for all elements in a dictionary."""
-        return obj.__class__({k: self.normalize_unit(k, obj[k]) for k in obj})
+        return obj.__class__((k, self.normalize_unit(k, obj[k])) for k in obj)

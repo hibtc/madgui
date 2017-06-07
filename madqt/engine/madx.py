@@ -6,15 +6,18 @@ MAD-X backend for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+from collections import OrderedDict
+
 from six import string_types as basestring
 import numpy as np
-import yaml
 
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name, name_from_internal
 
+from madqt.resource import yaml
 from madqt.core.unit import from_config
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
+from madqt.util.datastore import DataStore, SuperStore
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
@@ -309,22 +312,30 @@ class Segment(SegmentBase):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def get_beam_conf(self):
-        conf = self.workspace.config['parameter_sets']['beam']
-        prespec, data = conf['params'], self.beam
-        return process_spec(prespec, data), data, conf
+    def get_init_ds(self):
+        return SuperStore(OrderedDict([
+            ('beam', MadxDataStore(self, 'beam')),
+            ('twiss', MadxDataStore(self, 'twiss')),
+        ]))
 
-    def get_twiss_conf(self):
-        conf = self.workspace.config['parameter_sets']['twiss']
-        prespec, data = conf['params'], self.twiss_args
-        return process_spec(prespec, data), data, conf
+    def get_elem_ds(self, elem_index):
+        return SuperStore(OrderedDict([
+            ('attributes', ElementDataStore(self, 'element', elem_index=elem_index)),
+        ]))
 
+    # TODO…
+    def _is_mutable_attribute(self, k, v):
+        blacklist = self.workspace.config['parameter_sets']['element']['readonly']
+        return isinstance(v, (int, list, float)) and k not in blacklist
+
+    # TODO: get data from MAD-X
     def get_twiss_args_raw(self):
         return self._twiss_args
 
     def set_twiss_args_raw(self, twiss):
         self._twiss_args = twiss
 
+    # TODO: get data from MAD-X
     def get_beam_raw(self):
         """Get the beam parameter dictionary."""
         return self._beam
@@ -333,6 +344,28 @@ class Segment(SegmentBase):
         """Set beam from a parameter dictionary."""
         self._beam = beam
         self._use_beam(beam)
+
+    def update_beam(self, beam):
+        new_beam = self._beam.copy()
+        new_beam.update(self.utool.dict_strip_unit(beam))
+        self.set_beam_raw(beam)
+
+    def update_twiss_args(self, twiss):
+        new_twiss = self._twiss_args
+        new_twiss.update(self.utool.dict_strip_unit(twiss))
+        self.set_twiss_args_raw(new_twiss)
+
+    update_twiss = update_twiss_args
+    twiss = property(lambda self: self.twiss_args)
+
+    def update_element(self, data, elem_index):
+        # TODO: this crashes for many parameters
+        # - proper mutability detection
+        # - update only changed values
+        elem = self.elements[elem_index]['name']
+        d = {k: v for k, v in data.items()
+             if self._is_mutable_attribute(k, v)}
+        self.madx.command(elem, **d)
 
     def _use_beam(self, beam):
         beam = dict(beam, sequence=self.sequence.name)
@@ -494,28 +527,67 @@ class Segment(SegmentBase):
 
 
 def process_spec(prespec, data):
-    from madqt.widget.params import ParamSpec
     # TODO: Handle defaults for hard-coded and ad-hoc keys homogeniously.
     # The simplest option would be to simply specify list of priority keys in
     # the config file…
-    # TODO: properly detect which items are mutable
-    spec = [
-        ParamSpec(k, v)
+    spec = OrderedDict([
+        (k, data.get(k, v))
         for item in prespec
         for spec in item.items()
         for k, v in process_spec_item(*spec)
         # TODO: distinguish items that are not in `data` (we can't just
         # filter, because that prevents editting defaulted parameters)
         # if k in data
-    ]
+    ])
     # Add keys that were not hard-coded in config:
-    prespec_items = {k for item in prespec for k in item}
-    spec += [
-        ParamSpec(k, v)
+    spec.update(OrderedDict([
+        (k, v)
         for k, v in data.items()
-        if k not in prespec_items
-    ]
+        if k not in spec
+    ]))
     return spec
+
+
+class MadxDataStore(DataStore):
+
+    def __init__(self, segment, name, **kw):
+        self.segment = segment
+        self.name = name
+        self.label = name.title()
+        self.data_key = name
+        self.kw = kw
+        self.conf = segment.workspace.config['parameter_sets'][name]
+
+    def _get(self):
+        return getattr(self.segment, self.name)
+
+    def get(self):
+        data = self._get()
+        self.data = process_spec(self.conf['params'], data)
+        return OrderedDict([
+            (key.title(), val)
+            for key, val in self.data.items()
+        ])
+
+    def update(self, values):
+        return getattr(self.segment, 'update_'+self.name)(values, **self.kw)
+
+    # TODO: properly detect which items are mutable
+    def mutable(self, key):
+        return True
+
+    def default(self, key):
+        return self.data[key.lower()]
+
+
+class ElementDataStore(MadxDataStore):
+
+    def _get(self):
+        return self.segment.elements[self.kw['elem_index']]
+
+    def mutable(self, key):
+        key = key.lower()
+        return self.segment._is_mutable_attribute(key, self.data[key])
 
 
 # TODO: support expressions
