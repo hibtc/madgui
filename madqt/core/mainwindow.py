@@ -142,10 +142,10 @@ class MainWindow(QtGui.QMainWindow):
             Menu('&Edit', [
                 Item('&TWISS initial conditions', 'Ctrl+I',
                      'Modify the initial conditions.',
-                     self.editTwiss.create),
+                     self.editTwiss),
                 Item('&Beam parameters', 'Ctrl+B',
                      'Change the beam parameters.',
-                     self.editBeam.create),
+                     self.editBeam),
             ]),
             Menu('&View', [
                 Item('Plo&t window', 'Ctrl+T',
@@ -211,18 +211,28 @@ class MainWindow(QtGui.QMainWindow):
     def fileSave(self):
         pass
 
-    @SingleWindow.factory
+    init_tab = None
+
     def editTwiss(self):
-        return self._edit_params(self.workspace.segment.get_twiss_ds())
+        # TODO: rework window management, switch tab if dialog exists
+        self.init_tab = 'twiss'
+        return self.editInitialConditions.create()
+
+    def editBeam(self):
+        # TODO: rework window management, switch tab if dialog exists
+        self.init_tab = 'beam'
+        return self.editInitialConditions.create()
 
     @SingleWindow.factory
-    def editBeam(self):
-        return self._edit_params(self.workspace.segment.get_beam_ds())
-
-    def _edit_params(self, datastore):
+    def editInitialConditions(self):
         from madqt.widget.params import ParamBox
 
-        widget = ParamBox(datastore, self.workspace.utool)
+        datastore = self.workspace.segment.get_init_ds()
+
+        index = next((i for i, l in enumerate(datastore.substores)
+                      if l == self.init_tab), 0)
+
+        widget = ParamBox(datastore, self.workspace.utool, index=index)
         #widget.data_key = datastore.data_key
         widget.update()
 

@@ -159,7 +159,7 @@ class ParamTable(tableview.TableView):
 
 class ParamBox(QtGui.QWidget):
 
-    def __init__(self, datastore, utool, **kwargs):
+    def __init__(self, datastore, utool, index=0, **kwargs):
         super(ParamBox, self).__init__()
 
         self.datastore = datastore
@@ -170,6 +170,7 @@ class ParamBox(QtGui.QWidget):
             for ds in datastore.substores.values()
         ]
 
+        # TODO: move this to update()
         if len(tabs) == 1:
             widget = self.widget = tabs[0]
         else:
@@ -178,7 +179,9 @@ class ParamBox(QtGui.QWidget):
             widget = self.widget = QtGui.QTabWidget()
             widget.setTabsClosable(False)
             for tab in tabs:
+                # TODO: suppress empty tabs
                 widget.addTab(tab, tab.datastore.label)
+            widget.setCurrentIndex(index)
             widget.currentChanged.connect(self.update)
 
         self.widget = widget

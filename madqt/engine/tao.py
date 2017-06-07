@@ -242,20 +242,16 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self.elements.index(elem_name)
 
-    # TODO: merge beam + twiss into `inititial conditions` with multiple tabs…
-    def get_beam_ds(self):
-        return self._get_ds('beam', TaoDataStore)
-
-    def get_twiss_ds(self):
-        return self._get_ds('twiss', TaoDataStore)
+    def get_init_ds(self):
+        return self._get_ds('init', TaoDataStore)
 
     def get_elem_ds(self, elem_index):
         return self._get_ds('element', ElementDataStore, element=elem_index)
 
     def _get_ds(self, name, DS, **kw):
         return SuperStore(OrderedDict([
-            (item['label'], DS(self, item, **kw))
-            for item in self._param_set(name)
+            (name, DS(self, name, item, **kw))
+            for name, item in self._param_set(name).items()
         ]))
 
     def _param_set(self, name):
@@ -263,8 +259,8 @@ class Segment(SegmentBase):
 
     def _get_params(self, name):
         kwargs = {'universe': self.workspace.universe, 'branch': self.branch}
-        return merged(*(self.tao.properties(group['query'].format(**kwargs))
-                        for group in self._param_set(name)))
+        group = self._param_set('init')[name]
+        return self.tao.properties(group['query'].format(**kwargs))
 
     # TODO: remove. this is not functional anyways
     def _set_params(self, name, data, *extra):
@@ -408,11 +404,11 @@ class Segment(SegmentBase):
 # TODO: dumb this down…
 class TaoDataStore(DataStore):
 
-    def __init__(self, segment, conf, **kw):
+    def __init__(self, segment, name, conf, **kw):
         self.segment = segment
         self.conf = conf
-        self.label = conf['label'].title()
-        self.data_key = conf['label']
+        self.label = name.title()
+        self.data_key = name
         self.kw = kw
 
     def _update_params(self):

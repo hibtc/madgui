@@ -10,11 +10,11 @@ from collections import OrderedDict
 
 from six import string_types as basestring
 import numpy as np
-import yaml
 
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name, name_from_internal
 
+from madqt.resource import yaml
 from madqt.core.unit import from_config
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 from madqt.util.datastore import DataStore, SuperStore
@@ -312,14 +312,10 @@ class Segment(SegmentBase):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def get_beam_ds(self):
+    def get_init_ds(self):
         return SuperStore(OrderedDict([
             ('beam', MadxDataStore(self, 'beam')),
-        ]))
-
-    def get_twiss_ds(self):
-        return SuperStore(OrderedDict([
-            ('twiss', MadxDataStore(self, 'twiss_args')),
+            ('twiss', MadxDataStore(self, 'twiss')),
         ]))
 
     def get_elem_ds(self, elem_index):
@@ -358,6 +354,9 @@ class Segment(SegmentBase):
         new_twiss = self._twiss_args
         new_twiss.update(self.utool.dict_strip_unit(twiss))
         self.set_twiss_args_raw(new_twiss)
+
+    update_twiss = update_twiss_args
+    twiss = property(lambda self: self.twiss_args)
 
     def update_element(self, data, elem_index):
         # TODO: this crashes for many parameters
@@ -554,6 +553,8 @@ class MadxDataStore(DataStore):
     def __init__(self, segment, name, **kw):
         self.segment = segment
         self.name = name
+        self.label = name.title()
+        self.data_key = name
         self.kw = kw
         self.conf = segment.workspace.config['parameter_sets'][name]
 

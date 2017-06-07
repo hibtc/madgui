@@ -65,26 +65,26 @@ curve_style:
 
 
 parameter_sets:
-  beam:
-    - query: 'beam_init {universe}'
+  init:
+    beam:
+      query: 'beam_init {universe}'
       write: 'set beam_init {key} = {val}'
-      label: beam
-
-  twiss:
-    - query: 'lat_ele1 {universe}@{branch}>>0|model orbit'
+    orbit:
+      query: 'lat_ele1 {universe}@{branch}>>0|model orbit'
       write: 'change beam_start {key} @{val}'
-      label: orbit
-    - query: 'lat_ele1 {universe}@{branch}>>0|model twiss'
+    twiss:
+      query: 'lat_ele1 {universe}@{branch}>>0|model twiss'
       write: 'set element beginning {key} = {val}'
       label: twiss
 
   element:
-    - query: 'lat_ele1 {universe}@{branch}>>{element}|model general'
+    general:
+      query: 'lat_ele1 {universe}@{branch}>>{element}|model general'
       write: 'set element {element} {key} = {val}'
-      label: general
-    - query: 'lat_ele1 {universe}@{branch}>>{element}|model parameters'
+    parameters:
+      query: 'lat_ele1 {universe}@{branch}>>{element}|model parameters'
       write: 'set element {element} {key} = {val}'
-      label: parameters
-    - query: 'lat_ele1 {universe}@{branch}>>{element}|model multipole'
+    multipole:
+      query: 'lat_ele1 {universe}@{branch}>>{element}|model multipole'
       write: 'set element {element} {key} = {val}'
       label: multipole
