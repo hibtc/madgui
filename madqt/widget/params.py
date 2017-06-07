@@ -9,8 +9,8 @@ from __future__ import unicode_literals
 from collections import OrderedDict
 
 from six import string_types as basestring
-import yaml
 
+from madqt.resource import yaml
 from madqt.qt import QtCore, QtGui, Qt
 
 import madqt.widget.tableview as tableview
