@@ -58,7 +58,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         from madqt.util.filedialog import getOpenFileName
         filename = getOpenFileName(
             self.window(), 'Import values', self.folder,
-            self.widget.exportFilters)
+            self.widget.datastore.importFilters)
         if filename:
             self.widget.datastore.importFrom(filename)
             self.folder, _ = os.path.split(filename)
@@ -68,7 +68,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         from madqt.util.filedialog import getSaveFileName
         filename = getSaveFileName(
             self.window(), 'Export values', self.folder,
-            self.widget.importFilters)
+            self.widget.datastore.exportFilters)
         if filename:
             self.widget.datastore.exportTo(filename)
             self.folder, _ = os.path.split(filename)
@@ -89,12 +89,10 @@ class Dialog(QtGui.QDialog):
         self._widget = widget
         if isinstance(widget, list):
             layout = VBoxLayout(widget)
-            layout.setContentsMargins(0, 0, 0, 0)
         elif isinstance(widget, QtGui.QLayout):
             layout = widget
         elif isinstance(widget, QtGui.QWidget):
             layout = VBoxLayout([widget])
-            layout.setContentsMargins(0, 0, 0, 0)
         else:
             raise NotImplementedError
         self.setLayout(layout)

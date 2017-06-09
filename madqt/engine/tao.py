@@ -441,6 +441,7 @@ class TaoDataStore(DataStore):
             if par is not None and par.vary and val is not None:
                 command = self.conf['write'].format(key=key, val=val, **self.kw)
                 self.segment.tao.command(command)
+        self.segment.retrack()
 
     def mutable(self, key):
         return self.params[key.lower()].vary

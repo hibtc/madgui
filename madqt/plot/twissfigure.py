@@ -154,6 +154,10 @@ class TwissFigure(object):
         self.figure.draw()
 
     def format_coord(self, ax, x, y):
+        # Avoid StopIteration while hovering the graph and loading another
+        # model/curve:
+        if not self.curves.items:
+            return ''
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format

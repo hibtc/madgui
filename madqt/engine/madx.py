@@ -326,7 +326,7 @@ class Segment(SegmentBase):
     # TODO…
     def _is_mutable_attribute(self, k, v):
         blacklist = self.workspace.config['parameter_sets']['element']['readonly']
-        return isinstance(v, (int, list, float)) and k not in blacklist
+        return isinstance(v, (int, list, float)) and k.lower() not in blacklist
 
     # TODO: get data from MAD-X
     def get_twiss_args_raw(self):
@@ -347,13 +347,19 @@ class Segment(SegmentBase):
 
     def update_beam(self, beam):
         new_beam = self._beam.copy()
-        new_beam.update(self.utool.dict_strip_unit(beam))
-        self.set_beam_raw(beam)
+        new_beam.update(
+            (k.lower(), v)
+            for k, v in self.utool.dict_strip_unit(beam).items())
+        self.set_beam_raw(new_beam)
+        self.retrack()
 
     def update_twiss_args(self, twiss):
         new_twiss = self._twiss_args
-        new_twiss.update(self.utool.dict_strip_unit(twiss))
+        new_twiss.update(
+            (k.lower(), v)
+            for k, v in self.utool.dict_strip_unit(twiss).items())
         self.set_twiss_args_raw(new_twiss)
+        self.retrack()
 
     update_twiss = update_twiss_args
     twiss = property(lambda self: self.twiss_args)
@@ -363,9 +369,11 @@ class Segment(SegmentBase):
         # - proper mutability detection
         # - update only changed values
         elem = self.elements[elem_index]['name']
-        d = {k: v for k, v in data.items()
+        d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)}
+        d = self.utool.dict_strip_unit(d)
         self.madx.command(elem, **d)
+        self.retrack()
 
     def _use_beam(self, beam):
         beam = dict(beam, sequence=self.sequence.name)
