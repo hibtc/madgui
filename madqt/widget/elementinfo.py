@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 from madqt.widget.params import TabParamTables
 
+# TODO: updating an element calls into ds.get() 3 times!
 
 __all__ = [
     'ElementInfoBox',

@@ -322,11 +322,18 @@ class ElementList(Sequence):
         self._indices = {n.lower(): i for i, n in enumerate(el_names)}
         self.update()
 
-    def update(self):
+    def update_all(self):
         self._cached = [None] * len(self._el_names)
         beg, end = self[0], self[-1]
         self.min_x = beg['at']
         self.max_x = end['at'] + end['l']
+
+    def update(self, elem=None):
+        if elem is None:
+            self.update_all()
+        else:
+            index = self.index(elem)
+            self._cached[index] = self._get_data(index)
 
     def bound_x(self, x_value):
         return min(self.max_x, max(self.min_x, x_value))

@@ -73,11 +73,12 @@ class ParamTable(tableview.TableView):
 
     def update(self):
         """Update dialog from the datastore."""
+        # TODO: get along without resetting all the rows?
         self.rows = [ParamInfo(self.datastore, k, v)
                      for k, v in self.datastore.get().items()]
-        self.selectRow(0)
         # Set initial size:
         if not self.isVisible():
+            self.selectRow(0)
             self.resizeColumnsToContents()
             self.updateGeometries()
 

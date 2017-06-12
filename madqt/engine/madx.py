@@ -368,11 +368,19 @@ class Segment(SegmentBase):
         # TODO: this crashes for many parameters
         # - proper mutability detection
         # - update only changed values
-        elem = self.elements[elem_index]['name']
+        elem = self.elements[elem_index]
+        name = elem['name']
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)}
         d = self.utool.dict_strip_unit(d)
-        self.madx.command(elem, **d)
+        if any(isinstance(v, (list,basestring)) for v in d.values()):
+            self.madx.command(name, **d)
+        else:
+            for k, v in d.items():
+                # TODO: filter those with default values
+                self.madx.set_value(_get_property_lval(elem, k), v)
+
+        self.elements.update(elem)
         self.retrack()
 
     def _use_beam(self, beam):
@@ -503,6 +511,7 @@ class Segment(SegmentBase):
         self.madx.command.select(flag='interpolate', step=0.2)
         results = self.madx.twiss(**self._get_twiss_args())
         self.summary = self.utool.dict_add_unit(results.summary)
+        # TODO: update elements
         self.updated.emit()
 
     def can_match_at(self, elem):
