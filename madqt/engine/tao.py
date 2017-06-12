@@ -235,7 +235,7 @@ class Segment(SegmentBase):
             graph_path = region + '.' + graph_name
             graph_info = tao.properties('plot_graph', graph_path)
             if not graph_info.get('valid'):
-                raise ValueError("Invalid plot.")
+                raise ValueError("Invalid plot: {}".format(plot_name))
             graph_alias = plot_info['name'] + '.' + graph_name
 
             return PlotData(plot_info, graph_info, [
