@@ -12,15 +12,17 @@ tao backend for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import os
 from collections import namedtuple, OrderedDict
 
 from pytao.tao import Tao
 
 import madqt.core.unit as unit
 from madqt.util.datastore import DataStore, SuperStore
-from madqt.util.misc import (attribute_alias, sort_to_top,
+from madqt.util.misc import (attribute_alias, sort_to_top, logfile_name,
                              rename_key, merged, translate_default)
 from madqt.util.enum import make_enum
+from madqt.resource.file import FileResource
 
 from madqt.engine.common import (
     FloorCoords, EngineBase, SegmentBase,
@@ -69,8 +71,12 @@ class Workspace(EngineBase):
         self.universe = 1
         super(Workspace, self).__init__(filename, app_config)
 
-    def load_dispatch(self, name, ext):
-        """Load model or plain MAD-X file."""
+    def load(self, filename):
+        """Load model or plain tao file."""
+        path, name = os.path.split(filename)
+        base, ext = os.path.splitext(name)
+        self.repo = FileResource(path)
+        self.command_log = logfile_name(path, base, '.commands.tao')
         if ext in ('.yml', '.yaml'):
             self.load_model(name)
         elif ext == '.init':
@@ -102,7 +108,8 @@ class Workspace(EngineBase):
             self.tao = Tao(
                 fileflag, init_file,
                 '-noplot', '-gui_mode',
-                *args, **self.minrpc_flags())
+                *args, command_log=self.command_log,
+                **self.minrpc_flags())
 
         self.enums = {}     # cache: name -> class
         self.tao._create_enum_value = self._create_enum_value

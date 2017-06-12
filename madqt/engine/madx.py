@@ -6,6 +6,7 @@ MAD-X backend for MadQt.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import os
 from collections import OrderedDict
 
 from six import string_types as basestring
@@ -16,7 +17,9 @@ from cpymad.util import normalize_range_name
 
 from madqt.resource import yaml
 from madqt.core.unit import from_config
-from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
+from madqt.util.misc import (attribute_alias, cachedproperty, sort_to_top,
+                             logfile_name)
+from madqt.resource.file import FileResource
 from madqt.util.datastore import DataStore, SuperStore
 
 from madqt.engine.common import (
@@ -115,9 +118,13 @@ class Workspace(EngineBase):
         data['range'] = list(data['range'])
         return data
 
-    def load_dispatch(self, name, ext):
+    def load(self, filename):
         """Load model or plain MAD-X file."""
-        self.madx = Madx(**self.minrpc_flags())
+        path, name = os.path.split(filename)
+        base, ext = os.path.splitext(name)
+        command_log = logfile_name(path, base, '.commands.madx')
+        self.repo = FileResource(path)
+        self.madx = Madx(command_log=command_log, **self.minrpc_flags())
         if ext in ('.yml', '.yaml'):
             self.load_model(name)
         else:

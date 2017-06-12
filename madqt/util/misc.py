@@ -6,8 +6,10 @@ Misc programming toolbox.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import os
 import functools
 import collections
+import tempfile
 
 
 __all__ = [
@@ -180,3 +182,14 @@ def sort_to_top(values, top_keys, key=None):
         ))
     else:
         return sorted(values, key=sort_key)
+
+
+def logfile_name(path, base, ext):
+    # TODO: how to avoid clutter? delete old files / use unique filename/dir?
+    # Return a filename rather than a `NamedTemporaryFile` to gain more
+    # control over the encoding on python2:
+    # NOTE: currently saving all logs into CWD:
+    fd, name = tempfile.mkstemp(suffix=ext, prefix=base, dir=os.getcwd(), text=True)
+    #fd, name = tempfile.mkstemp(suffix=ext, prefix=base, dir=path, text=True)
+    os.close(fd)
+    return name

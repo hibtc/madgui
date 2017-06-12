@@ -6,8 +6,6 @@ Shared base classes for different backends.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import os
-
 from abc import abstractmethod
 from bisect import bisect_right
 from collections import namedtuple, Sequence
@@ -18,7 +16,6 @@ from six import string_types as basestring
 
 from madqt.core.base import Object, Signal
 from madqt.core.unit import UnitConverter, from_config
-from madqt.resource.file import FileResource
 from madqt.resource.package import PackageResource
 from madqt.util.misc import cachedproperty
 
@@ -70,16 +67,6 @@ class EngineBase(Object):
         self.config = PackageResource('madqt.engine').yaml(module + '.yml')
         self.utool = UnitConverter.from_config_dict(self.config['units'])
         self.load(filename)
-
-    def load(self, filename):
-        """Load model or plain MAD-X file."""
-        path, name = os.path.split(filename)
-        self.repo = FileResource(path)
-        ext = os.path.splitext(name)[1].lower()
-        self.load_dispatch(name, ext)
-
-    def load_dispatch(self, filename, ext):
-        raise NotImplementedError
 
     def minrpc_flags(self):
         """Flags for launching the backend library in a remote process."""
