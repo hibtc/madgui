@@ -21,7 +21,7 @@ __all__ = [
 
 def get_default_user_config_path():
     """Return the default path of the user config."""
-    return os.path.join(os.path.expanduser('~'), '.madqt', 'config.yml')
+    return os.path.join(os.path.expanduser('~'), '.config', 'madqt.yml')
 
 
 def update_recursive(a, b):
@@ -42,7 +42,7 @@ def load(*config_files):
     resources = [
         PackageResource('madqt.data', 'config.yml'),    # package default
         FileResource(get_default_user_config_path()),   # user folder
-        FileResource('madqt_config.yml'),               # current directory
+        FileResource('madqt.yml'),                      # current directory
     ]
     resources.extend([
         FileResource(config_path)                       # command line
