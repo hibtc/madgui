@@ -190,6 +190,6 @@ def logfile_name(path, base, ext):
     # TODO: should also print log path
     # TODO: how to avoid clutter? delete old files / use unique filename/dir?
     # NOTE: saves all logs to temp folder currently
-    fd, name = tempfile.mkstemp(suffix=ext, prefix=base, text=True)
+    fd, name = tempfile.mkstemp(suffix=ext, prefix=base+'.', text=True)
     os.close(fd)
     return name
