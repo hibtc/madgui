@@ -110,6 +110,7 @@ class SegmentBase(Object):
 
     updated = Signal()
     destroyed = Signal()
+    matcher = None
 
     def destroy(self):
         self.workspace.segment = None
@@ -293,6 +294,15 @@ class SegmentBase(Object):
 
     def get_monitor(self, elem):
         raise NotImplementedError
+
+    def get_matcher(self):
+        if self.matcher is None:
+            # TODO: create MatchDialog
+            from madqt.correct.match import Matcher
+            self.matcher = Matcher(self, self.workspace.app_config['matching'])
+            self.matcher.destroyed.connect(
+                lambda: setattr(self, 'matcher', None))
+        return self.matcher
 
 
 class ElementList(Sequence):
