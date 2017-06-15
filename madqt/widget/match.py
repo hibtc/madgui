@@ -10,6 +10,7 @@ from pkg_resources import resource_filename
 
 from madqt.qt import QtGui, uic
 from madqt.widget.tableview import ColumnInfo
+from madqt.correct.match import variable_from_knob
 
 
 class MatchWidget(QtGui.QWidget):
@@ -17,16 +18,16 @@ class MatchWidget(QtGui.QWidget):
     ui_file = 'match.ui'
 
     constraints_columns = [
-        ColumnInfo("Element", lambda c: c.elem['name']),
+        ColumnInfo("Element", lambda c: c.elem['name'] if c.elem else "(global)"),
         ColumnInfo("Name", 'axis'),
         ColumnInfo("Target", 'value'),
     ]
 
     variables_columns = [
-        ColumnInfo("Element", lambda v: v.elem['name']),
+        ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else ""),
         ColumnInfo("Expression", 'expr'),
         ColumnInfo("Design", 'design'),
-        ColumnInfo("Target", lambda v: v.elem[v.attr]),
+        ColumnInfo("Target", lambda v: v.value),
     ]
 
     def __init__(self, matcher):
@@ -59,6 +60,8 @@ class MatchWidget(QtGui.QWidget):
         self.button_remove_variable.clicked.connect(self.vtab.removeSelectedRows)
         self.button_clear_constraint.clicked.connect(self.matcher.constraints.clear)
         self.button_clear_variable.clicked.connect(self.matcher.variables.clear)
+        self.button_add_constraint.clicked.connect(self.add_constraint)
+        self.button_add_variable.clicked.connect(self.add_variable)
         self.matcher.constraints.update_after.connect(self.on_update_constraints)
         self.matcher.variables.update_after.connect(self.on_update_variables)
         self.buttonBox.accepted.connect(self.accept)
@@ -90,3 +93,13 @@ class MatchWidget(QtGui.QWidget):
         role = self.buttonBox.buttonRole(button)
         if role == QtGui.QDialogButtonBox.ApplyRole:
             self.matcher.apply()
+
+    def add_constraint(self):
+        pass
+
+    def add_variable(self):
+        text, ok = QtGui.QInputDialog.getText(
+            self.window(), "Add new variable", "Knob:")
+        if ok and text:
+            self.matcher.variables.append(
+                variable_from_knob(self.matcher, text))

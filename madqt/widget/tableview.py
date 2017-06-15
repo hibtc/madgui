@@ -199,8 +199,9 @@ class TableView(QtGui.QTableView):
         # TODO: delete all in one operation
         for row in sorted(rows, reverse=True):
             # TODO: these should be called from the model…
-            self.model().beginRemoveRows(self.rootIndex(), row, row)
-            self.model().endRemoveRows()
+            del self.model().rows[row]
+            #self.model().beginRemoveRows(self.rootIndex(), row, row)
+            #self.model().endRemoveRows()
 
     def _columnContentWidth(self, column):
         return max(self.sizeHintForColumn(column),

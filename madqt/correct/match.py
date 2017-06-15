@@ -17,6 +17,30 @@ Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
 Variable = namedtuple('Variable', ['elem', 'pos', 'attr', 'expr', 'value', 'design'])
 
 
+def variable_from_knob(matcher, expr):
+    if '->' in expr:
+        name, attr = expr.split('->')
+        elem = matcher.segment.elements[name]
+        expr = _get_elem_attr_expr(elem, attr)
+        pos = elem['at'] + elem['l']
+    else:
+        # TODO: lookup element by variable, if any
+        elem = None
+        attr = None
+        pos = None
+    # TODO: generalize for tao
+    value = matcher.segment.madx.evaluate(expr)
+    design = matcher.design_values.setdefault(expr, value)
+    return Variable(elem, pos, attr, expr, value, design)
+
+
+def variable_update(matcher, variable):
+    value = matcher.segment.madx.evaluate(variable.expr)
+    design = matcher.design_values[variable.expr]
+    return Variable(variable.elem, variable.pos, variable.attr, variable.expr,
+                    value, design)
+
+
 class Matcher(Object):
 
     """
@@ -45,16 +69,12 @@ class Matcher(Object):
             for c in self.constraints]
         variables = [v.expr for v in self.variables]
         self.segment.match(variables, constraints)
-        self.variables[:] = [
-            Variable(v.elem, v.pos, v.attr, v.expr, v.elem[v.attr], v.design)
-            for v in self.variables]
+        self.variables[:] = [variable_update(self, v) for v in self.variables]
 
     def apply(self):
-        self.variables[:] = [
-            Variable(v.elem, v.pos, v.attr, v.expr, v.value, v.value)
-            for v in self.variables]
         for v in self.variables:
             self.design_values[v.expr] = v.value
+        self.variables[:] = [variable_update(self, v) for v in self.variables]
 
     def accept(self):
         self.apply()
@@ -112,8 +132,7 @@ class Matcher(Object):
         """
         param_spec = self.rules.get(axis, {})
         return [
-            Variable(elem, elem['at'], attr, expr, elem[attr],
-                     self.design_values.setdefault(expr, float(elem[attr])))
+            variable_from_knob(self, elem['name']+'->'+attr)
             for elem in self.segment.elements
             for attr in param_spec.get(elem['type'].lower(), [])
             for expr in [_get_elem_attr_expr(elem, attr)]
@@ -123,19 +142,35 @@ class Matcher(Object):
     # Set value back to factory defaults
 
     def _on_update_variables(self, indices, old_values, new_values):
-        old = {(v.elem['el_id'], v.attr): v.design for v in old_values}
-        new = {(v.elem['el_id'], v.attr): v.value  for v in new_values}
+        def _knob(v):
+            if v.elem and v.attr:
+                return v.elem['el_id'], v.attr
+            return v.expr
+
+        old = {_knob(v): v.design for v in old_values}
+        new = {_knob(v): v.value  for v in new_values}
 
         # On removal, revert unapplied variables to design settings:
         # TODO: this should be handled on the level of the segment, see #17.
         # TODO: set many values in one go
-        for (elem, attr), value in old.items():
-            if (elem, attr) not in new:
-                self.segment.set_element_attribute(elem, attr, value)
+        for knob, value in old.items():
+            if knob not in new:
+                # TODO: move this logic to `Segment`
+                if isinstance(knob, tuple):
+                    elem, attr = knob
+                    self.segment.set_element_attribute(elem, attr, value)
+                else:
+                    self.segment.madx.set_value(knob, value)
+
 
         # Set new variable values into the model:
-        for (elem, attr), value in new.items():
-            self.segment.set_element_attribute(elem, attr, value)
+        for knob, value in new.items():
+            # TODO: move this logic to `Segment`
+            if isinstance(knob, tuple):
+                elem, attr = knob
+                self.segment.set_element_attribute(elem, attr, value)
+            else:
+                self.segment.madx.set_value(knob, value)
 
 
 class MatchTransform(object):
