@@ -13,13 +13,13 @@
   <property name="windowTitle">
    <string>Optic variation method (orbit flattening)</string>
   </property>
-  <layout class="QGridLayout" name="toplevel_layout" columnstretch="1,1">
+  <layout class="QGridLayout" columnstretch="1,1">
    <item row="0" column="0">
-    <widget class="QGroupBox" name="group_input">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Enter quadrupole settings:</string>
      </property>
-     <layout class="QGridLayout" name="group_input_layout" columnstretch="0,1,1">
+     <layout class="QGridLayout" columnstretch="0,1,1">
       <item row="0" column="1">
        <widget class="QLabel" name="qp_input_column_title">
         <property name="text">
@@ -91,7 +91,7 @@
       <item row="4" column="0" colspan="3">
        <layout class="QHBoxLayout" name="load_preset_layout">
         <item>
-         <spacer name="load_preset_left_spacer">
+         <spacer>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -104,7 +104,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="load_preset_label">
+         <widget class="QLabel">
           <property name="text">
            <string>Use preset:</string>
           </property>
@@ -130,9 +130,9 @@
      <property name="title">
       <string>Beam at target</string>
      </property>
-     <layout class="QGridLayout" name="group_beam_layout" columnstretch="0,1,1">
+     <layout class="QGridLayout" columnstretch="0,1,1">
       <item row="0" column="1">
-       <widget class="QLabel" name="beam_design_title">
+       <widget class="QLabel">
         <property name="text">
          <string>Design:</string>
         </property>
@@ -192,7 +192,7 @@
        </widget>
       </item>
       <item row="3" column="0" colspan="3">
-       <spacer name="group_beam_bottom_space">
+       <spacer>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
@@ -208,11 +208,11 @@
     </widget>
    </item>
    <item row="2" column="0" colspan="2">
-    <widget class="QGroupBox" name="group_records">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Recorded optics</string>
      </property>
-     <layout class="QVBoxLayout" name="group_records_layout">
+     <layout class="QVBoxLayout">
       <item>
        <widget class="TableView" name="records_table">
         <property name="focusPolicy">
@@ -224,11 +224,11 @@
     </widget>
    </item>
    <item row="3" column="0">
-    <widget class="QGroupBox" name="group_fit">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Fit for beam initial conditions</string>
      </property>
-     <layout class="QVBoxLayout" name="group_fit_layout">
+     <layout class="QVBoxLayout">
       <item>
        <widget class="TableView" name="fit_table">
         <property name="focusPolicy">
@@ -237,9 +237,9 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="fit_iterations_layout">
+       <layout class="QHBoxLayout">
         <item>
-         <widget class="QLabel" name="fit_iterations_label">
+         <widget class="QLabel">
           <property name="text">
            <string>Fit iterations:</string>
           </property>
@@ -259,7 +259,7 @@
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer">
+         <spacer>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -284,11 +284,11 @@
     </widget>
    </item>
    <item row="3" column="1">
-    <widget class="QGroupBox" name="group_steerer">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Calculated steerer corrections</string>
      </property>
-     <layout class="QVBoxLayout" name="group_steerer_layout">
+     <layout class="QVBoxLayout">
       <item>
        <widget class="TableView" name="corrections_table">
         <property name="focusPolicy">

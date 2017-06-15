@@ -13,13 +13,13 @@
   <property name="windowTitle">
    <string>Optic variation method (orbit flattening)</string>
   </property>
-  <layout class="QGridLayout" name="toplevel_layout" columnstretch="1,1">
+  <layout class="QGridLayout" columnstretch="1,1">
    <item row="0" column="0" colspan="2">
-    <widget class="QGroupBox" name="group_input">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Monitor readouts:</string>
      </property>
-     <layout class="QGridLayout" name="group_input_layout" columnstretch="0,1,1,0,0,1">
+     <layout class="QGridLayout" columnstretch="0,1,1,0,0,1">
       <item row="0" column="1" alignment="Qt::AlignRight">
        <widget class="QLabel" name="mon1_title">
         <property name="text">
@@ -83,7 +83,7 @@
        </widget>
       </item>
       <item row="0" column="3" rowspan="3">
-       <spacer name="horizontalSpacer">
+       <spacer>
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
@@ -132,11 +132,11 @@
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QGroupBox" name="group_fit">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Fit for beam initial conditions</string>
      </property>
-     <layout class="QVBoxLayout" name="group_fit_layout">
+     <layout class="QVBoxLayout">
       <item>
        <widget class="TableView" name="fit_table">
         <property name="focusPolicy">
@@ -145,9 +145,9 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="fit_iterations_layout">
+       <layout class="QHBoxLayout">
         <item>
-         <widget class="QLabel" name="fit_iterations_label">
+         <widget class="QLabel">
           <property name="text">
            <string>Fit iterations:</string>
           </property>
@@ -167,7 +167,7 @@
          </widget>
         </item>
         <item>
-         <spacer name="fit_iterations_spacer">
+         <spacer>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -192,11 +192,11 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QGroupBox" name="group_steerer">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Calculated steerer corrections</string>
      </property>
-     <layout class="QVBoxLayout" name="group_steerer_layout">
+     <layout class="QVBoxLayout">
       <item>
        <widget class="TableView" name="corrections_table">
         <property name="focusPolicy">

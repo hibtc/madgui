@@ -50,8 +50,7 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.set_columns(self.variables_columns, self.matcher.variables)
 
     def set_initial_values(self):
-        self.button_remove_constraint.setEnabled(False)
-        self.button_remove_variable.setEnabled(False)
+        pass
 
     def connect_signals(self):
         self.ctab.selectionChangedSignal.connect(self.selection_changed_constraints)
