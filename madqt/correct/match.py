@@ -24,7 +24,7 @@ class Matcher(Object):
     """
 
     matched = Signal()
-    destroyed = Signal()
+    finished = Signal()
 
     def __init__(self, segment, rules):
         """Create empty matcher."""
@@ -46,9 +46,15 @@ class Matcher(Object):
         variables = [v.expr for v in self.variables]
         self.segment.match(variables, constraints)
 
-    def apply(self):
+    def accept(self):
         for v in self.variables:
             self.design_values[v.expr] = v.elem[v.attr]
+        self.finished.emit()
+
+    def reject(self):
+        self.variables.clear()
+        self.constraints.clear()
+        self.finished.emit()
 
     def detect_variables(self):
         """

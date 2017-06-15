@@ -131,7 +131,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox">
+    <widget class="QDialogButtonBox" name="buttonBox">
      <property name="layoutDirection">
       <enum>Qt::LeftToRight</enum>
      </property>

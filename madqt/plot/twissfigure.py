@@ -349,10 +349,11 @@ class MatchTool(CaptureTool):
         self.segment = plot.scene.segment
         self.matcher = self.segment.get_matcher()
         self.markers = ConstraintMarkers(plot.scene, self.matcher.constraints)
-        self.matcher.destroyed.connect(self.deactivate)
+        self.matcher.finished.connect(self.deactivate)
 
     def activate(self):
         """Start matching mode."""
+        self.active = True
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.scene.scene_graph.items.append(self.markers)
@@ -361,6 +362,7 @@ class MatchTool(CaptureTool):
 
     def deactivate(self):
         """Stop matching mode."""
+        self.active = False
         self.clearConstraints()
         self.markers.draw()
         self.plot.scene.scene_graph.items.remove(self.markers)
@@ -498,6 +500,7 @@ class InfoTool(CaptureTool):
 
     def activate(self):
         """Start select mode."""
+        self.active = True
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.keyPress.connect(self.onKey)
@@ -505,6 +508,7 @@ class InfoTool(CaptureTool):
 
     def deactivate(self):
         """Stop select mode."""
+        self.active = False
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
@@ -618,6 +622,7 @@ class CompareTool(CheckTool):
         self.curve = None
 
     def activate(self):
+        self.active = True
         if not self.curve:
             self.createCurve()
         if self.curve:
@@ -628,6 +633,7 @@ class CompareTool(CheckTool):
             self.setChecked(False)
 
     def deactivate(self):
+        self.active = False
         if self.curve:
             self.curve.remove()
             self.plot.scene.scene_graph.items.remove(self.curve)

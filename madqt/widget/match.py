@@ -61,6 +61,9 @@ class MatchWidget(QtGui.QWidget):
         self.button_clear_variable.clicked.connect(self.matcher.variables.clear)
         self.matcher.constraints.update_after.connect(self.on_update_constraints)
         self.matcher.variables.update_after.connect(self.on_update_variables)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        # TODO: connect self.matcher.finished?
 
     def selection_changed_constraints(self):
         self.button_remove_constraint.setEnabled(bool(self.ctab.selectedIndexes()))
@@ -73,3 +76,11 @@ class MatchWidget(QtGui.QWidget):
 
     def on_update_variables(self, *args):
         self.button_clear_variable.setEnabled(bool(self.matcher.variables))
+
+    def accept(self):
+        self.matcher.accept()
+        self.window().accept()
+
+    def reject(self):
+        self.matcher.reject()
+        self.window().reject()

@@ -305,8 +305,6 @@ class SegmentBase(Object):
             # TODO: create MatchDialog
             from madqt.correct.match import Matcher
             self.matcher = Matcher(self, self.workspace.app_config['matching'])
-            self.matcher.destroyed.connect(
-                lambda: setattr(self, 'matcher', None))
         return self.matcher
 
 
