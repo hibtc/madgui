@@ -195,12 +195,11 @@ class TableView(QtGui.QTableView):
         self.model().rows = rows
 
     def removeSelectedRows(self):
+        rows = {idx.row() for idx in self.selectedIndexes()}
         # TODO: delete all in one operation
-        for idx in sorted(self.selectedIndexes(), reverse=True, key=lambda idx: idx.row()):
+        for row in sorted(rows, reverse=True):
             # TODO: these should be called from the model…
-            row = idx.row()
-            self.model().beginRemoveRows(idx.parent(), row, row)
-            del self.rows[row]
+            self.model().beginRemoveRows(self.rootIndex(), row, row)
             self.model().endRemoveRows()
 
     def _columnContentWidth(self, column):
