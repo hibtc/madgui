@@ -193,7 +193,7 @@ class TwissFigure(object):
         return self.graph_data[curve_info.name][:,column]
 
     def get_curve_by_name(self, name):
-        return next(c for c in self.curves.items if c.y_name == name)
+        return next((c for c in self.curves.items if c.y_name == name), None)
 
     def xlim_changed(self, ax):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
@@ -471,10 +471,11 @@ class ConstraintMarkers(SceneElement):
         """Draw one constraint representation in the graph."""
         scene = self.scene
         curve = scene.get_curve_by_name(axis)
-        self.lines.extend(curve.axes.plot(
-            strip_unit(pos, curve.x_unit),
-            strip_unit(val, curve.y_unit),
-            **self.style))
+        if curve:
+            self.lines.extend(curve.axes.plot(
+                strip_unit(pos, curve.x_unit),
+                strip_unit(val, curve.y_unit),
+                **self.style))
 
 
 #----------------------------------------
