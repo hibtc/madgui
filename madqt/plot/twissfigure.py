@@ -390,7 +390,6 @@ class MatchTool(CaptureTool):
         if event.button == 2:
             for c in curves:
                 self.removeConstraint(elem, c.y_name)
-            self.markers.draw()
             return
         # Proceed only if left click:
         elif event.button != 1:
@@ -406,38 +405,38 @@ class MatchTool(CaptureTool):
 
         # add the clicked constraint
         from madqt.correct.match import Constraint
-        self.addConstraint(Constraint(elem, pos, name, event.y))
-
+        constraints = [Constraint(elem, pos, name, event.y)]
         # add another constraint to hold the orthogonal axis constant
         # TODO: should do this only once for each yname!
-        for c in curves:
-            if c.y_name == name:
-                continue
-            # TODO: tao can do this with exact s positions
-            value = self.segment.get_twiss(elem['name'], c.y_name)
-            self.addConstraint(Constraint(elem, pos, c.y_name, value))
+        constraints.extend([
+            Constraint(elem, pos, c.y_name,
+                       self.segment.get_twiss(elem['name'], c.y_name))
+            for c in curves
+            if c.y_name != name
+        ])
 
-        self.markers.draw()
+        self.addConstraints(constraints)
 
         with waitCursor():
             self.matcher.detect_variables()
             self.matcher.match()
 
-    def addConstraint(self, constraint):
+    def addConstraints(self, constraints):
         """Add constraint and perform matching."""
-        self.removeConstraint(constraint.elem, constraint.axis)
-        self.matcher.constraints.append(constraint)
+        for constraint in constraints:
+            self.removeConstraint(constraint.elem, constraint.axis)
+        self.matcher.constraints.extend(constraints)
 
     def removeConstraint(self, elem, axis):
         """Remove the constraint for elem."""
-        self.matcher.constraints[:] = [
-            c for c in self.matcher.constraints
-            if c.elem['el_id'] != elem['el_id'] or c.axis != axis]
+        indexes = [i for i, c in enumerate(self.matcher.constraints)
+                   if c.elem['el_id'] == elem['el_id'] and c.axis == axis]
+        for i in indexes[::-1]:
+            del self.matcher.constraints[i]
 
     def clearConstraints(self):
         """Remove all constraints."""
         del self.matcher.constraints[:]
-        self.markers.draw()
 
 
 class ConstraintMarkers(SceneElement):
@@ -447,6 +446,7 @@ class ConstraintMarkers(SceneElement):
         self.style = scene.config['constraint_style']
         self.lines = []
         self.constraints = constraints
+        constraints.update_after.connect(lambda *args: self.draw())
 
     def draw(self):
         self.update()

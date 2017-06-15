@@ -165,6 +165,9 @@ class List(Object):
             self._items[index] = value
 
     def __delitem__(self, index):
+        # Don't notify user for NOPs:
+        if isinstance(index, slice) and len(self._items[index]) == 0:
+            return
         if not isinstance(index, slice):
             index = slice(index, index+1)
         with self.update_notify(index, ()):
