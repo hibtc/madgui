@@ -34,13 +34,6 @@
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QPushButton" name="button_edit_constraint">
-            <property name="text">
-             <string>Edit</string>
-            </property>
-           </widget>
-          </item>
           <item alignment="Qt::AlignTop">
            <widget class="QPushButton" name="button_remove_constraint">
             <property name="text">
@@ -86,13 +79,6 @@
           </property>
           <property name="flat">
            <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="button_edit_variable">
-          <property name="text">
-           <string>Edit</string>
           </property>
          </widget>
         </item>

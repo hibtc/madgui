@@ -44,8 +44,8 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.horizontalHeader().setHighlightSections(False)
         self.ctab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.vtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.ctab.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-        self.vtab.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.ctab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.vtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ctab.set_columns(self.constraints_columns, self.matcher.constraints)
         self.vtab.set_columns(self.variables_columns, self.matcher.variables)
 
