@@ -57,9 +57,19 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.selectionChangedSignal.connect(self.selection_changed_variables)
         self.button_remove_constraint.clicked.connect(self.ctab.removeSelectedRows)
         self.button_remove_variable.clicked.connect(self.vtab.removeSelectedRows)
+        self.button_clear_constraint.clicked.connect(self.matcher.constraints.clear)
+        self.button_clear_variable.clicked.connect(self.matcher.variables.clear)
+        self.matcher.constraints.update_after.connect(self.on_update_constraints)
+        self.matcher.variables.update_after.connect(self.on_update_variables)
 
     def selection_changed_constraints(self):
         self.button_remove_constraint.setEnabled(bool(self.ctab.selectedIndexes()))
 
     def selection_changed_variables(self):
         self.button_remove_variable.setEnabled(bool(self.vtab.selectedIndexes()))
+
+    def on_update_constraints(self, *args):
+        self.button_clear_constraint.setEnabled(bool(self.matcher.constraints))
+
+    def on_update_variables(self, *args):
+        self.button_clear_variable.setEnabled(bool(self.matcher.variables))
