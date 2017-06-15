@@ -67,6 +67,7 @@ class MatchWidget(QtGui.QWidget):
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
         self.buttonBox.clicked.connect(self.clicked)
+        self.button_match.clicked.connect(self.matcher.match)
         # TODO: connect self.matcher.finished?
 
     def selection_changed_constraints(self):
