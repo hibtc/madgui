@@ -45,15 +45,27 @@ class Matcher(Object):
             for c in self.constraints]
         variables = [v.expr for v in self.variables]
         self.segment.match(variables, constraints)
+        self.variables[:] = [
+            Variable(v.elem, v.pos, v.attr, v.expr, v.elem[v.attr], v.design)
+            for v in self.variables]
+
+    def apply(self):
+        self.variables[:] = [
+            Variable(v.elem, v.pos, v.attr, v.expr, v.value, v.value)
+            for v in self.variables]
+        for v in self.variables:
+            self.design_values[v.expr] = v.value
 
     def accept(self):
-        for v in self.variables:
-            self.design_values[v.expr] = v.elem[v.attr]
+        self.apply()
         self.finished.emit()
 
-    def reject(self):
+    def revert(self):
         self.variables.clear()
         self.constraints.clear()
+
+    def reject(self):
+        self.revert()
         self.finished.emit()
 
     def detect_variables(self):

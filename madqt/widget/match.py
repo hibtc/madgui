@@ -63,6 +63,7 @@ class MatchWidget(QtGui.QWidget):
         self.matcher.variables.update_after.connect(self.on_update_variables)
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
+        self.buttonBox.clicked.connect(self.clicked)
         # TODO: connect self.matcher.finished?
 
     def selection_changed_constraints(self):
@@ -84,3 +85,8 @@ class MatchWidget(QtGui.QWidget):
     def reject(self):
         self.matcher.reject()
         self.window().reject()
+
+    def clicked(self, button):
+        role = self.buttonBox.buttonRole(button)
+        if role == QtGui.QDialogButtonBox.ApplyRole:
+            self.matcher.apply()

@@ -378,7 +378,8 @@ class Segment(SegmentBase):
         elem = self.elements[elem_index]
         name = elem['name']
         d = {k.lower(): v for k, v in data.items()
-             if self._is_mutable_attribute(k, v)}
+             if self._is_mutable_attribute(k, v)
+             and elem[k.lower()] != v}
         d = self.utool.dict_strip_unit(d)
         if any(isinstance(v, (list,basestring)) for v in d.values()):
             self.madx.command(name, **d)
