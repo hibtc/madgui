@@ -73,6 +73,7 @@ class List(Object):
 
     insert_notify = Signal([int, object])
     delete_notify = Signal([int])
+    remove_notify = Signal([int, object])
     modify_notify = Signal([int, object])
 
     def __init__(self, items=None):
@@ -117,6 +118,7 @@ class List(Object):
         if num_old > num_new:
             for val in old_values[num_new:]:
                 self.delete_notify.emit(indices[0])
+                self.remove_notify.emit(indices[0], val)
         elif num_new > num_old:
             start = (slice.start or 0) + num_old
             for idx, val in enumerate(new_values[num_old:]):

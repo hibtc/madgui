@@ -356,6 +356,7 @@ class MatchTool(CaptureTool):
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.scene.scene_graph.items.append(self.markers)
+        self.plot.window().parent().viewMatchDialog.create()
         # TODO: insert markers
 
     def deactivate(self):

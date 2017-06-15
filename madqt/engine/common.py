@@ -205,6 +205,11 @@ class SegmentBase(Object):
     def can_match_at(self, element):
         return True
 
+    def set_element_attribute(self, elem, attr, value):
+        elem = self.elements[elem]['el_id']
+        self.get_elem_ds(elem).substores['attributes'].update({
+            attr: value,
+        })
     # curves
 
     @property

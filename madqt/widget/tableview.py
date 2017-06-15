@@ -86,10 +86,10 @@ class TableModel(QtCore.QAbstractTableModel):
     except AttributeError:
         baseFlags = 0           # Qt4
 
-    def __init__(self, columns):
+    def __init__(self, columns, data=None):
         super(TableModel, self).__init__()
         self.columns = columns
-        self._rows = List()
+        self._rows = List() if data is None else data
         self._rows.update_before.connect(self._update_prepare)
         self._rows.update_after.connect(self._update_finalize)
 
@@ -154,6 +154,8 @@ class TableView(QtGui.QTableView):
     _default_resize_modes = [QtGui.QHeaderView.ResizeToContents,
                              QtGui.QHeaderView.Stretch]
 
+    selectionChangedSignal = Signal()
+
     def __init__(self, parent=None, columns=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super(TableView, self).__init__(parent, **kwargs)
@@ -170,13 +172,17 @@ class TableView(QtGui.QTableView):
         self.model().layoutAboutToBeChanged.emit()
         self.model().layoutChanged.emit()
 
-    def set_columns(self, columns):
-        self.setModel(TableModel(columns))
+    def set_columns(self, columns, data=None):
+        self.setModel(TableModel(columns, data))
         for index, column in enumerate(columns):
             resize = (self._default_resize_modes[index > 0]
                       if column.resize is None
                       else column.resize)
             self._setColumnResizeMode(index, resize)
+
+    def selectionChanged(self, selected, deselected):
+        super(TableView, self).selectionChanged(selected, deselected)
+        self.selectionChangedSignal.emit()
 
     @property
     def rows(self):
@@ -187,6 +193,15 @@ class TableView(QtGui.QTableView):
     def rows(self, rows):
         """List-like access to the data."""
         self.model().rows = rows
+
+    def removeSelectedRows(self):
+        # TODO: delete all in one operation
+        for idx in sorted(self.selectedIndexes(), reverse=True, key=lambda idx: idx.row()):
+            # TODO: these should be called from the model…
+            row = idx.row()
+            self.model().beginRemoveRows(idx.parent(), row, row)
+            del self.rows[row]
+            self.model().endRemoveRows()
 
     def _columnContentWidth(self, column):
         return max(self.sizeHintForColumn(column),

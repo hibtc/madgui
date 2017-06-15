@@ -14,7 +14,7 @@ from madqt.util.collections import List
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
-Variable = namedtuple('Variable', ['elem', 'pos', 'expr'])
+Variable = namedtuple('Variable', ['elem', 'pos', 'attr', 'expr', 'value', 'design'])
 
 
 class Matcher(Object):
@@ -33,6 +33,8 @@ class Matcher(Object):
         self.rules = rules
         self.constraints = List()
         self.variables = List()
+        self.variables.update_after.connect(self._on_update_variables)
+        self.design_values = {}
 
     def match(self):
         """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""
@@ -43,6 +45,10 @@ class Matcher(Object):
             for c in self.constraints]
         variables = [v.expr for v in self.variables]
         self.segment.match(variables, constraints)
+
+    def apply(self):
+        for v in self.variables:
+            self.design_values[v.expr] = v.elem[v.attr]
 
     def detect_variables(self):
         """
@@ -88,12 +94,30 @@ class Matcher(Object):
         """
         param_spec = self.rules.get(axis, {})
         return [
-            Variable(elem, elem['at'], expr)
+            Variable(elem, elem['at'], attr, expr, elem[attr],
+                     self.design_values.setdefault(expr, float(elem[attr])))
             for elem in self.segment.elements
             for attr in param_spec.get(elem['type'].lower(), [])
             for expr in [_get_elem_attr_expr(elem, attr)]
             if expr is not None
         ]
+
+    # Set value back to factory defaults
+
+    def _on_update_variables(self, indices, old_values, new_values):
+        old = {(v.elem['el_id'], v.attr): v.design for v in old_values}
+        new = {(v.elem['el_id'], v.attr): v.value  for v in new_values}
+
+        # On removal, revert unapplied variables to design settings:
+        # TODO: this should be handled on the level of the segment, see #17.
+        # TODO: set many values in one go
+        for (elem, attr), value in old.items():
+            if (elem, attr) not in new:
+                self.segment.set_element_attribute(elem, attr, value)
+
+        # Set new variable values into the model:
+        for (elem, attr), value in new.items():
+            self.segment.set_element_attribute(elem, attr, value)
 
 
 class MatchTransform(object):
