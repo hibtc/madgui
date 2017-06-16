@@ -11,6 +11,7 @@ from collections import namedtuple
 from madqt.core.base import Object, Signal
 from madqt.core.unit import strip_unit
 from madqt.util.collections import List
+from madqt.util.enum import make_enum
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
@@ -59,6 +60,9 @@ class Matcher(Object):
         self.variables = List()
         self.variables.update_after.connect(self._on_update_variables)
         self.design_values = {}
+        local_constraints = ['envx', 'envy'] + segment.workspace.config['matching']['element']
+        self.elem_enum = make_enum('Elem', [el['name'] for el in segment.elements])
+        self.lcon_enum = make_enum('Local', local_constraints)
 
     def match(self):
         """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""

@@ -23,7 +23,7 @@ class Enum(object):
 
     def __init__(self, value):
         if value not in self._values:
-            raise ValueError("{} does not allow value {!r}"
+            raise ValueError("{} does not allow value {!r}\nOnly: {}"
                              .format(self.__class__, value, self._values))
         self.value = value
 

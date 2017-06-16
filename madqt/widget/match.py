@@ -7,29 +7,72 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 from pkg_resources import resource_filename
+from functools import partial
 
 from madqt.qt import QtGui, uic
-from madqt.widget.tableview import ColumnInfo
+from madqt.widget.tableview import ColumnInfo, EnumValue, QuantityValue
 from madqt.correct.match import variable_from_knob, Constraint
 from madqt.widget.quantity import DoubleValidator
+
+
+class ConstraintElem(EnumValue):
+
+    def __init__(self, matcher, constraint, **kwargs):
+        self.matcher = matcher
+        self.constraint = c = constraint
+        name = c.elem['name'] if c.elem else "(global)"
+        value = matcher.elem_enum(name)
+        super(ConstraintElem, self).__init__(value, editable=True, **kwargs)
+        self.dataChanged.connect(self.on_set_data)
+
+    def on_set_data(self, name):
+        if name is not None:
+            c = self.constraint
+            i = self.matcher.constraints.index(c)
+            el = self.matcher.segment.elements[str(name)]
+            self.matcher.constraints[i] = Constraint(
+                el, el['at']+el['l'], c.axis, c.value)
+
+class ConstraintName(EnumValue):
+
+    def __init__(self, matcher, constraint, **kwargs):
+        self.matcher = matcher
+        self.constraint = c = constraint
+        name = c.axis
+        value = matcher.lcon_enum(name)
+        super(ConstraintName, self).__init__(value, editable=True, **kwargs)
+        self.dataChanged.connect(self.on_set_data)
+
+    def on_set_data(self, axis):
+        if axis is not None:
+            c = self.constraint
+            i = self.matcher.constraints.index(c)
+            axis = str(axis)
+            value = self.matcher.segment.get_twiss(c.elem['name'], axis)
+            self.matcher.constraints[i] = Constraint(
+                c.elem, c.pos, axis, value)
+
+
+class ConstraintValue(QuantityValue):
+
+    def __init__(self, matcher, constraint, **kwargs):
+        self.matcher = matcher
+        self.constraint = c = constraint
+        value = c.value
+        super(ConstraintValue, self).__init__(value, editable=True, **kwargs)
+        self.dataChanged.connect(self.on_set_data)
+
+    def on_set_data(self, value):
+        if value is not None:
+            c = self.constraint
+            i = self.matcher.constraints.index(c)
+            self.matcher.constraints[i] = Constraint(
+                c.elem, c.pos, c.axis, value)
 
 
 class MatchWidget(QtGui.QWidget):
 
     ui_file = 'match.ui'
-
-    constraints_columns = [
-        ColumnInfo("Element", lambda c: c.elem['name'] if c.elem else "(global)"),
-        ColumnInfo("Name", 'axis'),
-        ColumnInfo("Target", 'value'),
-    ]
-
-    variables_columns = [
-        ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else ""),
-        ColumnInfo("Expression", 'expr'),
-        ColumnInfo("Design", 'design'),
-        ColumnInfo("Target", lambda v: v.value),
-    ]
 
     def __init__(self, matcher):
         super(MatchWidget, self).__init__()
@@ -42,6 +85,17 @@ class MatchWidget(QtGui.QWidget):
     # The three steps of UI initialization
 
     def init_controls(self):
+        self.constraints_columns = [
+            ColumnInfo("Element", partial(ConstraintElem, self.matcher)),
+            ColumnInfo("Name", partial(ConstraintName, self.matcher)),
+            ColumnInfo("Target", partial(ConstraintValue, self.matcher)),
+        ]
+        self.variables_columns = [
+            ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else ""),
+            ColumnInfo("Expression", 'expr'),
+            ColumnInfo("Design", 'design'),
+            ColumnInfo("Target", lambda v: v.value),
+        ]
         self.ctab.horizontalHeader().setHighlightSections(False)
         self.vtab.horizontalHeader().setHighlightSections(False)
         self.ctab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -127,11 +181,8 @@ class ConstraintDialog(QtGui.QDialog):
         self.connect_signals()
 
     def init_controls(self):
-        self.combo_element.addItems([
-            el['name'] for el in self.matcher.segment.elements
-        ])
-        self.combo_name.addItems(
-            self.matcher.segment.workspace.config['matching']['element'])
+        self.combo_element.addItems(self.matcher.elem_enum._values)
+        self.combo_name.addItems(self.matcher.lcon_enum._values)
         self.edit_value.setValidator(DoubleValidator())
 
     def set_initial_values(self):
