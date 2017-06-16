@@ -63,6 +63,7 @@ class Matcher(Object):
         local_constraints = ['envx', 'envy'] + segment.workspace.config['matching']['element']
         self.elem_enum = make_enum('Elem', [el['name'] for el in segment.elements])
         self.lcon_enum = make_enum('Local', local_constraints)
+        self.mirror_mode = segment.workspace.app_config['matching'].get('mirror', False)
 
     def match(self):
         """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""

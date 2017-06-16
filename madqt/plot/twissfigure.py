@@ -408,15 +408,18 @@ class MatchTool(CaptureTool):
         # add the clicked constraint
         from madqt.correct.match import Constraint
         constraints = [Constraint(elem, pos, name, event.y)]
-        # add another constraint to hold the orthogonal axis constant
-        # TODO: should do this only once for each yname!
-        constraints.extend([
-            Constraint(elem, pos, c.y_name,
-                       self.segment.get_twiss(elem['name'], c.y_name))
-            for c in curves
-            if c.y_name != name
-        ])
 
+        if self.matcher.mirror_mode:
+            # add another constraint to hold the orthogonal axis constant
+            # TODO: should do this only once for each yname!
+            constraints.extend([
+                Constraint(elem, pos, c.y_name,
+                        self.segment.get_twiss(elem['name'], c.y_name))
+                for c in curves
+                if c.y_name != name
+            ])
+
+        constraints = sorted(constraints, key=lambda c: (c.pos, c.axis))
         self.addConstraints(constraints)
 
         with waitCursor():

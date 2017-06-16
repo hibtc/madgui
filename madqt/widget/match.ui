@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>350</height>
+    <width>698</width>
+    <height>397</height>
    </rect>
   </property>
   <layout class="QVBoxLayout">
@@ -128,6 +128,22 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>General</string>
+     </property>
+     <layout class="QGridLayout">
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="check_mirror">
+        <property name="text">
+         <string>Mirror constraints</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>

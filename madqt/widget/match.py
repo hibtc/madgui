@@ -76,7 +76,7 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.set_columns(self.variables_columns, self.matcher.variables, self.matcher)
 
     def set_initial_values(self):
-        pass
+        self.check_mirror.setChecked(self.matcher.mirror_mode)
 
     def connect_signals(self):
         self.ctab.selectionChangedSignal.connect(self.selection_changed_constraints)
@@ -93,6 +93,7 @@ class MatchWidget(QtGui.QWidget):
         self.buttonBox.rejected.connect(self.reject)
         self.buttonBox.clicked.connect(self.clicked)
         self.button_match.clicked.connect(self.matcher.match)
+        self.check_mirror.clicked.connect(self.on_change_mirror)
         # TODO: connect self.matcher.finished?
 
     def selection_changed_constraints(self):
@@ -134,3 +135,7 @@ class MatchWidget(QtGui.QWidget):
         if ok and text:
             self.matcher.variables.append(
                 variable_from_knob(self.matcher, text))
+
+    def on_change_mirror(self, checked):
+        # TODO: add/remove mirrored constraints (if untouched by the user)?
+        self.matcher.mirror_mode = checked
