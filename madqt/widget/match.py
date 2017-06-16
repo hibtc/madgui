@@ -10,69 +10,49 @@ from pkg_resources import resource_filename
 from functools import partial
 
 from madqt.qt import QtGui, uic
-from madqt.widget.tableview import ColumnInfo, EnumValue, QuantityValue
+from madqt.widget.tableview import ColumnInfo, ExtColumnInfo
 from madqt.correct.match import variable_from_knob, Constraint
 from madqt.widget.quantity import DoubleValidator
 
 
-class ConstraintElem(EnumValue):
 
-    def __init__(self, matcher, constraint, **kwargs):
-        self.matcher = matcher
-        self.constraint = c = constraint
-        name = c.elem['name'] if c.elem else "(global)"
-        value = matcher.elem_enum(name)
-        super(ConstraintElem, self).__init__(value, editable=True, **kwargs)
-        self.dataChanged.connect(self.on_set_data)
+def get_constraint_elem(matcher, c):
+    return matcher.elem_enum(c.elem['name'] if c.elem else "(global)")
 
-    def on_set_data(self, name):
-        if name is not None:
-            c = self.constraint
-            i = self.matcher.constraints.index(c)
-            el = self.matcher.segment.elements[str(name)]
-            self.matcher.constraints[i] = Constraint(
-                el, el['at']+el['l'], c.axis, c.value)
+def set_constraint_elem(matcher, c, i, name):
+    if name is not None:
+        el = matcher.segment.elements[str(name)]
+        matcher.constraints[i] = Constraint(el, el['at']+el['l'], c.axis, c.value)
 
-class ConstraintName(EnumValue):
+def get_constraint_axis(matcher, c):
+    return matcher.lcon_enum(c.axis)
 
-    def __init__(self, matcher, constraint, **kwargs):
-        self.matcher = matcher
-        self.constraint = c = constraint
-        name = c.axis
-        value = matcher.lcon_enum(name)
-        super(ConstraintName, self).__init__(value, editable=True, **kwargs)
-        self.dataChanged.connect(self.on_set_data)
+def set_constraint_axis(matcher, c, i, axis):
+    if axis is not None:
+        value = matcher.segment.get_twiss(c.elem['name'], str(axis))
+        matcher.constraints[i] = Constraint(c.elem, c.pos, str(axis), value)
 
-    def on_set_data(self, axis):
-        if axis is not None:
-            c = self.constraint
-            i = self.matcher.constraints.index(c)
-            axis = str(axis)
-            value = self.matcher.segment.get_twiss(c.elem['name'], axis)
-            self.matcher.constraints[i] = Constraint(
-                c.elem, c.pos, axis, value)
-
-
-class ConstraintValue(QuantityValue):
-
-    def __init__(self, matcher, constraint, **kwargs):
-        self.matcher = matcher
-        self.constraint = c = constraint
-        value = c.value
-        super(ConstraintValue, self).__init__(value, editable=True, **kwargs)
-        self.dataChanged.connect(self.on_set_data)
-
-    def on_set_data(self, value):
-        if value is not None:
-            c = self.constraint
-            i = self.matcher.constraints.index(c)
-            self.matcher.constraints[i] = Constraint(
-                c.elem, c.pos, c.axis, value)
+def set_constraint_value(matcher, c, i, value):
+    if value is not None:
+        matcher.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
 
 class MatchWidget(QtGui.QWidget):
 
     ui_file = 'match.ui'
+
+    constraints_columns = [
+        ExtColumnInfo("Element", get_constraint_elem, set_constraint_elem),
+        ExtColumnInfo("Name", get_constraint_axis, set_constraint_axis),
+        ExtColumnInfo("Target", 'value', set_constraint_value),
+    ]
+
+    variables_columns = [
+        ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else ""),
+        ColumnInfo("Expression", 'expr'),
+        ColumnInfo("Design", 'design'),
+        ColumnInfo("Target", lambda v: v.value),
+    ]
 
     def __init__(self, matcher):
         super(MatchWidget, self).__init__()
@@ -85,25 +65,15 @@ class MatchWidget(QtGui.QWidget):
     # The three steps of UI initialization
 
     def init_controls(self):
-        self.constraints_columns = [
-            ColumnInfo("Element", partial(ConstraintElem, self.matcher)),
-            ColumnInfo("Name", partial(ConstraintName, self.matcher)),
-            ColumnInfo("Target", partial(ConstraintValue, self.matcher)),
-        ]
-        self.variables_columns = [
-            ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else ""),
-            ColumnInfo("Expression", 'expr'),
-            ColumnInfo("Design", 'design'),
-            ColumnInfo("Target", lambda v: v.value),
-        ]
+        cb = lambda f: partial(f, self.matcher)
         self.ctab.horizontalHeader().setHighlightSections(False)
         self.vtab.horizontalHeader().setHighlightSections(False)
         self.ctab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.vtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.ctab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.vtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.ctab.set_columns(self.constraints_columns, self.matcher.constraints)
-        self.vtab.set_columns(self.variables_columns, self.matcher.variables)
+        self.ctab.set_columns(self.constraints_columns, self.matcher.constraints, self.matcher)
+        self.vtab.set_columns(self.variables_columns, self.matcher.variables, self.matcher)
 
     def set_initial_values(self):
         pass
