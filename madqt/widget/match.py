@@ -151,16 +151,12 @@ class MatchWidget(QtGui.QWidget):
             self.matcher.apply()
 
     def add_constraint(self):
-        dialog = ConstraintDialog(self.window(), self.matcher)
-        status = dialog.exec_()
-        if status == QtGui.QDialog.Accepted:
-            elem = self.matcher.segment.get_element_by_name(
-                dialog.combo_element.currentText())
-            self.matcher.constraints.append(Constraint(
-                elem, elem['at'] + elem['l'],
-                dialog.combo_name.currentText(),
-                float(dialog.edit_value.text()),
-            ))
+        el   = self.matcher.elem_enum._values[0]
+        elem = self.matcher.segment.elements[el]
+        axis = self.matcher.lcon_enum._values[0]
+        value = self.matcher.segment.get_twiss(el, axis)
+        self.matcher.constraints.append(Constraint(
+            elem, elem['at']+elem['l'], axis, value))
 
     def add_variable(self):
         text, ok = QtGui.QInputDialog.getText(
@@ -168,25 +164,3 @@ class MatchWidget(QtGui.QWidget):
         if ok and text:
             self.matcher.variables.append(
                 variable_from_knob(self.matcher, text))
-
-class ConstraintDialog(QtGui.QDialog):
-
-    def __init__(self, parent, matcher):
-        super(ConstraintDialog, self).__init__(parent)
-        uic.loadUi(resource_filename(__name__, 'addconstraint.ui'), self)
-        self.setWindowTitle("New constraint")
-        self.matcher = matcher
-        self.init_controls()
-        self.set_initial_values()
-        self.connect_signals()
-
-    def init_controls(self):
-        self.combo_element.addItems(self.matcher.elem_enum._values)
-        self.combo_name.addItems(self.matcher.lcon_enum._values)
-        self.edit_value.setValidator(DoubleValidator())
-
-    def set_initial_values(self):
-        pass
-
-    def connect_signals(self):
-        pass
