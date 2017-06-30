@@ -95,6 +95,10 @@ class Control(Object):
                      self.on_correct_multi_grid_method,
                      enabled=self.has_sequence),
             ]),
+            Item('&Emittance measurement', 'Ctrl+E',
+                 'Perform emittance measurement using at least 3 monitors',
+                 self.on_emittance_measurement,
+                 enabled=self.has_sequence),
         ]
         return menu.Menu('&Online control', items)
 
@@ -229,6 +233,16 @@ class Control(Object):
         dialog = Dialog(self._frame)
         dialog.setWidget(widget)
         dialog.show()
+
+    def on_emittance_measurement(self):
+        from madqt.widget.dialog import Dialog
+        from madqt.online.emittance import EmittanceWidget
+        widget = EmittanceWidget(self)
+        dialog = Dialog(self._frame)
+        dialog.setWidget(widget, tight=True)
+        dialog.setWindowTitle("Emittance measurement")
+        dialog.show()
+        return dialog
 
     # helper functions
 
