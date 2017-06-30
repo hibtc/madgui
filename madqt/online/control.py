@@ -200,14 +200,17 @@ class Control(Object):
         return dialog
 
     def on_correct_optic_variation_method(self):
-        self._correct('optic_variation')
+        import madqt.correct.optic_variation as module
+        varyconf = segment.workspace.data.get('optic_variation', {})
+        self._correct(module, varyconf)
 
     def on_correct_multi_grid_method(self):
-        self._correct('multi_grid')
+        import madqt.correct.multi_grid as module
+        varyconf = segment.workspace.data.get('multi_grid', {})
+        self._correct(module, varyconf)
 
-    def _correct(self, name):
+    def _correct(self, module, varyconf):
         from madqt.widget.dialog import Dialog
-        module = __import__('madqt.correct.' + name, None, None, '*')
 
         self.read_all()
         # TODO: open an orbit plot if none is present
@@ -215,7 +218,6 @@ class Control(Object):
 
         segment = self._segment
         elements = segment.elements
-        varyconf = segment.workspace.data.get(name, {})
 
         select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
