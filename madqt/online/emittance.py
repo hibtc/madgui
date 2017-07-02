@@ -8,6 +8,9 @@ from __future__ import unicode_literals
 
 from pkg_resources import resource_filename
 from collections import namedtuple
+from math import sqrt
+
+import numpy as np
 
 from madqt.qt import QtGui, uic
 from madqt.widget.tableview import ColumnInfo, ExtColumnInfo
@@ -17,7 +20,7 @@ from madqt.util.collections import List
 from madqt.util.enum import make_enum
 
 
-MonitorItem = namedtuple('MonitorItem', ['proxy', 'envx', 'envy'])
+MonitorItem = namedtuple('MonitorItem', ['proxy', 'envx', 'envy', 'tm'])
 ResultItem = namedtuple('ResultItem', ['name', 'measured', 'model'])
 
 
@@ -28,7 +31,8 @@ def set_monitor_elem(widget, m, i, name):
     if name is not None:
         p = widget.monitor_map[str(name)]
         v = p.dvm_backend.get()
-        widget.monitors[i] = MonitorItem(p, v.get('widthx'), v.get('widthy'))
+        widget.monitors[i] = MonitorItem(p, v.get('widthx'), v.get('widthy'),
+                                         widget.get_transfer_map(str(name)))
 
 
 class EmittanceWidget(QtGui.QWidget):
@@ -115,15 +119,20 @@ class EmittanceWidget(QtGui.QWidget):
         prox = self.monitor_map[name]
         vals = prox.dvm_backend.get()
         self.monitors.append(MonitorItem(
-            prox, vals.get('widthx'), vals.get('widthy')))
+            prox, vals.get('widthx'), vals.get('widthy'),
+            self.get_transfer_map(name)))
 
     def update_monitor(self):
         # reload values for all the monitors
         self.monitors[:] = [
-            MonitorItem(m.proxy, v.get('widthx'), v.get('widthy'))
+            MonitorItem(m.proxy, v.get('widthx'), v.get('widthy'), m.tm)
             for m in self.monitors
             for v in [m.proxy.dvm_backend.get()]
         ]
+
+    def get_transfer_map(self, dest):
+        seg = self.control._segment
+        return seg.get_transfer_map(seg.start, seg.get_element_info(dest))
 
     def match_values(self):
 
@@ -132,52 +141,49 @@ class EmittanceWidget(QtGui.QWidget):
             return
 
         seg = self.control._segment
-        madx = seg.madx
-        cmd = madx.command
+        strip = seg.utool.strip_unit
+
+        # TODO: when 'interpolate' is on, fix online control example values
+
+        # TODO: when 'interpolate' is on -> choose correct element...?
+        # -> not important for l=0 monitors
+
+        envx = [strip('envx', m.envx) for m in self.monitors]
+        envy = [strip('envy', m.envy) for m in self.monitors]
+        tmx = [m.tm[0:2,0:2] for m in self.monitors]
+        tmy = [m.tm[2:4,2:4] for m in self.monitors]
+
+        # TODO: assert no coupling:
+        # np.isclose(tm[0:2,2:4], 0)
+        # np.isclose(tm[2:4,0:2], 0)
+
+        # TODO: catch math domain error on individual planes, show the other
+        # one if succeed
+        ex, betx, alfx = self.calc_emit_one_plane(tmx, envx)
+        ey, bety, alfy = self.calc_emit_one_plane(tmy, envy)
 
         beam = seg.sequence.beam
         twiss_args = seg.utool.dict_strip_unit(seg.twiss_args)
 
-        # setup initial values
-        madx.set_value('betx_emit_mm', twiss_args.get('betx'))
-        madx.set_value('bety_emit_mm', twiss_args.get('bety'))
-        madx.set_value('alfx_emit_mm', twiss_args.get('alfx'))
-        madx.set_value('alfy_emit_mm', twiss_args.get('alfy'))
-        madx.set_value('ex_emit_mm',   beam['ex'])
-        madx.set_value('ey_emit_mm',   beam['ey'])
-
-        # start matching block
-        cmd.match('use_macro')
-
-        cmd.vary(name='betx_emit_mm', lower=0)
-        cmd.vary(name='bety_emit_mm', lower=0)
-        cmd.vary(name='alfx_emit_mm')
-        cmd.vary(name='alfy_emit_mm')
-        cmd.vary(name='ex_emit_mm', lower=0)
-        cmd.vary(name='ey_emit_mm', lower=0)
-
-        madx.input('m1: macro = {{'
-                   ' beam, sequence={}, ex=ex_emit_mm, ey=ey_emit_mm;'
-                   ' twiss, betx=betx_emit_mm, alfx=alfx_emit_mm, '
-                   '        bety=bety_emit_mm, alfy=alfy_emit_mm;'
-                   '}};'.format(seg.sequence.name))
-
-        for m in self.monitors:
-            expr = 'expr= table(twiss,{},{})={}'.format
-            strip = lambda q: seg.utool.strip_unit('envx', q)
-            cmd.constraint('weight=1e5', expr(m.proxy.name, 'sig11', strip(m.envx)))
-            cmd.constraint('weight=1e5', expr(m.proxy.name, 'sig33', strip(m.envy)))
-
-        cmd.lmdif()
-        cmd.endmatch()
-
-        vars = madx.globals
-
         self.results[:] = [
-            ResultItem('betx', vars['betx_emit_mm'], twiss_args.get('betx')),
-            ResultItem('bety', vars['bety_emit_mm'], twiss_args.get('bety')),
-            ResultItem('alfx', vars['alfx_emit_mm'], twiss_args.get('alfx')),
-            ResultItem('alfy', vars['alfy_emit_mm'], twiss_args.get('alfy')),
-            ResultItem('ex',   vars['ex_emit_mm'],   beam['ex']),
-            ResultItem('ey',   vars['ey_emit_mm'],   beam['ey']),
+            ResultItem('betx', betx, twiss_args.get('betx')),
+            ResultItem('bety', bety, twiss_args.get('bety')),
+            ResultItem('alfx', alfx, twiss_args.get('alfx')),
+            ResultItem('alfy', alfy, twiss_args.get('alfy')),
+            ResultItem('ex',   ex,   beam['ex']),
+            ResultItem('ey',   ey,   beam['ey']),
         ]
+
+
+    def calc_emit_one_plane(self, transfer_matrices, widths):
+        T = np.vstack([
+            [M[0,0]**2, 2*M[0,0]*M[0,1], M[0,1]**2]
+            for M in transfer_matrices
+        ])
+        W = np.array(widths)**2
+        sigma, residuals, rank, singular = np.linalg.lstsq(T, W)
+        b, a, c = sigma
+        emit = sqrt(b*c - a*a)
+        beta = b/emit
+        alfa = a/emit * (-1)
+        return (emit, beta, alfa)#, sum(residuals), (rank<len(x))
