@@ -35,6 +35,12 @@ def set_monitor_elem(widget, m, i, name):
                                          widget.get_transfer_map(str(name)))
 
 
+def choose_after(available, enabled):
+    indices = map(available.index, enabled)
+    last = max(list(indices) or [-1])
+    return next(v for v in available[last+1::-1] if v not in enabled)
+
+
 class EmittanceDialog(QtGui.QDialog):
 
     ui_file = 'emittance.ui'
@@ -109,7 +115,8 @@ class EmittanceDialog(QtGui.QDialog):
         pass
 
     def add_monitor(self):
-        name = self.monitor_enum._values[0]
+        used = {m.proxy.name for m in self.monitors}
+        name = choose_after(self.monitor_enum._values, used)
         prox = self.monitor_map[name]
         vals = prox.dvm_backend.get()
         self.monitors.append(MonitorItem(
