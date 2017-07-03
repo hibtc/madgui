@@ -441,9 +441,10 @@ class Segment(SegmentBase):
         """
         info = self.get_element_info
         twiss_args = self._get_twiss_args()
-        twiss_args['range_'] = (info(beg_elem).name, info(end_elem).name)
-        twiss_args['tw_range'] = twiss_args.pop('range')
-        return self.madx.get_transfer_map_7d(**twiss_args)
+        range_ = (info(beg_elem).name, info(end_elem).name)
+        sequence = twiss_args.pop('sequence', None)
+        tw_range = twiss_args.pop('range', None)
+        return self.madx.get_transfer_map_7d(sequence, range_, tw_range, **twiss_args)
 
     def survey(self):
         # NOTE: SURVEY includes auto-generated DRIFTs, but segment.elements
