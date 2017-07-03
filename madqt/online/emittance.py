@@ -40,13 +40,14 @@ class EmittanceWidget(QtGui.QWidget):
     ui_file = 'emittance.ui'
 
     monitor_columns = [
-        ExtColumnInfo("Monitor", get_monitor_elem, set_monitor_elem),
+        ExtColumnInfo("Monitor", get_monitor_elem, set_monitor_elem,
+                      resize=QtGui.QHeaderView.Stretch),
         ExtColumnInfo("Δx", 'envx'),
         ExtColumnInfo("Δy", 'envy'),
     ]
 
     result_columns = [
-        ColumnInfo("Name", 'name'),
+        ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Measured", 'measured'),
         ColumnInfo("Model", 'model'),
     ]
