@@ -35,7 +35,7 @@ def set_monitor_elem(widget, m, i, name):
                                          widget.get_transfer_map(str(name)))
 
 
-class EmittanceWidget(QtGui.QWidget):
+class EmittanceDialog(QtGui.QDialog):
 
     ui_file = 'emittance.ui'
 
@@ -53,7 +53,7 @@ class EmittanceWidget(QtGui.QWidget):
     ]
 
     def __init__(self, control):
-        super(EmittanceWidget, self).__init__()
+        super(EmittanceDialog, self).__init__()
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.control = control
 
@@ -104,13 +104,6 @@ class EmittanceWidget(QtGui.QWidget):
         self.button_clear_monitor.setEnabled(bool(self.monitors))
         self.button_update_monitor.setEnabled(bool(self.monitors))
         self.match_values()
-
-    def accept(self):
-        # TODO: use values
-        self.window().accept()
-
-    def reject(self):
-        self.window().reject()
 
     def export(self):
         pass

@@ -235,12 +235,8 @@ class Control(Object):
         dialog.show()
 
     def on_emittance_measurement(self):
-        from madqt.widget.dialog import Dialog
-        from madqt.online.emittance import EmittanceWidget
-        widget = EmittanceWidget(self)
-        dialog = Dialog(self._frame)
-        dialog.setWidget(widget, tight=True)
-        dialog.setWindowTitle("Emittance measurement")
+        from madqt.online.emittance import EmittanceDialog
+        dialog = EmittanceDialog(self)
         dialog.show()
         return dialog
 
