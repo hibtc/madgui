@@ -158,8 +158,6 @@ class EmittanceDialog(QtGui.QDialog):
         # np.isclose(tm[0:2,2:4], 0)
         # np.isclose(tm[2:4,0:2], 0)
 
-        # TODO: catch math domain error on individual planes, show the other
-        # one if succeed
         ex, betx, alfx = self.calc_emit_one_plane(tmx, envx)
         ey, bety, alfy = self.calc_emit_one_plane(tmy, envy)
 
@@ -184,6 +182,9 @@ class EmittanceDialog(QtGui.QDialog):
         W = np.array(widths)**2
         sigma, residuals, rank, singular = np.linalg.lstsq(T, W)
         b, a, c = sigma
+        if b*c <= a*a:
+            nan = float("nan")
+            return nan, nan, nan
         emit = sqrt(b*c - a*a)
         beta = b/emit
         alfa = a/emit * (-1)
