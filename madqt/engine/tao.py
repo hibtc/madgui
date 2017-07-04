@@ -250,7 +250,7 @@ class Segment(SegmentBase):
             tao.command('set plot', region, 'visible = F')
             tao.command('place', region, 'none')
 
-    def get_transfer_map(self, beg_elem, end_elem):
+    def get_transfer_maps(self, elems):
         raise NotImplementedError
 
     def get_element_index(self, elem_name):

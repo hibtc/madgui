@@ -133,7 +133,7 @@ class EmittanceDialog(QtGui.QDialog):
 
     def get_transfer_map(self, dest):
         seg = self.control._segment
-        return seg.get_transfer_map(seg.start, seg.get_element_info(dest))
+        return seg.get_transfer_maps([seg.start, dest])[1]
 
     def match_values(self):
 
