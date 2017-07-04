@@ -176,16 +176,22 @@ class EmittanceDialog(QtGui.QDialog):
 
         envx = [strip('envx', m.envx) for m in monitors]
         envy = [strip('envy', m.envy) for m in monitors]
-        tmx = [tm[0:2,0:2] for tm in tms]
-        tmy = [tm[2:4,2:4] for tm in tms]
+
+        decoupled = all(np.allclose(tm[0:2,2:4], 0) and
+                        np.allclose(tm[2:4,0:2], 0)
+                        for tm in tms)
 
         # TODO: assert no dispersion / or use 6 monitors...
-        # TODO: assert no coupling:
-        # np.isclose(tm[0:2,2:4], 0)
-        # np.isclose(tm[2:4,0:2], 0)
+        if decoupled:
+            tmx = [tm[0:2,0:2] for tm in tms]
+            tmy = [tm[2:4,2:4] for tm in tms]
+            ex, betx, alfx = self.calc_emit_one_plane(tmx, envx)
+            ey, bety, alfy = self.calc_emit_one_plane(tmy, envy)
 
-        ex, betx, alfx = self.calc_emit_one_plane(tmx, envx)
-        ey, bety, alfy = self.calc_emit_one_plane(tmy, envy)
+        else:
+            print("Warning: coupled")
+            return
+            # twx, twy = self.calc_emit_two_plane(tms, envx, envy)
 
         beam = seg.sequence.beam
         twiss_args = seg.utool.dict_strip_unit(seg.twiss_args)
@@ -204,6 +210,23 @@ class EmittanceDialog(QtGui.QDialog):
 
 
     def calc_emit_one_plane(self, transfer_matrices, widths):
+        T = np.vstack([
+            [M[0,0]**2, 2*M[0,0]*M[0,1], M[0,1]**2]
+            for M in transfer_matrices
+        ])
+        W = np.array(widths)**2
+        sigma, residuals, rank, singular = np.linalg.lstsq(T, W)
+        b, a, c = sigma
+        if b*c <= a*a:
+            nan = float("nan")
+            return nan, nan, nan
+        emit = sqrt(b*c - a*a)
+        beta = b/emit
+        alfa = a/emit * (-1)
+        return (emit, beta, alfa)#, sum(residuals), (rank<len(x))
+
+    def calc_emit_two_plane(self, transfer_matrices, width_x, width_y):
+        # TODO
         T = np.vstack([
             [M[0,0]**2, 2*M[0,0]*M[0,1], M[0,1]**2]
             for M in transfer_matrices
