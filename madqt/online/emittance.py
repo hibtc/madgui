@@ -20,7 +20,7 @@ from madqt.util.collections import List
 from madqt.util.enum import make_enum
 
 
-MonitorItem = namedtuple('MonitorItem', ['proxy', 'envx', 'envy', 'tm'])
+MonitorItem = namedtuple('MonitorItem', ['proxy', 'envx', 'envy'])
 ResultItem = namedtuple('ResultItem', ['name', 'measured', 'model'])
 
 
@@ -31,8 +31,20 @@ def set_monitor_elem(widget, m, i, name):
     if name is not None:
         p = widget.monitor_map[str(name)]
         v = p.dvm_backend.get()
-        widget.monitors[i] = MonitorItem(p, v.get('widthx'), v.get('widthy'),
-                                         widget.get_transfer_map(str(name)))
+        widget.cached_tms = None
+        widget.monitors[i] = MonitorItem(p, v.get('widthx'), v.get('widthy'))
+
+
+def accumulate(iterable, func):
+    """Return running totals."""
+    # Stolen from:
+    # https://docs.python.org/3/library/itertools.html#itertools.accumulate
+    it = iter(iterable)
+    total = next(it)
+    yield total
+    for element in it:
+        total = func(total, element)
+        yield total
 
 
 def choose_after(available, enabled):
@@ -115,25 +127,21 @@ class EmittanceDialog(QtGui.QDialog):
         pass
 
     def add_monitor(self):
+        self.cached_tms = None
         used = {m.proxy.name for m in self.monitors}
         name = choose_after(self.monitor_enum._values, used)
         prox = self.monitor_map[name]
         vals = prox.dvm_backend.get()
         self.monitors.append(MonitorItem(
-            prox, vals.get('widthx'), vals.get('widthy'),
-            self.get_transfer_map(name)))
+            prox, vals.get('widthx'), vals.get('widthy')))
 
     def update_monitor(self):
         # reload values for all the monitors
         self.monitors[:] = [
-            MonitorItem(m.proxy, v.get('widthx'), v.get('widthy'), m.tm)
+            MonitorItem(m.proxy, v.get('widthx'), v.get('widthy'))
             for m in self.monitors
             for v in [m.proxy.dvm_backend.get()]
         ]
-
-    def get_transfer_map(self, dest):
-        seg = self.control._segment
-        return seg.get_transfer_maps([seg.start, dest])[1]
 
     def match_values(self):
 
@@ -144,15 +152,25 @@ class EmittanceDialog(QtGui.QDialog):
         seg = self.control._segment
         strip = seg.utool.strip_unit
 
+        monitors = sorted(
+            self.monitors, key=lambda m: seg.elements.index(m.proxy.name))
+
+        # second case can happen when `removing` a monitor
+        if self.cached_tms is None or len(self.cached_tms) != len(monitors):
+            tms = seg.get_transfer_maps([m.proxy.name for m in monitors])
+            tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
+            self.cached_tms = tms
+        tms = self.cached_tms
+
         # TODO: when 'interpolate' is on, fix online control example values
 
         # TODO: when 'interpolate' is on -> choose correct element...?
         # -> not important for l=0 monitors
 
-        envx = [strip('envx', m.envx) for m in self.monitors]
-        envy = [strip('envy', m.envy) for m in self.monitors]
-        tmx = [m.tm[0:2,0:2] for m in self.monitors]
-        tmy = [m.tm[2:4,2:4] for m in self.monitors]
+        envx = [strip('envx', m.envx) for m in monitors]
+        envy = [strip('envy', m.envy) for m in monitors]
+        tmx = [tm[0:2,0:2] for tm in tms]
+        tmy = [tm[2:4,2:4] for tm in tms]
 
         # TODO: assert no coupling:
         # np.isclose(tm[0:2,2:4], 0)
