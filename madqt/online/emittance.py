@@ -162,6 +162,10 @@ class EmittanceDialog(QtGui.QDialog):
             self.cached_tms = tms
         tms = self.cached_tms
 
+        # TODO: menu item for exact/jitter
+        # TODO: button for from start/from current
+        # TODO: button for "resync model"
+
         # TODO: when 'interpolate' is on, fix online control example values
 
         # TODO: when 'interpolate' is on -> choose correct element...?
@@ -172,6 +176,7 @@ class EmittanceDialog(QtGui.QDialog):
         tmx = [tm[0:2,0:2] for tm in tms]
         tmy = [tm[2:4,2:4] for tm in tms]
 
+        # TODO: assert no dispersion / or use 6 monitors...
         # TODO: assert no coupling:
         # np.isclose(tm[0:2,2:4], 0)
         # np.isclose(tm[2:4,0:2], 0)
