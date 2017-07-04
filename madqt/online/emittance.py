@@ -114,6 +114,7 @@ class EmittanceDialog(QtGui.QDialog):
         self.button_ok.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
         self.button_export.clicked.connect(self.export)
+        self.check_matchstart.clicked.connect(self.on_toggle_matchstart)
 
     def selection_changed_monitor(self):
         self.button_remove_monitor.setEnabled(bool(self.mtab.selectedIndexes()))
@@ -121,6 +122,10 @@ class EmittanceDialog(QtGui.QDialog):
     def on_monitor_changed(self):
         self.button_clear_monitor.setEnabled(bool(self.monitors))
         self.button_update_monitor.setEnabled(bool(self.monitors))
+        self.match_values()
+
+    def on_toggle_matchstart(self):
+        self.cached_tms = None
         self.match_values()
 
     def export(self):
@@ -158,12 +163,13 @@ class EmittanceDialog(QtGui.QDialog):
         # second case can happen when `removing` a monitor
         if self.cached_tms is None or len(self.cached_tms) != len(monitors):
             tms = seg.get_transfer_maps([m.proxy.name for m in monitors])
+            if not self.check_matchstart.isChecked():
+                tms[0] = np.eye(7)
             tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
             self.cached_tms = tms
         tms = self.cached_tms
 
         # TODO: menu item for exact/jitter
-        # TODO: button for from start/from current
         # TODO: button for "resync model"
 
         # TODO: when 'interpolate' is on, fix online control example values
@@ -187,14 +193,17 @@ class EmittanceDialog(QtGui.QDialog):
         beam = seg.sequence.beam
         twiss_args = seg.utool.dict_strip_unit(seg.twiss_args)
 
-        self.results[:] = [
+        results = [
             ResultItem('betx', betx, twiss_args.get('betx')),
             ResultItem('bety', bety, twiss_args.get('bety')),
             ResultItem('alfx', alfx, twiss_args.get('alfx')),
             ResultItem('alfy', alfy, twiss_args.get('alfy')),
+        ] if self.check_matchstart.isChecked() else []
+
+        self.results[:] = [
             ResultItem('ex',   ex,   beam['ex']),
             ResultItem('ey',   ey,   beam['ey']),
-        ]
+        ] + results
 
 
     def calc_emit_one_plane(self, transfer_matrices, widths):
