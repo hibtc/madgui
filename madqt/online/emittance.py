@@ -171,8 +171,6 @@ class EmittanceDialog(QtGui.QDialog):
 
         # TODO: button for "resync model"
 
-        # TODO: when 'interpolate' is on, fix online control example values
-
         # TODO: when 'interpolate' is on -> choose correct element...?
         # -> not important for l=0 monitors
 

@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import os
 from collections import OrderedDict
+import itertools
 
 from six import string_types as basestring
 import numpy as np
@@ -516,6 +517,22 @@ class Segment(SegmentBase):
         self.madx.command.select(flag='interpolate', step=0.2)
         results = self.madx.twiss(**self._get_twiss_args())
         self.summary = self.utool.dict_add_unit(results.summary)
+
+        # FIXME: this will fail if subsequent element have the same name.
+        # Safer alternatives:
+        # - do another twiss call without interpolate
+        # - change the behaviour of MAD-X' interpolate option itself to make
+        #   it clear in the table which rows are 'interpolated'
+        # - change MAD-X interpolate option to produce 2 tables
+        # - extract information via cpymad (table now has 'node' attribute)
+        groups = itertools.groupby(enumerate(results['name']), lambda x: x[1])
+        self.indices = [
+            slice(l[0][0], l[-1][0])
+            for k, v in groups
+            for l in [list(v)]
+        ]
+        assert len(self.indices) == len(self.elements)
+
         # TODO: update elements
         self.updated.emit()
 
