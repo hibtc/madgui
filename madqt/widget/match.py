@@ -42,13 +42,15 @@ class MatchWidget(QtGui.QWidget):
     ui_file = 'match.ui'
 
     constraints_columns = [
-        ExtColumnInfo("Element", get_constraint_elem, set_constraint_elem),
+        ExtColumnInfo("Element", get_constraint_elem, set_constraint_elem,
+                      resize=QtGui.QHeaderView.Stretch),
         ExtColumnInfo("Name", get_constraint_axis, set_constraint_axis),
         ExtColumnInfo("Target", 'value', set_constraint_value),
     ]
 
     variables_columns = [
-        ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else ""),
+        ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else "",
+                   resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Expression", 'expr'),
         ColumnInfo("Design", 'design'),
         ColumnInfo("Target", lambda v: v.value),
