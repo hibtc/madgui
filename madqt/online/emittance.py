@@ -169,7 +169,6 @@ class EmittanceDialog(QtGui.QDialog):
             self.cached_tms = tms
         tms = self.cached_tms
 
-        # TODO: menu item for exact/jitter
         # TODO: button for "resync model"
 
         # TODO: when 'interpolate' is on, fix online control example values
