@@ -190,8 +190,12 @@ class EmittanceDialog(QtGui.QDialog):
 
         else:
             print("Warning: coupled")
-            return
-            # twx, twy = self.calc_emit_two_plane(tms, envx, envy)
+            tms = [tm[0:4,0:4] for tm in tms]
+            xcs = [[(0, cx**2), (2, cy**2)]
+                   for cx, cy in zip(envx, envy)]
+            sigma, residuals, singular = solve_emit_sys(tms, xcs)
+            ex, betx, alfx = twiss_from_sigma(sigma[0:2,0:2])
+            ey, bety, alfy = twiss_from_sigma(sigma[2:4,2:4])
 
         beam = seg.sequence.beam
         twiss_args = seg.utool.dict_strip_unit(seg.twiss_args)
@@ -208,36 +212,55 @@ class EmittanceDialog(QtGui.QDialog):
             ResultItem('ey',   ey,   beam['ey']),
         ] + results
 
+    def calc_emit_one_plane(self, transfer_matrices, constraints):
+        xcs = [[(0, c**2)] for c in constraints]
+        sigma, residuals, singular = solve_emit_sys(transfer_matrices, xcs)
+        return twiss_from_sigma(sigma)
 
-    def calc_emit_one_plane(self, transfer_matrices, widths):
-        T = np.vstack([
-            [M[0,0]**2, 2*M[0,0]*M[0,1], M[0,1]**2]
-            for M in transfer_matrices
-        ])
-        W = np.array(widths)**2
-        sigma, residuals, rank, singular = np.linalg.lstsq(T, W)
-        b, a, c = sigma
-        if b*c <= a*a:
-            nan = float("nan")
-            return nan, nan, nan
-        emit = sqrt(b*c - a*a)
-        beta = b/emit
-        alfa = a/emit * (-1)
-        return (emit, beta, alfa)#, sum(residuals), (rank<len(x))
 
-    def calc_emit_two_plane(self, transfer_matrices, width_x, width_y):
-        # TODO
-        T = np.vstack([
-            [M[0,0]**2, 2*M[0,0]*M[0,1], M[0,1]**2]
-            for M in transfer_matrices
-        ])
-        W = np.array(widths)**2
-        sigma, residuals, rank, singular = np.linalg.lstsq(T, W)
-        b, a, c = sigma
-        if b*c <= a*a:
-            nan = float("nan")
-            return nan, nan, nan
-        emit = sqrt(b*c - a*a)
-        beta = b/emit
-        alfa = a/emit * (-1)
-        return (emit, beta, alfa)#, sum(residuals), (rank<len(x))
+def solve_emit_sys(Ms, XCs):
+    """
+    Solve for S the linear system of equations:
+
+        (M S Mᵀ)ₓₓ = C
+
+    For some M, x and C.
+
+    M can be coupled, but S is assumed to be block diagonal, i.e. decoupled:
+
+        S = (X 0 0
+             0 Y 0
+             0 0 T)
+
+    Returns S as numpy array.
+    """
+    dim = Ms[0].shape[0]
+    # construct linear system of equations
+    T = np.vstack([
+        ([M[x,i]**2          for i in range(dim)] +       # diagonal elements
+         [2*M[x,i-1]*M[x,i]  for i in range(1, dim, 2)])  # off-diag elements
+        for M, xc in zip(Ms, XCs)
+        for x, _ in xc
+    ])
+    X = np.array([v for xc in XCs for _, v in xc])
+    x0, residuals, rank, singular = np.linalg.lstsq(T, X)
+    # construct result matrix
+    res = np.diag(x0[:dim])
+    for k, x in enumerate(x0[dim:]):
+        i, j = 2*k, 2*k+1
+        res[i,j] = res[j,i] = x
+    return res, sum(residuals), (rank<len(x0))
+
+
+def twiss_from_sigma(sigma):
+    """Compute 1D twiss parameters from 2x2 sigma matrix."""
+    b = sigma[0,0]
+    a = sigma[0,1]  # = sigma[1,0] !
+    c = sigma[1,1]
+    if b*c <= a*a:
+        nan = float("nan")
+        return nan, nan, nan
+    emit = sqrt(b*c - a*a)
+    beta = b/emit
+    alfa = a/emit * (-1)
+    return emit, beta, alfa
