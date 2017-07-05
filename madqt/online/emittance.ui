@@ -131,11 +131,29 @@
        </layout>
       </item>
       <item row="1" column="0">
-       <widget class="QCheckBox" name="check_matchstart">
-        <property name="text">
-         <string>Match from start</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout">
+        <item>
+         <widget class="QCheckBox" name="long_transfer">
+          <property name="text">
+           <string>Match from start</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="use_dispersion">
+          <property name="text">
+           <string>Dispersion</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="respect_coupling">
+          <property name="text">
+           <string>Coupled</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

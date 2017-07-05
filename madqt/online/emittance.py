@@ -5,6 +5,7 @@ UI for matching.
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from __future__ import division
 
 from pkg_resources import resource_filename
 from collections import namedtuple
@@ -114,7 +115,9 @@ class EmittanceDialog(QtGui.QDialog):
         self.button_ok.clicked.connect(self.accept)
         self.button_cancel.clicked.connect(self.reject)
         self.button_export.clicked.connect(self.export)
-        self.check_matchstart.clicked.connect(self.match_values)
+        self.long_transfer.clicked.connect(self.match_values)
+        self.use_dispersion.clicked.connect(self.match_values)
+        self.respect_coupling.clicked.connect(self.match_values)
 
     def selection_changed_monitor(self):
         self.button_remove_monitor.setEnabled(bool(self.mtab.selectedIndexes()))
@@ -146,7 +149,12 @@ class EmittanceDialog(QtGui.QDialog):
 
     def match_values(self):
 
-        if len(self.monitors) < 3:
+        long_transfer = self.long_transfer.isChecked()
+        use_dispersion = self.use_dispersion.isChecked()
+        respect_coupling = self.respect_coupling.isChecked()
+
+        min_monitors = 6 if use_dispersion else 3
+        if len(self.monitors) < min_monitors:
             self.results[:] = []
             return
 
@@ -161,57 +169,77 @@ class EmittanceDialog(QtGui.QDialog):
             self.cached_tms = seg.get_transfer_maps([m.proxy.name for m in monitors])
 
         tms = list(self.cached_tms)
-        if not self.check_matchstart.isChecked():
+        if not long_transfer:
             tms[0] = np.eye(7)
         tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
+        # keep X,PX,Y,PY,PT:
+        tms = np.array(tms)[:,[0,1,2,3,5],:][:,:,[0,1,2,3,5]]
 
         # TODO: button for "resync model"
 
         # TODO: when 'interpolate' is on -> choose correct element...?
         # -> not important for l=0 monitors
 
+        coup_xy = not np.allclose(tms[:,0:2,2:4], 0)
+        coup_yx = not np.allclose(tms[:,2:4,4:2], 0)
+        coup_xt = not np.allclose(tms[:,0:2,4:5], 0)
+        coup_yt = not np.allclose(tms[:,2:4,4:5], 0)
+
+        coupled = coup_xy or coup_yx
+        dispersive = coup_xt or coup_yt
+
         envx = [strip('envx', m.envx) for m in monitors]
         envy = [strip('envy', m.envy) for m in monitors]
+        xcs = [[(0, cx**2), (2, cy**2)]
+               for cx, cy in zip(envx, envy)]
 
-        decoupled = all(np.allclose(tm[0:2,2:4], 0) and
-                        np.allclose(tm[2:4,0:2], 0)
-                        for tm in tms)
+        def calc_sigma(tms, xcs, dispersive):
+            if dispersive and not use_dispersion:
+                print("Warning: dispersive lattice")
+            if not use_dispersion:
+                tms = tms[:,:-1,:-1]
+            sigma, residuals, singular = solve_emit_sys(tms, xcs)
+            return sigma
 
         # TODO: assert no dispersion / or use 6 monitors...
-        if decoupled:
-            tmx = [tm[0:2,0:2] for tm in tms]
-            tmy = [tm[2:4,2:4] for tm in tms]
-            ex, betx, alfx = self.calc_emit_one_plane(tmx, envx)
-            ey, bety, alfy = self.calc_emit_one_plane(tmy, envy)
+        if not coupled or not respect_coupling:
+            if coupled:
+                print("Warning: coupled lattice")
+            tmx = np.delete(np.delete(tms, [2,3], axis=1), [2,3], axis=2)
+            tmy = np.delete(np.delete(tms, [0,1], axis=1), [0,1], axis=2)
+            xcx = [[(0, cx[1])] for cx, cy in xcs]
+            xcy = [[(0, cy[1])] for cx, cy in xcs]
+            sigmax = calc_sigma(tmx, xcx, coup_xt)
+            sigmay = calc_sigma(tmy, xcy, coup_yt)
+            ex, betx, alfx = twiss_from_sigma(sigmax[0:2,0:2])
+            ey, bety, alfy = twiss_from_sigma(sigmay[0:2,0:2])
 
         else:
-            print("Warning: coupled")
-            tms = [tm[0:4,0:4] for tm in tms]
-            xcs = [[(0, cx**2), (2, cy**2)]
-                   for cx, cy in zip(envx, envy)]
             sigma, residuals, singular = solve_emit_sys(tms, xcs)
             ex, betx, alfx = twiss_from_sigma(sigma[0:2,0:2])
             ey, bety, alfy = twiss_from_sigma(sigma[2:4,2:4])
 
+        pt = sigmax[-1,-1]
+
         beam = seg.sequence.beam
         twiss_args = seg.utool.dict_strip_unit(seg.twiss_args)
 
-        results = [
+        results = []
+        results += [
+            ResultItem('ex',   ex,   beam['ex']),
+            ResultItem('ey',   ey,   beam['ey']),
+        ]
+        results += [
+            ResultItem('pt',   pt,   beam['et']),
+        ] if use_dispersion else []
+        results += [
             ResultItem('betx', betx, twiss_args.get('betx')),
             ResultItem('bety', bety, twiss_args.get('bety')),
             ResultItem('alfx', alfx, twiss_args.get('alfx')),
             ResultItem('alfy', alfy, twiss_args.get('alfy')),
-        ] if self.check_matchstart.isChecked() else []
+        ] if long_transfer else []
 
-        self.results[:] = [
-            ResultItem('ex',   ex,   beam['ex']),
-            ResultItem('ey',   ey,   beam['ey']),
-        ] + results
-
-    def calc_emit_one_plane(self, transfer_matrices, constraints):
-        xcs = [[(0, c**2)] for c in constraints]
-        sigma, residuals, singular = solve_emit_sys(transfer_matrices, xcs)
-        return twiss_from_sigma(sigma)
+        self.results[:] = results
 
 
 def solve_emit_sys(Ms, XCs):
@@ -234,16 +262,28 @@ def solve_emit_sys(Ms, XCs):
     # construct linear system of equations
     T = np.vstack([
         ([M[x,i]**2          for i in range(dim)] +       # diagonal elements
-         [2*M[x,i-1]*M[x,i]  for i in range(1, dim, 2)])  # off-diag elements
+         [2*M[x,i-1]*M[x,i]  for i in range(1, dim, 2)] + # off-diag elements
+         [])
         for M, xc in zip(Ms, XCs)
         for x, _ in xc
     ])
+    # This requires 6 measurements:
+    if dim % 2 != 0:
+        T = np.hstack((T, np.vstack([
+            [2*M[x,i]*M[x,-1] for i in range(dim-1)]
+            for M, xc in zip(Ms, XCs)
+            for x, _ in xc
+        ])))
     X = np.array([v for xc in XCs for _, v in xc])
     x0, residuals, rank, singular = np.linalg.lstsq(T, X)
     # construct result matrix
     res = np.diag(x0[:dim])
-    for k, x in enumerate(x0[dim:]):
+    for k, x in enumerate(x0[dim:dim+dim//2]):
         i, j = 2*k, 2*k+1
+        res[i,j] = res[j,i] = x
+    for k, x in enumerate(x0[dim+dim//2:]):
+        i = k
+        j = -1
         res[i,j] = res[j,i] = x
     return res, sum(residuals), (rank<len(x0))
 
