@@ -14,8 +14,10 @@ from madqt.qt import QtGui
 from madqt.core.base import Object
 from madqt.util.collections import Bool
 import madqt.core.menu as menu
+from madqt.util.misc import suppress
 
 from . import elements
+from . import api
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
@@ -114,7 +116,7 @@ class Control(Object):
     def iter_elements(self, kind):
         """Iterate :class:`~madqt.online.elements.BaseElement` in the sequence."""
         return filter(None, [
-            cls(self._segment, el, self._plugin)
+            suppress(api.UnknownElement, cls, self._segment, el, self._plugin)
             for el in self._segment.elements
             for cls in [elements.get_element_class(el)]
             if cls and issubclass(cls, kind)
