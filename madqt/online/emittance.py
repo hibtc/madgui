@@ -72,7 +72,7 @@ class EmittanceDialog(QtGui.QDialog):
     ]
 
     def __init__(self, control):
-        super(EmittanceDialog, self).__init__()
+        super(EmittanceDialog, self).__init__(control._frame)
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.control = control
 
@@ -193,6 +193,8 @@ class EmittanceDialog(QtGui.QDialog):
         xcs = [[(0, cx**2), (2, cy**2)]
                for cx, cy in zip(envx, envy)]
 
+        # TODO: do we need to add dpt*D to sig11 in online control?
+
         def calc_sigma(tms, xcs, dispersive):
             if dispersive and not use_dispersion:
                 print("Warning: dispersive lattice")
@@ -202,7 +204,7 @@ class EmittanceDialog(QtGui.QDialog):
             return sigma
 
         # TODO: assert no dispersion / or use 6 monitors...
-        if not coupled or not respect_coupling:
+        if not respect_coupling:
             if coupled:
                 print("Warning: coupled lattice")
             tmx = np.delete(np.delete(tms, [2,3], axis=1), [2,3], axis=2)
@@ -213,13 +215,14 @@ class EmittanceDialog(QtGui.QDialog):
             sigmay = calc_sigma(tmy, xcy, coup_yt)
             ex, betx, alfx = twiss_from_sigma(sigmax[0:2,0:2])
             ey, bety, alfy = twiss_from_sigma(sigmay[0:2,0:2])
+            pt = sigmax[-1,-1]
 
         else:
-            sigma, residuals, singular = solve_emit_sys(tms, xcs)
+            sigma = calc_sigma(tms, xcs, dispersive)
             ex, betx, alfx = twiss_from_sigma(sigma[0:2,0:2])
             ey, bety, alfy = twiss_from_sigma(sigma[2:4,2:4])
+            pt = sigma[-1,-1]
 
-        pt = sigmax[-1,-1]
 
         beam = seg.sequence.beam
         twiss_args = seg.utool.dict_strip_unit(seg.twiss_args)
@@ -258,33 +261,29 @@ def solve_emit_sys(Ms, XCs):
 
     Returns S as numpy array.
     """
-    dim = Ms[0].shape[0]
-    # construct linear system of equations
-    T = np.vstack([
-        ([M[x,i]**2          for i in range(dim)] +       # diagonal elements
-         [2*M[x,i-1]*M[x,i]  for i in range(1, dim, 2)] + # off-diag elements
-         [])
-        for M, xc in zip(Ms, XCs)
-        for x, _ in xc
-    ])
-    # This requires 6 measurements:
-    if dim % 2 != 0:
-        T = np.hstack((T, np.vstack([
-            [2*M[x,i]*M[x,-1] for i in range(dim-1)]
-            for M, xc in zip(Ms, XCs)
-            for x, _ in xc
-        ])))
-    X = np.array([v for xc in XCs for _, v in xc])
-    x0, residuals, rank, singular = np.linalg.lstsq(T, X)
-    # construct result matrix
-    res = np.diag(x0[:dim])
-    for k, x in enumerate(x0[dim:dim+dim//2]):
-        i, j = 2*k, 2*k+1
-        res[i,j] = res[j,i] = x
-    for k, x in enumerate(x0[dim+dim//2:]):
-        i = k
-        j = -1
-        res[i,j] = res[j,i] = x
+    d = dim = Ms[0].shape[0]
+
+    con_func = lambda u: [
+        M[[x]].dot(u).dot(M[[x]].T).sum()   # linear beam transport!
+        for M, xc in zip(Ms, XCs)           # for every given transfer matrix
+        for x, _ in xc                      # and measured constraint
+    ]
+
+    sq_matrix_basis = np.eye(d*d,d*d).reshape((d*d,d,d))
+    is_upper_triang = [i for i, m in enumerate(sq_matrix_basis)
+                       if np.allclose(np.triu(m), m)
+                       and (d < 4 or np.allclose(m[0:2,2:4], 0))]
+
+    lhs = np.vstack([
+        con_func(2*u-np.tril(u))
+        for u in sq_matrix_basis[is_upper_triang]
+    ]).T
+    rhs = [c for xc in XCs for _, c in xc]
+
+    x0, residuals, rank, singular = np.linalg.lstsq(lhs, rhs)
+
+    res = np.tensordot(x0, sq_matrix_basis[is_upper_triang], 1)
+    res = res + res.T - np.tril(res)
     return res, sum(residuals), (rank<len(x0))
 
 
