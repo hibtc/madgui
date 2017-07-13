@@ -9,20 +9,15 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import glob
-import logging
-import threading
 import os
 
-from six import text_type as unicode
-
 from madqt.qt import Qt, QtCore, QtGui
-from madqt.core.base import Object, Signal
 from madqt.util.collections import Selection, Bool
 from madqt.util.misc import Property
 from madqt.util.qt import notifyCloseEvent
 from madqt.widget.dialog import Dialog
+from madqt.widget.log import LogWindow
 
-import madqt.util.font as font
 import madqt.core.config as config
 import madqt.core.menu as menu
 
@@ -184,7 +179,9 @@ class MainWindow(QtGui.QMainWindow):
         self.control = control.Control(self, menubar)
 
     def createControls(self):
-        self.createLogWindow()
+        self.log_window = LogWindow(self)
+        self.log_window.setup_logging()
+        self.setCentralWidget(self.log_window)
 
     def createStatusBar(self):
         self.statusBar()
@@ -367,8 +364,7 @@ class MainWindow(QtGui.QMainWindow):
         workspace.selection = Selection()
         workspace.box_group = InfoBoxGroup(self, workspace.selection)
 
-        madx_log = AsyncRead(workspace.remote_process.stdout)
-        madx_log.dataReceived.connect(self._log_stream.write)
+        self.log_window.async_reader(workspace.remote_process.stdout)
 
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
@@ -450,77 +446,10 @@ class MainWindow(QtGui.QMainWindow):
         self.shell.exit_requested.connect(dock.close)
         return dock
 
-    def createLogWindow(self):
-        text = QtGui.QPlainTextEdit()
-        text.setFont(font.monospace())
-        text.setReadOnly(True)
-        self.setCentralWidget(text)
-        # TODO: MAD-X log should be separate from basic logging
-        self._basicConfig(text, logging.INFO,
-                          '%(asctime)s %(levelname)s %(name)s: %(message)s',
-                          '%H:%M:%S')
-
-    def _basicConfig(self, widget, level, fmt, datefmt=None):
-        """Configure logging."""
-        stream = TextCtrlStream(widget)
-        root = logging.getLogger('')
-        manager = logging.Manager(root)
-        formatter = logging.Formatter(fmt, datefmt)
-        handler = logging.StreamHandler(stream)
-        handler.setFormatter(formatter)
-        root.addHandler(handler)
-        root.level = level
-        # store member variables:
-        self._log_widget = widget
-        self._log_stream = stream
-        self._log_manager = manager
-
-    def _appendToLog(self, text):
-        self._log_widget.appendPlainText(text.rstrip())
-
     def closeEvent(self, event):
         # Terminate the remote session, otherwise `_readLoop()` may hang:
         self.destroyWorkspace()
         event.accept()
-
-
-class AsyncRead(Object):
-
-    """
-    Write to a text control.
-    """
-
-    dataReceived = Signal(unicode)
-    closed = Signal()
-
-    def __init__(self, stream):
-        super(AsyncRead, self).__init__()
-        self.stream = stream
-        self.thread = threading.Thread(target=self._readLoop)
-        self.thread.start()
-
-    def _readLoop(self):
-        # The file iterator seems to be buffered:
-        for line in iter(self.stream.readline, b''):
-            try:
-                self.dataReceived.emit(line.decode('utf-8'))
-            except BaseException:
-                break
-
-
-class TextCtrlStream(object):
-
-    """
-    Write to a text control.
-    """
-
-    def __init__(self, ctrl):
-        """Set text control."""
-        self._ctrl = ctrl
-
-    def write(self, text):
-        """Append text."""
-        self._ctrl.appendPlainText(text.rstrip())
 
 
 class InfoBoxGroup(object):
