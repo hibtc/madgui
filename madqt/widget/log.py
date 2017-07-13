@@ -20,7 +20,7 @@ from madqt.widget.tableview import ColumnInfo, TableView
 import madqt.util.font as font
 
 
-LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text'])
+LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text', 'extra'])
 
 
 class LogWindow(TableView):
@@ -40,14 +40,13 @@ class LogWindow(TableView):
         self.setFont(font.monospace())
 
     def setup_logging(self, level=logging.INFO,
-                      fmt='%(asctime)s %(levelname)s %(name)s: %(message)s',
-                      datefmt='%H:%M:%S'):
+                      fmt='%(name)s: %(message)s'):
         # TODO: MAD-X log should be separate from basic logging
         stream = TextCtrlStream(self.records, 'Log')
         root = logging.getLogger('')
         manager = logging.Manager(root)
-        formatter = logging.Formatter(fmt, datefmt)
-        handler = logging.StreamHandler(stream)
+        formatter = logging.Formatter(fmt)
+        handler = RecordHandler(self.records)
         handler.setFormatter(formatter)
         root.addHandler(handler)
         root.level = level
@@ -58,6 +57,23 @@ class LogWindow(TableView):
     def async_reader(self, stream):
         reader = AsyncRead(stream)
         reader.dataReceived.connect(self._log_stream.write)
+
+
+class RecordHandler(logging.Handler):
+
+    """Handle incoming logging events by adding them to a list."""
+
+    def __init__(self, records):
+        super(RecordHandler, self).__init__()
+        self.records = records
+
+    def emit(self, record):
+        self.records.append(LogRecord(
+            record.created,
+            record.levelname,
+            self.format(record),
+            record,
+        ))
 
 
 class AsyncRead(Object):
@@ -97,4 +113,4 @@ class TextCtrlStream(object):
 
     def write(self, text):
         """Append text."""
-        self._records.append(LogRecord(time.time(), self._domain, text))
+        self._records.append(LogRecord(time.time(), self._domain, text, None))
