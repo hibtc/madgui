@@ -97,6 +97,19 @@ class Control(Object):
                      self.on_correct_multi_grid_method,
                      enabled=self.has_sequence),
             ]),
+            Item('&Emittance measurement', 'Ctrl+E',
+                 'Perform emittance measurement using at least 3 monitors',
+                 self.on_emittance_measurement,
+                 enabled=self.has_sequence),
+            Separator,
+            menu.Menu('&Settings', [
+                # TODO: dynamically fill by plugin
+                Item('&Jitter', None,
+                     'Random Jitter for test interface',
+                     self.toggle_jitter,
+                     enabled=self.is_connected,
+                     checked=True),
+            ]),
         ]
         return menu.Menu('&Online control', items)
 
@@ -112,6 +125,10 @@ class Control(Object):
         self._plugin.disconnect()
         self._plugin = None
         self.is_connected.value = False
+
+    def toggle_jitter(self):
+        # I know…
+        jitter = self._plugin._dvm._lib.jitter = not self._plugin._dvm._lib.jitter
 
     def iter_elements(self, kind):
         """Iterate :class:`~madqt.online.elements.BaseElement` in the sequence."""
@@ -233,6 +250,12 @@ class Control(Object):
         dialog = Dialog(self._frame)
         dialog.setWidget(widget)
         dialog.show()
+
+    def on_emittance_measurement(self):
+        from madqt.online.emittance import EmittanceDialog
+        dialog = EmittanceDialog(self)
+        dialog.show()
+        return dialog
 
     # helper functions
 

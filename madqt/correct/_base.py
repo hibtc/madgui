@@ -107,9 +107,9 @@ class OrbitCorrectorBase(object):
             self.segment.twiss_args = init_twiss
 
         try:
-            return self.segment.get_transfer_map(
+            return self.segment.get_transfer_maps([
                 self.segment.start if orig is None else orig,
-                self.segment.get_element_info(dest))
+                self.segment.get_element_info(dest)])[1]
         finally:
             self.segment.twiss_args = twiss_args_backup
 
