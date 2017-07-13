@@ -463,12 +463,13 @@ class MainWindow(QtGui.QMainWindow):
     def _basicConfig(self, widget, level, fmt, datefmt=None):
         """Configure logging."""
         stream = TextCtrlStream(widget)
-        root = logging.RootLogger(level)
+        root = logging.getLogger('')
         manager = logging.Manager(root)
         formatter = logging.Formatter(fmt, datefmt)
         handler = logging.StreamHandler(stream)
         handler.setFormatter(formatter)
         root.addHandler(handler)
+        root.level = level
         # store member variables:
         self._log_widget = widget
         self._log_stream = stream
