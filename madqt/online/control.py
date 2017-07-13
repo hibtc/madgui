@@ -14,8 +14,10 @@ from madqt.qt import QtGui
 from madqt.core.base import Object
 from madqt.util.collections import Bool
 import madqt.core.menu as menu
+from madqt.util.misc import suppress
 
 from . import elements
+from . import api
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
@@ -114,7 +116,7 @@ class Control(Object):
     def iter_elements(self, kind):
         """Iterate :class:`~madqt.online.elements.BaseElement` in the sequence."""
         return filter(None, [
-            cls(self._segment, el, self._plugin)
+            suppress(api.UnknownElement, cls, self._segment, el, self._plugin)
             for el in self._segment.elements
             for cls in [elements.get_element_class(el)]
             if cls and issubclass(cls, kind)
@@ -200,14 +202,17 @@ class Control(Object):
         return dialog
 
     def on_correct_optic_variation_method(self):
-        self._correct('optic_variation')
+        import madqt.correct.optic_variation as module
+        varyconf = segment.workspace.data.get('optic_variation', {})
+        self._correct(module, varyconf)
 
     def on_correct_multi_grid_method(self):
-        self._correct('multi_grid')
+        import madqt.correct.multi_grid as module
+        varyconf = segment.workspace.data.get('multi_grid', {})
+        self._correct(module, varyconf)
 
-    def _correct(self, name):
+    def _correct(self, module, varyconf):
         from madqt.widget.dialog import Dialog
-        module = __import__('madqt.correct.' + name, None, None, '*')
 
         self.read_all()
         # TODO: open an orbit plot if none is present
@@ -215,7 +220,6 @@ class Control(Object):
 
         segment = self._segment
         elements = segment.elements
-        varyconf = segment.workspace.data.get(name, {})
 
         select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)

@@ -134,6 +134,7 @@ class Workspace(EngineBase):
         """Load model data from file."""
         self.data = data = self.repo.yaml(filename, encoding='utf-8')
         self.check_compatibility(data)
+        self.repo = self.repo.get(data.get('path', '.'))
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
         for filename in data.get('init-files', []):

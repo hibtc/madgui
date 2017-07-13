@@ -14,6 +14,7 @@ import tempfile
 
 __all__ = [
     'safe_hasattr',
+    'suppress',
     'attribute_alias',
     'memoize',
     'cachedproperty',
@@ -37,6 +38,13 @@ def safe_hasattr(obj, key):
         return True
     except AttributeError:
         return False
+
+
+def suppress(exc, fun, *args, **kwargs):
+    try:
+        return fun(*args, **kwargs)
+    except exc:
+        return None
 
 
 # class utils
