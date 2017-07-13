@@ -36,6 +36,7 @@ class LogWindow(TableView):
         self.records = List()
         super(LogWindow, self).__init__(parent, self.columns, self.records)
         self.horizontalHeader().hide()
+        self._setRowResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.setFont(font.monospace())
 
     def setup_logging(self, level=logging.INFO,
@@ -78,7 +79,7 @@ class AsyncRead(Object):
         # The file iterator seems to be buffered:
         for line in iter(self.stream.readline, b''):
             try:
-                self.dataReceived.emit(line.decode('utf-8'))
+                self.dataReceived.emit(line.decode('utf-8')[:-1])
             except BaseException:
                 break
 

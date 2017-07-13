@@ -256,7 +256,13 @@ class TableView(QtGui.QTableView):
 
     @property
     def _setColumnResizeMode(self):
-        header = self.horizontalHeader()
+        return self._resizeMode(self.horizontalHeader())
+
+    @property
+    def _setRowResizeMode(self):
+        return self._resizeMode(self.verticalHeader())
+
+    def _resizeMode(self, header):
         try:
             return header.setResizeMode
         except AttributeError:  # PyQt5
