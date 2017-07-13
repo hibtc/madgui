@@ -30,13 +30,13 @@ def variable_from_knob(matcher, expr):
         attr = None
         pos = None
     # TODO: generalize for tao
-    value = matcher.segment.madx.evaluate(expr)
+    value = matcher.segment.get_knob(expr)
     design = matcher.design_values.setdefault(expr, value)
     return Variable(elem, pos, attr, expr, value, design)
 
 
 def variable_update(matcher, variable):
-    value = matcher.segment.madx.evaluate(variable.expr)
+    value = matcher.segment.get_knob(variable.expr)
     design = matcher.design_values[variable.expr]
     return Variable(variable.elem, variable.pos, variable.attr, variable.expr,
                     value, design)
@@ -160,22 +160,11 @@ class Matcher(Object):
         # TODO: set many values in one go
         for knob, value in old.items():
             if knob not in new:
-                # TODO: move this logic to `Segment`
-                if isinstance(knob, tuple):
-                    elem, attr = knob
-                    self.segment.set_element_attribute(elem, attr, value)
-                else:
-                    self.segment.madx.set_value(knob, value)
-
+                self.segment.set_knob(knob, value)
 
         # Set new variable values into the model:
         for knob, value in new.items():
-            # TODO: move this logic to `Segment`
-            if isinstance(knob, tuple):
-                elem, attr = knob
-                self.segment.set_element_attribute(elem, attr, value)
-            else:
-                self.segment.madx.set_value(knob, value)
+            self.segment.set_knob(knob, value)
 
 
 class MatchTransform(object):

@@ -550,6 +550,17 @@ class Segment(SegmentBase):
     def get_monitor(self, elem):
         return MonitorBackend(self, elem)
 
+    def get_knob(self, expr):
+        return self.madx.evaluate(expr)
+
+    def set_knob(self, knob, value):
+        if isinstance(knob, tuple):
+            elem, attr = knob
+            value = self.utool.strip_unit(attr, value)
+            self.segment.set_element_attribute(elem, attr, value)
+        else:
+            self.segment.madx.set_value(knob, value)
+
 
 def process_spec(prespec, data):
     # TODO: Handle defaults for hard-coded and ad-hoc keys homogeniously.
