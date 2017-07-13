@@ -364,7 +364,9 @@ class MainWindow(QtGui.QMainWindow):
         workspace.selection = Selection()
         workspace.box_group = InfoBoxGroup(self, workspace.selection)
 
-        self.log_window.async_reader(workspace.remote_process.stdout)
+        self.log_window.async_reader(
+            workspace.backend_title,
+            workspace.remote_process.stdout)
 
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:

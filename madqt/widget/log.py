@@ -42,7 +42,6 @@ class LogWindow(TableView):
     def setup_logging(self, level=logging.INFO,
                       fmt='%(name)s: %(message)s'):
         # TODO: MAD-X log should be separate from basic logging
-        stream = TextCtrlStream(self.records, 'Log')
         root = logging.getLogger('')
         manager = logging.Manager(root)
         formatter = logging.Formatter(fmt)
@@ -51,12 +50,13 @@ class LogWindow(TableView):
         root.addHandler(handler)
         root.level = level
         # store member variables:
-        self._log_stream = stream
         self._log_manager = manager
 
-    def async_reader(self, stream):
+    def async_reader(self, domain, stream):
         reader = AsyncRead(stream)
-        reader.dataReceived.connect(self._log_stream.write)
+        reader.dataReceived.connect(
+            lambda text: self.records.append(LogRecord(
+                time.time(), domain, text, None)))
 
 
 class RecordHandler(logging.Handler):
@@ -98,19 +98,3 @@ class AsyncRead(Object):
                 self.dataReceived.emit(line.decode('utf-8')[:-1])
             except BaseException:
                 break
-
-
-class TextCtrlStream(object):
-
-    """
-    Write to a text control.
-    """
-
-    def __init__(self, records, domain):
-        """Set text control."""
-        self._records = records
-        self._domain = domain
-
-    def write(self, text):
-        """Append text."""
-        self._records.append(LogRecord(time.time(), self._domain, text, None))
