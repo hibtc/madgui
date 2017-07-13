@@ -442,13 +442,19 @@ class TaoDataStore(DataStore):
             for param in self.params.values()))
 
     def update(self, values):
+        self._update_params()
+        has_changed = False
         for key, val in values.items():
             key = key.lower()
             par = self.params.get(key)
-            if par is not None and par.vary and val is not None:
-                command = self.conf['write'].format(key=key, val=val, **self.kw)
-                self.segment.tao.command(command)
-        self.segment.retrack()
+            val = self.segment.utool.strip_unit(key, val)
+            if par is None or val is None or not par.vary or par.value == val:
+                continue
+            command = self.conf['write'].format(key=key, val=val, **self.kw)
+            self.segment.tao.command(command)
+            has_changed = True
+        if has_changed:
+            self.segment.retrack()
 
     def mutable(self, key):
         return self.params[key.lower()].vary
