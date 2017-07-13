@@ -110,6 +110,7 @@ class SegmentBase(Object):
 
     updated = Signal()
     destroyed = Signal()
+    matcher = None
 
     def destroy(self):
         self.workspace.segment = None
@@ -204,6 +205,11 @@ class SegmentBase(Object):
     def can_match_at(self, element):
         return True
 
+    def set_element_attribute(self, elem, attr, value):
+        elem = self.elements[elem]['el_id']
+        self.get_elem_ds(elem).substores['attributes'].update({
+            attr: value,
+        })
     # curves
 
     @property
@@ -293,6 +299,13 @@ class SegmentBase(Object):
 
     def get_monitor(self, elem):
         raise NotImplementedError
+
+    def get_matcher(self):
+        if self.matcher is None:
+            # TODO: create MatchDialog
+            from madqt.correct.match import Matcher
+            self.matcher = Matcher(self, self.workspace.app_config['matching'])
+        return self.matcher
 
 
 class ElementList(Sequence):

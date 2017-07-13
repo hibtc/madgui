@@ -45,7 +45,8 @@ class ColumnInfo(object):
 
     types = defaultTypes
 
-    def __init__(self, title, getter, resize=None, types=None, padding=0,
+    def __init__(self, title, getter, setter=None,
+                 resize=None, types=None, padding=0,
                  **kwargs):
         """
         :param str title: column title
@@ -56,20 +57,45 @@ class ColumnInfo(object):
         """
         self.title = title
         self.getter = getter
+        self.setter = setter
         self.resize = resize
         self.padding = padding
         self.kwargs = kwargs
         if types is not None:
             self.types = types
+        if setter is not None:
+            self.kwargs.setdefault('editable', True)
 
-    def valueProxy(self, item):
+    def valueProxy(self, model, index):
+        item = model.rows[index]
         if isinstance(self.getter, basestring):
             value = getattr(item, self.getter)
         else:
-            value = self.getter(item)
+            value = self.getter(*self.getter_args(model, index))
         if isinstance(value, ValueProxy):
-            return value
-        return makeValue(value, self.types, **self.kwargs)
+            proxy = value
+        else:
+            proxy = makeValue(value, self.types, **self.kwargs)
+        if self.setter is not None:
+            proxy.dataChanged.connect(
+                lambda value: self.setter(*self.setter_args(model, index, value)))
+        return proxy
+
+    def getter_args(self, model, index):
+        return (model.rows[index],)
+
+    def setter_args(self, model, index, value):
+        return (model.rows, index, value)
+
+
+class ExtColumnInfo(ColumnInfo):
+
+    def getter_args(self, model, index):
+        return (model.context, model.rows[index])
+
+    def setter_args(self, model, index, value):
+        return (model.context, model.rows[index], index, value)
+
 
 
 class TableModel(QtCore.QAbstractTableModel):
@@ -86,10 +112,11 @@ class TableModel(QtCore.QAbstractTableModel):
     except AttributeError:
         baseFlags = 0           # Qt4
 
-    def __init__(self, columns):
+    def __init__(self, columns, data=None, context=None):
         super(TableModel, self).__init__()
         self.columns = columns
-        self._rows = List()
+        self.context = context if context is not None else self
+        self._rows = List() if data is None else data
         self._rows.update_before.connect(self._update_prepare)
         self._rows.update_after.connect(self._update_finalize)
 
@@ -110,9 +137,11 @@ class TableModel(QtCore.QAbstractTableModel):
         self._rows[:] = rows
 
     def value(self, index):
+        # TODO: cache the valueproxy? However, we have to recreate the proxy
+        # at least whenever the value changes, because also the type may
+        # change.
         column = self.columns[index.column()]
-        item = self.rows[index.row()]
-        return column.valueProxy(item)
+        return column.valueProxy(self, index.row())
 
     # QAbstractTableModel overrides
 
@@ -154,14 +183,16 @@ class TableView(QtGui.QTableView):
     _default_resize_modes = [QtGui.QHeaderView.ResizeToContents,
                              QtGui.QHeaderView.Stretch]
 
-    def __init__(self, parent=None, columns=None, **kwargs):
+    selectionChangedSignal = Signal()
+
+    def __init__(self, parent=None, columns=None, data=None, context=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super(TableView, self).__init__(parent, **kwargs)
         self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
         if columns is not None:
-            self.set_columns(columns)
+            self.set_columns(columns, data, context)
         NumberFormat.changed.connect(self.format_changed)
 
     def format_changed(self):
@@ -170,13 +201,17 @@ class TableView(QtGui.QTableView):
         self.model().layoutAboutToBeChanged.emit()
         self.model().layoutChanged.emit()
 
-    def set_columns(self, columns):
-        self.setModel(TableModel(columns))
+    def set_columns(self, columns, data=None, context=None):
+        self.setModel(TableModel(columns, data, context))
         for index, column in enumerate(columns):
             resize = (self._default_resize_modes[index > 0]
                       if column.resize is None
                       else column.resize)
             self._setColumnResizeMode(index, resize)
+
+    def selectionChanged(self, selected, deselected):
+        super(TableView, self).selectionChanged(selected, deselected)
+        self.selectionChangedSignal.emit()
 
     @property
     def rows(self):
@@ -187,6 +222,15 @@ class TableView(QtGui.QTableView):
     def rows(self, rows):
         """List-like access to the data."""
         self.model().rows = rows
+
+    def removeSelectedRows(self):
+        rows = {idx.row() for idx in self.selectedIndexes()}
+        # TODO: delete all in one operation
+        for row in sorted(rows, reverse=True):
+            # TODO: these should be called from the model…
+            del self.model().rows[row]
+            #self.model().beginRemoveRows(self.rootIndex(), row, row)
+            #self.model().endRemoveRows()
 
     def _columnContentWidth(self, column):
         return max(self.sizeHintForColumn(column),

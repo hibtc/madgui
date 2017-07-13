@@ -256,6 +256,16 @@ class MainWindow(QtGui.QMainWindow):
         dock.show()
         return dock
 
+    @SingleWindow.factory
+    def viewMatchDialog(self):
+        from madqt.widget.match import MatchWidget
+        widget = MatchWidget(self.workspace.segment.get_matcher())
+        dialog = Dialog(self)
+        dialog.setWidget(widget, tight=True)
+        dialog.setWindowTitle("Matching constraints.")
+        dialog.show()
+        return dialog
+
     def setNumberFormat(self):
         fmtspec, ok = QtGui.QInputDialog.getText(
             self, "Set number format", "Number format:",

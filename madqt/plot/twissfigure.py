@@ -7,7 +7,6 @@ s-axis.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-from collections import namedtuple
 from functools import partial
 
 import numpy as np
@@ -194,7 +193,7 @@ class TwissFigure(object):
         return self.graph_data[curve_info.name][:,column]
 
     def get_curve_by_name(self, name):
-        return next(c for c in self.curves.items if c.y_name == name)
+        return next((c for c in self.curves.items if c.y_name == name), None)
 
     def xlim_changed(self, ax):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
@@ -327,8 +326,6 @@ class CaptureTool(CheckTool):
 # Toolbar item for matching
 #----------------------------------------
 
-Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
-
 
 class MatchTool(CaptureTool):
 
@@ -343,32 +340,29 @@ class MatchTool(CaptureTool):
     short = 'match constraints'
     text = 'Match for desired target value'
 
-    @property
-    def icon(self):
-        with PackageResource('madqt.data', 'target.xpm').filename() as xpm:
-            return QtGui.QIcon(QtGui.QPixmap(xpm, 'XPM'))
+    with PackageResource('madqt.data', 'target.xpm').filename() as xpm:
+        icon = QtGui.QIcon(QtGui.QPixmap(xpm, 'XPM'))
 
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
         self.segment = plot.scene.segment
-        self.rules = plot.scene.config['matching']
-        self.constraints = []
-        self.markers = ConstraintMarkers(plot.scene, self.constraints)
-
-    @property
-    def elements(self):
-        return self.segment.elements
+        self.matcher = self.segment.get_matcher()
+        self.markers = ConstraintMarkers(plot.scene, self.matcher.constraints)
+        self.matcher.finished.connect(self.deactivate)
 
     def activate(self):
         """Start matching mode."""
+        self.active = True
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.scene.scene_graph.items.append(self.markers)
+        self.plot.window().parent().viewMatchDialog.create()
         # TODO: insert markers
 
     def deactivate(self):
         """Stop matching mode."""
+        self.active = False
         self.clearConstraints()
         self.markers.draw()
         self.plot.scene.scene_graph.items.remove(self.markers)
@@ -385,19 +379,21 @@ class MatchTool(CaptureTool):
 
         elem, pos = self.segment.get_best_match_pos(event.x)
 
+        # If the selected plot has two curves, select the primary/alternative
+        # (i.e. first/second) curve according to whether the user pressed ALT:
         curves = self.plot.scene.curves.items
         index = int(bool(self.plot.scene.figure.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
                          len(curves) > 1))
         curve = [c for c in curves if c.axes is event.axes][index]
-
         name = curve.y_name
 
+        # Right click: remove constraint
         if event.button == 2:
             for c in curves:
                 self.removeConstraint(elem, c.y_name)
-            self.markers.draw()
             return
+        # Proceed only if left click:
         elif event.button != 1:
             return
 
@@ -410,121 +406,42 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        self.addConstraint(Constraint(elem, pos, name, event.y))
+        from madqt.correct.match import Constraint
+        constraints = [Constraint(elem, pos, name, event.y)]
 
-        # add another constraint to hold the orthogonal axis constant
-        # TODO: should do this only once for each yname!
-        for c in curves:
-            if c.y_name == name:
-                continue
-            # TODO: tao can do this with exact s positions
-            value = self.segment.get_twiss(elem['name'], c.y_name)
-            self.addConstraint(Constraint(elem, pos, c.y_name, value))
+        if self.matcher.mirror_mode:
+            # add another constraint to hold the orthogonal axis constant
+            # TODO: should do this only once for each yname!
+            constraints.extend([
+                Constraint(elem, pos, c.y_name,
+                        self.segment.get_twiss(elem['name'], c.y_name))
+                for c in curves
+                if c.y_name != name
+            ])
 
-        self.markers.draw()
+        constraints = sorted(constraints, key=lambda c: (c.pos, c.axis))
+        self.addConstraints(constraints)
 
         with waitCursor():
-            self.match()
+            self.matcher.detect_variables()
+            self.matcher.match()
 
-    def _allvars(self, axis):
-        # filter element list for usable types:
-        param_spec = self.rules.get(axis, {})
-        return [
-            (elem['at'], expr)
-            for elem in self.elements
-            for attr in param_spec.get(elem['type'].lower(), [])
-            for expr in [_get_elem_attr_expr(elem, attr)]
-            if expr is not None
-        ]
-
-    def match(self):
-
-        """Perform matching according to current constraints."""
-
-        # FIXME: the following is not generic in number of axes
-
-        segment = self.segment
-        transform = MatchTransform(segment)
-
-        # transform constraints (envx => betx, etc)
-        constraints = [
-            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
-            for c in self.constraints]
-
-        # The following uses a greedy algorithm to select all elements that
-        # can be used for varying. This means that for advanced matching it
-        # will most probably not work.
-        # Copy all needed variable lists (for later modification):
-        axes = {c.axis for c in constraints}
-        allvars = {axis: self._allvars(axis)[:] for axis in axes}
-        vary = []
-        for c in constraints:
-            at = c.elem['at']
-            allowed = [(pos, expr)
-                       for pos, expr in allvars[c.axis]
-                       if pos < at]
-            if not allowed:
-                # No variable in range found! Ok.
-                continue
-
-            pos, expr = allowed[-1]
-
-            vary.append(expr)
-            for c in allvars.values():
-                try:
-                    c.remove((pos, expr))
-                except ValueError:
-                    pass
-
-        self.segment.match(vary, constraints)
-
-    def findConstraint(self, elem, axis):
-        """Find and return the constraint for the specified element."""
-        return [c for c in self.constraints
-                if c.elem['el_id'] == elem['el_id'] and c.axis == axis]
-
-    def addConstraint(self, constraint):
+    def addConstraints(self, constraints):
         """Add constraint and perform matching."""
-        self.removeConstraint(constraint.elem, constraint.axis)
-        self.constraints.append(constraint)
+        for constraint in constraints:
+            self.removeConstraint(constraint.elem, constraint.axis)
+        self.matcher.constraints.extend(constraints)
 
     def removeConstraint(self, elem, axis):
         """Remove the constraint for elem."""
-        self.constraints[:] = [
-            c for c in self.constraints
-            if c.elem['el_id'] != elem['el_id'] or c.axis != axis]
+        indexes = [i for i, c in enumerate(self.matcher.constraints)
+                   if c.elem['el_id'] == elem['el_id'] and c.axis == axis]
+        for i in indexes[::-1]:
+            del self.matcher.constraints[i]
 
     def clearConstraints(self):
         """Remove all constraints."""
-        del self.constraints[:]
-        self.markers.draw()
-
-
-class MatchTransform(object):
-
-    def __init__(self, segment):
-        self._ex = segment.ex()
-        self._ey = segment.ey()
-
-    def envx(self, val):
-        return 'betx', val*val/self._ex
-
-    def envy(self, val):
-        return 'bety', val*val/self._ey
-
-    def __getattr__(self, name):
-        return lambda val: (name, val)
-
-
-def _get_elem_attr_expr(elem, attr):
-    try:
-        return elem[attr]._expression
-    except KeyError:
-        return None
-    except AttributeError:
-        if strip_unit(elem[attr]) != 0.0:
-            return elem['name'] + '->' + attr
-    return None
+        del self.matcher.constraints[:]
 
 
 class ConstraintMarkers(SceneElement):
@@ -534,6 +451,7 @@ class ConstraintMarkers(SceneElement):
         self.style = scene.config['constraint_style']
         self.lines = []
         self.constraints = constraints
+        constraints.update_after.connect(lambda *args: self.draw())
 
     def draw(self):
         self.update()
@@ -556,10 +474,11 @@ class ConstraintMarkers(SceneElement):
         """Draw one constraint representation in the graph."""
         scene = self.scene
         curve = scene.get_curve_by_name(axis)
-        self.lines.extend(curve.axes.plot(
-            strip_unit(pos, curve.x_unit),
-            strip_unit(val, curve.y_unit),
-            **self.style))
+        if curve:
+            self.lines.extend(curve.axes.plot(
+                strip_unit(pos, curve.x_unit),
+                strip_unit(val, curve.y_unit),
+                **self.style))
 
 
 #----------------------------------------
@@ -585,6 +504,7 @@ class InfoTool(CaptureTool):
 
     def activate(self):
         """Start select mode."""
+        self.active = True
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.keyPress.connect(self.onKey)
@@ -592,6 +512,7 @@ class InfoTool(CaptureTool):
 
     def deactivate(self):
         """Stop select mode."""
+        self.active = False
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
@@ -705,6 +626,7 @@ class CompareTool(CheckTool):
         self.curve = None
 
     def activate(self):
+        self.active = True
         if not self.curve:
             self.createCurve()
         if self.curve:
@@ -715,6 +637,7 @@ class CompareTool(CheckTool):
             self.setChecked(False)
 
     def deactivate(self):
+        self.active = False
         if self.curve:
             self.curve.remove()
             self.plot.scene.scene_graph.items.remove(self.curve)

@@ -143,7 +143,7 @@ class CorrectorWidget(CorrectorWidgetBase):
     ui_file = 'ovm_dialog.ui'
 
     records_columns = [
-        ColumnInfo("QP1", get_kL(0), QtGui.QHeaderView.Stretch),
+        ColumnInfo("QP1", get_kL(0), resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("QP2", get_kL(1)),
         ColumnInfo("x", 'x'),
         ColumnInfo("y", 'y'),

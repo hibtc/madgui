@@ -40,6 +40,8 @@ CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
 DATA_TYPES = {
     'betx': 'beta.a',
     'bety': 'beta.b',
+    'alfx': 'alpha.a',
+    'alfy': 'alpha.b',
     'x': 'orbit.x',
     'y': 'orbit.y',
     'posx': 'orbit.x',
@@ -202,6 +204,8 @@ class Segment(SegmentBase):
         replace = {
             'betx': 'beta_a',
             'bety': 'beta_b',
+            'alfx': 'alpha_a',
+            'alfy': 'alpha_b',
             'x': 'x',
             'y': 'y',
         }
@@ -414,6 +418,20 @@ class Segment(SegmentBase):
 
     def get_monitor(self, elem):
         return MonitorBackend(self, elem)
+
+    def get_knob(self, expr):
+        if '->' not in expr:
+            raise NotImplementedError(
+                "Can't evaluate arbitrary expression: {!r}".format(expr))
+        name, attr = expr.split('->')
+        return self.elements[name][attr]
+
+    def set_knob(self, knob, value):
+        if not isinstance(knob, tuple):
+            raise TypeError("Unsupported knob datatype: {!r}".format(knob))
+        elem, attr = knob
+        elid = self.elements[elem]['el_id']
+        self.get_elem_ds(elid).substores['parameters'].update({attr: value})
 
 
 # TODO: dumb this down…

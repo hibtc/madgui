@@ -379,7 +379,8 @@ class Segment(SegmentBase):
         elem = self.elements[elem_index]
         name = elem['name']
         d = {k.lower(): v for k, v in data.items()
-             if self._is_mutable_attribute(k, v)}
+             if self._is_mutable_attribute(k, v)
+             and elem[k.lower()] != v}
         d = self.utool.dict_strip_unit(d)
         if any(isinstance(v, (list,basestring)) for v in d.values()):
             self.madx.command(name, **d)
@@ -549,6 +550,17 @@ class Segment(SegmentBase):
 
     def get_monitor(self, elem):
         return MonitorBackend(self, elem)
+
+    def get_knob(self, expr):
+        return self.madx.evaluate(expr)
+
+    def set_knob(self, knob, value):
+        if isinstance(knob, tuple):
+            elem, attr = knob
+            value = self.utool.strip_unit(attr, value)
+            self.segment.set_element_attribute(elem, attr, value)
+        else:
+            self.segment.madx.set_value(knob, value)
 
 
 def process_spec(prespec, data):
