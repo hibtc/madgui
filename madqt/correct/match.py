@@ -189,6 +189,4 @@ def _get_elem_attr_expr(elem, attr):
     except KeyError:
         return None
     except AttributeError:
-        if strip_unit(elem[attr]) != 0.0:
-            return elem['name'] + '->' + attr
-    return None
+        return elem['name'] + '->' + attr
