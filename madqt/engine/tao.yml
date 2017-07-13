@@ -92,3 +92,13 @@ parameter_sets:
     twiss:
       query: 'lat_ele1 {universe}@{branch}>>{element}|model twiss'
       write: 'set element {element} {key} = {val}'
+
+
+matching:
+
+  # Small list, for now…
+  # Will be translated to tao names using teh `DATA_TYPES` global
+  element: [
+    betx, alfx, x,
+    bety, alfy, y,
+  ]

@@ -40,6 +40,8 @@ CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
 DATA_TYPES = {
     'betx': 'beta.a',
     'bety': 'beta.b',
+    'alfx': 'alpha.a',
+    'alfy': 'alpha.b',
     'x': 'orbit.x',
     'y': 'orbit.y',
     'posx': 'orbit.x',
@@ -202,6 +204,8 @@ class Segment(SegmentBase):
         replace = {
             'betx': 'beta_a',
             'bety': 'beta_b',
+            'alfx': 'alpha_a',
+            'alfy': 'alpha_b',
             'x': 'x',
             'y': 'y',
         }
