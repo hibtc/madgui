@@ -20,7 +20,7 @@ Contact information:
 
 Website:
 
-    https://github.com/coldfix/madqt
+    https://github.com/hibtc/madqt
 """
 
 from __future__ import absolute_import
