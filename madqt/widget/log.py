@@ -10,8 +10,8 @@ import logging
 import threading
 import time
 from collections import namedtuple
-
-from six import text_type as unicode
+from functools import partial
+from queue import Queue, Empty
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
@@ -54,9 +54,23 @@ class LogWindow(TableView):
 
     def async_reader(self, domain, stream):
         reader = AsyncRead(stream)
-        reader.dataReceived.connect(
-            lambda text: self.records.append(LogRecord(
-                time.time(), domain, text, None)))
+        reader.dataReceived.connect(partial(self.recv_log, reader.queue, domain))
+
+    def recv_log(self, queue, domain):
+        lines = list(pop_all(queue))
+        if lines:
+            text = "\n".join(lines)
+            self.records.append(LogRecord(
+                time.time(), domain, text, None))
+
+
+def pop_all(queue):
+    while True:
+        try:
+            x = queue.get_nowait()
+        except Empty:
+            return
+        yield x
 
 
 class RecordHandler(logging.Handler):
@@ -82,11 +96,11 @@ class AsyncRead(Object):
     Write to a text control.
     """
 
-    dataReceived = Signal(unicode)
-    closed = Signal()
+    dataReceived = Signal()
 
     def __init__(self, stream):
         super(AsyncRead, self).__init__()
+        self.queue = Queue()
         self.stream = stream
         self.thread = threading.Thread(target=self._readLoop)
         self.thread.start()
@@ -94,7 +108,5 @@ class AsyncRead(Object):
     def _readLoop(self):
         # The file iterator seems to be buffered:
         for line in iter(self.stream.readline, b''):
-            try:
-                self.dataReceived.emit(line.decode('utf-8', 'replace')[:-1])
-            except BaseException:
-                break
+            self.queue.put(line.decode('utf-8', 'replace')[:-1])
+            self.dataReceived.emit()
