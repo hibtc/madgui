@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 
 # TODO:
 # - filter log according to log message type
-# - subtitle in title line (logging: module, line number)
 # - right click context menu: copy
 # ? single line ListView overview over all log events ("quick jump")
 # ? deselect on single click
@@ -27,7 +26,7 @@ from madqt.widget.tableview import ColumnInfo, TableModel, MultiLineDelegate
 import madqt.util.font as font
 
 
-LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text', 'extra'])
+LogRecord = namedtuple('LogRecord', ['time', 'domain', 'title', 'text', 'extra'])
 
 TextInfo = namedtuple('TextInfo', ['text', 'rect', 'font'])
 
@@ -39,7 +38,7 @@ def get_record_text(record):
         record.text)
 
 def get_record_head(record):
-    return "{} {}".format(
+    return "{} {}:".format(
         time.strftime('%H:%M:%S', time.localtime(record.time)),
         record.domain)
 
@@ -69,8 +68,7 @@ class LogWindow(QtGui.QListView):
         if event.key() == Qt.Key_Escape:
             self.clearSelection()
 
-    def setup_logging(self, level=logging.INFO,
-                      fmt='%(name)s: %(message)s'):
+    def setup_logging(self, level=logging.INFO, fmt='%(message)s'):
         # TODO: MAD-X log should be separate from basic logging
         root = logging.getLogger('')
         manager = logging.Manager(root)
@@ -91,7 +89,7 @@ class LogWindow(QtGui.QListView):
         if lines:
             text = "\n".join(lines)
             self.records.append(LogRecord(
-                time.time(), domain, text, None))
+                time.time(), domain, '<stdout>', text, None))
 
 
 class LogDelegate(MultiLineDelegate):
@@ -100,51 +98,60 @@ class LogDelegate(MultiLineDelegate):
     margin = 4
     corner_radius = 10
     pen_width = 1
+    text_flags = Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap
 
     def __init__(self, font):
         self.font = font
         super(LogDelegate, self).__init__()
 
-
     def _get_text_info(self, option, index):
-
         record = index.model().rows[index.row()]
         head_text = get_record_head(record)
+        info_text = record.title
         body_text = record.text
 
         head_font = QtGui.QFont(self.font)
         head_font.setBold(True)
+        info_font = QtGui.QFont(self.font)
         body_font = QtGui.QFont(self.font)
         head_fm = QtGui.QFontMetrics(head_font)
+        info_fm = QtGui.QFontMetrics(info_font)
         body_fm = QtGui.QFontMetrics(body_font)
 
         # Note that the given height is 0. That is because boundingRect() will return
         # the suitable height if the given geometry does not fit. And this is exactly
         # what we want.
+        width = option.rect.width()-2*self.padding-2*self.margin
+
         head_rect = head_fm.boundingRect(
             option.rect.left() + self.padding + self.margin,
             option.rect.top() + self.padding + self.margin,
-            option.rect.width()-2*self.padding-2*self.margin, 0,
-            Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap,
-            head_text)
+            width, 0,
+            self.text_flags, head_text)
+
+        info_rect = info_fm.boundingRect(
+            head_rect.right() + self.padding,
+            head_rect.top(),
+            width-head_rect.width()-self.padding, 0,
+            self.text_flags, info_text)
 
         body_rect = body_fm.boundingRect(
-            head_rect.left() + self.padding + self.margin,
-            head_rect.bottom() + self.padding + self.margin,
-            option.rect.width() + 2*self.padding-2*self.margin, 0,
-            Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap,
-            body_text)
+            head_rect.left(),
+            max(head_rect.bottom(), info_rect.bottom())  + self.padding,
+            width, 0,
+            self.text_flags, body_text)
 
         return (TextInfo(head_text, head_rect, head_font),
+                TextInfo(info_text, info_rect, info_font),
                 TextInfo(body_text, body_rect, body_font))
 
     def sizeHint(self, option, index):
         if not index.isValid():
             return QtCore.QSize()
-        head, body = self._get_text_info(option, index)
+        head, info, body = self._get_text_info(option, index)
         return QtCore.QSize(
             option.rect.width(),
-            head.rect.height() + body.rect.height()
+            max(head.rect.height(), info.rect.height()) + body.rect.height()
             + 3*self.padding
             + 2*self.margin)
 
@@ -181,14 +188,10 @@ class LogDelegate(MultiLineDelegate):
         painter.fillPath(path, fill)
         painter.drawPath(path)
 
-        head, body = self._get_text_info(option, index)
         painter.setPen(Qt.black)
-
-        painter.setFont(head.font)
-        painter.drawText(head.rect, Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap, head.text)
-
-        painter.setFont(body.font)
-        painter.drawText(body.rect, Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap, body.text)
+        for block in self._get_text_info(option, index):
+            painter.setFont(block.font)
+            painter.drawText(block.rect, self.text_flags, block.text)
 
         painter.restore()
 
@@ -214,6 +217,7 @@ class RecordHandler(logging.Handler):
         self.records.append(LogRecord(
             record.created,
             record.levelname,
+            '{0.name}:{0.lineno} in {0.funcName}()'.format(record),
             self.format(record),
             record,
         ))
