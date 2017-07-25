@@ -94,6 +94,9 @@ class LogWindow(QtGui.QListView):
 
 class LogDelegate(MultiLineDelegate):
 
+    # Basic mechanism from:
+    # https://3adly.blogspot.fr/2013/09/qt-custom-qlistview-delegate-with-word.html
+
     padding = 8
     margin = 4
     corner_radius = 10
