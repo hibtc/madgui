@@ -56,7 +56,7 @@ class ColumnInfo(object):
         :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
         self.title = title
-        self.getter = getter
+        self.getter = getter or (lambda x: x)
         self.setter = setter
         self.resize = resize
         self.padding = padding
@@ -340,7 +340,9 @@ class ValueProxy(Object):
                  editable=None,
                  fmtspec=None,
                  types=None,
-                 textcolor=None):
+                 textcolor=None,
+                 sizeHint=None,
+                 ):
         """Store the value."""
         super(ValueProxy, self).__init__()
         if default is not None: self.default = default
@@ -348,6 +350,7 @@ class ValueProxy(Object):
         if fmtspec is not None: self.fmtspec = fmtspec
         if types is not None: self.types = types
         if textcolor is not None: self.textbrush = QtGui.QBrush(textcolor)
+        if sizeHint is not None: self.sizeHint = sizeHint
         self.value = value
 
     def __str__(self):
