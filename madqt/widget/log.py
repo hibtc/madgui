@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 # TODO:
 # - filter log according to log message type
 # - subtitle in title line (logging: module, line number)
-# - scroll to end on new events
 # - right click context menu: copy
 # ? single line ListView overview over all log events ("quick jump")
 # ? deselect on single click
@@ -64,6 +63,7 @@ class LogWindow(QtGui.QListView):
         self.setUniformItemSizes(False)
         self.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.model().layoutChanged.connect(self.scrollToBottom)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
