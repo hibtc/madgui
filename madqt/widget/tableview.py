@@ -599,6 +599,21 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
         pass
 
 
+class MultiLineDelegate(QtGui.QStyledItemDelegate):
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QPlainTextEdit(parent)
+        editor.setReadOnly(True)
+        return editor
+
+    def setEditorData(self, editor, index):
+        editor.setPlainText(index.data(Qt.DisplayRole))
+        editor.selectAll()
+
+    def setModelData(self, editor, model, index):
+        pass
+
+
 class DoubleValidator(_DoubleValidator):
 
     def validate(self, text, pos):

@@ -6,6 +6,14 @@ Logging utils.
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+# TODO:
+# - filter log according to log message type
+# - subtitle in title line (logging: module, line number)
+# - scroll to end on new events
+# - right click context menu: copy
+# ? single line ListView overview over all log events ("quick jump")
+# ? deselect on single click
+
 import logging
 import threading
 import time
@@ -16,28 +24,50 @@ from queue import Queue, Empty
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
 from madqt.util.collections import List
-from madqt.widget.tableview import ColumnInfo, TableView
+from madqt.widget.tableview import ColumnInfo, TableModel, MultiLineDelegate
 import madqt.util.font as font
 
 
 LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text', 'extra'])
 
+TextInfo = namedtuple('TextInfo', ['text', 'rect', 'font'])
 
-class LogWindow(TableView):
+
+def get_record_text(record):
+    return "{} {}:\n{}".format(
+        time.strftime('%H:%M:%S', time.localtime(record.time)),
+        record.domain,
+        record.text)
+
+def get_record_head(record):
+    return "{} {}".format(
+        time.strftime('%H:%M:%S', time.localtime(record.time)),
+        record.domain)
+
+def get_record_body(record):
+    return record.text
+
+
+class LogWindow(QtGui.QListView):
 
     columns = [
-        ColumnInfo('Time', lambda record: time.strftime(
-            '%H:%M:%S', time.localtime(record.time))),
-        ColumnInfo('Domain', 'domain', resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo('Text', 'text'),
+        ColumnInfo('', 'text')
     ]
 
     def __init__(self, parent):
         self.records = List()
-        super(LogWindow, self).__init__(parent, self.columns, self.records)
-        self.horizontalHeader().hide()
-        self._setRowResizeMode(QtGui.QHeaderView.ResizeToContents)
-        self.setFont(font.monospace())
+        super(LogWindow, self).__init__(parent)
+        self.setFont(font.monospace(10))
+        self.setModel(TableModel(self.columns, self.records))
+        self.setItemDelegate(LogDelegate(self.font()))
+        self.setAlternatingRowColors(True)
+        self.setUniformItemSizes(False)
+        self.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
+        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Escape:
+            self.clearSelection()
 
     def setup_logging(self, level=logging.INFO,
                       fmt='%(name)s: %(message)s'):
@@ -62,6 +92,105 @@ class LogWindow(TableView):
             text = "\n".join(lines)
             self.records.append(LogRecord(
                 time.time(), domain, text, None))
+
+
+class LogDelegate(MultiLineDelegate):
+
+    padding = 8
+    margin = 4
+    corner_radius = 10
+    pen_width = 1
+
+    def __init__(self, font):
+        self.font = font
+        super(LogDelegate, self).__init__()
+
+
+    def _get_text_info(self, option, index):
+
+        record = index.model().rows[index.row()]
+        head_text = get_record_head(record)
+        body_text = record.text
+
+        head_font = QtGui.QFont(self.font)
+        head_font.setBold(True)
+        body_font = QtGui.QFont(self.font)
+        head_fm = QtGui.QFontMetrics(head_font)
+        body_fm = QtGui.QFontMetrics(body_font)
+
+        # Note that the given height is 0. That is because boundingRect() will return
+        # the suitable height if the given geometry does not fit. And this is exactly
+        # what we want.
+        head_rect = head_fm.boundingRect(
+            option.rect.left() + self.padding + self.margin,
+            option.rect.top() + self.padding + self.margin,
+            option.rect.width()-2*self.padding-2*self.margin, 0,
+            Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap,
+            head_text)
+
+        body_rect = body_fm.boundingRect(
+            head_rect.left() + self.padding + self.margin,
+            head_rect.bottom() + self.padding + self.margin,
+            option.rect.width() + 2*self.padding-2*self.margin, 0,
+            Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap,
+            body_text)
+
+        return (TextInfo(head_text, head_rect, head_font),
+                TextInfo(body_text, body_rect, body_font))
+
+    def sizeHint(self, option, index):
+        if not index.isValid():
+            return QtCore.QSize()
+        head, body = self._get_text_info(option, index)
+        return QtCore.QSize(
+            option.rect.width(),
+            head.rect.height() + body.rect.height()
+            + 3*self.padding
+            + 2*self.margin)
+
+    def paint(self, painter, option, index):
+        if not index.isValid():
+            return
+
+        if option.state & QtGui.QStyle.State_Selected:
+            fill = option.palette.highlight()
+        elif index.row() % 2 == 0:
+            fill = option.palette.base()
+        else:
+            fill = option.palette.alternateBase()
+            #fill = option.backgroundBrush
+
+        painter.save()
+
+        # paint background
+        painter.fillRect(option.rect, option.palette.base())
+
+        # Qt Drawing a filled rounded rectangle with border:
+        # https://stackoverflow.com/a/29196812/650222/
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        path = QtGui.QPainterPath()
+        rect = option.rect
+        rect = QtCore.QRectF(
+            rect.x() + self.margin - 0.5,
+            rect.y() + self.margin - 0.5,
+            rect.width() - 2*self.margin,
+            rect.height() - 2*self.margin)
+        path.addRoundedRect(rect, self.corner_radius, self.corner_radius)
+        pen = QtGui.QPen(Qt.black, self.pen_width)
+        painter.setPen(pen)
+        painter.fillPath(path, fill)
+        painter.drawPath(path)
+
+        head, body = self._get_text_info(option, index)
+        painter.setPen(Qt.black)
+
+        painter.setFont(head.font)
+        painter.drawText(head.rect, Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap, head.text)
+
+        painter.setFont(body.font)
+        painter.drawText(body.rect, Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap, body.text)
+
+        painter.restore()
 
 
 def pop_all(queue):
