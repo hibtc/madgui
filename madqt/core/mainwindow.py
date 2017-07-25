@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 
 import glob
 import os
+import logging
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.util.collections import Selection, Bool
@@ -85,6 +86,7 @@ class MainWindow(QtGui.QMainWindow):
         # signal. Without this, if the setup code excepts after creating the
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
+        self.log = logging.getLogger(__name__)
         QtCore.QTimer.singleShot(0, self.loadDefault)
 
     def configure(self):
@@ -112,6 +114,8 @@ class MainWindow(QtGui.QMainWindow):
             filename = self.config.get('load_default')
         if filename:
             self.loadFile(self.searchFile(filename))
+        else:
+            self.log.info('Welcome to MadQt. Type <Ctrl>+O to open a file.')
 
     def createMenu(self):
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
@@ -348,6 +352,7 @@ class MainWindow(QtGui.QMainWindow):
 
         filename = os.path.abspath(filename)
         self.folder, _ = os.path.split(filename)
+        self.log.info('Loading {}'.format(filename))
         self.setWorkspace(Workspace(filename, self.config))
         self.showTwiss()
 
