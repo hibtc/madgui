@@ -275,6 +275,19 @@ class LogDelegate(MultiLineDelegate):
 
         painter.restore()
 
+    def createEditor(self, parent, option, index):
+        editor = super(LogDelegate, self).createEditor(parent, option, index)
+        editor.verticalScrollBar().hide()
+        return editor
+
+    def updateEditorGeometry(self, editor, option, index):
+        head, info, body = self._get_text_info(option, index)
+        editor.setGeometry(
+            self.margin + self.pen_width,
+            head.rect.bottom(),
+            option.rect.width()-2*self.padding-2*self.margin,
+            body.rect.height() + self.padding)
+
 
 def pop_all(queue):
     while True:
