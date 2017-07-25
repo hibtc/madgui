@@ -56,7 +56,7 @@ class ColumnInfo(object):
         :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
         self.title = title
-        self.getter = getter
+        self.getter = getter or (lambda x: x)
         self.setter = setter
         self.resize = resize
         self.padding = padding
@@ -256,7 +256,13 @@ class TableView(QtGui.QTableView):
 
     @property
     def _setColumnResizeMode(self):
-        header = self.horizontalHeader()
+        return self._resizeMode(self.horizontalHeader())
+
+    @property
+    def _setRowResizeMode(self):
+        return self._resizeMode(self.verticalHeader())
+
+    def _resizeMode(self, header):
         try:
             return header.setResizeMode
         except AttributeError:  # PyQt5
@@ -334,7 +340,9 @@ class ValueProxy(Object):
                  editable=None,
                  fmtspec=None,
                  types=None,
-                 textcolor=None):
+                 textcolor=None,
+                 sizeHint=None,
+                 ):
         """Store the value."""
         super(ValueProxy, self).__init__()
         if default is not None: self.default = default
@@ -342,6 +350,7 @@ class ValueProxy(Object):
         if fmtspec is not None: self.fmtspec = fmtspec
         if types is not None: self.types = types
         if textcolor is not None: self.textbrush = QtGui.QBrush(textcolor)
+        if sizeHint is not None: self.sizeHint = sizeHint
         self.value = value
 
     def __str__(self):
@@ -587,6 +596,21 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         editor.setText(index.data(Qt.DisplayRole))
+        editor.selectAll()
+
+    def setModelData(self, editor, model, index):
+        pass
+
+
+class MultiLineDelegate(QtGui.QStyledItemDelegate):
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QPlainTextEdit(parent)
+        editor.setReadOnly(True)
+        return editor
+
+    def setEditorData(self, editor, index):
+        editor.setPlainText(index.data(Qt.DisplayRole))
         editor.selectAll()
 
     def setModelData(self, editor, model, index):
