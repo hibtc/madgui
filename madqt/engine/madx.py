@@ -576,9 +576,9 @@ class Segment(SegmentBase):
         if isinstance(knob, tuple):
             elem, attr = knob
             value = self.utool.strip_unit(attr, value)
-            self.segment.set_element_attribute(elem, attr, value)
+            self.set_element_attribute(elem, attr, value)
         else:
-            self.segment.madx.set_value(knob, value)
+            self.madx.set_value(knob, value)
 
 
 def process_spec(prespec, data):
