@@ -10,6 +10,8 @@ import os
 from collections import OrderedDict
 import itertools
 
+import logging
+
 from six import string_types as basestring
 import numpy as np
 
@@ -61,6 +63,7 @@ class Workspace(EngineBase):
     backend = attribute_alias('madx')
 
     def __init__(self, filename, app_config):
+        self.log = logging.getLogger(__name__)
         self.data = {}
         self.segment = None
         self.repo = None
@@ -126,6 +129,7 @@ class Workspace(EngineBase):
         command_log = logfile_name(path, base, '.commands.madx')
         self.repo = FileResource(path)
         self.madx = Madx(command_log=command_log, **self.minrpc_flags())
+        self.log.info('Logging commands to: {}'.format(command_log))
         if ext in ('.yml', '.yaml'):
             self.load_model(name)
         else:
