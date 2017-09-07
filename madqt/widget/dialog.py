@@ -107,6 +107,12 @@ class Dialog(QtGui.QDialog):
 
     # TODO: update enabled-state of apply-button?
 
+    def closeEvent(self, event):
+        # send closeEvent to children!
+        if isinstance(self.widget(), QtGui.QWidget):
+            self.widget().close()
+        super(Dialog, self).close()
+
     def standardButtons(self, *args, **kwargs):
         buttons = QtGui.QDialogButtonBox(*args, **kwargs)
         buttons.addButton(Button.Ok).clicked.connect(self.accept)

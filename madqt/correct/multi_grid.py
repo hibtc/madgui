@@ -143,9 +143,6 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.fit_iterations_spinbox.valueChanged.connect(
             self.set_fit_iterations)
 
-    def hideEvent(self, event):
-        self.close()
-
     def closeEvent(self, event):
         self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
         self.update_csys_values_timer.stop()

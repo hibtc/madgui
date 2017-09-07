@@ -256,9 +256,6 @@ class CorrectorWidget(CorrectorWidgetBase):
                 if selection:
                     del self.corrector.orbit_records[selection[0].row()]
 
-    def hideEvent(self, event):
-        self.close()
-
     def closeEvent(self, event):
         self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
         self.update_csys_values_timer.stop()
