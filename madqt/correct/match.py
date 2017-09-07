@@ -18,6 +18,15 @@ Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
 Variable = namedtuple('Variable', ['elem', 'pos', 'attr', 'expr', 'value', 'design'])
 
 
+def defined(value):
+    """Check if attribute of an element was defined."""
+    try:
+        return hasattr(value, '_expression') or float(value) != 0
+    except (ValueError, TypeError):
+        return False
+
+
+
 def variable_from_knob(matcher, expr):
     if '->' in expr:
         name, attr = expr.split('->')
@@ -140,8 +149,7 @@ class Matcher(Object):
             variable_from_knob(self, elem['name']+'->'+attr)
             for elem in self.segment.elements
             for attr in param_spec.get(elem['type'].lower(), [])
-            for expr in [_get_elem_attr_expr(elem, attr)]
-            if expr is not None
+            if defined(elem.get(attr))
         ]
 
     # Set value back to factory defaults
