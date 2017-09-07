@@ -199,10 +199,6 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.update_execute_button()
 
     def connect_signals(self):
-        self.update_csys_values_timer = QtCore.QTimer()
-        self.update_csys_values_timer.timeout.connect(self.update_csys_values)
-        self.update_csys_values_timer.start(100)
-
         # connect signals
         # …perform action upon explicit user request
         self.load_preset_execute.clicked.connect(self.on_load_preset_execute)
@@ -255,10 +251,6 @@ class CorrectorWidget(CorrectorWidgetBase):
                 selection = self.records_table.selectedIndexes()
                 if selection:
                     del self.corrector.orbit_records[selection[0].row()]
-
-    def closeEvent(self, event):
-        self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
-        self.update_csys_values_timer.stop()
 
     def on_load_preset_execute(self):
         """Update focus level and automatically load QP values."""

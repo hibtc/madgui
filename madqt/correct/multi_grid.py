@@ -116,10 +116,6 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.update_corrections()
 
     def connect_signals(self):
-        self.update_csys_values_timer = QtCore.QTimer()
-        self.update_csys_values_timer.timeout.connect(self.update_csys_values)
-        self.update_csys_values_timer.start(100)
-
         # connect signals
         # …perform action upon explicit user request
         self.update_fit_button.clicked.connect(self.update_fit)
@@ -142,10 +138,6 @@ class CorrectorWidget(CorrectorWidgetBase):
 
         self.fit_iterations_spinbox.valueChanged.connect(
             self.set_fit_iterations)
-
-    def closeEvent(self, event):
-        self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
-        self.update_csys_values_timer.stop()
 
     def update_csys_values(self):
         self._load_csys_mon_value(0, self.mon1_x_value, self.mon1_y_value)

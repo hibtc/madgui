@@ -13,7 +13,7 @@ from pkg_resources import resource_filename
 import numpy as np
 from six import string_types as basestring
 
-from madqt.qt import QtGui, uic
+from madqt.qt import QtCore, QtGui, uic
 
 from madqt.core.unit import tounit
 from madqt.util.collections import List
@@ -347,6 +347,19 @@ class CorrectorWidgetBase(QtGui.QWidget):
 
     @abstractmethod
     def connect_signals(self):
+        pass
+
+    def showEvent(self, event):
+        self.update_csys_values_timer = QtCore.QTimer()
+        self.update_csys_values_timer.timeout.connect(self.update_csys_values)
+        self.update_csys_values_timer.start(100)
+
+    def hideEvent(self, event):
+        self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
+        self.update_csys_values_timer.stop()
+
+    @abstractmethod
+    def update_csys_values(self):
         pass
 
     def update_records(self):
