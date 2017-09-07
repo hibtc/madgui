@@ -220,12 +220,12 @@ class Control(Object):
 
     def on_correct_optic_variation_method(self):
         import madqt.correct.optic_variation as module
-        varyconf = segment.workspace.data.get('optic_variation', {})
+        varyconf = self._segment.workspace.data.get('optic_variation', {})
         self._correct(module, varyconf)
 
     def on_correct_multi_grid_method(self):
         import madqt.correct.multi_grid as module
-        varyconf = segment.workspace.data.get('multi_grid', {})
+        varyconf = self._segment.workspace.data.get('multi_grid', {})
         self._correct(module, varyconf)
 
     def _correct(self, module, varyconf):
