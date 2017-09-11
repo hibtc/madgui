@@ -17,7 +17,10 @@ import threading
 import time
 from collections import namedtuple
 from functools import partial
-from queue import Queue, Empty
+try:
+    from queue import Queue, Empty
+except ImportError:     # py2
+    from Queue import Queue, Empty
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Object, Signal
