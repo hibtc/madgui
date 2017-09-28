@@ -181,7 +181,7 @@ class EmittanceDialog(QtGui.QDialog):
         # -> not important for l=0 monitors
 
         coup_xy = not np.allclose(tms[:,0:2,2:4], 0)
-        coup_yx = not np.allclose(tms[:,2:4,4:2], 0)
+        coup_yx = not np.allclose(tms[:,2:4,0:2], 0)
         coup_xt = not np.allclose(tms[:,0:2,4:5], 0)
         coup_yt = not np.allclose(tms[:,2:4,4:5], 0)
 
