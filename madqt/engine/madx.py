@@ -130,7 +130,7 @@ class Workspace(EngineBase):
         self.repo = FileResource(path)
         self.madx = Madx(command_log=command_log, **self.minrpc_flags())
         self.log.info('Logging commands to: {}'.format(command_log))
-        if ext in ('.yml', '.yaml'):
+        if ext.lower() in ('.yml', '.yaml'):
             self.load_model(name)
         else:
             self.load_madx_file(name)
