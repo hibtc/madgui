@@ -118,6 +118,8 @@ def tounit(quantity, unit):
 
 def get_unit_label(quantity):
     """Get name of the unit."""
+    if quantity is None:
+        return ''
     return '[' + get_raw_label(quantity) + ']'
 
 
@@ -166,7 +168,7 @@ def from_config(unit):
         m^-2
     """
     if not unit:
-        return units(None)
+        return None
     if isinstance(unit, list):
         return [from_config(u) for u in unit]
     if isinstance(unit, bytes):
@@ -200,19 +202,18 @@ class UnitConverter(object):
 
     def get_unit_label(self, name):
         """Get the name of the unit for the specified parameter name."""
-        units = self._units
-        return get_unit_label(units[name]) if name in units else ''
+        return get_unit_label(self._units.get(name))
 
     def add_unit(self, name, value):
         """Add units to a single number."""
-        units = self._units
-        if name in units:
+        unit = self._units.get(name)
+        if unit:
             if isinstance(value, (list, tuple)):
                 # FIXME: 'zip' truncates without warning if not enough units
                 # are defined
                 return [self._add_unit(v, u)
-                        for v, u in zip(value, units[name])]
-            return self._add_unit(value, units[name])
+                        for v, u in zip(value, unit)]
+            return self._add_unit(value, unit)
         else:
             return value
 
@@ -224,8 +225,7 @@ class UnitConverter(object):
 
     def strip_unit(self, name, value):
         """Convert to MAD-X units."""
-        units = self._units
-        return strip_unit(value, units[name]) if name in units else value
+        return strip_unit(value, self._units.get(name))
 
     def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
@@ -237,10 +237,10 @@ class UnitConverter(object):
 
     def normalize_unit(self, name, value):
         """Normalize unit to unit used in MAD-X."""
-        units = self._units
-        if name in units:
+        unit = self._units.get(name)
+        if unit:
             if not isinstance(value, Expression):
-                return tounit(value, units[name])
+                return tounit(value, unit)
         return value
 
     def dict_normalize_unit(self, obj):
