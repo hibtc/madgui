@@ -108,8 +108,7 @@ class Workspace(EngineBase):
 
         with self.repo.filename(filename) as init_file:
             self.tao = Tao(
-                fileflag, init_file,
-                '-noplot', '-gui_mode',
+                fileflag, init_file, '-noplot',
                 *args, command_log=self.command_log,
                 **self.minrpc_flags())
 
