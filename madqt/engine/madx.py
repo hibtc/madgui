@@ -19,7 +19,7 @@ from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
 from madqt.resource import yaml
-from madqt.core.unit import from_config
+from madqt.core.unit import UnitConverter, from_config
 from madqt.util.misc import (attribute_alias, cachedproperty, sort_to_top,
                              logfile_name)
 from madqt.resource.file import FileResource
@@ -124,6 +124,7 @@ class Workspace(EngineBase):
 
     def load(self, filename):
         """Load model or plain MAD-X file."""
+        self.utool = UnitConverter.from_config_dict(self.config['units'])
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         command_log = logfile_name(path, base, '.commands.madx')

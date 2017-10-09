@@ -1,51 +1,19 @@
 # tao specific configuration file
+
+# overwrites and extensions for tao's unit database:
 units:
-  l:        m
-  lrad:     m
-  at:       m
-  s:        m
-  x:        m
-  y:        m
-  z:        m
+  # tao bug:
   beta_a:   m
   beta_b:   m
-  angle:    rad
-  k1:       m^-2
-  k1s:      m^-2
-  k1l:      m^-2
-  ex:       m
-  ey:       m
+
+  # FIXME: these are needed because my code is so bad
+  at:       m
   a_emit:   m
   b_emit:   m
-  tilt:     rad
-  hgap:     m
-  h:        rad/m
-  fint:     1
-  fintx:    1
-  e1:       rad
-  e2:       rad
-  ks:       1/m
-
-  energy:   MeV
-  charge:   e
-  mass:     u
-
-  # TODO: use general formula m^-N ?
-  knl:      [rad, m^-1, m^-2, m^-3, m^-4]
-  ksl:      [rad, m^-1, m^-2, m^-3, m^-4]
-
-  # used in online database:
-  kl:       m^-1
-
-  # TODO: THIS IS INCORRECT
-  kick:     rad
-
   posx:     m
   posy:     m
   envx:     m
   envy:     m
-
-  # FIXME: these are needed because my code is so bad
   betx:   m
   bety:   m
 

@@ -15,7 +15,7 @@ import numpy as np
 from six import string_types as basestring
 
 from madqt.core.base import Object, Signal
-from madqt.core.unit import UnitConverter, from_config
+from madqt.core.unit import from_config
 from madqt.resource.package import PackageResource
 from madqt.util.misc import cachedproperty
 
@@ -65,7 +65,6 @@ class EngineBase(Object):
         self.app_config = app_config
         module = self.__class__.__module__.rsplit('.', 1)[-1]
         self.config = PackageResource('madqt.engine').yaml(module + '.yml')
-        self.utool = UnitConverter.from_config_dict(self.config['units'])
         self.load(filename)
 
     def minrpc_flags(self):

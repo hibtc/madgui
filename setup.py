@@ -66,7 +66,6 @@ def main():
             'docopt',           # command line parsing
             'matplotlib',
             'numpy',
-            'pydicti>=0.0.5',
             'PyYAML',           # config/model files
             'Pint==0.6',
             'docutils',         # about dialogs
