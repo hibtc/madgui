@@ -17,7 +17,8 @@ from collections import namedtuple, OrderedDict
 
 from pytao.tao import Tao
 
-import madqt.core.unit as unit
+from madqt.core.unit import UnitConverter, from_config
+from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
 from madqt.util.misc import (attribute_alias, sort_to_top, logfile_name,
                              rename_key, merged, translate_default)
@@ -90,12 +91,12 @@ class Workspace(EngineBase):
         """Load model data from file."""
         data = self.repo.yaml(filename, encoding='utf-8')
         #self.check_compatibility(data)
-        self._load_params(data, 'beam')
-        self._load_params(data, 'twiss')
 
         self.load_init_file(data['tao']['init'], data=data)
         for filename in data['tao'].get('read', []):
             self.read(filename)
+        self._load_params(data, 'beam')
+        self._load_params(data, 'twiss')
 
     def load_init_file(self, filename, **kw):
         self.init('-init', filename, **kw)
@@ -112,6 +113,10 @@ class Workspace(EngineBase):
                 *args, command_log=self.command_log,
                 **self.minrpc_flags())
 
+        units = DefaultDict(self._query_unit)
+        units.update(self.config['units'])
+        self.utool = UnitConverter.from_config_dict(units)
+
         self.enums = {}     # cache: name -> class
         self.tao._create_enum_value = self._create_enum_value
 
@@ -125,6 +130,9 @@ class Workspace(EngineBase):
     def read(self, name):
         with self.repo.filename(name) as f:
             self.tao.read(f)
+
+    def _query_unit(self, name):
+        return self.tao.python('lat_param_units', name)[0][0] or None
 
     def _create_enum_value(self, name, value):
         if name not in self.enums:
@@ -338,7 +346,7 @@ class Segment(SegmentBase):
                     short=curve_short_name(plot_data, curve.info),
                     label=tao_legend_to_latex(curve.info['legend_text']),
                     style=self.curve_style[curve_index],
-                    unit=unit.from_config(curve.info['units'] or 1))
+                    unit=from_config(curve.info['units'] or 1))
                 for curve_index, curve in enumerate(plot_data.curves)
             ])
         data = {curve.name: curve.data for curve in plot_data.curves}
