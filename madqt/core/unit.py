@@ -13,9 +13,8 @@ from pkg_resources import resource_filename
 import numpy as np
 import pint
 
-from pydicti import dicti
-
 from madqt.util.symbol import SymbolicValue
+from madqt.util.defaultdict import DefaultDict
 
 try:
     # special handling for cpymad.Expression if available
@@ -192,12 +191,12 @@ class UnitConverter(object):
     """
 
     def __init__(self, units):
-        self._units = dicti(units)
+        self._units = units
 
     @classmethod
     def from_config_dict(cls, conf_dict):
         """Convert a config dict of units to their in-memory representation."""
-        return cls((k, from_config(v)) for k, v in conf_dict.items())
+        return cls(DefaultDict(lambda k: from_config(conf_dict[k.lower()])))
 
     def get_unit_label(self, name):
         """Get the name of the unit for the specified parameter name."""
