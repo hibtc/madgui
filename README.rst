@@ -25,7 +25,6 @@ in your repositories:
 
 - docopt_
 - Pint_ == 0.6
-- pydicti_ >= 0.5
 - PyYAML_
 - six_
 - docutils_
@@ -44,7 +43,6 @@ in your repositories:
 .. _numpy: http://www.numpy.org
 .. _docopt: https://pypi.python.org/pypi/docopt
 .. _Pint: http://pint.readthedocs.org/
-.. _pydicti: https://github.com/coldfix/pydicti
 .. _PyYAML: https://pypi.python.org/pypi/PyYAML
 .. _six: https://pypi.python.org/pypi/six
 .. _docutils: https://pypi.python.org/pypi/docutils
