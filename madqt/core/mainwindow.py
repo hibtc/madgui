@@ -436,12 +436,20 @@ class MainWindow(QtGui.QMainWindow):
             scene.relayout()
             scene.plot()
 
+        def toggleIndicators():
+            scene.show_indicators = not scene.show_indicators
+            scene.relayout()
+            scene.plot()
+
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [
             Menu('&View', [
                 Item('&Shared plot', 'Ctrl+M',
                      'Plot all curves into the same plot - more compact format.',
                      toggleShareAxes, checked=False),
+                Item('Element &indicators', None,
+                     'Show element indicators',
+                     toggleIndicators, checked=show_indicators)
             ]),
         ])
         return scene
