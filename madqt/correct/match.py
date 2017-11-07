@@ -70,7 +70,7 @@ class Matcher(Object):
         self.variables.update_after.connect(self._on_update_variables)
         self.design_values = {}
         local_constraints = ['envx', 'envy'] + segment.workspace.config['matching']['element']
-        self.elem_enum = make_enum('Elem', [el['name'] for el in segment.elements])
+        self.elem_enum = make_enum('Elem', segment.el_names)
         self.lcon_enum = make_enum('Local', local_constraints)
         self.mirror_mode = segment.workspace.app_config['matching'].get('mirror', False)
 

@@ -399,11 +399,15 @@ class MainWindow(QtGui.QMainWindow):
         config = self.config['line_view'].copy()
         config['matching'] = self.config['matching']
 
+        # indicators require retrieving data for all elements which can be too
+        # time consuming for large lattices:
+        show_indicators = len(segment.elements) < 500
+
         figure = plt.MultiFigure()
         plot = plt.PlotWidget(figure)
 
         scene = twissfigure.TwissFigure(figure, segment, config)
-        scene.show_indicators = True
+        scene.show_indicators = show_indicators
         scene.graph_name = name or config['default_graph']
         scene.attach(plot)
         scene.plot()
@@ -432,12 +436,20 @@ class MainWindow(QtGui.QMainWindow):
             scene.relayout()
             scene.plot()
 
+        def toggleIndicators():
+            scene.show_indicators = not scene.show_indicators
+            scene.relayout()
+            scene.plot()
+
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [
             Menu('&View', [
                 Item('&Shared plot', 'Ctrl+M',
                      'Plot all curves into the same plot - more compact format.',
                      toggleShareAxes, checked=False),
+                Item('Element &indicators', None,
+                     'Show element indicators',
+                     toggleIndicators, checked=show_indicators)
             ]),
         ])
         return scene

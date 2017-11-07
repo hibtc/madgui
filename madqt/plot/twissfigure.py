@@ -222,8 +222,10 @@ class TwissFigure(object):
             return
         if show:
             self.scene_graph.items.append(self.indicators)
+            self.indicators.plot()
         else:
             self.scene_graph.items.remove(self.indicators)
+            self.indicators.clear_items()
 
 
 class ElementIndicators(object):

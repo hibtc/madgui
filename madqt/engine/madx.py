@@ -303,8 +303,8 @@ class Segment(SegmentBase):
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
-        el_names = self.sequence.expanded_element_names()
-        self.elements = ElementList(el_names, self.get_element_data)
+        self.el_names = self.sequence.expanded_element_names()
+        self.elements = ElementList(self.el_names, self.get_element_data)
         self.positions = self.sequence.expanded_element_positions()
 
         self.start, self.stop = self.parse_range(range)
