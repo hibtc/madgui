@@ -13,7 +13,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, OrderedDict, Sequence
 
 from pytao.tao import Tao
 
@@ -172,11 +172,9 @@ class Segment(SegmentBase):
             for i, seq, n_track, n_max in lat_general
         }
 
-        el_names = self.tao.get_list('lat_ele_list', self.unibra)
-        self.elements = ElementList(el_names, self.get_element_data)
-        self.positions = [
-            self.utool.strip_unit('s', el['at']) for el in self.elements
-        ]
+        self.el_names = self.tao.get_list('lat_ele_list', self.unibra)
+        self.elements = ElementList(self.el_names, self.get_element_data)
+        self.positions = LazyList(len(self.el_names), self._get_element_pos)
 
     def get_element_data_raw(self, index, which=None):
         data = merged(self.tao.get_element_data(index, who='general'),
@@ -189,6 +187,10 @@ class Segment(SegmentBase):
         rename_key(data, 'type', 'type_')
         rename_key(data, 'key', 'type')
         return data
+
+    def _get_element_pos(self, index):
+        data = self.tao.get_element_data(index, who='general')
+        return data['s'] - data.get('l', 0)
 
     def survey(self):
         return [FloorCoords(*self.tao.get_element_floor(index).flat)
@@ -486,6 +488,22 @@ class TaoDataStore(DataStore):
 
     def default(self, key):
         return self.params[key.lower()].value    # I know…
+
+
+class LazyList(Sequence):
+
+    def __init__(self, len, get):
+        self._len = len
+        self._get = get
+        self._dat = {}
+
+    def __getitem__(self, index):
+        if index not in self._dat:
+            self._dat[index] = self._get(index)
+        return self._dat[index]
+
+    def __len__(self):
+        return self._len
 
 
 class ElementDataStore(TaoDataStore):
