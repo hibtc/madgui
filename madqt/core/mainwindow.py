@@ -399,11 +399,15 @@ class MainWindow(QtGui.QMainWindow):
         config = self.config['line_view'].copy()
         config['matching'] = self.config['matching']
 
+        # indicators require retrieving data for all elements which can be too
+        # time consuming for large lattices:
+        show_indicators = len(segment.elements) < 500
+
         figure = plt.MultiFigure()
         plot = plt.PlotWidget(figure)
 
         scene = twissfigure.TwissFigure(figure, segment, config)
-        scene.show_indicators = True
+        scene.show_indicators = show_indicators
         scene.graph_name = name or config['default_graph']
         scene.attach(plot)
         scene.plot()
