@@ -13,6 +13,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import os
+import logging
 from collections import namedtuple, OrderedDict, Sequence
 
 from pytao.tao import Tao
@@ -68,6 +69,7 @@ class Workspace(EngineBase):
     backend = attribute_alias('tao')
 
     def __init__(self, filename, app_config):
+        self.log = logging.getLogger(__name__)
         self.data = {}
         self.segment = None
         self.repo = None
@@ -112,6 +114,7 @@ class Workspace(EngineBase):
                 fileflag, init_file, '-noplot',
                 *args, command_log=self.command_log,
                 **self.minrpc_flags())
+        self.log.info('Logging commands to: {}'.format(self.command_log))
 
         units = DefaultDict(self._query_unit)
         units.update(self.config['units'])
