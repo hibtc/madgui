@@ -14,7 +14,7 @@ import logging
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.util.collections import Selection, Bool
-from madqt.util.misc import Property
+from madqt.util.misc import Property, logfile_name
 from madqt.util.qt import notifyCloseEvent
 from madqt.widget.dialog import Dialog
 from madqt.widget.log import LogWindow
@@ -351,9 +351,13 @@ class MainWindow(QtGui.QMainWindow):
                                       .format(filename))
 
         filename = os.path.abspath(filename)
-        self.folder, _ = os.path.split(filename)
+        self.folder, name = os.path.split(filename)
+        base, ext = os.path.splitext(name)
+        logfile = logfile_name(self.folder, base, '.commands.madx')
         self.log.info('Loading {}'.format(filename))
-        self.setWorkspace(Workspace(filename, self.config))
+        self.log.info('Logging commands to: {}'.format(logfile))
+        self.setWorkspace(Workspace(filename, self.config,
+                                    command_log=logfile))
         self.showTwiss()
 
     def setWorkspace(self, workspace):

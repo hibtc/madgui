@@ -21,7 +21,7 @@ from pytao.tao import Tao
 from madqt.core.unit import UnitConverter, from_config
 from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
-from madqt.util.misc import (attribute_alias, sort_to_top, logfile_name,
+from madqt.util.misc import (attribute_alias, sort_to_top,
                              rename_key, merged, translate_default)
 from madqt.util.enum import make_enum
 from madqt.resource.file import FileResource
@@ -68,12 +68,13 @@ class Workspace(EngineBase):
     backend_title = 'Bmad/Tao'
     backend = attribute_alias('tao')
 
-    def __init__(self, filename, app_config):
+    def __init__(self, filename, app_config, command_log):
         self.log = logging.getLogger(__name__)
         self.data = {}
         self.segment = None
         self.repo = None
         self.universe = 1
+        self.command_log = command_log
         super(Workspace, self).__init__(filename, app_config)
 
     def load(self, filename):
@@ -81,7 +82,6 @@ class Workspace(EngineBase):
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         self.repo = FileResource(path)
-        self.command_log = logfile_name(path, base, '.commands.tao')
         if ext in ('.yml', '.yaml'):
             self.load_model(name)
         elif ext == '.init':
@@ -114,7 +114,6 @@ class Workspace(EngineBase):
                 fileflag, init_file, '-noplot',
                 *args, command_log=self.command_log,
                 **self.minrpc_flags())
-        self.log.info('Logging commands to: {}'.format(self.command_log))
 
         units = DefaultDict(self._query_unit)
         units.update(self.config['units'])
