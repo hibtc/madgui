@@ -20,8 +20,7 @@ from cpymad.util import normalize_range_name
 
 from madqt.resource import yaml
 from madqt.core.unit import UnitConverter, from_config
-from madqt.util.misc import (attribute_alias, cachedproperty, sort_to_top,
-                             logfile_name)
+from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 from madqt.resource.file import FileResource
 from madqt.util.datastore import DataStore, SuperStore
 
@@ -62,12 +61,13 @@ class Workspace(EngineBase):
     backend_title = 'MAD-X'
     backend = attribute_alias('madx')
 
-    def __init__(self, filename, app_config):
+    def __init__(self, filename, app_config, command_log):
         self.log = logging.getLogger(__name__)
         self.data = {}
         self.segment = None
         self.repo = None
         self.init_files = []
+        self.command_log = command_log
         super(Workspace, self).__init__(filename, app_config)
 
     @property
@@ -127,10 +127,8 @@ class Workspace(EngineBase):
         self.utool = UnitConverter.from_config_dict(self.config['units'])
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
-        command_log = logfile_name(path, base, '.commands.madx')
         self.repo = FileResource(path)
         self.madx = Madx(command_log=command_log, **self.minrpc_flags())
-        self.log.info('Logging commands to: {}'.format(command_log))
         if ext.lower() in ('.yml', '.yaml'):
             self.load_model(name)
         else:

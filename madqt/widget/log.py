@@ -55,9 +55,9 @@ class LogWindow(QtGui.QListView):
         ColumnInfo('', 'text')
     ]
 
-    def __init__(self, parent):
+    def __init__(self, *args):
         self.records = List()
-        super(LogWindow, self).__init__(parent)
+        super(LogWindow, self).__init__(*args)
         self.setFont(font.monospace(10))
         self.setModel(TableModel(self.columns, self.records))
         self.setItemDelegate(LogDelegate(self.font()))
