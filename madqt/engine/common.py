@@ -64,7 +64,8 @@ class EngineBase(Object):
     def minrpc_flags(self):
         """Flags for launching the backend library in a remote process."""
         import subprocess
-        return dict(stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        from threading import RLock
+        return dict(lock=RLock(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def destroy(self):
         """Annihilate current workspace. Stop interpreter."""
