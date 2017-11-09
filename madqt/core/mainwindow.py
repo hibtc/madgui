@@ -183,12 +183,22 @@ class MainWindow(QtGui.QMainWindow):
         self.control = control.Control(self, menubar)
 
     def createControls(self):
-        self.log_window = LogWindow(self)
+        self.log_window = LogWindow()
         self.log_window.setup_logging()
-        self.setCentralWidget(self.log_window)
+        self.cmd_window = QtGui.QPlainTextEdit()
+        self.notebook = QtGui.QTabWidget()
+        self.notebook.addTab(self.log_window, "Log")
+        self.notebook.addTab(self.cmd_window, "Commands")
+        self.setCentralWidget(self.notebook)
 
     def createStatusBar(self):
         self.statusBar()
+
+    def log_command(self, text):
+        text = text.rstrip()
+        self.logfile.write(text + '\n')
+        self.logfile.flush()
+        self.cmd_window.appendPlainText(text)
 
     #----------------------------------------
     # Menu actions
@@ -354,10 +364,11 @@ class MainWindow(QtGui.QMainWindow):
         self.folder, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         logfile = logfile_name(self.folder, base, '.commands.madx')
+        self.logfile = open(logfile, 'wt')
         self.log.info('Loading {}'.format(filename))
         self.log.info('Logging commands to: {}'.format(logfile))
         self.setWorkspace(Workspace(filename, self.config,
-                                    command_log=logfile))
+                                    command_log=self.log_command))
         self.showTwiss()
 
     def setWorkspace(self, workspace):
@@ -394,6 +405,7 @@ class MainWindow(QtGui.QMainWindow):
             pass
         self.workspace = None
         self.user_ns['workspace'] = None
+        self.logfile.close()
 
     def showTwiss(self, name=None):
         import madqt.plot.matplotlib as plt
