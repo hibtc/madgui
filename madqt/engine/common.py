@@ -8,7 +8,8 @@ from __future__ import unicode_literals
 
 from abc import abstractmethod
 from bisect import bisect_right
-from collections import namedtuple, Sequence
+from collections import namedtuple, Sequence, Mapping
+import re
 
 import numpy as np
 
@@ -124,9 +125,6 @@ class SegmentBase(Object):
     def get_twiss_args_raw(self, elem):
         raise NotImplementedError
 
-    def get_element_data_raw(self, elem, which=None):
-        raise NotImplementedError
-
     def get_element_index(self, elem):
         raise NotImplementedError
 
@@ -151,8 +149,9 @@ class SegmentBase(Object):
             element = self.get_element_index(element)
         if element < 0:
             element += len(self.elements)
-        element_data = self.get_element_data(element, ['name', 'at'])
-        return ElementInfo(element_data['name'], element, element_data['at'])
+        name = self.el_names[element]
+        pos = self.positions[element]
+        return ElementInfo(name, element, pos)
 
     def get_beam(self):
         return self.utool.dict_add_unit(self.get_beam_raw())
@@ -168,10 +167,6 @@ class SegmentBase(Object):
 
     beam = property(get_beam, set_beam)
     twiss_args = property(get_twiss_args, set_twiss_args)
-
-    def get_element_data(self, index, which=None):
-        """``None`` actually means 'all'."""
-        return self.utool.dict_add_unit(self.get_element_data_raw(index, which))
 
     def get_element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -307,6 +302,63 @@ class SegmentBase(Object):
         return self.matcher
 
 
+class ElementBase(Mapping):
+
+    """
+    Dict-like base class for elements. Provides attribute access to properties
+    by title case attribute names.
+
+    Subclasses must implement ``_retrieve`` and ``invalidate``.
+    """
+
+    # Do not rely on the numeric values, they may be replaced by flags!
+    INVALIDATE_TWISS = 0
+    INVALIDATE_PARAM = 1
+    INVALIDATE_ALL   = 2
+
+    def __init__(self, engine, utool, idx, name):
+        self._engine = engine
+        self._utool = utool
+        self._idx = idx
+        self._name = name.lower()
+        self.invalidate(self.INVALIDATE_ALL)
+
+    @abstractmethod
+    def invalidate(self, level=INVALIDATE_ALL):
+        """Invalidate cached data at and below the given level."""
+
+    @abstractmethod
+    def _retrieve(self, name):
+        """Retrieve data for key if possible; everything if None."""
+
+    def __getitem__(self, name):
+        self._retrieve(name)
+        return self._utool.add_unit(name, self._merged[name])
+
+    def __iter__(self):
+        self._retrieve(None)
+        return iter(self._merged)
+
+    def __len__(self):
+        self._retrieve(None)
+        return len(self._merged)
+
+    _RE_ATTR = re.compile(r'^[A-Z]([A-Za-z_])*$')
+
+    def __getattr__(self, name):
+        """
+        Provide attribute access to element properties.
+
+        Attribute names must start with capital letter, e.g. Name, K1, KNL.
+        """
+        if not self._RE_ATTR.match(name):
+            raise AttributeError(name)
+        try:
+            return self[name.lower()]
+        except KeyError:
+            raise AttributeError(name)
+
+
 class ElementList(Sequence):
 
     """
@@ -315,24 +367,22 @@ class ElementList(Sequence):
     Each element is a dictionary containing its properties.
     """
 
-    def __init__(self, el_names, get_data):
+    def __init__(self, el_names, Element):
         self._el_names = el_names
-        self._get_data = get_data
         self._indices = {n.lower(): i for i, n in enumerate(el_names)}
-        self.update()
+        self._elems = [Element(i, n) for i, n in enumerate(el_names)]
+        self.invalidate()
 
-    def update_all(self):
-        self._cached = [None] * len(self._el_names)
-        beg, end = self[0], self[-1]
-        self.min_x = beg['at']
-        self.max_x = end['at'] + end['l']
-
-    def update(self, elem=None):
+    def invalidate(self, elem=None):
         if elem is None:
-            self.update_all()
+            for elem in self._elems:
+                elem.invalidate()
+            beg, end = self[0], self[-1]
+            self.min_x = beg['at']
+            self.max_x = end['at'] + end['l']
         else:
             index = self.index(elem)
-            self._cached[index] = self._get_data(index)
+            self._elems[index].invalidate()
 
     def bound_x(self, x_value):
         return min(self.max_x, max(self.min_x, x_value))
@@ -357,7 +407,7 @@ class ElementList(Sequence):
         # allow element dicts/names to be passed for convenience:
         if isinstance(index, int):
             return self._get_by_index(index)
-        if isinstance(index, dict):
+        if isinstance(index, (dict, ElementBase)):
             return self._get_by_dict(index)
         if isinstance(index, ElementInfo):
             return self._get_by_dict({
@@ -393,6 +443,7 @@ class ElementList(Sequence):
             return self._index_by_name(element)
         raise ValueError("Unhandled type: {!r}", type(element))
 
+    # TODO: remove?
     def _get_by_dict(self, elem):
         if 'el_id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
@@ -408,18 +459,10 @@ class ElementList(Sequence):
         return self._get_by_index(index)
 
     def _get_by_index(self, index):
-        # Support a range of [-len, len+1] similar to builtin lists:
-        _len = len(self)
-        if index < -_len or index >= _len:
-            raise IndexError("Index out of bounds: {}, length is: {}"
-                             .format(index, _len))
-        if index < 0:
-            index += _len
-        el = self._cached[index]
-        if el is None:
-            el = self._cached[index] = self._get_data(index)
-        return el
+        # Support a range of [-len, len-1] similar to builtin lists:
+        return self._elems[index]
 
+    # TODO: remove
     def _index_by_dict(self, elem):
         if 'el_id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
