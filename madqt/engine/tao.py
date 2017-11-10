@@ -193,9 +193,7 @@ class Segment(SegmentBase):
         return data
 
     def _get_element_pos(self, index):
-        data = merged(self.tao.get_element_data(index, who='general'),
-                      self.tao.get_element_data(index, who='parameters'))
-        return data['s'] - data.get('l', 0)
+        return self.utool.strip_unit('at', self.elements[index].AT)
 
     def survey(self):
         return [FloorCoords(*self.tao.get_element_floor(index).flat)
