@@ -191,7 +191,8 @@ class Segment(SegmentBase):
         return data
 
     def _get_element_pos(self, index):
-        data = self.tao.get_element_data(index, who='general')
+        data = merged(self.tao.get_element_data(index, who='general'),
+                      self.tao.get_element_data(index, who='parameters'))
         return data['s'] - data.get('l', 0)
 
     def survey(self):
