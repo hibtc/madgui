@@ -180,18 +180,6 @@ class Segment(SegmentBase):
         self.elements = ElementList(self.el_names, make_element)
         self.positions = LazyList(len(self.el_names), self._get_element_pos)
 
-    def get_element_data_raw(self, index, which=None):
-        data = merged(self.tao.get_element_data(index, who='general'),
-                      self.tao.get_element_data(index, who='parameters'),
-                      self.tao.get_element_data(index, who='multipole'))
-        data['el_id'] = data['ix_ele']
-        data['name'] = data['name'].lower()
-        data['at'] = data['s'] - data.setdefault('l', 0)
-        # for compatibility with MAD-X:
-        rename_key(data, 'type', 'type_')
-        rename_key(data, 'key', 'type')
-        return data
-
     def _get_element_pos(self, index):
         return self.utool.strip_unit('at', self.elements[index].AT)
 
@@ -555,7 +543,7 @@ class ElementDataStore(TaoDataStore):
 
     def get(self):
         data = super(ElementDataStore, self).get()
-        # TODO: rename keys, like in tao.get_element_data_raw
+        # TODO: rename keys, like in Element
         return sort_to_top(data, [
             'Name',
             'Key',

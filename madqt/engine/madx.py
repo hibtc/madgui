@@ -401,18 +401,6 @@ class Segment(SegmentBase):
         beam = dict(beam, sequence=self.sequence.name)
         self.madx.command.beam(**beam)
 
-    def get_element_data_raw(self, elem, which=None):
-        data = self.workspace.madx.active_sequence.expanded_elements[elem]
-        data['el_id'] = data['index']
-        return sort_to_top(data, [
-            'Name',
-            'Type',
-            'At',
-            'L',
-            'Ksl',
-            'Knl',
-        ])
-
     def get_element_index(self, elem):
         """Get element index by it name."""
         return self.elements.index(elem)
@@ -640,12 +628,22 @@ class Element(ElementBase):
 
     def invalidate(self, level=ElementBase.INVALIDATE_ALL):
         if level >= self.INVALIDATE_PARAM:
-            self._merged = {'el_id': self._idx, 'name': self._name}
+            self._merged = OrderedDict([
+                ('name', self._name),
+                ('el_id', self._idx),
+            ])
 
     def _retrieve(self, name):
         if len(self._merged) == 2 and name not in self._merged:
-            self._merged.update(
-                self._engine.active_sequence.expanded_elements[self._idx])
+            data = self._engine.active_sequence.expanded_elements[self._idx]
+            self._merged.update(sort_to_top(data, [
+                'Name',
+                'Type',
+                'At',
+                'L',
+                'Ksl',
+                'Knl',
+            ]))
 
 
 class ElementDataStore(MadxDataStore):
