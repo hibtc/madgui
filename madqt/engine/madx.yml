@@ -44,7 +44,6 @@ units:
 curve_style:
   - &base_style
     color: "#8b1a0e"
-    marker: "o"
     linestyle: "-"
   - <<: *base_style
     color: "#005000"
