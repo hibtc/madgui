@@ -8,8 +8,8 @@ from __future__ import unicode_literals
 
 import os
 from collections import OrderedDict
+from functools import partial
 import itertools
-
 import logging
 
 from six import string_types as basestring
@@ -26,7 +26,7 @@ from madqt.util.datastore import DataStore, SuperStore
 
 from madqt.engine.common import (
     FloorCoords, ElementInfo, EngineBase, SegmentBase,
-    PlotInfo, CurveInfo, ElementList,
+    PlotInfo, CurveInfo, ElementList, ElementBase,
 )
 
 
@@ -301,8 +301,9 @@ class Segment(SegmentBase):
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
+        make_element = partial(Element, self.workspace.madx, self.utool)
         self.el_names = self.sequence.expanded_element_names()
-        self.elements = ElementList(self.el_names, self.get_element_data)
+        self.elements = ElementList(self.el_names, make_element)
         self.positions = self.sequence.expanded_element_positions()
 
         self.start, self.stop = self.parse_range(range)
@@ -393,7 +394,7 @@ class Segment(SegmentBase):
                 # TODO: filter those with default values
                 self.madx.set_value(_get_property_lval(elem, k), v)
 
-        self.elements.update(elem)
+        self.elements.invalidate(elem)
         self.retrack()
 
     def _use_beam(self, beam):
@@ -633,6 +634,18 @@ class MadxDataStore(DataStore):
 
     def default(self, key):
         return self.data[key.lower()]
+
+
+class Element(ElementBase):
+
+    def invalidate(self, level=ElementBase.INVALIDATE_ALL):
+        if level >= self.INVALIDATE_PARAM:
+            self._merged = {'el_id': self._idx, 'name': self._name}
+
+    def _retrieve(self, name):
+        if len(self._merged) == 2 and name not in self._merged:
+            self._merged.update(
+                self._engine.active_sequence.expanded_elements[self._idx])
 
 
 class ElementDataStore(MadxDataStore):

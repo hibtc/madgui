@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 import os
 import logging
 from collections import namedtuple, OrderedDict, Sequence
+from functools import partial
 
 from pytao.tao import Tao
 
@@ -28,7 +29,7 @@ from madqt.resource.file import FileResource
 
 from madqt.engine.common import (
     FloorCoords, EngineBase, SegmentBase,
-    PlotInfo, CurveInfo, ElementList,
+    PlotInfo, CurveInfo, ElementList, ElementBase,
 )
 
 
@@ -174,8 +175,9 @@ class Segment(SegmentBase):
             for i, seq, n_track, n_max in lat_general
         }
 
+        make_element = partial(Element, self.workspace.tao, self.utool)
         self.el_names = self.tao.get_list('lat_ele_list', self.unibra)
-        self.elements = ElementList(self.el_names, self.get_element_data)
+        self.elements = ElementList(self.el_names, make_element)
         self.positions = LazyList(len(self.el_names), self._get_element_pos)
 
     def get_element_data_raw(self, index, which=None):
@@ -422,7 +424,7 @@ class Segment(SegmentBase):
         tao.python('data_destroy', data_d2)
 
         # TODO: update only modified elements
-        self.elements.update()
+        self.elements.invalidate()
         self.retrack()
 
     def get_magnet(self, elem, conv):
@@ -507,6 +509,48 @@ class LazyList(Sequence):
 
     def __len__(self):
         return self._len
+
+
+class Element(ElementBase):
+
+    """
+    Beam line element. Lazy loads properties when needed.
+
+    Element properties can be accessed as attributes starting with capital
+    letter or as items, e.g.:
+
+        el["name"]      el.Name
+        el["knl"]       el.Knl
+    """
+
+    # TODO: use collections.ChainMap for self._merged (py3!)
+
+    def invalidate(self, level=ElementBase.INVALIDATE_ALL):
+        if level >= self.INVALIDATE_PARAM: self._params = None
+        if level >= self.INVALIDATE_PARAM: self._multip = None
+        if level >= self.INVALIDATE_ALL:   self._general = None
+        self._merged = {'el_id': self._idx, 'name': self._name}
+        self._merged.update(self._general or {})
+        self._merged.update(self._params or {})
+        self._merged.update(self._multip or {})
+
+    def _retrieve(self, name):
+        get_element_data, idx = self._engine.get_element_data, self._idx
+        if self._general is None and name not in self._merged:
+            self._general = get_element_data(idx, who='general')
+            self._general['name']  = self._general['name'].lower()
+            self._general['type_'] = self._general.pop('type')
+            self._general['type']  = self._general.pop('key')
+            self._merged.update(self._general)
+        if self._params is None and name not in self._merged:
+            self._params = get_element_data(idx, who='parameters')
+            self._params.setdefault('l', 0)
+            self._params['at'] = self._general['s'] - self._params['l']
+            self._merged.update(self._params)
+        if self._multip is None and name not in self._merged \
+                and self._general['type'].lower() == 'multipole':
+            self._multip = get_element_data(idx, who='multipole')
+            self._merged.update(self._multip)
 
 
 class ElementDataStore(TaoDataStore):
