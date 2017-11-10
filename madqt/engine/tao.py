@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 
 import os
 import logging
-from collections import namedtuple, OrderedDict, Sequence
+from collections import namedtuple, OrderedDict
 from functools import partial
 
 from pytao.tao import Tao
@@ -22,7 +22,7 @@ from pytao.tao import Tao
 from madqt.core.unit import UnitConverter, from_config
 from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
-from madqt.util.misc import (attribute_alias, sort_to_top,
+from madqt.util.misc import (attribute_alias, sort_to_top, LazyList,
                              rename_key, merged, translate_default)
 from madqt.util.enum import make_enum
 from madqt.resource.file import FileResource
@@ -479,22 +479,6 @@ class TaoDataStore(DataStore):
 
     def default(self, key):
         return self.params[key.lower()].value    # I know…
-
-
-class LazyList(Sequence):
-
-    def __init__(self, len, get):
-        self._len = len
-        self._get = get
-        self._dat = {}
-
-    def __getitem__(self, index):
-        if index not in self._dat:
-            self._dat[index] = self._get(index)
-        return self._dat[index]
-
-    def __len__(self):
-        return self._len
 
 
 class Element(ElementBase):

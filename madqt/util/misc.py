@@ -153,6 +153,22 @@ class Property(object):
                    lambda self:      self._del())
 
 
+class LazyList(collections.Sequence):
+
+    def __init__(self, len, get):
+        self._len = len
+        self._get = get
+        self._dat = {}
+
+    def __getitem__(self, index):
+        if index not in self._dat:
+            self._dat[index] = self._get(index)
+        return self._dat[index]
+
+    def __len__(self):
+        return self._len
+
+
 # dictionary utils
 
 def rename_key(d, name, new):
