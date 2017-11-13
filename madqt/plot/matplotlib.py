@@ -59,7 +59,7 @@ class PlotWidget(QtGui.QWidget):
         :param kwargs: keyword arguments for :class:`QWidget`
         """
 
-        super(PlotWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.figure = figure
         self.canvas = canvas = mpl_backend.FigureCanvas(figure.backend_figure)
@@ -135,7 +135,7 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-class Curve(object):
+class Curve:
 
     """Plot a TWISS parameter curve segment into a 2D figure."""
 
@@ -168,7 +168,7 @@ class Curve(object):
             self.line = None
 
 
-class MultiFigure(object):
+class MultiFigure:
 
     """
     A figure composed of multiple subplots with shared x-axis.

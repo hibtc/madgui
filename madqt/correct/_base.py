@@ -15,7 +15,7 @@ from madqt.util.collections import List
 from madqt.widget.tableview import ColumnInfo
 
 
-class OrbitRecord(object):
+class OrbitRecord:
 
     def __init__(self, monitor, orbit, csys_optics, gui_optics):
         self.monitor = monitor
@@ -32,7 +32,7 @@ class OrbitRecord(object):
         return self.orbit['posy']
 
 
-class ParameterInfo(object):
+class ParameterInfo:
 
     def __init__(self, param, value, current=None):
         self.name = param
@@ -40,7 +40,7 @@ class ParameterInfo(object):
         self.current = current
 
 
-class OrbitCorrectorBase(object):
+class OrbitCorrectorBase:
 
     """
     Data for the optic variation method.
@@ -325,7 +325,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
     ]
 
     def __init__(self, corrector):
-        super(CorrectorWidgetBase, self).__init__()
+        super().__init__()
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.corrector = corrector
         self.init_controls()

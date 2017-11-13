@@ -15,7 +15,7 @@ __all__ = [
 ]
 
 
-class ResourceProvider(object):
+class ResourceProvider:
 
     """
     Abstract base class for resource providers.

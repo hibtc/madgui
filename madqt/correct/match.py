@@ -58,7 +58,7 @@ class Matcher(Object):
 
     def __init__(self, segment, rules):
         """Create empty matcher."""
-        super(Matcher, self).__init__()
+        super().__init__()
         self.segment = segment
         self.rules = rules
         self.constraints = List()
@@ -171,7 +171,7 @@ class Matcher(Object):
             self.segment.set_knob(knob, value)
 
 
-class MatchTransform(object):
+class MatchTransform:
 
     def __init__(self, segment):
         self._ex = segment.ex()

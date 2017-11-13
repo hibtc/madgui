@@ -42,7 +42,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
     """
 
     def __init__(self, widget, folder, *args, **kwargs):
-        super(SerializeButtons, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.widget = widget
         self.folder = folder
         self.addButton(Button.Open).clicked.connect(self.onImport)
@@ -76,7 +76,7 @@ class Dialog(QtGui.QDialog):
     # TODO: reset button
 
     def __init__(self, *args, **kwargs):
-        super(Dialog, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setSizeGripEnabled(True)
         self.accepted.connect(self.apply)
         self.finished.connect(self.close)
@@ -107,7 +107,7 @@ class Dialog(QtGui.QDialog):
         # send closeEvent to children!
         if isinstance(self.widget(), QtGui.QWidget):
             self.widget().close()
-        super(Dialog, self).close()
+        super().close()
 
     def standardButtons(self, *args, **kwargs):
         buttons = QtGui.QDialogButtonBox(*args, **kwargs)

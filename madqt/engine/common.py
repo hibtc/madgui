@@ -56,7 +56,7 @@ class EngineBase(Object):
     destroyed = Signal()
 
     def __init__(self, filename, app_config):
-        super(EngineBase, self).__init__()
+        super().__init__()
         self.app_config = app_config
         module = self.__class__.__module__.rsplit('.', 1)[-1]
         self.config = PackageResource('madqt.engine').yaml(module + '.yml')

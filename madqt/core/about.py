@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-class VersionInfo(object):
+class VersionInfo:
 
     def __init__(self, module):
         """

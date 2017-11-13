@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 
-class SceneElement(object):
+class SceneElement:
 
     """
     A self-contained unit to be plotted.

@@ -53,7 +53,7 @@ class MatchWidget(QtGui.QWidget):
     ]
 
     def __init__(self, matcher):
-        super(MatchWidget, self).__init__()
+        super().__init__()
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.matcher = matcher
         self.init_controls()

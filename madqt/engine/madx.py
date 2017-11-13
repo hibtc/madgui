@@ -63,7 +63,7 @@ class Workspace(EngineBase):
         self.repo = None
         self.init_files = []
         self.command_log = command_log
-        super(Workspace, self).__init__(filename, app_config)
+        super().__init__(filename, app_config)
 
     @property
     def libmadx(self):
@@ -284,7 +284,7 @@ class Segment(SegmentBase):
         :param tuple range:
         """
 
-        super(Segment, self).__init__()
+        super().__init__()
 
         self.workspace = workspace
         self.sequence = workspace.madx.sequences[sequence]

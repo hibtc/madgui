@@ -51,10 +51,10 @@ class SingleWindow(Property):
         self.val.close()
 
     def _closed(self):
-        super(SingleWindow, self)._del()
+        super()._del()
 
     def _new(self):
-        window = super(SingleWindow, self)._new()
+        window = super()._new()
         notifyCloseEvent(window, self._closed)
         return window
 
@@ -66,7 +66,7 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------
 
     def __init__(self, options, *args, **kwargs):
-        super(MainWindow, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.has_workspace = Bool(False)
         self.user_ns = {
             'frame': self,
@@ -483,11 +483,11 @@ class MainWindow(QtGui.QMainWindow):
         event.accept()
 
 
-class InfoBoxGroup(object):
+class InfoBoxGroup:
 
     def __init__(self, mainwindow, selection):
         """Add toolbar tool to panel and subscribe to capture events."""
-        super(InfoBoxGroup, self).__init__()
+        super().__init__()
         self.mainwindow = mainwindow
         self.selection = selection
         self.boxes = [self.create_info_box(elem)

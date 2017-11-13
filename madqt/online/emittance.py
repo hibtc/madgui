@@ -67,7 +67,7 @@ class EmittanceDialog(QtGui.QDialog):
     ]
 
     def __init__(self, control):
-        super(EmittanceDialog, self).__init__(control._frame)
+        super().__init__(control._frame)
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.control = control
 

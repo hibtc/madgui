@@ -178,7 +178,7 @@ def from_config(unit):
     return units(unit)
 
 
-class UnitConverter(object):
+class UnitConverter:
 
     """
     Quantity converter.

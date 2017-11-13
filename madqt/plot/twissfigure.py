@@ -39,7 +39,7 @@ class PlotSelector(QtGui.QComboBox):
     # - curves: all-curves-separate-axes / all-curves-joint-axes / single-curve
 
     def __init__(self, scene, *args, **kwargs):
-        super(PlotSelector, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.scene = scene
         graphs = scene.segment.get_graphs()
         items = [(title, name) for name, (_, title) in graphs.items()]
@@ -56,7 +56,7 @@ class PlotSelector(QtGui.QComboBox):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class TwissFigure(object):
+class TwissFigure:
 
     """A figure containing some X/Y twiss parameters."""
 
@@ -224,7 +224,7 @@ class TwissFigure(object):
             self.indicators.clear_items()
 
 
-class ElementIndicators(object):
+class ElementIndicators:
 
     """
     Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
@@ -284,7 +284,7 @@ class ElementIndicators(object):
         return self.style.get(type_name)
 
 
-class CheckTool(object):
+class CheckTool:
 
     action = None
     active = False
@@ -315,7 +315,7 @@ class CheckTool(object):
 class CaptureTool(CheckTool):
 
     def action(self):
-        action = super(CaptureTool, self).action()
+        action = super().action()
         self.plot.addCapture(self.mode, action.setChecked)
         return action
 
@@ -559,7 +559,7 @@ class InfoTool(CaptureTool):
         selected[top] = new_el_id
 
 
-class ElementMarkers(object):
+class ElementMarkers:
 
     """
     In-figure markers for active/selected elements.

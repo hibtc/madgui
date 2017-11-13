@@ -48,7 +48,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     """
 
     def __init__(self, *args, **kwargs):
-        super(LatticeFloorPlan, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
@@ -65,7 +65,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     def resizeEvent(self, event):
         """Maintain visible region on resize."""
         self.setViewRect(self.view_rect)
-        super(LatticeFloorPlan, self).resizeEvent(event)
+        super().resizeEvent(event)
 
     def mapRectToScene(self, rect):
         """
@@ -131,7 +131,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
                   'width': 4}
 
     def __init__(self, element, floor, selection):
-        super(ElementGraphicsItem, self).__init__()
+        super().__init__()
         self.element = element
         self.length = float(element.get('l', 0.0))
         self.angle = float(element.get('angle', 0.0))

@@ -72,7 +72,7 @@ class Workspace(EngineBase):
         self.repo = None
         self.universe = 1
         self.command_log = command_log
-        super(Workspace, self).__init__(filename, app_config)
+        super().__init__(filename, app_config)
 
     def load(self, filename):
         """Load model or plain tao file."""
@@ -156,7 +156,7 @@ class Segment(SegmentBase):
         :param str sequence:
         """
 
-        super(Segment, self).__init__()
+        super().__init__()
 
         self.workspace = workspace
 
@@ -522,7 +522,7 @@ class Element(ElementBase):
 class ElementDataStore(TaoDataStore):
 
     def get(self):
-        data = super(ElementDataStore, self).get()
+        data = super().get()
         # TODO: rename keys, like in Element
         return sort_to_top(data, [
             'Name',

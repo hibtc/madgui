@@ -95,7 +95,7 @@ def update_property(update, name=None):
     return wrapper
 
 
-class Property(object):
+class Property:
 
     def __init__(self, obj, construct):
         self.obj = obj

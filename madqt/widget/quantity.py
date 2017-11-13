@@ -32,7 +32,7 @@ def asb_property(name):
     return property(get, set)
 
 
-class AffixControlBase(object):
+class AffixControlBase:
 
     """
     Base class for controls showing a prefix/suffix surrounding an editable
@@ -42,7 +42,7 @@ class AffixControlBase(object):
     validator = None
 
     def __init__(self, *args, **kwargs):
-        super(AffixControlBase, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.line_edit().textChanged.connect(self.interpretText)
 
     # imitate QAbstractSpinBox/QSpinBox/QDoubleSpinBox API
@@ -178,7 +178,7 @@ class AffixControlBase(object):
         edit = self.line_edit()
         if edit is self:
             # avoid infinite recursion
-            super(AffixControlBase, self).focusInEvent(event)
+            super().focusInEvent(event)
         else:
             self.line_edit().event(event)
             # skip QAbstractSpinBox::focusInEvent (which would call the
@@ -215,7 +215,7 @@ class AffixControlBase(object):
             event.accept()
             return
 
-        super(AffixControlBase, self).keyPressEvent(event)
+        super().keyPressEvent(event)
 
 
 class DoubleValidator(QtGui.QValidator):
@@ -280,7 +280,7 @@ class ValueControlBase(AffixControlBase):
     _maximum = None
 
     def __init__(self, *args, **kwargs):
-        super(ValueControlBase, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setAlignment(NumberFormat.align)
 
     def sanitize(self, value):
@@ -306,7 +306,7 @@ class QuantityControlBase(ValueControlBase):
     _unit = None
 
     def __init__(self, parent=None, value=None, unit=None):
-        super(QuantityControlBase, self).__init__(parent)
+        super().__init__(parent)
         self.validator = DoubleValidator()
         self.unit = unit
         if isinstance(value, units.Quantity):
@@ -384,7 +384,7 @@ class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
     valueChanged = Signal(object)
 
     def __init__(self, *args, **kwargs):
-        super(QuantityDisplay, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setAlignment(NumberFormat.align)
         self.setReadOnly(True)
         self.selectionChanged.connect(self.clear_selectall_pending)
@@ -399,14 +399,14 @@ class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self._selectall_pending = True
-        super(QuantityDisplay, self).mousePressEvent(event)
+        super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             if self._selectall_pending:
                 self._selectall_pending = False
                 self.selectAll()
-        super(QuantityDisplay, self).mouseReleaseEvent(event)
+        super().mouseReleaseEvent(event)
 
     def clear_selectall_pending(self):
         self._selectall_pending = False

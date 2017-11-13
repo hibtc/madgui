@@ -15,7 +15,7 @@ class ElementInfoBox(TabParamTables):
 
     def __init__(self, segment, el_id, **kwargs):
         datastore = segment.get_elem_ds(el_id)
-        super(ElementInfoBox, self).__init__(datastore, **kwargs)
+        super().__init__(datastore, **kwargs)
 
         self.segment = segment
         self.el_id = el_id
@@ -45,4 +45,4 @@ class ElementInfoBox(TabParamTables):
         # FIXME: this does not update substores/tabs
         if hasattr(self, 'segment'):
             self.datastore = self.segment.get_elem_ds(self.el_id)
-        super(ElementInfoBox, self).update()
+        super().update()

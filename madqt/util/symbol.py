@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 
-class SymbolicValue(object):
+class SymbolicValue:
 
     """
     Representation of a symbolic MAD-X expression with a unit.

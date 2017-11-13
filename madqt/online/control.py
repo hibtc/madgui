@@ -34,7 +34,7 @@ class Control(Object):
         database. This works only if the corresponding parameters were named
         exactly as in the database and are assigned with the ":=" operator.
         """
-        super(Control, self).__init__()
+        super().__init__()
         self._frame = frame
         self._plugin = None
         # menu conditions
