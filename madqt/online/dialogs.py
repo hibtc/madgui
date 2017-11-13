@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Dialog for selecting DVM parameters to be synchronized.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.qt import QtGui
 from madqt.core.unit import tounit

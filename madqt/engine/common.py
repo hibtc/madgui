@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Shared base classes for different backends.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from abc import abstractmethod
 from bisect import bisect_right

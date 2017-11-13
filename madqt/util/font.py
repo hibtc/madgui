@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Font utilities.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.qt import QtGui
 

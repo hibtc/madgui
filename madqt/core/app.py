@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 MadQt - interactive GUI application for MAD-X via cpymad.
 
@@ -22,9 +21,6 @@ Website:
 
     https://github.com/hibtc/madqt
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import traceback
 import signal

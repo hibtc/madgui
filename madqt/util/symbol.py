@@ -1,11 +1,6 @@
-# encoding: utf-8
 """
 MAD-X string expression that can automatically evaluate to a float.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 
 __all__ = [
     'SymbolicValue',

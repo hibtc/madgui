@@ -1,12 +1,8 @@
-# encoding: utf-8
 """
 Main window component for MadQt.
 """
 
 # TODO: about dialogs for Bmad/pytao
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import glob
 import os

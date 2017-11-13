@@ -1,11 +1,7 @@
-# encoding: utf-8
 """
 Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from functools import partial
 

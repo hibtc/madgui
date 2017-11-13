@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Observable collection classes.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from collections import MutableSequence
 from contextlib import contextmanager

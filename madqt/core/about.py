@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 About dialog that provides version and license information for the user.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import docutils.core
 

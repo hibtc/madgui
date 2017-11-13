@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Menu creation utilities.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from six import string_types
 

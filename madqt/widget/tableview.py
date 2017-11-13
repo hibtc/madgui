@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Table widget specified by column behaviour.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from inspect import getmro
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Contains base class for resource providers.
 """

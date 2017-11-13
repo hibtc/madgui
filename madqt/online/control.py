@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from functools import partial
 

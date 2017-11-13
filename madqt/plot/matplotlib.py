@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Utilities to create plots using matplotlib via the Qt4Agg backend.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from collections import namedtuple
 

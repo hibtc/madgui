@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Info boxes to display element detail.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.widget.params import TabParamTables
 

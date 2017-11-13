@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Custom spin box widgets.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import math
 

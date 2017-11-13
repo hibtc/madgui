@@ -1,11 +1,6 @@
-# encoding: utf-8
 """
 UI for matching.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import division
 
 from pkg_resources import resource_filename
 from collections import namedtuple

@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Multi grid correction method.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.qt import QtCore
 from madqt.core.unit import get_unit

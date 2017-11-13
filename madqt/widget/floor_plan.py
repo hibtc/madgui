@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 """
@@ -8,10 +7,6 @@ Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 # TODO: show scale indicator
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import division
 
 import math
 

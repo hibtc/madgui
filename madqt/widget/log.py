@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Logging utils.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 # TODO:
 # - filter log according to log message type
