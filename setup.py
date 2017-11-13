@@ -69,7 +69,6 @@ def main():
             'PyYAML',           # config/model files
             'Pint==0.6',
             'docutils',         # about dialogs
-            'six>=1.10.0',      # py2/3 compatibility
             # inprocess python shell:
             'ipython',
             'qtconsole',

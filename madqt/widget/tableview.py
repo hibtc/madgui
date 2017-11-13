@@ -4,10 +4,6 @@ Table widget specified by column behaviour.
 
 from inspect import getmro
 
-from six import (python_2_unicode_compatible,
-                 text_type as unicode,
-                 string_types as basestring)
-
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
 from madqt.core.unit import Expression
@@ -64,7 +60,7 @@ class ColumnInfo(object):
 
     def valueProxy(self, model, index):
         item = model.rows[index]
-        if isinstance(self.getter, basestring):
+        if isinstance(self.getter, str):
             value = getattr(item, self.getter)
         else:
             value = self.getter(*self.getter_args(model, index))
@@ -294,7 +290,6 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
 
 
 # TODO: rename to ItemProxy (or ItemDelegate if that were available).
-@python_2_unicode_compatible
 class ValueProxy(Object):
 
     """Wrap a value of a specific type for string rendering and editting."""
@@ -545,7 +540,7 @@ defaultTypes.update({
     float: FloatValue,
     int: IntValue,
     bool: BoolValue,
-    unicode: StringValue,
+    str: StringValue,
     bytes: StringValue,
     list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,

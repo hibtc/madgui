@@ -9,8 +9,6 @@ import re
 
 import numpy as np
 
-from six import string_types as basestring
-
 from madqt.core.base import Object, Signal
 from madqt.core.unit import from_config
 from madqt.resource.package import PackageResource
@@ -91,7 +89,7 @@ class EngineBase(Object):
     def _load_params(self, data, name):
         """Load parameter dict from file if necessary."""
         vals = data.get(name, {})
-        if isinstance(vals, basestring):
+        if isinstance(vals, str):
             data[name] = self.repo.yaml(vals, encoding='utf-8')
             if len(data[name]) == 1 and name in data[name]:
                 data[name] = data[name][name]
@@ -141,7 +139,7 @@ class SegmentBase(Object):
         """Get :class:`ElementInfo` from element name or index."""
         if isinstance(element, ElementInfo):
             return element
-        if isinstance(element, basestring):
+        if isinstance(element, str):
             element = self.get_element_index(element)
         if element < 0:
             element += len(self.elements)
@@ -410,7 +408,7 @@ class ElementList(Sequence):
                 'name': index.name,
                 'el_id': index.index,
             })
-        if isinstance(index, basestring):
+        if isinstance(index, str):
             return self._get_by_name(index)
         raise TypeError("Unhandled type: {!r}", type(index))
 
@@ -435,7 +433,7 @@ class ElementList(Sequence):
                 'name': element.name,
                 'el_id': element.index,
             })
-        if isinstance(element, basestring):
+        if isinstance(element, str):
             return self._index_by_name(element)
         raise ValueError("Unhandled type: {!r}", type(element))
 

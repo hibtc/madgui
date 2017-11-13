@@ -12,8 +12,6 @@ import math
 
 from numpy import isclose
 
-from six import integer_types
-
 from madqt.qt import Qt, QtCore, QtGui
 
 __all__ = [
@@ -275,7 +273,7 @@ def createPen(style=Qt.SolidLine, color='black', width=1):
     """
     pen = QtGui.QPen(style)
     pen.setColor(QtGui.QColor(color))
-    if isinstance(width, integer_types):
+    if isinstance(width, int):
         pen.setWidth(width)
         pen.setCosmetic(True)
     else:
