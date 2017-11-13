@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Parameter input dialog.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.qt import QtCore, QtGui, Qt
 
@@ -18,7 +14,7 @@ __all__ = [
 ]
 
 
-class ParamInfo(object):
+class ParamInfo:
 
     """Row info for the TableView [internal]."""
 
@@ -61,7 +57,7 @@ class ParamTable(tableview.TableView):
             tableview.ColumnInfo("Value", 'proxy', padding=50),
         ]
 
-        super(ParamTable, self).__init__(columns=columns, **kwargs)
+        super().__init__(columns=columns, **kwargs)
         # in case anyone turns the horizontalHeader back on:
         self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().hide()
@@ -94,7 +90,7 @@ class ParamTable(tableview.TableView):
                 self.edit(self.model().index(self.curRow(), 1))
                 event.accept()
                 return
-        super(ParamTable, self).keyPressEvent(event)
+        super().keyPressEvent(event)
 
     def curRow(self):
         # This is failsafe only in SingleSelection widgets:
@@ -114,7 +110,7 @@ class TabParamTables(QtGui.QTabWidget):
     """
 
     def __init__(self, datastore, index=0, **kwargs):
-        super(TabParamTables, self).__init__()
+        super().__init__()
         self.index = index
         self.kwargs = kwargs
         self.datastore = datastore

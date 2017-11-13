@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Provides unit conversion.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import sys
 
@@ -182,7 +178,7 @@ def from_config(unit):
     return units(unit)
 
 
-class UnitConverter(object):
+class UnitConverter:
 
     """
     Quantity converter.

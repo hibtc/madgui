@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Observable collection classes.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from collections import MutableSequence
 from contextlib import contextmanager
@@ -41,7 +37,7 @@ class Bool(Object):
     changed = Signal(bool)
 
     def __init__(self, value):
-        super(Bool, self).__init__()
+        super().__init__()
         self._value = bool(value)
 
     def get_value(self):
@@ -78,7 +74,7 @@ class List(Object):
 
     def __init__(self, items=None):
         """Use the items object by reference."""
-        super(List, self).__init__()
+        super().__init__()
         self._items = list() if items is None else items
         self.lock = Lock()
 
@@ -197,7 +193,7 @@ class List(Object):
 MutableSequence.register(List)
 
 
-class Selection(object):
+class Selection:
 
     """
     List of elements with the additional notion of an *active* element

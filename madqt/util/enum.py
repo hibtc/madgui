@@ -19,7 +19,7 @@ class EnumMeta(type):
 
 
 # Enum base class
-class Enum(object):
+class Enum:
 
     def __init__(self, value):
         if value not in self._values:

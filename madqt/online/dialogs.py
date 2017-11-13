@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Dialog for selecting DVM parameters to be synchronized.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.qt import QtGui
 from madqt.core.unit import tounit
@@ -28,7 +24,7 @@ class ListSelectWidget(QtGui.QWidget):
 
     def __init__(self, columns, headline):
         """Create sizer with content area, i.e. input fields."""
-        super(ListSelectWidget, self).__init__()
+        super().__init__()
         self.grid = grid = TableView(columns=columns)
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, grid]))
@@ -47,7 +43,7 @@ class ListSelectWidget(QtGui.QWidget):
         #    self.grid.Select(idx)
 
 
-class SyncParamItem(object):
+class SyncParamItem:
 
     def __init__(self, param, dvm_value, mad_value):
         self.param = param
@@ -69,7 +65,7 @@ class SyncParamWidget(ListSelectWidget):
     ]
 
     def __init__(self, title, headline):
-        super(SyncParamWidget, self).__init__(self.columns, headline)
+        super().__init__(self.columns, headline)
         self.title = title
 
 
@@ -85,7 +81,7 @@ def ExportParamWidget():
         'Overwrite selected DVM parameters.')
 
 
-class MonitorItem(object):
+class MonitorItem:
 
     def __init__(self, el_name, values):
         self.name = el_name
@@ -113,4 +109,4 @@ class MonitorWidget(ListSelectWidget):
     ]
 
     def __init__(self):
-        super(MonitorWidget, self).__init__(self.columns, self.headline)
+        super().__init__(self.columns, self.headline)

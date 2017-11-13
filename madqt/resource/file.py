@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Resource provider for plain filesystem resources.
 """

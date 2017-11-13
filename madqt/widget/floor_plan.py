@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 """
@@ -9,15 +8,9 @@ Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import division
-
 import math
 
 from numpy import isclose
-
-from six import integer_types
 
 from madqt.qt import Qt, QtCore, QtGui
 
@@ -55,7 +48,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     """
 
     def __init__(self, *args, **kwargs):
-        super(LatticeFloorPlan, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
@@ -72,7 +65,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     def resizeEvent(self, event):
         """Maintain visible region on resize."""
         self.setViewRect(self.view_rect)
-        super(LatticeFloorPlan, self).resizeEvent(event)
+        super().resizeEvent(event)
 
     def mapRectToScene(self, rect):
         """
@@ -138,7 +131,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
                   'width': 4}
 
     def __init__(self, element, floor, selection):
-        super(ElementGraphicsItem, self).__init__()
+        super().__init__()
         self.element = element
         self.length = float(element.get('l', 0.0))
         self.angle = float(element.get('angle', 0.0))
@@ -280,7 +273,7 @@ def createPen(style=Qt.SolidLine, color='black', width=1):
     """
     pen = QtGui.QPen(style)
     pen.setColor(QtGui.QColor(color))
-    if isinstance(width, integer_types):
+    if isinstance(width, int):
         pen.setWidth(width)
         pen.setCosmetic(True)
     else:

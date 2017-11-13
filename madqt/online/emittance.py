@@ -1,11 +1,6 @@
-# encoding: utf-8
 """
 UI for matching.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
-from __future__ import division
 
 from pkg_resources import resource_filename
 from collections import namedtuple
@@ -72,7 +67,7 @@ class EmittanceDialog(QtGui.QDialog):
     ]
 
     def __init__(self, control):
-        super(EmittanceDialog, self).__init__(control._frame)
+        super().__init__(control._frame)
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.control = control
 

@@ -1,16 +1,8 @@
-# encoding: utf-8
 """
 Table widget specified by column behaviour.
 """
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from inspect import getmro
-
-from six import (python_2_unicode_compatible,
-                 text_type as unicode,
-                 string_types as basestring)
 
 from madqt.qt import QtCore, QtGui, Qt
 from madqt.core.base import Object, Signal
@@ -39,7 +31,7 @@ defaultTypes = {}       # default {type: value proxy} mapping
 # TODO: more consistent behaviour/feel of controls: Quantity vs Bare
 
 
-class ColumnInfo(object):
+class ColumnInfo:
 
     """Column specification for a table widget."""
 
@@ -68,7 +60,7 @@ class ColumnInfo(object):
 
     def valueProxy(self, model, index):
         item = model.rows[index]
-        if isinstance(self.getter, basestring):
+        if isinstance(self.getter, str):
             value = getattr(item, self.getter)
         else:
             value = self.getter(*self.getter_args(model, index))
@@ -113,7 +105,7 @@ class TableModel(QtCore.QAbstractTableModel):
         baseFlags = 0           # Qt4
 
     def __init__(self, columns, data=None, context=None):
-        super(TableModel, self).__init__()
+        super().__init__()
         self.columns = columns
         self.context = context if context is not None else self
         self._rows = List() if data is None else data
@@ -158,7 +150,7 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         if not index.isValid():
-            return super(TableModel, self).flags(index)
+            return super().flags(index)
         return self.value(index).flags() | self.baseFlags
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -187,7 +179,7 @@ class TableView(QtGui.QTableView):
 
     def __init__(self, parent=None, columns=None, data=None, context=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
-        super(TableView, self).__init__(parent, **kwargs)
+        super().__init__(parent, **kwargs)
         self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
@@ -210,7 +202,7 @@ class TableView(QtGui.QTableView):
             self._setColumnResizeMode(index, resize)
 
     def selectionChanged(self, selected, deselected):
-        super(TableView, self).selectionChanged(selected, deselected)
+        super().selectionChanged(selected, deselected)
         self.selectionChangedSignal.emit()
 
     @property
@@ -247,11 +239,11 @@ class TableView(QtGui.QTableView):
         total_width = (margins_width +
                        content_width +
                        scrollbar_width)
-        height = super(TableView, self).sizeHint().height()
+        height = super().sizeHint().height()
         return QtCore.QSize(total_width, height)
 
     def sizeHintForColumn(self, column):
-        return (super(TableView, self).sizeHintForColumn(column)
+        return (super().sizeHintForColumn(column)
                 + self.model().columns[column].padding)
 
     @property
@@ -279,7 +271,7 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
         valueProxy = index.model().value(index)
         return (not valueProxy.editable and ReadOnlyDelegate() or
                 valueProxy.delegate() or
-                super(TableViewDelegate, self))
+                super())
 
     def createEditor(self, parent, option, index):
         return self.delegate(index).createEditor(parent, option, index)
@@ -298,7 +290,6 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
 
 
 # TODO: rename to ItemProxy (or ItemDelegate if that were available).
-@python_2_unicode_compatible
 class ValueProxy(Object):
 
     """Wrap a value of a specific type for string rendering and editting."""
@@ -344,7 +335,7 @@ class ValueProxy(Object):
                  sizeHint=None,
                  ):
         """Store the value."""
-        super(ValueProxy, self).__init__()
+        super().__init__()
         if default is not None: self.default = default
         if editable is not None: self.editable = editable
         if fmtspec is not None: self.fmtspec = fmtspec
@@ -474,14 +465,14 @@ class BoolValue(ValueProxy):
         return self.value
 
     def flags(self):
-        base_flags = super(BoolValue, self).flags()
+        base_flags = super().flags()
         return base_flags & ~Qt.ItemIsEditable | Qt.ItemIsUserCheckable
 
     def setData(self, value, role):
         if role == Qt.CheckStateRole:
             role = Qt.EditRole
             value = value == Qt.Checked
-        return super(BoolValue, self).setData(value, role)
+        return super().setData(value, role)
 
 
 # TODO: use UI units
@@ -492,7 +483,7 @@ class QuantityValue(FloatValue):
             self.unit = unit.get_unit(value)
         else:
             self.unit = unit.get_unit(kwargs.get('default'))
-        super(QuantityValue, self).__init__(value, **kwargs)
+        super().__init__(value, **kwargs)
 
     @property
     def value(self):
@@ -539,7 +530,7 @@ class EnumValue(StringValue):
 
     def __init__(self, value, **kwargs):
         self.enum = type(value)
-        super(EnumValue, self).__init__(value, **kwargs)
+        super().__init__(value, **kwargs)
 
     def delegate(self):
         return EnumDelegate(self.enum)
@@ -549,7 +540,7 @@ defaultTypes.update({
     float: FloatValue,
     int: IntValue,
     bool: BoolValue,
-    unicode: StringValue,
+    str: StringValue,
     bytes: StringValue,
     list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,
@@ -623,7 +614,7 @@ class DoubleValidator(_DoubleValidator):
         # Allow to delete values
         if not text:
             return (QtGui.QValidator.Acceptable, text, pos)
-        return super(DoubleValidator, self).validate(text, pos)
+        return super().validate(text, pos)
 
 
 class FloatDelegate(QtGui.QStyledItemDelegate):
@@ -656,7 +647,7 @@ class FloatDelegate(QtGui.QStyledItemDelegate):
 class QuantityDelegate(QtGui.QStyledItemDelegate):
 
     def __init__(self, unit):
-        super(QuantityDelegate, self).__init__()
+        super().__init__()
         self.unit = unit
 
     def createEditor(self, parent, option, index):
@@ -675,7 +666,7 @@ class AffixLineEdit(QtGui.QWidget):
     """Single-line edit control with prefix/suffix text."""
 
     def __init__(self, *args, **kwargs):
-        super(AffixLineEdit, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.prefix = QtGui.QLabel()
         self.suffix = QtGui.QLabel()
         self.edit = QtGui.QLineEdit()
@@ -723,7 +714,7 @@ class ListDelegate(QtGui.QStyledItemDelegate):
 class EnumDelegate(QtGui.QStyledItemDelegate):
 
     def __init__(self, enum):
-        super(EnumDelegate, self).__init__()
+        super().__init__()
         self.enum = enum
 
     def createEditor(self, parent, option, index):

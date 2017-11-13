@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Multi grid correction method.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.qt import QtCore
 from madqt.core.unit import get_unit
@@ -35,7 +31,7 @@ class Corrector(OrbitCorrectorBase):
     """
 
     def __init__(self, control, target, monitors, x_steerers, y_steerers):
-        super(Corrector, self).__init__(
+        super().__init__(
             control,
             targets=[target],
             magnets=[],
@@ -52,7 +48,7 @@ class SelectWidget(OVM_SelectWidget):
     """
 
     def __init__(self, *args, **kwargs):
-        super(SelectWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.label_monitor.setText("Target:")
         self.label_qp1.setText("Monitor 1:")
         self.label_qp2.setText("Monitor 2:")
@@ -153,7 +149,7 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.corrector.clear_orbit_records()
         self.corrector.add_orbit_records(
             self.corrector.current_orbit_records())
-        super(CorrectorWidget, self).update_fit()
+        super().update_fit()
 
     def set_fit_iterations(self, num):
         self.fit_iterations = num

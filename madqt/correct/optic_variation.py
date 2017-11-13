@@ -1,11 +1,7 @@
-# encoding: utf-8
 """
 Utilities for the optic variation method (Optikvarianzmethode) for beam
 alignment.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from pkg_resources import resource_filename
 
@@ -46,7 +42,7 @@ class Corrector(OrbitCorrectorBase):
     """
 
     def __init__(self, control, target, quadrupoles, x_steerers, y_steerers):
-        super(Corrector, self).__init__(
+        super().__init__(
             control,
             targets=[target],
             magnets=quadrupoles,
@@ -63,7 +59,7 @@ class SelectWidget(QtGui.QWidget):
     """
 
     def __init__(self, elements, config):
-        super(SelectWidget, self).__init__()
+        super().__init__()
         uic.loadUi(resource_filename(__name__, 'ovm_select.ui'), self)
         self.choice_monitor.currentIndexChanged.connect(self.on_change_monitor)
         self.ctrl_qps = (self.choice_qp1, self.choice_qp2)
