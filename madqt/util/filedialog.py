@@ -53,7 +53,7 @@ def _fileDialog(acceptMode, fileMode,
 
     if not ext:
         ext = filters[selectedFilter][1]    # use first extension
-        if ext != '*' and ext != '*.*':
+        if ext.startswith('*.') and ext != '*.*':
             return filename + ext[1:]       # remove leading '*'
     return filename
 
