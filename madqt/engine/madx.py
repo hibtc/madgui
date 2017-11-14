@@ -545,7 +545,7 @@ class Segment(SegmentBase):
                         constraints=madx_constraints,
                         twiss_init=twiss_args)
         # TODO: update only modified elements
-        self.elements.update()
+        self.elements.invalidate()
         self.retrack()
 
     def get_magnet(self, elem, conv):

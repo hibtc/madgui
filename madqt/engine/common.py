@@ -432,7 +432,7 @@ class ElementList(Sequence):
         """
         if isinstance(element, int):
             return element
-        if isinstance(element, dict):
+        if isinstance(element, (dict, ElementBase)):
             return self._index_by_dict(element)
         if isinstance(element, ElementInfo):
             return self._index_by_dict({
