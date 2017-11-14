@@ -201,7 +201,7 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------
 
     def fileOpen(self):
-        from madqt.util.filedialog import getOpenFileName
+        from madqt.widget.filedialog import getOpenFileName
         filters = [
             ("Model files", "*.cpymad.yml", "*.pytao.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),

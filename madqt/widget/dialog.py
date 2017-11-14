@@ -51,7 +51,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
 
     def onImport(self):
         """Import data from JSON/YAML file."""
-        from madqt.util.filedialog import getOpenFileName
+        from madqt.widget.filedialog import getOpenFileName
         filename = getOpenFileName(
             self.window(), 'Import values', self.folder,
             self.widget.datastore.importFilters)
@@ -61,7 +61,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
 
     def onExport(self):
         """Export data to YAML file."""
-        from madqt.util.filedialog import getSaveFileName
+        from madqt.widget.filedialog import getSaveFileName
         filename = getSaveFileName(
             self.window(), 'Export values', self.folder,
             self.widget.datastore.exportFilters)
