@@ -1,22 +1,23 @@
 """
-Compatibility module for Qt.
-
-Use this module to get consistent Qt imports.
+Compatibility module for Qt. Historically used to achieve compatibility with
+PyQt4. Now still to maintain a stable internal API for QtGui.
 """
 
-# this is required for qtconsole (interactive shell) to work:
-from qtconsole.qt_loaders import load_qt
+import types
+
+from PyQt5 import QtCore, QtWidgets, QtGui, QtPrintSupport, uic
 
 __all__ = [
     'Qt',
     'QtCore',
     'QtGui',
-    'QtSvg',
-    'QT_API',
     'uic',
 ]
 
-QtCore, QtGui, QtSvg, QT_API = load_qt(['pyqt5'])
-Qt = QtCore.Qt
 
-from PyQt5 import uic
+QtGuiCompat = types.ModuleType('QtGui')
+QtGuiCompat.__dict__.update(QtGui.__dict__)
+QtGuiCompat.__dict__.update(QtWidgets.__dict__)
+QtGuiCompat.__dict__.update(QtPrintSupport.__dict__)
+QtGui = QtGuiCompat
+Qt = QtCore.Qt

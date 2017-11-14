@@ -4,7 +4,7 @@ Utilities to create plots using matplotlib via the Qt5Agg backend.
 
 from collections import namedtuple
 
-from madqt.qt import QtCore, QtGui, QT_API  # import Qt before matplotlib!
+from madqt.qt import QtCore, QtGui      # import Qt before matplotlib!
 
 import matplotlib as mpl
 mpl.use('Qt5Agg')                       # select before mpl.backends import!
