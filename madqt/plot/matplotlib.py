@@ -1,20 +1,14 @@
 """
-Utilities to create plots using matplotlib via the Qt4Agg backend.
+Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
 
 from collections import namedtuple
 
-from madqt.qt import QtCore, QtGui, QT_API  # import Qt before matplotlib!
+from madqt.qt import QtCore, QtGui      # import Qt before matplotlib!
 
 import matplotlib as mpl
-if QT_API == 'pyqt5':
-    mpl.use('Qt5Agg')                       # select before mpl.backends import!
-    import matplotlib.backends.backend_qt5agg as mpl_backend
-elif QT_API == 'pyqt':
-    mpl.use('Qt4Agg')                       # select before mpl.backends import!
-    import matplotlib.backends.backend_qt4agg as mpl_backend
-else:
-    raise NotImplementedError("Unsupported Qt API: {}".format(QT_API))
+mpl.use('Qt5Agg')                       # select before mpl.backends import!
+import matplotlib.backends.backend_qt5agg as mpl_backend
 
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
