@@ -5,6 +5,7 @@ Utility functions for use with QFileDialog.
 import os
 
 from madqt.qt import Qt, QtGui
+from madqt.core.base import Signal
 
 
 __all__ = [
@@ -95,6 +96,8 @@ class FileWidget(QtGui.QLineEdit):
     filename = None
     folder = None
 
+    file_changed = Signal(str)
+
     def __init__(self):
         super().__init__()
         self.setReadOnly(True)
@@ -111,6 +114,7 @@ class FileWidget(QtGui.QLineEdit):
         super().mousePressEvent(event)
 
     def set_filename(self, filename):
+        changed = filename != self.filename
         if filename is None:
             self.filename = None
             self.folder = None
@@ -119,6 +123,8 @@ class FileWidget(QtGui.QLineEdit):
             self.filename = filename
             self.folder = os.path.dirname(os.path.abspath(filename))
             self.setText(filename)
+        if changed:
+            self.file_changed.emit(filename)
 
     def show_open_dialog(self):
         filename = getFileName(self.mode, self.title, self.folder, self.filters)
