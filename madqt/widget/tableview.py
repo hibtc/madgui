@@ -99,10 +99,7 @@ class TableModel(QtCore.QAbstractTableModel):
     data can be accessed and changed via the list-like :attribute:`rows`.
     """
 
-    try:
-        baseFlags = Qt.ItemNeverHasChildren
-    except AttributeError:
-        baseFlags = 0           # Qt4
+    baseFlags = Qt.ItemNeverHasChildren
 
     def __init__(self, columns, data=None, context=None):
         super().__init__()
@@ -229,8 +226,6 @@ class TableView(QtGui.QTableView):
                    self.horizontalHeader().sectionSizeHint(column))
 
     def sizeHint(self):
-        # FIXME: (low priority) This works accurately (as expected) on PyQt5,
-        # but somehow gives slightly too much space on PyQt4:
         content_width = sum(map(self._columnContentWidth,
                                 range(len(self.model().columns))))
         margins_width = (self.contentsMargins().left() +
@@ -248,17 +243,11 @@ class TableView(QtGui.QTableView):
 
     @property
     def _setColumnResizeMode(self):
-        return self._resizeMode(self.horizontalHeader())
+        return self.horizontalHeader().setSectionResizeMode
 
     @property
     def _setRowResizeMode(self):
-        return self._resizeMode(self.verticalHeader())
-
-    def _resizeMode(self, header):
-        try:
-            return header.setResizeMode
-        except AttributeError:  # PyQt5
-            return header.setSectionResizeMode
+        return self.verticalHeader().setSectionResizeMode
 
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):

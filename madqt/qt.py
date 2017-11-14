@@ -7,9 +7,6 @@ Use this module to get consistent Qt imports.
 # this is required for qtconsole (interactive shell) to work:
 from qtconsole.qt_loaders import load_qt
 
-import os
-
-
 __all__ = [
     'Qt',
     'QtCore',
@@ -19,14 +16,7 @@ __all__ = [
     'uic',
 ]
 
-api_pref = os.environ.get('PYQT_API') or 'pyqt,pyqt5'
-api_opts = api_pref.lower().split(',')
-
-QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
-
+QtCore, QtGui, QtSvg, QT_API = load_qt(['pyqt5'])
 Qt = QtCore.Qt
 
-if QT_API == 'pyqt':
-    from PyQt4 import uic
-elif QT_API == 'pyqt5':
-    from PyQt5 import uic
+from PyQt5 import uic

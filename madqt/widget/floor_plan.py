@@ -96,10 +96,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
 
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
-        try:
-            delta = event.delta()               # PyQt4
-        except AttributeError:
-            delta = event.angleDelta().y()      # PyQt5
+        delta = event.angleDelta().y()
         self.zoom(1.0 + delta/1000.0)
 
     def _update_selection(self, slice, old_values, new_values):

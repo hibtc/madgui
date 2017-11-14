@@ -72,7 +72,7 @@ def main():
             # inprocess python shell:
             'ipython',
             'qtconsole',
-            # 'PyQt4',
+            # 'PyQt5',
         ],
         # Make sure to always have at least one of these installed:
         extras_require={
