@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Custom spin box widgets.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import math
 
@@ -38,7 +34,7 @@ class AbstractSpinBox(ValueControlBase, QtGui.QAbstractSpinBox):
     #
 
     def __init__(self, *args, **kwargs):
-        super(AbstractSpinBox, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.editingFinished.connect(self.updateEdit)
 
     # QWidget overrides
@@ -92,7 +88,7 @@ class AbstractSpinBox(ValueControlBase, QtGui.QAbstractSpinBox):
             self.editingFinished.emit()
             self.selectAll()
             return
-        super(AbstractSpinBox, self).keyPressEvent(event)
+        super().keyPressEvent(event)
 
     # QAbstractSpinBox overrides
 
@@ -146,7 +142,7 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
     typical = 33333333333333333e-33
 
     def __init__(self, *args, **kwargs):
-        super(QuantitySpinBox, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.valueChanged.connect(self.update_step)
         self.updateEdit()
 
@@ -163,4 +159,4 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
         buttons = [QtGui.QAbstractSpinBox.NoButtons,
                    QtGui.QAbstractSpinBox.UpDownArrows]
         self.setButtonSymbols(buttons[bool(NumberFormat.spinbox)])
-        super(QuantitySpinBox, self).updateEdit()
+        super().updateEdit()

@@ -69,11 +69,10 @@ def main():
             'PyYAML',           # config/model files
             'Pint==0.6',
             'docutils',         # about dialogs
-            'six>=1.10.0',      # py2/3 compatibility
             # inprocess python shell:
             'ipython',
             'qtconsole',
-            # 'PyQt4',
+            # 'PyQt5',
         ],
         # Make sure to always have at least one of these installed:
         extras_require={

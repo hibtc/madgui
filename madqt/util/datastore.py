@@ -1,12 +1,10 @@
-from __future__ import absolute_import
-
 from abc import abstractmethod
 from collections import OrderedDict
 
 from madqt.resource import yaml
 
 
-class DataStore(object):
+class DataStore:
 
     """
     Base class that defines the protocol between data source/sink and

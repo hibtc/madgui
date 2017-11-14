@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Implementations covering the MAD-X backend for accessing element properties.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from . import api
 

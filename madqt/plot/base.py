@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Plot base classes.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 
 __all__ = [
@@ -13,7 +9,7 @@ __all__ = [
 ]
 
 
-class SceneElement(object):
+class SceneElement:
 
     """
     A self-contained unit to be plotted.

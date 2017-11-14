@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 Contains base class for resource providers.
 """
@@ -16,7 +15,7 @@ __all__ = [
 ]
 
 
-class ResourceProvider(object):
+class ResourceProvider:
 
     """
     Abstract base class for resource providers.

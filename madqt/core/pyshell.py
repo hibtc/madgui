@@ -13,7 +13,7 @@ def create(user_ns):
     manager = QtInProcessKernelManager()
     manager.start_kernel(show_banner=False)
     kernel = manager.kernel
-    kernel.gui = 'qt4'
+    kernel.gui = 'qt5'
     kernel.user_ns = user_ns
 
     client = manager.client()

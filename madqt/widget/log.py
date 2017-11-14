@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Logging utils.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 # TODO:
 # - filter log according to log message type
@@ -57,7 +53,7 @@ class LogWindow(QtGui.QListView):
 
     def __init__(self, *args):
         self.records = List()
-        super(LogWindow, self).__init__(*args)
+        super().__init__(*args)
         self.setFont(font.monospace(10))
         self.setModel(TableModel(self.columns, self.records))
         self.setItemDelegate(LogDelegate(self.font()))
@@ -108,7 +104,7 @@ class LogDelegate(MultiLineDelegate):
 
     def __init__(self, font):
         self.font = font
-        super(LogDelegate, self).__init__()
+        super().__init__()
 
     def _get_text_info(self, option, index):
         record = index.model().rows[index.row()]
@@ -216,7 +212,7 @@ class RecordHandler(logging.Handler):
     """Handle incoming logging events by adding them to a list."""
 
     def __init__(self, records):
-        super(RecordHandler, self).__init__()
+        super().__init__()
         self.records = records
 
     def emit(self, record):
@@ -238,7 +234,7 @@ class AsyncRead(Object):
     dataReceived = Signal()
 
     def __init__(self, stream):
-        super(AsyncRead, self).__init__()
+        super().__init__()
         self.queue = Queue()
         self.stream = stream
         self.thread = threading.Thread(target=self._readLoop)

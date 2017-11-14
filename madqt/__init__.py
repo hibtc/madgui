@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 To start MadQt type at your terminal:
 
@@ -8,8 +7,6 @@ or simply:
 
     madqt
 """
-
-from __future__ import unicode_literals
 
 __title__ = 'MadQt'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
@@ -46,7 +43,6 @@ __classifiers__ = [
     'Intended Audience :: Science/Research',
     'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
     'Operating System :: OS Independent',
-    'Programming Language :: Python :: 2',
     'Programming Language :: Python :: 3',
     'Topic :: Scientific/Engineering :: Medical Science Apps.',
     'Topic :: Scientific/Engineering :: Physics',

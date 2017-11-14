@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Misc programming toolbox.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import os
 import functools
@@ -99,7 +95,7 @@ def update_property(update, name=None):
     return wrapper
 
 
-class Property(object):
+class Property:
 
     def __init__(self, obj, construct):
         self.obj = obj

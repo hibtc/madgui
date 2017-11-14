@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 This module exposes a uniform wrapper API for various MAD-X element types.
 There are for example at least three ways to define a dipole, all of them
@@ -16,9 +15,6 @@ correct implementing class corresponding to a given MAD-X element can be
 obtained via :func:`get_element_class`. For an example, see the code in
 :mod:`control`.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from madqt.util.symbol import SymbolicValue
 

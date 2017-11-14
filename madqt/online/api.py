@@ -1,4 +1,3 @@
-# encoding: utf-8
 """
 This module defines the API of any online control plugin. Note that the API
 is subject to change (as is most parts of madqt…).
@@ -22,9 +21,6 @@ The interface contract is currently designed as follows:
         - :class:`ElementBackendConverter` performs parameter conversions
           between internal and standard representation
 """
-
-from __future__ import absolute_import
-# from __future__ import unicode_literals
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 

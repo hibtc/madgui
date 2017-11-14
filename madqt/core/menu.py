@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Menu creation utilities.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from six import string_types
 
@@ -19,7 +15,7 @@ __all__ = [
 ]
 
 
-class Item(object):
+class Item:
 
     def __init__(self, label, shortcut, description, callback, icon=None,
                  enabled=True, checked=None):
@@ -68,7 +64,7 @@ class Item(object):
         setter(cur)
 
 
-class Menu(object):
+class Menu:
 
     def __init__(self, label, items):
         self.label = label
@@ -79,7 +75,7 @@ class Menu(object):
         extend(parent, submenu, self.items)
 
 
-class Separator(object):
+class Separator:
 
     @classmethod
     def append_to(cls, menu, parent):

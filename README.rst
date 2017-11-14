@@ -16,7 +16,7 @@ Needs to be built manually:
 
 These are likely to be available in your system repositories:
 
-- PyQt4_
+- PyQt5_
 - matplotlib_
 - numpy_
 
@@ -38,7 +38,7 @@ in your repositories:
 .. _cpymad: https://github.com/hibtc/cpymad
 .. _pytao: https://github.com/hibtc/pytao
 .. _minrpc: https://pypi.python.org/pypi/minrpc
-.. _PyQt4: https://riverbankcomputing.com/software/pyqt/intro
+.. _PyQt5: https://riverbankcomputing.com/software/pyqt/intro
 .. _matplotlib: http://matplotlib.org/
 .. _numpy: http://www.numpy.org
 .. _docopt: https://pypi.python.org/pypi/docopt
@@ -69,18 +69,6 @@ Now, you should be able to start MadQt with the command::
 or::
 
     python -m madqt
-
-
-Qt
-~~
-
-MadQt can be run with PyQt4 or PyQt5. To select either backend, set the
-environment variable ``PYQT_API``:
-
-.. code-block:: bash
-
-    export PYQT_API=pyqt        # require PyQt4
-    export PYQT_API=pyqt5,pyqt  # prefer PyQt5, fallback to PyQt4
 
 
 Development guidelines

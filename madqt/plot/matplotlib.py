@@ -1,24 +1,14 @@
-# encoding: utf-8
 """
-Utilities to create plots using matplotlib via the Qt4Agg backend.
+Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from collections import namedtuple
 
-from madqt.qt import QtCore, QtGui, QT_API  # import Qt before matplotlib!
+from madqt.qt import QtCore, QtGui      # import Qt before matplotlib!
 
 import matplotlib as mpl
-if QT_API == 'pyqt5':
-    mpl.use('Qt5Agg')                       # select before mpl.backends import!
-    import matplotlib.backends.backend_qt5agg as mpl_backend
-elif QT_API == 'pyqt':
-    mpl.use('Qt4Agg')                       # select before mpl.backends import!
-    import matplotlib.backends.backend_qt4agg as mpl_backend
-else:
-    raise NotImplementedError("Unsupported Qt API: {}".format(QT_API))
+mpl.use('Qt5Agg')                       # select before mpl.backends import!
+import matplotlib.backends.backend_qt5agg as mpl_backend
 
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
@@ -63,7 +53,7 @@ class PlotWidget(QtGui.QWidget):
         :param kwargs: keyword arguments for :class:`QWidget`
         """
 
-        super(PlotWidget, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.figure = figure
         self.canvas = canvas = mpl_backend.FigureCanvas(figure.backend_figure)
@@ -139,7 +129,7 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-class Curve(object):
+class Curve:
 
     """Plot a TWISS parameter curve segment into a 2D figure."""
 
@@ -172,7 +162,7 @@ class Curve(object):
             self.line = None
 
 
-class MultiFigure(object):
+class MultiFigure:
 
     """
     A figure composed of multiple subplots with shared x-axis.

@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 from functools import partial
 
@@ -38,7 +34,7 @@ class Control(Object):
         database. This works only if the corresponding parameters were named
         exactly as in the database and are assigned with the ":=" operator.
         """
-        super(Control, self).__init__()
+        super().__init__()
         self._frame = frame
         self._plugin = None
         # menu conditions

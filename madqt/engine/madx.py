@@ -1,10 +1,6 @@
-# encoding: utf-8
 """
 MAD-X backend for MadQt.
 """
-
-from __future__ import absolute_import
-from __future__ import unicode_literals
 
 import os
 from collections import OrderedDict
@@ -12,7 +8,6 @@ from functools import partial
 import itertools
 import logging
 
-from six import string_types as basestring
 import numpy as np
 
 from cpymad.madx import Madx
@@ -68,7 +63,7 @@ class Workspace(EngineBase):
         self.repo = None
         self.init_files = []
         self.command_log = command_log
-        super(Workspace, self).__init__(filename, app_config)
+        super().__init__(filename, app_config)
 
     @property
     def libmadx(self):
@@ -289,7 +284,7 @@ class Segment(SegmentBase):
         :param tuple range:
         """
 
-        super(Segment, self).__init__()
+        super().__init__()
 
         self.workspace = workspace
         self.sequence = workspace.madx.sequences[sequence]
@@ -319,7 +314,7 @@ class Segment(SegmentBase):
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
-        if isinstance(range, basestring):
+        if isinstance(range, str):
             range = range.split('/')
         start_name, stop_name = range
         return (self.get_element_info(start_name),
@@ -387,7 +382,7 @@ class Segment(SegmentBase):
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
         d = self.utool.dict_strip_unit(d)
-        if any(isinstance(v, (list,basestring)) for v in d.values()):
+        if any(isinstance(v, (list,str)) for v in d.values()):
             self.madx.command(name, **d)
         else:
             for k, v in d.items():
