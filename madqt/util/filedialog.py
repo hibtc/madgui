@@ -8,25 +8,23 @@ from madqt.qt import QtGui
 
 
 __all__ = [
-    'make_filter',
+    'getOpenFileName',
+    'getSaveFileName',
 ]
 
-def make_filter(wildcards):
+
+def make_filters(wildcards):
     """
     Create wildcard string from multiple wildcard tuples.
 
     For example:
 
-        >>> make_filter([
+        >>> make_filters([
         ...     ('All files', '*'),
         ...     ('Text files', '*.txt', '*.log'),
         ... ])
-        All files (*);;Text files (*.txt *.log)
+        ['All files (*)', 'Text files (*.txt *.log)']
     """
-    return ';;'.join(make_filters(wildcards))
-
-
-def make_filters(wildcards):
     return ["{0} ({1})".format(w[0], " ".join(w[1:]))
             for w in wildcards]
 
