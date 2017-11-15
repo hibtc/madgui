@@ -3,6 +3,7 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
+import os
 from functools import partial
 
 import numpy as np
@@ -14,6 +15,7 @@ from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
 from madqt.plot.base import SceneElement, SceneGraph
+from madqt.widget.filedialog import getOpenFileName
 
 
 __all__ = [
@@ -613,6 +615,10 @@ class CompareTool(CheckTool):
     icon = QtGui.QStyle.SP_DirLinkIcon
     text = 'Show MIRKO envelope for comparison. The envelope is computed for the default parameters.'
 
+    dataFileFilters = [
+        ("Text files", "*.txt", "*.dat")
+    ]
+
     # TODO: allow to plot any dynamically loaded curve from any file
 
     def __init__(self, plot):
@@ -622,6 +628,8 @@ class CompareTool(CheckTool):
         self.plot = plot
         self.style = plot.scene.config['reference_style']
         self.curve = None
+        self.filename = None
+        self.folder = self.plot.scene.segment.workspace.repo.path
 
     def activate(self):
         self.active = True
@@ -641,12 +649,13 @@ class CompareTool(CheckTool):
             self.plot.scene.scene_graph.items.remove(self.curve)
             self.plot.scene.draw()
             self.curve = None
+        # ask user again, next time
+        self.filename = None
 
     def createCurve(self):
         self.curve = None
-        try:
-            data = self.getData()
-        except KeyError:
+        data = self.getData()
+        if not data:
             return
         scene = self.plot.scene
         self.curve = SceneGraph([
@@ -661,25 +670,15 @@ class CompareTool(CheckTool):
         ])
 
     def getData(self):
-        metadata, resource = self.getMeta()
-        column_info = metadata['columns']
-        scene = self.plot.scene
-        col_names = [curve.short for curve in scene.graph_info.curves]
-        col_names += [scene.x_name]
-        col_infos = [column_info[col_name] for col_name in col_names]
-        usecols = [col_info['column'] for col_info in col_infos]
-        with resource.filename() as f:
-            ref_data = np.loadtxt(f, usecols=usecols, unpack=True)
-        return {
-            name: from_config(column['unit']) * data
-            for name, column, data in zip(col_names, col_infos, ref_data)
-        }
-
-    def getMeta(self):
-        workspace = self.plot.scene.segment.workspace
-        metadata = workspace.data['review']
-        resource = workspace.repo.get(metadata['file'])
-        return metadata, resource
+        if not self.filename:
+            self.filename = getOpenFileName(
+                self.plot.window(), 'Open data file for comparison',
+                self.folder, self.dataFileFilters)
+            if not self.filename:
+                return
+            self.folder = os.path.dirname(self.filename)
+        from madqt.util.table import read_table
+        return read_table(self.filename)
 
 
 def ax_label(label, unit):
