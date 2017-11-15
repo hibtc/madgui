@@ -453,15 +453,29 @@ class MainWindow(QtGui.QMainWindow):
         def toggleIndicators():
             scene.show_indicators = not scene.show_indicators
 
+        def manageCurves():
+            from madqt.widget.curvemanager import CurveManager
+            widget = CurveManager(scene.loaded_curves, scene.shown_curves)
+            dialog = Dialog(self)
+            dialog.setWidget(widget, tight=True)
+            dialog.setWindowTitle("Curve manager")
+            dialog.show()
+
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [
             Menu('&View', [
+                # TODO: dynamic checked state
                 Item('&Shared plot', 'Ctrl+M',
                      'Plot all curves into the same plot - more compact format.',
                      toggleShareAxes, checked=False),
+                # TODO: dynamic checked state
                 Item('Element &indicators', None,
                      'Show element indicators',
-                     toggleIndicators, checked=show_indicators)
+                     toggleIndicators, checked=show_indicators),
+                # TODO: should be specific to the plot window…:
+                Item('Curve management', None,
+                     'Manage which data sets are shown',
+                     manageCurves),
             ]),
         ])
         return scene

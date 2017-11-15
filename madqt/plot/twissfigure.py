@@ -71,11 +71,12 @@ class TwissFigure(Artist):
         self.figure = figure
         self.matcher = self.segment.get_matcher()
         # scene
+        self.shown_curves = List()
         self.loaded_curves = List()
         self.twiss_curves = SceneGraph()
         self.user_curves = ListView(
             partial(make_user_curve, self),
-            self.loaded_curves)
+            self.shown_curves)
         self.user_curves.enable(False)
         self.indicators = SceneGraph()
         self.indicators.enable(False)
@@ -101,12 +102,13 @@ class TwissFigure(Artist):
 
     def attach(self, plot):
         curves = self.loaded_curves
+        selection = self.shown_curves
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
-        plot.addTool(CompareTool(plot))
-        plot.addTool(LoadFileTool(plot, curves))
-        plot.addTool(SaveCurveTool(plot, curves))
+        plot.addTool(CompareTool(plot, selection))
+        plot.addTool(LoadFileTool(plot, curves, selection))
+        plot.addTool(SaveCurveTool(plot, curves, selection))
 
     def set_graph(self, graph_name):
         self.graph_name = graph_name
@@ -616,6 +618,10 @@ def draw_selection_marker(axes, scene, el_idx):
 
 class CompareTool(CheckTool):
 
+    # TODO: remove LoadCurveTool, SaveCurveTool -> integrate into CurveManager
+    # TODO: CompareTool.activate -> CurveManager.create()
+    # TODO: CurveManager -> @SingleWindow
+
     """
     Display a precomputed reference curve for comparison.
 
@@ -626,7 +632,13 @@ class CompareTool(CheckTool):
     icon = QtGui.QStyle.SP_DirLinkIcon
     text = 'Load data file for comparison.'
 
-    # TODO: allow to plot any dynamically loaded curve from any file
+    def __init__(self, plot, selection):
+        super().__init__(plot)
+        self.selection = selection
+        selection.update_after.connect(self._update)
+
+    def _update(self, *args):
+        self.setChecked(len(self.selection) > 0)
 
     def activate(self):
         self.active = True
@@ -637,8 +649,8 @@ class CompareTool(CheckTool):
         self.plot.scene.user_curves.enable(False)
 
 
-def make_user_curve(scene, item):
-    name, data = item
+def make_user_curve(scene, idx):
+    name, data = scene.loaded_curves[idx]
     style = scene.config['reference_style']
     return SceneGraph([
         Curve(
@@ -662,9 +674,10 @@ class LoadFileTool(ButtonTool):
         ("TFS tables", "*.tfs", "*.twiss"),
     ]
 
-    def __init__(self, plot, curves):
+    def __init__(self, plot, curves, selection):
         self.plot = plot
         self.curves = curves
+        self.selection = selection
         self.folder = self.plot.scene.segment.workspace.repo.path
 
     def activate(self):
@@ -675,6 +688,7 @@ class LoadFileTool(ButtonTool):
             self.folder, basename = os.path.split(filename)
             data = self.load_file(filename)
             self.curves.append((basename, data))
+            self.selection[:] = [len(self.curves)-1]
 
     def load_file(self, filename):
         from madqt.util.table import read_table, read_tfsfile
@@ -710,9 +724,10 @@ class SaveCurveTool(ButtonTool):
     icon = QtGui.QStyle.SP_DialogSaveButton
     text = 'Save the current curve data for later comparison.'
 
-    def __init__(self, plot, curves):
+    def __init__(self, plot, curves, selection):
         self.plot = plot
         self.curves = curves
+        self.selection = selection
 
     def activate(self):
         data = {
@@ -722,6 +737,7 @@ class SaveCurveTool(ButtonTool):
         curve = next(iter(self.plot.scene.twiss_curves.items))
         data[curve.x_name] = curve.get_xdata()
         self.curves.append(("saved curve", data))
+        self.selection[:] = [len(self.curves)-1]
 
 
 def ax_label(label, unit):
