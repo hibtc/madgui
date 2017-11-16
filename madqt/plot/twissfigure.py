@@ -107,7 +107,7 @@ class TwissFigure:
 
     def relayout(self):
         self.update_graph_data()
-        self.scene_graph.clear_items()
+        self.scene_graph.remove()
         self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
         self.indicators.items.extend([
             ElementIndicators(ax, self, self.element_style)
@@ -183,7 +183,7 @@ class TwissFigure:
         self.draw()
 
     def remove(self):
-        self.scene_graph.remove()
+        self.scene_graph.clear()
         self.segment.updated.disconnect(self.update)
 
     def update_graph_data(self):
@@ -228,7 +228,7 @@ class TwissFigure:
             self.indicators.plot()
         else:
             self.scene_graph.items.remove(self.indicators)
-            self.indicators.clear_items()
+            self.indicators.remove()
 
 
 class ElementIndicators:
@@ -647,17 +647,13 @@ class CompareTool(CheckTool):
 
     def activate(self):
         self.active = True
-        #self.add_all()
         self.scene.plot()
         self.plot.scene.scene_graph.items.append(self.scene)
         self.plot.scene.draw()
 
     def deactivate(self):
         self.active = False
-        #self.scene.remove()
-        for item in self.scene.items:
-            for c in item.items:
-                c.remove()
+        self.scene.remove()
         self.plot.scene.scene_graph.items.remove(self.scene)
         self.plot.scene.draw()
 
