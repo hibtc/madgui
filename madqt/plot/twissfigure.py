@@ -11,6 +11,7 @@ import numpy as np
 from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
+from madqt.util.misc import memoize
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
@@ -288,11 +289,10 @@ class ElementIndicators:
 
 class CheckTool:
 
-    action = None
     active = False
 
     def setChecked(self, checked):
-        self.action.setChecked(checked)
+        self.action().setChecked(checked)
 
     def onToggle(self, active):
         """Update enabled state to match the UI."""
@@ -304,11 +304,12 @@ class CheckTool:
         else:
             self.deactivate()
 
+    @memoize
     def action(self):
         icon = self.icon
         if isinstance(icon, QtGui.QStyle.StandardPixmap):
-            icon =  self.plot.style().standardIcon(icon)
-        action = self.action = QtGui.QAction(icon, self.text, self.plot)
+            icon = self.plot.style().standardIcon(icon)
+        action = QtGui.QAction(icon, self.text, self.plot)
         action.setCheckable(True)
         action.toggled.connect(self.onToggle)
         return action
