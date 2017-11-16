@@ -613,7 +613,7 @@ class CompareTool(CheckTool):
 
     short = 'Show reference curve'
     icon = QtGui.QStyle.SP_DirLinkIcon
-    text = 'Show MIRKO envelope for comparison. The envelope is computed for the default parameters.'
+    text = 'Load data file for comparison.'
 
     dataFileFilters = [
         ("Text files", "*.txt", "*.dat")
