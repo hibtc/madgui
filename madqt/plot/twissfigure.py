@@ -12,6 +12,7 @@ from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
 from madqt.util.misc import memoize
+from madqt.util.collections import List
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
@@ -87,10 +88,12 @@ class TwissFigure:
         self.segment.updated.connect(self.update)
 
     def attach(self, plot):
+        curves = List()
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
-        plot.addTool(CompareTool(plot))
+        plot.addTool(CompareTool(plot, curves))
+        plot.addTool(LoadFileTool(plot, curves))
 
     @property
     def graph_name(self):
@@ -285,6 +288,18 @@ class ElementIndicators:
             else:
                 type_name = 'd-' + type_name
         return self.style.get(type_name)
+
+
+class ButtonTool:
+
+    @memoize
+    def action(self):
+        icon = self.icon
+        if isinstance(icon, QtGui.QStyle.StandardPixmap):
+            icon = self.plot.style().standardIcon(icon)
+        action = QtGui.QAction(icon, self.text, self.plot)
+        action.triggered.connect(self.activate)
+        return action
 
 
 class CheckTool:
@@ -616,94 +631,112 @@ class CompareTool(CheckTool):
     icon = QtGui.QStyle.SP_DirLinkIcon
     text = 'Load data file for comparison.'
 
-    dataFileFilters = [
-        ("Text files", "*.txt", "*.dat"),
-        ("TFS tables", "*.tfs", "*.twiss"),
-    ]
-
     # TODO: allow to plot any dynamically loaded curve from any file
 
-    def __init__(self, plot):
+    def __init__(self, plot, curves):
         """
         The reference curve is NOT visible by default.
         """
         self.plot = plot
+        self.curves = curves
         self.style = plot.scene.config['reference_style']
-        self.curve = None
-        self.filename = None
-        self.folder = self.plot.scene.segment.workspace.repo.path
+        self.scene = SceneGraph([])
+        self.curves.insert_notify.connect(self.add_curve)
+        self.curves.delete_notify.connect(self.del_curve)
 
     def activate(self):
         self.active = True
-        if not self.curve:
-            self.createCurve()
-        if self.curve:
-            self.curve.plot()
-            self.plot.scene.scene_graph.items.append(self.curve)
-            self.plot.scene.draw()
-        else:
-            self.setChecked(False)
+        #self.add_all()
+        self.scene.plot()
+        self.plot.scene.scene_graph.items.append(self.scene)
+        self.plot.scene.draw()
 
     def deactivate(self):
         self.active = False
-        if self.curve:
-            self.curve.remove()
-            self.plot.scene.scene_graph.items.remove(self.curve)
-            self.plot.scene.draw()
-            self.curve = None
-        # ask user again, next time
-        self.filename = None
+        #self.scene.remove()
+        for item in self.scene.items:
+            for c in item.items:
+                c.remove()
+        self.plot.scene.scene_graph.items.remove(self.scene)
+        self.plot.scene.draw()
 
-    def createCurve(self):
-        self.curve = None
-        data = self.getData()
-        if not data:
-            return
+    def add_all(self):
+        for i, c in enumerate(self.curves):
+            self.add_curve(i, c)
+
+    def add_curve(self, idx, item):
+        name, data = item
         scene = self.plot.scene
-        self.curve = SceneGraph([
+        c = SceneGraph([
             scene.figure.Curve(
                 curve.axes,
                 partial(strip_unit, data[curve.x_name], curve.x_unit),
                 partial(strip_unit, data[curve.y_name], curve.y_unit),
                 self.style,
-                label=None, # TODO
+                label=name,
             )
             for curve in scene.curves.items
         ])
+        self.scene.items.insert(idx, c)
+        if self.active:
+            c.plot()
 
-    def getData(self):
-        if not self.filename:
-            self.filename = getOpenFileName(
-                self.plot.window(), 'Open data file for comparison',
-                self.folder, self.dataFileFilters)
-            if not self.filename:
-                return
-            self.folder = os.path.dirname(self.filename)
+    def del_curve(self, idx):
+        c = self.scene.items.pop(idx)
+        c.remove()
+
+
+class LoadFileTool(ButtonTool):
+
+    short = 'Load data file'
+    icon = QtGui.QStyle.SP_FileIcon
+    text = 'Load data file for comparison.'
+
+    dataFileFilters = [
+        ("Text files", "*.txt", "*.dat"),
+        ("TFS tables", "*.tfs", "*.twiss"),
+    ]
+
+    def __init__(self, plot, curves):
+        self.plot = plot
+        self.curves = curves
+        self.folder = self.plot.scene.segment.workspace.repo.path
+
+    def activate(self):
+        filename = getOpenFileName(
+            self.plot.window(), 'Open data file for comparison',
+            self.folder, self.dataFileFilters)
+        if filename:
+            self.folder, basename = os.path.split(filename)
+            data = self.load_file(filename)
+            self.curves.append((basename, data))
+
+    def load_file(self, filename):
         from madqt.util.table import read_table, read_tfsfile
-        if self.filename.lower().rsplit('.')[-1] in ('tfs', 'twiss'):
-            segment = self.plot.scene.segment
-            utool = segment.workspace.utool
-            table = read_tfsfile(self.filename)
-            data = table.copy()
-            # TODO: this should be properly encapsulated:
-            if 'sig11' in data:
-                data['envx'] = data['sig11'] ** 0.5
-            elif 'betx' in data:
-                try:
-                    ex = table.summary['ex']
-                except ValueError:
-                    ex = utool.strip_unit('ex', segment.ex())
-                data['envx'] = (data['betx'] * ex) ** 0.5
-            if 'sig33' in data:
-                data['envy'] = data['sig33']**0.5
-            elif 'bety' in data:
-                try:
-                    ey = table.summary['ey']
-                except ValueError:
-                    ey = utool.strip_unit('ey', segment.ey())
-                data['envy'] = (data['bety'] * ey) ** 0.5
-            return utool.dict_add_unit(data)
-        return read_table(self.filename)
+        if filename.lower().rsplit('.')[-1] not in ('tfs', 'twiss'):
+            return read_table(filename)
+        segment = self.plot.scene.segment
+        utool = segment.workspace.utool
+        table = read_tfsfile(filename)
+        data = table.copy()
+        # TODO: this should be properly encapsulated:
+        if 'sig11' in data:
+            data['envx'] = data['sig11'] ** 0.5
+        elif 'betx' in data:
+            try:
+                ex = table.summary['ex']
+            except ValueError:
+                ex = utool.strip_unit('ex', segment.ex())
+            data['envx'] = (data['betx'] * ex) ** 0.5
+        if 'sig33' in data:
+            data['envy'] = data['sig33']**0.5
+        elif 'bety' in data:
+            try:
+                ey = table.summary['ey']
+            except ValueError:
+                ey = utool.strip_unit('ey', segment.ey())
+            data['envy'] = (data['bety'] * ey) ** 0.5
+        return utool.dict_add_unit(data)
 
 
 def ax_label(label, unit):
