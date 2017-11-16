@@ -3,10 +3,26 @@ Utility functions to load numpy tables from files.
 """
 
 from collections import OrderedDict
+from os.path import abspath
 
 import numpy as np
 
 from madqt.core.unit import from_config
+
+
+TFS_READER = None
+
+
+def read_tfsfile(filename):
+    """
+    Read TFS table.
+    """
+    from cpymad.madx import Madx
+    global TFS_READER
+    if not TFS_READER:
+        TFS_READER = Madx()
+    TFS_READER.command.readmytable(file=abspath(filename), table='user')
+    return TFS_READER.get_table('user')
 
 
 def read_table(filename):

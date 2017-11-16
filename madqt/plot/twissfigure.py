@@ -616,7 +616,8 @@ class CompareTool(CheckTool):
     text = 'Load data file for comparison.'
 
     dataFileFilters = [
-        ("Text files", "*.txt", "*.dat")
+        ("Text files", "*.txt", "*.dat"),
+        ("TFS tables", "*.tfs", "*.twiss"),
     ]
 
     # TODO: allow to plot any dynamically loaded curve from any file
@@ -677,7 +678,30 @@ class CompareTool(CheckTool):
             if not self.filename:
                 return
             self.folder = os.path.dirname(self.filename)
-        from madqt.util.table import read_table
+        from madqt.util.table import read_table, read_tfsfile
+        if self.filename.lower().rsplit('.')[-1] in ('tfs', 'twiss'):
+            segment = self.plot.scene.segment
+            utool = segment.workspace.utool
+            table = read_tfsfile(self.filename)
+            data = table.copy()
+            # TODO: this should be properly encapsulated:
+            if 'sig11' in data:
+                data['envx'] = data['sig11'] ** 0.5
+            elif 'betx' in data:
+                try:
+                    ex = table.summary['ex']
+                except ValueError:
+                    ex = utool.strip_unit('ex', segment.ex())
+                data['envx'] = (data['betx'] * ex) ** 0.5
+            if 'sig33' in data:
+                data['envy'] = data['sig33']**0.5
+            elif 'bety' in data:
+                try:
+                    ey = table.summary['ey']
+                except ValueError:
+                    ey = utool.strip_unit('ey', segment.ey())
+                data['envy'] = (data['bety'] * ey) ** 0.5
+            return utool.dict_add_unit(data)
         return read_table(self.filename)
 
 
