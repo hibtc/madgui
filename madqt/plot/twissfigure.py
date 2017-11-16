@@ -94,6 +94,7 @@ class TwissFigure:
         plot.addTool(MatchTool(plot))
         plot.addTool(CompareTool(plot, curves))
         plot.addTool(LoadFileTool(plot, curves))
+        plot.addTool(SaveCurveTool(plot, curves))
 
     @property
     def graph_name(self):
@@ -737,6 +738,26 @@ class LoadFileTool(ButtonTool):
                 ey = utool.strip_unit('ey', segment.ey())
             data['envy'] = (data['bety'] * ey) ** 0.5
         return utool.dict_add_unit(data)
+
+
+class SaveCurveTool(ButtonTool):
+
+    short = 'Save the current curve'
+    icon = QtGui.QStyle.SP_DialogSaveButton
+    text = 'Save the current curve data for later comparison.'
+
+    def __init__(self, plot, curves):
+        self.plot = plot
+        self.curves = curves
+
+    def activate(self):
+        data = {
+            curve.y_name: curve.get_ydata()
+            for curve in self.plot.scene.curves.items
+        }
+        curve = next(iter(self.plot.scene.curves.items))
+        data[curve.x_name] = curve.get_xdata()
+        self.curves.append(("saved curve", data))
 
 
 def ax_label(label, unit):
