@@ -270,7 +270,7 @@ class Control(Object):
         segment = self._segment
         for elem, dvm_value, mad_value in params:
             elem.mad_backend.set(elem.dvm2mad(dvm_value))
-        segment.retrack()
+        segment.invalidate()
 
     def write_these(self, params):
         """

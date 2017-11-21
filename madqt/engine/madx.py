@@ -306,7 +306,6 @@ class Segment(SegmentBase):
                       normalize_range_name(self.stop.name))
 
         self.cache = {}
-        self.retrack()
 
     @property
     def madx(self):
@@ -359,7 +358,7 @@ class Segment(SegmentBase):
             (k.lower(), v)
             for k, v in self.utool.dict_strip_unit(beam).items())
         self.set_beam_raw(new_beam)
-        self.retrack()
+        self.invalidate()
 
     def update_twiss_args(self, twiss):
         new_twiss = self._twiss_args
@@ -367,7 +366,7 @@ class Segment(SegmentBase):
             (k.lower(), v)
             for k, v in self.utool.dict_strip_unit(twiss).items())
         self.set_twiss_args_raw(new_twiss)
-        self.retrack()
+        self.invalidate()
 
     update_twiss = update_twiss_args
     twiss = property(lambda self: self.twiss_args)
@@ -390,7 +389,7 @@ class Segment(SegmentBase):
                 self.madx.set_value(_get_property_lval(elem, k), v)
 
         self.elements.invalidate(elem)
-        self.retrack()
+        self.invalidate()
 
     def _use_beam(self, beam):
         beam = dict(beam, sequence=self.sequence.name)
@@ -447,6 +446,7 @@ class Segment(SegmentBase):
     # curves
 
     def do_get_twiss_column(self, name):
+        self._validate()
         if name == 'envx':
             return self.utool.add_unit(name, self.get_twiss_column('sig11')**0.5)
         if name == 'envy':
@@ -498,8 +498,9 @@ class Segment(SegmentBase):
         return {info.short: (info.name, info.title)
                 for info in self.native_graph_data.values()}
 
-    def retrack(self):
+    def _retrack(self):
         """Recalculate TWISS parameters."""
+        self.validate.stop()
         self.cache.clear()
         self.madx.command.select(flag='interpolate', clear=True)
         self.madx.command.select(flag='interpolate', step=0.2)
@@ -541,7 +542,7 @@ class Segment(SegmentBase):
                         twiss_init=twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()
-        self.retrack()
+        self.invalidate()
 
     def get_magnet(self, elem, conv):
         return MagnetBackend(self.madx, self.utool, elem, {
@@ -738,6 +739,7 @@ class MagnetBackend(api.ElementBackend):
                         madx.set_value(k, v)
             else:
                 madx.set_value(lval, plain_value)
+        # TODO: invalidate
 
 
 class MonitorBackend(api.ElementBackend):

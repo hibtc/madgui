@@ -178,6 +178,7 @@ class MultiFigure:
         self.validate = QtCore.QTimer()
         self.validate.setSingleShot(True)
         self.validate.timeout.connect(self.draw)
+        self.axes = ()
 
     def set_num_axes(self, num_axes, shared=False):
         figure = self.backend_figure
