@@ -175,6 +175,10 @@ class MultiFigure:
         """Create an empty matplotlib figure with multiple subplots."""
         self.backend_figure = Figure(tight_layout=True)
         self.share_axes = share_axes
+        self.validate = QtCore.QTimer()
+        self.validate.setSingleShot(True)
+        self.validate.timeout.connect(self.draw)
+        self.axes = ()
 
     def set_num_axes(self, num_axes, shared=False):
         figure = self.backend_figure
@@ -199,6 +203,9 @@ class MultiFigure:
     def autoscale(self):
         for ax in self.axes:
             _autoscale_axes(ax)
+
+    def invalidate(self):
+        self.validate.start()
 
     def draw(self):
         """Draw the figure on its canvas."""

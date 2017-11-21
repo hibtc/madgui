@@ -215,6 +215,7 @@ class Segment(SegmentBase):
 
     def get_twiss_at(self, elem):
         """Return beam envelope at element."""
+        self._validate()
         index = self.get_element_index(elem)
         data = merged(self.tao.get_element_data(index, who='orbit'),
                       self.tao.get_element_data(index, who='twiss'))
@@ -324,6 +325,7 @@ class Segment(SegmentBase):
     # curves
 
     def get_native_graph_data(self, name, xlim):
+        self._validate()
         plot_data = self.plot_data(name, xlim)
         info = PlotInfo(
             name=plot_data.plot_info['name']+'.'+plot_data.graph_info['name'],
@@ -347,7 +349,8 @@ class Segment(SegmentBase):
                 for name, info in self.tao.valid_graphs()
                 if info['plot']['x_axis_type'] == 's'}
 
-    def retrack(self):
+    def _retrack(self):
+        self.validate.stop()
         self.tao.update()
         self.updated.emit()
 
@@ -407,7 +410,7 @@ class Segment(SegmentBase):
 
         # TODO: update only modified elements
         self.elements.invalidate()
-        self.retrack()
+        self.invalidate()
 
     def get_magnet(self, elem, conv):
         return MagnetBackend(self, elem, conv.backend_keys)
@@ -468,7 +471,7 @@ class TaoDataStore(DataStore):
             self.segment.tao.command(command)
             has_changed = True
         if has_changed:
-            self.segment.retrack()
+            self.segment.invalidate()
 
     def mutable(self, key):
         return self.params[key.lower()].vary
@@ -616,6 +619,7 @@ class MonitorBackend(api.ElementBackend):
         self._element = element
 
     def get(self, values):
+        self.segment._validate()
         tao = self._segment.tao
         index = self._segment.get_element_index(self._element)
         orbit = tao.get_element_data(index, who='orbit')

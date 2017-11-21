@@ -9,6 +9,8 @@ import re
 
 import numpy as np
 
+from madqt.qt import QtCore
+
 from madqt.core.base import Object, Signal
 from madqt.core.unit import from_config
 from madqt.resource.package import PackageResource
@@ -105,6 +107,13 @@ class SegmentBase(Object):
     updated = Signal()
     destroyed = Signal()
     matcher = None
+
+    def __init__(self):
+        super().__init__()
+        self.validate = QtCore.QTimer()
+        self.validate.setSingleShot(True)
+        self.validate.timeout.connect(self._retrack)
+        self.invalidate()
 
     def destroy(self):
         self.workspace.segment = None
@@ -274,8 +283,15 @@ class SegmentBase(Object):
         """Get a list of graph names."""
         raise NotImplementedError
 
+    def invalidate(self):
+        self.validate.start()
+
+    def _validate(self):
+        if self.validate.isActive():
+            self._retrack()
+
     @abstractmethod
-    def retrack(self):
+    def _retrack(self):
         raise NotImplementedError
 
     @abstractmethod

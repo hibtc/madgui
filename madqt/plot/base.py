@@ -49,9 +49,9 @@ class SceneGraph(SceneElement):
             item.update()
 
     def remove(self):
-        self.clear_items()
-        del self.items[:]
-
-    def clear_items(self):
         for item in self.items:
             item.remove()
+
+    def clear(self):
+        self.remove()
+        self.items.clear()

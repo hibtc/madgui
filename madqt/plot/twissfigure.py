@@ -107,7 +107,7 @@ class TwissFigure:
 
     def relayout(self):
         self.update_graph_data()
-        self.scene_graph.clear_items()
+        self.scene_graph.remove()
         self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
         self.indicators.items.extend([
             ElementIndicators(ax, self, self.element_style)
@@ -153,7 +153,7 @@ class TwissFigure:
             ax = self.figure.axes[0]
             legend = ax.legend(loc='upper center', fancybox=True, shadow=True, ncol=4)
             legend.draggable()
-        self.figure.draw()
+        self.figure.invalidate()
 
     def format_coord(self, ax, x, y):
         # Avoid StopIteration while hovering the graph and loading another
@@ -171,8 +171,8 @@ class TwissFigure:
             parts.insert(0, 'elem={0}'.format(elem['name']))
         return ', '.join(parts)
 
-    def draw(self):
-        self.figure.draw()
+    def invalidate(self):
+        self.figure.invalidate()
 
     def update(self, autoscale=True):
         """Update existing plot after TWISS recomputation."""
@@ -180,10 +180,10 @@ class TwissFigure:
         self.scene_graph.update()
         if autoscale:
             self.figure.autoscale()
-        self.draw()
+        self.invalidate()
 
     def remove(self):
-        self.scene_graph.remove()
+        self.scene_graph.clear()
         self.segment.updated.disconnect(self.update)
 
     def update_graph_data(self):
@@ -228,7 +228,7 @@ class TwissFigure:
             self.indicators.plot()
         else:
             self.scene_graph.items.remove(self.indicators)
-            self.indicators.clear_items()
+            self.indicators.remove()
 
 
 class ElementIndicators:
@@ -381,7 +381,7 @@ class MatchTool(CaptureTool):
         """Stop matching mode."""
         self.active = False
         self.clearConstraints()
-        self.markers.draw()
+        self.markers.invalidate()
         self.plot.scene.scene_graph.items.remove(self.markers)
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
@@ -468,11 +468,11 @@ class ConstraintMarkers(SceneElement):
         self.style = scene.config['constraint_style']
         self.lines = []
         self.constraints = constraints
-        constraints.update_after.connect(lambda *args: self.draw())
+        constraints.update_after.connect(lambda *args: self.invalidate())
 
-    def draw(self):
+    def invalidate(self):
         self.update()
-        self.scene.draw()
+        self.scene.invalidate()
 
     def plot(self):
         for constraint in self.constraints:
@@ -591,11 +591,11 @@ class ElementMarkers:
         self.lines = []
         self.selection = selection
         selection.elements.update_after.connect(
-            lambda *args: self.draw())
+            lambda *args: self.invalidate())
 
-    def draw(self):
+    def invalidate(self):
         self.update()
-        self.scene.draw()
+        self.scene.invalidate()
 
     def plot(self):
         segment = self.scene.segment
@@ -647,19 +647,15 @@ class CompareTool(CheckTool):
 
     def activate(self):
         self.active = True
-        #self.add_all()
         self.scene.plot()
         self.plot.scene.scene_graph.items.append(self.scene)
-        self.plot.scene.draw()
+        self.plot.scene.invalidate()
 
     def deactivate(self):
         self.active = False
-        #self.scene.remove()
-        for item in self.scene.items:
-            for c in item.items:
-                c.remove()
+        self.scene.remove()
         self.plot.scene.scene_graph.items.remove(self.scene)
-        self.plot.scene.draw()
+        self.plot.scene.invalidate()
 
     def add_all(self):
         for i, c in enumerate(self.curves):
