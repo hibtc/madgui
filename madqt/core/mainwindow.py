@@ -422,7 +422,6 @@ class MainWindow(QtGui.QMainWindow):
         scene.show_indicators = show_indicators
         scene.graph_name = name or config['default_graph']
         scene.attach(plot)
-        scene.plot()
 
         # for convenience when debugging:
         self.user_ns.update({
@@ -441,17 +440,14 @@ class MainWindow(QtGui.QMainWindow):
         widget.show()
 
         self.workspace.destroyed.connect(widget.close)
-        self.workspace.destroyed.connect(scene.remove)
+        self.workspace.destroyed.connect(scene.destroy)
 
         def toggleShareAxes():
             scene.figure.share_axes = not scene.figure.share_axes
             scene.relayout()
-            scene.plot()
 
         def toggleIndicators():
             scene.show_indicators = not scene.show_indicators
-            scene.relayout()
-            scene.plot()
 
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [

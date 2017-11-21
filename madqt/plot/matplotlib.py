@@ -13,8 +13,7 @@ import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
-from madqt.plot.base import SceneElement
-
+from madqt.plot.base import SimpleArtist
 from madqt.core.base import Signal, Cache
 from madqt.util.layout import VBoxLayout
 
@@ -131,7 +130,7 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-class Curve(SceneElement):
+class Curve(SimpleArtist):
 
     """Plot a TWISS parameter curve segment into a 2D figure."""
 
@@ -142,9 +141,10 @@ class Curve(SceneElement):
         self.get_ydata = get_ydata
         self.style = style
         self.label = label
+        self.lines = ()
         self.info = info
 
-    def plot(self):
+    def draw(self):
         """Make one subplot."""
         xdata = self.get_xdata()
         ydata = self.get_ydata()
