@@ -19,10 +19,10 @@ class ElementInfoBox(TabParamTables):
 
         self.segment = segment
         self.el_id = el_id
-        self.segment.updated.connect(self.update)
+        self.segment.twiss.updated.connect(self.update)
 
     def closeEvent(self, event):
-        self.segment.updated.disconnect(self.update)
+        self.segment.twiss.updated.disconnect(self.update)
         event.accept()
 
     @property

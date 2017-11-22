@@ -322,7 +322,7 @@ class Segment(SegmentBase):
     def get_init_ds(self):
         return SuperStore(OrderedDict([
             ('beam', MadxDataStore(self, 'beam')),
-            ('twiss', MadxDataStore(self, 'twiss')),
+            ('twiss', MadxDataStore(self, 'twiss_args')),
         ]), utool=self.utool)
 
     def get_elem_ds(self, elem_index):
@@ -358,7 +358,7 @@ class Segment(SegmentBase):
             (k.lower(), v)
             for k, v in self.utool.dict_strip_unit(beam).items())
         self.set_beam_raw(new_beam)
-        self.invalidate()
+        self.twiss.invalidate()
 
     def update_twiss_args(self, twiss):
         new_twiss = self._twiss_args
@@ -366,10 +366,7 @@ class Segment(SegmentBase):
             (k.lower(), v)
             for k, v in self.utool.dict_strip_unit(twiss).items())
         self.set_twiss_args_raw(new_twiss)
-        self.invalidate()
-
-    update_twiss = update_twiss_args
-    twiss = property(lambda self: self.twiss_args)
+        self.twiss.invalidate()
 
     def update_element(self, data, elem_index):
         # TODO: this crashes for many parameters
@@ -389,7 +386,7 @@ class Segment(SegmentBase):
                 self.madx.set_value(_get_property_lval(elem, k), v)
 
         self.elements.invalidate(elem)
-        self.invalidate()
+        self.twiss.invalidate()
 
     def _use_beam(self, beam):
         beam = dict(beam, sequence=self.sequence.name)
@@ -446,7 +443,7 @@ class Segment(SegmentBase):
     # curves
 
     def do_get_twiss_column(self, name):
-        self._validate()
+        self.twiss.update()
         if name == 'envx':
             return self.utool.add_unit(name, self.get_twiss_column('sig11')**0.5)
         if name == 'envy':
@@ -500,7 +497,6 @@ class Segment(SegmentBase):
 
     def _retrack(self):
         """Recalculate TWISS parameters."""
-        self.validate.stop()
         self.cache.clear()
         self.madx.command.select(flag='interpolate', clear=True)
         self.madx.command.select(flag='interpolate', step=0.2)
@@ -523,7 +519,6 @@ class Segment(SegmentBase):
         assert len(self.indices) == len(self.elements)
 
         # TODO: update elements
-        self.updated.emit()
 
     def can_match_at(self, elem):
         return not elem['name'].endswith('[0]')
@@ -542,7 +537,7 @@ class Segment(SegmentBase):
                         twiss_init=twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()
-        self.invalidate()
+        self.twiss.invalidate()
 
     def get_magnet(self, elem, conv):
         return MagnetBackend(self.madx, self.utool, elem, {

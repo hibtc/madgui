@@ -85,7 +85,7 @@ class TwissFigure:
         self.x_unit = from_config(config['x_unit'])
         self.element_style = config['element_style']
         # slots
-        self.segment.updated.connect(self.update)
+        self.segment.twiss.updated.connect(self.update)
 
     def attach(self, plot):
         curves = List()
@@ -184,7 +184,7 @@ class TwissFigure:
 
     def remove(self):
         self.scene_graph.clear()
-        self.segment.updated.disconnect(self.update)
+        self.segment.twiss.updated.disconnect(self.update)
 
     def update_graph_data(self):
         self.graph_info, self.graph_data = \

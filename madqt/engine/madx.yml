@@ -72,7 +72,7 @@ graphs:
 
 
 parameter_sets:
-  twiss:
+  twiss_args:
     title: TWISS initial conditions
     data_key: twiss
     params: [
