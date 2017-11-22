@@ -18,6 +18,8 @@ class SceneElement:
         (plot -> update* -> remove)*
     """
 
+    lines = ()
+
     def plot(self):
         """Plot the element in a newly created scene."""
         raise NotImplementedError
@@ -28,7 +30,9 @@ class SceneElement:
 
     def remove(self):
         """Remove the element from the scene."""
-        raise NotImplementedError
+        for line in self.lines:
+            line.remove()
+        self.lines = []
 
     # TODO: show/hide
 

@@ -231,7 +231,7 @@ class TwissFigure:
             self.indicators.remove()
 
 
-class ElementIndicators:
+class ElementIndicators(SceneElement):
 
     """
     Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
@@ -258,11 +258,6 @@ class ElementIndicators:
 
     def update(self):
         pass
-
-    def remove(self):
-        for line in self.lines:
-            line.remove()
-        del self.lines[:]
 
     def make_element_indicator(self, elem, style):
         x_unit = self.scene.x_unit
@@ -482,11 +477,6 @@ class ConstraintMarkers(SceneElement):
         self.remove()
         self.plot()
 
-    def remove(self):
-        for line in self.lines:
-            line.remove()
-        del self.lines[:]
-
     def plotConstraint(self, elem, pos, axis, val):
         """Draw one constraint representation in the graph."""
         scene = self.scene
@@ -578,7 +568,7 @@ class InfoTool(CaptureTool):
         selected[top] = new_el_id
 
 
-class ElementMarkers:
+class ElementMarkers(SceneElement):
 
     """
     In-figure markers for active/selected elements.
@@ -606,11 +596,6 @@ class ElementMarkers:
     def update(self):
         self.remove()
         self.plot()
-
-    def remove(self):
-        for line in self.lines:
-            line.remove()
-        del self.lines[:]
 
     def plot_marker(self, element):
         """Draw the elements into the canvas."""

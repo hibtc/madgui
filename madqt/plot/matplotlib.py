@@ -13,6 +13,8 @@ import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
+from madqt.plot.base import SceneElement
+
 from madqt.core.base import Signal
 from madqt.util.layout import VBoxLayout
 
@@ -129,7 +131,7 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-class Curve:
+class Curve(SceneElement):
 
     """Plot a TWISS parameter curve segment into a 2D figure."""
 
@@ -141,25 +143,19 @@ class Curve:
         self.style = style
         self.label = label
         self.info = info
-        self.line = None
 
     def plot(self):
         """Make one subplot."""
         xdata = self.get_xdata()
         ydata = self.get_ydata()
         self.axes.set_xlim(xdata[0], xdata[-1])
-        self.line = self.axes.plot(xdata, ydata, label=self.label, **self.style)[0]
+        self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
+        self.line, = self.lines
 
     def update(self):
         """Update the y values for one subplot."""
         self.line.set_xdata(self.get_xdata())
         self.line.set_ydata(self.get_ydata())
-
-    def remove(self):
-        """Disconnect update events."""
-        if self.line is not None:
-            self.line.remove()
-            self.line = None
 
 
 class MultiFigure:
