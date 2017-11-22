@@ -13,7 +13,6 @@ import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
-from madqt.plot.base import SimpleArtist
 from madqt.core.base import Signal, Cache
 from madqt.util.layout import VBoxLayout
 
@@ -21,7 +20,6 @@ from madqt.util.layout import VBoxLayout
 __all__ = [
     'PlotWidget',
     'MultiFigure',
-    'Curve',
 ]
 
 
@@ -130,34 +128,6 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-class Curve(SimpleArtist):
-
-    """Plot a TWISS parameter curve segment into a 2D figure."""
-
-    def __init__(self, axes, get_xdata, get_ydata, style, label=None, info=None):
-        """Store meta data."""
-        self.axes = axes
-        self.get_xdata = get_xdata
-        self.get_ydata = get_ydata
-        self.style = style
-        self.label = label
-        self.lines = ()
-        self.info = info
-
-    def draw(self):
-        """Make one subplot."""
-        xdata = self.get_xdata()
-        ydata = self.get_ydata()
-        self.axes.set_xlim(xdata[0], xdata[-1])
-        self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
-        self.line, = self.lines
-
-    def update(self):
-        """Update the y values for one subplot."""
-        self.line.set_xdata(self.get_xdata())
-        self.line.set_ydata(self.get_ydata())
-
-
 class MultiFigure:
 
     """
@@ -219,8 +189,6 @@ class MultiFigure:
     def disconnect(self, *args):
         for ax in self.axes:
             ax.callbacks.disconnect(*args)
-
-    Curve = Curve
 
 
 def _clear_ax(ax):

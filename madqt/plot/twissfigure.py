@@ -119,7 +119,7 @@ class TwissFigure(Artist):
             for ax in axes
         ])
         self.curves.clear([
-            self.figure.Curve(
+            Curve(
                 ax,
                 partial(self.get_float_data, curve_info, 0),
                 partial(self.get_float_data, curve_info, 1),
@@ -231,6 +231,34 @@ class TwissFigure(Artist):
         if self.show_indicators != show:
             self.indicators.enable(show)
             self.invalidate()
+
+
+class Curve(SimpleArtist):
+
+    """Plot a TWISS parameter curve segment into a 2D figure."""
+
+    def __init__(self, axes, get_xdata, get_ydata, style, label=None, info=None):
+        """Store meta data."""
+        self.axes = axes
+        self.get_xdata = get_xdata
+        self.get_ydata = get_ydata
+        self.style = style
+        self.label = label
+        self.lines = ()
+        self.info = info
+
+    def draw(self):
+        """Make one subplot."""
+        xdata = self.get_xdata()
+        ydata = self.get_ydata()
+        self.axes.set_xlim(xdata[0], xdata[-1])
+        self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
+        self.line, = self.lines
+
+    def update(self):
+        """Update the y values for one subplot."""
+        self.line.set_xdata(self.get_xdata())
+        self.line.set_ydata(self.get_ydata())
 
 
 class ElementIndicators(SimpleArtist):
@@ -630,7 +658,7 @@ class CompareTool(CheckTool):
         name, data = item
         scene = self.plot.scene
         c = SceneGraph([
-            scene.figure.Curve(
+            Curve(
                 curve.axes,
                 partial(strip_unit, data[curve.x_name], curve.x_unit),
                 partial(strip_unit, data[curve.y_name], curve.y_unit),
