@@ -420,7 +420,7 @@ class MainWindow(QtGui.QMainWindow):
 
         scene = twissfigure.TwissFigure(figure, segment, config)
         scene.show_indicators = show_indicators
-        scene.graph_name = name or config['default_graph']
+        scene.set_graph(name or config['default_graph'])
         scene.attach(plot)
 
         # for convenience when debugging:

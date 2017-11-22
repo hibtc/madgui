@@ -53,7 +53,7 @@ class PlotSelector(QtGui.QComboBox):
         self.currentIndexChanged.connect(self.change_figure)
 
     def change_figure(self, index):
-        self.scene.graph_name = self.itemData(index)
+        self.scene.set_graph(self.itemData(index))
 
     def update_index(self):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
@@ -96,13 +96,8 @@ class TwissFigure(Artist):
         plot.addTool(LoadFileTool(plot, curves))
         plot.addTool(SaveCurveTool(plot, curves))
 
-    @property
-    def graph_name(self):
-        return self._graph_name
-
-    @graph_name.setter
-    def graph_name(self, graph_name):
-        self._graph_name = graph_name
+    def set_graph(self, graph_name):
+        self.graph_name = graph_name
         self.relayout()
 
     def relayout(self):
@@ -196,7 +191,7 @@ class TwissFigure(Artist):
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
             self.segment.get_graph_data(self.graph_name, self.xlim)
-        self._graph_name = self.graph_info.short
+        self.graph_name = self.graph_info.short
 
     def get_float_data(self, curve_info, column):
         """Get data for the given parameter from segment."""
