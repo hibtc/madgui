@@ -398,9 +398,9 @@ class MatchTool(CaptureTool):
         """Stop matching mode."""
         self.active = False
         self.clearConstraints()
-        self.markers.invalidate()
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
+        self.plot.figure.invalidate()
 
     def onClick(self, event):
 
