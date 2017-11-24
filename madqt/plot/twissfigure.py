@@ -116,7 +116,9 @@ class TwissFigure(Artist):
             for ax in axes
         ])
         self.select_markers.clear([
-            ElementMarkers(ax, self, self.segment.workspace.selection)
+            ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
+                     self.segment.workspace.selection.elements,
+                     self.invalidate)
             for ax in axes
         ])
         self.curves.clear([
@@ -585,30 +587,12 @@ class InfoTool(CaptureTool):
         selected[top] = new_el_id
 
 
-class ElementMarkers(SimpleArtist):
-
-    """
-    In-figure markers for active/selected elements.
-    """
-
-    def __init__(self, axes, scene, selection):
-        super().__init__(self._draw)
-        self.axes = axes
-        self.scene = scene
-        self.style = scene.config['select_style']
-        self.selection = selection
-        selection.elements.update_after.connect(
-            lambda *args: self.update())
-
-    def _draw(self):
-        elements = self.scene.segment.elements
-        return [self.plot_marker(elements[el_id])
-                for el_id in self.selection.elements]
-
-    def plot_marker(self, element):
-        """Draw the elements into the canvas."""
-        at = strip_unit(element['at'], self.scene.x_unit)
-        return self.axes.axvline(at, **self.style)
+def draw_selection_marker(axes, scene, el_idx):
+    """In-figure markers for active/selected elements."""
+    style = scene.config['select_style']
+    element = scene.segment.elements[el_idx]
+    at = strip_unit(element['at'], scene.x_unit)
+    return [axes.axvline(at, **style)]
 
 
 #----------------------------------------
