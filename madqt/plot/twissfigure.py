@@ -75,7 +75,10 @@ class TwissFigure(Artist):
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
-        self.constr_markers = ConstraintMarkers(self, self.matcher.constraints)
+        self.constr_markers = ListView(
+            partial(SimpleArtist, draw_constraint, self),
+            self.matcher.constraints,
+            self.invalidate)
         self.scene_graph = SceneGraph([
             self.indicators,
             self.select_markers,
@@ -257,6 +260,21 @@ class Curve(SimpleArtist):
         """Update the y values for one subplot."""
         self.line.set_xdata(self.get_xdata())
         self.line.set_ydata(self.get_ydata())
+
+
+def ListView(fn, model, invalidate):
+    view = SceneGraph([])
+    def add(idx, item):
+        view.insert(idx, fn(item))
+        invalidate()
+    def rm(idx):
+        view.pop(view.items[idx])
+        invalidate()
+    for idx, item in enumerate(model):
+        add(idx, item)
+    model.insert_notify.connect(add)
+    model.delete_notify.connect(rm)
+    return view
 
 
 class ElementIndicators(SimpleArtist):
@@ -476,28 +494,15 @@ class MatchTool(CaptureTool):
         del self.matcher.constraints[:]
 
 
-class ConstraintMarkers(SimpleArtist):
-
-    def __init__(self, scene, constraints):
-        super().__init__(self._draw)
-        self.scene = scene
-        self.style = scene.config['constraint_style']
-        self.constraints = constraints
-        constraints.update_after.connect(lambda *args: self.update())
-
-    def _draw(self):
-        return [
-            line for constraint in self.constraints
-            for line in self.plotConstraint(*constraint)
-        ]
-
-    def plotConstraint(self, elem, pos, axis, val):
-        """Draw one constraint representation in the graph."""
-        curve = self.scene.get_curve_by_name(axis)
-        return curve and curve.axes.plot(
-            strip_unit(pos, curve.x_unit),
-            strip_unit(val, curve.y_unit),
-            **self.style) or ()
+def draw_constraint(scene, constraint):
+    """Draw one constraint representation in the graph."""
+    elem, pos, axis, val = constraint
+    curve = scene.get_curve_by_name(axis)
+    style = scene.config['constraint_style']
+    return curve and curve.axes.plot(
+        strip_unit(pos, curve.x_unit),
+        strip_unit(val, curve.y_unit),
+        **style) or ()
 
 
 #----------------------------------------
