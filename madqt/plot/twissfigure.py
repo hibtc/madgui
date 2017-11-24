@@ -183,7 +183,7 @@ class TwissFigure(Artist):
     def update(self, autoscale=True):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
-        self.scene_graph.update()
+        self.curves.update()
         if autoscale:
             self.figure.autoscale()
         self.invalidate()
