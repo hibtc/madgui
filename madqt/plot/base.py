@@ -50,6 +50,10 @@ class Artist:
         self.render(False)
         self.render()
 
+    def hidden(self):
+        """Notification when the entire graph was hidden."""
+        self.shown = False
+
     def destroy(self):
         """Cleanup existing resources."""
 
@@ -73,8 +77,11 @@ class SimpleArtist(Artist):
             line.remove()
         self.lines = ()
 
-    def destroy(self):
+    def hidden(self):
         self.lines = ()
+        super().hidden()
+
+    destroy = hidden
 
 
 class SceneGraph(Artist):
@@ -125,6 +132,11 @@ class SceneGraph(Artist):
         self.remove()
         self.items.clear()
         self.extend(items)
+
+    def hidden(self):
+        for item in self.items:
+            item.hidden()
+        super().hidden()
 
     def destroy(self):
         for item in self.items:

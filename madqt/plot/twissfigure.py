@@ -165,7 +165,7 @@ class TwissFigure(Artist):
     def remove(self):
         for ax in self.axes:
             ax.cla()
-        self.scene_graph.destroy()
+        self.scene_graph.hidden()
 
     def destroy(self):
         self.segment.twiss.updated.disconnect(self.update)
