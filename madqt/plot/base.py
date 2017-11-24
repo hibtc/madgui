@@ -129,3 +129,4 @@ class SceneGraph(Artist):
     def destroy(self):
         for item in self.items:
             item.destroy()
+        self.items.clear()

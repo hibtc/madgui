@@ -111,10 +111,12 @@ class TwissFigure(Artist):
         self.render(False)
         self.update_graph_data()
         self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
+        self.indicators.destroy()
         self.indicators.clear([
             ElementIndicators(ax, self, self.element_style)
             for ax in axes
         ])
+        self.select_markers.destroy()
         self.select_markers.clear([
             ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
                      self.segment.workspace.selection.elements,
@@ -264,19 +266,30 @@ class Curve(SimpleArtist):
         self.line.set_ydata(self.get_ydata())
 
 
-def ListView(fn, model, invalidate):
-    view = SceneGraph([])
-    def add(idx, item):
-        view.insert(idx, fn(item))
-        invalidate()
-    def rm(idx):
-        view.pop(view.items[idx])
-        invalidate()
-    for idx, item in enumerate(model):
-        add(idx, item)
-    model.insert_notify.connect(add)
-    model.delete_notify.connect(rm)
-    return view
+class ListView(SceneGraph):
+
+    def __init__(self, fn, model, invalidate):
+        super().__init__()
+        self.fn = fn
+        self.model = model
+        self.invalidate = invalidate
+        for idx, item in enumerate(model):
+            self._add(idx, item)
+        model.insert_notify.connect(self._add)
+        model.delete_notify.connect(self._rm)
+
+    def _add(self, idx, item):
+        self.insert(idx, self.fn(item))
+        self.invalidate()
+
+    def _rm(self, idx):
+        self.pop(self.items[idx])
+        self.invalidate()
+
+    def destroy(self):
+        self.model.insert_notify.disconnect(self._add)
+        self.model.delete_notify.disconnect(self._rm)
+        super().destroy()
 
 
 class ElementIndicators(SimpleArtist):
