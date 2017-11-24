@@ -71,7 +71,11 @@ class TwissFigure(Artist):
         self.figure = figure
         self.matcher = self.segment.get_matcher()
         # scene
-        self.curves = SceneGraph()
+        self.loaded_curves = List()
+        self.twiss_curves = SceneGraph()
+        self.user_curves = ListView(
+            partial(make_user_curve, self),
+            self.loaded_curves, self.invalidate)
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
@@ -83,7 +87,7 @@ class TwissFigure(Artist):
             self.indicators,
             self.select_markers,
             self.constr_markers,
-            self.curves,
+            self.twiss_curves,
         ])
         # style
         self.x_name = 's'
@@ -94,11 +98,11 @@ class TwissFigure(Artist):
         self.segment.twiss.updated.connect(self.update)
 
     def attach(self, plot):
-        curves = List()
+        curves = self.loaded_curves
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
-        plot.addTool(CompareTool(plot, curves))
+        plot.addTool(CompareTool(plot))
         plot.addTool(LoadFileTool(plot, curves))
         plot.addTool(SaveCurveTool(plot, curves))
 
@@ -123,7 +127,7 @@ class TwissFigure(Artist):
                      self.invalidate)
             for ax in axes
         ])
-        self.curves.clear([
+        self.twiss_curves.clear([
             Curve(
                 ax,
                 partial(self.get_float_data, curve_info, 0),
@@ -138,7 +142,7 @@ class TwissFigure(Artist):
 
     def draw(self):
         """Replot from clean state."""
-        for curve in self.curves.items:
+        for curve in self.twiss_curves.items:
             ax = curve.axes
             if not self.figure.share_axes:
                 ax.set_ylabel(curve.label)
@@ -165,7 +169,7 @@ class TwissFigure(Artist):
     def remove(self):
         for ax in self.axes:
             ax.cla()
-        self.scene_graph.hidden()
+        self.scene_graph.on_remove()
 
     def destroy(self):
         self.segment.twiss.updated.disconnect(self.update)
@@ -174,12 +178,12 @@ class TwissFigure(Artist):
     def format_coord(self, ax, x, y):
         # Avoid StopIteration while hovering the graph and loading another
         # model/curve:
-        if not self.curves.items:
+        if not self.twiss_curves.items:
             return ''
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format
-        curve = next(c for c in self.curves.items if c.axes is ax)
+        curve = next(c for c in self.twiss_curves.items if c.axes is ax)
         parts = [coord_fmt(curve.x_name, x, get_raw_label(curve.x_unit)),
                  coord_fmt(curve.y_name, y, get_raw_label(curve.y_unit))]
         elem = self.segment.get_element_by_position(x * curve.x_unit)
@@ -193,7 +197,7 @@ class TwissFigure(Artist):
     def update(self, autoscale=True):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
-        self.curves.update()
+        self.twiss_curves.update()
         if autoscale:
             self.figure.autoscale()
         self.invalidate()
@@ -208,7 +212,7 @@ class TwissFigure(Artist):
         return self.graph_data[curve_info.name][:,column]
 
     def get_curve_by_name(self, name):
-        return next((c for c in self.curves.items if c.y_name == name), None)
+        return next((c for c in self.twiss_curves.items if c.y_name == name), None)
 
     def xlim_changed(self, ax):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
@@ -360,6 +364,9 @@ class CheckTool:
 
     active = False
 
+    def __init__(self, plot):
+        self.plot = plot
+
     def setChecked(self, checked):
         self.action().setChecked(checked)
 
@@ -446,7 +453,7 @@ class MatchTool(CaptureTool):
 
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
-        curves = self.plot.scene.curves.items
+        curves = self.plot.scene.twiss_curves.items
         index = int(bool(self.plot.scene.figure.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
                          len(curves) > 1))
@@ -616,6 +623,8 @@ class CompareTool(CheckTool):
 
     """
     Display a precomputed reference curve for comparison.
+
+    The reference curve is NOT visible by default.
     """
 
     short = 'Show reference curve'
@@ -624,51 +633,29 @@ class CompareTool(CheckTool):
 
     # TODO: allow to plot any dynamically loaded curve from any file
 
-    def __init__(self, plot, curves):
-        """
-        The reference curve is NOT visible by default.
-        """
-        self.plot = plot
-        self.curves = curves
-        self.style = plot.scene.config['reference_style']
-        self.scene = SceneGraph([])
-        self.plot.scene.scene_graph.add(self.scene)
-        self.curves.insert_notify.connect(self.add_curve)
-        self.curves.delete_notify.connect(self.del_curve)
-
     def activate(self):
         self.active = True
-        self.scene.enable(True)
+        self.plot.scene.user_curves.enable(True)
         self.plot.scene.invalidate()
 
     def deactivate(self):
         self.active = False
-        self.scene.enable(False)
+        self.plot.scene.user_curves.enable(False)
         self.plot.scene.invalidate()
 
-    def add_all(self):
-        for i, c in enumerate(self.curves):
-            self.add_curve(i, c)
 
-    def add_curve(self, idx, item):
-        name, data = item
-        scene = self.plot.scene
-        c = SceneGraph([
-            Curve(
-                curve.axes,
-                partial(strip_unit, data[curve.x_name], curve.x_unit),
-                partial(strip_unit, data[curve.y_name], curve.y_unit),
-                self.style,
-                label=name,
-            )
-            for curve in scene.curves.items
-        ])
-        self.scene.insert(idx, c)
-        self.plot.scene.invalidate()
-
-    def del_curve(self, idx):
-        self.scene.pop(self.scene.items[idx])
-        self.plot.scene.invalidate()
+def make_user_curve(scene, item):
+    name, data = item
+    style = scene.config['reference_style']
+    return SceneGraph([
+        Curve(
+            curve.axes,
+            partial(strip_unit, data[curve.x_name], curve.x_unit),
+            partial(strip_unit, data[curve.y_name], curve.y_unit),
+            style, label=name,
+        )
+        for curve in scene.twiss_curves.items
+    ])
 
 
 class LoadFileTool(ButtonTool):
@@ -737,9 +724,9 @@ class SaveCurveTool(ButtonTool):
     def activate(self):
         data = {
             curve.y_name: curve.get_ydata()
-            for curve in self.plot.scene.curves.items
+            for curve in self.plot.scene.twiss_curves.items
         }
-        curve = next(iter(self.plot.scene.curves.items))
+        curve = next(iter(self.plot.scene.twiss_curves.items))
         data[curve.x_name] = curve.get_xdata()
         self.curves.append(("saved curve", data))
 

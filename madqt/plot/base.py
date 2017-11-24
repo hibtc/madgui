@@ -50,7 +50,7 @@ class Artist:
         self.render(False)
         self.render()
 
-    def hidden(self):
+    def on_remove(self):
         """Notification when the entire graph was hidden."""
         self.shown = False
 
@@ -77,11 +77,11 @@ class SimpleArtist(Artist):
             line.remove()
         self.lines = ()
 
-    def hidden(self):
+    def on_remove(self):
         self.lines = ()
-        super().hidden()
+        super().on_remove()
 
-    destroy = hidden
+    destroy = on_remove
 
 
 class SceneGraph(Artist):
@@ -133,10 +133,10 @@ class SceneGraph(Artist):
         self.items.clear()
         self.extend(items)
 
-    def hidden(self):
+    def on_remove(self):
         for item in self.items:
-            item.hidden()
-        super().hidden()
+            item.on_remove()
+        super().on_remove()
 
     def destroy(self):
         for item in self.items:
