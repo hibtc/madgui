@@ -393,12 +393,10 @@ class MatchTool(CaptureTool):
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.window().parent().viewMatchDialog.create()
-        # TODO: insert markers
 
     def deactivate(self):
         """Stop matching mode."""
         self.active = False
-        self.clearConstraints()
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
         self.plot.figure.invalidate()
