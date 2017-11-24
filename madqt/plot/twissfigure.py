@@ -69,14 +69,17 @@ class TwissFigure(Artist):
         self.segment = segment
         self.config = config
         self.figure = figure
+        self.matcher = self.segment.get_matcher()
         # scene
         self.curves = SceneGraph()
         self.indicators = SceneGraph()
         self.indicators.enable(False)
-        self.markers = SceneGraph()
+        self.select_markers = SceneGraph()
+        self.constr_markers = ConstraintMarkers(self, self.matcher.constraints)
         self.scene_graph = SceneGraph([
             self.indicators,
-            self.markers,
+            self.select_markers,
+            self.constr_markers,
             self.curves,
         ])
         # style
@@ -109,7 +112,7 @@ class TwissFigure(Artist):
             ElementIndicators(ax, self, self.element_style)
             for ax in axes
         ])
-        self.markers.clear([
+        self.select_markers.clear([
             ElementMarkers(ax, self, self.segment.workspace.selection)
             for ax in axes
         ])
@@ -382,8 +385,6 @@ class MatchTool(CaptureTool):
         self.plot = plot
         self.segment = plot.scene.segment
         self.matcher = self.segment.get_matcher()
-        self.markers = ConstraintMarkers(plot.scene, self.matcher.constraints)
-        self.plot.scene.scene_graph.add(self.markers)
         self.matcher.finished.connect(self.deactivate)
 
     def activate(self):
