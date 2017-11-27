@@ -83,7 +83,7 @@ class ColumnInfo:
 class ExtColumnInfo(ColumnInfo):
 
     def getter_args(self, model, index):
-        return (model.context, model.rows[index])
+        return (model.context, model.rows[index], index)
 
     def setter_args(self, model, index, value):
         return (model.context, model.rows[index], index, value)
