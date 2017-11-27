@@ -40,7 +40,7 @@ class Artist:
     # private, should be called via the scene tree only:
 
     def render(self, show=None):
-        show = self.enabled if show is None else show
+        show = self.enabled and (True if show is None else show)
         shown = self.shown
         if show and not shown:
             self.draw()
