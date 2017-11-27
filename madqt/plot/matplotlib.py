@@ -57,7 +57,9 @@ class PlotWidget(QtGui.QWidget):
         self.figure = figure
         self.canvas = canvas = mpl_backend.FigureCanvas(figure.backend_figure)
         self.toolbar = toolbar = mpl_backend.NavigationToolbar2QT(canvas, self)
-        self.setLayout(VBoxLayout([canvas, toolbar]))
+        layout = VBoxLayout([canvas, toolbar])
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
         # Needed on PyQt5 with tight_layout=True to prevent crash due to
         # singular matrix if size=0:
         canvas.setMinimumSize(QtCore.QSize(100, 100))

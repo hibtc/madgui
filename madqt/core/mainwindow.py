@@ -438,7 +438,7 @@ class MainWindow(QtGui.QMainWindow):
         menubar = QtGui.QMenuBar()
         select = twissfigure.PlotSelector(scene)
         widget = Dialog(self)
-        widget.setWidget([select, plot])
+        widget.setWidget([select, plot], tight=True)
         widget.layout().setMenuBar(menubar)
         widget.resize(self.size().width(), widget.sizeHint().height())
         widget.show()
