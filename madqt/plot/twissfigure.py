@@ -76,6 +76,7 @@ class TwissFigure(Artist):
         self.user_curves = ListView(
             partial(make_user_curve, self),
             self.loaded_curves)
+        self.user_curves.enable(False)
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
@@ -87,6 +88,7 @@ class TwissFigure(Artist):
             self.select_markers,
             self.constr_markers,
             self.twiss_curves,
+            self.user_curves,
         ])
         self.scene_graph.parent = self      # FIXME: graph should be root?
         # style
