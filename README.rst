@@ -26,7 +26,6 @@ in your repositories:
 - docopt_
 - Pint_ == 0.6
 - PyYAML_
-- six_
 - docutils_
 - ipython_
 - qtconsole_
@@ -44,7 +43,6 @@ in your repositories:
 .. _docopt: https://pypi.python.org/pypi/docopt
 .. _Pint: http://pint.readthedocs.org/
 .. _PyYAML: https://pypi.python.org/pypi/PyYAML
-.. _six: https://pypi.python.org/pypi/six
 .. _docutils: https://pypi.python.org/pypi/docutils
 .. _ipython: https://pypi.python.org/pypi/ipython
 .. _qtconsole: https://pypi.python.org/pypi/qtconsole

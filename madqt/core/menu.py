@@ -2,8 +2,6 @@
 Menu creation utilities.
 """
 
-from six import string_types
-
 from madqt.qt import QtGui
 
 
@@ -41,7 +39,7 @@ class Item:
         if self.icon is not None:
             if isinstance(self.icon, QtGui.QStyle.StandardPixmap):
                 icon = parent.style().standardIcon(self.icon)
-            elif isinstance(self.icon, string_types):
+            elif isinstance(self.icon, str):
                 icon = QtGui.QIcon.fromTheme(self.icon)
             else:
                 icon = self.icon
