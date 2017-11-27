@@ -14,10 +14,7 @@ __all__ = [
 
 
 Object = QtCore.QObject
-try:
-    Signal = QtCore.pyqtSignal
-except AttributeError:
-    Signal = QtCore.Signal
+Signal = QtCore.pyqtSignal
 
 
 class Cache(Object):
