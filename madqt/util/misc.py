@@ -7,6 +7,8 @@ import functools
 import collections
 import tempfile
 
+from madqt.util.collections import Bool
+
 
 __all__ = [
     'safe_hasattr',
@@ -100,6 +102,7 @@ class Property:
     def __init__(self, obj, construct):
         self.obj = obj
         self.construct = construct
+        self.holds_value = Bool(False)
 
     # porcelain
 
@@ -138,9 +141,11 @@ class Property:
 
     def _set(self, val):
         self._val = val
+        self.holds_value.set_value(True)
 
     def _del(self):
         del self._val
+        self.holds_value.set_value(False)
 
     # use lambdas to enable overriding the _get/_set/_del methods
     # without having to redefine the 'val' property
