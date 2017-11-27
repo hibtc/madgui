@@ -16,7 +16,7 @@ from madqt.util.collections import List
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
-from madqt.plot.base import SceneElement, SceneGraph
+from madqt.plot.base import Artist, SimpleArtist, SceneGraph
 from madqt.widget.filedialog import getOpenFileName
 
 
@@ -53,14 +53,13 @@ class PlotSelector(QtGui.QComboBox):
         self.currentIndexChanged.connect(self.change_figure)
 
     def change_figure(self, index):
-        self.scene.graph_name = self.itemData(index)
-        self.scene.plot()
+        self.scene.set_graph(self.itemData(index))
 
     def update_index(self):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class TwissFigure:
+class TwissFigure(Artist):
 
     """A figure containing some X/Y twiss parameters."""
 
@@ -70,55 +69,65 @@ class TwissFigure:
         self.segment = segment
         self.config = config
         self.figure = figure
+        self.matcher = self.segment.get_matcher()
         # scene
-        self.curves = SceneGraph()
+        self.loaded_curves = List()
+        self.twiss_curves = SceneGraph()
+        self.user_curves = ListView(
+            partial(make_user_curve, self),
+            self.loaded_curves)
         self.indicators = SceneGraph()
-        self.markers = SceneGraph()
+        self.indicators.enable(False)
+        self.select_markers = SceneGraph()
+        self.constr_markers = ListView(
+            partial(SimpleArtist, draw_constraint, self),
+            self.matcher.constraints)
         self.scene_graph = SceneGraph([
-            # self.indicators,
-            self.markers,
-            self.curves,
+            self.indicators,
+            self.select_markers,
+            self.constr_markers,
+            self.twiss_curves,
         ])
+        self.scene_graph.parent = self      # FIXME: graph should be root?
         # style
         self.x_name = 's'
         self.x_label = config['x_label']
         self.x_unit = from_config(config['x_unit'])
         self.element_style = config['element_style']
         # slots
-        self.segment.updated.connect(self.update)
+        self.segment.twiss.updated.connect(self.update)
 
     def attach(self, plot):
-        curves = List()
+        curves = self.loaded_curves
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
-        plot.addTool(CompareTool(plot, curves))
+        plot.addTool(CompareTool(plot))
         plot.addTool(LoadFileTool(plot, curves))
         plot.addTool(SaveCurveTool(plot, curves))
 
-    @property
-    def graph_name(self):
-        return self._graph_name
-
-    @graph_name.setter
-    def graph_name(self, graph_name):
-        self._graph_name = graph_name
+    def set_graph(self, graph_name):
+        self.graph_name = graph_name
         self.relayout()
 
     def relayout(self):
+        """Called to change the number of axes, etc."""
+        self.render(False)
         self.update_graph_data()
-        self.scene_graph.remove()
         self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
-        self.indicators.items.extend([
+        self.indicators.destroy()
+        self.indicators.clear([
             ElementIndicators(ax, self, self.element_style)
             for ax in axes
         ])
-        self.markers.items.extend([
-            ElementMarkers(ax, self, self.segment.workspace.selection)
+        self.select_markers.destroy()
+        self.select_markers.clear([
+            ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
+                     self.segment.workspace.selection.elements)
             for ax in axes
         ])
-        self.curves.items.extend([
-            self.figure.Curve(
+        self.twiss_curves.clear([
+            Curve(
                 ax,
                 partial(self.get_float_data, curve_info, 0),
                 partial(self.get_float_data, curve_info, 1),
@@ -128,12 +137,12 @@ class TwissFigure:
             )
             for ax, curve_info in zip(axes, self.graph_info.curves)
         ])
+        self.render()
 
-    def plot(self):
+    def draw(self):
         """Replot from clean state."""
-        for curve in self.curves.items:
+        for curve in self.twiss_curves.items:
             ax = curve.axes
-            ax.cla()
             if not self.figure.share_axes:
                 ax.set_ylabel(curve.label)
             # replace formatter method for mouse status:
@@ -146,24 +155,33 @@ class TwissFigure:
             ax.x_unit = curve.x_unit
             ax.y_unit = curve.y_unit
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
-        self.scene_graph.plot()
+        self.scene_graph.render()
         self.figure.autoscale()
         self.figure.connect('xlim_changed', self.xlim_changed)
         if self.figure.share_axes:
             ax = self.figure.axes[0]
+            # TODO: move legend on the outside
             legend = ax.legend(loc='upper center', fancybox=True, shadow=True, ncol=4)
             legend.draggable()
-        self.figure.invalidate()
+
+    def remove(self):
+        for ax in self.axes:
+            ax.cla()
+        self.scene_graph.on_remove()
+
+    def destroy(self):
+        self.segment.twiss.updated.disconnect(self.update)
+        self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
         # Avoid StopIteration while hovering the graph and loading another
         # model/curve:
-        if not self.curves.items:
+        if not self.twiss_curves.items:
             return ''
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0}={1:.6f}{2}".format
-        curve = next(c for c in self.curves.items if c.axes is ax)
+        curve = next(c for c in self.twiss_curves.items if c.axes is ax)
         parts = [coord_fmt(curve.x_name, x, get_raw_label(curve.x_unit)),
                  coord_fmt(curve.y_name, y, get_raw_label(curve.y_unit))]
         elem = self.segment.get_element_by_position(x * curve.x_unit)
@@ -177,26 +195,21 @@ class TwissFigure:
     def update(self, autoscale=True):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
-        self.scene_graph.update()
+        self.twiss_curves.update()
         if autoscale:
             self.figure.autoscale()
-        self.invalidate()
-
-    def remove(self):
-        self.scene_graph.clear()
-        self.segment.updated.disconnect(self.update)
 
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
             self.segment.get_graph_data(self.graph_name, self.xlim)
-        self._graph_name = self.graph_info.short
+        self.graph_name = self.graph_info.short
 
     def get_float_data(self, curve_info, column):
         """Get data for the given parameter from segment."""
         return self.graph_data[curve_info.name][:,column]
 
     def get_curve_by_name(self, name):
-        return next((c for c in self.curves.items if c.y_name == name), None)
+        return next((c for c in self.twiss_curves.items if c.y_name == name), None)
 
     def xlim_changed(self, ax):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
@@ -217,52 +230,90 @@ class TwissFigure:
     # TODO: scene.show_indicators -> scene.indicators.show()
     @property
     def show_indicators(self):
-        return self.indicators in self.scene_graph.items
+        return self.indicators.enabled
 
     @show_indicators.setter
     def show_indicators(self, show):
-        if show == self.show_indicators:
-            return
-        if show:
-            self.scene_graph.items.append(self.indicators)
-            self.indicators.plot()
-        else:
-            self.scene_graph.items.remove(self.indicators)
-            self.indicators.remove()
+        if self.show_indicators != show:
+            self.indicators.enable(show)
 
 
-class ElementIndicators:
+class Curve(SimpleArtist):
+
+    """Plot a TWISS parameter curve segment into a 2D figure."""
+
+    def __init__(self, axes, get_xdata, get_ydata, style, label=None, info=None):
+        """Store meta data."""
+        self.axes = axes
+        self.get_xdata = get_xdata
+        self.get_ydata = get_ydata
+        self.style = style
+        self.label = label
+        self.lines = ()
+        self.info = info
+
+    def draw(self):
+        """Make one subplot."""
+        xdata = self.get_xdata()
+        ydata = self.get_ydata()
+        self.axes.set_xlim(xdata[0], xdata[-1])
+        self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
+        self.line, = self.lines
+
+    def update(self):
+        """Update the y values for one subplot."""
+        self.line.set_xdata(self.get_xdata())
+        self.line.set_ydata(self.get_ydata())
+        self.invalidate()
+
+
+class ListView(SceneGraph):
+
+    def __init__(self, fn, model):
+        super().__init__()
+        self.fn = fn
+        self.model = model
+        for idx, item in enumerate(model):
+            self._add(idx, item)
+        model.insert_notify.connect(self._add)
+        model.delete_notify.connect(self._rm)
+
+    def _add(self, idx, item):
+        self.insert(idx, self.fn(item))
+
+    def _rm(self, idx):
+        self.pop(self.items[idx])
+
+    def destroy(self):
+        self.model.insert_notify.disconnect(self._add)
+        self.model.delete_notify.disconnect(self._rm)
+        super().destroy()
+
+
+class ElementIndicators(SimpleArtist):
 
     """
     Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
     """
 
     def __init__(self, axes, scene, style):
+        super().__init__(self._draw)
         self.axes = axes
         self.scene = scene
         self.style = style
-        self.lines = []
 
     @property
     def elements(self):
         return self.scene.segment.elements
 
-    def plot(self):
+    def _draw(self):
         """Draw the elements into the canvas."""
-        self.lines.extend([
+        return [
             self.make_element_indicator(elem, style)
             for elem in self.elements
             for style in [self.get_element_style(elem)]
             if style is not None
-        ])
-
-    def update(self):
-        pass
-
-    def remove(self):
-        for line in self.lines:
-            line.remove()
-        del self.lines[:]
+        ]
 
     def make_element_indicator(self, elem, style):
         x_unit = self.scene.x_unit
@@ -306,6 +357,9 @@ class ButtonTool:
 class CheckTool:
 
     active = False
+
+    def __init__(self, plot):
+        self.plot = plot
 
     def setChecked(self, checked):
         self.action().setChecked(checked)
@@ -365,7 +419,6 @@ class MatchTool(CaptureTool):
         self.plot = plot
         self.segment = plot.scene.segment
         self.matcher = self.segment.get_matcher()
-        self.markers = ConstraintMarkers(plot.scene, self.matcher.constraints)
         self.matcher.finished.connect(self.deactivate)
 
     def activate(self):
@@ -373,16 +426,11 @@ class MatchTool(CaptureTool):
         self.active = True
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
-        self.plot.scene.scene_graph.items.append(self.markers)
         self.plot.window().parent().viewMatchDialog.create()
-        # TODO: insert markers
 
     def deactivate(self):
         """Stop matching mode."""
         self.active = False
-        self.clearConstraints()
-        self.markers.invalidate()
-        self.plot.scene.scene_graph.items.remove(self.markers)
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
@@ -398,7 +446,7 @@ class MatchTool(CaptureTool):
 
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
-        curves = self.plot.scene.curves.items
+        curves = self.plot.scene.twiss_curves.items
         index = int(bool(self.plot.scene.figure.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
                          len(curves) > 1))
@@ -461,41 +509,15 @@ class MatchTool(CaptureTool):
         del self.matcher.constraints[:]
 
 
-class ConstraintMarkers(SceneElement):
-
-    def __init__(self, scene, constraints):
-        self.scene = scene
-        self.style = scene.config['constraint_style']
-        self.lines = []
-        self.constraints = constraints
-        constraints.update_after.connect(lambda *args: self.invalidate())
-
-    def invalidate(self):
-        self.update()
-        self.scene.invalidate()
-
-    def plot(self):
-        for constraint in self.constraints:
-            self.plotConstraint(*constraint)
-
-    def update(self):
-        self.remove()
-        self.plot()
-
-    def remove(self):
-        for line in self.lines:
-            line.remove()
-        del self.lines[:]
-
-    def plotConstraint(self, elem, pos, axis, val):
-        """Draw one constraint representation in the graph."""
-        scene = self.scene
-        curve = scene.get_curve_by_name(axis)
-        if curve:
-            self.lines.extend(curve.axes.plot(
-                strip_unit(pos, curve.x_unit),
-                strip_unit(val, curve.y_unit),
-                **self.style))
+def draw_constraint(scene, constraint):
+    """Draw one constraint representation in the graph."""
+    elem, pos, axis, val = constraint
+    curve = scene.get_curve_by_name(axis)
+    style = scene.config['constraint_style']
+    return curve and curve.axes.plot(
+        strip_unit(pos, curve.x_unit),
+        strip_unit(val, curve.y_unit),
+        **style) or ()
 
 
 #----------------------------------------
@@ -578,44 +600,12 @@ class InfoTool(CaptureTool):
         selected[top] = new_el_id
 
 
-class ElementMarkers:
-
-    """
-    In-figure markers for active/selected elements.
-    """
-
-    def __init__(self, axes, scene, selection):
-        self.axes = axes
-        self.scene = scene
-        self.style = scene.config['select_style']
-        self.lines = []
-        self.selection = selection
-        selection.elements.update_after.connect(
-            lambda *args: self.invalidate())
-
-    def invalidate(self):
-        self.update()
-        self.scene.invalidate()
-
-    def plot(self):
-        segment = self.scene.segment
-        elements = [segment.elements[el_id]
-                    for el_id in self.selection.elements]
-        self.lines.extend(map(self.plot_marker, elements))
-
-    def update(self):
-        self.remove()
-        self.plot()
-
-    def remove(self):
-        for line in self.lines:
-            line.remove()
-        del self.lines[:]
-
-    def plot_marker(self, element):
-        """Draw the elements into the canvas."""
-        at = strip_unit(element['at'], self.scene.x_unit)
-        return self.axes.axvline(at, **self.style)
+def draw_selection_marker(axes, scene, el_idx):
+    """In-figure markers for active/selected elements."""
+    style = scene.config['select_style']
+    element = scene.segment.elements[el_idx]
+    at = strip_unit(element['at'], scene.x_unit)
+    return [axes.axvline(at, **style)]
 
 
 #----------------------------------------
@@ -626,6 +616,8 @@ class CompareTool(CheckTool):
 
     """
     Display a precomputed reference curve for comparison.
+
+    The reference curve is NOT visible by default.
     """
 
     short = 'Show reference curve'
@@ -634,53 +626,27 @@ class CompareTool(CheckTool):
 
     # TODO: allow to plot any dynamically loaded curve from any file
 
-    def __init__(self, plot, curves):
-        """
-        The reference curve is NOT visible by default.
-        """
-        self.plot = plot
-        self.curves = curves
-        self.style = plot.scene.config['reference_style']
-        self.scene = SceneGraph([])
-        self.curves.insert_notify.connect(self.add_curve)
-        self.curves.delete_notify.connect(self.del_curve)
-
     def activate(self):
         self.active = True
-        self.scene.plot()
-        self.plot.scene.scene_graph.items.append(self.scene)
-        self.plot.scene.invalidate()
+        self.plot.scene.user_curves.enable(True)
 
     def deactivate(self):
         self.active = False
-        self.scene.remove()
-        self.plot.scene.scene_graph.items.remove(self.scene)
-        self.plot.scene.invalidate()
+        self.plot.scene.user_curves.enable(False)
 
-    def add_all(self):
-        for i, c in enumerate(self.curves):
-            self.add_curve(i, c)
 
-    def add_curve(self, idx, item):
-        name, data = item
-        scene = self.plot.scene
-        c = SceneGraph([
-            scene.figure.Curve(
-                curve.axes,
-                partial(strip_unit, data[curve.x_name], curve.x_unit),
-                partial(strip_unit, data[curve.y_name], curve.y_unit),
-                self.style,
-                label=name,
-            )
-            for curve in scene.curves.items
-        ])
-        self.scene.items.insert(idx, c)
-        if self.active:
-            c.plot()
-
-    def del_curve(self, idx):
-        c = self.scene.items.pop(idx)
-        c.remove()
+def make_user_curve(scene, item):
+    name, data = item
+    style = scene.config['reference_style']
+    return SceneGraph([
+        Curve(
+            curve.axes,
+            partial(strip_unit, data[curve.x_name], curve.x_unit),
+            partial(strip_unit, data[curve.y_name], curve.y_unit),
+            style, label=name,
+        )
+        for curve in scene.twiss_curves.items
+    ])
 
 
 class LoadFileTool(ButtonTool):
@@ -749,9 +715,9 @@ class SaveCurveTool(ButtonTool):
     def activate(self):
         data = {
             curve.y_name: curve.get_ydata()
-            for curve in self.plot.scene.curves.items
+            for curve in self.plot.scene.twiss_curves.items
         }
-        curve = next(iter(self.plot.scene.curves.items))
+        curve = next(iter(self.plot.scene.twiss_curves.items))
         data[curve.x_name] = curve.get_xdata()
         self.curves.append(("saved curve", data))
 
