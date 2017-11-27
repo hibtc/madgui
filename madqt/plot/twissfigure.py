@@ -75,20 +75,20 @@ class TwissFigure(Artist):
         self.twiss_curves = SceneGraph()
         self.user_curves = ListView(
             partial(make_user_curve, self),
-            self.loaded_curves, self.invalidate)
+            self.loaded_curves)
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
         self.constr_markers = ListView(
             partial(SimpleArtist, draw_constraint, self),
-            self.matcher.constraints,
-            self.invalidate)
+            self.matcher.constraints)
         self.scene_graph = SceneGraph([
             self.indicators,
             self.select_markers,
             self.constr_markers,
             self.twiss_curves,
         ])
+        self.scene_graph.parent = self      # FIXME: graph should be root?
         # style
         self.x_name = 's'
         self.x_label = config['x_label']
@@ -123,8 +123,7 @@ class TwissFigure(Artist):
         self.select_markers.destroy()
         self.select_markers.clear([
             ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
-                     self.segment.workspace.selection.elements,
-                     self.invalidate)
+                     self.segment.workspace.selection.elements)
             for ax in axes
         ])
         self.twiss_curves.clear([
@@ -164,7 +163,6 @@ class TwissFigure(Artist):
             # TODO: move legend on the outside
             legend = ax.legend(loc='upper center', fancybox=True, shadow=True, ncol=4)
             legend.draggable()
-        self.figure.invalidate()
 
     def remove(self):
         for ax in self.axes:
@@ -200,7 +198,6 @@ class TwissFigure(Artist):
         self.twiss_curves.update()
         if autoscale:
             self.figure.autoscale()
-        self.invalidate()
 
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
@@ -239,7 +236,6 @@ class TwissFigure(Artist):
     def show_indicators(self, show):
         if self.show_indicators != show:
             self.indicators.enable(show)
-            self.invalidate()
 
 
 class Curve(SimpleArtist):
@@ -268,15 +264,15 @@ class Curve(SimpleArtist):
         """Update the y values for one subplot."""
         self.line.set_xdata(self.get_xdata())
         self.line.set_ydata(self.get_ydata())
+        self.invalidate()
 
 
 class ListView(SceneGraph):
 
-    def __init__(self, fn, model, invalidate):
+    def __init__(self, fn, model):
         super().__init__()
         self.fn = fn
         self.model = model
-        self.invalidate = invalidate
         for idx, item in enumerate(model):
             self._add(idx, item)
         model.insert_notify.connect(self._add)
@@ -284,11 +280,9 @@ class ListView(SceneGraph):
 
     def _add(self, idx, item):
         self.insert(idx, self.fn(item))
-        self.invalidate()
 
     def _rm(self, idx):
         self.pop(self.items[idx])
-        self.invalidate()
 
     def destroy(self):
         self.model.insert_notify.disconnect(self._add)
@@ -439,7 +433,6 @@ class MatchTool(CaptureTool):
         self.active = False
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
-        self.plot.figure.invalidate()
 
     def onClick(self, event):
 
@@ -636,12 +629,10 @@ class CompareTool(CheckTool):
     def activate(self):
         self.active = True
         self.plot.scene.user_curves.enable(True)
-        self.plot.scene.invalidate()
 
     def deactivate(self):
         self.active = False
         self.plot.scene.user_curves.enable(False)
-        self.plot.scene.invalidate()
 
 
 def make_user_curve(scene, item):

@@ -16,6 +16,7 @@ class Artist:
 
     """An element of a figure."""
 
+    parent = None
     shown = False       # if this element is currently drawn
     enabled = True      # whether this element (+children) should be drawn
 
@@ -33,8 +34,10 @@ class Artist:
         shown = self.shown
         if show and not shown:
             self.draw()
+            self.invalidate()
         elif not show and shown:
             self.remove()
+            self.invalidate()
         self.shown = show
 
     # overrides, private, must only be called from `render`:
@@ -56,6 +59,11 @@ class Artist:
 
     def destroy(self):
         """Cleanup existing resources."""
+
+    def invalidate(self):
+        """Mark the canvas to be stale."""
+        # Must override in root node!
+        self.parent.invalidate()
 
 
 class SimpleArtist(Artist):
@@ -91,6 +99,11 @@ class SceneGraph(Artist):
     def __init__(self, items=()):
         super().__init__()
         self.items = list(items)
+        self._adopt(items)
+
+    def _adopt(self, items):
+        for item in items:
+            item.parent = self
 
     # overrides
 
@@ -115,11 +128,13 @@ class SceneGraph(Artist):
     def extend(self, items):
         """Extend by several children."""
         self.items.extend(items)
+        self._adopt(items)
         for item in items:
             item.render(self.shown)
 
     def insert(self, index, item):
         self.items.insert(index, item)
+        self._adopt((item,))
         item.render(self.shown)
 
     def pop(self, item):
