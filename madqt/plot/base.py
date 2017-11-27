@@ -50,6 +50,8 @@ class Artist:
 
     def update(self):
         """Update existing plot."""
+
+    def redraw(self):
         self.render(False)
         self.render()
 
