@@ -4,8 +4,6 @@ Core classes for MadQt.
 Every object that emits signals has to derive from :class:`Object`.
 """
 
-from functools import partial
-
 from madqt.qt import QtCore
 
 
@@ -24,22 +22,32 @@ except AttributeError:
 
 class Cache(Object):
 
-    updated = Signal()
+    """
+    Cached state that can be invalidated. Invalidation triggers recomputation
+    in the main loop at the next idle time.
+    """
+
+    updated = Signal()      # emitted after update
+    invalid = False         # prevents invalidation during callback()
 
     def __init__(self, callback):
         super().__init__()
         self.data = None
         self.timer = QtCore.QTimer()
         self.timer.setSingleShot(True)
-        self.timer.timeout.connect(partial(self.update, force=True))
+        self.timer.timeout.connect(self.update)
         self.callback = callback
 
     def invalidate(self):
-        self.timer.start()
+        if not self.invalid:
+            self.invalid = True
+            self.timer.start()
 
     def update(self, force=False):
-        if force or self.timer.isActive():
+        if force or self.invalid:
             self.timer.stop()
+            self.invalid = True     # prevent repeated invalidation in callback
             self.data = self.callback()
+            self.invalid = False    # clear AFTER update
             self.updated.emit()
         return self.data
