@@ -11,7 +11,7 @@ import numpy as np
 from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
-from madqt.util.misc import memoize
+from madqt.util.misc import memoize, strip_suffix
 from madqt.util.collections import List
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
@@ -182,13 +182,14 @@ class TwissFigure(Artist):
             return ''
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
-        coord_fmt = "{0}={1:.6f}{2}".format
+        coord_fmt = "{0:.6f}{1}".format
         curve = next(c for c in self.twiss_curves.items if c.axes is ax)
-        parts = [coord_fmt(curve.x_name, x, get_raw_label(curve.x_unit)),
-                 coord_fmt(curve.y_name, y, get_raw_label(curve.y_unit))]
+        parts = [coord_fmt(x, get_raw_label(curve.x_unit)),
+                 coord_fmt(y, get_raw_label(curve.y_unit))]
         elem = self.segment.get_element_by_position(x * curve.x_unit)
         if elem and 'name' in elem:
-            parts.insert(0, 'elem={0}'.format(elem['name']))
+            name = strip_suffix(elem['name'], '[0]')
+            parts.insert(0, name.upper())
         return ', '.join(parts)
 
     def invalidate(self):

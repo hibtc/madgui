@@ -218,3 +218,7 @@ def logfile_name(path, base, ext):
     fd, name = tempfile.mkstemp(suffix=ext, prefix=base+'.', text=True)
     os.close(fd)
     return name
+
+
+def strip_suffix(s, suffix):
+    return s[:-len(suffix)] if s.endswith(suffix) else s
