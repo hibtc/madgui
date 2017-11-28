@@ -138,7 +138,7 @@ def get_raw_label(quantity):
         return str(quantity)
     short = pint.unit.UnitsContainer(
         {units._get_symbol(key): value
-         for key, value in quantity.units.items()})
+         for key, value in quantity.units._units.items()})
     as_ratio = any(exp > 0 for _, exp in short.items())
     return pint.formatting.formatter(
         short.items(),

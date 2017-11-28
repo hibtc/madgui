@@ -67,7 +67,7 @@ def main():
             'matplotlib',
             'numpy',
             'PyYAML',           # config/model files
-            'Pint==0.6',
+            'Pint==0.8.1',
             'docutils',         # about dialogs
             # inprocess python shell:
             'ipython',

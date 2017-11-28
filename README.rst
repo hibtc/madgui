@@ -24,7 +24,7 @@ These can easily be installed via PyPI (``pip install ...``) if unavailable
 in your repositories:
 
 - docopt_
-- Pint_ == 0.6
+- Pint_ == 0.8.1
 - PyYAML_
 - docutils_
 - ipython_
