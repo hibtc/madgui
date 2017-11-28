@@ -12,7 +12,7 @@ from madqt.widget.quantity import DoubleValidator
 
 
 
-def get_constraint_elem(matcher, c):
+def get_constraint_elem(matcher, c, i):
     return matcher.elem_enum(c.elem['name'] if c.elem else "(global)")
 
 def set_constraint_elem(matcher, c, i, name):
@@ -20,7 +20,7 @@ def set_constraint_elem(matcher, c, i, name):
         el = matcher.segment.elements[str(name)]
         matcher.constraints[i] = Constraint(el, el['at']+el['l'], c.axis, c.value)
 
-def get_constraint_axis(matcher, c):
+def get_constraint_axis(matcher, c, i):
     return matcher.lcon_enum(c.axis)
 
 def set_constraint_axis(matcher, c, i, axis):

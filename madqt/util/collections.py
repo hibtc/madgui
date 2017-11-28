@@ -192,7 +192,6 @@ class List(Object):
 
 MutableSequence.register(List)
 
-
 class Selection:
 
     """
@@ -208,8 +207,7 @@ class Selection:
     def __init__(self, elements=None):
         self.elements = List() if elements is None else elements
         self.ordering = list(range(len(self.elements)))
-        self.elements.insert_notify.connect(self._insert)
-        self.elements.delete_notify.connect(self._delete)
+        maintain_selection(self.ordering, self.elements)
 
     def get_top(self):
         """Get index of top element."""
@@ -222,14 +220,18 @@ class Selection:
 
     top = property(get_top, set_top)
 
-    def _insert(self, index, value):
-        for i, v in enumerate(self.ordering):
-            if v >= index:
-                self.ordering[i] += 1
-        self.ordering.append(index)
 
-    def _delete(self, index):
-        self.ordering.remove(index)
-        for i, v in enumerate(self.ordering):
+def maintain_selection(sel, avail):
+    def insert(index, value):
+        for i, v in enumerate(sel):
             if v >= index:
-                self.ordering[i] -= 1
+                sel[i] += 1
+        sel.append(index)
+    def delete(index):
+        if index in sel:
+            sel.remove(index)
+        for i, v in enumerate(sel):
+            if v >= index:
+                sel[i] -= 1
+    avail.insert_notify.connect(insert)
+    avail.delete_notify.connect(delete)

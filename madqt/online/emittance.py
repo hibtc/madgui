@@ -20,7 +20,7 @@ MonitorItem = namedtuple('MonitorItem', ['proxy', 'envx', 'envy'])
 ResultItem = namedtuple('ResultItem', ['name', 'measured', 'model'])
 
 
-def get_monitor_elem(widget, m):
+def get_monitor_elem(widget, m, i):
     return widget.monitor_enum(m.proxy.name)
 
 def set_monitor_elem(widget, m, i, name):

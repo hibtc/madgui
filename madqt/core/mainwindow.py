@@ -10,7 +10,7 @@ import logging
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.util.collections import Selection, Bool
-from madqt.util.misc import Property, logfile_name
+from madqt.util.misc import SingleWindow, logfile_name
 from madqt.util.qt import notifyCloseEvent
 from madqt.widget.dialog import Dialog
 from madqt.widget.log import LogWindow
@@ -43,20 +43,6 @@ def expand_ext(path, *exts):
         if os.path.isfile(path+ext):
             return path+ext
     return path
-
-
-class SingleWindow(Property):
-
-    def _del(self):
-        self.val.close()
-
-    def _closed(self):
-        super()._del()
-
-    def _new(self):
-        window = super()._new()
-        notifyCloseEvent(window, self._closed)
-        return window
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -456,12 +442,18 @@ class MainWindow(QtGui.QMainWindow):
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [
             Menu('&View', [
+                # TODO: dynamic checked state
                 Item('&Shared plot', 'Ctrl+M',
                      'Plot all curves into the same plot - more compact format.',
                      toggleShareAxes, checked=False),
+                # TODO: dynamic checked state
                 Item('Element &indicators', None,
                      'Show element indicators',
-                     toggleIndicators, checked=show_indicators)
+                     toggleIndicators, checked=show_indicators),
+                Item('Manage curves', None,
+                     'Select which data sets are shown',
+                     scene._curveManager.toggle,
+                     checked=scene._curveManager.holds_value),
             ]),
         ])
         return scene

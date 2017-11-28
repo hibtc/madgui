@@ -3,21 +3,18 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
-import os
 from functools import partial
-
-import numpy as np
 
 from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
-from madqt.util.misc import memoize, strip_suffix
-from madqt.util.collections import List
+from madqt.util.misc import memoize, strip_suffix, SingleWindow
+from madqt.util.collections import List, maintain_selection
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
 from madqt.plot.base import Artist, SimpleArtist, SceneGraph
-from madqt.widget.filedialog import getOpenFileName
+from madqt.widget.dialog import Dialog
 
 
 __all__ = [
@@ -64,6 +61,7 @@ class TwissFigure(Artist):
     """A figure containing some X/Y twiss parameters."""
 
     xlim = None
+    snapshot_num = 0
 
     def __init__(self, figure, segment, config):
         self.segment = segment
@@ -71,12 +69,13 @@ class TwissFigure(Artist):
         self.figure = figure
         self.matcher = self.segment.get_matcher()
         # scene
+        self.shown_curves = List()
         self.loaded_curves = List()
+        maintain_selection(self.shown_curves, self.loaded_curves)
         self.twiss_curves = SceneGraph()
         self.user_curves = ListView(
             partial(make_user_curve, self),
-            self.loaded_curves)
-        self.user_curves.enable(False)
+            self.shown_curves)
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
@@ -100,13 +99,11 @@ class TwissFigure(Artist):
         self.segment.twiss.updated.connect(self.update)
 
     def attach(self, plot):
-        curves = self.loaded_curves
+        self.plot = plot
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
-        plot.addTool(CompareTool(plot))
-        plot.addTool(LoadFileTool(plot, curves))
-        plot.addTool(SaveCurveTool(plot, curves))
+        plot.addTool(CompareTool(plot, self.shown_curves))
 
     def set_graph(self, graph_name):
         self.graph_name = graph_name
@@ -239,6 +236,16 @@ class TwissFigure(Artist):
     def show_indicators(self, show):
         if self.show_indicators != show:
             self.indicators.enable(show)
+
+    @SingleWindow.factory
+    def _curveManager(self):
+        from madqt.widget.curvemanager import CurveManager
+        widget = CurveManager(self)
+        dialog = Dialog(self.plot.window())
+        dialog.setWidget(widget, tight=True)
+        dialog.setWindowTitle("Curve manager")
+        dialog.show()
+        return dialog
 
 
 class Curve(SimpleArtist):
@@ -426,14 +433,12 @@ class MatchTool(CaptureTool):
 
     def activate(self):
         """Start matching mode."""
-        self.active = True
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.window().parent().viewMatchDialog.create()
 
     def deactivate(self):
         """Stop matching mode."""
-        self.active = False
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
@@ -546,7 +551,6 @@ class InfoTool(CaptureTool):
 
     def activate(self):
         """Start select mode."""
-        self.active = True
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.keyPress.connect(self.onKey)
@@ -554,7 +558,6 @@ class InfoTool(CaptureTool):
 
     def deactivate(self):
         """Stop select mode."""
-        self.active = False
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
@@ -627,19 +630,25 @@ class CompareTool(CheckTool):
     icon = QtGui.QStyle.SP_DirLinkIcon
     text = 'Load data file for comparison.'
 
-    # TODO: allow to plot any dynamically loaded curve from any file
+    def __init__(self, plot, selection):
+        super().__init__(plot)
+        self.selection = selection
+        selection.update_after.connect(self._update)
+        self.plot.scene._curveManager.holds_value.changed.connect(self._update)
+
+    def _update(self, *args):
+        self.setChecked(len(self.selection) > 0 or
+                        self.plot.scene._curveManager.holds_value.value)
 
     def activate(self):
-        self.active = True
-        self.plot.scene.user_curves.enable(True)
+        self.plot.scene._curveManager.create()
 
     def deactivate(self):
-        self.active = False
-        self.plot.scene.user_curves.enable(False)
+        self.selection.clear()
 
 
-def make_user_curve(scene, item):
-    name, data = item
+def make_user_curve(scene, idx):
+    name, data = scene.loaded_curves[idx]
     style = scene.config['reference_style']
     return SceneGraph([
         Curve(
@@ -650,79 +659,6 @@ def make_user_curve(scene, item):
         )
         for curve in scene.twiss_curves.items
     ])
-
-
-class LoadFileTool(ButtonTool):
-
-    short = 'Load data file'
-    icon = QtGui.QStyle.SP_FileIcon
-    text = 'Load data file for comparison.'
-
-    dataFileFilters = [
-        ("Text files", "*.txt", "*.dat"),
-        ("TFS tables", "*.tfs", "*.twiss"),
-    ]
-
-    def __init__(self, plot, curves):
-        self.plot = plot
-        self.curves = curves
-        self.folder = self.plot.scene.segment.workspace.repo.path
-
-    def activate(self):
-        filename = getOpenFileName(
-            self.plot.window(), 'Open data file for comparison',
-            self.folder, self.dataFileFilters)
-        if filename:
-            self.folder, basename = os.path.split(filename)
-            data = self.load_file(filename)
-            self.curves.append((basename, data))
-
-    def load_file(self, filename):
-        from madqt.util.table import read_table, read_tfsfile
-        if filename.lower().rsplit('.')[-1] not in ('tfs', 'twiss'):
-            return read_table(filename)
-        segment = self.plot.scene.segment
-        utool = segment.workspace.utool
-        table = read_tfsfile(filename)
-        data = table.copy()
-        # TODO: this should be properly encapsulated:
-        if 'sig11' in data:
-            data['envx'] = data['sig11'] ** 0.5
-        elif 'betx' in data:
-            try:
-                ex = table.summary['ex']
-            except ValueError:
-                ex = utool.strip_unit('ex', segment.ex())
-            data['envx'] = (data['betx'] * ex) ** 0.5
-        if 'sig33' in data:
-            data['envy'] = data['sig33']**0.5
-        elif 'bety' in data:
-            try:
-                ey = table.summary['ey']
-            except ValueError:
-                ey = utool.strip_unit('ey', segment.ey())
-            data['envy'] = (data['bety'] * ey) ** 0.5
-        return utool.dict_add_unit(data)
-
-
-class SaveCurveTool(ButtonTool):
-
-    short = 'Save the current curve'
-    icon = QtGui.QStyle.SP_DialogSaveButton
-    text = 'Save the current curve data for later comparison.'
-
-    def __init__(self, plot, curves):
-        self.plot = plot
-        self.curves = curves
-
-    def activate(self):
-        data = {
-            curve.y_name: curve.get_ydata()
-            for curve in self.plot.scene.twiss_curves.items
-        }
-        curve = next(iter(self.plot.scene.twiss_curves.items))
-        data[curve.x_name] = curve.get_xdata()
-        self.curves.append(("saved curve", data))
 
 
 def ax_label(label, unit):
