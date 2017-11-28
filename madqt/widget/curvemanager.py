@@ -88,8 +88,9 @@ class CurveManager(QtGui.QWidget):
         }
         curve = next(iter(self.scene.twiss_curves.items))
         data[curve.x_name] = curve.get_xdata()
-        # TODO: better messages
-        self.available.append(("saved curve", data))
+        self.scene.snapshot_num += 1
+        name = "snapshot {}".format(self.scene.snapshot_num)
+        self.available.append((name, data))
 
     def on_btn_load(self):
         filename = getOpenFileName(

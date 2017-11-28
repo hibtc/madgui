@@ -61,6 +61,7 @@ class TwissFigure(Artist):
     """A figure containing some X/Y twiss parameters."""
 
     xlim = None
+    snapshot_num = 0
 
     def __init__(self, figure, segment, config):
         self.segment = segment
