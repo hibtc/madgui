@@ -452,7 +452,8 @@ class MainWindow(QtGui.QMainWindow):
                      toggleIndicators, checked=show_indicators),
                 Item('Manage curves', None,
                      'Select which data sets are shown',
-                     scene._curveManager.create),
+                     scene._curveManager.toggle,
+                     checked=scene._curveManager.holds_value),
             ]),
         ])
         return scene

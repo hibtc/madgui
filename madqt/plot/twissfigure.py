@@ -74,7 +74,6 @@ class TwissFigure(Artist):
         self.user_curves = ListView(
             partial(make_user_curve, self),
             self.shown_curves)
-        self.user_curves.enable(False)
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
@@ -622,8 +621,6 @@ def draw_selection_marker(axes, scene, el_idx):
 
 class CompareTool(CheckTool):
 
-    # TODO: CompareTool.activate -> CurveManager.create()
-
     """
     Display a precomputed reference curve for comparison.
 
@@ -638,17 +635,17 @@ class CompareTool(CheckTool):
         super().__init__(plot)
         self.selection = selection
         selection.update_after.connect(self._update)
+        self.plot.scene._curveManager.holds_value.changed.connect(self._update)
 
     def _update(self, *args):
-        self.setChecked(len(self.selection) > 0)
+        self.setChecked(len(self.selection) > 0 or
+                        self.plot.scene._curveManager.holds_value.value)
 
     def activate(self):
-        self.active = True
-        self.plot.scene.user_curves.enable(True)
+        self.plot.scene._curveManager.create()
 
     def deactivate(self):
-        self.active = False
-        self.plot.scene.user_curves.enable(False)
+        self.selection.clear()
 
 
 def make_user_curve(scene, idx):
