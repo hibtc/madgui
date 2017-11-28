@@ -8,7 +8,7 @@ import collections
 import tempfile
 
 from madqt.util.collections import Bool
-
+from madqt.util.qt import notifyCloseEvent
 
 __all__ = [
     'safe_hasattr',
@@ -18,6 +18,7 @@ __all__ = [
     'cachedproperty',
     'update_property',
     'Property',
+    'SingleWindow',
     'rename_key',
     'merged',
     'translate_default',
@@ -152,6 +153,20 @@ class Property:
     val = property(lambda self:      self._get(),
                    lambda self, val: self._set(val),
                    lambda self:      self._del())
+
+
+class SingleWindow(Property):
+
+    def _del(self):
+        self.val.close()
+
+    def _closed(self):
+        super()._del()
+
+    def _new(self):
+        window = super()._new()
+        notifyCloseEvent(window, self._closed)
+        return window
 
 
 class LazyList(collections.Sequence):

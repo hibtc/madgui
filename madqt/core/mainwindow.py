@@ -10,7 +10,7 @@ import logging
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.util.collections import Selection, Bool
-from madqt.util.misc import Property, logfile_name
+from madqt.util.misc import SingleWindow, logfile_name
 from madqt.util.qt import notifyCloseEvent
 from madqt.widget.dialog import Dialog
 from madqt.widget.log import LogWindow
@@ -43,20 +43,6 @@ def expand_ext(path, *exts):
         if os.path.isfile(path+ext):
             return path+ext
     return path
-
-
-class SingleWindow(Property):
-
-    def _del(self):
-        self.val.close()
-
-    def _closed(self):
-        super()._del()
-
-    def _new(self):
-        window = super()._new()
-        notifyCloseEvent(window, self._closed)
-        return window
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -453,13 +439,6 @@ class MainWindow(QtGui.QMainWindow):
         def toggleIndicators():
             scene.show_indicators = not scene.show_indicators
 
-        def manageCurves():
-            # TODO: should be specific to the plot window…
-            self.cur_scene = scene
-            # FIXME: this doesn't show the dialog for the requested scene if
-            # it is already open for another scene:
-            self._curveManager.create()
-
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [
             Menu('&View', [
@@ -473,20 +452,10 @@ class MainWindow(QtGui.QMainWindow):
                      toggleIndicators, checked=show_indicators),
                 Item('Manage curves', None,
                      'Select which data sets are shown',
-                     manageCurves),
+                     scene._curveManager.create),
             ]),
         ])
         return scene
-
-    @SingleWindow.factory
-    def _curveManager(self):
-        from madqt.widget.curvemanager import CurveManager
-        widget = CurveManager(self.cur_scene)
-        dialog = Dialog(self)
-        dialog.setWidget(widget, tight=True)
-        dialog.setWindowTitle("Curve manager")
-        dialog.show()
-        return dialog
 
     def _createShell(self):
         """Create a python shell widget."""

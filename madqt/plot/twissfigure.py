@@ -8,12 +8,13 @@ from functools import partial
 from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
-from madqt.util.misc import memoize
+from madqt.util.misc import memoize, SingleWindow
 from madqt.util.collections import List
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
 from madqt.plot.base import Artist, SimpleArtist, SceneGraph
+from madqt.widget.dialog import Dialog
 
 
 __all__ = [
@@ -97,6 +98,7 @@ class TwissFigure(Artist):
         self.segment.twiss.updated.connect(self.update)
 
     def attach(self, plot):
+        self.plot = plot
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
@@ -232,6 +234,16 @@ class TwissFigure(Artist):
     def show_indicators(self, show):
         if self.show_indicators != show:
             self.indicators.enable(show)
+
+    @SingleWindow.factory
+    def _curveManager(self):
+        from madqt.widget.curvemanager import CurveManager
+        widget = CurveManager(self)
+        dialog = Dialog(self.plot.window())
+        dialog.setWidget(widget, tight=True)
+        dialog.setWindowTitle("Curve manager")
+        dialog.show()
+        return dialog
 
 
 class Curve(SimpleArtist):
