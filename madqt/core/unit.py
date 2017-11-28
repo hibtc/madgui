@@ -165,11 +165,9 @@ def from_config(unit):
     if isinstance(unit, bytes):
         unit = unit.decode('utf-8')
     unit = u'{}'.format(unit)
-    # as of pint-0.6 the following symbols fail to be parsed on python2:
-    unit = unit.replace(u'µ', u'micro')
+    # as of pint-0.8.1 the following symbols fail to be parsed:
     unit = unit.replace(u'%', u'percent')
     unit = unit.replace(u'‰', u'permille')
-    unit = unit.replace(u'Ω', u'ohm')
     return units(unit)
 
 
