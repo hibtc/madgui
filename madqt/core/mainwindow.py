@@ -481,8 +481,7 @@ class MainWindow(QtGui.QMainWindow):
     @SingleWindow.factory
     def _curveManager(self):
         from madqt.widget.curvemanager import CurveManager
-        scene = self.cur_scene
-        widget = CurveManager(scene.loaded_curves, scene.shown_curves)
+        widget = CurveManager(self.cur_scene)
         dialog = Dialog(self)
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Curve manager")
