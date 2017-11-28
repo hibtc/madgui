@@ -6,7 +6,7 @@ Dialog for managing shown curves.
 # - buttons:
 #       - remove
 # - single column with check box
-# - editable names
+# - activate name edit box on insertion
 
 import os
 from pkg_resources import resource_filename
@@ -18,19 +18,23 @@ from madqt.widget.tableview import ExtColumnInfo
 from madqt.widget.filedialog import getOpenFileName
 
 
-def get_curve_name(selected, curve, i):
+def get_curve_name(mgr, curve, i):
     name, data = curve
     return name
 
-def get_curve_show(selected, curve, i):
-    return i in selected
+def set_curve_name(mgr, curve, i, name):
+    _, data = curve
+    mgr.available[i] = (name, data)
 
-def set_curve_show(selected, curve, i, show):
-    shown = i in selected
+def get_curve_show(mgr, curve, i):
+    return i in mgr.selected
+
+def set_curve_show(mgr, curve, i, show):
+    shown = i in mgr.selected
     if show and not shown:
-        selected.append(i)
+        mgr.selected.append(i)
     elif not show and shown:
-        selected.remove(i)
+        mgr.selected.remove(i)
 
 
 class CurveManager(QtGui.QWidget):
@@ -39,7 +43,7 @@ class CurveManager(QtGui.QWidget):
 
     columns = [
         ExtColumnInfo("show", get_curve_show, set_curve_show),
-        ExtColumnInfo("name", get_curve_name),
+        ExtColumnInfo("name", get_curve_name, set_curve_name),
     ]
 
     def __init__(self, scene):
@@ -58,7 +62,7 @@ class CurveManager(QtGui.QWidget):
         self.tab.horizontalHeader().setHighlightSections(False)
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.tab.set_columns(self.columns, self.available, self.selected)
+        self.tab.set_columns(self.columns, self.available, self)
 
     def set_initial_values(self):
         self.btn_remove.setEnabled(len(self.tab.rows) > 0)
