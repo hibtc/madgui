@@ -34,6 +34,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="btn_remove">
+       <property name="text">
+        <string>Remove</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>

@@ -6,6 +6,7 @@ Dialog for managing shown curves.
 # - buttons:
 #       - remove
 # - single column with check box
+# - editable names
 
 import os
 from pkg_resources import resource_filename
@@ -60,15 +61,21 @@ class CurveManager(QtGui.QWidget):
         self.tab.set_columns(self.columns, self.available, self.selected)
 
     def set_initial_values(self):
-        pass
+        self.btn_remove.setEnabled(len(self.tab.rows) > 0)
+        self.update_btn_remove()
 
     def connect_signals(self):
         self.btn_save.clicked.connect(self.on_btn_save)
         self.btn_load.clicked.connect(self.on_btn_load)
+        self.btn_remove.clicked.connect(self.tab.removeSelectedRows)
+        self.tab.selectionChangedSignal.connect(self.update_btn_remove)
 
     @property
     def data(self):
         return self.tab.rows
+
+    def update_btn_remove(self):
+        self.btn_remove.setEnabled(bool(self.tab.selectedIndexes()))
 
     def on_btn_save(self):
         data = {
@@ -79,7 +86,6 @@ class CurveManager(QtGui.QWidget):
         data[curve.x_name] = curve.get_xdata()
         # TODO: better messages
         self.available.append(("saved curve", data))
-        self.selected[:] = [len(self.available)-1]
 
     def on_btn_load(self):
         filename = getOpenFileName(
@@ -89,7 +95,6 @@ class CurveManager(QtGui.QWidget):
             self.folder, basename = os.path.split(filename)
             data = self.load_file(filename)
             self.available.append((basename, data))
-            self.selected[:] = [len(self.available)-1]
 
     dataFileFilters = [
         ("Text files", "*.txt", "*.dat"),

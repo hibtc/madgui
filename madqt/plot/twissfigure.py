@@ -9,7 +9,7 @@ from madqt.qt import QtGui, Qt
 
 from madqt.util.qt import waitCursor
 from madqt.util.misc import memoize, SingleWindow
-from madqt.util.collections import List
+from madqt.util.collections import List, maintain_selection
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
@@ -70,6 +70,7 @@ class TwissFigure(Artist):
         # scene
         self.shown_curves = List()
         self.loaded_curves = List()
+        maintain_selection(self.shown_curves, self.loaded_curves)
         self.twiss_curves = SceneGraph()
         self.user_curves = ListView(
             partial(make_user_curve, self),
