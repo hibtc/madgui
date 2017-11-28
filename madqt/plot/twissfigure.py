@@ -620,7 +620,6 @@ class CompareTool(CheckTool):
 
     # TODO: remove LoadCurveTool, SaveCurveTool -> integrate into CurveManager
     # TODO: CompareTool.activate -> CurveManager.create()
-    # TODO: CurveManager -> @SingleWindow
 
     """
     Display a precomputed reference curve for comparison.

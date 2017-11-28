@@ -454,12 +454,11 @@ class MainWindow(QtGui.QMainWindow):
             scene.show_indicators = not scene.show_indicators
 
         def manageCurves():
-            from madqt.widget.curvemanager import CurveManager
-            widget = CurveManager(scene.loaded_curves, scene.shown_curves)
-            dialog = Dialog(self)
-            dialog.setWidget(widget, tight=True)
-            dialog.setWindowTitle("Curve manager")
-            dialog.show()
+            # TODO: should be specific to the plot window…
+            self.cur_scene = scene
+            # FIXME: this doesn't show the dialog for the requested scene if
+            # it is already open for another scene:
+            self._curveManager.create()
 
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menu.extend(widget, menubar, [
@@ -472,13 +471,23 @@ class MainWindow(QtGui.QMainWindow):
                 Item('Element &indicators', None,
                      'Show element indicators',
                      toggleIndicators, checked=show_indicators),
-                # TODO: should be specific to the plot window…:
-                Item('Curve management', None,
-                     'Manage which data sets are shown',
+                Item('Manage curves', None,
+                     'Select which data sets are shown',
                      manageCurves),
             ]),
         ])
         return scene
+
+    @SingleWindow.factory
+    def _curveManager(self):
+        from madqt.widget.curvemanager import CurveManager
+        scene = self.cur_scene
+        widget = CurveManager(scene.loaded_curves, scene.shown_curves)
+        dialog = Dialog(self)
+        dialog.setWidget(widget, tight=True)
+        dialog.setWindowTitle("Curve manager")
+        dialog.show()
+        return dialog
 
     def _createShell(self):
         """Create a python shell widget."""
