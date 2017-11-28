@@ -42,12 +42,7 @@ def initialize():
     units = pint.UnitRegistry(units_spec)
 
     # make `str(quantity)` slightly nicer
-    if sys.version_info[0] == 3:
-        units.default_format = 'P~'
-    else:
-        # NOTE: 'P' outputs non-ascii unicode symbols and therefore breaks
-        # str(quantity) on python2 (UnicodeEncodeError).
-        units.default_format = '~'
+    units.default_format = 'P~'
 
     # extend unit registry
     # NOTE: parsing %, ‰ doesn't work automatically yet in pint.
