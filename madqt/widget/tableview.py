@@ -110,10 +110,11 @@ class TableModel(QtCore.QAbstractTableModel):
         self._rows.update_after.connect(self._update_finalize)
 
     def _update_prepare(self, slice, old_values, new_values):
-        self.layoutAboutToBeChanged.emit()
+        # TODO: less drastic update
+        self.beginResetModel()
 
     def _update_finalize(self, slice, old_values, new_values):
-        self.layoutChanged.emit()
+        self.endResetModel()
 
     # data accessors
 
