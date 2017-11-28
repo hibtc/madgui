@@ -2,11 +2,7 @@
 Dialog for managing shown curves.
 """
 
-# TODO:
-# - buttons:
-#       - remove
-# - single column with check box
-# - activate name edit box on insertion
+# TODO: single column with check box
 
 import os
 from pkg_resources import resource_filename
@@ -91,6 +87,7 @@ class CurveManager(QtGui.QWidget):
         self.scene.snapshot_num += 1
         name = "snapshot {}".format(self.scene.snapshot_num)
         self.available.append((name, data))
+        self.tab.edit(self.tab.model().index(len(self.available)-1, 1))
 
     def on_btn_load(self):
         filename = getOpenFileName(
