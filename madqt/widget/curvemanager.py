@@ -2,16 +2,46 @@
 Dialog for managing shown curves.
 """
 
-# TODO: single column with check box
-
 import os
 from pkg_resources import resource_filename
 from collections import namedtuple
 
-from madqt.qt import QtGui, uic
+from madqt.qt import Qt, QtGui, uic
 from madqt.core.unit import strip_unit
-from madqt.widget.tableview import ExtColumnInfo
+from madqt.widget.tableview import ExtColumnInfo, StringValue
 from madqt.widget.filedialog import getOpenFileName
+
+
+class CheckedStringValue(StringValue):
+
+    """String value with checkbox."""
+
+    default = False
+
+    def __init__(self, mgr, _, idx):
+        self.mgr = mgr
+        self.idx = idx
+        super().__init__(get_curve_name(mgr, mgr.available[idx], idx),
+                         editable=True)
+
+    def checked(self):
+        return get_curve_show(self.mgr, self.mgr.available[self.idx], self.idx)
+
+    def flags(self):
+        base_flags = super().flags()
+        return base_flags | Qt.ItemIsEditable | Qt.ItemIsUserCheckable
+
+    def setData(self, value, role):
+        mgr = self.mgr
+        idx = self.idx
+        val = self.mgr.available[idx]
+        if role == Qt.CheckStateRole:
+            set_curve_show(mgr, val, idx, value == Qt.Checked)
+            return True
+        elif role == Qt.EditRole:
+            set_curve_name(mgr, val, idx, value)
+            return True
+        return super().setData(value, role)
 
 
 def get_curve_name(mgr, curve, i):
@@ -38,8 +68,8 @@ class CurveManager(QtGui.QWidget):
     ui_file = 'curvemanager.ui'
 
     columns = [
-        ExtColumnInfo("show", get_curve_show, set_curve_show),
-        ExtColumnInfo("name", get_curve_name, set_curve_name),
+        ExtColumnInfo("curves", CheckedStringValue,
+                      resize=QtGui.QHeaderView.Stretch),
     ]
 
     def __init__(self, scene):
@@ -87,7 +117,7 @@ class CurveManager(QtGui.QWidget):
         self.scene.snapshot_num += 1
         name = "snapshot {}".format(self.scene.snapshot_num)
         self.available.append((name, data))
-        self.tab.edit(self.tab.model().index(len(self.available)-1, 1))
+        self.tab.edit(self.tab.model().index(len(self.available)-1, 0))
 
     def on_btn_load(self):
         filename = getOpenFileName(
