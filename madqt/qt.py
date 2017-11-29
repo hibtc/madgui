@@ -1,6 +1,9 @@
 """
-Compatibility module for Qt. Historically used to achieve compatibility with
-PyQt4. Now still to maintain a stable internal API for QtGui.
+This module was historically used as compatibility layer for PyQt4/5.
+
+It was kept after the removal of PyQt4 compatibility - in order to spare me
+the necessity to replace most of the ``QtGui`` occurences inside the existing
+code with ``QtWidgets``.
 """
 
 import types
@@ -21,3 +24,6 @@ QtGuiCompat.__dict__.update(QtWidgets.__dict__)
 QtGuiCompat.__dict__.update(QtPrintSupport.__dict__)
 QtGui = QtGuiCompat
 Qt = QtCore.Qt
+
+del types, QtGuiCompat
+del QtWidgets, QtPrintSupport
