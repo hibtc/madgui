@@ -164,6 +164,7 @@ class SceneGraph(SceneNode):
         super().on_remove()
 
     def destroy(self):
+        self.remove()
         for item in self.items:
             item.destroy()
         self.items.clear()

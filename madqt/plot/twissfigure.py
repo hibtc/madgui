@@ -125,6 +125,7 @@ class TwissFigure(SceneNode):
                      self.segment.workspace.selection.elements)
             for ax in axes
         ])
+        self.twiss_curves.destroy()
         self.twiss_curves.clear([
             Curve(
                 ax,
