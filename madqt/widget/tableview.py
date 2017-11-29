@@ -110,11 +110,38 @@ class TableModel(QtCore.QAbstractTableModel):
         self._rows.update_after.connect(self._update_finalize)
 
     def _update_prepare(self, slice, old_values, new_values):
-        # TODO: less drastic update
-        self.beginResetModel()
+        simple = slice.step is None or slice.step == 1
+        parent = QtCore.QModelIndex()
+        num_old = len(old_values)
+        num_new = len(new_values)
+        start = slice.start or 0
+        if simple and num_old == 0 and num_new > 0:
+            stop = start+num_new-1
+            self.beginInsertRows(parent, start, stop)
+        elif simple and num_old > 0 and num_new == 0:
+            stop = start+num_old-1
+            self.beginRemoveRows(parent, start, stop)
+        elif simple and num_old == num_new:
+            pass
+        else:
+            self.beginResetModel()
 
     def _update_finalize(self, slice, old_values, new_values):
-        self.endResetModel()
+        simple = slice.step is None or slice.step == 1
+        num_old = len(old_values)
+        num_new = len(new_values)
+        if simple and num_old == 0 and num_new > 0:
+            self.endInsertRows()
+        elif simple and num_old > 0 and num_new == 0:
+            self.endRemoveRows()
+        elif simple and num_old == num_new:
+            start = slice.start or 0
+            stop = start + num_old
+            self.dataChanged.emit(
+                self.createIndex(start, 0),
+                self.createIndex(stop, self.columnCount()-1))
+        else:
+            self.endResetModel()
 
     # data accessors
 
@@ -135,10 +162,10 @@ class TableModel(QtCore.QAbstractTableModel):
 
     # QAbstractTableModel overrides
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=None):
         return len(self.columns)
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=None):
         return len(self.rows)
 
     def data(self, index, role=Qt.DisplayRole):
@@ -162,6 +189,7 @@ class TableModel(QtCore.QAbstractTableModel):
         proxy = self.value(index)
         changed = proxy.setData(value, role)
         if changed:
+            # NOTE: technically redundant due to self._update_finalize:
             self.dataChanged.emit(index, index)
         return changed
 

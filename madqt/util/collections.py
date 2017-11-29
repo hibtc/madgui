@@ -109,6 +109,7 @@ class List(Object):
         num_ins = num_new - num_old
         old_len = len(self) - num_ins
         indices = list(range(old_len))[slice]
+        # TODO: verify correctness...:
         for idx, old, new in zip(indices, old_values, new_values):
             self.modify_notify.emit(idx, new)
         if num_old > num_new:
