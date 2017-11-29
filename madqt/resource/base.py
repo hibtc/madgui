@@ -4,7 +4,6 @@ Contains base class for resource providers.
 
 import csv
 import os
-import sys
 from contextlib import contextmanager
 from shutil import copyfileobj
 from tempfile import NamedTemporaryFile

@@ -5,7 +5,6 @@ Implementation of the matching system.
 from collections import namedtuple
 
 from madqt.core.base import Object, Signal
-from madqt.core.unit import strip_unit
 from madqt.util.collections import List
 from madqt.util.enum import make_enum
 

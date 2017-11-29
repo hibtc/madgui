@@ -12,8 +12,6 @@ Plot base classes.
 #
 #   b)  + keep track of which artists need redrawing during update()
 
-from functools import wraps
-
 
 __all__ = [
     'Artist',

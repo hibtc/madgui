@@ -2,7 +2,6 @@
 Multi grid correction method.
 """
 
-from madqt.qt import QtCore
 from madqt.core.unit import get_unit
 
 from ._base import (

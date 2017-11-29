@@ -19,7 +19,7 @@ from madqt.core.unit import UnitConverter, from_config
 from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
 from madqt.util.misc import (attribute_alias, sort_to_top, LazyList,
-                             rename_key, merged, translate_default)
+                             merged, translate_default)
 from madqt.util.enum import make_enum
 from madqt.resource.file import FileResource
 
@@ -165,11 +165,6 @@ class Segment(SegmentBase):
         self.sequence = sequence or lat_general[0][1]
         self.range = ('#s', '#e')
         self.branch = 0
-
-        num_elements = {
-            seq.lower(): int(n_track)
-            for i, seq, n_track, n_max in lat_general
-        }
 
         make_element = partial(Element, self.workspace.tao, self.utool)
         self.el_names = self.tao.get_list('lat_ele_list', self.unibra)

@@ -11,7 +11,6 @@ import logging
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.util.collections import Selection, Bool
 from madqt.util.misc import SingleWindow, logfile_name
-from madqt.util.qt import notifyCloseEvent
 from madqt.widget.dialog import Dialog
 from madqt.widget.log import LogWindow
 

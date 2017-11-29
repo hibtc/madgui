@@ -4,10 +4,8 @@ Dialog for managing shown curves.
 
 import os
 from pkg_resources import resource_filename
-from collections import namedtuple
 
 from madqt.qt import Qt, QtGui, uic
-from madqt.core.unit import strip_unit
 from madqt.widget.tableview import ExtColumnInfo, StringValue
 from madqt.widget.filedialog import getOpenFileName
 

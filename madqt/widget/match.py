@@ -3,12 +3,10 @@ UI for matching.
 """
 
 from pkg_resources import resource_filename
-from functools import partial
 
 from madqt.qt import QtGui, uic
 from madqt.widget.tableview import ColumnInfo, ExtColumnInfo
 from madqt.correct.match import variable_from_knob, Constraint
-from madqt.widget.quantity import DoubleValidator
 
 
 

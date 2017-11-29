@@ -9,8 +9,6 @@ import re
 
 import numpy as np
 
-from madqt.qt import QtCore
-
 from madqt.core.base import Object, Signal, Cache
 from madqt.core.unit import from_config
 from madqt.resource.package import PackageResource

@@ -5,7 +5,7 @@ alignment.
 
 from pkg_resources import resource_filename
 
-from madqt.qt import Qt, QtCore, QtGui, uic
+from madqt.qt import Qt, QtGui, uic
 from madqt.core.unit import get_unit, allclose
 from madqt.widget.tableview import ColumnInfo
 from madqt.util.qt import notifyEvent

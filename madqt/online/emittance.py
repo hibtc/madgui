@@ -256,7 +256,7 @@ def solve_emit_sys(Ms, XCs):
 
     Returns S as numpy array.
     """
-    d = dim = Ms[0].shape[0]
+    d = Ms[0].shape[0]
 
     con_func = lambda u: [
         M[[x]].dot(u).dot(M[[x]].T).sum()   # linear beam transport!

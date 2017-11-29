@@ -2,10 +2,9 @@
 Parameter input dialog.
 """
 
-from madqt.qt import QtCore, QtGui, Qt
+from madqt.qt import QtGui, Qt
 
 import madqt.widget.tableview as tableview
-from madqt.util.layout import VBoxLayout
 
 
 __all__ = [
