@@ -32,13 +32,6 @@ class PlotSelector(QtGui.QComboBox):
 
     """Widget to choose the displayed graph in a TwissFigure."""
 
-    # TODO: show plot names in a first column?
-
-    # TODO: show multiple combobox widgets:
-    # - category (e.g. 'Bunch phase space' or 'Radiation integrals')
-    # - graph (e.g. 'Integrated I4A Radiation Integral')
-    # - curves: all-curves-separate-axes / all-curves-joint-axes / single-curve
-
     def __init__(self, scene, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scene = scene
@@ -228,7 +221,6 @@ class TwissFigure(SceneNode):
         return (self.x_unit * xdata[0],
                 self.x_unit * xdata[-1])
 
-    # TODO: scene.show_indicators -> scene.indicators.show()
     @property
     def show_indicators(self):
         return self.indicators.enabled
