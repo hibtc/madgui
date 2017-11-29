@@ -13,7 +13,7 @@ from madqt.util.collections import List, maintain_selection
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
-from madqt.plot.base import Artist, SimpleArtist, SceneGraph
+from madqt.plot.base import SceneNode, SimpleArtist, SceneGraph
 from madqt.widget.dialog import Dialog
 
 
@@ -56,7 +56,7 @@ class PlotSelector(QtGui.QComboBox):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class TwissFigure(Artist):
+class TwissFigure(SceneNode):
 
     """A figure containing some X/Y twiss parameters."""
 

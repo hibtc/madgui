@@ -14,13 +14,13 @@ Plot base classes.
 
 
 __all__ = [
-    'Artist',
+    'SceneNode',
     'SimpleArtist',
     'SceneGraph',
 ]
 
 
-class Artist:
+class SceneNode:
 
     """An element of a figure."""
 
@@ -76,7 +76,7 @@ class Artist:
         self.parent.invalidate()
 
 
-class SimpleArtist(Artist):
+class SimpleArtist(SceneNode):
 
     """Delegates to draw function that returns a list of matplotlib artists."""
 
@@ -102,7 +102,7 @@ class SimpleArtist(Artist):
     destroy = on_remove
 
 
-class SceneGraph(Artist):
+class SceneGraph(SceneNode):
 
     """A scene element that is composed of multiple elements."""
 
