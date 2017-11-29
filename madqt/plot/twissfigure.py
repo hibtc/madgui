@@ -372,6 +372,8 @@ class CheckTool:
     def __init__(self, plot):
         self.plot = plot
 
+    # NOTE: always go through setChecked in order to de-/activate!
+    # Calling de-/activate directly will leave behind inconsistent state.
     def setChecked(self, checked):
         self.action().setChecked(checked)
 
@@ -430,7 +432,7 @@ class MatchTool(CaptureTool):
         self.plot = plot
         self.segment = plot.scene.segment
         self.matcher = self.segment.get_matcher()
-        self.matcher.finished.connect(self.deactivate)
+        self.matcher.finished.connect(partial(self.setChecked, False))
 
     def activate(self):
         """Start matching mode."""
