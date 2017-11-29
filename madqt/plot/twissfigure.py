@@ -13,7 +13,7 @@ from madqt.util.collections import List, maintain_selection
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
-from madqt.plot.base import Artist, SimpleArtist, SceneGraph
+from madqt.plot.base import SceneNode, SimpleArtist, SceneGraph
 from madqt.widget.dialog import Dialog
 
 
@@ -32,13 +32,6 @@ class PlotSelector(QtGui.QComboBox):
 
     """Widget to choose the displayed graph in a TwissFigure."""
 
-    # TODO: show plot names in a first column?
-
-    # TODO: show multiple combobox widgets:
-    # - category (e.g. 'Bunch phase space' or 'Radiation integrals')
-    # - graph (e.g. 'Integrated I4A Radiation Integral')
-    # - curves: all-curves-separate-axes / all-curves-joint-axes / single-curve
-
     def __init__(self, scene, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scene = scene
@@ -56,7 +49,7 @@ class PlotSelector(QtGui.QComboBox):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class TwissFigure(Artist):
+class TwissFigure(SceneNode):
 
     """A figure containing some X/Y twiss parameters."""
 
@@ -125,6 +118,7 @@ class TwissFigure(Artist):
                      self.segment.workspace.selection.elements)
             for ax in axes
         ])
+        self.twiss_curves.destroy()
         self.twiss_curves.clear([
             Curve(
                 ax,
@@ -227,7 +221,6 @@ class TwissFigure(Artist):
         return (self.x_unit * xdata[0],
                 self.x_unit * xdata[-1])
 
-    # TODO: scene.show_indicators -> scene.indicators.show()
     @property
     def show_indicators(self):
         return self.indicators.enabled
@@ -371,6 +364,8 @@ class CheckTool:
     def __init__(self, plot):
         self.plot = plot
 
+    # NOTE: always go through setChecked in order to de-/activate!
+    # Calling de-/activate directly will leave behind inconsistent state.
     def setChecked(self, checked):
         self.action().setChecked(checked)
 
@@ -429,7 +424,7 @@ class MatchTool(CaptureTool):
         self.plot = plot
         self.segment = plot.scene.segment
         self.matcher = self.segment.get_matcher()
-        self.matcher.finished.connect(self.deactivate)
+        self.matcher.finished.connect(partial(self.setChecked, False))
 
     def activate(self):
         """Start matching mode."""
