@@ -12,7 +12,7 @@ __title__ = 'MadQt'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
 __uri__ = 'https://github.com/hibtc/madqt'
 
-__version__ = '0.0.0'
+__version__ = '0.0.1'
 
 __author__ = 'Thomas Gläßle'
 __email__ = 't_glaessle@gmx.de'
