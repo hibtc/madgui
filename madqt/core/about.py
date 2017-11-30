@@ -24,7 +24,7 @@ class VersionInfo:
         self.version = module.__version__
         self.description = module.__summary__
         self.website = module.__uri__
-        self.license = module.get_copyright_notice().decode('utf-8')
+        self.license = module.get_copyright_notice()
         self.credits = module.__credits__
 
     def to_restructuredtext(self):
