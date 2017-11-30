@@ -492,7 +492,8 @@ class MatchTool(CaptureTool):
 
         with waitCursor():
             self.matcher.detect_variables()
-            self.matcher.match()
+            if len(self.matcher.variables) > 0:
+                self.matcher.match()
 
     def addConstraints(self, constraints):
         """Add constraint and perform matching."""
