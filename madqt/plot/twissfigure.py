@@ -280,6 +280,7 @@ class ListView(SceneGraph):
             self._add(idx, item)
         model.insert_notify.connect(self._add)
         model.delete_notify.connect(self._rm)
+        model.modify_notify.connect(self._chg)
 
     def _add(self, idx, item):
         self.insert(idx, self.fn(item))
@@ -287,9 +288,14 @@ class ListView(SceneGraph):
     def _rm(self, idx):
         self.pop(self.items[idx])
 
+    def _chg(self, idx, val):
+        self._rm(idx)
+        self._add(idx, val)
+
     def destroy(self):
         self.model.insert_notify.disconnect(self._add)
         self.model.delete_notify.disconnect(self._rm)
+        self.model.modify_notify.disconnect(self._chg)
         super().destroy()
 
 
