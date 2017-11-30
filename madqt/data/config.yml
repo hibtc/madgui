@@ -82,6 +82,10 @@ matching:
     quadrupole: [k1, k1s]
   bety:
     quadrupole: [k1, k1s]
+  sig11:
+    quadrupole: [k1, k1s]
+  sig33:
+    quadrupole: [k1, k1s]
   x:
     quadrupole: [k1, k1s]
   y:

@@ -73,13 +73,12 @@ def main():
             'ipython',
             'qtconsole',
             # 'PyQt5',
-            'minrpc>=0.0.6',    # indirect dependency that should usually not
-                                # be listed here, but I forgot to update the
-                                # dependency in cpymad for 0.18.1.
+            'minrpc>=0.0.6',    # listed here in order to be able to enforce
+                                # stricter requirements than cpymad/pytao
         ],
         # Make sure to always have at least one of these installed:
         extras_require={
-            'madx': ['cpymad>=0.18.1'],
+            'madx': ['cpymad>=0.18.2'],
             'bmad': ['pytao>=0.0.1'],
         },
         entry_points="""

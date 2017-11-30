@@ -182,10 +182,10 @@ class MatchTransform:
         self._ey = segment.ey()
 
     def envx(self, val):
-        return 'betx', val*val/self._ex
+        return 'sig11', val*val
 
     def envy(self, val):
-        return 'bety', val*val/self._ey
+        return 'sig33', val*val
 
     def __getattr__(self, name):
         return lambda val: (name, val)

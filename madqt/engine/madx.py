@@ -549,10 +549,15 @@ class Segment(SegmentBase):
              axis: self.utool.strip_unit(axis, val)}
             for elem, pos, axis, val in constraints]
 
+        weights = {
+            'sig11': 1/self.utool.strip_unit('ex', self.ex()),
+            'sig33': 1/self.utool.strip_unit('ey', self.ey()),
+        }
         twiss_args = self.utool.dict_strip_unit(self.twiss_args)
         self.madx.match(sequence=self.sequence.name,
                         vary=variables,
                         constraints=madx_constraints,
+                        weight=weights,
                         twiss_init=twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()
