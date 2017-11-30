@@ -523,10 +523,12 @@ class Segment(SegmentBase):
     def match(self, variables, constraints):
 
         # list intermediate positions
-        elem_positions = defaultdict(set)
+        # NOTE: need list instead of set, because quantity is unhashable:
+        elem_positions = defaultdict(list)
         for elem, pos, axis, val in constraints:
             if pos < elem['at']+elem['l']:
-                elem_positions[elem['name']].add(pos)
+                if pos not in elem_positions[elem['name']]:
+                    elem_positions[elem['name']].append(pos)
         elem_positions = {name: sorted(positions)
                           for name, positions in elem_positions.items()}
 
