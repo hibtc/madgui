@@ -513,10 +513,14 @@ class MatchTool(CaptureTool):
                    if c.elem['el_id'] == elem['el_id'] and c.axis == axis]
         for i in indexes[::-1]:
             del self.matcher.constraints[i]
+        # NOTE: we should probably only delete "automatic" variables, but for
+        # now let's just assume this is the right thing...
+        del self.matcher.variables[:]
 
     def clearConstraints(self):
         """Remove all constraints."""
         del self.matcher.constraints[:]
+        del self.matcher.variables[:]
 
 
 def draw_constraint(scene, constraint):
