@@ -22,10 +22,10 @@ class EnumMeta(type):
 class Enum:
 
     def __init__(self, value):
-        if value not in self._values:
+        if value.lower() not in self._lower:
             raise ValueError("{} does not allow value {!r}\nOnly: {}"
                              .format(self.__class__, value, self._values))
-        self.value = value
+        self.value = self._lower[value.lower()]
 
     def __str__(self):
         return self.value
@@ -38,4 +38,8 @@ class Enum:
 
 
 def make_enum(name, values):
-    return EnumMeta(str(name), (Enum,), {'_values': tuple(values)})
+    values = tuple(values)
+    return EnumMeta(str(name), (Enum,), {
+        '_values': values,
+        '_lower': {v.lower(): v for v in values},
+    })

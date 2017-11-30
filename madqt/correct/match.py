@@ -143,9 +143,14 @@ class Matcher(Object):
         return [
             variable_from_knob(self, elem['name']+'->'+attr)
             for elem in self.segment.elements
-            for attr in param_spec.get(elem['type'].lower(), [])
-            if defined(elem.get(attr))
+            for attr in self._get_match_attrs(elem, param_spec)
         ]
+
+    def _get_match_attrs(self, elem, spec):
+        attrs = spec.get(elem['type'].lower(), [])
+        defd = [attr for attr in attrs if defined(elem.get(attr))]
+        return defd or attrs[:1]
+
 
     # Set value back to factory defaults
 
