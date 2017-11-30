@@ -150,6 +150,7 @@ class SceneGraph(SceneNode):
     def pop(self, item):
         """Remove and hide one item (by value)."""
         item.render(False)
+        item.destroy()
         self.items.remove(item)
 
     def clear(self, items=()):
