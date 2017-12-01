@@ -179,17 +179,23 @@ class Segment(SegmentBase):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
         raise NotImplementedError
 
-    def get_twiss(self, elem, name):
+    def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
         # TODO: tao's `python lat_param_units` does currently not provide
         # units for data types, so there is no reliable way to provide units.
         # Therefore, I choose to suppress units for all data types for now:
         if name == 'envx':
-            return (self.get_twiss(elem, 'beta.a')
+            return (self.get_twiss(elem, 'beta.a', pos)
                     * self.utool.strip_unit('a_emit', self.ex()))**0.5
         if name == 'envy':
-            return (self.get_twiss(elem, 'beta.b')
+            return (self.get_twiss(elem, 'beta.b', pos)
                     * self.utool.strip_unit('b_emit', self.ey()))**0.5
+
+        el = self.elements[elem]
+        s_offset = self.utool.strip_unit('at', pos - el.AT)
+        L        = self.utool.strip_unit('at', el.L)
+        if s_offset < 0: s_offset = 0
+        if s_offset > L: s_offset = L
 
         tao = self.tao
         data_d2 = '1@madqt_data_temp'
@@ -199,7 +205,9 @@ class Segment(SegmentBase):
             tao.set('data', **{
                 data_d1+'|data_source'  : 'lat',
                 data_d1+'|data_type'    : name,
-                data_d1+'|ele_name'     : elem,
+                data_d1+'|ele_name'     : el.NAME,
+                data_d1+'|eval_point'   : 'beginning',
+                data_d1+'|s_offset'     : s_offset,
             })
             data1 = tao.properties('data1', data_d1)
         finally:
@@ -391,6 +399,10 @@ class Segment(SegmentBase):
             tao.set('data', **{data_d1+'|data_type': dtype})
             tao.set('data', **{data_d1+'|meas': value})
             tao.set('data', **{data_d1+'|ele_name': elem})
+            if c.pos != self.el_pos(c.elem):
+                pos = self.utool.strip_unit("s", c.pos - c.elem['at'])
+                tao.set('data', **{data_d1+'|eval_point': 'beginning'})
+                tao.set('data', **{data_d1+'|s_offset': pos})
 
         tao.command('use', 'var', vars_v1)
         tao.command('use', 'dat', data_d2)
@@ -412,6 +424,12 @@ class Segment(SegmentBase):
         # TODO: update only modified elements
         self.elements.invalidate()
         self.twiss.invalidate()
+
+    def adjust_match_pos(self, el, pos):
+        at, l = el['at'], el['l']
+        if pos <= at:   return at
+        if pos >= at+l: return at+l
+        return pos
 
     def get_magnet(self, elem, conv):
         return MagnetBackend(self, elem, conv.backend_keys)

@@ -396,8 +396,9 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self.elements.index(elem)
 
-    def get_twiss(self, elem, name):
+    def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
+        # TODO: use `pos`!!
         element = self.get_element_info(elem)
         if not self.contains(element):
             return None
