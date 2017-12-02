@@ -90,3 +90,12 @@ matching:
     quadrupole: [k1, k1s]
   y:
     quadrupole: [k1, k1s]
+
+  alpha_a:
+    quadrupole: [k1, k1s]
+  alpha_b:
+    quadrupole: [k1, k1s]
+  beta_a:
+    quadrupole: [k1, k1s]
+  beta_b:
+    quadrupole: [k1, k1s]

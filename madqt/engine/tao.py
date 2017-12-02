@@ -37,10 +37,10 @@ PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
 CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
 
 DATA_TYPES = {
-    'betx': 'beta.a',
-    'bety': 'beta.b',
-    'alfx': 'alpha.a',
-    'alfy': 'alpha.b',
+    'beta_a': 'beta.a',
+    'beta_b': 'beta.b',
+    'alpha_a': 'alpha.a',
+    'alpha_b': 'alpha.b',
     'x': 'orbit.x',
     'y': 'orbit.y',
     'posx': 'orbit.x',
