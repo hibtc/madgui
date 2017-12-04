@@ -89,4 +89,10 @@ matching:
 
   # Which parameters should be varied on these elements:
   parameters:
+    sbend:      [angle]
+    kicker:     [hkick, vkick]
+    hkicker:    [kick]
+    vkicker:    [kick]
     quadrupole: [k1, k1s]
+    multipole:  [knl]
+    solenoid:   [ks]
