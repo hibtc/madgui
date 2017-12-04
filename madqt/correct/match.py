@@ -139,15 +139,17 @@ class Matcher(Object):
 
         :returns: list of :class:`Variable`.
         """
-        param_spec = self.rules.get(axis, {})
+        elem_types = self.rules['rules'].get(axis, ())
+        param_spec = self.rules['parameters']
         return [
             variable_from_knob(self, elem['name']+'->'+attr)
             for elem in self.segment.elements
-            for attr in self._get_match_attrs(elem, param_spec)
+            if elem['type'].lower() in elem_types
+            for attr in self._get_match_attrs(
+                    elem, param_spec[elem['type'].lower()])
         ]
 
-    def _get_match_attrs(self, elem, spec):
-        attrs = spec.get(elem['type'].lower(), [])
+    def _get_match_attrs(self, elem, attrs):
         defd = [attr for attr in attrs if defined(elem.get(attr))]
         return defd or attrs[:1]
 

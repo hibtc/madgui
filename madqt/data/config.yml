@@ -74,27 +74,19 @@ builtin_graphs:
 
 # Select which element paramters can be varied when matching a TWISS function:
 matching:
-  # MAD-X doesn't know about envelopes. This means matching envx and envy is
-  # translated to betx a matching on betx, bety by MadQt.
-  betx:
-    # Use only quadrupole.k1, quadrupole.k1s for matching betx:
-    quadrupole: [k1, k1s]
-  bety:
-    quadrupole: [k1, k1s]
-  sig11:
-    quadrupole: [k1, k1s]
-  sig33:
-    quadrupole: [k1, k1s]
-  x:
-    quadrupole: [k1, k1s]
-  y:
-    quadrupole: [k1, k1s]
+  # TODO: fill in more rules
+  rules:
+    betx:     [quadrupole]
+    bety:     [quadrupole]
+    sig11:    [quadrupole]
+    sig33:    [quadrupole]
+    x:        [quadrupole]
+    y:        [quadrupole]
+    alpha_a:  [quadrupole]
+    alpha_b:  [quadrupole]
+    beta_a:   [quadrupole]
+    beta_b:   [quadrupole]
 
-  alpha_a:
-    quadrupole: [k1, k1s]
-  alpha_b:
-    quadrupole: [k1, k1s]
-  beta_a:
-    quadrupole: [k1, k1s]
-  beta_b:
+  # Which parameters should be varied on these elements:
+  parameters:
     quadrupole: [k1, k1s]
