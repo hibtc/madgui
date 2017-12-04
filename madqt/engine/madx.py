@@ -466,7 +466,6 @@ class Segment(SegmentBase):
         return {
             info['name']: PlotInfo(
                 name=info['name'],
-                short=info['name'],
                 title=info['title'],
                 curves=[
                     CurveInfo(
@@ -492,7 +491,7 @@ class Segment(SegmentBase):
 
     def get_native_graphs(self):
         """Get a list of curve names."""
-        return {info.short: (info.name, info.title)
+        return {info.name: info.title
                 for info in self.native_graph_data.values()}
 
     def _retrack(self):

@@ -60,7 +60,6 @@ line_view:
 
 builtin_graphs:
   - name: envelope
-    short: envelope
     title: Beam envelope
     curves:
       - name: envelope.x

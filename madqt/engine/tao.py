@@ -324,7 +324,6 @@ class Segment(SegmentBase):
         plot_data = self.plot_data(name, xlim)
         info = PlotInfo(
             name=plot_data.plot_info['name']+'.'+plot_data.graph_info['name'],
-            short=plot_data.plot_info['name'],
             title=plot_data.graph_info['title'],
             curves=[
                 CurveInfo(
@@ -340,7 +339,7 @@ class Segment(SegmentBase):
 
     def get_native_graphs(self):
         """Get a dict of graphs."""
-        return {name.split('.')[0]: (name, info['graph']['title'])
+        return {name: info['graph']['title']
                 for name, info in self.tao.valid_graphs()
                 if info['plot']['x_axis_type'] == 's'}
 
