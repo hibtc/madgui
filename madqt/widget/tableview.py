@@ -737,6 +737,7 @@ class EnumDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         editor = QtGui.QComboBox(parent)
+        editor.setEditable(not self.enum._strict)
         return editor
 
     def setEditorData(self, editor, index):

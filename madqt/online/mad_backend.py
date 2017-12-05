@@ -4,6 +4,10 @@ Implementations covering the MAD-X backend for accessing element properties.
 
 from . import api
 
+# TODO: adapt to bmad
+# - multipole: k0l/…
+# - kicker: hkick/vkick
+
 
 class Monitor(api.ElementBackendConverter):
 

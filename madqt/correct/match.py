@@ -65,8 +65,9 @@ class Matcher(Object):
         self.variables.update_after.connect(self._on_update_variables)
         self.design_values = {}
         local_constraints = ['envx', 'envy'] + segment.workspace.config['matching']['element']
+        local_constraints = sorted(local_constraints)
         self.elem_enum = make_enum('Elem', segment.el_names)
-        self.lcon_enum = make_enum('Local', local_constraints)
+        self.lcon_enum = make_enum('Local', local_constraints, strict=False)
         self.mirror_mode = segment.workspace.app_config['matching'].get('mirror', False)
 
     def match(self):
@@ -139,15 +140,17 @@ class Matcher(Object):
 
         :returns: list of :class:`Variable`.
         """
-        param_spec = self.rules.get(axis, {})
+        elem_types = self.rules['rules'].get(axis, ())
+        param_spec = self.rules['parameters']
         return [
             variable_from_knob(self, elem['name']+'->'+attr)
             for elem in self.segment.elements
-            for attr in self._get_match_attrs(elem, param_spec)
+            if elem['type'].lower() in elem_types
+            for attr in self._get_match_attrs(
+                    elem, param_spec[elem['type'].lower()])
         ]
 
-    def _get_match_attrs(self, elem, spec):
-        attrs = spec.get(elem['type'].lower(), [])
+    def _get_match_attrs(self, elem, attrs):
         defd = [attr for attr in attrs if defined(elem.get(attr))]
         return defd or attrs[:1]
 
@@ -182,10 +185,10 @@ class MatchTransform:
         self._ey = segment.ey()
 
     def envx(self, val):
-        return 'betx', val*val/self._ex
+        return 'sig11', val*val
 
     def envy(self, val):
-        return 'bety', val*val/self._ey
+        return 'sig33', val*val
 
     def __getattr__(self, name):
         return lambda val: (name, val)

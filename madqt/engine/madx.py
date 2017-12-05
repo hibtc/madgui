@@ -3,7 +3,7 @@ MAD-X backend for MadQt.
 """
 
 import os
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from functools import partial
 import itertools
 import logging
@@ -14,7 +14,7 @@ from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
 from madqt.resource import yaml
-from madqt.core.unit import UnitConverter, from_config
+from madqt.core.unit import UnitConverter, from_config, isclose
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 from madqt.resource.file import FileResource
 from madqt.util.datastore import DataStore, SuperStore
@@ -288,6 +288,7 @@ class Segment(SegmentBase):
 
         self.workspace = workspace
         self.sequence = workspace.madx.sequences[sequence]
+        self.continuous_matching = True
 
         self._beam = beam
         self._twiss_args = twiss_args
@@ -396,12 +397,33 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self.elements.index(elem)
 
-    def get_twiss(self, elem, name):
+    def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
-        element = self.get_element_info(elem)
-        if not self.contains(element):
-            return None
-        return self.get_twiss_column(name)[element.index - self.start.index]
+        ix = self.get_element_index(elem)
+
+        s = self.get_twiss_column('s')
+        y = self.get_twiss_column(name)
+        x = self.indices[ix]
+
+        # shortcut for thin elements:
+        if self.utool.strip_unit('l', self.elements[ix].L) == 0:
+            return y[x]
+
+        lo = x.start-1 if x.start > 0 else x.start
+        hi = x.stop+1
+
+        from bisect import bisect_right
+        i0 = bisect_right(s, pos, lo, hi)
+        i1 = i0+1
+
+        # never look outside the interpolation domain:
+        if pos <= s[i0]: return y[i0]
+        if pos >= s[i1]: return y[i1]
+
+        dx = pos - s[i0]
+
+        return y[i0] + dx * (y[i1]-y[i0]) / (s[i1]-s[i0])
+
 
     def contains(self, element):
         return (self.start.index <= element.index and
@@ -466,7 +488,6 @@ class Segment(SegmentBase):
         return {
             info['name']: PlotInfo(
                 name=info['name'],
-                short=info['name'],
                 title=info['title'],
                 curves=[
                     CurveInfo(
@@ -481,6 +502,7 @@ class Segment(SegmentBase):
         }
 
     def get_native_graph_data(self, name, xlim):
+        # TODO: use xlim for interpolate
         info = self.native_graph_data[name]
         xdata = self.get_twiss_column('s') + self.start.at
         data = {
@@ -492,7 +514,7 @@ class Segment(SegmentBase):
 
     def get_native_graphs(self):
         """Get a list of curve names."""
-        return {info.short: (info.name, info.title)
+        return {info.name: info.title
                 for info in self.native_graph_data.values()}
 
     def _retrack(self):
@@ -520,20 +542,43 @@ class Segment(SegmentBase):
 
         # TODO: update elements
 
-    def can_match_at(self, elem):
-        return not elem['name'].endswith('[0]')
-
     def match(self, variables, constraints):
+
+        # list intermediate positions
+        # NOTE: need list instead of set, because quantity is unhashable:
+        elem_positions = defaultdict(list)
+        for elem, pos, axis, val in constraints:
+            if pos not in elem_positions[elem['name']]:
+                elem_positions[elem['name']].append(pos)
+        elem_positions = {name: sorted(positions)
+                          for name, positions in elem_positions.items()}
+
+        # activate matching at specified positions
+        self.madx.command.select(flag='interpolate', clear=True)
+        for name, positions in elem_positions.items():
+            at = self.elements[name]['at']
+            l = self.elements[name]['l']
+            if any(not isclose(p, at+l) for p in positions):
+                x = [float((p-at)/l) for p in positions]
+                self.madx.command.select(
+                    flag='interpolate', range=name, at=x)
+
         # create constraints list to be passed to Madx.match
         madx_constraints = [
             {'range': elem['name'],
+             'iindex': elem_positions[elem['name']].index(pos),
              axis: self.utool.strip_unit(axis, val)}
             for elem, pos, axis, val in constraints]
 
+        weights = {
+            'sig11': 1/self.utool.strip_unit('ex', self.ex()),
+            'sig33': 1/self.utool.strip_unit('ey', self.ey()),
+        }
         twiss_args = self.utool.dict_strip_unit(self.twiss_args)
         self.madx.match(sequence=self.sequence.name,
                         vary=variables,
                         constraints=madx_constraints,
+                        weight=weights,
                         twiss_init=twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()

@@ -23,7 +23,6 @@ __all__ = [
 
 PlotInfo = namedtuple('PlotInfo', [
     'name',     # internal graph id (e.g. 'beta.g')
-    'short',    # short display name (e.g. 'beta')
     'title',    # long display name ('Beta function')
     'curves',   # [CurveInfo]
 ])
@@ -183,16 +182,29 @@ class SegmentBase(Object):
     def get_element_by_name(self, name):
         return self.elements[self.get_element_index(name)]
 
+    def el_pos(self, el):
+        """Position for matching / output."""
+        return el['at'] + el['l']
+
+    continuous_matching = False
+
+    def adjust_match_pos(self, el, pos):
+        if not self.continuous_matching:
+            return self.el_pos(el)
+        at, l = el['at'], el['l']
+        if pos <= at:   return at
+        if pos >= at+l: return at+l
+        return pos
+
     def get_best_match_pos(self, pos):
         """Find optics element by longitudinal position."""
-        return self.get_nearest_element(pos)
-
-    def get_nearest_element(self, pos):
-        """Find optics element by longitudinal position."""
-        el_pos = lambda el: el['at'] + el['l']
         elem = min(filter(self.can_match_at, self.elements),
-                   key=lambda el: abs(el_pos(el)-pos))
-        return (elem, el_pos(elem))
+                   key=lambda el: abs(self.adjust_match_pos(el, pos)-pos))
+        return min([
+            (el, self.adjust_match_pos(el, pos))
+            for el in self.elements
+            if self.can_match_at(el)
+        ], key=lambda x: abs(x[1]-pos))
 
     def can_match_at(self, element):
         return True
@@ -211,9 +223,8 @@ class SegmentBase(Object):
     @cachedproperty
     def builtin_graphs(self):
         return {
-            info['short']: PlotInfo(
+            info['name']: PlotInfo(
                 name=info['name'],
-                short=info['short'],
                 title=info['title'],
                 curves=[
                     CurveInfo(
@@ -262,7 +273,7 @@ class SegmentBase(Object):
 
     def get_graphs(self):
         graphs = {
-            info.short: (name, info.title)
+            name: info.title
             for name, info in self.builtin_graphs.items()
         }
         graphs.update(self.native_graphs)
