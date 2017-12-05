@@ -46,8 +46,8 @@ class MatchWidget(QtGui.QWidget):
         ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else "",
                    resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Expression", 'expr'),
-        ColumnInfo("Design", 'design'),
-        ColumnInfo("Target", lambda v: v.value),
+        ColumnInfo("Initial", 'design'),
+        ColumnInfo("Final", lambda v: v.value),
     ]
 
     def __init__(self, matcher):
