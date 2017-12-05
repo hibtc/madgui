@@ -398,11 +398,31 @@ class Segment(SegmentBase):
 
     def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
-        # TODO: use `pos`!!
-        element = self.get_element_info(elem)
-        if not self.contains(element):
-            return None
-        return self.get_twiss_column(name)[element.index - self.start.index]
+        ix = self.get_element_index(elem)
+
+        s = self.get_twiss_column('s')
+        y = self.get_twiss_column(name)
+        x = self.indices[ix]
+
+        # shortcut for thin elements:
+        if self.utool.strip_unit('l', self.elements[ix].L) == 0:
+            return y[x]
+
+        lo = x.start-1 if x.start > 0 else x.start
+        hi = x.stop+1
+
+        from bisect import bisect_right
+        i0 = bisect_right(s, pos, lo, hi)
+        i1 = i0+1
+
+        # never look outside the interpolation domain:
+        if pos <= s[i0]: return y[i0]
+        if pos >= s[i1]: return y[i1]
+
+        dx = pos - s[i0]
+
+        return y[i0] + dx * (y[i1]-y[i0]) / (s[i1]-s[i0])
+
 
     def contains(self, element):
         return (self.start.index <= element.index and
