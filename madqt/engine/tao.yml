@@ -64,7 +64,7 @@ parameter_sets:
 
 matching:
 
-  # list of tao data types, extracted from:
+  # (non-comprehensive) list of tao data types, extracted from:
   # tao/code/tao_data_and_eval_mod.f90 (subroutine tao_evaluate_a_datum)
   element:
     - alpha.a

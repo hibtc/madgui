@@ -481,6 +481,7 @@ class Segment(SegmentBase):
         }
 
     def get_native_graph_data(self, name, xlim):
+        # TODO: use xlim for interpolate
         info = self.native_graph_data[name]
         xdata = self.get_twiss_column('s') + self.start.at
         data = {

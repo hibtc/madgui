@@ -6,7 +6,22 @@ tao backend for MadQt.
 # - update model <-> update values
 # - fix beam/twiss handling: remove redundant accessor methods
 # - store + save separately: only overrides / all
-# - use units provided by tao
+
+# NOTE: Tao has some inconsistencies regarding data labeling. This module does
+# not attempt to mitigate these, but rather mostly uses the names from one or
+# the other category directly without knowing how to translate between them:
+#
+# - for inspecting monitor values (interaction with the control system),
+#   we use `python lat_ele1 ELEM|model twiss/orbit`,         e.g. 'beta_a'
+# - for showing plots, we use the builtin tao curve names,   e.g. 'beta.g.a'
+# - for matching, we use the name of the tao datatype,       e.g. 'beta.a'
+#
+# This one seems fairly easy to mitigate, but there are harder cases, e.g.:
+# - lat_ele1     -> phi_a      px        z        ??                …
+# - tao datatype -> phase.a    orbit.px  orbit.z  b_curl.x          …
+# - curve name   -> phase.g.a  ??        z.g.c    b_div_curl.g.cx   …
+# And some of the parameters do not even have counter parts in some of the
+# categories (i.e. no bmad parameter, no tao datatype, or no predefined curve)
 
 import os
 import logging
@@ -374,6 +389,7 @@ class Segment(SegmentBase):
         # setup data/variable structures
         data_d2 = '1@madqt_data_temp'
         vars_v1 = 'madqt_vars_temp'
+        # TODO: create contextlib.ExitStack() for cleanup:
         tao.python('var_create', vars_v1, 1, len(variables))
         tao.python('data_create', data_d2, 1, 1, len(constraints))
 
