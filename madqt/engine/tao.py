@@ -243,14 +243,16 @@ class Segment(SegmentBase):
                 raise ValueError("Invalid plot: {}".format(plot_name))
             graph_alias = plot_info['name'] + '.' + graph_name
 
-            return PlotData(plot_info, graph_info, [
-                CurveData(curve_alias, curve_info, curve_data)
-                for curve_name in graph_info.get('curve', [])
-                for curve_path in [graph_path + '.' + curve_name]
-                for curve_info in [tao.properties('plot_curve', curve_path)]
-                for curve_data in [tao.curve_data(curve_path)]
-                for curve_alias in [graph_alias + '.' + curve_name]
-            ])
+            def get_curve_data(curve_name):
+                curve_path = graph_path + '.' + curve_name
+                curve_info = tao.properties('plot_curve', curve_path)
+                curve_data = tao.curve_data(curve_path)
+                curve_alias = graph_alias + '.' + curve_name
+                return CurveData(curve_alias, curve_info, curve_data)
+
+            return PlotData(plot_info, graph_info, list(map(
+                get_curve_data, graph_info.get('curve', [])
+            )))
         finally:
             tao.command('set plot', region, 'visible = F')
             tao.command('place', region, 'none')
