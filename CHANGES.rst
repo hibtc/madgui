@@ -1,5 +1,20 @@
+CHANGELOG
+~~~~~~~~~
+
+0.0.2
+-----
+Date: 05.12.2017
+
+- continuous matching (within any element position)
+- fix bugs in matching code
+- updated dependencies:
+        * pint 0.8.1
+        * cpymad>=0.18.2
+        * pytao>=0.0.1
+
+
 0.0.1
-=====
+-----
 Date: 30.11.2017
 
 First reference point to define somewhat stable versions.
