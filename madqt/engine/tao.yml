@@ -67,6 +67,6 @@ matching:
   # Small list, for now…
   # Will be translated to tao names using teh `DATA_TYPES` global
   element: [
-    beta_a, alpha_a, x,
-    beta_b, alpha_b, y,
+    beta.a, alpha.a, orbit.x,
+    beta.b, alpha.b, orbit.y,
   ]

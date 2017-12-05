@@ -15,7 +15,7 @@ from functools import partial
 
 from pytao.tao import Tao
 
-from madqt.core.unit import UnitConverter, from_config
+from madqt.core.unit import UnitConverter, from_config, strip_unit
 from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
 from madqt.util.misc import (attribute_alias, sort_to_top, LazyList,
@@ -35,17 +35,6 @@ import madqt.online.api as api
 
 PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
 CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
-
-DATA_TYPES = {
-    'beta_a': 'beta.a',
-    'beta_b': 'beta.b',
-    'alpha_a': 'alpha.a',
-    'alpha_b': 'alpha.b',
-    'x': 'orbit.x',
-    'y': 'orbit.y',
-    'posx': 'orbit.x',
-    'posy': 'orbit.y',
-}
 
 
 class Workspace(EngineBase):
@@ -192,21 +181,33 @@ class Segment(SegmentBase):
 
     def get_twiss(self, elem, name):
         """Return beam envelope at element."""
-        replace = {
-            'betx': 'beta_a',
-            'bety': 'beta_b',
-            'alfx': 'alpha_a',
-            'alfy': 'alpha_b',
-            'x': 'x',
-            'y': 'y',
-        }
-        twiss = self.get_twiss_at(elem)
+        # TODO: tao's `python lat_param_units` does currently not provide
+        # units for data types, so there is no reliable way to provide units.
+        # Therefore, I choose to suppress units for all data types for now:
         if name == 'envx':
-            return (twiss['beta_a'] * self.ex())**0.5
-        elif name == 'envy':
-            return (twiss['beta_b'] * self.ey())**0.5
-        name = replace.get(name, name)
-        return twiss[name]
+            return (self.get_twiss(elem, 'beta.a')
+                    * self.utool.strip_unit('a_emit', self.ex()))**0.5
+        if name == 'envy':
+            return (self.get_twiss(elem, 'beta.b')
+                    * self.utool.strip_unit('b_emit', self.ey()))**0.5
+
+        tao = self.tao
+        data_d2 = '1@madqt_data_temp'
+        data_d1 = '1@madqt_data_temp.1[1]'
+        tao.python('data_create', data_d2, 1, 1, 1)
+        try:
+            tao.set('data', **{
+                data_d1+'|data_source'  : 'lat',
+                data_d1+'|data_type'    : name,
+                data_d1+'|ele_name'     : elem,
+            })
+            data1 = tao.properties('data1', data_d1)
+        finally:
+            tao.python('data_destroy', data_d2)
+
+        # TODO: assert data1['good_model']
+
+        return data1['model_value']
 
     def get_twiss_at(self, elem):
         """Return beam envelope at element."""
@@ -328,7 +329,7 @@ class Segment(SegmentBase):
             curves=[
                 CurveInfo(
                     name=curve.name,
-                    short=curve_short_name(plot_data, curve.info),
+                    short=curve.info['data_type'],
                     label=tao_legend_to_latex(curve.info['legend_text']),
                     style=self.curve_style[curve_index],
                     unit=from_config(curve.info['units'] or 1))
@@ -372,8 +373,10 @@ class Segment(SegmentBase):
             tao.set('var', **{what: value})
 
         for i, c in enumerate(constraints):
-            dtype = DATA_TYPES[c.axis]
-            value = self.utool.strip_unit(c.axis, c.value)
+            # TODO: tao's `python lat_param_units` does currently not provide
+            # units for data types, so there is no reliable way to strip safely:
+            dtype = c.axis
+            value = strip_unit(c.value)
             elem = c.elem['name']
             data_d1 = '{}.1[{}]'.format(data_d2, i+1)
             tao.set('data', **{data_d1+'|merit_type': 'target'})
@@ -566,10 +569,6 @@ def tao_legend_to_latex(text):
     # join adjacent math sections
     text = text.replace('$$', '')
     return text
-
-
-def curve_short_name(plot_data, curve_info):
-    return '{}_{}'.format(plot_data.plot_info['name'], curve_info['name'])
 
 
 #----------------------------------------

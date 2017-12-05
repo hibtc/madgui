@@ -82,10 +82,15 @@ matching:
     sig33:    [quadrupole]
     x:        [quadrupole]
     y:        [quadrupole]
-    alpha_a:  [quadrupole]
-    alpha_b:  [quadrupole]
-    beta_a:   [quadrupole]
-    beta_b:   [quadrupole]
+
+    # TODO: look up using a *common name* rather than defining for tao
+    # separately:
+    alpha.a:  [quadrupole]
+    alpha.b:  [quadrupole]
+    beta.a:   [quadrupole]
+    beta.b:   [quadrupole]
+    orbit.x:  [quadrupole]
+    orbit.y:  [quadrupole]
 
   # Which parameters should be varied on these elements:
   parameters:
