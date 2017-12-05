@@ -377,6 +377,12 @@ class Segment(SegmentBase):
             # units for data types, so there is no reliable way to strip safely:
             dtype = c.axis
             value = strip_unit(c.value)
+            if dtype == 'sig11':
+                dtype = 'beta.a'
+                value = value / self.utool.strip_unit('a_emit', self.ex())
+            elif dtype == 'sig33':
+                dtype = 'beta.b'
+                value = value / self.utool.strip_unit('b_emit', self.ey())
             elem = c.elem['name']
             data_d1 = '{}.1[{}]'.format(data_d2, i+1)
             tao.set('data', **{data_d1+'|merit_type': 'target'})
