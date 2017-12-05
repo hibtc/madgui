@@ -396,8 +396,9 @@ class Segment(SegmentBase):
         """Get element index by it name."""
         return self.elements.index(elem)
 
-    def get_twiss(self, elem, name):
+    def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
+        # TODO: use `pos`!!
         element = self.get_element_info(elem)
         if not self.contains(element):
             return None
@@ -466,7 +467,6 @@ class Segment(SegmentBase):
         return {
             info['name']: PlotInfo(
                 name=info['name'],
-                short=info['name'],
                 title=info['title'],
                 curves=[
                     CurveInfo(
@@ -481,6 +481,7 @@ class Segment(SegmentBase):
         }
 
     def get_native_graph_data(self, name, xlim):
+        # TODO: use xlim for interpolate
         info = self.native_graph_data[name]
         xdata = self.get_twiss_column('s') + self.start.at
         data = {
@@ -492,7 +493,7 @@ class Segment(SegmentBase):
 
     def get_native_graphs(self):
         """Get a list of curve names."""
-        return {info.short: (info.name, info.title)
+        return {info.name: info.title
                 for info in self.native_graph_data.values()}
 
     def _retrack(self):

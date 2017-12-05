@@ -35,8 +35,7 @@ class PlotSelector(QtGui.QComboBox):
     def __init__(self, scene, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scene = scene
-        graphs = scene.segment.get_graphs()
-        items = [(title, name) for name, (_, title) in graphs.items()]
+        items = [(l, n) for n, l in scene.segment.get_graphs().items()]
         for label, name in sorted(items):
             self.addItem(label, name)
         self.update_index()
@@ -196,7 +195,7 @@ class TwissFigure(SceneNode):
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
             self.segment.get_graph_data(self.graph_name, self.xlim)
-        self.graph_name = self.graph_info.short
+        self.graph_name = self.graph_info.name
 
     def get_float_data(self, curve_info, column):
         """Get data for the given parameter from segment."""
@@ -488,7 +487,7 @@ class MatchTool(CaptureTool):
             # TODO: should do this only once for each yname!
             constraints.extend([
                 Constraint(elem, pos, c.y_name,
-                        self.segment.get_twiss(elem['name'], c.y_name))
+                        self.segment.get_twiss(elem['name'], c.y_name, pos))
                 for c in curves
                 if c.y_name != name
             ])

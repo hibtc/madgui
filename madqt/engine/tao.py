@@ -6,7 +6,22 @@ tao backend for MadQt.
 # - update model <-> update values
 # - fix beam/twiss handling: remove redundant accessor methods
 # - store + save separately: only overrides / all
-# - use units provided by tao
+
+# NOTE: Tao has some inconsistencies regarding data labeling. This module does
+# not attempt to mitigate these, but rather mostly uses the names from one or
+# the other category directly without knowing how to translate between them:
+#
+# - for inspecting monitor values (interaction with the control system),
+#   we use `python lat_ele1 ELEM|model twiss/orbit`,         e.g. 'beta_a'
+# - for showing plots, we use the builtin tao curve names,   e.g. 'beta.g.a'
+# - for matching, we use the name of the tao datatype,       e.g. 'beta.a'
+#
+# This one seems fairly easy to mitigate, but there are harder cases, e.g.:
+# - lat_ele1     -> phi_a      px        z        ??                …
+# - tao datatype -> phase.a    orbit.px  orbit.z  b_curl.x          …
+# - curve name   -> phase.g.a  ??        z.g.c    b_div_curl.g.cx   …
+# And some of the parameters do not even have counter parts in some of the
+# categories (i.e. no bmad parameter, no tao datatype, or no predefined curve)
 
 import os
 import logging
@@ -15,7 +30,7 @@ from functools import partial
 
 from pytao.tao import Tao
 
-from madqt.core.unit import UnitConverter, from_config
+from madqt.core.unit import UnitConverter, from_config, strip_unit
 from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
 from madqt.util.misc import (attribute_alias, sort_to_top, LazyList,
@@ -35,17 +50,6 @@ import madqt.online.api as api
 
 PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
 CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
-
-DATA_TYPES = {
-    'betx': 'beta.a',
-    'bety': 'beta.b',
-    'alfx': 'alpha.a',
-    'alfy': 'alpha.b',
-    'x': 'orbit.x',
-    'y': 'orbit.y',
-    'posx': 'orbit.x',
-    'posy': 'orbit.y',
-}
 
 
 class Workspace(EngineBase):
@@ -190,23 +194,45 @@ class Segment(SegmentBase):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
         raise NotImplementedError
 
-    def get_twiss(self, elem, name):
+    def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
-        replace = {
-            'betx': 'beta_a',
-            'bety': 'beta_b',
-            'alfx': 'alpha_a',
-            'alfy': 'alpha_b',
-            'x': 'x',
-            'y': 'y',
-        }
-        twiss = self.get_twiss_at(elem)
+        # TODO: tao's `python lat_param_units` does currently not provide
+        # units for data types, so there is no reliable way to provide units.
+        # Therefore, I choose to suppress units for all data types for now:
         if name == 'envx':
-            return (twiss['beta_a'] * self.ex())**0.5
-        elif name == 'envy':
-            return (twiss['beta_b'] * self.ey())**0.5
-        name = replace.get(name, name)
-        return twiss[name]
+            return (self.get_twiss(elem, 'beta.a', pos)
+                    * self.utool.strip_unit('a_emit', self.ex()))**0.5
+        if name == 'envy':
+            return (self.get_twiss(elem, 'beta.b', pos)
+                    * self.utool.strip_unit('b_emit', self.ey()))**0.5
+
+        el = self.elements[elem]
+        s_offset = self.utool.strip_unit('at', pos - el.AT)
+        L        = self.utool.strip_unit('at', el.L)
+        if s_offset < 0: s_offset = 0
+        if s_offset > L: s_offset = L
+
+        tao = self.tao
+        data_d2 = '1@madqt_data_temp'
+        data_d1 = '1@madqt_data_temp.1[1]'
+        tao.python('data_create', data_d2, 1, 1, 1)
+        try:
+            tao.set('data', **{
+                data_d1+'|data_source'  : 'lat',
+                data_d1+'|data_type'    : name,
+                data_d1+'|ele_name'     : el.NAME,
+                data_d1+'|eval_point'   : 'beginning',
+                data_d1+'|s_offset'     : s_offset,
+            })
+            data1 = tao.properties('data1', data_d1)
+        finally:
+            tao.python('data_destroy', data_d2)
+
+        if not data1['good_model']:
+            raise ValueError(
+                "Invalid datum: {!r}! Existing datatype?".format(name))
+
+        return data1['model_value']
 
     def get_twiss_at(self, elem):
         """Return beam envelope at element."""
@@ -234,14 +260,16 @@ class Segment(SegmentBase):
                 raise ValueError("Invalid plot: {}".format(plot_name))
             graph_alias = plot_info['name'] + '.' + graph_name
 
-            return PlotData(plot_info, graph_info, [
-                CurveData(curve_alias, curve_info, curve_data)
-                for curve_name in graph_info.get('curve', [])
-                for curve_path in [graph_path + '.' + curve_name]
-                for curve_info in [tao.properties('plot_curve', curve_path)]
-                for curve_data in [tao.curve_data(curve_path)]
-                for curve_alias in [graph_alias + '.' + curve_name]
-            ])
+            def get_curve_data(curve_name):
+                curve_path = graph_path + '.' + curve_name
+                curve_info = tao.properties('plot_curve', curve_path)
+                curve_data = tao.curve_data(curve_path)
+                curve_alias = graph_alias + '.' + curve_name
+                return CurveData(curve_alias, curve_info, curve_data)
+
+            return PlotData(plot_info, graph_info, list(map(
+                get_curve_data, graph_info.get('curve', [])
+            )))
         finally:
             tao.command('set plot', region, 'visible = F')
             tao.command('place', region, 'none')
@@ -324,12 +352,11 @@ class Segment(SegmentBase):
         plot_data = self.plot_data(name, xlim)
         info = PlotInfo(
             name=plot_data.plot_info['name']+'.'+plot_data.graph_info['name'],
-            short=plot_data.plot_info['name'],
             title=plot_data.graph_info['title'],
             curves=[
                 CurveInfo(
                     name=curve.name,
-                    short=curve_short_name(plot_data, curve.info),
+                    short=curve.info['data_type'],
                     label=tao_legend_to_latex(curve.info['legend_text']),
                     style=self.curve_style[curve_index],
                     unit=from_config(curve.info['units'] or 1))
@@ -340,7 +367,7 @@ class Segment(SegmentBase):
 
     def get_native_graphs(self):
         """Get a dict of graphs."""
-        return {name.split('.')[0]: (name, info['graph']['title'])
+        return {name: info['graph']['title']
                 for name, info in self.tao.valid_graphs()
                 if info['plot']['x_axis_type'] == 's'}
 
@@ -362,6 +389,7 @@ class Segment(SegmentBase):
         # setup data/variable structures
         data_d2 = '1@madqt_data_temp'
         vars_v1 = 'madqt_vars_temp'
+        # TODO: create contextlib.ExitStack() for cleanup:
         tao.python('var_create', vars_v1, 1, len(variables))
         tao.python('data_create', data_d2, 1, 1, len(constraints))
 
@@ -373,8 +401,16 @@ class Segment(SegmentBase):
             tao.set('var', **{what: value})
 
         for i, c in enumerate(constraints):
-            dtype = DATA_TYPES[c.axis]
-            value = self.utool.strip_unit(c.axis, c.value)
+            # TODO: tao's `python lat_param_units` does currently not provide
+            # units for data types, so there is no reliable way to strip safely:
+            dtype = c.axis
+            value = strip_unit(c.value)
+            if dtype == 'sig11':
+                dtype = 'beta.a'
+                value = value / self.utool.strip_unit('a_emit', self.ex())
+            elif dtype == 'sig33':
+                dtype = 'beta.b'
+                value = value / self.utool.strip_unit('b_emit', self.ey())
             elem = c.elem['name']
             data_d1 = '{}.1[{}]'.format(data_d2, i+1)
             tao.set('data', **{data_d1+'|merit_type': 'target'})
@@ -383,6 +419,10 @@ class Segment(SegmentBase):
             tao.set('data', **{data_d1+'|data_type': dtype})
             tao.set('data', **{data_d1+'|meas': value})
             tao.set('data', **{data_d1+'|ele_name': elem})
+            if c.pos != self.el_pos(c.elem):
+                pos = self.utool.strip_unit("s", c.pos - c.elem['at'])
+                tao.set('data', **{data_d1+'|eval_point': 'beginning'})
+                tao.set('data', **{data_d1+'|s_offset': pos})
 
         tao.command('use', 'var', vars_v1)
         tao.command('use', 'dat', data_d2)
@@ -404,6 +444,12 @@ class Segment(SegmentBase):
         # TODO: update only modified elements
         self.elements.invalidate()
         self.twiss.invalidate()
+
+    def adjust_match_pos(self, el, pos):
+        at, l = el['at'], el['l']
+        if pos <= at:   return at
+        if pos >= at+l: return at+l
+        return pos
 
     def get_magnet(self, elem, conv):
         return MagnetBackend(self, elem, conv.backend_keys)
@@ -567,10 +613,6 @@ def tao_legend_to_latex(text):
     # join adjacent math sections
     text = text.replace('$$', '')
     return text
-
-
-def curve_short_name(plot_data, curve_info):
-    return '{}_{}'.format(plot_data.plot_info['name'], curve_info['name'])
 
 
 #----------------------------------------

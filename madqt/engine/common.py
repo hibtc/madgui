@@ -23,7 +23,6 @@ __all__ = [
 
 PlotInfo = namedtuple('PlotInfo', [
     'name',     # internal graph id (e.g. 'beta.g')
-    'short',    # short display name (e.g. 'beta')
     'title',    # long display name ('Beta function')
     'curves',   # [CurveInfo]
 ])
@@ -217,9 +216,8 @@ class SegmentBase(Object):
     @cachedproperty
     def builtin_graphs(self):
         return {
-            info['short']: PlotInfo(
+            info['name']: PlotInfo(
                 name=info['name'],
-                short=info['short'],
                 title=info['title'],
                 curves=[
                     CurveInfo(
@@ -268,7 +266,7 @@ class SegmentBase(Object):
 
     def get_graphs(self):
         graphs = {
-            info.short: (name, info.title)
+            name: info.title
             for name, info in self.builtin_graphs.items()
         }
         graphs.update(self.native_graphs)

@@ -60,7 +60,6 @@ line_view:
 
 builtin_graphs:
   - name: envelope
-    short: envelope
     title: Beam envelope
     curves:
       - name: envelope.x
@@ -75,18 +74,30 @@ builtin_graphs:
 
 # Select which element paramters can be varied when matching a TWISS function:
 matching:
-  # MAD-X doesn't know about envelopes. This means matching envx and envy is
-  # translated to betx a matching on betx, bety by MadQt.
-  betx:
-    # Use only quadrupole.k1, quadrupole.k1s for matching betx:
+  # TODO: fill in more rules
+  rules:
+    betx:     [quadrupole]
+    bety:     [quadrupole]
+    sig11:    [quadrupole]
+    sig33:    [quadrupole]
+    x:        [quadrupole]
+    y:        [quadrupole]
+
+    # TODO: look up using a *common name* rather than defining for tao
+    # separately:
+    alpha.a:  [quadrupole]
+    alpha.b:  [quadrupole]
+    beta.a:   [quadrupole]
+    beta.b:   [quadrupole]
+    orbit.x:  [quadrupole]
+    orbit.y:  [quadrupole]
+
+  # Which parameters should be varied on these elements:
+  parameters:
+    sbend:      [angle]
+    kicker:     [hkick, vkick]
+    hkicker:    [kick]
+    vkicker:    [kick]
     quadrupole: [k1, k1s]
-  bety:
-    quadrupole: [k1, k1s]
-  sig11:
-    quadrupole: [k1, k1s]
-  sig33:
-    quadrupole: [k1, k1s]
-  x:
-    quadrupole: [k1, k1s]
-  y:
-    quadrupole: [k1, k1s]
+    multipole:  [knl]
+    solenoid:   [ks]
