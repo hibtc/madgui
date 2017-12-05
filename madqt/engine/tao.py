@@ -213,7 +213,9 @@ class Segment(SegmentBase):
         finally:
             tao.python('data_destroy', data_d2)
 
-        # TODO: assert data1['good_model']
+        if not data1['good_model']:
+            raise ValueError(
+                "Invalid datum: {!r}! Existing datatype?".format(name))
 
         return data1['model_value']
 
