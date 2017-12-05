@@ -288,6 +288,7 @@ class Segment(SegmentBase):
 
         self.workspace = workspace
         self.sequence = workspace.madx.sequences[sequence]
+        self.continuous_matching = True
 
         self._beam = beam
         self._twiss_args = twiss_args
@@ -602,12 +603,6 @@ class Segment(SegmentBase):
             self.set_element_attribute(elem, attr, value)
         else:
             self.madx.set_value(knob, value)
-
-    def adjust_match_pos(self, el, pos):
-        at, l = el['at'], el['l']
-        if pos <= at:   return at
-        if pos >= at+l: return at+l
-        return pos
 
 
 def process_spec(prespec, data):

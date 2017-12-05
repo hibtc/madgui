@@ -163,6 +163,7 @@ class Segment(SegmentBase):
         super().__init__()
 
         self.workspace = workspace
+        self.continuous_matching = True
 
         lat_general = self.tao.python('lat_general', workspace.universe)
 
@@ -444,12 +445,6 @@ class Segment(SegmentBase):
         # TODO: update only modified elements
         self.elements.invalidate()
         self.twiss.invalidate()
-
-    def adjust_match_pos(self, el, pos):
-        at, l = el['at'], el['l']
-        if pos <= at:   return at
-        if pos >= at+l: return at+l
-        return pos
 
     def get_magnet(self, elem, conv):
         return MagnetBackend(self, elem, conv.backend_keys)

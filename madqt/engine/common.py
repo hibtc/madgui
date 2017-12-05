@@ -186,8 +186,15 @@ class SegmentBase(Object):
         """Position for matching / output."""
         return el['at'] + el['l']
 
+    continuous_matching = False
+
     def adjust_match_pos(self, el, pos):
-        return self.el_pos(el)
+        if not self.continuous_matching:
+            return self.el_pos(el)
+        at, l = el['at'], el['l']
+        if pos <= at:   return at
+        if pos >= at+l: return at+l
+        return pos
 
     def get_best_match_pos(self, pos):
         """Find optics element by longitudinal position."""
