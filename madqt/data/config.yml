@@ -78,6 +78,8 @@ matching:
   rules:
     betx:     [quadrupole]
     bety:     [quadrupole]
+    alfx:     [quadrupole]
+    alfy:     [quadrupole]
     sig11:    [quadrupole]
     sig33:    [quadrupole]
     x:        [quadrupole]
