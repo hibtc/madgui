@@ -14,7 +14,7 @@ from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
 from madqt.resource import yaml
-from madqt.core.unit import UnitConverter, from_config
+from madqt.core.unit import UnitConverter, from_config, isclose
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 from madqt.resource.file import FileResource
 from madqt.util.datastore import DataStore, SuperStore
@@ -527,9 +527,8 @@ class Segment(SegmentBase):
         # NOTE: need list instead of set, because quantity is unhashable:
         elem_positions = defaultdict(list)
         for elem, pos, axis, val in constraints:
-            if pos < elem['at']+elem['l']:
-                if pos not in elem_positions[elem['name']]:
-                    elem_positions[elem['name']].append(pos)
+            if pos not in elem_positions[elem['name']]:
+                elem_positions[elem['name']].append(pos)
         elem_positions = {name: sorted(positions)
                           for name, positions in elem_positions.items()}
 
@@ -538,10 +537,10 @@ class Segment(SegmentBase):
         for name, positions in elem_positions.items():
             at = self.elements[name]['at']
             l = self.elements[name]['l']
-            for pos in positions:
-                if pos < at+l:
-                    self.madx.command.select(
-                        flag='interpolate', range=name, at=[float((pos-at)/l)])
+            if any(not isclose(p, at+l) for p in positions):
+                x = [float((p-at)/l) for p in positions]
+                self.madx.command.select(
+                    flag='interpolate', range=name, at=x)
 
         # create constraints list to be passed to Madx.match
         madx_constraints = [
