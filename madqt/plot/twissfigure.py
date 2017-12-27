@@ -450,8 +450,6 @@ class MatchTool(CaptureTool):
         Invoked after the user clicks in matching mode.
         """
 
-        elem, pos = self.segment.get_best_match_pos(event.x)
-
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
         curves = self.plot.scene.twiss_curves.items
@@ -463,8 +461,13 @@ class MatchTool(CaptureTool):
 
         # Right click: remove constraint
         if event.button == 2:
-            for c in curves:
-                self.removeConstraint(elem, c.y_name)
+            constraints = [c for c in self.matcher.constraints
+                           if c.axis == name]
+            if constraints:
+                cons = min(constraints, key=lambda c: abs(c.pos-event.x))
+                elem = cons.elem
+                for c in curves:
+                    self.removeConstraint(elem, c.y_name)
             return
         # Proceed only if left click:
         elif event.button != 1:
@@ -480,6 +483,7 @@ class MatchTool(CaptureTool):
 
         # add the clicked constraint
         from madqt.correct.match import Constraint
+        elem, pos = self.segment.get_best_match_pos(event.x)
         constraints = [Constraint(elem, pos, name, event.y)]
 
         if self.matcher.mirror_mode:
