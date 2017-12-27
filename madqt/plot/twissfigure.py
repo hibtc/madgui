@@ -443,13 +443,7 @@ class MatchTool(CaptureTool):
         self.plot.endCapture(self.mode)
 
     def onClick(self, event):
-
-        """
-        Draw new constraint and perform matching.
-
-        Invoked after the user clicks in matching mode.
-        """
-
+        """Handle clicks into the figure in matching mode."""
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
         curves = self.plot.scene.twiss_curves.items
@@ -458,21 +452,21 @@ class MatchTool(CaptureTool):
                          len(curves) > 1))
         curve = [c for c in curves if c.axes is event.axes][index]
         name = curve.y_name
+        if event.button == 1: return self.on_left_click(event, curves, name)
+        if event.button == 2: return self.on_middle_click(event, curves, name)
 
-        # Right click: remove constraint
-        if event.button == 2:
-            constraints = [c for c in self.matcher.constraints
-                           if c.axis == name]
-            if constraints:
-                cons = min(constraints, key=lambda c: abs(c.pos-event.x))
-                elem = cons.elem
-                for c in curves:
-                    self.removeConstraint(elem, c.y_name)
-            return
-        # Proceed only if left click:
-        elif event.button != 1:
-            return
+    def on_middle_click(self, event, curves, name):
+        """Remove constraint nearest to cursor location."""
+        constraints = [c for c in self.matcher.constraints
+                        if c.axis == name]
+        if constraints:
+            cons = min(constraints, key=lambda c: abs(c.pos-event.x))
+            elem = cons.elem
+            for c in curves:
+                self.removeConstraint(elem, c.y_name)
 
+    def on_left_click(self, event, curves, name):
+        """Add constraint at cursor location."""
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
 
