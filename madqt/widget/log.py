@@ -238,6 +238,7 @@ class AsyncRead(Object):
         self.queue = Queue()
         self.stream = stream
         self.thread = threading.Thread(target=self._readLoop)
+        self.thread.daemon = True   # don't block program exit
         self.thread.start()
 
     def _readLoop(self):
