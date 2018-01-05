@@ -93,6 +93,7 @@ def main():
                 'data/*.xpm',
                 'data/*.css',
                 'engine/*.yml',
+                '*/*.ui',
             ]
         }
     )
