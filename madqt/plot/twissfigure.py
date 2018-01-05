@@ -4,8 +4,11 @@ s-axis.
 """
 
 from functools import partial
+import threading
+import time
 
 from madqt.qt import QtGui, Qt
+from madqt.core.worker import fetch_all
 
 from madqt.util.qt import waitCursor
 from madqt.util.misc import memoize, strip_suffix, SingleWindow
@@ -68,7 +71,7 @@ class TwissFigure(SceneNode):
         self.user_curves = ListView(
             partial(make_user_curve, self),
             self.shown_curves)
-        self.indicators = SceneGraph()
+        self.indicators = IndicatorManager()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
         self.constr_markers = ListView(
@@ -107,10 +110,7 @@ class TwissFigure(SceneNode):
         self.update_graph_data()
         self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
         self.indicators.destroy()
-        self.indicators.clear([
-            ElementIndicators(ax, self, self.element_style)
-            for ax in axes
-        ])
+        self.indicators.create(axes, self, self.element_style)
         self.select_markers.destroy()
         self.select_markers.clear([
             ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
@@ -298,21 +298,37 @@ class ListView(SceneGraph):
         super().destroy()
 
 
+class IndicatorManager(SceneGraph):
+
+    _fetch = None
+
+    def create(self, axes, scene, style):
+        self.clear()
+        callback = lambda elements: self.extend([
+            ElementIndicators(ax, scene, style, elements)
+            for ax in axes
+        ])
+        self._fetch = fetch_all(scene.segment.elements, callback, block=0.5)
+
+    def remove(self):
+        if self._fetch:
+            self._fetch.stop()
+            self._fetch = None
+        super().remove()
+
+
 class ElementIndicators(SimpleArtist):
 
     """
     Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
     """
 
-    def __init__(self, axes, scene, style):
+    def __init__(self, axes, scene, style, elements):
         super().__init__(self._draw)
         self.axes = axes
         self.scene = scene
         self.style = style
-
-    @property
-    def elements(self):
-        return self.scene.segment.elements
+        self.elements = elements
 
     def _draw(self):
         """Draw the elements into the canvas."""
