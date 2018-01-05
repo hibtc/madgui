@@ -12,17 +12,16 @@ Needs to be built manually:
 
 - cpymad_ (for MAD-X_ models, see `installation instructions`_)
 - pytao_ (for `Bmad/tao`_ models)
-- minrpc_ (common dependency of both cpymad and pytao)
 
-These are likely to be available in your system repositories:
+You also have to install this using your package manager:
 
 - PyQt5_
-- matplotlib_
-- numpy_
 
 These can easily be installed via PyPI (``pip install ...``) if unavailable
 in your repositories:
 
+- matplotlib_
+- numpy_
 - docopt_
 - Pint_ == 0.8.1
 - PyYAML_
