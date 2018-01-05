@@ -1,6 +1,17 @@
 CHANGELOG
 ~~~~~~~~~
 
+0.0.3
+-----
+date: unknown
+
+- fuzzy select when removing constraints in matching mode (middle click)
+- start log threads as daemon thread (never blocks program exit)
+- thread safe access to madx/tao
+- fetch element data for indicators in background
+- fix missing .ui files in installation
+
+
 0.0.2
 -----
 Date: 05.12.2017
