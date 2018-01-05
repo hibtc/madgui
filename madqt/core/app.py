@@ -45,7 +45,8 @@ __all__ = [
 def main(argv=None):
     """Run MadQt mainloop and exit process when finished."""
     # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
-    if sys.stdout.encoding != 'UTF-8':
+    # Note that sys.stdout can be ``None`` if starting as console_script:
+    if sys.stdout and sys.stdout.encoding != 'UTF-8':
         import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     # QApplication needs a valid argument list:
