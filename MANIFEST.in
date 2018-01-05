@@ -1,3 +1,9 @@
 include README.rst
 include COPYING.rst COPYING.GPLv3.txt
 include madqt/COPYING.txt
+include madqt/data/*.txt
+include madqt/data/*.yml
+include madqt/data/*.xpm
+include madqt/data/*.css
+include madqt/engine/*.yml
+recursive-include madqt *.ui

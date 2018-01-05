@@ -85,17 +85,7 @@ def main():
             [gui_scripts]
             madqt = madqt.core.app:main
         """,
-        package_data={
-            'madqt': [
-                'COPYING.txt',
-                'data/*.txt',
-                'data/*.yml',
-                'data/*.xpm',
-                'data/*.css',
-                'engine/*.yml',
-                '*/*.ui',
-            ]
-        }
+        include_package_data=True,  # install files matched by MANIFEST.in
     )
 
 
