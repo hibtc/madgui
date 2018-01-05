@@ -34,6 +34,7 @@ from madqt.qt import QtCore, QtGui
 
 from madqt import __version__
 from madqt.core.mainwindow import MainWindow
+from madqt.core.worker import QueuedDispatcher, WorkerThread
 
 
 __all__ = [
@@ -51,7 +52,7 @@ def main(argv=None):
     # QApplication needs a valid argument list:
     if argv is None:
         argv = sys.argv
-    app = QtGui.QApplication(argv)
+    app = QtGui.qApp = QtGui.QApplication(argv)
     setup_interrupt_handling(app)
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
     # where an uncaught exception would usually cause the program to abort.
@@ -64,6 +65,7 @@ def main(argv=None):
     if args[:1] == ['-m']:
         args = args[2:]
     opts = docopt(__doc__, args, version=__version__)
+    app.dispatch = QueuedDispatcher()
     mainwindow = MainWindow(opts)
     mainwindow.show()
     app.setStyleSheet(resource_string('madqt.data', 'style.css').decode('utf-8'))
