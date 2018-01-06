@@ -345,6 +345,7 @@ class MainWindow(QtGui.QMainWindow):
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
 
+        self.destroyWorkspace()
         filename = os.path.abspath(filename)
         self.folder, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
