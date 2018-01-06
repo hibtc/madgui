@@ -3,13 +3,14 @@ CHANGELOG
 
 0.0.3
 -----
-date: unknown
+date: 06.01.2017
 
 - fuzzy select when removing constraints in matching mode (middle click)
 - start log threads as daemon thread (never blocks program exit)
 - thread safe access to madx/tao
 - fetch element data for indicators in background
 - fix missing .ui files in installation
+- fix crash on windows at startup when starting via gui_scripts entrypoint
 
 
 0.0.2
