@@ -119,6 +119,7 @@ class Property:
             self._update()
         else:
             self._new()
+        return self.val
 
     def destroy(self):
         if self._has:
@@ -163,7 +164,7 @@ class Property:
 class SingleWindow(Property):
 
     def _del(self):
-        self.val.close()
+        self.val.window().close()
 
     def _closed(self):
         super()._del()
@@ -174,7 +175,7 @@ class SingleWindow(Property):
         return window
 
     def _update(self):
-        present(self.val)
+        present(self.val.window())
 
 
 class LazyList(collections.Sequence):

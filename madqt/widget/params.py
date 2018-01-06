@@ -108,9 +108,8 @@ class TabParamTables(QtGui.QTabWidget):
     TabWidget that manages multiple ParamTables inside.
     """
 
-    def __init__(self, datastore, index=0, **kwargs):
+    def __init__(self, datastore, **kwargs):
         super().__init__()
-        self.index = index
         self.kwargs = kwargs
         self.datastore = datastore
         self.setTabsClosable(False)
@@ -132,15 +131,18 @@ class TabParamTables(QtGui.QTabWidget):
         for tab in tabs:
             # TODO: suppress empty tabs
             self.addTab(tab, tab.datastore.label)
-        if self.index != self.currentIndex():
-            self.setCurrentIndex(self.index)
         self.tabBar().setVisible(len(tabs) > 1)
 
     def update(self):
         self.tabs[self.currentIndex()].update()
 
     def index_changed(self, index):
-        self.index = index
         # DO NOT call into `self.update` from here. Otherwise there will be
         # infinite recursions for `ElementInfoBox`
         self.tabs[self.currentIndex()].update()
+
+    def activate_tab(self, name):
+        index = next((i for i, l in enumerate(self._datastore.substores)
+                      if l == name), 0)
+        if index != self.currentIndex():
+            self.setCurrentIndex(index)

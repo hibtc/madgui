@@ -204,34 +204,28 @@ class MainWindow(QtGui.QMainWindow):
     def fileSave(self):
         pass
 
-    init_tab = None
-
     def editTwiss(self):
-        # TODO: rework window management, switch tab if dialog exists
-        self.init_tab = 'twiss'
-        return self.editInitialConditions.create()
+        widget = self.editInitialConditions.create()
+        widget.activate_tab('twiss')
 
     def editBeam(self):
-        # TODO: rework window management, switch tab if dialog exists
-        self.init_tab = 'beam'
-        return self.editInitialConditions.create()
+        widget = self.editInitialConditions.create()
+        widget.activate_tab('beam')
 
     @SingleWindow.factory
     def editInitialConditions(self):
         from madqt.widget.params import TabParamTables
 
         datastore = self.workspace.segment.get_init_ds()
-        index = next((i for i, l in enumerate(datastore.substores)
-                      if l == self.init_tab), 0)
 
-        widget = TabParamTables(datastore, index=index)
+        widget = TabParamTables(datastore)
         widget.update()
 
         dialog = Dialog(self)
         dialog.setExportWidget(widget, self.folder)
         dialog.setWindowTitle("Initial conditions")
         dialog.show()
-        return dialog
+        return widget
 
     @SingleWindow.factory
     def viewShell(self):
