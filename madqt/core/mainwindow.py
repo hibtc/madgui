@@ -121,12 +121,10 @@ class MainWindow(QtGui.QMainWindow):
             Menu('&Edit', [
                 Item('&TWISS initial conditions', 'Ctrl+I',
                      'Modify the initial conditions.',
-                     self.editTwiss,
-                     checked=self.editInitialConditions.holds_value),
+                     self.editTwiss),
                 Item('&Beam parameters', 'Ctrl+B',
                      'Change the beam parameters.',
-                     self.editBeam,
-                     checked=self.editInitialConditions.holds_value),
+                     self.editBeam),
             ]),
             Menu('&View', [
                 Item('Plo&t window', 'Ctrl+T',
