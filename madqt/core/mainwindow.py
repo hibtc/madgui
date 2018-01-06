@@ -75,6 +75,7 @@ class MainWindow(QtGui.QMainWindow):
         align = {'left': Qt.AlignLeft, 'right': Qt.AlignRight}
         config.NumberFormat.align = align[self.config['number']['align']]
         config.NumberFormat.fmtspec = self.config['number']['fmtspec']
+        config.NumberFormat.spinbox = self.config['number']['spinbox']
         config.NumberFormat.changed.emit()
 
     def initUI(self):
