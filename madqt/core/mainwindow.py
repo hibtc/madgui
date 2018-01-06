@@ -2,8 +2,6 @@
 Main window component for MadQt.
 """
 
-# TODO: about dialogs for Bmad/pytao
-
 import glob
 import os
 import logging
@@ -157,6 +155,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('About MAD-&X', None,
                      'About the included MAD-X backend.',
                      self.helpAboutMadX.create),
+                Item('About &pytao', None,
+                     'About the pytao python binding to Bmad/tao.',
+                     self.helpAboutPytao.create),
                 Item('About Q&t', None,
                      'About Qt.',
                      self.helpAboutQt),
@@ -291,6 +292,12 @@ class MainWindow(QtGui.QMainWindow):
         """Show about dialog."""
         import cpymad.madx
         return self._showAboutDialog(cpymad.madx.metadata)
+
+    @SingleWindow.factory
+    def helpAboutPytao(self):
+        """Show about dialog."""
+        import pytao
+        return self._showAboutDialog(pytao)
 
     def helpAboutQt(self):
         QtGui.QMessageBox.aboutQt(self)
