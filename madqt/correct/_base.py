@@ -234,7 +234,7 @@ class OrbitCorrectorBase:
                 vary=match_names,
                 constraints=constraints,
                 twiss_init=self.utool.dict_strip_unit(init_twiss))
-            self.segment.invalidate()
+            self.segment.twiss.invalidate()
 
             # return corrections
             return [(el, el.mad_backend.get(), el.dvm_backend.get())
@@ -426,5 +426,5 @@ class CorrectorWidgetBase(QtGui.QWidget):
             el.mad_backend.set(mad_vals)
             el.dvm_backend.set(el.mad2dvm(mad_vals))
         self.corrector.control._plugin.execute()
-        self.corrector.segment.invalidate()
+        self.corrector.segment.twiss.invalidate()
         self.corrector.clear_orbit_records()
