@@ -59,11 +59,6 @@ def main(argv=None):
     sys.excepthook = traceback.print_exception
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
-    # QApplication uses the "real" command line on windows. This means, when
-    # invoking MadQt as `python -m madqt ...` we have to strip two more
-    # arguments from the left:
-    if args[:1] == ['-m']:
-        args = args[2:]
     opts = docopt(__doc__, args, version=__version__)
     app.dispatch = QueuedDispatcher()
     mainwindow = MainWindow(opts)
