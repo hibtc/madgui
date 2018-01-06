@@ -3,7 +3,7 @@ CHANGELOG
 
 0.0.3
 -----
-date: 06.01.2017
+Date: 06.01.2017
 
 - fuzzy select when removing constraints in matching mode (middle click)
 - start log threads as daemon thread (never blocks program exit)

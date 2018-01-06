@@ -1,24 +1,35 @@
 MadQt
 =====
 
-MadQt_ is a python GUI for interactive accelerator simulations using MAD-X_
+MadQt_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_
 or `Bmad/tao`_.
 
 
-Dependencies
+Requirements
 ~~~~~~~~~~~~
 
-Needs to be built manually:
+MadQt requires **python 3.3** or greater with PyQt5_.
 
-- cpymad_ (for MAD-X_ models, see `installation instructions`_)
-- pytao_ (for `Bmad/tao`_ models)
+On windows, I strongly recommend `WinPython 3.4`_ (download an installer
+with Qt5 suffix, should be about 300MiB in size). In particular, you can not
+use python 3.5 and above, since there are problems building cpymad for these
+versions, see `hibtc/cpymad#32`_.
 
-You also have to install this using your package manager:
+In order to proceed installing, first make sure that PyQt5_ is installed.
 
-- PyQt5_
+Next, you will have to install cpymad_ in order to work with MAD-X_ sequences.
+Installing cpymad on windows with python 3.3 or 3.4 should be as simple as::
 
-These can easily be installed via PyPI (``pip install ...``) if unavailable
-in your repositories:
+    pip install cpymad
+
+Otherwise, please refer to cpymad's `installation instructions`_.
+
+Alternatively (or additionally), pytao_ can be used to work with `Bmad/tao`_
+models.
+
+Note that MadQt also has the following additional runtime dependencies.
+However, these will usually be pulled in automatically if you use the proper
+install command, and don't need to be installed manually:
 
 - matplotlib_
 - numpy_
@@ -30,6 +41,8 @@ in your repositories:
 - qtconsole_
 - minrpc_
 
+.. _WinPython 3.4: https://sourceforge.net/projects/winpython/files/WinPython_3.4/
+.. _hibtc/cpymad#32: https://github.com/hibtc/cpymad/issues/32
 .. _installation instructions: http://hibtc.github.io/cpymad/installation/index.html
 .. _MAD-X: http://madx.web.cern.ch/madx
 .. _Bmad/tao: http://www.lepp.cornell.edu/~dcs/bmad/
@@ -50,10 +63,18 @@ in your repositories:
 Installation
 ~~~~~~~~~~~~
 
-After installing the dependencies, open a terminal in the project folder and
-type::
+You are now ready to install madqt. Type::
+
+    pip install madqt
+
+Or, in order to install from the local checkout::
 
     python setup.py install
+
+If you intend to make changes to the madqt code and want to try the effects
+immediately, use::
+
+    python setup.py develop
 
 
 Usage
