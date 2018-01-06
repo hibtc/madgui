@@ -8,7 +8,7 @@ import logging
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.util.collections import Selection, Bool
-from madqt.util.misc import SingleWindow, logfile_name
+from madqt.util.misc import SingleWindow, logfile_name, try_import
 from madqt.widget.dialog import Dialog
 from madqt.widget.log import LogWindow
 
@@ -149,12 +149,15 @@ class MainWindow(QtGui.QMainWindow):
                 Item('About Mad&Qt', None,
                      'About the MadQt GUI application.',
                      self.helpAboutMadQt.create),
+                try_import('cpymad') and
                 Item('About &CPyMAD', None,
                      'About the cpymad python binding to MAD-X.',
                      self.helpAboutCPyMAD.create),
+                try_import('cpymad') and
                 Item('About MAD-&X', None,
                      'About the included MAD-X backend.',
                      self.helpAboutMadX.create),
+                try_import('pytao') and
                 Item('About &pytao', None,
                      'About the pytao python binding to Bmad/tao.',
                      self.helpAboutPytao.create),

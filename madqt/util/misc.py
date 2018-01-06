@@ -6,6 +6,7 @@ import os
 import functools
 import collections
 import tempfile
+import importlib
 
 from madqt.util.collections import Bool
 from madqt.util.qt import notifyCloseEvent, present
@@ -25,6 +26,14 @@ __all__ = [
     'make_index',
     'sort_to_top',
 ]
+
+
+def try_import(name):
+    """Try to import module. Returns the module or ``None`` if it fails."""
+    try:
+        return importlib.import_module(name)
+    except ImportError:
+        return None
 
 
 def safe_hasattr(obj, key):

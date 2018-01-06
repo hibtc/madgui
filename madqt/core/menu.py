@@ -83,4 +83,5 @@ class Separator:
 def extend(parent, menu, items):
     """Append menu items to menu."""
     for item in items:
-        item.append_to(menu, parent)
+        if item is not None:
+            item.append_to(menu, parent)
