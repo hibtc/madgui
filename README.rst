@@ -8,28 +8,33 @@ or `Bmad/tao`_.
 Requirements
 ~~~~~~~~~~~~
 
-MadQt requires **python 3.3** or greater with PyQt5_.
+MadQt requires:
 
-On windows, I strongly recommend `WinPython 3.4`_ (download an installer
-with Qt5 suffix, should be about 300MiB in size). In particular, you can not
-use python 3.5 and above, since there are problems building cpymad for these
-versions, see `hibtc/cpymad#32`_.
+- **Python 3** (3.3 and above is possible, 3.4 or above is recommended)
 
-In order to proceed installing, first make sure that PyQt5_ is installed.
+  *On linux*, I recommend the latest python version you can find.
 
-Next, you will have to install cpymad_ in order to work with MAD-X_ sequences.
-Installing cpymad on windows with python 3.3 or 3.4 should be as simple as::
+  *On windows*, I strongly recommend `WinPython 3.4`_ (pick an installer with
+  Qt5 suffix, should be about 300MiB in size). In particular, you **can not
+  use python 3.5 and above**, since there are problems building cpymad for
+  these versions, see `hibtc/cpymad#32`_.
+
+- PyQt5_, should be installed using the official installer or your
+  distributions package manager.
+
+- cpymad_, in order to work with MAD-X_.
+
+  *On windows*, installing cpymad for python 3.3 or 3.4 should be as simple as::
 
     pip install cpymad
 
-Otherwise, please refer to cpymad's `installation instructions`_.
+  Otherwise, please refer to cpymad's `installation instructions`_.
 
-Alternatively (or additionally), pytao_ can be used to work with `Bmad/tao`_
-models.
+- or pytao_ to work with `Bmad/tao`_ models, alternatively (or additionally).
 
-Note that MadQt also has the following additional runtime dependencies.
-However, these will usually be pulled in automatically if you use the proper
-install command, and don't need to be installed manually:
+Additionally, MadQt depends on the following packages (that should, however,
+be picked up automatically if you use the proper install command and usually
+don't need to be installed manually):
 
 - matplotlib_
 - numpy_
@@ -87,6 +92,11 @@ Now, you should be able to start MadQt with the command::
 or::
 
     python -m madqt
+
+If you are on windows, and nothing happens, you can start madqt manually as
+follows, which may provide you with more error information::
+
+    python -c "from madqt.core.app import main; main()"
 
 
 Development guidelines
