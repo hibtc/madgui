@@ -36,3 +36,11 @@ def waitCursor(cursor=None):
         yield None
     finally:
         QtGui.QApplication.restoreOverrideCursor()
+
+
+def present(window, raise_=False):
+    """Activate window."""
+    window.show()
+    window.activateWindow()
+    if raise_:
+        window.raise_()
