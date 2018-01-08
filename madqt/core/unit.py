@@ -66,6 +66,8 @@ def allclose(q1, q2):
 def get_unit(quantity):
     if isinstance(quantity, units.Quantity):
         return units.Quantity(1, quantity.units)
+    if isinstance(quantity, SymbolicValue):
+        return units.Quantity(1, quantity._unit)
     return None
 
 
