@@ -7,6 +7,7 @@ import os
 import logging
 
 from madqt.qt import Qt, QtCore, QtGui
+from madqt.core.base import Signal
 from madqt.util.collections import Selection, Bool
 from madqt.util.misc import SingleWindow, logfile_name, try_import
 from madqt.widget.dialog import Dialog
@@ -43,6 +44,8 @@ def expand_ext(path, *exts):
 
 
 class MainWindow(QtGui.QMainWindow):
+
+    workspace_changed = Signal()
 
     #----------------------------------------
     # Basic setup
@@ -368,6 +371,7 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['workspace'] = workspace
         self.user_ns['savedict'] = savedict
         if workspace is None:
+            self.workspace_changed.emit()
             return
 
         workspace.selection = Selection()
@@ -381,6 +385,7 @@ class MainWindow(QtGui.QMainWindow):
         # application to close) by calling app.quit() on Ctrl-C:
         QtGui.qApp.aboutToQuit.connect(self.destroyWorkspace)
         self.has_workspace.value = True
+        self.workspace_changed.emit()
 
     def destroyWorkspace(self):
         if self.workspace is None:
