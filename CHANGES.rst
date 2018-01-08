@@ -1,9 +1,26 @@
 CHANGELOG
 ~~~~~~~~~
 
+0.0.4
+~~~~~
+Date: 09.01.2018
+
+- Emit signal when workspace is changed (for plugins…)
+- Show about boxes only if the package exists
+- Add about dialog for pytao
+- Change tab in settings dialog when clicking menu
+- When user invokes an action via a menu and the corresponding dialog
+  already exists, focus the existing window
+- No longer show checkboxes for twiss/beam dialogs in menu
+- Read spinbox setting from config
+- [regression] Fix exception (closed logfile) when opening different model
+- [regression] Fix exception in online-control module when changing values
+  into MAD-X
+
+
 0.0.3
 -----
-Date: 06.01.2017
+Date: 06.01.2018
 
 - fuzzy select when removing constraints in matching mode (middle click)
 - start log threads as daemon thread (never blocks program exit)
