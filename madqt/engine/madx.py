@@ -14,7 +14,7 @@ from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
 from madqt.resource import yaml
-from madqt.core.unit import UnitConverter, from_config, isclose
+from madqt.core.unit import UnitConverter, from_config, isclose, number_types
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 from madqt.resource.file import FileResource
 from madqt.util.datastore import DataStore, SuperStore
@@ -334,7 +334,8 @@ class Segment(SegmentBase):
     # TODO…
     def _is_mutable_attribute(self, k, v):
         blacklist = self.workspace.config['parameter_sets']['element']['readonly']
-        return isinstance(v, (int, list, float)) and k.lower() not in blacklist
+        allowed_types = (list, number_types)
+        return isinstance(v, allowed_types) and k.lower() not in blacklist
 
     # TODO: get data from MAD-X
     def get_twiss_args_raw(self):

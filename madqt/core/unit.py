@@ -51,6 +51,7 @@ def initialize():
 
 
 units = initialize()
+number_types = (int, float, units.Quantity, SymbolicValue, Expression)
 
 
 def isclose(q1, q2):
