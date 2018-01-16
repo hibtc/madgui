@@ -342,6 +342,11 @@ class ElementBase(Mapping):
         """Retrieve data for key if possible; everything if None."""
 
     def __getitem__(self, name):
+        # handle direct access to array elements, e.g. "knl[0]":
+        if name.endswith(']'):
+            head, tail = name.split('[', 1)
+            index = int(tail[:-1])
+            return self[head][index]
         self._retrieve(name)
         return self._utool.add_unit(name, self._merged[name])
 
