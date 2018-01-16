@@ -67,10 +67,14 @@ class OnlinePlugin(_Interface):
         """Get parameter info for backend key."""
 
     @abstractmethod
-    def get_monitor(self, segment, elements):
+    def read_monitor(self, name):
         """
-        Get a (:class:`ElementBackendConverter`, :class:`ElementBackend`)
-        tuple for a monitor.
+        Read out one monitor, return values as dict with keys:
+
+            widthx:     Beam x width
+            widthy:     Beam y width
+            posx:       Beam x position
+            posy:       Beam y position
         """
 
     @abstractmethod

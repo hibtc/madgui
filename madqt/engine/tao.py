@@ -450,8 +450,19 @@ class Segment(SegmentBase):
     def get_magnet(self, elem, conv):
         return MagnetBackend(self, elem, conv.backend_keys)
 
-    def get_monitor(self, elem):
-        return MonitorBackend(self, elem)
+    def read_monitor(self, name):
+        """Mitigates read access to a monitor."""
+        # TODO: handle split h-/v-monitor
+        self.twiss.update()
+        index = self.get_element_index(name)
+        orbit = self.tao.get_element_data(index, who='orbit')
+        twiss = self.tao.get_element_data(index, who='twiss')
+        return self.utool.dict_add_unit({
+            'envx': (twiss['beta_a'] * self.ex()) ** 0.5,
+            'envy': (twiss['beta_b'] * self.ey()) ** 0.5,
+            'posx': orbit['x'],
+            'posy': orbit['y'],
+        })
 
     def get_knob(self, expr):
         if '->' not in expr:
@@ -637,30 +648,3 @@ class MagnetBackend(api.ElementBackend):
         elem = '{}>>{}'.format(seg.unibra, index)
         values = self._segment.utool.dict_strip_unit(values)
         self._segment.tao.set('element', elem, **values)
-
-
-class MonitorBackend(api.ElementBackend):
-
-    """Mitigates read access to a monitor."""
-
-    # TODO: handle split h-/v-monitor
-
-    def __init__(self, segment, element):
-        self._segment = segment
-        self._element = element
-
-    def get(self, values):
-        self.segment.twiss.update()
-        tao = self._segment.tao
-        index = self._segment.get_element_index(self._element)
-        orbit = tao.get_element_data(index, who='orbit')
-        twiss = tao.get_element_data(index, who='twiss')
-        return self._segment.utool.dict_add_unit({
-            'betx': twiss['beta_a'],
-            'bety': twiss['beta_b'],
-            'x': orbit['x'],
-            'y': orbit['y'],
-        })
-
-    def set(self, values):
-        raise NotImplementedError("Can't set TWISS: monitors are read-only!")

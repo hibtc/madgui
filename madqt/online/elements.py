@@ -26,7 +26,6 @@ __all__ = [
     'detect_multipole_order',
     'get_element_class',
     'BaseElement',
-    'Monitor',
     'BaseMagnet',
     'BaseDipole',
     'Dipole',
@@ -53,8 +52,6 @@ def detect_multipole_order(coefs):
 def get_element_class(element):
     """Get the implementing class for a given MAD-X element."""
     el_type = element['type'].lower()
-    if el_type.endswith('monitor') or el_type == 'instrument':
-        return Monitor
     # TODO: pass dvm params
     if el_type == 'sbend':
         return Dipole
@@ -127,27 +124,6 @@ class BaseElement(api._Interface):
         elem = self.elements[0]
         back = self._segment.get_magnet(elem, conv)
         return conv, back
-
-
-class Monitor(BaseElement):
-
-    """Implementation for a MONITOR."""
-
-    parameter_info = {
-        'widthx': 'Beam x width',
-        'widthy': 'Beam y width',
-        'posx': 'Beam x position',
-        'posy': 'Beam y position',
-    }
-
-    def _mad_backend(self):
-        segment = self._segment
-        conv = mad_backend.Monitor(segment.ex(), segment.ey())
-        back = segment.get_monitor(self.elements[0])
-        return conv, back
-
-    def _dvm_backend(self):
-        return self._plugin.get_monitor(self._segment, self.elements)
 
 
 class BaseMagnet(BaseElement):

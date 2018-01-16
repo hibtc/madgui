@@ -87,8 +87,8 @@ class MonitorItem:
         self.name = el_name
         self.posx = values.get('posx')
         self.posy = values.get('posy')
-        self.widthx = values.get('widthx')
-        self.widthy = values.get('widthy')
+        self.envx = values.get('envx')
+        self.envy = values.get('envy')
 
 
 class MonitorWidget(ListSelectWidget):
@@ -104,8 +104,8 @@ class MonitorWidget(ListSelectWidget):
         ColumnInfo("Monitor", 'name'),
         ColumnInfo("x", 'posx'),
         ColumnInfo("y", 'posy'),
-        ColumnInfo("x width", 'widthx'),
-        ColumnInfo("y width", 'widthy'),
+        ColumnInfo("x width", 'envx'),
+        ColumnInfo("y width", 'envy'),
     ]
 
     def __init__(self):

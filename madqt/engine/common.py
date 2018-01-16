@@ -301,7 +301,7 @@ class SegmentBase(Object):
     def get_magnet(self, elem, conv):
         raise NotImplementedError
 
-    def get_monitor(self, elem):
+    def read_monitor(self, name):
         raise NotImplementedError
 
     def get_matcher(self):

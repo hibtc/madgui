@@ -592,8 +592,16 @@ class Segment(SegmentBase):
             for key in conv.backend_keys
         })
 
-    def get_monitor(self, elem):
-        return MonitorBackend(self, elem)
+    def read_monitor(self, name):
+        """Mitigates read access to a monitor."""
+        # TODO: handle split h-/v-monitor
+        index = self.get_element_index(name)
+        return {
+            'envx': self.get_twiss_column('envx')[index],
+            'envy': self.get_twiss_column('envy')[index],
+            'posx': self.get_twiss_column('x')[index],
+            'posy': self.get_twiss_column('y')[index],
+        }
 
     def get_knob(self, expr):
         return self.madx.evaluate(expr)
@@ -782,28 +790,3 @@ class MagnetBackend(api.ElementBackend):
             else:
                 madx.set_value(lval, plain_value)
         # TODO: invalidate
-
-
-class MonitorBackend(api.ElementBackend):
-
-    """Mitigates read access to a monitor."""
-
-    # TODO: handle split h-/v-monitor
-
-    def __init__(self, segment, element):
-        self._segment = segment
-        self._element = element
-
-    def get(self, values):
-        twiss = self._segment.tw
-        index = self._segment.get_element_index(self._element)
-        return {
-            'betx': twiss['betx'][index],
-            'bety': twiss['bety'][index],
-            'x': twiss['posx'][index],
-            'y': twiss['posy'][index],
-        }
-
-    def set(self, values):
-        raise NotImplementedError("Can't set TWISS: monitors are read-only!")
-

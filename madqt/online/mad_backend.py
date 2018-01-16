@@ -9,32 +9,6 @@ from . import api
 # - kicker: hkick/vkick
 
 
-class Monitor(api.ElementBackendConverter):
-
-    standard_keys = ['posx', 'posy', 'widthx', 'widthy']
-    backend_keys = ['x', 'y', 'betx', 'bety']
-
-    def __init__(self, ex, ey):
-        self._ex = ex
-        self._ey = ey
-
-    def to_backend(self, values):
-        return {
-            'betx': values['widthx'] ** 2 / self._ex,
-            'bety': values['widthy'] ** 2 / self._ey,
-            'x': values['posx'],
-            'y': values['posy'],
-        }
-
-    def to_standard(self, values):
-        return {
-            'widthx': (values['betx'] * self._ex) ** 0.5,
-            'widthy': (values['bety'] * self._ey) ** 0.5,
-            'posx': values['x'],
-            'posy': values['y'],
-        }
-
-
 # Dipole
 
 class Dipole(api.NoConversion):

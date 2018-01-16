@@ -185,13 +185,18 @@ class Control(Object):
         elems, rows = self._params()
         self.write_these(elems)
 
+    def read_monitor(self, name):
+        return self._plugin.read_monitor(name)
+
     def on_read_monitors(self):
         """Read out SD values (beam position/envelope)."""
         from madqt.online.dialogs import MonitorWidget, MonitorItem
 
         # TODO: cache list of used SD monitors
-        rows = [MonitorItem(m.name, m.dvm_backend.get())
-                for m in self.iter_elements(elements.Monitor)]
+        rows = [MonitorItem(el['name'], self.read_monitor(el['name']))
+                for el in self._segment.elements
+                if el['type'].lower().endswith('monitor')
+                or el['type'].lower() == 'instrument']
         if not rows:
             QtGui.QMessageBox.critical(
                 self._frame,

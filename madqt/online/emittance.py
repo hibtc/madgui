@@ -16,19 +16,19 @@ from madqt.util.collections import List
 from madqt.util.enum import make_enum
 
 
-MonitorItem = namedtuple('MonitorItem', ['proxy', 'envx', 'envy'])
+MonitorItem = namedtuple('MonitorItem', ['name', 'envx', 'envy'])
 ResultItem = namedtuple('ResultItem', ['name', 'measured', 'model'])
 
 
 def get_monitor_elem(widget, m, i):
-    return widget.monitor_enum(m.proxy.name)
+    return widget.monitor_enum(m.name)
 
 def set_monitor_elem(widget, m, i, name):
     if name is not None:
-        p = widget.monitor_map[str(name)]
-        v = p.dvm_backend.get()
+        n = str(name)
+        v = widget.control.read_monitor(n)
         widget.cached_tms = None
-        widget.monitors[i] = MonitorItem(p, v.get('widthx'), v.get('widthy'))
+        widget.monitors[i] = MonitorItem(n, v.get('envx'), v.get('envy'))
 
 
 def accumulate(iterable, func):
@@ -71,9 +71,11 @@ class EmittanceDialog(QtGui.QDialog):
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.control = control
 
-        monitors = list(control.iter_elements(elements.Monitor))
-        self.monitor_map = {m.name: m for m in monitors}
-        self.monitor_enum = make_enum('Monitor', [m.name for m in monitors])
+        self.monitor_list = [el['name']
+                             for el in control._segment.elements
+                             if el['type'].lower().endswith('monitor')
+                             or el['type'].lower() == 'instrument']
+        self.monitor_enum = make_enum('Monitor', self.monitor_list)
         self.monitors = List()
         self.results = List()
 
@@ -127,19 +129,18 @@ class EmittanceDialog(QtGui.QDialog):
 
     def add_monitor(self):
         self.cached_tms = None
-        used = {m.proxy.name for m in self.monitors}
+        used = {m.name for m in self.monitors}
         name = choose_after(self.monitor_enum._values, used)
-        prox = self.monitor_map[name]
-        vals = prox.dvm_backend.get()
+        vals = self.control.read_monitor(name)
         self.monitors.append(MonitorItem(
-            prox, vals.get('widthx'), vals.get('widthy')))
+            name, vals.get('envx'), vals.get('envy')))
 
     def update_monitor(self):
         # reload values for all the monitors
         self.monitors[:] = [
-            MonitorItem(m.proxy, v.get('widthx'), v.get('widthy'))
+            MonitorItem(m.name, v.get('envx'), v.get('envy'))
             for m in self.monitors
-            for v in [m.proxy.dvm_backend.get()]
+            for v in [self.control.read_monitor(m.name)]
         ]
 
     def match_values(self):
@@ -157,11 +158,11 @@ class EmittanceDialog(QtGui.QDialog):
         strip = seg.utool.strip_unit
 
         monitors = sorted(
-            self.monitors, key=lambda m: seg.elements.index(m.proxy.name))
+            self.monitors, key=lambda m: seg.elements.index(m.name))
 
         # second case can happen when `removing` a monitor
         if self.cached_tms is None or len(self.cached_tms) != len(monitors):
-            self.cached_tms = seg.get_transfer_maps([m.proxy.name for m in monitors])
+            self.cached_tms = seg.get_transfer_maps([m.name for m in monitors])
 
         tms = list(self.cached_tms)
         if not long_transfer:

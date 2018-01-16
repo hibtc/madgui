@@ -162,7 +162,7 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.input_qp2_value.unit = par2.ui_unit
         self.displ_qp1_value.unit = par1.ui_unit
         self.displ_qp2_value.unit = par2.ui_unit
-        beam = self.corrector.get_dvm(self.corrector.target)
+        beam = self.corrector.control.read_monitor(self.corrector.target)
         self.x_target_value.unit = get_unit(beam['posx'])
         self.y_target_value.unit = get_unit(beam['posx'])
         # result groups
@@ -282,7 +282,7 @@ class CorrectorWidget(CorrectorWidgetBase):
 
     def update_csys_values(self):
         # update monitor data
-        orbit = self.corrector.get_dvm(self.corrector.target)
+        orbit = self.corrector.control.read_monitor(self.corrector.target)
         self.x_monitor_value.quantity = orbit['posx']
         self.y_monitor_value.quantity = orbit['posy']
         # update qps

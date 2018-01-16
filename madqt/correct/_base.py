@@ -132,7 +132,7 @@ class OrbitCorrectorBase:
         return [
             OrbitRecord(
                 monitor,
-                self.get_dvm(monitor),
+                self.control.read_monitor(monitor),
                 csys_optics,
                 magnet_optics)
             for monitor in self.monitors
