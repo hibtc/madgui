@@ -353,7 +353,7 @@ class ElementBase(Mapping):
         self._retrieve(None)
         return len(self._merged)
 
-    _RE_ATTR = re.compile(r'^[A-Z]([A-Za-z_])*$')
+    _RE_ATTR = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
 
     def __getattr__(self, name):
         """
