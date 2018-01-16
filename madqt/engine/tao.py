@@ -168,6 +168,7 @@ class Segment(SegmentBase):
         lat_general = self.tao.python('lat_general', workspace.universe)
 
         self.sequence = sequence or lat_general[0][1]
+        self.seq_name = self.sequence
         self.range = ('#s', '#e')
         self.branch = 0
 

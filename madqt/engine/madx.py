@@ -288,6 +288,7 @@ class Segment(SegmentBase):
 
         self.workspace = workspace
         self.sequence = workspace.madx.sequences[sequence]
+        self.seq_name = self.sequence.name
         self.continuous_matching = True
 
         self._beam = beam
