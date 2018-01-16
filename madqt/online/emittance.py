@@ -275,7 +275,7 @@ def solve_emit_sys(Ms, XCs):
     ]).T
     rhs = [c for xc in XCs for _, c in xc]
 
-    x0, residuals, rank, singular = np.linalg.lstsq(lhs, rhs)
+    x0, residuals, rank, singular = np.linalg.lstsq(lhs, rhs, rcond=-1)
 
     res = np.tensordot(x0, sq_matrix_basis[is_upper_triang], 1)
     res = res + res.T - np.tril(res)
