@@ -344,14 +344,18 @@ class CorrectorWidgetBase(QtGui.QWidget):
     def connect_signals(self):
         pass
 
+    shown = False
     def showEvent(self, event):
+        self.shown = True
         self.update_csys_values_timer = QtCore.QTimer()
         self.update_csys_values_timer.timeout.connect(self.update_csys_values)
         self.update_csys_values_timer.start(100)
 
     def hideEvent(self, event):
-        self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
-        self.update_csys_values_timer.stop()
+        if self.shown:
+            self.shown = False
+            self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
+            self.update_csys_values_timer.stop()
 
     @abstractmethod
     def update_csys_values(self):
