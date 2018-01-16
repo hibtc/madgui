@@ -113,6 +113,7 @@ class Control(Object):
 
     def connect(self, loader):
         self._plugin = loader.load(self._frame)
+        self._plugin.connect()
         self._frame.user_ns['csys'] = self._plugin
         self.is_connected.value = True
 

@@ -51,6 +51,10 @@ class OnlinePlugin(_Interface):
     """Interface for a connected online control plugin."""
 
     @abstractmethod
+    def connect(self):
+        """Connect the online plugin to the control system."""
+
+    @abstractmethod
     def disconnect(self):
         """Unload the online plugin, free resources."""
 
