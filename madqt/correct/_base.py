@@ -72,11 +72,11 @@ class OrbitCorrectorBase:
 
     def get_dvm(self, elem):
         mknob, dknob = self._knobs[elem]
-        return dknob.to(mknob.attr, dknob.read())
+        return dknob.read()
 
     def set_dvm(self, elem, data):
         mknob, dknob = self._knobs[elem]
-        dknob.write(mknob.to(dknob.attr, data))
+        dknob.write(data)
 
     def get_transfer_map(self, dest, orig=None, optics=(), init_orbit=None):
         self.apply_mad_optics(optics)
