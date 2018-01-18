@@ -8,8 +8,6 @@ or `Bmad/tao`_.
 Requirements
 ~~~~~~~~~~~~
 
-MadQt requires:
-
 - **Python 3** (3.3 and above is possible, 3.4 or above is recommended)
 
   *On linux*, I recommend the latest python version you can find.
@@ -32,20 +30,6 @@ MadQt requires:
 
 - or pytao_ to work with `Bmad/tao`_ models, alternatively (or additionally).
 
-Additionally, MadQt depends on the following packages (that should, however,
-be picked up automatically if you use the proper install command and usually
-don't need to be installed manually):
-
-- matplotlib_
-- numpy_
-- docopt_
-- Pint_ == 0.8.1
-- PyYAML_
-- docutils_
-- ipython_
-- qtconsole_
-- minrpc_
-
 .. _WinPython 3.4: https://sourceforge.net/projects/winpython/files/WinPython_3.4/
 .. _hibtc/cpymad#32: https://github.com/hibtc/cpymad/issues/32
 .. _installation instructions: http://hibtc.github.io/cpymad/installation/index.html
@@ -53,16 +37,7 @@ don't need to be installed manually):
 .. _Bmad/tao: http://www.lepp.cornell.edu/~dcs/bmad/
 .. _cpymad: https://github.com/hibtc/cpymad
 .. _pytao: https://github.com/hibtc/pytao
-.. _minrpc: https://pypi.python.org/pypi/minrpc
 .. _PyQt5: https://riverbankcomputing.com/software/pyqt/intro
-.. _matplotlib: http://matplotlib.org/
-.. _numpy: http://www.numpy.org
-.. _docopt: https://pypi.python.org/pypi/docopt
-.. _Pint: http://pint.readthedocs.org/
-.. _PyYAML: https://pypi.python.org/pypi/PyYAML
-.. _docutils: https://pypi.python.org/pypi/docutils
-.. _ipython: https://pypi.python.org/pypi/ipython
-.. _qtconsole: https://pypi.python.org/pypi/qtconsole
 
 
 Installation
