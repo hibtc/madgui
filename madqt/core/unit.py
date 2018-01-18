@@ -72,6 +72,14 @@ def get_unit(quantity):
     return None
 
 
+def add_unit(quantity, unit):
+    if quantity is None or unit is None:
+        return quantity
+    if isinstance(quantity, units.Quantity):
+        return quantity.to(toquantity(unit))
+    return quantity * unit
+
+
 def strip_unit(quantity, unit=None):
     """Convert the quantity to a plain float."""
     if quantity is None:

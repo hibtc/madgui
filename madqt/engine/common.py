@@ -298,18 +298,24 @@ class SegmentBase(Object):
     def match(self, variables, constraints):
         raise NotImplementedError
 
-    def get_magnet(self, elem, conv):
-        raise NotImplementedError
-
-    def read_monitor(self, name):
-        raise NotImplementedError
-
     def get_matcher(self):
         if self.matcher is None:
             # TODO: create MatchDialog
             from madqt.correct.match import Matcher
             self.matcher = Matcher(self, self.workspace.app_config['matching'])
         return self.matcher
+
+    @abstractmethod
+    def get_knob(self, element, attr):
+        """Return a :class:`Knob` belonging to the given attribute."""
+
+    @abstractmethod
+    def read_param(self, param):
+        """Read element attribute. Return numeric value. No units!"""
+
+    @abstractmethod
+    def write_param(self, param, value):
+        """Update element attribute into control system. No units!"""
 
 
 class ElementBase(Mapping):

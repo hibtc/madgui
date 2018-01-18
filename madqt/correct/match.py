@@ -34,13 +34,13 @@ def variable_from_knob(matcher, expr):
         attr = None
         pos = None
     # TODO: generalize for tao
-    value = matcher.segment.get_knob(expr)
+    value = matcher.segment.read_param(expr)
     design = matcher.design_values.setdefault(expr, value)
     return Variable(elem, pos, attr, expr, value, design)
 
 
 def variable_update(matcher, variable):
-    value = matcher.segment.get_knob(variable.expr)
+    value = matcher.segment.read_param(variable.expr)
     design = matcher.design_values[variable.expr]
     return Variable(variable.elem, variable.pos, variable.attr, variable.expr,
                     value, design)
@@ -158,24 +158,20 @@ class Matcher(Object):
     # Set value back to factory defaults
 
     def _on_update_variables(self, indices, old_values, new_values):
-        def _knob(v):
-            if v.elem and v.attr:
-                return v.elem['el_id'], v.attr
-            return v.expr
 
-        old = {_knob(v): v.design for v in old_values}
-        new = {_knob(v): v.value  for v in new_values}
+        old = {v.expr: v.design for v in old_values}
+        new = {v.expr: v.value  for v in new_values}
 
         # On removal, revert unapplied variables to design settings:
         # TODO: this should be handled on the level of the segment, see #17.
         # TODO: set many values in one go
         for knob, value in old.items():
             if knob not in new:
-                self.segment.set_knob(knob, value)
+                self.segment.write_param(knob, value)
 
         # Set new variable values into the model:
         for knob, value in new.items():
-            self.segment.set_knob(knob, value)
+            self.segment.write_param(knob, value)
 
 
 class MatchTransform:

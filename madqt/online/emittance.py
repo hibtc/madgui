@@ -11,7 +11,6 @@ import numpy as np
 from madqt.qt import QtGui, uic
 from madqt.widget.tableview import ColumnInfo, ExtColumnInfo
 
-import madqt.online.elements as elements
 from madqt.util.collections import List
 from madqt.util.enum import make_enum
 

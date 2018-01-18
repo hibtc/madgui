@@ -447,9 +447,6 @@ class Segment(SegmentBase):
         self.elements.invalidate()
         self.twiss.invalidate()
 
-    def get_magnet(self, elem, conv):
-        return MagnetBackend(self, elem, conv.backend_keys)
-
     def read_monitor(self, name):
         """Mitigates read access to a monitor."""
         # TODO: handle split h-/v-monitor
@@ -464,19 +461,24 @@ class Segment(SegmentBase):
             'posy': orbit['y'],
         })
 
-    def get_knob(self, expr):
-        if '->' not in expr:
-            raise NotImplementedError(
-                "Can't evaluate arbitrary expression: {!r}".format(expr))
-        name, attr = expr.split('->')
-        return self.elements[name][attr]
+    def get_knob(self, elem, attr):
+        return api.Knob(
+            self, elem, attr, elem['name']+'->'+attr,
+            self.utool._units.get(attr))
 
-    def set_knob(self, knob, value):
-        if not isinstance(knob, tuple):
-            raise TypeError("Unsupported knob datatype: {!r}".format(knob))
-        elem, attr = knob
-        elid = self.elements[elem]['el_id']
-        self.get_elem_ds(elid).substores['parameters'].update({attr: value})
+    def read_param(self, param):
+        """Mitigates r/w access to the properties of an element."""
+        """Get dict of values from MAD-X."""
+        elem, attr = param.split('->')
+        return strip_unit(self.elements[elem][attr])
+
+    def write_param(self, param, value):
+        """Store values to tao."""
+        elem, attr = param.split('->')
+        # TODO: translate attribute names
+        # TODO: update cache
+        el_id = self.elements[elem]['el_id']
+        self.get_elem_ds(el_id).substores['parameters'].update({attr: value})
 
 
 # TODO: dumb this down…
@@ -620,31 +622,3 @@ def tao_legend_to_latex(text):
     # join adjacent math sections
     text = text.replace('$$', '')
     return text
-
-
-#----------------------------------------
-# stuff for online control
-#----------------------------------------
-
-class MagnetBackend(api.ElementBackend):
-
-    """Mitigates r/w access to the properties of an element."""
-
-    def __init__(self, segment, elem, keys):
-        self._segment = segment
-        self._elem = elem
-        self._keys = keys
-
-    def get(self):
-        """Get dict of values from MAD-X."""
-        data = self._segment.elements[self._elem]
-        return {key: data[key] for key in self._keys}
-
-    def set(self, values):
-        """Store values to MAD-X."""
-        # TODO: update cache
-        seg = self._segment
-        index = seg.get_element_index(self._elem)
-        elem = '{}>>{}'.format(seg.unibra, index)
-        values = self._segment.utool.dict_strip_unit(values)
-        self._segment.tao.set('element', elem, **values)

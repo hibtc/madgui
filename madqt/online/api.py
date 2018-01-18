@@ -24,11 +24,9 @@ The interface contract is currently designed as follows:
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
+from madqt.core.unit import add_unit, strip_unit
+
 _Interface = ABCMeta('_Interface', (object,), {})
-
-
-class UnknownElement(Exception):
-    pass
 
 
 class PluginLoader(_Interface):
@@ -63,7 +61,7 @@ class OnlinePlugin(_Interface):
         """Commit transaction."""
 
     @abstractmethod
-    def param_info(self, segment, element, key):
+    def param_info(self, knob):
         """Get parameter info for backend key."""
 
     @abstractmethod
@@ -78,89 +76,55 @@ class OnlinePlugin(_Interface):
         """
 
     @abstractmethod
-    def get_dipole(self, segment, elements, skew):
-        """
-        Get a (:class:`ElementBackendConverter`, :class:`ElementBackend`)
-        tuple for a dipole.
-        """
+    def get_knob(self, element, attr):
+        """Return a :class:`Knob` belonging to the given attribute."""
 
     @abstractmethod
-    def get_quadrupole(self, segment, elements):
-        """
-        Get a (:class:`ElementBackendConverter`, :class:`ElementBackend`)
-        tuple for a quadrupole.
-        """
+    def read_param(self, param):
+        """Read parameter. Return numeric value. No units!"""
 
     @abstractmethod
-    def get_solenoid(self, segment, elements):
-        """
-        Get a (:class:`ElementBackendConverter`, :class:`ElementBackend`)
-        tuple for a solenoid.
-        """
-
-    @abstractmethod
-    def get_kicker(self, segment, elements, skew):
-        """
-        Get a (:class:`ElementBackendConverter`, :class:`ElementBackend`)
-        tuple for a kicker.
-        """
+    def write_param(self, param, value):
+        """Update parameter into control system. No units!"""
 
 
-class ElementBackend(_Interface):
+class Knob:
 
-    """Mitigates r/w access to the parameters of an element."""
+    """Base class for knobs."""
 
-    @abstractmethod
-    def get(self):
-        """Get dict of values (in backend representation)."""
+    def __init__(self, plug, elem, attr, param, unit):
+        self.plug = plug
+        self.elem = elem
+        self.el_name = elem['name'].lower()
+        self.attr = attr.lower()
+        self.param = param
+        self.unit = unit
 
-    @abstractmethod
-    def set(self, values):
-        """Set dict of values (must be in backend representation)."""
+    def __str__(self):
+        return self.param
 
+    def __repr__(self):
+        return "{}({})".format(self.__class__.__name__, self)
 
-class ElementBackendConverter(_Interface):
+    # mixins for units and conversion:
 
-    """
-    Converts element parameters from standard representation to internal
-    representation for some backend (and vice versa).
-    """
+    def read(self):
+        """Read element attribute. Return numeric value including unit."""
+        return add_unit(self.plug.read_param(self.param), self.unit)
 
-    @abstractproperty
-    def standard_keys(self):
-        """List of properties in standard representation."""
+    def write(self, value):
+        """Update element attribute into control system."""
+        self.plug.write_param(self.param, strip_unit(value, self.unit))
 
-    def backend_keys(self):
-        """List of properties in backend (DB) representation."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_backend(self, values):
-        """Convert values backend (DB) representation."""
-
-    @abstractmethod
-    def to_standard(self):
-        """Convert values standard representation."""
-
-
-def _key_transform(values, keys_from, keys_to):
-    """
-    Transform keys in ``values`` by replacing keys in ``keys_from`` by
-    the key in ``keys_to`` with the same index.
-    """
-    tr = {a: b for a, b in zip(keys_from, keys_to)}
-    return {tr[key]: val for key, val in values.items()}
+    def to(self, attr, value):
+        try:
+            converter = CONVERTERS[(self.attr, attr)]
+            return converter(self, value)
+        except KeyError:
+            return value
 
 
-class NoConversion(ElementBackendConverter):
-
-    """
-    Special case of :class:`ElementBackendConverter` that does no conversion
-    except for parameter renaming.
-    """
-
-    def to_standard(self, values):
-        return _key_transform(values, self.backend_keys, self.standard_keys)
-
-    def to_backend(self, values):
-        return _key_transform(values, self.standard_keys, self.backend_keys)
+CONVERTERS = {
+    ('k1', 'kl'): lambda knob, val: val * knob.elem['l'],
+    ('kl', 'k1'): lambda knob, val: val / knob.elem['l'],
+}
