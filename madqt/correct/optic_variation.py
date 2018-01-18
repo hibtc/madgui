@@ -129,9 +129,7 @@ class SelectWidget(QtGui.QWidget):
 
 
 def get_kL(index):
-    def getter(record):
-        return record.gui_optics[index]['kL']
-    return getter
+    return lambda record: record.gui_optics[index]
 
 
 class CorrectorWidget(CorrectorWidgetBase):
@@ -154,15 +152,15 @@ class CorrectorWidget(CorrectorWidgetBase):
                          for i in range(self.num_focus_levels)]
         self.focus_choice.addItems(focus_choices)
         self.focus_choice.setCurrentIndex(0)
-        par1 = self.corrector.get_info(self.corrector.magnets[0])['kL']
-        par2 = self.corrector.get_info(self.corrector.magnets[1])['kL']
+        par1 = self.corrector.get_info(self.corrector.magnets[0])
+        par2 = self.corrector.get_info(self.corrector.magnets[1])
         self.input_qp1_label.setText(par1.name + ':')
         self.input_qp2_label.setText(par2.name + ':')
         self.input_qp1_value.unit = par1.ui_unit
         self.input_qp2_value.unit = par2.ui_unit
         self.displ_qp1_value.unit = par1.ui_unit
         self.displ_qp2_value.unit = par2.ui_unit
-        beam = self.corrector.get_dvm(self.corrector.target)
+        beam = self.corrector.control.read_monitor(self.corrector.target)
         self.x_target_value.unit = get_unit(beam['posx'])
         self.y_target_value.unit = get_unit(beam['posx'])
         # result groups
@@ -274,15 +272,15 @@ class CorrectorWidget(CorrectorWidgetBase):
         """Write QP values to the control system."""
         self.corrector.set_dvm(
             self.corrector.magnets[0],
-            {'kL': self.input_qp1_value.quantity})
+            self.input_qp1_value.quantity)
         self.corrector.set_dvm(
             self.corrector.magnets[1],
-            {'kL': self.input_qp2_value.quantity})
+            self.input_qp2_value.quantity)
         self.corrector.control._plugin.execute()
 
     def update_csys_values(self):
         # update monitor data
-        orbit = self.corrector.get_dvm(self.corrector.target)
+        orbit = self.corrector.control.read_monitor(self.corrector.target)
         self.x_monitor_value.quantity = orbit['posx']
         self.y_monitor_value.quantity = orbit['posy']
         # update qps
@@ -294,7 +292,7 @@ class CorrectorWidget(CorrectorWidgetBase):
         """Get QP value from control system."""
         magnet = self.corrector.magnets[index]
         data = self.corrector.get_dvm(magnet)
-        ctrl.set_quantity_checked(data['kL'])
+        ctrl.set_quantity_checked(data)
 
     def update_execute_button(self):
         input_optics = [self.input_qp1_value.quantity,
@@ -311,8 +309,7 @@ class CorrectorWidget(CorrectorWidgetBase):
     def update_record_button(self, *args):
         current_optics = [self.displ_qp1_value.quantity,
                           self.displ_qp2_value.quantity]
-        kL_values = [[optic['kL']
-                      for optic in record.gui_optics]
+        kL_values = [record.gui_optics
                      for record in self.corrector.orbit_records]
         same_values = (
             idx for idx, optics in enumerate(kL_values)

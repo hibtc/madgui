@@ -52,6 +52,9 @@ class OrbitCorrectorBase:
         self.control = control
         self.utool = control._segment.workspace.utool
         self.segment = control._segment
+        knobs = control.get_knobs()
+        self._optics = {dknob.param: (mknob, dknob) for mknob, dknob in knobs}
+        self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
         # save elements
         self.targets = targets
         self.magnets = magnets
@@ -61,33 +64,19 @@ class OrbitCorrectorBase:
         # recorded transfer maps + monitor measurements
         self.orbit_records = List()
 
-    # access elements
-
-    def get_element(self, name):
-        if isinstance(name, str):
-            return self.control.get_element(name)
-        return name
-
     # access element values
 
     def get_info(self, elem):
-        return self.get_element(elem).dvm_converter.param_info
+        mknob, dknob = self._knobs[elem]
+        return dknob.info
 
     def get_dvm(self, elem):
-        elem = self.get_element(elem)
-        return elem.dvm_converter.to_standard(elem.dvm_backend.get())
-
-    def get_mad(self, elem):
-        elem = self.get_element(elem)
-        return elem.mad_converter.to_standard(elem.mad_backend.get())
+        mknob, dknob = self._knobs[elem]
+        return dknob.to(mknob.attr, dknob.read())
 
     def set_dvm(self, elem, data):
-        elem = self.get_element(elem)
-        elem.dvm_backend.set(elem.dvm_converter.to_backend(data))
-
-    def set_mad(self, elem, data):
-        elem = self.get_element(elem)
-        elem.mad_backend.set(elem.mad_converter.to_backend(data))
+        mknob, dknob = self._knobs[elem]
+        dknob.write(mknob.to(dknob.attr, data))
 
     def get_transfer_map(self, dest, orig=None, optics=(), init_orbit=None):
         self.apply_mad_optics(optics)
@@ -113,15 +102,16 @@ class OrbitCorrectorBase:
         self.control.read_all()
 
     def get_csys_optics(self):
-        from madqt.online.elements import BaseMagnet
-        return [
-            (el, el.dvm2mad(el.dvm_backend.get()))
-            for el in self.control.iter_elements(BaseMagnet)
-        ]
+        return [(knob.param, knob.read())
+                for _, knob in self._knobs.values()]
 
     def apply_mad_optics(self, optics):
-        for elem, mad_value in optics:
-            elem.mad_backend.set(mad_value)
+        knobs = self._optics
+        self.control.read_these([
+            (mknob, None, dknob, val)
+            for param, val in optics
+            for mknob, dknob in [knobs[param]]
+        ])
 
     # record monitor/model
 
@@ -132,7 +122,7 @@ class OrbitCorrectorBase:
         return [
             OrbitRecord(
                 monitor,
-                self.get_dvm(monitor),
+                self.control.read_monitor(monitor),
                 csys_optics,
                 magnet_optics)
             for monitor in self.monitors
@@ -207,10 +197,10 @@ class OrbitCorrectorBase:
         steerer_names = []
         if correct_x: steerer_names.extend(self.x_steerers)
         if correct_y: steerer_names.extend(self.y_steerers)
-        steerer_elems = [self.get_element(elem) for elem in steerer_names]
+        steerer_knobs = [self._knobs[elem] for elem in steerer_names]
 
         # backup  MAD-X values
-        steerer_values_backup = [self.get_mad(el) for el in steerer_elems]
+        steerer_values_backup = [mknob.read() for mknob, _ in steerer_knobs]
         twiss_args_backup = self.segment.twiss_args.copy()
 
         try:
@@ -221,10 +211,7 @@ class OrbitCorrectorBase:
             self.segment.twiss_args = init_twiss
 
             # match final conditions
-            match_names = [
-                name for el in steerer_elems
-                for name in el.mad_backend._lval.values()
-            ]
+            match_names = [mknob.param for mknob, _ in steerer_knobs]
             constraints = [
                 dict(range=target, **self.utool.dict_strip_unit(orbit))
                 for target, orbit in zip(self.targets, design_orbit)
@@ -237,14 +224,14 @@ class OrbitCorrectorBase:
             self.segment.twiss.invalidate()
 
             # return corrections
-            return [(el, el.mad_backend.get(), el.dvm_backend.get())
-                    for el in steerer_elems]
+            return [(mknob, mknob.read(), dknob, dknob.read())
+                    for mknob, dknob in steerer_knobs]
 
         # restore MAD-X values
         finally:
             self.segment.twiss_args = twiss_args_backup
-            for el, val in zip(steerer_elems, steerer_values_backup):
-                self.set_mad(el, val)
+            for (mknob, dknob), val in zip(steerer_knobs, steerer_values_backup):
+                mknob.write(val)
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
         strip_unit = self.utool.strip_unit
@@ -414,9 +401,8 @@ class CorrectorWidgetBase(QtGui.QWidget):
         self.execute_corrections.setEnabled(True)
         # update table view
         steerer_corrections_rows = [
-            ParameterInfo(el.dvm_params[k].name, v, dvm_vals[k])
-            for el, mad_vals, dvm_vals in self.steerer_corrections
-            for k, v in el.mad2dvm(mad_vals).items()
+            ParameterInfo(dknob.param, mknob.to(dknob.attr, mval), dval)
+            for mknob, mval, dknob, dval in self.steerer_corrections
         ]
         self.corrections_table.rows = steerer_corrections_rows
         self.corrections_table.resizeColumnToContents(0)
@@ -426,9 +412,9 @@ class CorrectorWidgetBase(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        for el, mad_vals, dvm_vals in self.steerer_corrections:
-            el.mad_backend.set(mad_vals)
-            el.dvm_backend.set(el.mad2dvm(mad_vals))
+        for mknob, mval, dknob, dval in self.steerer_corrections:
+            mknob.write(mval)
+            dknob.write(mknob.to(dknob.attr, mval))
         self.corrector.control._plugin.execute()
         self.corrector.segment.twiss.invalidate()
         self.corrector.clear_orbit_records()

@@ -298,18 +298,24 @@ class SegmentBase(Object):
     def match(self, variables, constraints):
         raise NotImplementedError
 
-    def get_magnet(self, elem, conv):
-        raise NotImplementedError
-
-    def get_monitor(self, elem):
-        raise NotImplementedError
-
     def get_matcher(self):
         if self.matcher is None:
             # TODO: create MatchDialog
             from madqt.correct.match import Matcher
             self.matcher = Matcher(self, self.workspace.app_config['matching'])
         return self.matcher
+
+    @abstractmethod
+    def get_knob(self, element, attr):
+        """Return a :class:`Knob` belonging to the given attribute."""
+
+    @abstractmethod
+    def read_param(self, param):
+        """Read element attribute. Return numeric value. No units!"""
+
+    @abstractmethod
+    def write_param(self, param, value):
+        """Update element attribute into control system. No units!"""
 
 
 class ElementBase(Mapping):
@@ -342,6 +348,11 @@ class ElementBase(Mapping):
         """Retrieve data for key if possible; everything if None."""
 
     def __getitem__(self, name):
+        # handle direct access to array elements, e.g. "knl[0]":
+        if name.endswith(']'):
+            head, tail = name.split('[', 1)
+            index = int(tail[:-1])
+            return self[head][index]
         self._retrieve(name)
         return self._utool.add_unit(name, self._merged[name])
 
@@ -353,7 +364,7 @@ class ElementBase(Mapping):
         self._retrieve(None)
         return len(self._merged)
 
-    _RE_ATTR = re.compile(r'^[A-Z]([A-Za-z_])*$')
+    _RE_ATTR = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
 
     def __getattr__(self, name):
         """

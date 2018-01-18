@@ -384,6 +384,7 @@ class Segment(SegmentBase):
         if any(isinstance(v, (list,str)) for v in d.values()):
             self.madx.command(name, **d)
         else:
+            # TODO: …KNL/KSL
             for k, v in d.items():
                 # TODO: filter those with default values
                 self.madx.set_value(_get_property_lval(elem, k), v)
@@ -586,25 +587,35 @@ class Segment(SegmentBase):
         self.elements.invalidate()
         self.twiss.invalidate()
 
-    def get_magnet(self, elem, conv):
-        return MagnetBackend(self.madx, self.utool, elem, {
-            key: _get_property_lval(elem, key)
-            for key in conv.backend_keys
-        })
+    def read_monitor(self, name):
+        """Mitigates read access to a monitor."""
+        # TODO: handle split h-/v-monitor
+        index = self.get_element_index(name)
+        return {
+            'envx': self.get_twiss_column('envx')[index],
+            'envy': self.get_twiss_column('envy')[index],
+            'posx': self.get_twiss_column('x')[index],
+            'posy': self.get_twiss_column('y')[index],
+        }
 
-    def get_monitor(self, elem):
-        return MonitorBackend(self, elem)
+    def get_knob(self, elem, attr):
+        try:
+            expr = _get_property_lval(elem, attr)
+        except IndexError:
+            expr = None
+        if expr is not None:
+            return api.Knob(
+                self, elem, attr, expr,
+                self.utool._units.get(attr))
 
-    def get_knob(self, expr):
+    def read_param(self, expr):
         return self.madx.evaluate(expr)
 
-    def set_knob(self, knob, value):
-        if isinstance(knob, tuple):
-            elem, attr = knob
-            value = self.utool.strip_unit(attr, value)
-            self.set_element_attribute(elem, attr, value)
-        else:
-            self.madx.set_value(knob, value)
+    def write_param(self, expr, value):
+        self.madx.set_value(expr, value)
+        self.twiss.invalidate()
+        # TODO: invalidate element…
+        # knob.elem.invalidate()
 
 
 def process_spec(prespec, data):
@@ -719,6 +730,7 @@ def _get_identifier(expr):
         return ''
 
 
+# TODO: …KNL/KSL
 def _get_property_lval(elem, attr):
     """
     Return lvalue name for a given element attribute from MAD-X.
@@ -727,83 +739,8 @@ def _get_property_lval(elem, attr):
     'r1qs1->k1'
     """
     expr = elem[attr]
-    if isinstance(expr, list):
-        names = [_get_identifier(v) for v in expr]
-        if not any(names):
-            raise api.UnknownElement
-        return names
-    else:
+    if not isinstance(expr, list):
         name = _get_identifier(expr)
         if is_identifier(name):
             return name
         return elem['name'] + '->' + attr
-
-
-def _value(v):
-    if isinstance(v, list):
-        return [_value(x) for x in v]
-    try:
-        return v.value
-    except AttributeError:
-        return v
-
-def _evaluate(madx, v):
-    if isinstance(v, list):
-        return [madx.evaluate(x) for x in v]
-    return madx.evaluate(v)
-
-
-class MagnetBackend(api.ElementBackend):
-
-    """Mitigates r/w access to the properties of an element."""
-
-    def __init__(self, madx, utool, elem, lval):
-        self._madx = madx
-        self._lval = lval
-        self._elem = elem
-        self._utool = utool
-
-    def get(self):
-        """Get dict of values from MAD-X."""
-        return {key: self._utool.add_unit(key, _evaluate(self._madx, lval))
-                for key, lval in self._lval.items()}
-
-    def set(self, values):
-        """Store values to MAD-X."""
-        # TODO: update cache
-        madx = self._madx
-        for key, val in values.items():
-            plain_value = self._utool.strip_unit(key, val)
-            lval = self._lval[key]
-            if isinstance(val, list):
-                for k, v in zip(lval, plain_value):
-                    if k:
-                        madx.set_value(k, v)
-            else:
-                madx.set_value(lval, plain_value)
-        # TODO: invalidate
-
-
-class MonitorBackend(api.ElementBackend):
-
-    """Mitigates read access to a monitor."""
-
-    # TODO: handle split h-/v-monitor
-
-    def __init__(self, segment, element):
-        self._segment = segment
-        self._element = element
-
-    def get(self, values):
-        twiss = self._segment.tw
-        index = self._segment.get_element_index(self._element)
-        return {
-            'betx': twiss['betx'][index],
-            'bety': twiss['bety'][index],
-            'x': twiss['posx'][index],
-            'y': twiss['posy'][index],
-        }
-
-    def set(self, values):
-        raise NotImplementedError("Can't set TWISS: monitors are read-only!")
-

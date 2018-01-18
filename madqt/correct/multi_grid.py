@@ -93,7 +93,7 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.target_title.setText("Design value at target {}"
                                   .format(display_name(self.corrector.target)))
 
-        orbit = self.corrector.get_dvm(self.corrector.monitors[0])
+        orbit = self.corrector.control.read_monitor(self.corrector.monitors[0])
         self.x_target_value.unit = get_unit(orbit['posx'])
         self.y_target_value.unit = get_unit(orbit['posy'])
         # result groups
@@ -140,7 +140,7 @@ class CorrectorWidget(CorrectorWidgetBase):
 
     def _load_csys_mon_value(self, index, ctrl_x, ctrl_y):
         elem = self.corrector.monitors[index]
-        data = self.corrector.get_dvm(elem)
+        data = self.corrector.control.read_monitor(elem)
         ctrl_x.quantity = data['posx']
         ctrl_y.quantity = data['posy']
 

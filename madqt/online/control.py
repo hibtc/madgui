@@ -12,11 +12,26 @@ from madqt.util.collections import Bool
 import madqt.core.menu as menu
 from madqt.util.misc import suppress
 
-from . import elements
 from . import api
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
+
+ELEM_KNOBS = {
+    'sbend':        ['angle'],
+    'quadrupole':   ['k1', 'k1s'],
+    'multipole':    ['knl', 'ksl'],
+    'hkicker':      ['kick'],
+    'vkicker':      ['kick'],
+    'kicker':       ['hkick', 'vkick'],
+    'solenoid':     ['ks'],
+    'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]',
+                     'ksl[0]', 'ksl[1]', 'ksl[2]', 'ksl[3]'],
+}
+
+
+def is_magnet(element):
+    return element['type'].lower() in ELEM_KNOBS
 
 
 class Control(Object):
@@ -113,6 +128,7 @@ class Control(Object):
 
     def connect(self, loader):
         self._plugin = loader.load(self._frame)
+        self._plugin.connect()
         self._frame.user_ns['csys'] = self._plugin
         self.is_connected.value = True
 
@@ -126,33 +142,37 @@ class Control(Object):
         # I know…
         jitter = self._plugin._dvm._lib.jitter = not self._plugin._dvm._lib.jitter
 
-    def iter_elements(self, kind):
-        """Iterate :class:`~madqt.online.elements.BaseElement` in the sequence."""
-        return filter(None, [
-            suppress(api.UnknownElement, cls, self._segment, el, self._plugin)
-            for el in self._segment.elements
-            for cls in [elements.get_element_class(el)]
-            if cls and issubclass(cls, kind)
-        ])
+    def get_knobs(self):
+        """Get list of knobs, returned as tuples `(elem,attr,mad,dvm)`."""
+        return [
+            (knob_mad, knob_dvm)
+            for elem in self._segment.elements
+            for attr in ELEM_KNOBS.get(elem['type'], ())
+            for knob_mad in [self._segment.get_knob(elem, attr)]
+            if knob_mad
+            for knob_dvm in [self._plugin.get_knob(elem, attr)]
+            if knob_dvm
+        ]
 
     def _params(self):
         # TODO: cache and reuse 'active' flag for each parameter
         from madqt.online.dialogs import SyncParamItem
-        elems = [
-            (el, el.dvm_backend.get(), el.mad2dvm(el.mad_backend.get()))
-            for el in self.iter_elements(elements.BaseMagnet)
+        knobs = [
+            (mknob, mknob.read(),
+             dknob, dknob.read())
+            for mknob, dknob in self.get_knobs()
         ]
         rows = [
-            SyncParamItem(el.dvm_params[k], dv, mvals[k])
-            for el, dvals, mvals in elems
-            for k, dv in dvals.items()
+            SyncParamItem(self._plugin.param_info(dknob),
+                          dval, mknob.to(dknob.attr, mval))
+            for mknob, mval, dknob, dval in knobs
         ]
         if not rows:
             QtGui.QMessageBox.warning(
                 self._frame,
                 'No parameters available'
                 'There are no DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
-        return elems, rows
+        return knobs, rows
 
     def on_read_all(self):
         """Read all parameters from the online database."""
@@ -184,13 +204,18 @@ class Control(Object):
         elems, rows = self._params()
         self.write_these(elems)
 
+    def read_monitor(self, name):
+        return self._plugin.read_monitor(name)
+
     def on_read_monitors(self):
         """Read out SD values (beam position/envelope)."""
         from madqt.online.dialogs import MonitorWidget, MonitorItem
 
         # TODO: cache list of used SD monitors
-        rows = [MonitorItem(m.name, m.dvm_backend.get())
-                for m in self.iter_elements(elements.Monitor)]
+        rows = [MonitorItem(el['name'], self.read_monitor(el['name']))
+                for el in self._segment.elements
+                if el['type'].lower().endswith('monitor')
+                or el['type'].lower() == 'instrument']
         if not rows:
             QtGui.QMessageBox.critical(
                 self._frame,
@@ -267,10 +292,8 @@ class Control(Object):
 
         :param list params: List of tuples (ParamConverterBase, dvm_value)
         """
-        segment = self._segment
-        for elem, dvm_value, mad_value in params:
-            elem.mad_backend.set(elem.dvm2mad(dvm_value))
-        segment.twiss.invalidate()
+        for mknob, mval, dknob, dval in params:
+            mknob.write(dknob.to(mknob.attr, dval))
 
     def write_these(self, params):
         """
@@ -278,8 +301,8 @@ class Control(Object):
 
         :param list params: List of ParamConverterBase
         """
-        for elem, dvm_value, mad_value in params:
-            elem.dvm_backend.set(mad_value)
+        for mknob, mval, dknob, dval in params:
+            dknob.write(mknob.to(dknob.attr, mval))
         self._plugin.execute()
 
     def get_element(self, elem_name):
