@@ -27,6 +27,7 @@ ELEM_KNOBS = {
     'solenoid':     ['ks'],
     'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]',
                      'ksl[0]', 'ksl[1]', 'ksl[2]', 'ksl[3]'],
+    'srotation':    ['angle'],
 }
 
 
