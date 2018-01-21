@@ -10,7 +10,6 @@ import time
 from madqt.qt import QtGui, Qt
 from madqt.core.worker import fetch_all
 
-from madqt.util.qt import waitCursor
 from madqt.util.misc import memoize, strip_suffix, SingleWindow
 from madqt.util.collections import List, maintain_selection
 from madqt.core.unit import (
@@ -513,10 +512,9 @@ class MatchTool(CaptureTool):
         constraints = sorted(constraints, key=lambda c: (c.pos, c.axis))
         self.addConstraints(constraints)
 
-        with waitCursor():
-            self.matcher.detect_variables()
-            if len(self.matcher.variables) > 0:
-                self.matcher.match()
+        self.matcher.detect_variables()
+        if len(self.matcher.variables) > 0:
+            self.matcher.match()
 
     def addConstraints(self, constraints):
         """Add constraint and perform matching."""
