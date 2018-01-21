@@ -127,6 +127,6 @@ class Knob:
 CONVERTERS = {
     ('k1', 'kl'): lambda knob, val: val * knob.elem['l'],
     ('kl', 'k1'): lambda knob, val: val / knob.elem['l'],
-    ('angle', 'gantry'): lambda knob, val: -val - 90*units.degree,
-    ('gantry', 'angle'): lambda knob, val: -val - 90*units.degree,
+    ('angle', 'gantry'): lambda knob, val: -val + 90*units.degree,
+    ('gantry', 'angle'): lambda knob, val: -val + 90*units.degree,
 }
