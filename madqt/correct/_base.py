@@ -219,6 +219,7 @@ class OrbitCorrectorBase:
             self.segment.madx.match(
                 sequence=self.segment.sequence.name,
                 vary=match_names,
+                weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
                 constraints=constraints,
                 twiss_init=self.utool.dict_strip_unit(init_twiss))
             self.segment.twiss.invalidate()
