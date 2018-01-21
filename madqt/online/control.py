@@ -93,6 +93,10 @@ class Control(Object):
                  'Write magnet strengths to the online database',
                  self.on_write_all,
                  enabled=self.has_sequence),
+            Item('Read &beam', None,
+                 'Read beam settings from the online database',
+                 self.on_read_beam,
+                 enabled=self.has_sequence),
             Separator,
             Item('Read &monitors', None,
                  'Read SD values (beam envelope/position) from monitors',
@@ -204,6 +208,13 @@ class Control(Object):
     def write_all(self):
         elems, rows = self._params()
         self.write_these(elems)
+
+    def on_read_beam(self):
+        # TODO: add confirmation dialog
+        self.read_beam()
+
+    def read_beam(self):
+        self._segment.set_beam(self._plugin.get_beam())
 
     def read_monitor(self, name):
         return self._plugin.read_monitor(name)

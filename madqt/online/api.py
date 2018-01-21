@@ -87,6 +87,13 @@ class OnlinePlugin(_Interface):
     def write_param(self, param, value):
         """Update parameter into control system. No units!"""
 
+    @abstractmethod
+    def get_beam(self):
+        """
+        Return a dict ``{name: value}`` for all beam properties, in MAD-X
+        units. At least: particle, mass, charge, energy
+        """
+
 
 class Knob:
 
