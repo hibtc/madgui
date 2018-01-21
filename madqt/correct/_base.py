@@ -63,6 +63,8 @@ class OrbitCorrectorBase:
         self.y_steerers = y_steerers
         # recorded transfer maps + monitor measurements
         self.orbit_records = List()
+        # TODO: should open new plot if none is shown…
+        control._frame.cur_scene.set_graph('orbit')
 
     # access element values
 

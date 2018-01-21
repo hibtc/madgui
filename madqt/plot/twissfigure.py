@@ -38,6 +38,7 @@ class PlotSelector(QtGui.QComboBox):
     def __init__(self, scene, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scene = scene
+        self.scene.selector = self
         items = [(l, n) for n, l in scene.segment.get_graphs().items()]
         for label, name in sorted(items):
             self.addItem(label, name)
@@ -57,6 +58,7 @@ class TwissFigure(SceneNode):
 
     xlim = None
     snapshot_num = 0
+    selector = None
 
     def __init__(self, figure, segment, config):
         self.segment = segment
@@ -103,6 +105,8 @@ class TwissFigure(SceneNode):
     def set_graph(self, graph_name):
         self.graph_name = graph_name
         self.relayout()
+        if self.selector:
+            self.selector.update_index()
 
     def relayout(self):
         """Called to change the number of axes, etc."""
