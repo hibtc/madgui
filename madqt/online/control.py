@@ -20,7 +20,6 @@ from . import api
 ELEM_KNOBS = {
     'sbend':        ['angle'],
     'quadrupole':   ['k1', 'k1s'],
-    'multipole':    ['knl', 'ksl'],
     'hkicker':      ['kick'],
     'vkicker':      ['kick'],
     'kicker':       ['hkick', 'vkick'],
@@ -152,7 +151,7 @@ class Control(Object):
         return [
             (knob_mad, knob_dvm)
             for elem in self._segment.elements
-            for attr in ELEM_KNOBS.get(elem['type'], ())
+            for attr in ELEM_KNOBS.get(elem['type'].lower(), ())
             for knob_mad in [self._segment.get_knob(elem, attr)]
             if knob_mad
             for knob_dvm in [self._plugin.get_knob(elem, attr)]

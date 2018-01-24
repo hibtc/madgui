@@ -352,7 +352,7 @@ class ElementBase(Mapping):
         if name.endswith(']'):
             head, tail = name.split('[', 1)
             index = int(tail[:-1])
-            return self[head][index]
+            return self._get_field(head, index)
         self._retrieve(name)
         return self._utool.add_unit(name, self._merged[name])
 
@@ -363,6 +363,9 @@ class ElementBase(Mapping):
     def __len__(self):
         self._retrieve(None)
         return len(self._merged)
+
+    def _get_field(self, name, index):
+        return self[name][index]
 
     _RE_ATTR = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
 

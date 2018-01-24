@@ -52,6 +52,17 @@ PlotData = namedtuple('PlotData', ['plot_info', 'graph_info', 'curves'])
 CurveData = namedtuple('CurveData', ['name', 'info', 'data'])
 
 
+VALID_KNOBS = {
+    'sbend':        ['angle'],
+    'quadrupole':   ['k1'],
+    'hkicker':      ['kick'],
+    'vkicker':      ['kick'],
+    'kicker':       ['hkick', 'vkick'],
+    'solenoid':     ['ks'],
+    'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]']
+}
+
+
 class Workspace(EngineBase):
 
     """
@@ -462,9 +473,10 @@ class Segment(SegmentBase):
         })
 
     def get_knob(self, elem, attr):
-        return api.Knob(
-            self, elem, attr, elem['name']+'->'+attr,
-            self.utool._units.get(attr))
+        if attr in elem:
+            return api.Knob(
+                self, elem, attr, elem['name']+'->'+attr,
+                self.utool._units.get(attr))
 
     def read_param(self, param):
         """Mitigates r/w access to the properties of an element."""
@@ -568,6 +580,10 @@ class Element(ElementBase):
                 and self._general['type'].lower() == 'multipole':
             self._multip = get_element_data(idx, who='multipole')
             self._merged.update(self._multip)
+
+    def _get_field(self, name, index):
+        if name == 'knl':
+            return self['k{}l'.format(index)]
 
 
 class ElementDataStore(TaoDataStore):
