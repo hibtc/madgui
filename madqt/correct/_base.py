@@ -141,15 +141,12 @@ class OrbitCorrectorBase:
 
     # computations
 
-    def fit_particle_orbit_repeat(self, times=1, records=None):
+    def fit_particle_orbit(self, records=None):
         # TODO: add thresholds / abort conditions for bad initial conditions
         # TODO: save initial optics
         init_orbit = {}
-        for _ in range(times):
-            init_orbit, chi_squared, singular = \
-                self.fit_particle_orbit(records, init_orbit)
-            if singular:
-                break
+        init_orbit, chi_squared, singular = \
+            self.fit_particle_orbit(records, init_orbit)
         return init_orbit, chi_squared, singular
 
     def fit_particle_orbit(self, records=None, init_orbit=None):
@@ -301,7 +298,6 @@ class CorrectorWidgetBase(QtGui.QWidget):
 
     initial_particle_orbit = None
     steerer_corrections = None
-    fit_iterations = 1
 
     fit_columns = [
         ColumnInfo("Param", 'name'),
@@ -360,7 +356,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
             self._update_fit_table(None, [])
             return
         init_orbit, chi_squared, singular = \
-            self.corrector.fit_particle_orbit_repeat(self.fit_iterations)
+            self.corrector.fit_particle_orbit()
         if singular:
             self._update_fit_table(None, [
                 ParameterInfo("", "SINGULAR MATRIX")])

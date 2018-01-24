@@ -222,9 +222,6 @@ class CorrectorWidget(CorrectorWidgetBase):
         self.corrector.orbit_records.update_after.connect(
             lambda *args: self.update_fit())
 
-        self.fit_iterations_spinbox.valueChanged.connect(
-            self.set_fit_iterations)
-
         # NOTE: self.update_corrections() is called in update_fit(), so we
         # don't need to connect something like fit_table.valueChanged.
 
@@ -321,7 +318,3 @@ class CorrectorWidget(CorrectorWidgetBase):
             self.records_table.selectRow(self.update_record_index)
         # new_text = "Record" if self.update_record_index is None else "Update"
         # set_text(self.qp_settings_record, new_text)
-
-    def set_fit_iterations(self, num):
-        self.fit_iterations = num
-        self.update_fit()
