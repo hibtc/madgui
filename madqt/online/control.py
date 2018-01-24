@@ -27,6 +27,7 @@ ELEM_KNOBS = {
     'solenoid':     ['ks'],
     'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]',
                      'ksl[0]', 'ksl[1]', 'ksl[2]', 'ksl[3]'],
+    'srotation':    ['angle'],
 }
 
 
@@ -91,6 +92,10 @@ class Control(Object):
             Item('&Write strengths', None,
                  'Write magnet strengths to the online database',
                  self.on_write_all,
+                 enabled=self.has_sequence),
+            Item('Read &beam', None,
+                 'Read beam settings from the online database',
+                 self.on_read_beam,
                  enabled=self.has_sequence),
             Separator,
             Item('Read &monitors', None,
@@ -203,6 +208,13 @@ class Control(Object):
     def write_all(self):
         elems, rows = self._params()
         self.write_these(elems)
+
+    def on_read_beam(self):
+        # TODO: add confirmation dialog
+        self.read_beam()
+
+    def read_beam(self):
+        self._segment.set_beam(self._plugin.get_beam())
 
     def read_monitor(self, name):
         return self._plugin.read_monitor(name)

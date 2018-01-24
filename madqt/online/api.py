@@ -24,7 +24,7 @@ The interface contract is currently designed as follows:
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
-from madqt.core.unit import add_unit, strip_unit
+from madqt.core.unit import add_unit, strip_unit, units
 
 _Interface = ABCMeta('_Interface', (object,), {})
 
@@ -87,6 +87,13 @@ class OnlinePlugin(_Interface):
     def write_param(self, param, value):
         """Update parameter into control system. No units!"""
 
+    @abstractmethod
+    def get_beam(self):
+        """
+        Return a dict ``{name: value}`` for all beam properties, in MAD-X
+        units. At least: particle, mass, charge, energy
+        """
+
 
 class Knob:
 
@@ -127,4 +134,6 @@ class Knob:
 CONVERTERS = {
     ('k1', 'kl'): lambda knob, val: val * knob.elem['l'],
     ('kl', 'k1'): lambda knob, val: val / knob.elem['l'],
+    ('angle', 'gantry'): lambda knob, val: -val + 90*units.degree,
+    ('gantry', 'angle'): lambda knob, val: -val + 90*units.degree,
 }
