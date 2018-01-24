@@ -5,11 +5,13 @@ Main window component for MadQt.
 import glob
 import os
 import logging
+from functools import partial
 
 from madqt.qt import Qt, QtCore, QtGui
 from madqt.core.base import Signal
 from madqt.util.collections import Selection, Bool
 from madqt.util.misc import SingleWindow, logfile_name, try_import
+from madqt.util.qt import notifyCloseEvent, notifyEvent
 from madqt.widget.dialog import Dialog
 from madqt.widget.log import LogWindow
 
@@ -80,6 +82,7 @@ class MainWindow(QtGui.QMainWindow):
         config.NumberFormat.changed.emit()
 
     def initUI(self):
+        self.views = []
         self.createMenu()
         self.createControls()
         self.createStatusBar()
@@ -438,7 +441,13 @@ class MainWindow(QtGui.QMainWindow):
         widget.show()
 
         self.workspace.destroyed.connect(widget.close)
-        self.workspace.destroyed.connect(scene.destroy)
+
+        def destroyed():
+            if scene in self.views:
+                scene.destroy()
+                self.views.remove(scene)
+
+        notifyCloseEvent(widget, destroyed)
 
         def toggleShareAxes():
             scene.figure.share_axes = not scene.figure.share_axes
@@ -464,7 +473,16 @@ class MainWindow(QtGui.QMainWindow):
                      checked=scene._curveManager.holds_value),
             ]),
         ])
+        self.views.append(scene)
         return scene
+
+    def open_graph(self, name):
+        if name in (scene.graph_name for scene in self.views):
+            return
+        if self.views:
+            self.views[-1].set_graph('orbit')
+        else:
+            self.showTwiss(name)
 
     def _createShell(self):
         """Create a python shell widget."""
@@ -527,7 +545,6 @@ class InfoBoxGroup:
 
     def create_info_box(self, el_id):
         from madqt.widget.elementinfo import ElementInfoBox
-        from madqt.util.qt import notifyCloseEvent, notifyEvent
         info = ElementInfoBox(self.segment, el_id)
         dock = Dialog(self.mainwindow)
         dock.setExportWidget(info, None)

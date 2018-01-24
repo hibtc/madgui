@@ -27,17 +27,6 @@ def notifyEvent(widget, name, handler):
     setattr(widget, name, new_handler)
 
 
-@contextmanager
-def waitCursor(cursor=None):
-    if cursor is None:
-        cursor = QtGui.QCursor(Qt.WaitCursor)
-    QtGui.QApplication.setOverrideCursor(cursor)
-    try:
-        yield None
-    finally:
-        QtGui.QApplication.restoreOverrideCursor()
-
-
 def present(window, raise_=False):
     """Activate window."""
     window.show()
