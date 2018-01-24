@@ -1,8 +1,17 @@
 CHANGELOG
 ~~~~~~~~~
 
+0.0.5
+-----
+Date 24.01.2018
+
+- fix mass unit in MAD-X
+- massive simplification of knobs API for interfacing control system
+- can read beam parameters from online plugin
+
+
 0.0.4
-~~~~~
+-----
 Date: 09.01.2018
 
 - Emit signal when workspace is changed (for plugins…)
