@@ -12,7 +12,7 @@ __title__ = 'MadQt'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
 __uri__ = 'https://github.com/hibtc/madqt'
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 __author__ = 'Thomas Gläßle'
 __email__ = 't_glaessle@gmx.de'
@@ -20,7 +20,7 @@ __email__ = 't_glaessle@gmx.de'
 __support__ = __email__
 
 __license__ = 'GPLv3+'
-__copyright__ = 'Copyright 2016 HIT Betriebs GmbH'
+__copyright__ = 'Copyright 2016-2018 HIT Betriebs GmbH'
 
 __credits__ = """
 MadQt is developed for HIT Betriebs GmbH.

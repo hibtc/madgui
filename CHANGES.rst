@@ -8,6 +8,8 @@ Date 24.01.2018
 - fix mass unit in MAD-X
 - massive simplification of knobs API for interfacing control system
 - can read beam parameters from online plugin
+- show updated orbit plot after fitting in orbit-correction-mode (regression)
+- open orbit plot for orbit-correction-mode
 
 
 0.0.4
