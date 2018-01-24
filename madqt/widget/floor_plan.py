@@ -110,7 +110,10 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
 
 
 def createElementGraphicsItem(element, floor, selection):
-    angle = float(element.get('angle', 0.0))
+    if element.get('type').lower() == 'multipole':
+        angle = 0.0
+    else:
+        angle = float(element.get('angle', 0.0))
     if isclose(angle, 0.0):
         return StraightElementGraphicsItem(element, floor, selection)
     else:
