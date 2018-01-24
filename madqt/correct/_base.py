@@ -66,6 +66,18 @@ class OrbitCorrectorBase:
         # TODO: should open new plot if none is shown…
         control._frame.cur_scene.set_graph('orbit')
 
+    started = False
+
+    def start(self):
+        if not self.started:
+            self.started = True
+            self.backup()
+
+    def stop(self):
+        if self.started:
+            self.started = False
+            self.restore()
+
     # access element values
 
     def get_info(self, elem):
@@ -102,6 +114,7 @@ class OrbitCorrectorBase:
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
         self.control.read_all()
+        self.segment.twiss_args = self.backup_twiss_args
 
     def get_csys_optics(self):
         return [(knob.param, knob.read())
@@ -198,40 +211,42 @@ class OrbitCorrectorBase:
         if correct_y: steerer_names.extend(self.y_steerers)
         steerer_knobs = [self._knobs[elem] for elem in steerer_names]
 
-        # backup  MAD-X values
-        steerer_values_backup = [mknob.read() for mknob, _ in steerer_knobs]
-        twiss_args_backup = self.segment.twiss_args.copy()
+        # construct initial conditions
+        init_twiss = {}
+        init_twiss.update(self.segment.twiss_args)
+        init_twiss.update(init_orbit)
+        self.segment.twiss_args = init_twiss
 
-        try:
-            # construct initial conditions
-            init_twiss = {}
-            init_twiss.update(self.segment.twiss_args)
-            init_twiss.update(init_orbit)
-            self.segment.twiss_args = init_twiss
+        # match final conditions
+        match_names = [mknob.param for mknob, _ in steerer_knobs]
+        constraints = [
+            dict(range=target, **self.utool.dict_strip_unit(orbit))
+            for target, orbit in zip(self.targets, design_orbit)
+        ]
+        self.segment.madx.match(
+            sequence=self.segment.sequence.name,
+            vary=match_names,
+            weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
+            constraints=constraints,
+            twiss_init=self.utool.dict_strip_unit(init_twiss))
+        self.segment.twiss.invalidate()
 
-            # match final conditions
-            match_names = [mknob.param for mknob, _ in steerer_knobs]
-            constraints = [
-                dict(range=target, **self.utool.dict_strip_unit(orbit))
-                for target, orbit in zip(self.targets, design_orbit)
-            ]
-            self.segment.madx.match(
-                sequence=self.segment.sequence.name,
-                vary=match_names,
-                weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
-                constraints=constraints,
-                twiss_init=self.utool.dict_strip_unit(init_twiss))
-            self.segment.twiss.invalidate()
+        # return corrections
+        return [(mknob, mknob.read(), dknob, dknob.read())
+                for mknob, dknob in steerer_knobs]
 
-            # return corrections
-            return [(mknob, mknob.read(), dknob, dknob.read())
-                    for mknob, dknob in steerer_knobs]
+    def backup(self):
+        self.backup_twiss_args = self.segment.twiss_args
+        self.backup_strengths = [
+            (mknob, mknob.read())
+            for mknob, _ in self._knobs.values()
+        ]
 
-        # restore MAD-X values
-        finally:
-            self.segment.twiss_args = twiss_args_backup
-            for (mknob, dknob), val in zip(steerer_knobs, steerer_values_backup):
-                mknob.write(val)
+    def restore(self):
+        for mknob, value in self.backup_strengths:
+            mknob.write(value)
+        self.segment.twiss_args = self.backup_twiss_args
+        print(self.backup_twiss_args)
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
         strip_unit = self.utool.strip_unit
@@ -314,9 +329,13 @@ class CorrectorWidgetBase(QtGui.QWidget):
         super().__init__()
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.corrector = corrector
+        self.corrector.start()
         self.init_controls()
         self.set_initial_values()
         self.connect_signals()
+
+    def closeEvent(self, event):
+        self.corrector.stop()
 
     @abstractmethod
     def init_controls(self):
@@ -355,6 +374,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
         if len(self.corrector.orbit_records) < 2:
             self._update_fit_table(None, [])
             return
+        self.corrector.sync_csys_to_mad()
         init_orbit, chi_squared, singular = \
             self.corrector.fit_particle_orbit()
         if singular:
@@ -394,7 +414,6 @@ class CorrectorWidgetBase(QtGui.QWidget):
             # TODO: always display current steerer values
             self.corrections_table.rows = []
             return
-        self.corrector.sync_csys_to_mad()
         self.steerer_corrections = \
             self.corrector.compute_steerer_corrections(init, [design])
         self.execute_corrections.setEnabled(True)
@@ -411,9 +430,11 @@ class CorrectorWidgetBase(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
+        self.corrector.restore()
         for mknob, mval, dknob, dval in self.steerer_corrections:
             mknob.write(mval)
             dknob.write(mknob.to(dknob.attr, mval))
+        self.corrector.backup()
         self.corrector.control._plugin.execute()
         self.corrector.segment.twiss.invalidate()
         self.corrector.clear_orbit_records()
