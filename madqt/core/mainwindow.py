@@ -404,7 +404,6 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['workspace'] = None
         self.logfile.close()
 
-    cur_scene = None
     def showTwiss(self, name=None):
         import madqt.plot.matplotlib as plt
         import madqt.plot.twissfigure as twissfigure
@@ -424,8 +423,6 @@ class MainWindow(QtGui.QMainWindow):
         scene.show_indicators = show_indicators
         scene.set_graph(name or config['default_graph'])
         scene.attach(plot)
-
-        self.cur_scene = scene
 
         # for convenience when debugging:
         self.user_ns.update({
@@ -480,7 +477,11 @@ class MainWindow(QtGui.QMainWindow):
         return scene
 
     def open_graph(self, name):
-        if name not in (scene.graph_name for scene in self.views):
+        if name in (scene.graph_name for scene in self.views):
+            return
+        if self.views:
+            self.views[-1].set_graph('orbit')
+        else:
             self.showTwiss(name)
 
     def _createShell(self):
