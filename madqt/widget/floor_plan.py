@@ -273,8 +273,8 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         r1, r2 = self.walls
         p0, p1 = self.endpoints()
         proj2D = self.plan.projection.dot
-        vec0 = normalize(rot90 @ proj2D(list(self.rotate[0](0, 0, 1))))
-        vec1 = normalize(rot90 @ proj2D(list(self.rotate[1](0, 0, 1))))
+        vec0 = normalize(np.dot(rot90, proj2D(list(self.rotate[0](0, 0, 1)))))
+        vec1 = normalize(np.dot(rot90, proj2D(list(self.rotate[1](0, 0, 1)))))
         path = QtGui.QPainterPath()
         path.moveTo(*(p0 - r2*vec0))
         path.lineTo(*(p1 - r2*vec1))
