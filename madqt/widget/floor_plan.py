@@ -59,6 +59,22 @@ def Projection(ax1, ax2):
     return np.array([ax1, ax2]).dot
 
 
+class Selector(QtGui.QWidget):
+
+    def __init__(self, floorplan):
+        super().__init__()
+        self.floorplan = floorplan
+        self.setLayout(QtGui.QHBoxLayout())
+        self._addItem("Z|X", [ 0,  0,  1], [-1,  0,  0])
+        self._addItem("X|Y", [-1,  0,  0], [ 0, -1,  0])
+        self._addItem("Z|Y", [ 0,  0,  1], [ 0, -1,  0])
+
+    def _addItem(self, label, *args):
+        button = QtGui.QPushButton(label)
+        button.clicked.connect(lambda: self.floorplan.setProjection(*args))
+        self.layout().addWidget(button)
+
+
 class LatticeFloorPlan(QtGui.QGraphicsView):
 
     """
@@ -70,9 +86,17 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
-        self.projection = Projection([0, 0, 1], [-1, 0, 0])
+        self.setProjection([0, 0, 1], [-1, 0, 0])
 
+    def setProjection(self, ax1, ax2):
+        self.projection = Projection(ax1, ax2)
+        if self.replay is not None:
+            self.scene().clear()
+            self.setElements(*self.replay)
+
+    replay = None
     def setElements(self, utool, elements, survey, selection):
+        self.replay = utool, elements, survey, selection
         self.setScene(QtGui.QGraphicsScene(self))
         for element, floor in zip(elements, survey):
             element = utool.dict_strip_unit(dict(element))

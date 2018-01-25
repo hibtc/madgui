@@ -243,14 +243,15 @@ class MainWindow(QtGui.QMainWindow):
 
     @SingleWindow.factory
     def viewFloorPlan(self):
-        from madqt.widget.floor_plan import LatticeFloorPlan
+        from madqt.widget.floor_plan import LatticeFloorPlan, Selector
         latview = LatticeFloorPlan()
         latview.setElements(self.workspace.utool,
                             self.workspace.segment.elements,
                             self.workspace.segment.survey(),
                             self.workspace.selection)
+        selector = Selector(latview)
         dock = Dialog(self)
-        dock.setWidget(latview)
+        dock.setWidget([latview, selector], tight=True)
         dock.setWindowTitle("2D floor plan")
         dock.show()
         return dock
