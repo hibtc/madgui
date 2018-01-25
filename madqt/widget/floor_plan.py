@@ -63,7 +63,7 @@ def Rotation3(theta, phi, psi, *, Rotation2=Rotation2):
 def Projection(ax1, ax2):
     ax1 = np.array(ax1) / np.dot(ax1, ax1)
     ax2 = np.array(ax2) / np.dot(ax2, ax2)
-    return np.array([ax1, ax2]).dot
+    return np.array([ax1, ax2])
 
 
 def normalize(vec):
@@ -168,6 +168,21 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         delta = event.angleDelta().y()
         self.zoom(1.0 + delta/1000.0)
 
+    def mousePressEvent(self, event):
+        self.last_mouse_position = event.pos()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.RightButton:
+            delta = event.pos() - self.last_mouse_position
+            theta = self.theta + delta.x()/100
+            phi   = self.phi   + delta.y()/100
+            self.setProjection(theta, phi)
+            self.last_mouse_position = event.pos()
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
     def _update_selection(self, slice, old_values, new_values):
         insert = set(new_values) - set(old_values)
         delete = set(old_values) - set(new_values)
@@ -248,7 +263,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
             painter.drawPath(self._outline)
 
     def endpoints(self):
-        proj2D = self.plan.projection
+        proj2D = self.plan.projection.dot
         p0, p1 = self.floor
         return (proj2D([p0.x, p0.y, p0.z]),
                 proj2D([p1.x, p1.y, p1.z]))
@@ -257,7 +272,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         """Return a QPainterPath that outlines the element."""
         r1, r2 = self.walls
         p0, p1 = self.endpoints()
-        proj2D = self.plan.projection
+        proj2D = self.plan.projection.dot
         vec0 = normalize(rot90 @ proj2D(list(self.rotate[0](0, 0, 1))))
         vec1 = normalize(rot90 @ proj2D(list(self.rotate[1](0, 0, 1))))
         path = QtGui.QPainterPath()
