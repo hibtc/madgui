@@ -78,9 +78,9 @@ class Selector(QtGui.QWidget):
         super().__init__()
         self.floorplan = floorplan
         self.setLayout(QtGui.QHBoxLayout())
-        self._addItem("Z|X", [ 0,  0,  1], [-1,  0,  0])
-        self._addItem("X|Y", [-1,  0,  0], [ 0, -1,  0])
-        self._addItem("Z|Y", [ 0,  0,  1], [ 0, -1,  0])
+        self._addItem("Z|X", pi/2, pi/2)
+        self._addItem("X|Y",    0,    0)
+        self._addItem("Z|Y",-pi/2,    0)
 
     def _addItem(self, label, *args):
         button = QtGui.QPushButton(label)
@@ -99,10 +99,15 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
-        self.setProjection([0, 0, 1], [-1, 0, 0])
+        self.setProjection(pi/2, pi/2)
 
-    def setProjection(self, ax1, ax2):
-        self.projection = Projection(ax1, ax2)
+    def setProjection(self, theta, phi, psi=0):
+        phi = np.clip(phi, -pi/8, pi/2)
+        rot = Rotation3(theta, phi, psi)
+        ax1 = np.array(list(rot(1, 0, 0)))
+        ax2 = np.array(list(rot(0, 1, 0)))
+        self.theta, self.phi, self.psi = theta, phi, psi
+        self.projection = Projection(-ax1, -ax2)
         if self.replay is not None:
             self.scene().clear()
             self.setElements(*self.replay)
