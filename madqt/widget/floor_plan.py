@@ -8,11 +8,12 @@ Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
-import math
+from math import cos, sin, sqrt, pi
 
-from numpy import isclose
+import numpy as np
 
 from madqt.qt import Qt, QtCore, QtGui
+from madqt.engine.common import FloorCoords
 
 __all__ = [
     'LatticeFloorPlan',
@@ -41,6 +42,52 @@ ELEMENT_WIDTH = {
 }
 
 
+def Rotation2(phi):
+    c, s = cos(phi), sin(phi)
+    return lambda x, y: (c*x - s*y, c*y + s*x)
+
+rot90 = np.array([[0, -1], [1, 0]])
+
+def Rotation3(theta, phi, psi, *, Rotation2=Rotation2):
+    ry = Rotation2(theta)
+    rx = Rotation2(-phi)
+    rz = Rotation2(psi)
+    def rotate(x, y, z):
+        x, y = rz(x, y)
+        y, z = rx(y, z)
+        z, x = ry(z, x)
+        return x, y, z
+    return rotate
+
+
+def Projection(ax1, ax2):
+    ax1 = np.array(ax1) / np.dot(ax1, ax1)
+    ax2 = np.array(ax2) / np.dot(ax2, ax2)
+    return np.array([ax1, ax2])
+
+
+def normalize(vec):
+    if np.allclose(vec, 0):
+        return np.zeros(2)
+    return vec / sqrt(np.dot(vec, vec))
+
+
+class Selector(QtGui.QWidget):
+
+    def __init__(self, floorplan):
+        super().__init__()
+        self.floorplan = floorplan
+        self.setLayout(QtGui.QHBoxLayout())
+        self._addItem("Z|X", pi/2, pi/2)
+        self._addItem("X|Y",    0,    0)
+        self._addItem("Z|Y",-pi/2,    0)
+
+    def _addItem(self, label, *args):
+        button = QtGui.QPushButton(label)
+        button.clicked.connect(lambda: self.floorplan.setProjection(*args))
+        self.layout().addWidget(button)
+
+
 class LatticeFloorPlan(QtGui.QGraphicsView):
 
     """
@@ -52,15 +99,37 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
+        self.setProjection(pi/2, pi/2)
 
+    def setProjection(self, theta, phi, psi=0):
+        phi = np.clip(phi, -pi/8, pi/2)
+        rot = Rotation3(theta, phi, psi)
+        ax1 = np.array(list(rot(1, 0, 0)))
+        ax2 = np.array(list(rot(0, 1, 0)))
+        self.theta, self.phi, self.psi = theta, phi, psi
+        self.projection = Projection(-ax1, -ax2)
+        if self.replay is not None:
+            self.scene().clear()
+            self.setElements(*self.replay)
+
+    replay = None
     def setElements(self, utool, elements, survey, selection):
+        self.replay = utool, elements, survey, selection
         self.setScene(QtGui.QGraphicsScene(self))
-        for element, floor in zip(elements, survey):
+        survey = [FloorCoords(0,0,0, 0,0,0)] + survey
+        for element, floor in zip(elements, zip(survey, survey[1:])):
             element = utool.dict_strip_unit(dict(element))
             self.scene().addItem(
-                createElementGraphicsItem(element, floor, selection))
-        self.setViewRect(self.scene().sceneRect())
+                ElementGraphicsItem(self, element, floor, selection))
+        self.setViewRect(self._sceneRect())
         selection.elements.update_after.connect(self._update_selection)
+
+    def _sceneRect(self):
+        rect = self.scene().sceneRect()
+        return rect.marginsAdded(QtCore.QMarginsF(
+            0.05*rect.width(), 0.05*rect.height(),
+            0.05*rect.width(), 0.05*rect.height(),
+        ))
 
     def resizeEvent(self, event):
         """Maintain visible region on resize."""
@@ -84,7 +153,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         This assumes there is no rotation/shearing.
         """
         cur = self.mapRectToScene(self.viewport().rect())
-        new = rect.intersected(self.scene().sceneRect())
+        new = rect.intersected(self._sceneRect())
         self.zoom(min(cur.width()/new.width(),
                       cur.height()/new.height()))
         self.view_rect = new
@@ -99,6 +168,21 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         delta = event.angleDelta().y()
         self.zoom(1.0 + delta/1000.0)
 
+    def mousePressEvent(self, event):
+        self.last_mouse_position = event.pos()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.RightButton:
+            delta = event.pos() - self.last_mouse_position
+            theta = self.theta + delta.x()/100
+            phi   = self.phi   + delta.y()/100
+            self.setProjection(theta, phi)
+            self.last_mouse_position = event.pos()
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+
     def _update_selection(self, slice, old_values, new_values):
         insert = set(new_values) - set(old_values)
         delete = set(old_values) - set(new_values)
@@ -107,14 +191,6 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
                 item.setSelected(True)
             if item.el_id in delete:
                 item.setSelected(False)
-
-
-def createElementGraphicsItem(element, floor, selection):
-    angle = float(element.get('angle', 0.0))
-    if isclose(angle, 0.0):
-        return StraightElementGraphicsItem(element, floor, selection)
-    else:
-        return CurvedElementGraphicsItem(element, floor, selection)
 
 
 class ElementGraphicsItem(QtGui.QGraphicsItem):
@@ -127,8 +203,12 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
                   'color': 'green',
                   'width': 4}
 
-    def __init__(self, element, floor, selection):
+    def __init__(self, plan, element, floor, selection):
         super().__init__()
+        self.plan = plan
+        self.floor = floor
+        self.rotate = (Rotation3(floor[0].theta, floor[0].phi, floor[0].psi),
+                       Rotation3(floor[1].theta, floor[1].phi, floor[1].psi))
         self.element = element
         self.length = float(element.get('l', 0.0))
         self.angle = float(element.get('angle', 0.0))
@@ -140,8 +220,6 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self._orbit = self.orbit()
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
-        self.setPos(floor.z, -floor.x)
-        self.setRotation(-rad2deg(floor.theta))
 
         self.setSelected(self.el_id in selection.elements)
 
@@ -184,70 +262,34 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
             painter.setPen(createPen(**self.select_pen))
             painter.drawPath(self._outline)
 
-    # NOTE: drawing "backwards" because the origin (0,0) as at the exit face
-    # of the element.
+    def endpoints(self):
+        proj2D = self.plan.projection.dot
+        p0, p1 = self.floor
+        return (proj2D([p0.x, p0.y, p0.z]),
+                proj2D([p1.x, p1.y, p1.z]))
 
     def outline(self):
         """Return a QPainterPath that outlines the element."""
-        raise NotImplementedError("abstract method")
+        r1, r2 = self.walls
+        p0, p1 = self.endpoints()
+        proj2D = self.plan.projection.dot
+        vec0 = normalize(rot90 @ proj2D(list(self.rotate[0](0, 0, 1))))
+        vec1 = normalize(rot90 @ proj2D(list(self.rotate[1](0, 0, 1))))
+        path = QtGui.QPainterPath()
+        path.moveTo(*(p0 - r2*vec0))
+        path.lineTo(*(p1 - r2*vec1))
+        path.lineTo(*(p1 + r1*vec1))
+        path.lineTo(*(p0 + r1*vec0))
+        path.closeSubpath()
+        return path
 
     def orbit(self):
         """Return a QPainterPath that shows the beam orbit."""
-        raise NotImplementedError("abstract method")
-
-
-class StraightElementGraphicsItem(ElementGraphicsItem):
-
-    def outline(self):
+        a, b = self.endpoints()
         path = QtGui.QPainterPath()
-        r1, r2 = self.walls
-        w = self.length
-        path.moveTo(0, 0)
-        path.lineTo(0, -r2)
-        path.lineTo(-w, -r2)
-        path.lineTo(-w,  r1)
-        path.lineTo(0, r1)
-        path.lineTo(0, 0)
+        path.moveTo(*a)
+        path.lineTo(*b)
         return path
-
-    def orbit(self):
-        path = QtGui.QPainterPath()
-        path.lineTo(-self.length, 0)
-        return path
-
-
-class CurvedElementGraphicsItem(ElementGraphicsItem):
-
-    def radius(self):
-        return self.length / self.angle
-
-    def outline(self):
-        angle = self.angle
-        rho = self.radius()
-        deg = rad2deg(angle)
-        cos = math.cos(angle)
-        sin = math.sin(angle)
-        w1, w2 = self.walls         # inner/outer wall widths
-        r1, r2 = rho-w1, rho+w2     # inner/outer wall radius
-        path = QtGui.QPainterPath()
-        path.moveTo(0, 0)
-        path.lineTo(0, w1)
-        path.arcTo(-r1, w1, 2*r1, 2*r1, 90, deg)
-        path.lineTo(-r2*sin, rho-cos*r2)
-        path.arcTo(-r2, -w2, 2*r2, 2*r2, 90+deg, -deg)
-        path.lineTo(0, 0)
-        return path
-
-    def orbit(self):
-        rho = self.radius()
-        deg = rad2deg(self.angle)
-        path = QtGui.QPainterPath()
-        path.arcTo(-rho, 0, 2*rho, 2*rho, 90, deg)
-        return path
-
-
-def rad2deg(rad):
-    return rad * (180/math.pi)
 
 
 def getElementColor(element, default='black'):
