@@ -52,15 +52,17 @@ def addItem(layout, item):
                                   .format(item))
 
 
-def addItems(layout, items):
+def addItems(layout, items, tight=False):
     for item in items:
         addItem(layout, item)
+    if tight:
+        layout.setContentsMargins(0, 0, 0, 0)
     return layout
 
 
-def VBoxLayout(items):
-    return addItems(QtGui.QVBoxLayout(), items)
+def VBoxLayout(items, tight=False):
+    return addItems(QtGui.QVBoxLayout(), items, tight=tight)
 
 
-def HBoxLayout(items):
-    return addItems(QtGui.QHBoxLayout(), items)
+def HBoxLayout(items, tight=False):
+    return addItems(QtGui.QHBoxLayout(), items, tight=tight)

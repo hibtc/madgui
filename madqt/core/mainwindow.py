@@ -556,4 +556,12 @@ class InfoBoxGroup:
         dock.raise_()
         self.segment.workspace.destroyed.connect(dock.close)
 
+        info.changed_element.connect(partial(self._changed_box_element, info))
         return info
+
+    def _changed_box_element(self, box):
+        box_index = self.boxes.index(box)
+        new_el_id = box.el_id
+        old_el_id = self.selection.elements[box_index]
+        if new_el_id != old_el_id:
+            self.selection.elements[box_index] = new_el_id
