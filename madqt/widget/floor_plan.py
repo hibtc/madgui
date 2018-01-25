@@ -41,14 +41,18 @@ ELEMENT_WIDTH = {
 }
 
 
-def Rotation(theta, phi, psi, *, cos=cos, sin=sin):
-    cy, sy = cos(theta), sin(theta)
-    cx, sx = cos(phi),  -sin(phi)
-    cz, sz = cos(psi),   sin(psi)
+def Rotation2(phi):
+    c, s = cos(phi), sin(phi)
+    return lambda x, y: (c*x - s*y, c*y + s*x)
+
+def Rotation3(theta, phi, psi, *, Rotation2=Rotation2):
+    ry = Rotation2(theta)
+    rx = Rotation2(-phi)
+    rz = Rotation2(psi)
     def rotate(x, y, z):
-        x, y = x*cz-y*sz, x*sz+y*cz
-        y, z = y*cx-z*sx, y*sx+z*cx
-        z, x = z*cy-x*sy, z*sy+x*cy
+        x, y = rz(x, y)
+        y, z = rx(y, z)
+        z, x = ry(z, x)
         return x, y, z
     return rotate
 
@@ -183,7 +187,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         super().__init__()
         self.plan = plan
         self.floor = floor
-        self.rotate = Rotation(floor.theta, floor.phi, floor.psi)
+        self.rotate = Rotation3(floor.theta, floor.phi, floor.psi)
         self.element = element
         self.length = float(element.get('l', 0.0))
         self.angle = float(element.get('angle', 0.0))
