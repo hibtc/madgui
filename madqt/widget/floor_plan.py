@@ -13,6 +13,7 @@ from math import cos, sin, sqrt, pi
 import numpy as np
 
 from madqt.qt import Qt, QtCore, QtGui
+from madqt.engine.common import FloorCoords
 
 __all__ = [
     'LatticeFloorPlan',
@@ -102,10 +103,11 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     def setElements(self, utool, elements, survey, selection):
         self.replay = utool, elements, survey, selection
         self.setScene(QtGui.QGraphicsScene(self))
-        for element, floor in zip(elements, survey):
+        survey = [FloorCoords(0,0,0, 0,0,0)] + survey
+        for element, floor in zip(elements, zip(survey, survey[1:])):
             element = utool.dict_strip_unit(dict(element))
             self.scene().addItem(
-                self.createElementGraphicsItem(element, floor, selection))
+                ElementGraphicsItem(self, element, floor, selection))
         self.setViewRect(self._sceneRect())
         selection.elements.update_after.connect(self._update_selection)
 
@@ -162,16 +164,6 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             if item.el_id in delete:
                 item.setSelected(False)
 
-    def createElementGraphicsItem(self, element, floor, selection):
-        if element.get('type').lower() == 'multipole':
-            angle = 0.0
-        else:
-            angle = float(element.get('angle', 0.0))
-        if np.isclose(angle, 0.0):
-            return StraightElementGraphicsItem(self, element, floor, selection)
-        else:
-            return CurvedElementGraphicsItem(self, element, floor, selection)
-
 
 class ElementGraphicsItem(QtGui.QGraphicsItem):
 
@@ -187,7 +179,6 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         super().__init__()
         self.plan = plan
         self.floor = floor
-        self.rotate = Rotation3(floor.theta, floor.phi, floor.psi)
         self.element = element
         self.length = float(element.get('l', 0.0))
         self.angle = float(element.get('angle', 0.0))
@@ -241,31 +232,14 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
             painter.setPen(createPen(**self.select_pen))
             painter.drawPath(self._outline)
 
-    # NOTE: drawing "backwards" because the origin (0,0) as at the exit face
-    # of the element.
+    def endpoints(self):
+        proj2D = self.plan.projection
+        p0, p1 = self.floor
+        return (proj2D([p0.x, p0.y, p0.z]),
+                proj2D([p1.x, p1.y, p1.z]))
 
     def outline(self):
         """Return a QPainterPath that outlines the element."""
-        raise NotImplementedError("abstract method")
-
-    def orbit(self):
-        """Return a QPainterPath that shows the beam orbit."""
-        raise NotImplementedError("abstract method")
-
-    def transform2D(self, x, y, z):
-        f = self.floor
-        x, y, z = self.rotate(x, y, z)
-        x, y, z = x+f.x, y+f.y, z+f.z
-        return self.plan.projection([x, y, z])
-
-
-class StraightElementGraphicsItem(ElementGraphicsItem):
-
-    def endpoints(self):
-        return (self.transform2D(0, 0, -self.length),
-                self.transform2D(0, 0, 0))
-
-    def outline(self):
         r1, r2 = self.walls
         p0, p1 = self.endpoints()
         vect = p1-p0
@@ -281,24 +255,12 @@ class StraightElementGraphicsItem(ElementGraphicsItem):
         return path
 
     def orbit(self):
+        """Return a QPainterPath that shows the beam orbit."""
         a, b = self.endpoints()
         path = QtGui.QPainterPath()
         path.moveTo(*a)
         path.lineTo(*b)
         return path
-
-
-class CurvedElementGraphicsItem(StraightElementGraphicsItem):
-
-    def radius(self):
-        return self.length / self.angle
-
-    def endpoints(self):
-        phi = self.angle
-        rho = self.radius()
-        c, s = cos(phi), sin(phi)
-        return (self.transform2D(0, 0, 0),
-                self.transform2D(c*rho-rho, 0, -s*rho))
 
 
 def getElementColor(element, default='black'):
