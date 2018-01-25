@@ -8,9 +8,9 @@ Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
-import math
+from math import cos, sin, sqrt, pi
 
-from numpy import isclose
+import numpy as np
 
 from madqt.qt import Qt, QtCore, QtGui
 
@@ -41,6 +41,24 @@ ELEMENT_WIDTH = {
 }
 
 
+def Rotation(theta, phi, psi, *, cos=cos, sin=sin):
+    cy, sy = cos(theta), sin(theta)
+    cx, sx = cos(phi),  -sin(phi)
+    cz, sz = cos(psi),   sin(psi)
+    def rotate(x, y, z):
+        x, y = x*cz-y*sz, x*sz+y*cz
+        y, z = y*cx-z*sx, y*sx+z*cx
+        z, x = z*cy-x*sy, z*sy+x*cy
+        return x, y, z
+    return rotate
+
+
+def Projection(ax1, ax2):
+    ax1 = np.array(ax1) / np.dot(ax1, ax1)
+    ax2 = np.array(ax2) / np.dot(ax2, ax2)
+    return np.array([ax1, ax2]).dot
+
+
 class LatticeFloorPlan(QtGui.QGraphicsView):
 
     """
@@ -52,13 +70,14 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
+        self.projection = Projection([0, 0, 1], [-1, 0, 0])
 
     def setElements(self, utool, elements, survey, selection):
         self.setScene(QtGui.QGraphicsScene(self))
         for element, floor in zip(elements, survey):
             element = utool.dict_strip_unit(dict(element))
             self.scene().addItem(
-                createElementGraphicsItem(element, floor, selection))
+                self.createElementGraphicsItem(element, floor, selection))
         self.setViewRect(self.scene().sceneRect())
         selection.elements.update_after.connect(self._update_selection)
 
@@ -108,16 +127,15 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             if item.el_id in delete:
                 item.setSelected(False)
 
-
-def createElementGraphicsItem(element, floor, selection):
-    if element.get('type').lower() == 'multipole':
-        angle = 0.0
-    else:
-        angle = float(element.get('angle', 0.0))
-    if isclose(angle, 0.0):
-        return StraightElementGraphicsItem(element, floor, selection)
-    else:
-        return CurvedElementGraphicsItem(element, floor, selection)
+    def createElementGraphicsItem(self, element, floor, selection):
+        if element.get('type').lower() == 'multipole':
+            angle = 0.0
+        else:
+            angle = float(element.get('angle', 0.0))
+        if np.isclose(angle, 0.0):
+            return StraightElementGraphicsItem(self, element, floor, selection)
+        else:
+            return CurvedElementGraphicsItem(self, element, floor, selection)
 
 
 class ElementGraphicsItem(QtGui.QGraphicsItem):
@@ -130,8 +148,11 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
                   'color': 'green',
                   'width': 4}
 
-    def __init__(self, element, floor, selection):
+    def __init__(self, plan, element, floor, selection):
         super().__init__()
+        self.plan = plan
+        self.floor = floor
+        self.rotate = Rotation(floor.theta, floor.phi, floor.psi)
         self.element = element
         self.length = float(element.get('l', 0.0))
         self.angle = float(element.get('angle', 0.0))
@@ -143,8 +164,6 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self._orbit = self.orbit()
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
-        self.setPos(floor.z, -floor.x)
-        self.setRotation(-rad2deg(floor.theta))
 
         self.setSelected(self.el_id in selection.elements)
 
@@ -198,59 +217,53 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         """Return a QPainterPath that shows the beam orbit."""
         raise NotImplementedError("abstract method")
 
+    def transform2D(self, x, y, z):
+        f = self.floor
+        x, y, z = self.rotate(x, y, z)
+        x, y, z = x+f.x, y+f.y, z+f.z
+        return self.plan.projection([x, y, z])
+
 
 class StraightElementGraphicsItem(ElementGraphicsItem):
 
+    def endpoints(self):
+        return (self.transform2D(0, 0, -self.length),
+                self.transform2D(0, 0, 0))
+
     def outline(self):
-        path = QtGui.QPainterPath()
         r1, r2 = self.walls
-        w = self.length
-        path.moveTo(0, 0)
-        path.lineTo(0, -r2)
-        path.lineTo(-w, -r2)
-        path.lineTo(-w,  r1)
-        path.lineTo(0, r1)
-        path.lineTo(0, 0)
+        p0, p1 = self.endpoints()
+        vect = p1-p0
+        path = QtGui.QPainterPath()
+        if not np.allclose(vect, 0):
+            vect = vect / sqrt(np.dot(vect, vect))
+            orth = np.array([-vect[1], vect[0]])
+            path.moveTo(*(p0 - r2*orth))
+            path.lineTo(*(p1 - r2*orth))
+            path.lineTo(*(p1 + r1*orth))
+            path.lineTo(*(p0 + r1*orth))
+            path.closeSubpath()
         return path
 
     def orbit(self):
+        a, b = self.endpoints()
         path = QtGui.QPainterPath()
-        path.lineTo(-self.length, 0)
+        path.moveTo(*a)
+        path.lineTo(*b)
         return path
 
 
-class CurvedElementGraphicsItem(ElementGraphicsItem):
+class CurvedElementGraphicsItem(StraightElementGraphicsItem):
 
     def radius(self):
         return self.length / self.angle
 
-    def outline(self):
-        angle = self.angle
+    def endpoints(self):
+        phi = self.angle
         rho = self.radius()
-        deg = rad2deg(angle)
-        cos = math.cos(angle)
-        sin = math.sin(angle)
-        w1, w2 = self.walls         # inner/outer wall widths
-        r1, r2 = rho-w1, rho+w2     # inner/outer wall radius
-        path = QtGui.QPainterPath()
-        path.moveTo(0, 0)
-        path.lineTo(0, w1)
-        path.arcTo(-r1, w1, 2*r1, 2*r1, 90, deg)
-        path.lineTo(-r2*sin, rho-cos*r2)
-        path.arcTo(-r2, -w2, 2*r2, 2*r2, 90+deg, -deg)
-        path.lineTo(0, 0)
-        return path
-
-    def orbit(self):
-        rho = self.radius()
-        deg = rad2deg(self.angle)
-        path = QtGui.QPainterPath()
-        path.arcTo(-rho, 0, 2*rho, 2*rho, 90, deg)
-        return path
-
-
-def rad2deg(rad):
-    return rad * (180/math.pi)
+        c, s = cos(phi), sin(phi)
+        return (self.transform2D(0, 0, 0),
+                self.transform2D(c*rho-rho, 0, -s*rho))
 
 
 def getElementColor(element, default='black'):
