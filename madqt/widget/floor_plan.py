@@ -102,8 +102,15 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             element = utool.dict_strip_unit(dict(element))
             self.scene().addItem(
                 self.createElementGraphicsItem(element, floor, selection))
-        self.setViewRect(self.scene().sceneRect())
+        self.setViewRect(self._sceneRect())
         selection.elements.update_after.connect(self._update_selection)
+
+    def _sceneRect(self):
+        rect = self.scene().sceneRect()
+        return rect.marginsAdded(QtCore.QMarginsF(
+            0.05*rect.width(), 0.05*rect.height(),
+            0.05*rect.width(), 0.05*rect.height(),
+        ))
 
     def resizeEvent(self, event):
         """Maintain visible region on resize."""
@@ -127,7 +134,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         This assumes there is no rotation/shearing.
         """
         cur = self.mapRectToScene(self.viewport().rect())
-        new = rect.intersected(self.scene().sceneRect())
+        new = rect.intersected(self._sceneRect())
         self.zoom(min(cur.width()/new.width(),
                       cur.height()/new.height()))
         self.view_rect = new
