@@ -46,6 +46,8 @@ def Rotation2(phi):
     c, s = cos(phi), sin(phi)
     return lambda x, y: (c*x - s*y, c*y + s*x)
 
+rot90 = np.array([[0, -1], [1, 0]])
+
 def Rotation3(theta, phi, psi, *, Rotation2=Rotation2):
     ry = Rotation2(theta)
     rx = Rotation2(-phi)
@@ -62,6 +64,12 @@ def Projection(ax1, ax2):
     ax1 = np.array(ax1) / np.dot(ax1, ax1)
     ax2 = np.array(ax2) / np.dot(ax2, ax2)
     return np.array([ax1, ax2]).dot
+
+
+def normalize(vec):
+    if np.allclose(vec, 0):
+        return np.zeros(2)
+    return vec / sqrt(np.dot(vec, vec))
 
 
 class Selector(QtGui.QWidget):
@@ -179,6 +187,8 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         super().__init__()
         self.plan = plan
         self.floor = floor
+        self.rotate = (Rotation3(floor[0].theta, floor[0].phi, floor[0].psi),
+                       Rotation3(floor[1].theta, floor[1].phi, floor[1].psi))
         self.element = element
         self.length = float(element.get('l', 0.0))
         self.angle = float(element.get('angle', 0.0))
@@ -242,16 +252,15 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         """Return a QPainterPath that outlines the element."""
         r1, r2 = self.walls
         p0, p1 = self.endpoints()
-        vect = p1-p0
+        proj2D = self.plan.projection
+        vec0 = normalize(rot90 @ proj2D(list(self.rotate[0](0, 0, 1))))
+        vec1 = normalize(rot90 @ proj2D(list(self.rotate[1](0, 0, 1))))
         path = QtGui.QPainterPath()
-        if not np.allclose(vect, 0):
-            vect = vect / sqrt(np.dot(vect, vect))
-            orth = np.array([-vect[1], vect[0]])
-            path.moveTo(*(p0 - r2*orth))
-            path.lineTo(*(p1 - r2*orth))
-            path.lineTo(*(p1 + r1*orth))
-            path.lineTo(*(p0 + r1*orth))
-            path.closeSubpath()
+        path.moveTo(*(p0 - r2*vec0))
+        path.lineTo(*(p1 - r2*vec1))
+        path.lineTo(*(p1 + r1*vec1))
+        path.lineTo(*(p0 + r1*vec0))
+        path.closeSubpath()
         return path
 
     def orbit(self):
