@@ -12,26 +12,8 @@ from madqt.util.collections import Bool
 import madqt.core.menu as menu
 from madqt.util.misc import suppress
 
-from . import api
-
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
-
-ELEM_KNOBS = {
-    'sbend':        ['angle'],
-    'quadrupole':   ['k1', 'k1s'],
-    'hkicker':      ['kick'],
-    'vkicker':      ['kick'],
-    'kicker':       ['hkick', 'vkick'],
-    'solenoid':     ['ks'],
-    'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]',
-                     'ksl[0]', 'ksl[1]', 'ksl[2]', 'ksl[3]'],
-    'srotation':    ['angle'],
-}
-
-
-def is_magnet(element):
-    return element['type'].lower() in ELEM_KNOBS
 
 
 class Control(Object):
@@ -147,16 +129,13 @@ class Control(Object):
         jitter = self._plugin._dvm._lib.jitter = not self._plugin._dvm._lib.jitter
 
     def get_knobs(self):
-        """Get list of knobs, returned as tuples `(elem,attr,mad,dvm)`."""
+        """Get list of knobs, returned as tuples `(mad,dvm)`."""
         if not self._model:
             return []
         return [
             (knob_mad, knob_dvm)
-            for elem in self._model.elements
-            for attr in ELEM_KNOBS.get(elem['type'].lower(), ())
-            for knob_mad in [self._model.get_knob(elem, attr)]
-            if knob_mad
-            for knob_dvm in [self._plugin.get_knob(elem, attr)]
+            for knob_mad in self._model.get_knobs()
+            for knob_dvm in [self._plugin.get_knob(knob_mad.elem, knob_mad.attr)]
             if knob_dvm
         ]
 
