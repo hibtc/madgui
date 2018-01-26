@@ -54,8 +54,8 @@ class Control(Object):
         self._plugin = None
         # menu conditions
         self.is_connected = Bool(False)
-        self.can_connect = self._frame.has_model & ~self.is_connected
-        self.has_sequence = self._frame.has_model & self.is_connected
+        self.can_connect = ~self.is_connected
+        self.has_sequence = self.is_connected & frame.has_model
         # plugins
         loaders = [
             loader
@@ -148,6 +148,8 @@ class Control(Object):
 
     def get_knobs(self):
         """Get list of knobs, returned as tuples `(elem,attr,mad,dvm)`."""
+        if not self._model:
+            return []
         return [
             (knob_mad, knob_dvm)
             for elem in self._model.elements
@@ -174,7 +176,7 @@ class Control(Object):
         if not rows:
             QtGui.QMessageBox.warning(
                 self._frame,
-                'No parameters available'
+                'No parameters available',
                 'There are no DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
         return knobs, rows
 
