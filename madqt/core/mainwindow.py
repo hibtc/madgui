@@ -446,6 +446,11 @@ class MainWindow(QtGui.QMainWindow):
         widget.layout().setMenuBar(menubar)
         widget.resize(self.size().width(), widget.sizeHint().height())
         widget.show()
+        def update_window_title():
+            widget.setWindowTitle("{1} ({0})".format(
+                self.workspace.name, scene.graph_name))
+        scene.graph_changed.connect(update_window_title)
+        update_window_title()
 
         self.workspace.destroyed.connect(widget.close)
 
