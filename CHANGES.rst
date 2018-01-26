@@ -1,9 +1,24 @@
 CHANGELOG
 ~~~~~~~~~
 
+0.0.6
+-----
+Date: 26.01.2018
+
+- element info box: add UI to switch element
+- floor plan: support 3D models (no more curved sbends anymore though…)
+- floor plan: add UI to change view perspective
+- floor plan: fix mirror inversion
+- main/plot window: set window title
+- main window: add config setting for initial position
+- codebase: unify the workspace/segment mess, now only have 'model' again
+  (it's unlikely that we will ever be able to work on less/more than one
+  sequence in the same workspace anyway)
+
+
 0.0.5
 -----
-Date 24.01.2018
+Date: 24.01.2018
 
 - fix mass unit in MAD-X
 - massive simplification of knobs API for interfacing control system
