@@ -124,6 +124,7 @@ class Workspace(EngineBase):
         base, ext = os.path.splitext(name)
         self.repo = FileResource(path)
         self.madx = Madx(command_log=self.command_log, **self.minrpc_flags())
+        self.name = base
         if ext.lower() in ('.yml', '.yaml'):
             self.load_model(name)
         else:

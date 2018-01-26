@@ -94,6 +94,7 @@ class Workspace(EngineBase):
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         self.repo = FileResource(path)
+        self.name = base
         if ext in ('.yml', '.yaml'):
             self.load_model(name)
         elif ext == '.init':

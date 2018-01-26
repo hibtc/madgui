@@ -83,6 +83,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def initUI(self):
         self.views = []
+        self.setWindowTitle("madqt")
         self.createMenu()
         self.createControls()
         self.createStatusBar()
@@ -379,6 +380,7 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns['savedict'] = savedict
         if workspace is None:
             self.workspace_changed.emit()
+            self.setWindowTitle("madqt")
             return
 
         workspace.selection = Selection()
@@ -393,6 +395,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.qApp.aboutToQuit.connect(self.destroyWorkspace)
         self.has_workspace.value = True
         self.workspace_changed.emit()
+        self.setWindowTitle(workspace.name)
 
     def destroyWorkspace(self):
         if self.workspace is None:
