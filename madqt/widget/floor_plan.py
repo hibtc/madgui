@@ -107,7 +107,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         ax1 = np.array(list(rot(1, 0, 0)))
         ax2 = np.array(list(rot(0, 1, 0)))
         self.theta, self.phi, self.psi = theta, phi, psi
-        self.projection = Projection(-ax1, -ax2)
+        self.projection = Projection(ax1, -ax2)
         if self.replay is not None:
             self.scene().clear()
             self.setElements(*self.replay)
