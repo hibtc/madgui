@@ -86,13 +86,16 @@ class MainWindow(QtGui.QMainWindow):
         self.createMenu()
         self.createControls()
         self.createStatusBar()
-        self.resize(self.getInitSize())
+        self.initPos()
 
-    def getInitSize(self):
+    def initPos(self):
         if 'init_size' in self.config['mainwindow']:
-            return QtCore.QSize(*self.config['mainwindow']['init_size'])
-        screen = QtGui.QDesktopWidget().availableGeometry()
-        return screen.size()*0.8
+            size = QtCore.QSize(*self.config['mainwindow']['init_size'])
+        else:
+            size = QtGui.QDesktopWidget().availableGeometry() * 0.8
+        self.resize(size)
+        if 'init_pos' in self.config['mainwindow']:
+            self.move(QtCore.QPoint(*self.config['mainwindow']['init_pos']))
 
     def loadDefault(self):
         filename = self.options['FILE']
