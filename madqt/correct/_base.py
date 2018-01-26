@@ -353,7 +353,7 @@ class CorrectorWidgetBase(QtGui.QWidget):
         self.shown = True
         self.update_csys_values_timer = QtCore.QTimer()
         self.update_csys_values_timer.timeout.connect(self.update_csys_values)
-        self.update_csys_values_timer.start(100)
+        self.update_csys_values_timer.start(1000)
 
     def hideEvent(self, event):
         if self.shown:
