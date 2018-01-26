@@ -560,7 +560,7 @@ class InfoBoxGroup:
         info = ElementInfoBox(self.segment, el_id)
         dock = Dialog(self.mainwindow)
         dock.setExportWidget(info, None)
-        dock.setWindowTitle(u"Element details: " + self.segment.elements[el_id]['name'])
+        dock.setWindowTitle("Element details: " + self.segment.elements[el_id]['name'])
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
 

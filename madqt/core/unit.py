@@ -44,9 +44,9 @@ def initialize():
 
     # extend unit registry
     # NOTE: parsing %, ‰ doesn't work automatically yet in pint.
-    units.define(u'ratio = []')
-    units.define(u'percent = 0.01 ratio = %')
-    units.define(u'permille = 0.001 ratio = ‰')
+    units.define('ratio = []')
+    units.define('percent = 0.01 ratio = %')
+    units.define('permille = 0.001 ratio = ‰')
     return units
 
 
@@ -148,10 +148,10 @@ def get_raw_label(quantity):
         short.items(),
         as_ratio=as_ratio,
         single_denominator=True,
-        product_fmt=u'·',
-        division_fmt=u'/',
-        power_fmt=u'{0}{1}',
-        parentheses_fmt=u'({0})',
+        product_fmt='·',
+        division_fmt='/',
+        power_fmt='{0}{1}',
+        parentheses_fmt='({0})',
         exp_call=pint.formatting._pretty_fmt_exponent,
     )
 
@@ -173,10 +173,10 @@ def from_config(unit):
         return [from_config(u) for u in unit]
     if isinstance(unit, bytes):
         unit = unit.decode('utf-8')
-    unit = u'{}'.format(unit)
+    unit = '{}'.format(unit)
     # as of pint-0.8.1 the following symbols fail to be parsed:
-    unit = unit.replace(u'%', u'percent')
-    unit = unit.replace(u'‰', u'permille')
+    unit = unit.replace('%', 'percent')
+    unit = unit.replace('‰', 'permille')
     return units(unit)
 
 

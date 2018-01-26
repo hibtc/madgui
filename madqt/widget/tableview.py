@@ -437,7 +437,7 @@ class QuotedStringValue(StringValue):
         """Quote string."""
         if self.value is None:
             return ""
-        return repr(self.value).lstrip('u')
+        return repr(self.value)
 
 
 class FloatValue(ValueProxy):
