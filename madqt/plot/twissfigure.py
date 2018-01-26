@@ -9,6 +9,7 @@ import time
 
 from madqt.qt import QtGui, Qt
 from madqt.core.worker import fetch_all
+from madqt.core.base import Object, Signal
 
 from madqt.util.misc import memoize, strip_suffix, SingleWindow
 from madqt.util.collections import List, maintain_selection
@@ -37,7 +38,7 @@ class PlotSelector(QtGui.QComboBox):
     def __init__(self, scene, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.scene = scene
-        self.scene.selector = self
+        self.scene.graph_changed.connect(self.update_index)
         items = [(l, n) for n, l in scene.segment.get_graphs().items()]
         for label, name in sorted(items):
             self.addItem(label, name)
@@ -51,15 +52,18 @@ class PlotSelector(QtGui.QComboBox):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class TwissFigure(SceneNode):
+class TwissFigure(Object):
 
     """A figure containing some X/Y twiss parameters."""
 
     xlim = None
     snapshot_num = 0
-    selector = None
+    axes = ()
+
+    graph_changed = Signal()
 
     def __init__(self, figure, segment, config):
+        super().__init__()
         self.segment = segment
         self.config = config
         self.figure = figure
@@ -85,7 +89,7 @@ class TwissFigure(SceneNode):
             self.twiss_curves,
             self.user_curves,
         ])
-        self.scene_graph.parent = self      # FIXME: graph should be root?
+        self.scene_graph.parent = self.figure   # for invalidation
         # style
         self.x_name = 's'
         self.x_label = config['x_label']
@@ -104,12 +108,11 @@ class TwissFigure(SceneNode):
     def set_graph(self, graph_name):
         self.graph_name = graph_name
         self.relayout()
-        if self.selector:
-            self.selector.update_index()
+        self.graph_changed.emit()
 
     def relayout(self):
         """Called to change the number of axes, etc."""
-        self.render(False)
+        self.remove()
         self.update_graph_data()
         self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
         self.indicators.destroy()
@@ -132,7 +135,7 @@ class TwissFigure(SceneNode):
             )
             for ax, curve_info in zip(axes, self.graph_info.curves)
         ])
-        self.render()
+        self.draw()
 
     def draw(self):
         """Replot from clean state."""
@@ -184,9 +187,6 @@ class TwissFigure(SceneNode):
             name = strip_suffix(elem['name'], '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
-
-    def invalidate(self):
-        self.figure.invalidate()
 
     def update(self, autoscale=True):
         """Update existing plot after TWISS recomputation."""
