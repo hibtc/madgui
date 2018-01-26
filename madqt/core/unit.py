@@ -35,7 +35,6 @@ def initialize():
     # Make sure 'constants_en.txt' exists as well (it is imported by
     # 'default_en.txt'):
     # TODO: use consts?
-    consts_spec = resource_filename('madqt.data', 'constants_en.txt')
     units_spec = resource_filename('madqt.data', 'default_en.txt')
     units = pint.UnitRegistry(units_spec)
 

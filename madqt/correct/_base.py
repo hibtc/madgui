@@ -153,15 +153,9 @@ class OrbitCorrectorBase:
 
     # computations
 
-    def fit_particle_orbit(self, records=None):
+    def fit_particle_orbit(self, records=None, init_orbit=None):
         # TODO: add thresholds / abort conditions for bad initial conditions
         # TODO: save initial optics
-        init_orbit = {}
-        init_orbit, chi_squared, singular = \
-            self.fit_particle_orbit(records, init_orbit)
-        return init_orbit, chi_squared, singular
-
-    def fit_particle_orbit(self, records=None, init_orbit=None):
         if records is None:
             records = self.orbit_records
         sectormaps = [

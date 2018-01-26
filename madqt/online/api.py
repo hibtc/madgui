@@ -22,7 +22,7 @@ The interface contract is currently designed as follows:
           between internal and standard representation
 """
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 
 from madqt.core.unit import add_unit, strip_unit, units
 

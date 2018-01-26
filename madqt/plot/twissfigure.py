@@ -4,8 +4,6 @@ s-axis.
 """
 
 from functools import partial
-import threading
-import time
 
 from madqt.qt import QtGui, Qt
 from madqt.core.worker import fetch_all
@@ -16,7 +14,7 @@ from madqt.util.collections import List, maintain_selection
 from madqt.core.unit import (
     strip_unit, from_config, get_raw_label, allclose)
 from madqt.resource.package import PackageResource
-from madqt.plot.base import SceneNode, SimpleArtist, SceneGraph
+from madqt.plot.base import SimpleArtist, SceneGraph
 from madqt.widget.dialog import Dialog
 
 

@@ -10,7 +10,6 @@ from madqt.qt import QtGui
 from madqt.core.base import Object
 from madqt.util.collections import Bool
 import madqt.core.menu as menu
-from madqt.util.misc import suppress
 
 from . import api
 
@@ -144,7 +143,7 @@ class Control(Object):
 
     def toggle_jitter(self):
         # I know…
-        jitter = self._plugin._dvm._lib.jitter = not self._plugin._dvm._lib.jitter
+        self._plugin._dvm._lib.jitter = not self._plugin._dvm._lib.jitter
 
     def get_knobs(self):
         """Get list of knobs, returned as tuples `(elem,attr,mad,dvm)`."""
@@ -316,9 +315,3 @@ class Control(Object):
         for mknob, mval, dknob, dval in params:
             dknob.write(mknob.to(dknob.attr, mval))
         self._plugin.execute()
-
-    def get_element(self, elem_name):
-        index = self._model.get_element_index(elem_name.lower())
-        elem = self._model.elements[index]
-        cls = elements.get_element_class(elem)
-        return cls(self._model, elem, self._plugin)

@@ -55,7 +55,7 @@ class WorkerThread(Thread):
         with self.lock:
             count = self.counter
             self.counter += 1
-        self.queue.put(((-priority, self.counter), job, callback, args))
+        self.queue.put(((-priority, count), job, callback, args))
 
     def run(self):
         """Waits for and executes posted jobs in an infinite loop."""

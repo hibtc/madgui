@@ -156,8 +156,6 @@ class BaseModel(Object):
 
     def get_best_match_pos(self, pos):
         """Find optics element by longitudinal position."""
-        elem = min(filter(self.can_match_at, self.elements),
-                   key=lambda el: abs(self.adjust_match_pos(el, pos)-pos))
         return min([
             (el, self.adjust_match_pos(el, pos))
             for el in self.elements

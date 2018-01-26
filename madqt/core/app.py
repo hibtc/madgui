@@ -34,7 +34,7 @@ from madqt.qt import QtCore, QtGui
 
 from madqt import __version__
 from madqt.core.mainwindow import MainWindow
-from madqt.core.worker import QueuedDispatcher, WorkerThread
+from madqt.core.worker import QueuedDispatcher
 
 
 __all__ = [

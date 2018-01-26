@@ -2,11 +2,6 @@
 Qt utilities.
 """
 
-from contextlib import contextmanager
-
-from madqt.qt import QtGui, Qt
-
-
 def notifyCloseEvent(widget, handler):
     """Connect a closeEvent observer."""
     # There are three basic ways to get notified when a window is closed:
