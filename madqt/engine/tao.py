@@ -30,6 +30,7 @@ from functools import partial
 
 from pytao.tao import Tao
 
+from madqt.core.base import Cache
 from madqt.core.unit import UnitConverter, from_config, strip_unit
 from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
@@ -37,6 +38,7 @@ from madqt.util.misc import (attribute_alias, sort_to_top, LazyList,
                              merged, translate_default)
 from madqt.util.enum import make_enum
 from madqt.resource.file import FileResource
+from madqt.resource.package import PackageResource
 
 from madqt.engine.common import (
     FloorCoords, BaseModel,
@@ -82,12 +84,17 @@ class Model(BaseModel):
     backend = attribute_alias('tao')
 
     def __init__(self, filename, app_config, command_log):
+        super().__init__()
+        self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
         self.data = {}
         self.repo = None
         self.universe = 1
         self.command_log = command_log
-        super().__init__(filename, app_config)
+        self.app_config = app_config
+        self.config = PackageResource('madqt.engine').yaml('tao.yml')
+        self.load(filename)
+        self.twiss.invalidate()
 
     def load(self, filename):
         """Load model or plain tao file."""

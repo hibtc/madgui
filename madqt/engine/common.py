@@ -9,9 +9,8 @@ import re
 
 import numpy as np
 
-from madqt.core.base import Object, Signal, Cache
+from madqt.core.base import Object, Signal
 from madqt.core.unit import from_config
-from madqt.resource.package import PackageResource
 from madqt.util.misc import cachedproperty
 
 
@@ -53,15 +52,6 @@ class BaseModel(Object):
 
     destroyed = Signal()
     matcher = None
-
-    def __init__(self, filename, app_config):
-        super().__init__()
-        self.twiss = Cache(self._retrack)
-        self.app_config = app_config
-        module = self.__class__.__module__.rsplit('.', 1)[-1]
-        self.config = PackageResource('madqt.engine').yaml(module + '.yml')
-        self.load(filename)
-        self.twiss.invalidate()
 
     def minrpc_flags(self):
         """Flags for launching the backend library in a remote process."""
@@ -105,14 +95,6 @@ class BaseModel(Object):
 
     def get_element_index(self, elem):
         raise NotImplementedError
-
-    def data(self):
-        return {
-            'sequence': self.sequence,
-            'range': self.range,
-            'beam': self.beam,
-            'twiss': self.twiss_args,
-        }
 
     def get_element_info(self, element):
         """Get :class:`ElementInfo` from element name or index."""

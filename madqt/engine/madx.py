@@ -13,10 +13,12 @@ import numpy as np
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
+from madqt.core.base import Cache
 from madqt.resource import yaml
 from madqt.core.unit import UnitConverter, from_config, isclose, number_types
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 from madqt.resource.file import FileResource
+from madqt.resource.package import PackageResource
 from madqt.util.datastore import DataStore, SuperStore
 
 from madqt.engine.common import (
@@ -55,12 +57,17 @@ class Model(BaseModel):
     backend = attribute_alias('madx')
 
     def __init__(self, filename, app_config, command_log):
+        super().__init__()
+        self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
         self.data = {}
         self.repo = None
         self.init_files = []
         self.command_log = command_log
-        super().__init__(filename, app_config)
+        self.app_config = app_config
+        self.config = PackageResource('madqt.engine').yaml('madx.yml')
+        self.load(filename)
+        self.twiss.invalidate()
 
     @property
     def libmadx(self):
@@ -104,13 +111,14 @@ class Model(BaseModel):
 
     def model_data(self):
         """Return model data as dictionary."""
-        data = self.data()
-        data.update({
+        return dict(self.data, **{
             'api_version': self.API_VERSION,
             'init-files': self.init_files,
+            'sequence': self.seq_name,
+            'range': list(self.range),
+            'beam': self.beam,
+            'twiss': self.twiss_args,
         })
-        data['range'] = list(data['range'])
-        return data
 
     def load(self, filename):
         """Load model or plain MAD-X file."""
