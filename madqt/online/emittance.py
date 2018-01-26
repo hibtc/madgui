@@ -71,7 +71,7 @@ class EmittanceDialog(QtGui.QDialog):
         self.control = control
 
         self.monitor_list = [el['name']
-                             for el in control._segment.elements
+                             for el in control._model.elements
                              if el['type'].lower().endswith('monitor')
                              or el['type'].lower() == 'instrument']
         self.monitor_enum = make_enum('Monitor', self.monitor_list)
@@ -153,15 +153,15 @@ class EmittanceDialog(QtGui.QDialog):
             self.results[:] = []
             return
 
-        seg = self.control._segment
-        strip = seg.utool.strip_unit
+        model = self.control._model
+        strip = model.utool.strip_unit
 
         monitors = sorted(
-            self.monitors, key=lambda m: seg.elements.index(m.name))
+            self.monitors, key=lambda m: model.elements.index(m.name))
 
         # second case can happen when `removing` a monitor
         if self.cached_tms is None or len(self.cached_tms) != len(monitors):
-            self.cached_tms = seg.get_transfer_maps([m.name for m in monitors])
+            self.cached_tms = model.get_transfer_maps([m.name for m in monitors])
 
         tms = list(self.cached_tms)
         if not long_transfer:
@@ -219,8 +219,8 @@ class EmittanceDialog(QtGui.QDialog):
             pt = sigma[-1,-1]
 
 
-        beam = seg.sequence.beam
-        twiss_args = seg.utool.dict_strip_unit(seg.twiss_args)
+        beam = model.sequence.beam
+        twiss_args = model.utool.dict_strip_unit(model.twiss_args)
 
         results = []
         results += [

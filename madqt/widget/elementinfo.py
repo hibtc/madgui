@@ -19,15 +19,15 @@ class ElementInfoBox(QtGui.QWidget):
     changed_element = Signal()
     _el_id = None
 
-    def __init__(self, segment, el_id, **kwargs):
+    def __init__(self, model, el_id, **kwargs):
         super().__init__()
 
-        datastore = segment.get_elem_ds(el_id)
+        datastore = model.get_elem_ds(el_id)
         self.tab = TabParamTables(datastore, **kwargs)
 
         # navigation
         self.select = QtGui.QComboBox()
-        self.select.addItems([elem['name'] for elem in segment.elements])
+        self.select.addItems([elem['name'] for elem in model.elements])
         self.select.currentIndexChanged.connect(self.set_element)
 
         button_left = QtGui.QPushButton("<")
@@ -40,17 +40,17 @@ class ElementInfoBox(QtGui.QWidget):
             self.tab,
         ], tight=True))
 
-        self.segment = segment
+        self.model = model
         self.el_id = el_id
-        self.segment.twiss.updated.connect(self.update)
+        self.model.twiss.updated.connect(self.update)
 
     def closeEvent(self, event):
-        self.segment.twiss.updated.disconnect(self.update)
+        self.model.twiss.updated.disconnect(self.update)
         event.accept()
 
     def advance(self, step):
-        elements  = self.segment.elements
-        old_index = self.segment.get_element_index(self.el_id)
+        elements  = self.model.elements
+        old_index = self.model.get_element_index(self.el_id)
         new_index = old_index + step
         new_el_id = elements[new_index % len(elements)]['el_id']
         self.el_id = new_el_id
@@ -71,14 +71,14 @@ class ElementInfoBox(QtGui.QWidget):
 
     @property
     def element(self):
-        return self.segment.elements[self.el_id]
+        return self.model.elements[self.el_id]
 
     def update(self):
         """
         Update the contents of the managed popup window.
         """
         # FIXME: this does not update substores/tabs
-        if hasattr(self, 'segment'):
-            self.tab.datastore = self.segment.get_elem_ds(self.el_id)
-            self.select.setCurrentIndex(self.segment.get_element_index(self.el_id))
+        if hasattr(self, 'model'):
+            self.tab.datastore = self.model.get_elem_ds(self.el_id)
+            self.select.setCurrentIndex(self.model.get_element_index(self.el_id))
         super().update()

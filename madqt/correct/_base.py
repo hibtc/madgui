@@ -50,8 +50,8 @@ class OrbitCorrectorBase:
                  targets, magnets, monitors,
                  x_steerers, y_steerers):
         self.control = control
-        self.utool = control._segment.workspace.utool
-        self.segment = control._segment
+        self.utool = control._model.utool
+        self.model = control._model
         knobs = control.get_knobs()
         self._optics = {dknob.param: (mknob, dknob) for mknob, dknob in knobs}
         self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
@@ -97,23 +97,23 @@ class OrbitCorrectorBase:
 
         # update initial conditions to compute sectormaps accounting for the
         # given initial conditions:
-        twiss_args_backup = self.segment.twiss_args.copy()
+        twiss_args_backup = self.model.twiss_args.copy()
         if init_orbit:
-            init_twiss = self.segment.twiss_args.copy()
+            init_twiss = self.model.twiss_args.copy()
             init_twiss.update(init_orbit)
-            self.segment.twiss_args = init_twiss
+            self.model.twiss_args = init_twiss
 
         try:
-            return self.segment.get_transfer_maps([
-                self.segment.start if orig is None else orig,
-                self.segment.get_element_info(dest)])[1]
+            return self.model.get_transfer_maps([
+                self.model.start if orig is None else orig,
+                self.model.get_element_info(dest)])[1]
         finally:
-            self.segment.twiss_args = twiss_args_backup
+            self.model.twiss_args = twiss_args_backup
 
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
         self.control.read_all()
-        self.segment.twiss_args = self.backup_twiss_args
+        self.model.twiss_args = self.backup_twiss_args
 
     def get_csys_optics(self):
         return [(knob.param, knob.read())
@@ -212,9 +212,9 @@ class OrbitCorrectorBase:
 
         # construct initial conditions
         init_twiss = {}
-        init_twiss.update(self.segment.twiss_args)
+        init_twiss.update(self.model.twiss_args)
         init_twiss.update(init_orbit)
-        self.segment.twiss_args = init_twiss
+        self.model.twiss_args = init_twiss
 
         # match final conditions
         match_names = [mknob.param for mknob, _ in steerer_knobs]
@@ -222,20 +222,20 @@ class OrbitCorrectorBase:
             dict(range=target, **self.utool.dict_strip_unit(orbit))
             for target, orbit in zip(self.targets, design_orbit)
         ]
-        self.segment.madx.match(
-            sequence=self.segment.sequence.name,
+        self.model.madx.match(
+            sequence=self.model.sequence.name,
             vary=match_names,
             weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
             constraints=constraints,
             twiss_init=self.utool.dict_strip_unit(init_twiss))
-        self.segment.twiss.invalidate()
+        self.model.twiss.invalidate()
 
         # return corrections
         return [(mknob, mknob.read(), dknob, dknob.read())
                 for mknob, dknob in steerer_knobs]
 
     def backup(self):
-        self.backup_twiss_args = self.segment.twiss_args
+        self.backup_twiss_args = self.model.twiss_args
         self.backup_strengths = [
             (mknob, mknob.read())
             for mknob, _ in self._knobs.values()
@@ -244,7 +244,7 @@ class OrbitCorrectorBase:
     def restore(self):
         for mknob, value in self.backup_strengths:
             mknob.write(value)
-        self.segment.twiss_args = self.backup_twiss_args
+        self.model.twiss_args = self.backup_twiss_args
         print(self.backup_twiss_args)
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
@@ -435,5 +435,5 @@ class CorrectorWidgetBase(QtGui.QWidget):
             dknob.write(mknob.to(dknob.attr, mval))
         self.corrector.backup()
         self.corrector.control._plugin.execute()
-        self.corrector.segment.twiss.invalidate()
+        self.corrector.model.twiss.invalidate()
         self.corrector.clear_orbit_records()

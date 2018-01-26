@@ -39,7 +39,7 @@ class PlotSelector(QtGui.QComboBox):
         super().__init__(*args, **kwargs)
         self.scene = scene
         self.scene.graph_changed.connect(self.update_index)
-        items = [(l, n) for n, l in scene.segment.get_graphs().items()]
+        items = [(l, n) for n, l in scene.model.get_graphs().items()]
         for label, name in sorted(items):
             self.addItem(label, name)
         self.update_index()
@@ -62,12 +62,12 @@ class TwissFigure(Object):
 
     graph_changed = Signal()
 
-    def __init__(self, figure, segment, config):
+    def __init__(self, figure, model, config):
         super().__init__()
-        self.segment = segment
+        self.model = model
         self.config = config
         self.figure = figure
-        self.matcher = self.segment.get_matcher()
+        self.matcher = self.model.get_matcher()
         # scene
         self.shown_curves = List()
         self.loaded_curves = List()
@@ -96,7 +96,7 @@ class TwissFigure(Object):
         self.x_unit = from_config(config['x_unit'])
         self.element_style = config['element_style']
         # slots
-        self.segment.twiss.updated.connect(self.update)
+        self.model.twiss.updated.connect(self.update)
 
     def attach(self, plot):
         self.plot = plot
@@ -120,7 +120,7 @@ class TwissFigure(Object):
         self.select_markers.destroy()
         self.select_markers.clear([
             ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
-                     self.segment.workspace.selection.elements)
+                     self.model.selection.elements)
             for ax in axes
         ])
         self.twiss_curves.destroy()
@@ -168,7 +168,7 @@ class TwissFigure(Object):
         self.scene_graph.on_remove()
 
     def destroy(self):
-        self.segment.twiss.updated.disconnect(self.update)
+        self.model.twiss.updated.disconnect(self.update)
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
@@ -182,7 +182,7 @@ class TwissFigure(Object):
         curve = next(c for c in self.twiss_curves.items if c.axes is ax)
         parts = [coord_fmt(x, get_raw_label(curve.x_unit)),
                  coord_fmt(y, get_raw_label(curve.y_unit))]
-        elem = self.segment.get_element_by_position(x * curve.x_unit)
+        elem = self.model.get_element_by_position(x * curve.x_unit)
         if elem and 'name' in elem:
             name = strip_suffix(elem['name'], '[0]')
             parts.insert(0, name.upper())
@@ -197,11 +197,11 @@ class TwissFigure(Object):
 
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
-            self.segment.get_graph_data(self.graph_name, self.xlim)
+            self.model.get_graph_data(self.graph_name, self.xlim)
         self.graph_name = self.graph_info.name
 
     def get_float_data(self, curve_info, column):
-        """Get data for the given parameter from segment."""
+        """Get data for the given parameter from model."""
         return self.graph_data[curve_info.name][:,column]
 
     def get_curve_by_name(self, name):
@@ -210,7 +210,7 @@ class TwissFigure(Object):
     def xlim_changed(self, ax):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
         xend = xstart + xdelta
-        self.xlim = self.segment.elements.bound_range((
+        self.xlim = self.model.elements.bound_range((
             self.x_unit * xstart,
             self.x_unit * xend))
         if not allclose(self.xlim, self.data_lim()):
@@ -245,7 +245,7 @@ class TwissFigure(Object):
 
 class Curve(SimpleArtist):
 
-    """Plot a TWISS parameter curve segment into a 2D figure."""
+    """Plot a TWISS parameter curve model into a 2D figure."""
 
     def __init__(self, axes, get_xdata, get_ydata, style, label=None, info=None):
         """Store meta data."""
@@ -311,7 +311,7 @@ class IndicatorManager(SceneGraph):
             ElementIndicators(ax, scene, style, elements)
             for ax in axes
         ])
-        self._fetch = fetch_all(scene.segment.elements, callback, block=0.5)
+        self._fetch = fetch_all(scene.model.elements, callback, block=0.5)
 
     def remove(self):
         if self._fetch:
@@ -446,8 +446,8 @@ class MatchTool(CaptureTool):
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.segment = plot.scene.segment
-        self.matcher = self.segment.get_matcher()
+        self.model = plot.scene.model
+        self.matcher = self.model.get_matcher()
         self.matcher.finished.connect(partial(self.setChecked, False))
 
     def activate(self):
@@ -496,7 +496,7 @@ class MatchTool(CaptureTool):
 
         # add the clicked constraint
         from madqt.correct.match import Constraint
-        elem, pos = self.segment.get_best_match_pos(event.x)
+        elem, pos = self.model.get_best_match_pos(event.x)
         constraints = [Constraint(elem, pos, name, event.y)]
 
         if self.matcher.mirror_mode:
@@ -504,7 +504,7 @@ class MatchTool(CaptureTool):
             # TODO: should do this only once for each yname!
             constraints.extend([
                 Constraint(elem, pos, c.y_name,
-                        self.segment.get_twiss(elem['name'], c.y_name, pos))
+                        self.model.get_twiss(elem['name'], c.y_name, pos))
                 for c in curves
                 if c.y_name != name
             ])
@@ -567,8 +567,8 @@ class InfoTool(CaptureTool):
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.segment = plot.scene.segment
-        self.selection = self.segment.workspace.selection
+        self.model = plot.scene.model
+        self.selection = self.model.selection
 
     def activate(self):
         """Start select mode."""
@@ -619,18 +619,18 @@ class InfoTool(CaptureTool):
         if not selected:
             return
         top = self.selection.top
-        elements = self.segment.elements
+        elements = self.model.elements
         old_el_id = selected[top]
-        old_index = self.segment.get_element_index(old_el_id)
+        old_index = self.model.get_element_index(old_el_id)
         new_index = old_index + move_step
-        new_el_id = self.segment.elements[new_index % len(elements)]['el_id']
+        new_el_id = self.model.elements[new_index % len(elements)]['el_id']
         selected[top] = new_el_id
 
 
 def draw_selection_marker(axes, scene, el_idx):
     """In-figure markers for active/selected elements."""
     style = scene.config['select_style']
-    element = scene.segment.elements[el_idx]
+    element = scene.model.elements[el_idx]
     at = strip_unit(element['at'], scene.x_unit)
     return [axes.axvline(at, **style)]
 
