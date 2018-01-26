@@ -25,7 +25,7 @@ def defined(value):
 def variable_from_knob(matcher, expr):
     if '->' in expr:
         name, attr = expr.split('->')
-        elem = matcher.segment.elements[name]
+        elem = matcher.model.elements[name]
         expr = _get_elem_attr_expr(elem, attr)
         pos = elem['at'] + elem['l']
     else:
@@ -34,13 +34,13 @@ def variable_from_knob(matcher, expr):
         attr = None
         pos = None
     # TODO: generalize for tao
-    value = matcher.segment.read_param(expr)
+    value = matcher.model.read_param(expr)
     design = matcher.design_values.setdefault(expr, value)
     return Variable(elem, pos, attr, expr, value, design)
 
 
 def variable_update(matcher, variable):
-    value = matcher.segment.read_param(variable.expr)
+    value = matcher.model.read_param(variable.expr)
     design = matcher.design_values[variable.expr]
     return Variable(variable.elem, variable.pos, variable.attr, variable.expr,
                     value, design)
@@ -55,30 +55,30 @@ class Matcher(Object):
     matched = Signal()
     finished = Signal()
 
-    def __init__(self, segment, rules):
+    def __init__(self, model, rules):
         """Create empty matcher."""
         super().__init__()
-        self.segment = segment
+        self.model = model
         self.rules = rules
         self.constraints = List()
         self.variables = List()
         self.variables.update_after.connect(self._on_update_variables)
         self.design_values = {}
-        local_constraints = ['envx', 'envy'] + segment.workspace.config['matching']['element']
+        local_constraints = ['envx', 'envy'] + model.config['matching']['element']
         local_constraints = sorted(local_constraints)
-        self.elem_enum = make_enum('Elem', segment.el_names)
+        self.elem_enum = make_enum('Elem', model.el_names)
         self.lcon_enum = make_enum('Local', local_constraints, strict=False)
-        self.mirror_mode = segment.workspace.app_config['matching'].get('mirror', False)
+        self.mirror_mode = model.app_config['matching'].get('mirror', False)
 
     def match(self):
         """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""
         # transform constraints (envx => betx, etc)
-        transform = MatchTransform(self.segment)
+        transform = MatchTransform(self.model)
         constraints = [
             Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
             for c in self.constraints]
         variables = [v.expr for v in self.variables]
-        self.segment.match(variables, constraints)
+        self.model.match(variables, constraints)
         self.variables[:] = [variable_update(self, v) for v in self.variables]
 
     def apply(self):
@@ -105,7 +105,7 @@ class Matcher(Object):
         # The following uses the most naive, greedy and probably stupid
         # algorithm to select all elements that can be used for varying.
         variables = self.variables
-        transform = MatchTransform(self.segment)
+        transform = MatchTransform(self.model)
         constraints = [
             Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
             for c in self.constraints]
@@ -144,7 +144,7 @@ class Matcher(Object):
         param_spec = self.rules['parameters']
         return [
             variable_from_knob(self, elem['name']+'->'+attr)
-            for elem in self.segment.elements
+            for elem in self.model.elements
             if elem['type'].lower() in elem_types
             for attr in self._get_match_attrs(
                     elem, param_spec[elem['type'].lower()])
@@ -163,22 +163,22 @@ class Matcher(Object):
         new = {v.expr: v.value  for v in new_values}
 
         # On removal, revert unapplied variables to design settings:
-        # TODO: this should be handled on the level of the segment, see #17.
+        # TODO: this should be handled on the level of the model, see #17.
         # TODO: set many values in one go
         for knob, value in old.items():
             if knob not in new:
-                self.segment.write_param(knob, value)
+                self.model.write_param(knob, value)
 
         # Set new variable values into the model:
         for knob, value in new.items():
-            self.segment.write_param(knob, value)
+            self.model.write_param(knob, value)
 
 
 class MatchTransform:
 
-    def __init__(self, segment):
-        self._ex = segment.ex()
-        self._ey = segment.ey()
+    def __init__(self, model):
+        self._ex = model.ex()
+        self._ey = model.ey()
 
     def envx(self, val):
         return 'sig11', val*val

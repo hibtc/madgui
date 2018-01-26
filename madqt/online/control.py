@@ -54,8 +54,8 @@ class Control(Object):
         self._plugin = None
         # menu conditions
         self.is_connected = Bool(False)
-        self.can_connect = self._frame.has_workspace & ~self.is_connected
-        self.has_sequence = self._frame.has_workspace & self.is_connected
+        self.can_connect = self._frame.has_model & ~self.is_connected
+        self.has_sequence = self._frame.has_model & self.is_connected
         # plugins
         loaders = [
             loader
@@ -150,9 +150,9 @@ class Control(Object):
         """Get list of knobs, returned as tuples `(elem,attr,mad,dvm)`."""
         return [
             (knob_mad, knob_dvm)
-            for elem in self._segment.elements
+            for elem in self._model.elements
             for attr in ELEM_KNOBS.get(elem['type'].lower(), ())
-            for knob_mad in [self._segment.get_knob(elem, attr)]
+            for knob_mad in [self._model.get_knob(elem, attr)]
             if knob_mad
             for knob_dvm in [self._plugin.get_knob(elem, attr)]
             if knob_dvm
@@ -213,7 +213,7 @@ class Control(Object):
         self.read_beam()
 
     def read_beam(self):
-        self._segment.set_beam(self._plugin.get_beam())
+        self._model.set_beam(self._plugin.get_beam())
 
     def read_monitor(self, name):
         return self._plugin.read_monitor(name)
@@ -224,7 +224,7 @@ class Control(Object):
 
         # TODO: cache list of used SD monitors
         rows = [MonitorItem(el['name'], self.read_monitor(el['name']))
-                for el in self._segment.elements
+                for el in self._model.elements
                 if el['type'].lower().endswith('monitor')
                 or el['type'].lower() == 'instrument']
         if not rows:
@@ -252,12 +252,12 @@ class Control(Object):
 
     def on_correct_optic_variation_method(self):
         import madqt.correct.optic_variation as module
-        varyconf = self._segment.workspace.data.get('optic_variation', {})
+        varyconf = self._model.data.get('optic_variation', {})
         self._correct(module, varyconf)
 
     def on_correct_multi_grid_method(self):
         import madqt.correct.multi_grid as module
-        varyconf = self._segment.workspace.data.get('multi_grid', {})
+        varyconf = self._model.data.get('multi_grid', {})
         self._correct(module, varyconf)
 
     def _correct(self, module, varyconf):
@@ -267,8 +267,8 @@ class Control(Object):
         # TODO: open an orbit plot if none is present
         # self._frame.showTwiss('orbit')
 
-        segment = self._segment
-        elements = segment.elements
+        model = self._model
+        elements = model.elements
 
         select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
@@ -292,10 +292,9 @@ class Control(Object):
     # helper functions
 
     @property
-    def _segment(self):
+    def _model(self):
         """Return the online control."""
-        workspace = self._frame.workspace
-        return workspace and workspace.segment
+        return self._frame.model
 
     def read_these(self, params):
         """
@@ -317,7 +316,7 @@ class Control(Object):
         self._plugin.execute()
 
     def get_element(self, elem_name):
-        index = self._segment.get_element_index(elem_name.lower())
-        elem = self._segment.elements[index]
+        index = self._model.get_element_index(elem_name.lower())
+        elem = self._model.elements[index]
         cls = elements.get_element_class(elem)
-        return cls(self._segment, elem, self._plugin)
+        return cls(self._model, elem, self._plugin)

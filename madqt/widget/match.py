@@ -15,7 +15,7 @@ def get_constraint_elem(matcher, c, i):
 
 def set_constraint_elem(matcher, c, i, name):
     if name is not None:
-        el = matcher.segment.elements[str(name)]
+        el = matcher.model.elements[str(name)]
         matcher.constraints[i] = Constraint(el, el['at']+el['l'], c.axis, c.value)
 
 def get_constraint_axis(matcher, c, i):
@@ -23,7 +23,7 @@ def get_constraint_axis(matcher, c, i):
 
 def set_constraint_axis(matcher, c, i, axis):
     if axis is not None:
-        value = matcher.segment.get_twiss(c.elem['name'], str(axis), c.pos)
+        value = matcher.model.get_twiss(c.elem['name'], str(axis), c.pos)
         matcher.constraints[i] = Constraint(c.elem, c.pos, str(axis), value)
 
 def set_constraint_value(matcher, c, i, value):
@@ -118,10 +118,10 @@ class MatchWidget(QtGui.QWidget):
 
     def add_constraint(self):
         el   = self.matcher.elem_enum._values[0]
-        elem = self.matcher.segment.elements[el]
+        elem = self.matcher.model.elements[el]
         axis = self.matcher.lcon_enum._values[0]  # TODO: -> curve.y_name?
         pos  = elem.AT + elem.L
-        value = self.matcher.segment.get_twiss(el, axis, pos)
+        value = self.matcher.model.get_twiss(el, axis, pos)
         self.matcher.constraints.append(Constraint(
             elem, pos, axis, value))
 

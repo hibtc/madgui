@@ -120,7 +120,7 @@ class PlotWidget(QtGui.QWidget):
         axes = mpl_event.inaxes
         xpos = mpl_event.xdata * axes.x_unit
         ypos = mpl_event.ydata * axes.y_unit
-        elem = self.scene.segment.get_element_by_position(xpos)
+        elem = self.scene.model.get_element_by_position(xpos)
         event = MouseEvent(mpl_event.button, xpos, ypos,
                            axes, elem, mpl_event.guiEvent)
         self.buttonPress.emit(event)

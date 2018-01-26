@@ -47,7 +47,7 @@ def expand_ext(path, *exts):
 
 class MainWindow(QtGui.QMainWindow):
 
-    workspace_changed = Signal()
+    model_changed = Signal()
 
     #----------------------------------------
     # Basic setup
@@ -55,13 +55,13 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.has_workspace = Bool(False)
+        self.has_model = Bool(False)
         self.user_ns = {
             'frame': self,
         }
         self.options = options
         self.config = config.load(options['--config'])
-        self.workspace = None
+        self.model = None
         self.configure()
         self.initUI()
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
@@ -230,7 +230,7 @@ class MainWindow(QtGui.QMainWindow):
     def editInitialConditions(self):
         from madqt.widget.params import TabParamTables
 
-        datastore = self.workspace.segment.get_init_ds()
+        datastore = self.model.get_init_ds()
 
         widget = TabParamTables(datastore)
         widget.update()
@@ -249,10 +249,10 @@ class MainWindow(QtGui.QMainWindow):
     def viewFloorPlan(self):
         from madqt.widget.floor_plan import LatticeFloorPlan, Selector
         latview = LatticeFloorPlan()
-        latview.setElements(self.workspace.utool,
-                            self.workspace.segment.elements,
-                            self.workspace.segment.survey(),
-                            self.workspace.selection)
+        latview.setElements(self.model.utool,
+                            self.model.elements,
+                            self.model.survey(),
+                            self.model.selection)
         selector = Selector(latview)
         dock = Dialog(self)
         dock.setWidget([latview, selector], tight=True)
@@ -263,7 +263,7 @@ class MainWindow(QtGui.QMainWindow):
     @SingleWindow.factory
     def viewMatchDialog(self):
         from madqt.widget.match import MatchWidget
-        widget = MatchWidget(self.workspace.segment.get_matcher())
+        widget = MatchWidget(self.model.get_matcher())
         dialog = Dialog(self)
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Matching constraints.")
@@ -353,13 +353,13 @@ class MainWindow(QtGui.QMainWindow):
         for modname, exts in engine_exts.items():
             if any(map(filename.endswith, exts)):
                 module = __import__(modname, None, None, '*')
-                Workspace = module.Workspace
+                Model = module.Model
                 break
         else:
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
 
-        self.destroyWorkspace()
+        self.destroyModel()
         filename = os.path.abspath(filename)
         self.folder, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
@@ -367,66 +367,66 @@ class MainWindow(QtGui.QMainWindow):
         self.logfile = open(logfile, 'wt')
         self.log.info('Loading {}'.format(filename))
         self.log.info('Logging commands to: {}'.format(logfile))
-        self.setWorkspace(Workspace(filename, self.config,
-                                    command_log=self.log_command))
+        self.setModel(Model(filename, self.config,
+                            command_log=self.log_command))
         self.showTwiss()
 
-    def setWorkspace(self, workspace):
-        if workspace is self.workspace:
+    def setModel(self, model):
+        if model is self.model:
             return
-        self.destroyWorkspace()
-        self.workspace = workspace
-        self.user_ns['workspace'] = workspace
+        self.destroyModel()
+        self.model = model
+        self.user_ns['model'] = model
         self.user_ns['savedict'] = savedict
-        if workspace is None:
-            self.workspace_changed.emit()
+        if model is None:
+            self.model_changed.emit()
             self.setWindowTitle("madqt")
             return
 
-        workspace.selection = Selection()
-        workspace.box_group = InfoBoxGroup(self, workspace.selection)
+        model.selection = Selection()
+        model.box_group = InfoBoxGroup(self, model.selection)
 
         self.log_window.async_reader(
-            workspace.backend_title,
-            workspace.remote_process.stdout)
+            model.backend_title,
+            model.remote_process.stdout)
 
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
-        QtGui.qApp.aboutToQuit.connect(self.destroyWorkspace)
-        self.has_workspace.value = True
-        self.workspace_changed.emit()
-        self.setWindowTitle(workspace.name)
+        QtGui.qApp.aboutToQuit.connect(self.destroyModel)
+        self.has_model.value = True
+        self.model_changed.emit()
+        self.setWindowTitle(model.name)
 
-    def destroyWorkspace(self):
-        if self.workspace is None:
+    def destroyModel(self):
+        if self.model is None:
             return
-        self.has_workspace.value = False
-        del self.workspace.selection.elements[:]
+        self.has_model.value = False
+        del self.model.selection.elements[:]
         try:
-            self.workspace.destroy()
+            self.model.destroy()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
-        self.workspace = None
-        self.user_ns['workspace'] = None
+        self.model = None
+        self.user_ns['model'] = None
         self.logfile.close()
 
     def showTwiss(self, name=None):
         import madqt.plot.matplotlib as plt
         import madqt.plot.twissfigure as twissfigure
 
-        segment = self.workspace.segment
+        model = self.model
         config = self.config['line_view'].copy()
         config['matching'] = self.config['matching']
 
         # indicators require retrieving data for all elements which can be too
         # time consuming for large lattices:
-        show_indicators = len(segment.elements) < 500
+        show_indicators = len(model.elements) < 500
 
         figure = plt.MultiFigure()
         plot = plt.PlotWidget(figure)
 
-        scene = twissfigure.TwissFigure(figure, segment, config)
+        scene = twissfigure.TwissFigure(figure, model, config)
         scene.show_indicators = show_indicators
         scene.set_graph(name or config['default_graph'])
         scene.attach(plot)
@@ -448,11 +448,11 @@ class MainWindow(QtGui.QMainWindow):
         widget.show()
         def update_window_title():
             widget.setWindowTitle("{1} ({0})".format(
-                self.workspace.name, scene.graph_name))
+                self.model.name, scene.graph_name))
         scene.graph_changed.connect(update_window_title)
         update_window_title()
 
-        self.workspace.destroyed.connect(widget.close)
+        self.model.destroyed.connect(widget.close)
 
         def destroyed():
             if scene in self.views:
@@ -509,7 +509,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         # Terminate the remote session, otherwise `_readLoop()` may hang:
-        self.destroyWorkspace()
+        self.destroyModel()
         event.accept()
 
 
@@ -538,13 +538,13 @@ class InfoBoxGroup:
 
     def _modify(self, index, el_id):
         self.boxes[index].el_id = el_id
-        self.boxes[index].setWindowTitle(self.segment.elements[el_id]['name'])
+        self.boxes[index].setWindowTitle(self.model.elements[el_id]['name'])
 
     # utility methods
 
     @property
-    def segment(self):
-        return self.mainwindow.workspace.segment
+    def model(self):
+        return self.mainwindow.model
 
     def _on_close_box(self, box):
         el_id = box.el_id
@@ -557,16 +557,16 @@ class InfoBoxGroup:
 
     def create_info_box(self, el_id):
         from madqt.widget.elementinfo import ElementInfoBox
-        info = ElementInfoBox(self.segment, el_id)
+        info = ElementInfoBox(self.model, el_id)
         dock = Dialog(self.mainwindow)
         dock.setExportWidget(info, None)
-        dock.setWindowTitle("Element details: " + self.segment.elements[el_id]['name'])
+        dock.setWindowTitle("Element details: " + self.model.elements[el_id]['name'])
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
 
         dock.show()
         dock.raise_()
-        self.segment.workspace.destroyed.connect(dock.close)
+        self.model.destroyed.connect(dock.close)
 
         info.changed_element.connect(partial(self._changed_box_element, info))
         return info

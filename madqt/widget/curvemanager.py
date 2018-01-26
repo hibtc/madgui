@@ -75,7 +75,7 @@ class CurveManager(QtGui.QWidget):
         self.scene = scene
         self.available = scene.loaded_curves
         self.selected = scene.shown_curves
-        self.folder = scene.segment.workspace.repo.path
+        self.folder = scene.model.repo.path
         # UI
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.init_controls()
@@ -135,8 +135,8 @@ class CurveManager(QtGui.QWidget):
         from madqt.util.table import read_table, read_tfsfile
         if filename.lower().rsplit('.')[-1] not in ('tfs', 'twiss'):
             return read_table(filename)
-        segment = self.scene.segment
-        utool = segment.workspace.utool
+        model = self.scene.model
+        utool = model.utool
         table = read_tfsfile(filename)
         data = table.copy()
         # TODO: this should be properly encapsulated:
@@ -146,7 +146,7 @@ class CurveManager(QtGui.QWidget):
             try:
                 ex = table.summary['ex']
             except ValueError:
-                ex = utool.strip_unit('ex', segment.ex())
+                ex = utool.strip_unit('ex', model.ex())
             data['envx'] = (data['betx'] * ex) ** 0.5
         if 'sig33' in data:
             data['envy'] = data['sig33']**0.5
@@ -154,6 +154,6 @@ class CurveManager(QtGui.QWidget):
             try:
                 ey = table.summary['ey']
             except ValueError:
-                ey = utool.strip_unit('ey', segment.ey())
+                ey = utool.strip_unit('ey', model.ey())
             data['envy'] = (data['bety'] * ey) ** 0.5
         return utool.dict_add_unit(data)

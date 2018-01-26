@@ -13,14 +13,16 @@ import numpy as np
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
+from madqt.core.base import Cache
 from madqt.resource import yaml
 from madqt.core.unit import UnitConverter, from_config, isclose, number_types
 from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
 from madqt.resource.file import FileResource
+from madqt.resource.package import PackageResource
 from madqt.util.datastore import DataStore, SuperStore
 
 from madqt.engine.common import (
-    FloorCoords, ElementInfo, EngineBase, SegmentBase,
+    FloorCoords, ElementInfo, BaseModel,
     PlotInfo, CurveInfo, ElementList, ElementBase,
 )
 
@@ -34,12 +36,11 @@ from madqt.util.symbol import SymbolicValue
 
 __all__ = [
     'ElementInfo',
-    'Workspace',
-    'Segment',
+    'Model',
 ]
 
 
-class Workspace(EngineBase):
+class Model(BaseModel):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -47,7 +48,6 @@ class Workspace(EngineBase):
 
     :ivar Madx madx: CPyMAD interpreter
     :ivar dict data: loaded model data
-    :ivar Segment segment: active segment
     :ivar madqt.resource.ResourceProvider repo: resource provider
     :ivar utool: Unit conversion tool for MAD-X.
     """
@@ -57,13 +57,17 @@ class Workspace(EngineBase):
     backend = attribute_alias('madx')
 
     def __init__(self, filename, app_config, command_log):
+        super().__init__()
+        self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
         self.data = {}
-        self.segment = None
         self.repo = None
         self.init_files = []
         self.command_log = command_log
-        super().__init__(filename, app_config)
+        self.app_config = app_config
+        self.config = PackageResource('madqt.engine').yaml('madx.yml')
+        self.load(filename)
+        self.twiss.invalidate()
 
     @property
     def libmadx(self):
@@ -107,15 +111,14 @@ class Workspace(EngineBase):
 
     def model_data(self):
         """Return model data as dictionary."""
-        data = self.data.copy()
-        if self.segment:
-            data.update(self.segment.data)
-        data.update({
+        return dict(self.data, **{
             'api_version': self.API_VERSION,
             'init-files': self.init_files,
+            'sequence': self.seq_name,
+            'range': list(self.range),
+            'beam': self.beam,
+            'twiss': self.twiss_args,
         })
-        data['range'] = list(data['range'])
-        return data
 
     def load(self, filename):
         """Load model or plain MAD-X file."""
@@ -151,9 +154,8 @@ class Workspace(EngineBase):
         self.init_segment(data)
 
     def init_segment(self, data):
-        """Create a segment."""
-        self.segment = Segment(
-            workspace=self,
+        """Initialize model sequence/range."""
+        self._init_segment(
             sequence=data['sequence'],
             range=data['range'],
             beam=data['beam'],
@@ -253,17 +255,6 @@ class Workspace(EngineBase):
         }
         return (first, last), twiss
 
-
-class Segment(SegmentBase):
-
-    """
-    Simulate one fixed segment, i.e. sequence + range.
-
-    :ivar Madx madx:
-    :ivar list elements:
-    :ivar dict twiss_args:
-    """
-
     _columns = [
         'name', 'l', 'angle', 'k1l',
         's',
@@ -278,17 +269,13 @@ class Segment(SegmentBase):
         'sig61', 'sig62', 'sig63', 'sig64', 'sig65', 'sig66',
     ]
 
-    def __init__(self, workspace, sequence, range, beam, twiss_args):
+    def _init_segment(self, sequence, range, beam, twiss_args):
         """
-        :param Workspace workspace:
         :param str sequence:
         :param tuple range:
         """
 
-        super().__init__()
-
-        self.workspace = workspace
-        self.sequence = workspace.madx.sequences[sequence]
+        self.sequence = self.madx.sequences[sequence]
         self.seq_name = self.sequence.name
         self.continuous_matching = True
 
@@ -299,7 +286,7 @@ class Segment(SegmentBase):
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
-        make_element = partial(Element, self.workspace.madx, self.utool)
+        make_element = partial(Element, self.madx, self.utool)
         self.el_names = self.sequence.expanded_element_names()
         self.elements = ElementList(self.el_names, make_element)
         self.positions = self.sequence.expanded_element_positions()
@@ -309,10 +296,6 @@ class Segment(SegmentBase):
                       normalize_range_name(self.stop.name))
 
         self.cache = {}
-
-    @property
-    def madx(self):
-        return self.workspace.madx
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
@@ -335,7 +318,7 @@ class Segment(SegmentBase):
 
     # TODO…
     def _is_mutable_attribute(self, k, v):
-        blacklist = self.workspace.config['parameter_sets']['element']['readonly']
+        blacklist = self.config['parameter_sets']['element']['readonly']
         allowed_types = (list, number_types)
         return isinstance(v, allowed_types) and k.lower() not in blacklist
 
@@ -454,8 +437,6 @@ class Segment(SegmentBase):
         return self.madx.sectormap(names, **self._get_twiss_args())
 
     def survey(self):
-        # NOTE: SURVEY includes auto-generated DRIFTs, but segment.elements
-        # does not!
         table = self.madx.survey()
         array = np.array([table[key] for key in FloorCoords._fields])
         return [FloorCoords(*row) for row in array.T]
@@ -487,7 +468,7 @@ class Segment(SegmentBase):
 
     @cachedproperty
     def native_graph_data(self):
-        config = self.workspace.config
+        config = self.config
         styles = config['curve_style']
         return {
             info['name']: PlotInfo(
@@ -643,17 +624,17 @@ def process_spec(prespec, data):
 
 class MadxDataStore(DataStore):
 
-    def __init__(self, segment, name, **kw):
-        self.segment = segment
-        self.utool = segment.utool
+    def __init__(self, model, name, **kw):
+        self.model = model
+        self.utool = model.utool
         self.name = name
         self.label = name.title()
         self.data_key = name
         self.kw = kw
-        self.conf = segment.workspace.config['parameter_sets'][name]
+        self.conf = model.config['parameter_sets'][name]
 
     def _get(self):
-        return getattr(self.segment, self.name)
+        return getattr(self.model, self.name)
 
     def get(self):
         data = self._get()
@@ -664,7 +645,7 @@ class MadxDataStore(DataStore):
         ])
 
     def update(self, values):
-        return getattr(self.segment, 'update_'+self.name)(values, **self.kw)
+        return getattr(self.model, 'update_'+self.name)(values, **self.kw)
 
     # TODO: properly detect which items are mutable
     def mutable(self, key):
@@ -699,11 +680,11 @@ class Element(ElementBase):
 class ElementDataStore(MadxDataStore):
 
     def _get(self):
-        return self.segment.elements[self.kw['elem_index']]
+        return self.model.elements[self.kw['elem_index']]
 
     def mutable(self, key):
         key = key.lower()
-        return self.segment._is_mutable_attribute(key, self.data[key])
+        return self.model._is_mutable_attribute(key, self.data[key])
 
 
 # TODO: support expressions

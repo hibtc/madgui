@@ -9,9 +9,8 @@ import re
 
 import numpy as np
 
-from madqt.core.base import Object, Signal, Cache
+from madqt.core.base import Object, Signal
 from madqt.core.unit import from_config
-from madqt.resource.package import PackageResource
 from madqt.util.misc import cachedproperty
 
 
@@ -40,7 +39,7 @@ ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
-class EngineBase(Object):
+class BaseModel(Object):
 
     """
 
@@ -49,17 +48,10 @@ class EngineBase(Object):
         backend             backend object
         backend_libname     name of the binding.
         backend_title       ui title of the backend accelerator code.
-        segment
     """
 
     destroyed = Signal()
-
-    def __init__(self, filename, app_config):
-        super().__init__()
-        self.app_config = app_config
-        module = self.__class__.__module__.rsplit('.', 1)[-1]
-        self.config = PackageResource('madqt.engine').yaml(module + '.yml')
-        self.load(filename)
+    matcher = None
 
     def minrpc_flags(self):
         """Flags for launching the backend library in a remote process."""
@@ -68,12 +60,10 @@ class EngineBase(Object):
         return dict(lock=RLock(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def destroy(self):
-        """Annihilate current workspace. Stop interpreter."""
+        """Annihilate current model. Stop interpreter."""
         if self.rpc_client:
             self.rpc_client.close()
         self.backend = None
-        if self.segment is not None:
-            self.segment.destroy()
         self.destroyed.emit()
 
     @property
@@ -94,26 +84,6 @@ class EngineBase(Object):
             if len(data[name]) == 1 and name in data[name]:
                 data[name] = data[name][name]
 
-
-class SegmentBase(Object):
-
-    """
-    Models a continuous section of the machine. This is represented in MAD-X
-    as a `range` and in Bmad as a `branch`.
-    """
-
-    destroyed = Signal()
-    matcher = None
-
-    def __init__(self):
-        super().__init__()
-        self.twiss = Cache(self._retrack)
-        self.twiss.invalidate()
-
-    def destroy(self):
-        self.workspace.segment = None
-        self.destroyed.emit()
-
     def elements(self):
         raise NotImplementedError
 
@@ -125,19 +95,6 @@ class SegmentBase(Object):
 
     def get_element_index(self, elem):
         raise NotImplementedError
-
-    @property
-    def data(self):
-        return {
-            'sequence': self.sequence,
-            'range': self.range,
-            'beam': self.beam,
-            'twiss': self.twiss_args,
-        }
-
-    @property
-    def utool(self):
-        return self.workspace.utool
 
     def get_element_info(self, element):
         """Get :class:`ElementInfo` from element name or index."""
@@ -219,7 +176,7 @@ class SegmentBase(Object):
 
     @property
     def curve_style(self):
-        return self.workspace.config['curve_style']
+        return self.config['curve_style']
 
     @cachedproperty
     def builtin_graphs(self):
@@ -236,7 +193,7 @@ class SegmentBase(Object):
                         unit=from_config(curve['unit']))
                     for curve_index, curve in enumerate(info['curves'])
                 ])
-            for info in self.workspace.app_config['builtin_graphs']
+            for info in self.app_config['builtin_graphs']
         }
 
     @cachedproperty
@@ -302,7 +259,7 @@ class SegmentBase(Object):
         if self.matcher is None:
             # TODO: create MatchDialog
             from madqt.correct.match import Matcher
-            self.matcher = Matcher(self, self.workspace.app_config['matching'])
+            self.matcher = Matcher(self, self.app_config['matching'])
         return self.matcher
 
     @abstractmethod

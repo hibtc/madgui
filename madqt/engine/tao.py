@@ -30,6 +30,7 @@ from functools import partial
 
 from pytao.tao import Tao
 
+from madqt.core.base import Cache
 from madqt.core.unit import UnitConverter, from_config, strip_unit
 from madqt.util.defaultdict import DefaultDict
 from madqt.util.datastore import DataStore, SuperStore
@@ -37,9 +38,10 @@ from madqt.util.misc import (attribute_alias, sort_to_top, LazyList,
                              merged, translate_default)
 from madqt.util.enum import make_enum
 from madqt.resource.file import FileResource
+from madqt.resource.package import PackageResource
 
 from madqt.engine.common import (
-    FloorCoords, EngineBase, SegmentBase,
+    FloorCoords, BaseModel,
     PlotInfo, CurveInfo, ElementList, ElementBase,
 )
 
@@ -63,7 +65,7 @@ VALID_KNOBS = {
 }
 
 
-class Workspace(EngineBase):
+class Model(BaseModel):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -71,9 +73,10 @@ class Workspace(EngineBase):
 
     :ivar Tao tao: tao handle
     :ivar dict data: loaded model data
-    :ivar Segment segment: active segment
     :ivar madqt.resource.ResourceProvider repo: resource provider
     :ivar utool: Unit conversion tool for MAD-X.
+    :ivar list elements:
+    :ivar dict twiss_args:
     """
 
     backend_libname = 'pytao'
@@ -81,13 +84,17 @@ class Workspace(EngineBase):
     backend = attribute_alias('tao')
 
     def __init__(self, filename, app_config, command_log):
+        super().__init__()
+        self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
         self.data = {}
-        self.segment = None
         self.repo = None
         self.universe = 1
         self.command_log = command_log
-        super().__init__(filename, app_config)
+        self.app_config = app_config
+        self.config = PackageResource('madqt.engine').yaml('tao.yml')
+        self.load(filename)
+        self.twiss.invalidate()
 
     def load(self, filename):
         """Load model or plain tao file."""
@@ -136,11 +143,11 @@ class Workspace(EngineBase):
         self.tao._create_enum_value = self._create_enum_value
 
         self.tao.command('place * none')
-        # init segment
-        self.segment = Segment(self, self.data.get('sequence'))
+        # init model
+        self._init_segment(self.data.get('sequence'))
         twiss_args = self.data.get('twiss')
         if twiss_args:
-            self.segment.set_twiss_args_raw(twiss_args)
+            self.set_twiss_args_raw(twiss_args)
 
     def read(self, name):
         with self.repo.filename(name) as f:
@@ -155,36 +162,18 @@ class Workspace(EngineBase):
             self.enums[name] = make_enum(name, values)
         return self.enums[name](value)
 
+    def _init_segment(self, sequence):
 
-class Segment(SegmentBase):
-
-    """
-    Simulate one fixed segment, i.e. sequence + range.
-
-    :ivar Tao tao:
-    :ivar list elements:
-    :ivar dict twiss_args:
-    """
-
-    def __init__(self, workspace, sequence):
-        """
-        :param Workspace workspace:
-        :param str sequence:
-        """
-
-        super().__init__()
-
-        self.workspace = workspace
         self.continuous_matching = True
 
-        lat_general = self.tao.python('lat_general', workspace.universe)
+        lat_general = self.tao.python('lat_general', self.universe)
 
         self.sequence = sequence or lat_general[0][1]
         self.seq_name = self.sequence
         self.range = ('#s', '#e')
         self.branch = 0
 
-        make_element = partial(Element, self.workspace.tao, self.utool)
+        make_element = partial(Element, self.tao, self.utool)
         self.el_names = self.tao.get_list('lat_ele_list', self.unibra)
         self.elements = ElementList(self.el_names, make_element)
         self.positions = LazyList(len(self.el_names), self._get_element_pos)
@@ -195,14 +184,6 @@ class Segment(SegmentBase):
     def survey(self):
         return [FloorCoords(*self.tao.get_element_floor(index).flat)
                 for index in range(len(self.elements))]
-
-    @property
-    def tao(self):
-        return self.workspace.tao
-
-    @property
-    def config(self):
-        return self.workspace.config
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
@@ -311,7 +292,7 @@ class Segment(SegmentBase):
         return self.config['parameter_sets'][name]
 
     def _get_params(self, name):
-        kwargs = {'universe': self.workspace.universe, 'branch': self.branch}
+        kwargs = {'universe': self.universe, 'branch': self.branch}
         group = self._param_set('init')[name]
         return self.tao.properties(group['query'].format(**kwargs))
 
@@ -350,7 +331,7 @@ class Segment(SegmentBase):
     @property
     def unibra(self):
         """Tao string for univers@branch."""
-        return '{}@{}'.format(self.workspace.universe, self.branch)
+        return '{}@{}'.format(self.universe, self.branch)
 
     def ex(self):
         # FIXME: consider Bmad's beam_start as fallback
@@ -497,17 +478,17 @@ class Segment(SegmentBase):
 # TODO: dumb this down…
 class TaoDataStore(DataStore):
 
-    def __init__(self, segment, name, conf, **kw):
-        self.segment = segment
+    def __init__(self, model, name, conf, **kw):
+        self.model = model
         self.conf = conf
         self.label = name.title()
         self.data_key = name
         self.kw = kw
 
     def _update_params(self):
-        kwargs = dict(self.kw, universe=self.segment.workspace.universe,
-                      branch=self.segment.branch)
-        query = self.segment.tao.parameters
+        kwargs = dict(self.kw, universe=self.model.universe,
+                      branch=self.model.branch)
+        query = self.model.tao.parameters
         self.params = OrderedDict(
             (param.name.lower(), param)
             for param in query(self.conf['query'].format(**kwargs)).values()
@@ -515,7 +496,7 @@ class TaoDataStore(DataStore):
 
     def get(self):
         self._update_params()
-        return self.segment.utool.dict_add_unit(OrderedDict(
+        return self.model.utool.dict_add_unit(OrderedDict(
             (param.name.title(), param.value)
             for param in self.params.values()))
 
@@ -525,14 +506,14 @@ class TaoDataStore(DataStore):
         for key, val in values.items():
             key = key.lower()
             par = self.params.get(key)
-            val = self.segment.utool.strip_unit(key, val)
+            val = self.model.utool.strip_unit(key, val)
             if par is None or val is None or not par.vary or par.value == val:
                 continue
             command = self.conf['write'].format(key=key, val=val, **self.kw)
-            self.segment.tao.command(command)
+            self.model.tao.command(command)
             has_changed = True
         if has_changed:
-            self.segment.twiss.invalidate()
+            self.model.twiss.invalidate()
 
     def mutable(self, key):
         return self.params[key.lower()].vary
