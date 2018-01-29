@@ -7,30 +7,41 @@ from pkg_resources import resource_filename
 from madqt.qt import QtGui, uic
 from madqt.widget.tableview import ColumnInfo, ExtColumnInfo
 from madqt.correct.match import variable_from_knob, Constraint
+from madqt.util.enum import make_enum
 
 
-def get_constraint_elem(matcher, c, i):
-    return matcher.elem_enum(c.elem['name'] if c.elem else "(global)")
+def get_constraint_elem(widget, c, i):
+    return widget.elem_enum(c.elem['name'] if c.elem else "(global)")
 
-def set_constraint_elem(matcher, c, i, name):
+def set_constraint_elem(widget, c, i, name):
     if name is not None:
-        el = matcher.model.elements[str(name)]
-        matcher.constraints[i] = Constraint(el, el['at']+el['l'], c.axis, c.value)
+        el = widget.model.elements[str(name)]
+        widget.matcher.constraints[i] = \
+            Constraint(el, el['at']+el['l'], c.axis, c.value)
 
-def get_constraint_axis(matcher, c, i):
-    return matcher.lcon_enum(c.axis)
+def get_constraint_axis(widget, c, i):
+    return widget.lcon_enum(c.axis)
 
-def set_constraint_axis(matcher, c, i, axis):
+def set_constraint_axis(widget, c, i, axis):
     if axis is not None:
-        value = matcher.model.get_twiss(c.elem['name'], str(axis), c.pos)
-        matcher.constraints[i] = Constraint(c.elem, c.pos, str(axis), value)
+        value = widget.model.get_twiss(c.elem['name'], str(axis), c.pos)
+        widget.matcher.constraints[i] = \
+            Constraint(c.elem, c.pos, str(axis), value)
 
-def set_constraint_value(matcher, c, i, value):
+def set_constraint_value(widget, c, i, value):
     if value is not None:
-        matcher.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
+        widget.matcher.constraints[i] = \
+            Constraint(c.elem, c.pos, c.axis, value)
 
-def get_knob_display(matcher, v, i):
-    return format_knob(v.knob)
+def get_knob_display(widget, v, i):
+    return widget.knob_enum(format_knob(v.knob))
+
+def set_knob_display(widget, v, i, text):
+    if text is not None:
+        knob = parse_knob(widget.model, str(text))
+        if knob:
+            widget.matcher.variables[i] = \
+                variable_from_knob(widget.matcher, knob)
 
 def format_knob(knob):
     return (knob.elem and
@@ -61,7 +72,7 @@ class MatchWidget(QtGui.QWidget):
     ]
 
     variables_columns = [
-        ExtColumnInfo("Knob", get_knob_display,
+        ExtColumnInfo("Knob", get_knob_display, set_knob_display,
                       resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Initial", 'design'),
         ColumnInfo("Final", lambda v: v.value),
@@ -71,6 +82,13 @@ class MatchWidget(QtGui.QWidget):
         super().__init__()
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.matcher = matcher
+        self.model = model = matcher.model
+        local_constraints = ['envx', 'envy'] + model.config['matching']['element']
+        local_constraints = sorted(local_constraints)
+        knob_names = [format_knob(knob) for knob in matcher.knobs]
+        self.elem_enum = make_enum('Elem', model.el_names)
+        self.lcon_enum = make_enum('Local', local_constraints, strict=False)
+        self.knob_enum = make_enum('Knobs', knob_names, strict=False)
         self.init_controls()
         self.set_initial_values()
         self.connect_signals()
@@ -84,8 +102,8 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.ctab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.vtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.ctab.set_columns(self.constraints_columns, self.matcher.constraints, self.matcher)
-        self.vtab.set_columns(self.variables_columns, self.matcher.variables, self.matcher)
+        self.ctab.set_columns(self.constraints_columns, self.matcher.constraints, self)
+        self.vtab.set_columns(self.variables_columns, self.matcher.variables, self)
 
     def set_initial_values(self):
         self.check_mirror.setChecked(self.matcher.mirror_mode)
@@ -134,11 +152,11 @@ class MatchWidget(QtGui.QWidget):
             self.matcher.apply()
 
     def add_constraint(self):
-        el   = self.matcher.elem_enum._values[0]
-        elem = self.matcher.model.elements[el]
-        axis = self.matcher.lcon_enum._values[0]  # TODO: -> curve.y_name?
+        el   = self.elem_enum._values[0]
+        elem = self.model.elements[el]
+        axis = self.lcon_enum._values[0]  # TODO: -> curve.y_name?
         pos  = elem.AT + elem.L
-        value = self.matcher.model.get_twiss(el, axis, pos)
+        value = self.model.get_twiss(el, axis, pos)
         self.matcher.constraints.append(Constraint(
             elem, pos, axis, value))
 
@@ -146,7 +164,7 @@ class MatchWidget(QtGui.QWidget):
         text, ok = QtGui.QInputDialog.getText(
             self.window(), "Add new variable", "Knob:")
         if ok and text:
-            knob = parse_knob(self.matcher.model, text)
+            knob = parse_knob(self.model, text)
             if knob:
                 self.matcher.variables.append(
                     variable_from_knob(self.matcher, knob))

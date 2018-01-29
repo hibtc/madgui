@@ -6,7 +6,6 @@ from collections import namedtuple
 
 from madqt.core.base import Object, Signal
 from madqt.util.collections import List
-from madqt.util.enum import make_enum
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
@@ -46,10 +45,6 @@ class Matcher(Object):
         self.variables = List()
         self.variables.update_after.connect(self._on_update_variables)
         self.design_values = {}
-        local_constraints = ['envx', 'envy'] + model.config['matching']['element']
-        local_constraints = sorted(local_constraints)
-        self.elem_enum = make_enum('Elem', model.el_names)
-        self.lcon_enum = make_enum('Local', local_constraints, strict=False)
         self.mirror_mode = model.app_config['matching'].get('mirror', False)
 
     def match(self):
