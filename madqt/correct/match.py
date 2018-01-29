@@ -75,6 +75,9 @@ class Matcher(Object):
         self.revert()
         self.finished.emit()
 
+    def next_best_variable(self):
+        return variable_from_knob(self, self.knobs[0])
+
     def detect_variables(self):
         """
         Fill :ivar:`variables` to the same length as :ivar:`constraints`.

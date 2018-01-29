@@ -67,15 +67,19 @@ class MatchWidget(QtGui.QWidget):
     constraints_columns = [
         ExtColumnInfo("Element", get_constraint_elem, set_constraint_elem,
                       resize=QtGui.QHeaderView.Stretch),
-        ExtColumnInfo("Name", get_constraint_axis, set_constraint_axis),
-        ExtColumnInfo("Target", 'value', set_constraint_value),
+        ExtColumnInfo("Name", get_constraint_axis, set_constraint_axis,
+                      resize=QtGui.QHeaderView.ResizeToContents),
+        ExtColumnInfo("Target", 'value', set_constraint_value,
+                      resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     variables_columns = [
         ExtColumnInfo("Knob", get_knob_display, set_knob_display,
                       resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Initial", 'design'),
-        ColumnInfo("Final", lambda v: v.value),
+        ColumnInfo("Initial", 'design',
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Final", lambda v: v.value,
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, matcher):
@@ -134,9 +138,13 @@ class MatchWidget(QtGui.QWidget):
 
     def on_update_constraints(self, *args):
         self.button_clear_constraint.setEnabled(bool(self.matcher.constraints))
+        self.ctab.resizeColumnToContents(1)
+        self.ctab.resizeColumnToContents(2)
 
     def on_update_variables(self, *args):
         self.button_clear_variable.setEnabled(bool(self.matcher.variables))
+        self.vtab.resizeColumnToContents(1)
+        self.vtab.resizeColumnToContents(2)
 
     def accept(self):
         self.matcher.accept()
@@ -161,13 +169,8 @@ class MatchWidget(QtGui.QWidget):
             elem, pos, axis, value))
 
     def add_variable(self):
-        text, ok = QtGui.QInputDialog.getText(
-            self.window(), "Add new variable", "Knob:")
-        if ok and text:
-            knob = parse_knob(self.model, text)
-            if knob:
-                self.matcher.variables.append(
-                    variable_from_knob(self.matcher, knob))
+        self.matcher.variables.append(
+            self.matcher.next_best_variable())
 
     def on_change_mirror(self, checked):
         # TODO: add/remove mirrored constraints (if untouched by the user)?
