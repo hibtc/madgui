@@ -311,8 +311,8 @@ class ElementBase(Mapping):
     INVALIDATE_PARAM = 1
     INVALIDATE_ALL   = 2
 
-    def __init__(self, engine, utool, idx, name):
-        self._engine = engine
+    def __init__(self, model, utool, idx, name):
+        self._model = model
         self._utool = utool
         self._idx = idx
         self._name = name.lower()

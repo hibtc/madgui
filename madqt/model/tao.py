@@ -40,7 +40,7 @@ from madqt.util.enum import make_enum
 from madqt.resource.file import FileResource
 from madqt.resource.package import PackageResource
 
-from madqt.engine.common import (
+from madqt.model.common import (
     FloorCoords, BaseModel,
     PlotInfo, CurveInfo, ElementList, ElementBase,
 )
@@ -92,7 +92,7 @@ class Model(BaseModel):
         self.universe = 1
         self.command_log = command_log
         self.app_config = app_config
-        self.config = PackageResource('madqt.engine').yaml('tao.yml')
+        self.config = PackageResource('madqt.model').yaml('tao.yml')
         self.load(filename)
         self.twiss.invalidate()
 
@@ -546,7 +546,7 @@ class Element(ElementBase):
         self._merged.update(self._multip or {})
 
     def _retrieve(self, name):
-        get_element_data, idx = self._engine.get_element_data, self._idx
+        get_element_data, idx = self._model.get_element_data, self._idx
         if self._general is None and name not in self._merged:
             self._general = get_element_data(idx, who='general')
             self._general['name']  = self._general['name'].lower()

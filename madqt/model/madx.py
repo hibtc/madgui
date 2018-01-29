@@ -21,7 +21,7 @@ from madqt.resource.file import FileResource
 from madqt.resource.package import PackageResource
 from madqt.util.datastore import DataStore, SuperStore
 
-from madqt.engine.common import (
+from madqt.model.common import (
     FloorCoords, ElementInfo, BaseModel,
     PlotInfo, CurveInfo, ElementList, ElementBase,
 )
@@ -65,7 +65,7 @@ class Model(BaseModel):
         self.init_files = []
         self.command_log = command_log
         self.app_config = app_config
-        self.config = PackageResource('madqt.engine').yaml('madx.yml')
+        self.config = PackageResource('madqt.model').yaml('madx.yml')
         self.load(filename)
         self.twiss.invalidate()
 
@@ -666,7 +666,7 @@ class Element(ElementBase):
 
     def _retrieve(self, name):
         if len(self._merged) == 2 and name not in self._merged:
-            data = self._engine.active_sequence.expanded_elements[self._idx]
+            data = self._model.active_sequence.expanded_elements[self._idx]
             self._merged.update(sort_to_top(data, [
                 'Name',
                 'Type',
