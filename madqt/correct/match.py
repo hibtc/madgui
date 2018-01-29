@@ -10,40 +10,21 @@ from madqt.util.enum import make_enum
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
-Variable = namedtuple('Variable', ['elem', 'pos', 'attr', 'expr', 'value', 'design'])
+Variable = namedtuple('Variable', ['knob', 'pos', 'expr', 'value', 'design'])
 
 
-def defined(value):
-    """Check if attribute of an element was defined."""
-    try:
-        return hasattr(value, '_expression') or float(value) != 0
-    except (ValueError, TypeError):
-        return False
-
-
-
-def variable_from_knob(matcher, expr):
-    if '->' in expr:
-        name, attr = expr.split('->')
-        elem = matcher.model.elements[name]
-        expr = _get_elem_attr_expr(elem, attr)
-        pos = elem['at'] + elem['l']
-    else:
-        # TODO: lookup element by variable, if any
-        elem = None
-        attr = None
-        pos = None
-    # TODO: generalize for tao
-    value = matcher.model.read_param(expr)
-    design = matcher.design_values.setdefault(expr, value)
-    return Variable(elem, pos, attr, expr, value, design)
+def variable_from_knob(matcher, knob):
+    elem = knob.elem
+    pos = elem and elem['at'] + elem['l']
+    value = knob.read()
+    design = matcher.design_values.setdefault(knob.param, value)
+    return Variable(knob, pos, knob.param, value, design)
 
 
 def variable_update(matcher, variable):
-    value = matcher.model.read_param(variable.expr)
+    value = variable.knob.read()
     design = matcher.design_values[variable.expr]
-    return Variable(variable.elem, variable.pos, variable.attr, variable.expr,
-                    value, design)
+    return Variable(variable.knob, variable.pos, variable.expr, value, design)
 
 
 class Matcher(Object):
@@ -60,6 +41,7 @@ class Matcher(Object):
         super().__init__()
         self.model = model
         self.rules = rules
+        self.knobs = model.get_knobs()
         self.constraints = List()
         self.variables = List()
         self.variables.update_after.connect(self._on_update_variables)
@@ -140,38 +122,30 @@ class Matcher(Object):
 
         :returns: list of :class:`Variable`.
         """
-        elem_types = self.rules['rules'].get(axis, ())
-        param_spec = self.rules['parameters']
+        elem_types = self.rules.get(axis, ())
         return [
-            variable_from_knob(self, elem['name']+'->'+attr)
-            for elem in self.model.elements
-            if elem['type'].lower() in elem_types
-            for attr in self._get_match_attrs(
-                    elem, param_spec[elem['type'].lower()])
+            variable_from_knob(self, knob)
+            for knob in self.knobs
+            if knob.elem['type'].lower() in elem_types
         ]
-
-    def _get_match_attrs(self, elem, attrs):
-        defd = [attr for attr in attrs if defined(elem.get(attr))]
-        return defd or attrs[:1]
-
 
     # Set value back to factory defaults
 
     def _on_update_variables(self, indices, old_values, new_values):
 
-        old = {v.expr: v.design for v in old_values}
-        new = {v.expr: v.value  for v in new_values}
+        old = {v.expr: (v.knob, v.design) for v in old_values}
+        new = {v.expr: (v.knob, v.value)  for v in new_values}
 
         # On removal, revert unapplied variables to design settings:
         # TODO: this should be handled on the level of the model, see #17.
         # TODO: set many values in one go
-        for knob, value in old.items():
-            if knob not in new:
-                self.model.write_param(knob, value)
+        for expr, (knob, value) in old.items():
+            if expr not in new:
+                knob.write(value)
 
         # Set new variable values into the model:
-        for knob, value in new.items():
-            self.model.write_param(knob, value)
+        for knob, value in new.values():
+            knob.write(value)
 
 
 class MatchTransform:
@@ -188,12 +162,3 @@ class MatchTransform:
 
     def __getattr__(self, name):
         return lambda val: (name, val)
-
-
-def _get_elem_attr_expr(elem, attr):
-    try:
-        return elem[attr]._expression
-    except KeyError:
-        return None
-    except AttributeError:
-        return elem['name'] + '->' + attr

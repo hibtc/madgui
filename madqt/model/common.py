@@ -279,10 +279,13 @@ class BaseModel(Object):
         return [
             knob
             for elem in self.elements
-            for attr in self.ELEM_KNOBS.get(elem['type'].lower(), ())
+            for attr in self._get_attrs(elem)
             for knob in [self.get_knob(elem, attr)]
             if knob
         ]
+
+    def _get_attrs(self, elem):
+        return self.ELEM_KNOBS.get(elem['type'].lower(), ())
 
     @abstractmethod
     def get_knob(self, element, attr):

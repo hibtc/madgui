@@ -580,6 +580,12 @@ class Model(BaseModel):
             'posy': self.get_twiss_column('y')[index],
         }
 
+    def _get_attrs(self, elem):
+        attrs = super()._get_attrs(elem)
+        defd = [attr for attr in attrs if _is_property_defined(elem, attr)]
+        return defd or attrs[:1]
+
+
     def get_knob(self, elem, attr):
         try:
             expr = _get_property_lval(elem, attr)
@@ -726,3 +732,12 @@ def _get_property_lval(elem, attr):
         if is_identifier(name):
             return name
         return elem['name'] + '->' + attr
+
+
+def _is_property_defined(elem, attr):
+    """Check if attribute of an element was defined."""
+    try:
+        value = elem.get(attr)
+        return hasattr(value, '_expression') or float(value) != 0
+    except (ValueError, TypeError, IndexError):
+        return False

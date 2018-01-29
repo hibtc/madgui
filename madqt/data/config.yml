@@ -76,31 +76,22 @@ builtin_graphs:
 # Select which element paramters can be varied when matching a TWISS function:
 matching:
   # TODO: fill in more rules
-  rules:
-    betx:     [quadrupole]
-    bety:     [quadrupole]
-    alfx:     [quadrupole]
-    alfy:     [quadrupole]
-    sig11:    [quadrupole]
-    sig33:    [quadrupole]
-    x:        [quadrupole]
-    y:        [quadrupole]
+  betx:     [quadrupole]
+  bety:     [quadrupole]
+  alfx:     [quadrupole]
+  alfy:     [quadrupole]
+  sig11:    [quadrupole]
+  sig33:    [quadrupole]
+  x:        [quadrupole,sbend,kicker,hkicker]
+  y:        [quadrupole,sbend,kicker,vkicker]
+  px:       [quadrupole,sbend,kicker,hkicker]
+  py:       [quadrupole,sbend,kicker,vkicker]
 
-    # TODO: look up using a *common name* rather than defining for tao
-    # separately:
-    alpha.a:  [quadrupole]
-    alpha.b:  [quadrupole]
-    beta.a:   [quadrupole]
-    beta.b:   [quadrupole]
-    orbit.x:  [quadrupole]
-    orbit.y:  [quadrupole]
-
-  # Which parameters should be varied on these elements:
-  parameters:
-    sbend:      [angle]
-    kicker:     [hkick, vkick]
-    hkicker:    [kick]
-    vkicker:    [kick]
-    quadrupole: [k1, k1s]
-    multipole:  [knl]
-    solenoid:   [ks]
+  # TODO: look up using a *common name* rather than defining for tao
+  # separately:
+  alpha.a:  [quadrupole]
+  alpha.b:  [quadrupole]
+  beta.a:   [quadrupole]
+  beta.b:   [quadrupole]
+  orbit.x:  [quadrupole]
+  orbit.y:  [quadrupole]

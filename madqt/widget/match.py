@@ -9,7 +9,6 @@ from madqt.widget.tableview import ColumnInfo, ExtColumnInfo
 from madqt.correct.match import variable_from_knob, Constraint
 
 
-
 def get_constraint_elem(matcher, c, i):
     return matcher.elem_enum(c.elem['name'] if c.elem else "(global)")
 
@@ -30,6 +29,25 @@ def set_constraint_value(matcher, c, i, value):
     if value is not None:
         matcher.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
+def get_knob_display(matcher, v, i):
+    return format_knob(v.knob)
+
+def format_knob(knob):
+    return (knob.elem and
+            "{}: {}".format(knob.elem['name'], knob.attr) or
+            knob.param)
+
+def parse_knob(model, text):
+    if ':' in text:
+        elem, attr = text.split(':')
+    elif '->' in text:
+        elem, attr = text.split('->')
+    else:
+        return None     # TODO
+    elem = elem.strip()
+    attr = attr.strip()
+    return model.get_knob(model.elements[elem], attr)
+
 
 class MatchWidget(QtGui.QWidget):
 
@@ -43,9 +61,8 @@ class MatchWidget(QtGui.QWidget):
     ]
 
     variables_columns = [
-        ColumnInfo("Element", lambda v: v.elem['name'] if v.elem else "",
-                   resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Expression", 'expr'),
+        ExtColumnInfo("Knob", get_knob_display,
+                      resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Initial", 'design'),
         ColumnInfo("Final", lambda v: v.value),
     ]
@@ -129,8 +146,10 @@ class MatchWidget(QtGui.QWidget):
         text, ok = QtGui.QInputDialog.getText(
             self.window(), "Add new variable", "Knob:")
         if ok and text:
-            self.matcher.variables.append(
-                variable_from_knob(self.matcher, text))
+            knob = parse_knob(self.matcher.model, text)
+            if knob:
+                self.matcher.variables.append(
+                    variable_from_knob(self.matcher, knob))
 
     def on_change_mirror(self, checked):
         # TODO: add/remove mirrored constraints (if untouched by the user)?
