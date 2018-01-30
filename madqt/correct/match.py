@@ -92,26 +92,17 @@ class Matcher(Object):
         # Copy all needed variable lists (for later modification):
         axes = {c.axis for c in constraints}
         axes = {axis: self._allvars(axis)[:] for axis in axes}
-        for v in variables:
-            self._rmvar(axes, v)
         for c in sorted(constraints, key=lambda c: c.pos):
             # Stop as soon as we have enough variables:
             if len(variables) >= len(constraints):
                 break
             try:
                 # TODO: just bisect this…
-                var = next(v for v in reversed(axes[c.axis]) if v.pos < c.pos)
+                var = next(v for v in reversed(axes[c.axis])
+                           if v.pos < c.pos and v not in variables)
                 variables.append(var)
-                self._rmvar(axes, var)
             except StopIteration:
                 # No variable in range found! Ok?
-                pass
-
-    def _rmvar(self, axes, var):
-        for l in axes.values():
-            try:
-                l.remove(var)
-            except ValueError:
                 pass
 
     def _allvars(self, axis):
