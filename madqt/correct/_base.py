@@ -239,7 +239,6 @@ class OrbitCorrectorBase:
         for mknob, value in self.backup_strengths:
             mknob.write(value)
         self.model.twiss_args = self.backup_twiss_args
-        print(self.backup_twiss_args)
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
         strip_unit = self.utool.strip_unit
