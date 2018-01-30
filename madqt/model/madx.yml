@@ -170,6 +170,9 @@ parameter_sets:
       l:     0,
       ksl:   [],
       knl:   [],
+      k1:    0,
+      angle: 0,
+      kick:  0,
     ]
 
 

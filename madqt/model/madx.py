@@ -680,6 +680,9 @@ class Element(ElementBase):
                 'L',
                 'Ksl',
                 'Knl',
+                'K1',
+                'Angle',
+                'Kick',
             ]))
 
 
