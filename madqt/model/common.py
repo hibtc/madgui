@@ -260,6 +260,31 @@ class BaseModel(Object):
             self.matcher = Matcher(self, self.app_config['matching'])
         return self.matcher
 
+    ELEM_KNOBS = {
+        'sbend':        ['angle'],
+        'quadrupole':   ['k1', 'k1s'],
+        'hkicker':      ['kick'],
+        'vkicker':      ['kick'],
+        'kicker':       ['hkick', 'vkick'],
+        'solenoid':     ['ks'],
+        'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]',
+                         'ksl[0]', 'ksl[1]', 'ksl[2]', 'ksl[3]'],
+        'srotation':    ['angle'],
+    }
+
+    def get_knobs(self):
+        """Get list of knobs."""
+        return [
+            knob
+            for elem in self.elements
+            for attr in self._get_attrs(elem)
+            for knob in [self.get_knob(elem, attr)]
+            if knob
+        ]
+
+    def _get_attrs(self, elem):
+        return self.ELEM_KNOBS.get(elem['type'].lower(), ())
+
     @abstractmethod
     def get_knob(self, element, attr):
         """Return a :class:`Knob` belonging to the given attribute."""
@@ -287,8 +312,8 @@ class ElementBase(Mapping):
     INVALIDATE_PARAM = 1
     INVALIDATE_ALL   = 2
 
-    def __init__(self, engine, utool, idx, name):
-        self._engine = engine
+    def __init__(self, model, utool, idx, name):
+        self._model = model
         self._utool = utool
         self._idx = idx
         self._name = name.lower()

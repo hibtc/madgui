@@ -21,7 +21,7 @@ from madqt.resource.file import FileResource
 from madqt.resource.package import PackageResource
 from madqt.util.datastore import DataStore, SuperStore
 
-from madqt.engine.common import (
+from madqt.model.common import (
     FloorCoords, ElementInfo, BaseModel,
     PlotInfo, CurveInfo, ElementList, ElementBase,
 )
@@ -65,7 +65,7 @@ class Model(BaseModel):
         self.init_files = []
         self.command_log = command_log
         self.app_config = app_config
-        self.config = PackageResource('madqt.engine').yaml('madx.yml')
+        self.config = PackageResource('madqt.model').yaml('madx.yml')
         self.load(filename)
         self.twiss.invalidate()
 
@@ -580,6 +580,12 @@ class Model(BaseModel):
             'posy': self.get_twiss_column('y')[index],
         }
 
+    def _get_attrs(self, elem):
+        attrs = super()._get_attrs(elem)
+        defd = [attr for attr in attrs if _is_property_defined(elem, attr)]
+        return defd or attrs[:1]
+
+
     def get_knob(self, elem, attr):
         try:
             expr = _get_property_lval(elem, attr)
@@ -666,7 +672,7 @@ class Element(ElementBase):
 
     def _retrieve(self, name):
         if len(self._merged) == 2 and name not in self._merged:
-            data = self._engine.active_sequence.expanded_elements[self._idx]
+            data = self._model.active_sequence.expanded_elements[self._idx]
             self._merged.update(sort_to_top(data, [
                 'Name',
                 'Type',
@@ -726,3 +732,12 @@ def _get_property_lval(elem, attr):
         if is_identifier(name):
             return name
         return elem['name'] + '->' + attr
+
+
+def _is_property_defined(elem, attr):
+    """Check if attribute of an element was defined."""
+    try:
+        value = elem.get(attr)
+        return hasattr(value, '_expression') or float(value) != 0
+    except (ValueError, TypeError, IndexError):
+        return False

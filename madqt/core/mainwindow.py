@@ -345,12 +345,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
-        engine_exts = {
-            'madqt.engine.madx': ('.cpymad.yml', '.madx', '.str', '.seq'),
-            'madqt.engine.tao': ('.pytao.yml', '.bmad', '.lat', '.init'),
+        model_exts = {
+            'madqt.model.madx': ('.cpymad.yml', '.madx', '.str', '.seq'),
+            'madqt.model.tao': ('.pytao.yml', '.bmad', '.lat', '.init'),
         }
 
-        for modname, exts in engine_exts.items():
+        for modname, exts in model_exts.items():
             if any(map(filename.endswith, exts)):
                 module = __import__(modname, None, None, '*')
                 Model = module.Model
