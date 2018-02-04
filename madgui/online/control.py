@@ -2,6 +2,8 @@
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
 
+# TODO: steerer corrections should be in DVM units
+
 from functools import partial
 
 from pkg_resources import iter_entry_points
@@ -230,18 +232,30 @@ class Control(Object):
         dialog.show()
         return dialog
 
-    def on_correct_optic_variation_method(self):
-        import madgui.correct.optic_variation as module
-        varyconf = self._model.data.get('optic_variation', {})
-        self._correct(module, varyconf)
-
     def on_correct_multi_grid_method(self):
         import madgui.correct.multi_grid as module
-        varyconf = self._model.data.get('multi_grid', {})
-        self._correct(module, varyconf)
-
-    def _correct(self, module, varyconf):
         from madgui.widget.dialog import Dialog
+
+        varyconf = self._model.data.get('multi_grid', {})
+        selected = next(iter(varyconf.values()))  # FIXME!!
+
+        monitors = selected['monitor']
+        steerers = selected['x_steerer'] + selected['y_steerer']
+        targets  = selected['target']
+
+        self.read_all()
+
+        method = module.Corrector(self, monitors, targets, steerers)
+
+        widget = module.CorrectorWidget(method)
+        dialog = Dialog(self._frame)
+        dialog.setWidget(widget, tight=True)
+        dialog.show()
+
+    def on_correct_optic_variation_method(self):
+        import madgui.correct.optic_variation as module
+        from madgui.widget.dialog import Dialog
+        varyconf = self._model.data.get('optic_variation', {})
 
         self.read_all()
         # TODO: open an orbit plot if none is present

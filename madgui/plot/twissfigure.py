@@ -94,7 +94,7 @@ class TwissFigure(Object):
         self.x_unit = from_config(config['x_unit'])
         self.element_style = config['element_style']
         # slots
-        self.model.twiss.updated.connect(self.update)
+        self.model.twiss.updated.connect(self.update, Qt.QueuedConnection)
 
     def attach(self, plot):
         self.plot = plot
@@ -103,7 +103,10 @@ class TwissFigure(Object):
         plot.addTool(MatchTool(plot))
         plot.addTool(CompareTool(plot, self.shown_curves))
 
+    graph_name = None
     def set_graph(self, graph_name):
+        if graph_name == self.graph_name:
+            return
         self.graph_name = graph_name
         self.relayout()
         self.graph_changed.emit()
