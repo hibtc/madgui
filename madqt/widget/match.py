@@ -11,20 +11,20 @@ from madqt.util.enum import make_enum
 
 
 def get_constraint_elem(widget, c, i):
-    return widget.elem_enum(c.elem['name'] if c.elem else "(global)")
+    return widget.elem_enum(c.elem.Name if c.elem else "(global)")
 
 def set_constraint_elem(widget, c, i, name):
     if name is not None:
         el = widget.model.elements[str(name)]
         widget.matcher.constraints[i] = \
-            Constraint(el, el['at']+el['l'], c.axis, c.value)
+            Constraint(el, el.At+el.L, c.axis, c.value)
 
 def get_constraint_axis(widget, c, i):
     return widget.lcon_enum(c.axis)
 
 def set_constraint_axis(widget, c, i, axis):
     if axis is not None:
-        value = widget.model.get_twiss(c.elem['name'], str(axis), c.pos)
+        value = widget.model.get_twiss(c.elem.Name, str(axis), c.pos)
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, str(axis), value)
 
@@ -45,7 +45,7 @@ def set_knob_display(widget, v, i, text):
 
 def format_knob(knob):
     return (knob.elem and
-            "{}: {}".format(knob.elem['name'], knob.attr) or
+            "{}: {}".format(knob.elem.Name, knob.attr) or
             knob.param)
 
 def parse_knob(model, text):

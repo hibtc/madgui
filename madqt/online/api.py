@@ -102,7 +102,7 @@ class Knob:
     def __init__(self, plug, elem, attr, param, unit):
         self.plug = plug
         self.elem = elem
-        self.el_name = elem['name'].lower()
+        self.el_name = elem.Name.lower()
         self.attr = attr.lower()
         self.param = param
         self.unit = unit
@@ -132,8 +132,8 @@ class Knob:
 
 
 CONVERTERS = {
-    ('k1', 'kl'): lambda knob, val: val * knob.elem['l'],
-    ('kl', 'k1'): lambda knob, val: val / knob.elem['l'],
+    ('k1', 'kl'): lambda knob, val: val * knob.elem.L,
+    ('kl', 'k1'): lambda knob, val: val / knob.elem.L,
     ('angle', 'gantry'): lambda knob, val: -val + 90*units.degree,
     ('gantry', 'angle'): lambda knob, val: -val + 90*units.degree,
 }

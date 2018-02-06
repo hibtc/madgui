@@ -360,7 +360,7 @@ class Model(BaseModel):
         # - proper mutability detection
         # - update only changed values
         elem = self.elements[elem_index]
-        name = elem['name']
+        name = elem.Name
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
@@ -533,16 +533,16 @@ class Model(BaseModel):
         # NOTE: need list instead of set, because quantity is unhashable:
         elem_positions = defaultdict(list)
         for elem, pos, axis, val in constraints:
-            if pos not in elem_positions[elem['name']]:
-                elem_positions[elem['name']].append(pos)
+            if pos not in elem_positions[elem.Name]:
+                elem_positions[elem.Name].append(pos)
         elem_positions = {name: sorted(positions)
                           for name, positions in elem_positions.items()}
 
         # activate matching at specified positions
         self.madx.command.select(flag='interpolate', clear=True)
         for name, positions in elem_positions.items():
-            at = self.elements[name]['at']
-            l = self.elements[name]['l']
+            at = self.elements[name].At
+            l = self.elements[name].L
             if any(not isclose(p, at+l) for p in positions):
                 x = [float((p-at)/l) for p in positions]
                 self.madx.command.select(
@@ -550,8 +550,8 @@ class Model(BaseModel):
 
         # create constraints list to be passed to Madx.match
         madx_constraints = [
-            {'range': elem['name'],
-             'iindex': elem_positions[elem['name']].index(pos),
+            {'range': elem.Name,
+             'iindex': elem_positions[elem.Name].index(pos),
              axis: self.utool.strip_unit(axis, val)}
             for elem, pos, axis, val in constraints]
 
@@ -734,7 +734,7 @@ def _get_property_lval(elem, attr):
         name = _get_identifier(expr)
         if is_identifier(name):
             return name
-        return elem['name'] + '->' + attr
+        return elem.Name + '->' + attr
 
 
 def _is_property_defined(elem, attr):

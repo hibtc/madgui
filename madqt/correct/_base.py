@@ -247,11 +247,11 @@ class OrbitCorrectorBase:
 
 
 def _is_steerer(el):
-    return el['type'] == 'sbend' \
-        or el['type'].endswith('kicker') \
-        or el['type'] == 'multipole' and (
-            el['knl'][0] != 0 or
-            el['ksl'][0] != 0)
+    return el.Type == 'sbend' \
+        or el.Type.endswith('kicker') \
+        or el.Type == 'multipole' and (
+            el.Knl[0] != 0 or
+            el.Ksl[0] != 0)
 
 
 def display_name(name):
@@ -259,7 +259,7 @@ def display_name(name):
 
 
 def el_names(elems):
-    return [display_name(el['name']) for el in elems]
+    return [display_name(el.Name) for el in elems]
 
 
 def set_text(ctrl, text):

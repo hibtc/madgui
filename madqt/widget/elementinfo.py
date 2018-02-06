@@ -27,7 +27,7 @@ class ElementInfoBox(QtGui.QWidget):
 
         # navigation
         self.select = QtGui.QComboBox()
-        self.select.addItems([elem['name'] for elem in model.elements])
+        self.select.addItems([elem.Name for elem in model.elements])
         self.select.currentIndexChanged.connect(self.set_element)
 
         button_left = QtGui.QPushButton("<")
@@ -52,7 +52,7 @@ class ElementInfoBox(QtGui.QWidget):
         elements  = self.model.elements
         old_index = self.model.get_element_index(self.el_id)
         new_index = old_index + step
-        new_el_id = elements[new_index % len(elements)]['el_id']
+        new_el_id = elements[new_index % len(elements)].El_id
         self.el_id = new_el_id
 
     @property

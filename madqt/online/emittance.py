@@ -70,10 +70,10 @@ class EmittanceDialog(QtGui.QDialog):
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.control = control
 
-        self.monitor_list = [el['name']
+        self.monitor_list = [el.Name
                              for el in control._model.elements
-                             if el['type'].lower().endswith('monitor')
-                             or el['type'].lower() == 'instrument']
+                             if el.Type.lower().endswith('monitor')
+                             or el.Type.lower() == 'instrument']
         self.monitor_enum = make_enum('Monitor', self.monitor_list)
         self.monitors = List()
         self.results = List()

@@ -56,7 +56,7 @@ class SelectWidget(OVM_SelectWidget):
         """Set valid elements and default choices."""
         self.config = config if config else {}
         self.elements = elements
-        self.elem_mon = [el for el in elements if el['type'].endswith('monitor')]
+        self.elem_mon = [el for el in elements if el.Type.endswith('monitor')]
         self.elem_tgt = self.elem_mon
         self.elem_dip = [el for el in elements if _is_steerer(el)]
         self.choice_monitor.addItems(el_names(self.elem_tgt))

@@ -203,10 +203,10 @@ class Control(Object):
         from madqt.online.dialogs import MonitorWidget, MonitorItem
 
         # TODO: cache list of used SD monitors
-        rows = [MonitorItem(el['name'], self.read_monitor(el['name']))
+        rows = [MonitorItem(el.Name, self.read_monitor(el.Name))
                 for el in self._model.elements
-                if el['type'].lower().endswith('monitor')
-                or el['type'].lower() == 'instrument']
+                if el.Type.lower().endswith('monitor')
+                or el.Type.lower() == 'instrument']
         if not rows:
             QtGui.QMessageBox.critical(
                 self._frame,

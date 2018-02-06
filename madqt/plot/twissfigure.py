@@ -182,7 +182,7 @@ class TwissFigure(Object):
                  coord_fmt(y, get_raw_label(curve.y_unit))]
         elem = self.model.get_element_by_position(x * curve.x_unit)
         if elem and 'name' in elem:
-            name = strip_suffix(elem['name'], '[0]')
+            name = strip_suffix(elem.Name, '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
 
@@ -342,9 +342,9 @@ class ElementIndicators(SimpleArtist):
 
     def make_element_indicator(self, elem, style):
         x_unit = self.scene.x_unit
-        at = strip_unit(elem['at'], x_unit)
-        if strip_unit(elem['l']) != 0:
-            patch_w = strip_unit(elem['l'], x_unit)
+        at = strip_unit(elem.At, x_unit)
+        if strip_unit(elem.L) != 0:
+            patch_w = strip_unit(elem.L, x_unit)
             return self.axes.axvspan(at, at + patch_w, **style)
         else:
             return self.axes.axvline(at, **style)
@@ -353,12 +353,12 @@ class ElementIndicators(SimpleArtist):
         """Return the element type name used for properties like coloring."""
         if 'type' not in elem or 'at' not in elem:
             return None
-        type_name = elem['type'].lower()
+        type_name = elem.Type.lower()
         focussing = None
         if type_name == 'quadrupole':
-            focussing = strip_unit(elem['k1']) > 0
+            focussing = strip_unit(elem.K1) > 0
         elif type_name == 'sbend':
-            focussing = strip_unit(elem['angle']) > 0
+            focussing = strip_unit(elem.Angle) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
@@ -502,7 +502,7 @@ class MatchTool(CaptureTool):
             # TODO: should do this only once for each yname!
             constraints.extend([
                 Constraint(elem, pos, c.y_name,
-                        self.model.get_twiss(elem['name'], c.y_name, pos))
+                        self.model.get_twiss(elem.Name, c.y_name, pos))
                 for c in curves
                 if c.y_name != name
             ])
@@ -523,7 +523,7 @@ class MatchTool(CaptureTool):
     def removeConstraint(self, elem, axis):
         """Remove the constraint for elem."""
         indexes = [i for i, c in enumerate(self.matcher.constraints)
-                   if c.elem['el_id'] == elem['el_id'] and c.axis == axis]
+                   if c.elem.El_id == elem.El_id and c.axis == axis]
         for i in indexes[::-1]:
             del self.matcher.constraints[i]
         # NOTE: we should probably only delete "automatic" variables, but for
@@ -586,7 +586,7 @@ class InfoTool(CaptureTool):
 
         if event.elem is None:
             return
-        el_id = event.elem['el_id']
+        el_id = event.elem.El_id
 
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
@@ -621,7 +621,7 @@ class InfoTool(CaptureTool):
         old_el_id = selected[top]
         old_index = self.model.get_element_index(old_el_id)
         new_index = old_index + move_step
-        new_el_id = self.model.elements[new_index % len(elements)]['el_id']
+        new_el_id = self.model.elements[new_index % len(elements)].El_id
         selected[top] = new_el_id
 
 
@@ -629,7 +629,7 @@ def draw_selection_marker(axes, scene, el_idx):
     """In-figure markers for active/selected elements."""
     style = scene.config['select_style']
     element = scene.model.elements[el_idx]
-    at = strip_unit(element['at'], scene.x_unit)
+    at = strip_unit(element.At, scene.x_unit)
     return [axes.axvline(at, **style)]
 
 

@@ -225,7 +225,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
 
     @property
     def el_id(self):
-        return self.element['el_id']
+        return self.element.El_id
 
     def itemChange(self, change, value):
         if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
@@ -293,11 +293,11 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
 
 
 def getElementColor(element, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(element['type'].upper(), default))
+    return QtGui.QColor(ELEMENT_COLOR.get(element.Type.upper(), default))
 
 
 def getElementWidth(element, default=0.2):
-    return ELEMENT_WIDTH.get(element['type'].upper(), default)
+    return ELEMENT_WIDTH.get(element.Type.upper(), default)
 
 
 def createPen(style=Qt.SolidLine, color='black', width=1):

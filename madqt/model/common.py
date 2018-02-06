@@ -132,7 +132,7 @@ class BaseModel(Object):
         if i0 == 0:
             return None
         elem = self.elements[i0-1]
-        at, L = elem['at'], elem['l']
+        at, L = elem.At, elem.L
         if pos < at or pos > at+L:
             return None
         return elem
@@ -142,14 +142,14 @@ class BaseModel(Object):
 
     def el_pos(self, el):
         """Position for matching / output."""
-        return el['at'] + el['l']
+        return el.At + el.L
 
     continuous_matching = False
 
     def adjust_match_pos(self, el, pos):
         if not self.continuous_matching:
             return self.el_pos(el)
-        at, l = el['at'], el['l']
+        at, l = el.At, el.L
         if pos <= at:   return at
         if pos >= at+l: return at+l
         return pos
@@ -166,7 +166,7 @@ class BaseModel(Object):
         return True
 
     def set_element_attribute(self, elem, attr, value):
-        elem = self.elements[elem]['el_id']
+        elem = self.elements[elem].El_id
         self.get_elem_ds(elem).substores['attributes'].update({
             attr: value,
         })
@@ -283,7 +283,7 @@ class BaseModel(Object):
         ]
 
     def _get_attrs(self, elem):
-        return self.ELEM_KNOBS.get(elem['type'].lower(), ())
+        return self.ELEM_KNOBS.get(elem.Type.lower(), ())
 
     @abstractmethod
     def get_knob(self, element, attr):
@@ -382,8 +382,8 @@ class ElementList(Sequence):
             for elem in self._elems:
                 elem.invalidate()
             beg, end = self[0], self[-1]
-            self.min_x = beg['at']
-            self.max_x = end['at'] + end['l']
+            self.min_x = beg.At
+            self.max_x = end.At + end.L
         else:
             index = self.index(elem)
             self._elems[index].invalidate()
@@ -451,11 +451,11 @@ class ElementList(Sequence):
     def _get_by_dict(self, elem):
         if 'el_id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
-        index = elem['el_id']
+        index = elem.El_id
         data = self._get_by_index(index)
-        if elem['name'] != data['name']:
+        if elem.Name != data.Name:
             raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(data['name'], elem['name']))
+                             .format(data.Name, elem.Name))
         return data
 
     def _get_by_name(self, name):
@@ -470,10 +470,10 @@ class ElementList(Sequence):
     def _index_by_dict(self, elem):
         if 'el_id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
-        index = elem['el_id']
-        if elem['name'].lower() != self._el_names[index].lower():
+        index = elem.El_id
+        if elem.Name.lower() != self._el_names[index].lower():
             raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(self._el_names[index], elem['name']))
+                             .format(self._el_names[index], elem.Name))
         return index
 
     def _index_by_name(self, name):

@@ -406,7 +406,7 @@ class Model(BaseModel):
             elif dtype == 'sig33':
                 dtype = 'beta.b'
                 value = value / self.utool.strip_unit('b_emit', self.ey())
-            elem = c.elem['name']
+            elem = c.elem.Name
             data_d1 = '{}.1[{}]'.format(data_d2, i+1)
             tao.set('data', **{data_d1+'|merit_type': 'target'})
             tao.set('data', **{data_d1+'|weight': 1})
@@ -415,7 +415,7 @@ class Model(BaseModel):
             tao.set('data', **{data_d1+'|meas': value})
             tao.set('data', **{data_d1+'|ele_name': elem})
             if c.pos != self.el_pos(c.elem):
-                pos = self.utool.strip_unit("s", c.pos - c.elem['at'])
+                pos = self.utool.strip_unit("s", c.pos - c.elem.At)
                 tao.set('data', **{data_d1+'|eval_point': 'beginning'})
                 tao.set('data', **{data_d1+'|s_offset': pos})
 
@@ -457,7 +457,7 @@ class Model(BaseModel):
     def get_knob(self, elem, attr):
         if attr in elem:
             return api.Knob(
-                self, elem, attr, elem['name']+'->'+attr,
+                self, elem, attr, elem.Name+'->'+attr,
                 self.utool._units.get(attr))
 
     def read_param(self, param):
@@ -471,7 +471,7 @@ class Model(BaseModel):
         elem, attr = param.split('->')
         # TODO: translate attribute names
         # TODO: update cache
-        el_id = self.elements[elem]['el_id']
+        el_id = self.elements[elem].El_id
         self.get_elem_ds(el_id).substores['parameters'].update({attr: value})
 
 

@@ -538,7 +538,7 @@ class InfoBoxGroup:
 
     def _modify(self, index, el_id):
         self.boxes[index].el_id = el_id
-        self.boxes[index].setWindowTitle(self.model.elements[el_id]['name'])
+        self.boxes[index].setWindowTitle(self.model.elements[el_id].Name)
 
     # utility methods
 
@@ -560,7 +560,7 @@ class InfoBoxGroup:
         info = ElementInfoBox(self.model, el_id)
         dock = Dialog(self.mainwindow)
         dock.setExportWidget(info, None)
-        dock.setWindowTitle("Element details: " + self.model.elements[el_id]['name'])
+        dock.setWindowTitle("Element details: " + self.model.elements[el_id].Name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
 
