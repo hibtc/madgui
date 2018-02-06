@@ -95,15 +95,11 @@ class CurveManager(QtGui.QWidget):
     def connect_signals(self):
         self.btn_save.clicked.connect(self.on_btn_save)
         self.btn_load.clicked.connect(self.on_btn_load)
-        self.btn_remove.clicked.connect(self.tab.removeSelectedRows)
-        self.tab.selectionChangedSignal.connect(self.update_btn_remove)
+        self.tab.connectButtons(self.btn_remove)
 
     @property
     def data(self):
         return self.tab.rows
-
-    def update_btn_remove(self):
-        self.btn_remove.setEnabled(bool(self.tab.selectedIndexes()))
 
     def on_btn_save(self):
         data = {

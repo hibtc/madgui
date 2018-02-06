@@ -113,12 +113,12 @@ class MatchWidget(QtGui.QWidget):
         self.check_mirror.setChecked(self.matcher.mirror_mode)
 
     def connect_signals(self):
-        self.ctab.selectionChangedSignal.connect(self.selection_changed_constraints)
-        self.vtab.selectionChangedSignal.connect(self.selection_changed_variables)
-        self.button_remove_constraint.clicked.connect(self.ctab.removeSelectedRows)
-        self.button_remove_variable.clicked.connect(self.vtab.removeSelectedRows)
-        self.button_clear_constraint.clicked.connect(self.matcher.constraints.clear)
-        self.button_clear_variable.clicked.connect(self.matcher.variables.clear)
+        self.ctab.connectButtons(
+            self.button_remove_constraint,
+            self.button_clear_constraint)
+        self.vtab.connectButtons(
+            self.button_remove_variable,
+            self.button_clear_variable)
         self.button_add_constraint.clicked.connect(self.add_constraint)
         self.button_add_variable.clicked.connect(self.add_variable)
         self.matcher.constraints.update_after.connect(self.on_update_constraints)
@@ -130,19 +130,11 @@ class MatchWidget(QtGui.QWidget):
         self.check_mirror.clicked.connect(self.on_change_mirror)
         # TODO: connect self.matcher.finished?
 
-    def selection_changed_constraints(self):
-        self.button_remove_constraint.setEnabled(bool(self.ctab.selectedIndexes()))
-
-    def selection_changed_variables(self):
-        self.button_remove_variable.setEnabled(bool(self.vtab.selectedIndexes()))
-
     def on_update_constraints(self, *args):
-        self.button_clear_constraint.setEnabled(bool(self.matcher.constraints))
         self.ctab.resizeColumnToContents(1)
         self.ctab.resizeColumnToContents(2)
 
     def on_update_variables(self, *args):
-        self.button_clear_variable.setEnabled(bool(self.matcher.variables))
         self.vtab.resizeColumnToContents(1)
         self.vtab.resizeColumnToContents(2)
 

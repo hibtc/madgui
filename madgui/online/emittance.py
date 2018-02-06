@@ -99,12 +99,10 @@ class EmittanceDialog(QtGui.QDialog):
 
     def connect_signals(self):
         # update UI
-        self.mtab.selectionChangedSignal.connect(self.selection_changed_monitor)
+        self.mtab.connectButtons(self.button_remove_monitor, self.button_clear_monitor)
         self.monitors.update_after.connect(self.on_monitor_changed)
         # TODO: update UI: ok/export buttons
         # monitor actions
-        self.button_remove_monitor.clicked.connect(self.mtab.removeSelectedRows)
-        self.button_clear_monitor.clicked.connect(self.monitors.clear)
         self.button_add_monitor.clicked.connect(self.add_monitor)
         self.button_update_monitor.clicked.connect(self.update_monitor)
         # result actions
@@ -115,11 +113,7 @@ class EmittanceDialog(QtGui.QDialog):
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)
 
-    def selection_changed_monitor(self):
-        self.button_remove_monitor.setEnabled(bool(self.mtab.selectedIndexes()))
-
     def on_monitor_changed(self):
-        self.button_clear_monitor.setEnabled(bool(self.monitors))
         self.button_update_monitor.setEnabled(bool(self.monitors))
         self.match_values()
 

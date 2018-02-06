@@ -251,6 +251,19 @@ class TableView(QtGui.QTableView):
             #self.model().beginRemoveRows(self.rootIndex(), row, row)
             #self.model().endRemoveRows()
 
+    def connectButtons(self, remove, clear=None):
+        if remove:
+            update = lambda: remove.setEnabled(bool(self.selectedIndexes()))
+            remove.clicked.connect(self.removeSelectedRows)
+            self.selectionChangedSignal.connect(update)
+            update()
+        if clear:
+            update = lambda: clear.setEnabled(bool(self.rows))
+            clear.clicked.connect(self.rows.clear)
+            self.selectionChangedSignal.connect(update)
+            self.rows.update_after.connect(update)
+            update()
+
     def _columnContentWidth(self, column):
         return max(self.sizeHintForColumn(column),
                    self.horizontalHeader().sectionSizeHint(column))
