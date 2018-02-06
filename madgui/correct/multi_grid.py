@@ -30,13 +30,6 @@ class MonitorReadout:
         self.y = orbit['posy']
 
 
-class ParameterInfo:
-
-    def __init__(self, param, value):
-        self.name = param
-        self.value = value
-
-
 class Corrector(Matcher):
 
     """
@@ -193,7 +186,6 @@ def set_constraint_value(widget, c, i, value):
 
 class CorrectorWidget(QtGui.QWidget):
 
-    initial_particle_orbit = None
     steerer_corrections = None
 
     ui_file = 'mgm_dialog.ui'
@@ -210,11 +202,6 @@ class CorrectorWidget(QtGui.QWidget):
         ColumnInfo("Param", 'axis', resize=QtGui.QHeaderView.ResizeToContents),
         ExtColumnInfo("Value", 'value', set_constraint_value,
                       resize=QtGui.QHeaderView.ResizeToContents),
-    ]
-
-    fit_columns = [
-        ColumnInfo("Param", 'name', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Value", 'value', resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     steerer_columns = [
@@ -242,30 +229,6 @@ class CorrectorWidget(QtGui.QWidget):
     def hideEvent(self, event):
         self.shown = True
 
-    def _update_fit_table(self, initial_particle_orbit, beaminit_rows):
-        self.initial_particle_orbit = initial_particle_orbit
-        self.corrector.fit_results[:] = beaminit_rows
-        self.fit_tab.resizeColumnToContents(0)
-        self.update_corrections()
-
-    def update_corrections(self):
-        init = self.initial_particle_orbit
-
-        if init is None or not self.corrector.variables:
-            self.steerer_corrections = None
-            self.execute_corrections.setEnabled(False)
-            return
-        self.steerer_corrections = \
-            self.corrector.compute_steerer_corrections(init)
-        self.execute_corrections.setEnabled(True)
-        # update table view
-        self.corrector.variables[:] = [
-            variable_update(self.corrector, v) for v in self.corrector.variables]
-        self.var_tab.resizeColumnToContents(0)
-
-        # TODO: make 'optimal'-column in var_tab editable and update
-        #       self.execute_corrections.setEnabled according to its values
-
     def on_execute_corrections(self):
         """Apply calculated corrections."""
         self.corrector.restore()
@@ -278,7 +241,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.model.twiss.invalidate()
 
     def init_controls(self):
-        for tab in (self.mon_tab, self.con_tab, self.var_tab, self.fit_tab):
+        for tab in (self.mon_tab, self.con_tab, self.var_tab):
             tab.horizontalHeader().setHighlightSections(False)
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -286,7 +249,6 @@ class CorrectorWidget(QtGui.QWidget):
         self.mon_tab.set_columns(self.readout_columns, corr.readouts, self)
         self.var_tab.set_columns(self.steerer_columns, corr.variables, self)
         self.con_tab.set_columns(self.constraint_columns, corr.constraints, self)
-        self.fit_tab.set_columns(self.fit_columns, corr.fit_results, self)
 
     def set_initial_values(self):
         self.update_fit_button.setFocus()
@@ -298,26 +260,26 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
-        if len(self.corrector.readouts) < 2:
-            self._update_fit_table(None, [])
-            return
-        self.corrector.control.read_all()
-        self.corrector.model.twiss_args = self.corrector.backup_twiss_args
+        twiss_init = None
+        if len(self.corrector.readouts) >= 2:
+            self.corrector.control.read_all()
+            self.corrector.model.twiss_args = self.corrector.backup_twiss_args
+            init_orbit, chi_squared, singular = \
+                self.corrector.fit_particle_orbit()
+            if not singular:
+                twiss_init = init_orbit
 
-        init_orbit, chi_squared, singular = \
-            self.corrector.fit_particle_orbit()
-        if singular:
-            self._update_fit_table(None, [
-                ParameterInfo("", "SINGULAR MATRIX")])
+        if twiss_init is None or not self.corrector.variables:
+            self.steerer_corrections = None
+            self.execute_corrections.setEnabled(False)
             return
-        x = tounit(init_orbit['x'], 1*units.mm)
-        y = tounit(init_orbit['y'], 1*units.mm)
-        px = init_orbit['px']
-        py = init_orbit['py']
-        self._update_fit_table(init_orbit, [
-            #ParameterInfo("red χ²", chi_squared),
-            ParameterInfo('x', x),
-            ParameterInfo('y', y),
-            ParameterInfo('px/p₀', px),
-            ParameterInfo('py/p₀', py),
-        ])
+        self.steerer_corrections = \
+            self.corrector.compute_steerer_corrections(twiss_init)
+        self.execute_corrections.setEnabled(True)
+        # update table view
+        self.corrector.variables[:] = [
+            variable_update(self.corrector, v) for v in self.corrector.variables]
+        self.var_tab.resizeColumnToContents(0)
+
+        # TODO: make 'optimal'-column in var_tab editable and update
+        #       self.execute_corrections.setEnabled according to its values

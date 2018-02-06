@@ -14,56 +14,6 @@
    <string>Optic variation method (orbit flattening)</string>
   </property>
   <layout class="QGridLayout" columnstretch="1,1">
-   <item row="1" column="0">
-    <widget class="QGroupBox">
-     <property name="title">
-      <string>Fit for beam initial conditions</string>
-     </property>
-     <layout class="QVBoxLayout">
-      <item>
-       <widget class="TableView" name="fit_tab">
-        <property name="focusPolicy">
-         <enum>Qt::ClickFocus</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout">
-        <item>
-         <widget class="QPushButton" name="update_fit_button">
-          <property name="text">
-           <string>Fit</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QGroupBox">
-     <property name="title">
-      <string>Calculated steerer corrections</string>
-     </property>
-     <layout class="QVBoxLayout">
-      <item>
-       <widget class="TableView" name="var_tab">
-        <property name="focusPolicy">
-         <enum>Qt::ClickFocus</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="execute_corrections">
-        <property name="text">
-         <string>Apply steerer corrections</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="0" column="0">
     <widget class="QGroupBox">
      <property name="title">
@@ -84,6 +34,40 @@
      <layout class="QVBoxLayout">
       <item>
        <widget class="TableView" name="con_tab"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Calculated steerer corrections</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="TableView" name="var_tab">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout">
+        <item>
+         <widget class="QPushButton" name="update_fit_button">
+          <property name="text">
+           <string>Update</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="execute_corrections">
+          <property name="text">
+           <string>Upload</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
