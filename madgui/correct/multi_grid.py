@@ -155,6 +155,7 @@ class Corrector(Matcher):
         self.model.madx.match(
             sequence=self.model.sequence.name,
             vary=match_names,
+            method=('jacobian', {}),
             weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
             constraints=constraints,
             twiss_init=self.utool.dict_strip_unit(init_twiss))
