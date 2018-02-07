@@ -87,7 +87,7 @@ class MatchWidget(QtGui.QWidget):
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.matcher = matcher
         self.model = model = matcher.model
-        local_constraints = ['envx', 'envy'] + model.config['matching']['element']
+        local_constraints = ['envx', 'envy'] + model.config['constraints']
         local_constraints = sorted(local_constraints)
         knob_names = [format_knob(knob) for knob in matcher.knobs]
         self.elem_enum = make_enum('Elem', model.el_names)

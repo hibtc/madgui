@@ -103,3 +103,183 @@ matching:
   y:        [quadrupole,sbend,kicker,vkicker]
   px:       [quadrupole,sbend,kicker,hkicker]
   py:       [quadrupole,sbend,kicker,vkicker]
+
+
+madx_units:
+  l:        m
+  lrad:     m
+  at:       m
+  s:        m
+  x:        m
+  y:        m
+  betx:     m
+  bety:     m
+  angle:    rad
+  k1:       m^-2
+  k1s:      m^-2
+  k1l:      m^-2
+  ex:       m
+  ey:       m
+  tilt:     rad
+  hgap:     m
+  h:        rad/m
+  fint:     1
+  fintx:    1
+  e1:       rad
+  e2:       rad
+  ks:       1/m
+
+  energy:   MeV
+  charge:   e
+  mass:     GeV/c^2
+
+  # TODO: use general formula m^-N ?
+  knl:      [rad, m^-1, m^-2, m^-3, m^-4]
+  ksl:      [rad, m^-1, m^-2, m^-3, m^-4]
+
+  # used in online database:
+  kl:       m^-1
+
+  # TODO: THIS IS INCORRECT
+  kick:     rad
+
+  posx:     m
+  posy:     m
+  envx:     m
+  envy:     m
+
+
+parameter_sets:
+  twiss_args:
+    title: TWISS initial conditions
+    data_key: twiss
+    params: [
+      # TODO:
+      # - exclude more parameters (for most of these parameters, I actually
+      #   don't know whether it makes sense to include them here)
+      # - for excluded parameters show info string
+      # - dynamically determine better default values
+      betx: 0,    bety: 0,
+      alfx: 0,    alfy: 0,
+      mux:  0,    muy:  0,
+      x:    0,    y:    0,
+      t:    0,
+      pt:   0,
+      px:   0,    py:   0,
+      dpx:  0,    dpy:  0,
+      wx:   0,    wy:   0,
+      phix: 0,    phiy: 0,
+      dmux: 0,    dmuy: 0,
+      ddx:  0,    ddy:  0,
+      ddpx: 0,    ddpy: 0,
+      r:      [[0, 0],
+               [0, 0]],
+      energy: 0,
+      chrom:  True,
+      file:   "",
+      save:   "",
+      table:  "twiss",
+      beta0:  "",
+      re:     [[1, 0, 0, 0, 0, 0],
+               [0, 1, 0, 0, 0, 0],
+               [0, 0, 1, 0, 0, 0],
+               [0, 0, 0, 1, 0, 0],
+               [0, 0, 0, 0, 1, 0],
+               [0, 0, 0, 0, 0, 1]],
+      centre:       True,
+      ripken:       True,
+      sectormap:    True,
+      sectortable:  "",
+      sectorfile:   "sectormap",
+      rmatrix:      True,
+    # sequence:     "",         # line/sequence is passed by madqt
+    # line:         "",         # line/sequence is passed by madqt
+    # range:        "",         # range is passed by madqt
+      useorbit:     "",
+      keeporbit:    "",
+      tolerance:    0,
+      deltap:       "",
+    # notable:      True,       # madqt always needs table
+    ]
+
+  beam:
+    title: Beam settings
+    data_key: beam
+    params: [
+      particle: "positron",
+    # sequence: "",             # line/sequence is passed by madqt
+      bunched:  True,
+      radiate:  True,
+      mass:     1,      # TODO: default is actually 'emass'
+      charge:   1,
+      energy:   1,
+      pc:       0,
+      gamma:    0,
+      ex:       1,      ey:     1,
+      exn:      0,      eyn:    0,
+      et:       1,
+      sigt:     0,
+      sige:     0,
+      kbunch:   1,
+      npart:    1,
+      bcurrent: 0,
+      freg0:    0,
+      circ:     0,
+      dtbyds:   0,
+      deltap:   0,
+      beta:     0,
+      alfa:     0,
+      u0:       0,
+      qs:       0,
+      arad:     0,
+      bv:       1,
+    # pdamp:    [1, 1, 2],
+      n1min:    -1,
+    ]
+
+  element:
+    title: Element attributes
+    data_key: element
+    readonly: [at, l, s, el_id]
+    params: [
+      name:  "",
+      type:  "",
+      at:    0,
+      l:     0,
+      ksl:   [],
+      knl:   [],
+      k1:    0,
+      angle: 0,
+      kick:  0,
+    ]
+
+constraints: [
+  betx, alfx, mux,
+  bety, alfy, muy,
+  x, px,
+  y, py,
+  t, pt,
+  dx, dpx,
+  dy, dpy,
+  wx, phix, dmux,
+  wy, phiy, dmuy,
+  ddx, ddpx,
+  ddy, ddpy,
+  r11, r12,
+  r21, r22,
+  energy,
+  mvar1, mvar2,
+  mvar3, mvar4,
+  re11, re12, re13, re14, re15, re16,
+  re21, re22, re23, re24, re25, re26,
+  re31, re32, re33, re34, re35, re36,
+  re41, re42, re43, re44, re45, re46,
+  re51, re52, re53, re54, re55, re56,
+  re61, re62, re63, re64, re65, re66,
+  alfa,
+  beta11, alfa11, mu1,
+  beta22, alfa22, mu2,
+  beta33, alfa33, mu3,
+  disp1, disp2, disp3, disp4,
+  beta0,
+]

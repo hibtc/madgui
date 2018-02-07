@@ -75,7 +75,7 @@ class Model(Object):
     destroyed = Signal()
     matcher = None
 
-    def __init__(self, filename, app_config, command_log):
+    def __init__(self, filename, config, command_log):
         super().__init__()
         self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
@@ -83,8 +83,7 @@ class Model(Object):
         self.repo = None
         self.init_files = []
         self.command_log = command_log
-        self.app_config = app_config
-        self.config = PackageResource('madqt.model').yaml('madx.yml')
+        self.config = config
         self.load(filename)
         self.twiss.invalidate()
 
@@ -195,13 +194,13 @@ class Model(Object):
 
     @property
     def curve_style(self):
-        return self.app_config['line_view']['curve_style']
+        return self.config['line_view']['curve_style']
 
     def get_matcher(self):
         if self.matcher is None:
             # TODO: create MatchDialog
             from madqt.correct.match import Matcher
-            self.matcher = Matcher(self, self.app_config['matching'])
+            self.matcher = Matcher(self, self.config['matching'])
         return self.matcher
 
     ELEM_KNOBS = {
@@ -279,7 +278,7 @@ class Model(Object):
 
     def load(self, filename):
         """Load model or plain MAD-X file."""
-        self.utool = UnitConverter.from_config_dict(self.config['units'])
+        self.utool = UnitConverter.from_config_dict(self.config['madx_units'])
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         self.repo = FileResource(path)
@@ -626,8 +625,8 @@ class Model(Object):
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
 
-        styles = self.app_config['line_view']['curve_style']
-        conf = self.app_config['graphs'][name]
+        styles = self.config['line_view']['curve_style']
+        conf = self.config['graphs'][name]
         info = PlotInfo(
             name=name,
             title=conf['title'],
@@ -652,7 +651,7 @@ class Model(Object):
     def get_graphs(self):
         """Get a list of graph names."""
         return {name: info['title']
-                for name, info in self.app_config['graphs'].items()}
+                for name, info in self.config['graphs'].items()}
 
     def _retrack(self):
         """Recalculate TWISS parameters."""
