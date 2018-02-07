@@ -62,6 +62,7 @@ def main():
             'madqt.widget',
         ],
         install_requires=[
+            'cpymad>=0.18.2',
             'docopt',           # command line parsing
             'matplotlib',
             'numpy',
@@ -75,10 +76,6 @@ def main():
             'minrpc>=0.0.6',    # listed here in order to be able to enforce
                                 # stricter requirements than cpymad
         ],
-        # Make sure to always have at least one of these installed:
-        extras_require={
-            'madx': ['cpymad>=0.18.2'],
-        },
         entry_points="""
             [gui_scripts]
             madqt = madqt.core.app:main
