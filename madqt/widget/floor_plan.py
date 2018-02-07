@@ -13,7 +13,7 @@ from math import cos, sin, sqrt, pi
 import numpy as np
 
 from madqt.qt import Qt, QtCore, QtGui
-from madqt.model.madx import FloorCoords
+from madqt.core.model import FloorCoords
 
 __all__ = [
     'LatticeFloorPlan',

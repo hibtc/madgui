@@ -332,19 +332,11 @@ class MainWindow(QtGui.QMainWindow):
 
     def loadFile(self, filename):
         """Load the specified model and show plot inside the main window."""
-        model_exts = {
-            'madqt.model.madx': ('.cpymad.yml', '.madx', '.str', '.seq'),
-        }
-
-        for modname, exts in model_exts.items():
-            if any(map(filename.endswith, exts)):
-                module = __import__(modname, None, None, '*')
-                Model = module.Model
-                break
-        else:
+        exts = ('.cpymad.yml', '.madx', '.str', '.seq')
+        if not any(map(filename.endswith, exts)):
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
-
+        from madqt.core.model import Model
         self.destroyModel()
         filename = os.path.abspath(filename)
         self.folder, name = os.path.split(filename)

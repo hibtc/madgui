@@ -54,7 +54,6 @@ def main():
             'madqt.core',
             'madqt.correct',
             'madqt.data',
-            'madqt.model',
             'madqt.online',
             'madqt.plot',
             'madqt.resource',
