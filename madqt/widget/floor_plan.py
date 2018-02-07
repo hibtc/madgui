@@ -1,5 +1,5 @@
 """
-Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
+Components to draw a 2D floor plan of a given MAD-X lattice.
 """
 
 # TODO: improve display of vertically oriented elements

@@ -73,12 +73,11 @@ def main():
             'qtconsole',
             # 'PyQt5',
             'minrpc>=0.0.6',    # listed here in order to be able to enforce
-                                # stricter requirements than cpymad/pytao
+                                # stricter requirements than cpymad
         ],
         # Make sure to always have at least one of these installed:
         extras_require={
             'madx': ['cpymad>=0.18.2'],
-            'bmad': ['pytao>=0.0.1'],
         },
         entry_points="""
             [gui_scripts]

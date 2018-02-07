@@ -167,10 +167,6 @@ class MainWindow(QtGui.QMainWindow):
                 Item('About MAD-&X', None,
                      'About the included MAD-X backend.',
                      self.helpAboutMadX.create),
-                try_import('pytao') and
-                Item('About &pytao', None,
-                     'About the pytao python binding to Bmad/tao.',
-                     self.helpAboutPytao.create),
                 Item('About Q&t', None,
                      'About Qt.',
                      self.helpAboutQt),
@@ -205,9 +201,8 @@ class MainWindow(QtGui.QMainWindow):
     def fileOpen(self):
         from madqt.widget.filedialog import getOpenFileName
         filters = [
-            ("Model files", "*.cpymad.yml", "*.pytao.yml"),
+            ("Model files", "*.cpymad.yml"),
             ("MAD-X files", "*.madx", "*.str", "*.seq"),
-            ("Bmad lattice", "*.bmad", "*.lat", "*.init"),
             ("All files", "*"),
         ]
         filename = getOpenFileName(
@@ -307,12 +302,6 @@ class MainWindow(QtGui.QMainWindow):
         import cpymad.madx
         return self._showAboutDialog(cpymad.madx.metadata)
 
-    @SingleWindow.factory
-    def helpAboutPytao(self):
-        """Show about dialog."""
-        import pytao
-        return self._showAboutDialog(pytao)
-
     def helpAboutQt(self):
         QtGui.QMessageBox.aboutQt(self)
 
@@ -327,14 +316,12 @@ class MainWindow(QtGui.QMainWindow):
     # Update state
     #----------------------------------------
 
-    known_extensions = ['.cpymad.yml', '.pytao.yml',
-                        '.init', '.lat', '.madx', '.bmad']
+    known_extensions = ['.cpymad.yml', '.init', '.lat', '.madx']
 
     def searchFile(self, path):
         for path in [path, os.path.join(self.folder or '.', path)]:
             if os.path.isdir(path):
                 models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
-                          glob.glob(os.path.join(path, '*.pytao.yml')) +
                           glob.glob(os.path.join(path, '*.init')))
                 if models:
                     path = models[0]
@@ -347,7 +334,6 @@ class MainWindow(QtGui.QMainWindow):
         """Load the specified model and show plot inside the main window."""
         model_exts = {
             'madqt.model.madx': ('.cpymad.yml', '.madx', '.str', '.seq'),
-            'madqt.model.tao': ('.pytao.yml', '.bmad', '.lat', '.init'),
         }
 
         for modname, exts in model_exts.items():

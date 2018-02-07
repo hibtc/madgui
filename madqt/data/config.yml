@@ -86,12 +86,3 @@ matching:
   y:        [quadrupole,sbend,kicker,vkicker]
   px:       [quadrupole,sbend,kicker,hkicker]
   py:       [quadrupole,sbend,kicker,vkicker]
-
-  # TODO: look up using a *common name* rather than defining for tao
-  # separately:
-  alpha.a:  [quadrupole]
-  alpha.b:  [quadrupole]
-  beta.a:   [quadrupole]
-  beta.b:   [quadrupole]
-  orbit.x:  [quadrupole]
-  orbit.y:  [quadrupole]
