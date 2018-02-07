@@ -14,7 +14,6 @@ from madqt.util.qt import notifyCloseEvent, present
 __all__ = [
     'safe_hasattr',
     'suppress',
-    'attribute_alias',
     'memoize',
     'cachedproperty',
     'update_property',
@@ -56,15 +55,6 @@ def suppress(exc, fun, *args, **kwargs):
 
 
 # class utils
-
-def attribute_alias(alias):
-    """Declare alias for an instance variable / attribute."""
-    return property(
-        lambda self:        getattr(self, alias),
-        lambda self, value: setattr(self, alias, value),
-        lambda self:        delattr(self, alias),
-        "Alias for '{}'".format(alias))
-
 
 def memoize(func):
     key = '_' + func.__name__
