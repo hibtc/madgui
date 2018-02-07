@@ -195,66 +195,7 @@ class Model(Object):
 
     @property
     def curve_style(self):
-        return self.config['curve_style']
-
-    @cachedproperty
-    def builtin_graphs(self):
-        return {
-            info['name']: PlotInfo(
-                name=info['name'],
-                title=info['title'],
-                curves=[
-                    CurveInfo(
-                        name=curve['name'],
-                        short=curve['short'],
-                        label=curve['label'],
-                        style=self.curve_style[curve_index],
-                        unit=from_config(curve['unit']))
-                    for curve_index, curve in enumerate(info['curves'])
-                ])
-            for info in self.app_config['builtin_graphs']
-        }
-
-    @cachedproperty
-    def native_graphs(self):
-        return self.get_native_graphs()
-
-    def get_graph_data(self, name, xlim):
-        """
-        Get the data for a particular graph as dict of numpy arrays.
-
-        :rtype: PlotInfo
-        """
-        if xlim is not None:
-            xlim = tuple(self.utool.strip_unit('s', lim)
-                         for lim in self.elements.bound_range(xlim))
-        if name in self.native_graphs:
-            return self.get_native_graph_data(name, xlim)
-        info = self.builtin_graphs[name]
-        if name == 'envelope':
-            emittances = self.ex(), self.ey()
-            # beta = env^2 / emit
-            # env = sqrt(beta * emit)
-            beta, data = self.get_native_graph_data('beta', xlim)
-            data = {
-                env_i.name: np.hstack((
-                    data[beta_i.name][:,[0]],
-                    (data[beta_i.name][:,[1]] * emit)**0.5
-                ))
-                for beta_i, env_i, emit in zip(
-                        beta.curves, info.curves, emittances)
-            }
-        else:
-            raise ValueError("Unknown graph: {}".format(name))
-        return info, data
-
-    def get_graphs(self):
-        graphs = {
-            name: info.title
-            for name, info in self.builtin_graphs.items()
-        }
-        graphs.update(self.native_graphs)
-        return graphs
+        return self.app_config['line_view']['curve_style']
 
     def get_matcher(self):
         if self.matcher is None:
@@ -681,30 +622,25 @@ class Model(Object):
             self.cache[column] = self.do_get_twiss_column(column)
         return self.cache[column]
 
-    @cachedproperty
-    def native_graph_data(self):
-        config = self.config
-        styles = config['curve_style']
-        return {
-            info['name']: PlotInfo(
-                name=info['name'],
-                title=info['title'],
-                curves=[
-                    CurveInfo(
-                        name=name,
-                        short=name,
-                        label=label,
-                        style=style,
-                        unit=from_config(unit))
-                    for (name, unit, label), style in zip(info['curves'], styles)
-                ])
-            for info in config['graphs']
-        }
-
-    def get_native_graph_data(self, name, xlim):
+    def get_graph_data(self, name, xlim):
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
-        info = self.native_graph_data[name]
+
+        styles = self.app_config['line_view']['curve_style']
+        conf = self.app_config['graphs'][name]
+        info = PlotInfo(
+            name=name,
+            title=conf['title'],
+            curves=[
+                CurveInfo(
+                    name=name,
+                    short=name,
+                    label=label,
+                    style=style,
+                    unit=from_config(unit))
+                for (name, unit, label), style in zip(conf['curves'], styles)
+            ])
+
         xdata = self.get_twiss_column('s') + self.start.at
         data = {
             curve.short: np.vstack((xdata, ydata)).T
@@ -713,10 +649,10 @@ class Model(Object):
         }
         return info, data
 
-    def get_native_graphs(self):
+    def get_graphs(self):
         """Get a list of graph names."""
-        return {info.name: info.title
-                for info in self.native_graph_data.values()}
+        return {name: info['title']
+                for name, info in self.app_config['graphs'].items()}
 
     def _retrack(self):
         """Recalculate TWISS parameters."""

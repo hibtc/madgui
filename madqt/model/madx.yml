@@ -41,36 +41,6 @@ units:
   envx:     m
   envy:     m
 
-curve_style:
-  - &base_style
-    color: "#8b1a0e"
-    linestyle: "-"
-  - <<: *base_style
-    color: "#005000"
-
-graphs:
-  - name: beta
-    title: Beta function
-    curves:
-      - [betx, m, '$\beta x$']
-      - [bety, m, '$\beta y$']
-  - name: envelope
-    title: Beam envelope
-    curves:
-      - [envx, m, '$\Delta x$']
-      - [envy, m, '$\Delta y$']
-  - name: alpha
-    title: Alpha function
-    curves:
-      - [alfx, 1, '$\alpha x$']
-      - [alfy, 1, '$\alpha y$']
-  - name: orbit
-    title: Particle orbit
-    curves:
-      - [x, m, '$x$']
-      - [y, m, '$y$']
-
-
 parameter_sets:
   twiss_args:
     title: TWISS initial conditions

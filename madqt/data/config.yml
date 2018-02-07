@@ -57,20 +57,37 @@ line_view:
     linestyle: "-"
     color: "black"
 
+  curve_style:
+    - &base_style
+      color: "#8b1a0e"
+      linestyle: "-"
+    - <<: *base_style
+      color: "#005000"
+
   default_graph: envelope
 
-builtin_graphs:
-  - name: envelope
+
+graphs:
+  beta:
+    title: Beta function
+    curves:
+      - [betx, m, '$\beta x$']
+      - [bety, m, '$\beta y$']
+  envelope:
     title: Beam envelope
     curves:
-      - name: envelope.x
-        short: envx
-        label: '$\Delta x$'
-        unit: m
-      - name: envelope.y
-        short: envy
-        label: '$\Delta y$'
-        unit: m
+      - [envx, m, '$\Delta x$']
+      - [envy, m, '$\Delta y$']
+  alpha:
+    title: Alpha function
+    curves:
+      - [alfx, 1, '$\alpha x$']
+      - [alfy, 1, '$\alpha y$']
+  orbit:
+    title: Particle orbit
+    curves:
+      - [x, m, '$x$']
+      - [y, m, '$y$']
 
 
 # Select which element paramters can be varied when matching a TWISS function:
