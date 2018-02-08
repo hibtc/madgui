@@ -84,6 +84,7 @@ Development guidelines
 - `Dependency injection`_ is a great pattern to keep modules testable.
 - Prefer `composition over inheritance`_
 - Add `sphinx`_ style docstrings for all modules, classes, functions
+- Check regularly for unused imports etc with ``pyflakes madqt``
 
 .. _PEP8: http://www.python.org/dev/peps/pep-0008/
 .. _PEP257: http://www.python.org/dev/peps/pep-0257/
