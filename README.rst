@@ -1,8 +1,7 @@
 MadQt
 =====
 
-MadQt_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_
-or `Bmad/tao`_.
+MadQt_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_.
 
 
 Requirements
@@ -28,15 +27,11 @@ Requirements
 
   Otherwise, please refer to cpymad's `installation instructions`_.
 
-- or pytao_ to work with `Bmad/tao`_ models, alternatively (or additionally).
-
 .. _WinPython 3.4: https://sourceforge.net/projects/winpython/files/WinPython_3.4/
 .. _hibtc/cpymad#32: https://github.com/hibtc/cpymad/issues/32
 .. _installation instructions: http://hibtc.github.io/cpymad/installation/index.html
 .. _MAD-X: http://madx.web.cern.ch/madx
-.. _Bmad/tao: http://www.lepp.cornell.edu/~dcs/bmad/
 .. _cpymad: https://github.com/hibtc/cpymad
-.. _pytao: https://github.com/hibtc/pytao
 .. _PyQt5: https://riverbankcomputing.com/software/pyqt/intro
 
 

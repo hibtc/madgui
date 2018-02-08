@@ -1,5 +1,5 @@
 """
-Components to draw a 2D floor plan of a given MAD-X/Bmad lattice.
+Components to draw a 2D floor plan of a given MAD-X lattice.
 """
 
 # TODO: improve display of vertically oriented elements
@@ -13,7 +13,7 @@ from math import cos, sin, sqrt, pi
 import numpy as np
 
 from madqt.qt import Qt, QtCore, QtGui
-from madqt.model.common import FloorCoords
+from madqt.core.model import FloorCoords
 
 __all__ = [
     'LatticeFloorPlan',

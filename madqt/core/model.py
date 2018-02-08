@@ -3,28 +3,27 @@ MAD-X backend for MadQt.
 """
 
 import os
-from collections import OrderedDict, defaultdict
+import re
+from collections import namedtuple, Sequence, Mapping, OrderedDict, defaultdict
 from functools import partial
 import itertools
 import logging
+from bisect import bisect_right
+import subprocess
+from threading import RLock
 
 import numpy as np
 
 from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
-from madqt.core.base import Cache
+from madqt.core.base import Object, Signal, Cache
 from madqt.resource import yaml
 from madqt.core.unit import UnitConverter, from_config, isclose, number_types
-from madqt.util.misc import attribute_alias, cachedproperty, sort_to_top
+from madqt.util.misc import cachedproperty, sort_to_top
 from madqt.resource.file import FileResource
 from madqt.resource.package import PackageResource
 from madqt.util.datastore import DataStore, SuperStore
-
-from madqt.model.common import (
-    FloorCoords, ElementInfo, BaseModel,
-    PlotInfo, CurveInfo, ElementList, ElementBase,
-)
 
 
 # stuff for online control:
@@ -40,7 +39,25 @@ __all__ = [
 ]
 
 
-class Model(BaseModel):
+PlotInfo = namedtuple('PlotInfo', [
+    'name',     # internal graph id (e.g. 'beta.g')
+    'title',    # long display name ('Beta function')
+    'curves',   # [CurveInfo]
+])
+
+CurveInfo = namedtuple('CurveInfo', [
+    'name',     # internal curve id (e.g. 'beta.g.a')
+    'short',    # display name for statusbar ('beta_a')
+    'label',    # y-axis/legend label ('$\beta_a$')
+    'style',    # **kwargs for ax.plot
+    'unit',     # y unit
+])
+
+ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
+FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
+
+
+class Model(Object):
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -54,9 +71,11 @@ class Model(BaseModel):
 
     backend_libname = 'cpymad'
     backend_title = 'MAD-X'
-    backend = attribute_alias('madx')
 
-    def __init__(self, filename, app_config, command_log):
+    destroyed = Signal()
+    matcher = None
+
+    def __init__(self, filename, config, command_log):
         super().__init__()
         self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
@@ -64,10 +83,147 @@ class Model(BaseModel):
         self.repo = None
         self.init_files = []
         self.command_log = command_log
-        self.app_config = app_config
-        self.config = PackageResource('madqt.model').yaml('madx.yml')
+        self.config = config
         self.load(filename)
         self.twiss.invalidate()
+
+    def minrpc_flags(self):
+        """Flags for launching the backend library in a remote process."""
+        return dict(lock=RLock(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    def destroy(self):
+        """Annihilate current model. Stop interpreter."""
+        if self.rpc_client:
+            self.rpc_client.close()
+        self.madx = None
+        self.destroyed.emit()
+
+    @property
+    def rpc_client(self):
+        """Low level RPC client."""
+        return self.madx and self.madx._service
+
+    @property
+    def remote_process(self):
+        """Backend process."""
+        return self.madx and self.madx._process
+
+    def _load_params(self, data, name):
+        """Load parameter dict from file if necessary."""
+        vals = data.get(name, {})
+        if isinstance(vals, str):
+            data[name] = self.repo.yaml(vals, encoding='utf-8')
+            if len(data[name]) == 1 and name in data[name]:
+                data[name] = data[name][name]
+
+    def get_element_info(self, element):
+        """Get :class:`ElementInfo` from element name or index."""
+        if isinstance(element, ElementInfo):
+            return element
+        if isinstance(element, str):
+            element = self.get_element_index(element)
+        if element < 0:
+            element += len(self.elements)
+        name = self.el_names[element]
+        pos = self.positions[element]
+        return ElementInfo(name, element, pos)
+
+    def get_beam(self):
+        return self.utool.dict_add_unit(self.get_beam_raw())
+
+    def set_beam(self, beam):
+        self.set_beam_raw(self.utool.dict_strip_unit(beam))
+
+    def get_twiss_args(self):
+        return self.utool.dict_add_unit(self.get_twiss_args_raw())
+
+    def set_twiss_args(self, twiss):
+        self.set_twiss_args_raw(self.utool.dict_strip_unit(twiss))
+
+    beam = property(get_beam, set_beam)
+    twiss_args = property(get_twiss_args, set_twiss_args)
+
+    def get_element_by_position(self, pos):
+        """Find optics element by longitudinal position."""
+        if pos is None:
+            return None
+        val = self.utool.strip_unit('s', pos)
+        i0 = bisect_right(self.positions, val)
+        if i0 == 0:
+            return None
+        elem = self.elements[i0-1]
+        at, L = elem.At, elem.L
+        if pos < at or pos > at+L:
+            return None
+        return elem
+
+    def get_element_by_name(self, name):
+        return self.elements[self.get_element_index(name)]
+
+    def el_pos(self, el):
+        """Position for matching / output."""
+        return el.At + el.L
+
+    continuous_matching = False
+
+    def adjust_match_pos(self, el, pos):
+        if not self.continuous_matching:
+            return self.el_pos(el)
+        at, l = el.At, el.L
+        if pos <= at:   return at
+        if pos >= at+l: return at+l
+        return pos
+
+    def get_best_match_pos(self, pos):
+        """Find optics element by longitudinal position."""
+        return min([
+            (el, self.adjust_match_pos(el, pos))
+            for el in self.elements
+            if self.can_match_at(el)
+        ], key=lambda x: abs(x[1]-pos))
+
+    def can_match_at(self, element):
+        return True
+
+    def set_element_attribute(self, elem, attr, value):
+        elem = self.elements[elem].El_id
+        self.get_elem_ds(elem).substores['attributes'].update({
+            attr: value,
+        })
+    # curves
+
+    @property
+    def curve_style(self):
+        return self.config['line_view']['curve_style']
+
+    def get_matcher(self):
+        if self.matcher is None:
+            # TODO: create MatchDialog
+            from madqt.correct.match import Matcher
+            self.matcher = Matcher(self, self.config['matching'])
+        return self.matcher
+
+    ELEM_KNOBS = {
+        'sbend':        ['angle'],
+        'quadrupole':   ['k1', 'k1s'],
+        'hkicker':      ['kick'],
+        'vkicker':      ['kick'],
+        'kicker':       ['hkick', 'vkick'],
+        'solenoid':     ['ks'],
+        'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]',
+                         'ksl[0]', 'ksl[1]', 'ksl[2]', 'ksl[3]'],
+        'srotation':    ['angle'],
+    }
+
+    def get_knobs(self):
+        """Get list of knobs."""
+        return [
+            knob
+            for elem in self.elements
+            for attr in self._get_attrs(elem)
+            for knob in [self.get_knob(elem, attr)]
+            if knob
+        ]
 
     @property
     def libmadx(self):
@@ -122,7 +278,7 @@ class Model(BaseModel):
 
     def load(self, filename):
         """Load model or plain MAD-X file."""
-        self.utool = UnitConverter.from_config_dict(self.config['units'])
+        self.utool = UnitConverter.from_config_dict(self.config['madx_units'])
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         self.repo = FileResource(path)
@@ -399,7 +555,6 @@ class Model(BaseModel):
         lo = x.start-1 if x.start > 0 else x.start
         hi = x.stop+1
 
-        from bisect import bisect_right
         i0 = bisect_right(s, pos, lo, hi)
         i1 = i0+1
 
@@ -466,29 +621,25 @@ class Model(BaseModel):
             self.cache[column] = self.do_get_twiss_column(column)
         return self.cache[column]
 
-    @cachedproperty
-    def native_graph_data(self):
-        config = self.config
-        styles = config['curve_style']
-        return {
-            info['name']: PlotInfo(
-                name=info['name'],
-                title=info['title'],
-                curves=[
-                    CurveInfo(
-                        name=name,
-                        short=name,
-                        label=label,
-                        style=style,
-                        unit=from_config(unit))
-                    for (name, unit, label), style in zip(info['curves'], styles)
-                ])
-            for info in config['graphs']
-        }
-
-    def get_native_graph_data(self, name, xlim):
+    def get_graph_data(self, name, xlim):
+        """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
-        info = self.native_graph_data[name]
+
+        styles = self.config['line_view']['curve_style']
+        conf = self.config['graphs'][name]
+        info = PlotInfo(
+            name=name,
+            title=conf['title'],
+            curves=[
+                CurveInfo(
+                    name=name,
+                    short=name,
+                    label=label,
+                    style=style,
+                    unit=from_config(unit))
+                for (name, unit, label), style in zip(conf['curves'], styles)
+            ])
+
         xdata = self.get_twiss_column('s') + self.start.at
         data = {
             curve.short: np.vstack((xdata, ydata)).T
@@ -497,10 +648,10 @@ class Model(BaseModel):
         }
         return info, data
 
-    def get_native_graphs(self):
-        """Get a list of curve names."""
-        return {info.name: info.title
-                for info in self.native_graph_data.values()}
+    def get_graphs(self):
+        """Get a list of graph names."""
+        return {name: info['title']
+                for name, info in self.config['graphs'].items()}
 
     def _retrack(self):
         """Recalculate TWISS parameters."""
@@ -581,12 +732,13 @@ class Model(BaseModel):
         }
 
     def _get_attrs(self, elem):
-        attrs = super()._get_attrs(elem)
+        attrs = self.ELEM_KNOBS.get(elem.Type.lower(), ())
         defd = [attr for attr in attrs if _is_property_defined(elem, attr)]
         return defd or attrs[:1]
 
 
     def get_knob(self, elem, attr):
+        """Return a :class:`Knob` belonging to the given attribute."""
         try:
             expr = _get_property_lval(elem, attr)
         except IndexError:
@@ -597,9 +749,11 @@ class Model(BaseModel):
                 self.utool._units.get(attr))
 
     def read_param(self, expr):
+        """Read element attribute. Return numeric value. No units!"""
         return self.madx.evaluate(expr)
 
     def write_param(self, expr, value):
+        """Update element attribute into control system. No units!"""
         self.madx.set_value(expr, value)
         self.twiss.invalidate()
         # TODO: invalidate element…
@@ -661,9 +815,189 @@ class MadxDataStore(DataStore):
         return self.data[key.lower()]
 
 
-class Element(ElementBase):
+class ElementList(Sequence):
 
-    def invalidate(self, level=ElementBase.INVALIDATE_ALL):
+    """
+    Immutable list of beam line elements.
+
+    Each element is a dictionary containing its properties.
+    """
+
+    def __init__(self, el_names, Element):
+        self._el_names = el_names
+        self._indices = {n.lower(): i for i, n in enumerate(el_names)}
+        self._elems = [Element(i, n) for i, n in enumerate(el_names)]
+        self.invalidate()
+
+    def invalidate(self, elem=None):
+        if elem is None:
+            for elem in self._elems:
+                elem.invalidate()
+            beg, end = self[0], self[-1]
+            self.min_x = beg.At
+            self.max_x = end.At + end.L
+        else:
+            index = self.index(elem)
+            self._elems[index].invalidate()
+
+    def bound_x(self, x_value):
+        return min(self.max_x, max(self.min_x, x_value))
+
+    def bound_range(self, xlim):
+        return tuple(map(self.bound_x, xlim))
+
+    def __contains__(self, element):
+        """
+        Check if sequence contains element with specified name.
+
+        Can be invoked with either the element dict or the element name.
+        """
+        try:
+            self.index(element)
+            return True
+        except ValueError:
+            return False
+
+    def __getitem__(self, index):
+        """Return element with specified index."""
+        # allow element dicts/names to be passed for convenience:
+        if isinstance(index, int):
+            return self._get_by_index(index)
+        if isinstance(index, (dict, Element)):
+            return self._get_by_dict(index)
+        if isinstance(index, ElementInfo):
+            return self._get_by_dict({
+                'name': index.name,
+                'el_id': index.index,
+            })
+        if isinstance(index, str):
+            return self._get_by_name(index)
+        raise TypeError("Unhandled type: {!r}", type(index))
+
+    def __len__(self):
+        """Get number of elements."""
+        return len(self._el_names)
+
+    def index(self, element):
+        """
+        Find index of element with specified name.
+
+        Can be invoked with either the element dict or the element name.
+
+        :raises ValueError: if the element is not found
+        """
+        if isinstance(element, int):
+            return element
+        if isinstance(element, (dict, Element)):
+            return self._index_by_dict(element)
+        if isinstance(element, ElementInfo):
+            return self._index_by_dict({
+                'name': element.name,
+                'el_id': element.index,
+            })
+        if isinstance(element, str):
+            return self._index_by_name(element)
+        raise ValueError("Unhandled type: {!r}", type(element))
+
+    # TODO: remove?
+    def _get_by_dict(self, elem):
+        if 'el_id' not in elem:
+            raise TypeError("Not an element dict: {!r}".format(elem))
+        index = elem.El_id
+        data = self._get_by_index(index)
+        if elem.Name != data.Name:
+            raise ValueError("Element name mismatch: expected {}, got {}."
+                             .format(data.Name, elem.Name))
+        return data
+
+    def _get_by_name(self, name):
+        index = self._index_by_name(name)
+        return self._get_by_index(index)
+
+    def _get_by_index(self, index):
+        # Support a range of [-len, len-1] similar to builtin lists:
+        return self._elems[index]
+
+    # TODO: remove
+    def _index_by_dict(self, elem):
+        if 'el_id' not in elem:
+            raise TypeError("Not an element dict: {!r}".format(elem))
+        index = elem.El_id
+        if elem.Name.lower() != self._el_names[index].lower():
+            raise ValueError("Element name mismatch: expected {}, got {}."
+                             .format(self._el_names[index], elem.Name))
+        return index
+
+    def _index_by_name(self, name):
+        # TODO: warning – names do not always uniquely identify elements:
+        #       auto-generated DRIFTs in MAD-X.
+        name = name.lower()
+        if len(self) != 0:
+            if name in ('#s', 'beginning'):
+                return 0
+            elif name in ('#e', 'end'):
+                return len(self) - 1
+        return self._indices[name]
+
+
+class Element(Mapping):
+
+    """
+    Dict-like base class for elements. Provides attribute access to properties
+    by title case attribute names.
+
+    Subclasses must implement ``_retrieve`` and ``invalidate``.
+    """
+
+    # Do not rely on the numeric values, they may be replaced by flags!
+    INVALIDATE_TWISS = 0
+    INVALIDATE_PARAM = 1
+    INVALIDATE_ALL   = 2
+
+    def __init__(self, model, utool, idx, name):
+        self._model = model
+        self._utool = utool
+        self._idx = idx
+        self._name = name.lower()
+        self.invalidate(self.INVALIDATE_ALL)
+
+    def __getitem__(self, name):
+        # handle direct access to array elements, e.g. "knl[0]":
+        if name.endswith(']'):
+            head, tail = name.split('[', 1)
+            index = int(tail[:-1])
+            return self._get_field(head, index)
+        self._retrieve(name)
+        return self._utool.add_unit(name, self._merged[name])
+
+    def __iter__(self):
+        self._retrieve(None)
+        return iter(self._merged)
+
+    def __len__(self):
+        self._retrieve(None)
+        return len(self._merged)
+
+    def _get_field(self, name, index):
+        return self[name][index]
+
+    _RE_ATTR = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
+
+    def __getattr__(self, name):
+        """
+        Provide attribute access to element properties.
+
+        Attribute names must start with capital letter, e.g. Name, K1, KNL.
+        """
+        if not self._RE_ATTR.match(name):
+            raise AttributeError(name)
+        try:
+            return self[name.lower()]
+        except KeyError:
+            raise AttributeError(name)
+
+    def invalidate(self, level=INVALIDATE_ALL):
+        """Invalidate cached data at and below the given level."""
         if level >= self.INVALIDATE_PARAM:
             self._merged = OrderedDict([
                 ('name', self._name),
@@ -671,6 +1005,7 @@ class Element(ElementBase):
             ])
 
     def _retrieve(self, name):
+        """Retrieve data for key if possible; everything if None."""
         if len(self._merged) == 2 and name not in self._merged:
             data = self._model.active_sequence.expanded_elements[self._idx]
             self._merged.update(sort_to_top(data, [

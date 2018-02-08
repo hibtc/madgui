@@ -45,7 +45,7 @@ class Matcher(Object):
         self.variables = List()
         self.variables.update_after.connect(self._on_update_variables)
         self.design_values = {}
-        self.mirror_mode = model.app_config['matching'].get('mirror', False)
+        self.mirror_mode = model.config['matching'].get('mirror', False)
 
     def match(self):
         """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""
