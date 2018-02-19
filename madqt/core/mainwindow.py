@@ -355,6 +355,7 @@ class MainWindow(QtGui.QMainWindow):
         self.destroyModel()
         self.model = model
         self.user_ns['model'] = model
+        self.user_ns['madx'] = model.madx
         self.user_ns['savedict'] = savedict
         if model is None:
             self.model_changed.emit()
