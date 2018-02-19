@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Installation script for MadQt.
+Installation script for madgui.
 
 Usage:
     python setup.py install
@@ -38,9 +38,9 @@ def get_long_description():
 def main():
     """Execute setup."""
     long_description = get_long_description()
-    meta = exec_file('madqt/__init__.py')
+    meta = exec_file('madgui/__init__.py')
     setup(
-        name='MadQt',
+        name='madgui',
         version=meta['__version__'],
         description=meta['__summary__'],
         long_description=long_description,
@@ -50,15 +50,15 @@ def main():
         license=meta['__license__'],
         classifiers=meta['__classifiers__'],
         packages=[
-            'madqt',
-            'madqt.core',
-            'madqt.correct',
-            'madqt.data',
-            'madqt.online',
-            'madqt.plot',
-            'madqt.resource',
-            'madqt.util',
-            'madqt.widget',
+            'madgui',
+            'madgui.core',
+            'madgui.correct',
+            'madgui.data',
+            'madgui.online',
+            'madgui.plot',
+            'madgui.resource',
+            'madgui.util',
+            'madgui.widget',
         ],
         install_requires=[
             'cpymad>=0.18.2',
@@ -77,7 +77,7 @@ def main():
         ],
         entry_points="""
             [gui_scripts]
-            madqt = madqt.core.app:main
+            madgui = madgui.core.app:main
         """,
         include_package_data=True,  # install files matched by MANIFEST.in
     )

@@ -1,7 +1,7 @@
-MadQt
-=====
+madgui
+======
 
-MadQt_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_.
+madgui_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_.
 
 
 Requirements
@@ -38,15 +38,15 @@ Requirements
 Installation
 ~~~~~~~~~~~~
 
-You are now ready to install madqt. Type::
+You are now ready to install madgui. Type::
 
-    pip install madqt
+    pip install madgui
 
 Or, in order to install from the local checkout::
 
     python setup.py install
 
-If you intend to make changes to the madqt code and want to try the effects
+If you intend to make changes to the madgui code and want to try the effects
 immediately, use::
 
     python setup.py develop
@@ -55,18 +55,18 @@ immediately, use::
 Usage
 ~~~~~
 
-Now, you should be able to start MadQt with the command::
+Now, you should be able to start madgui with the command::
 
-    madqt
+    madgui
 
 or::
 
-    python -m madqt
+    python -m madgui
 
-If you are on windows, and nothing happens, you can start madqt manually as
+If you are on windows, and nothing happens, you can start madgui manually as
 follows, which may provide you with more error information::
 
-    python -c "from madqt.core.app import main; main()"
+    python -c "from madgui.core.app import main; main()"
 
 
 Development guidelines
@@ -79,7 +79,7 @@ Development guidelines
 - `Dependency injection`_ is a great pattern to keep modules testable.
 - Prefer `composition over inheritance`_
 - Add `sphinx`_ style docstrings for all modules, classes, functions
-- Check regularly for unused imports etc with ``pyflakes madqt``
+- Check regularly for unused imports etc with ``pyflakes madgui``
 
 .. _PEP8: http://www.python.org/dev/peps/pep-0008/
 .. _PEP257: http://www.python.org/dev/peps/pep-0257/

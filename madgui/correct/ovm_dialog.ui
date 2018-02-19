@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OVM_Dialog</class>
+ <widget class="QWidget" name="OVM_Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>595</width>
+    <height>698</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Optic variation method (orbit flattening)</string>
+  </property>
+  <layout class="QGridLayout" columnstretch="1,1">
+   <item row="0" column="0">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Enter quadrupole settings:</string>
+     </property>
+     <layout class="QGridLayout" columnstretch="0,1,1">
+      <item row="0" column="1">
+       <widget class="QLabel" name="qp_input_column_title">
+        <property name="text">
+         <string>Change to:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="qp_current_column_title">
+        <property name="text">
+         <string>Current values:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="input_qp1_label">
+        <property name="text">
+         <string>QP 1:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QuantitySpinBox" name="input_qp1_value"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QuantityDisplay" name="displ_qp1_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="input_qp2_label">
+        <property name="text">
+         <string>QP 2:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QuantitySpinBox" name="input_qp2_value"/>
+      </item>
+      <item row="2" column="2">
+       <widget class="QuantityDisplay" name="displ_qp2_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QPushButton" name="qp_settings_execute">
+        <property name="text">
+         <string>Apply</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="2">
+       <widget class="QPushButton" name="qp_settings_record">
+        <property name="text">
+         <string>Record</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <layout class="QHBoxLayout" name="load_preset_layout">
+        <item>
+         <spacer>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel">
+          <property name="text">
+           <string>Use preset:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="focus_choice"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="load_preset_execute">
+          <property name="text">
+           <string>Read</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QGroupBox" name="group_beam">
+     <property name="title">
+      <string>Beam at target</string>
+     </property>
+     <layout class="QGridLayout" columnstretch="0,1,1">
+      <item row="0" column="1">
+       <widget class="QLabel">
+        <property name="text">
+         <string>Design:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="beam_measured_title">
+        <property name="text">
+         <string>Measured:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="x_target_check">
+        <property name="text">
+         <string>x:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QuantitySpinBox" name="x_target_value"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QuantityDisplay" name="x_monitor_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="y_target_check">
+        <property name="text">
+         <string>y:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QuantitySpinBox" name="y_target_value"/>
+      </item>
+      <item row="2" column="2">
+       <widget class="QuantityDisplay" name="y_monitor_value">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="3">
+       <spacer>
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Recorded optics</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="TableView" name="records_table">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Fit for beam initial conditions</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="TableView" name="fit_table">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout">
+        <item>
+         <widget class="QPushButton" name="clear_records">
+          <property name="text">
+           <string>Clear</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Calculated steerer corrections</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="TableView" name="corrections_table">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="execute_corrections">
+        <property name="text">
+         <string>Apply steerer corrections</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TableView</class>
+   <extends>QTableView</extends>
+   <header>madgui/widget/tableview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QuantitySpinBox</class>
+   <extends>QDoubleSpinBox</extends>
+   <header>madgui/widget/spinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QuantityDisplay</class>
+   <extends>QLineEdit</extends>
+   <header>madgui/widget/quantity.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>load_preset_execute</sender>
+   <signal>clicked()</signal>
+   <receiver>qp_settings_execute</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>241</x>
+     <y>159</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>126</x>
+     <y>134</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>x_target_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>x_target_value</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>327</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>392</x>
+     <y>72</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>y_target_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>y_target_value</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>334</x>
+     <y>98</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>373</x>
+     <y>98</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qp_settings_execute</sender>
+   <signal>clicked()</signal>
+   <receiver>qp_settings_record</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>156</x>
+     <y>122</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>187</x>
+     <y>124</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qp_settings_record</sender>
+   <signal>clicked()</signal>
+   <receiver>focus_choice</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>263</x>
+     <y>130</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>167</x>
+     <y>160</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

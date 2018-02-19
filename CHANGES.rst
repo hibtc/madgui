@@ -6,7 +6,8 @@ CHANGELOG
 Date: (in preparation)
 
 
-- new versioning scheme: madgui 0.X.Y -> 1.X.Y, madqt 0.0.X -> 2.X.0
+- rename back to madgui
+- new versioning scheme: interpret old madgui 0.X.Y -> 1.X.Y, madqt 0.0.X -> 2.X.0
 - remove pytao binding
 - match dialog: dropdown menu for knobs, minor visual improvements
 - internal refactoring, module renamings
