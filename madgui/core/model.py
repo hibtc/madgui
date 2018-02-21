@@ -656,8 +656,9 @@ class Model(Object):
     def _retrack(self):
         """Recalculate TWISS parameters."""
         self.cache.clear()
+        step = self.sequence.elements[-1]['at']/400
         self.madx.command.select(flag='interpolate', clear=True)
-        self.madx.command.select(flag='interpolate', step=0.2)
+        self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args())
         self.summary = self.utool.dict_add_unit(results.summary)
 
