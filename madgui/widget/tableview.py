@@ -204,6 +204,8 @@ class TableView(QtGui.QTableView):
 
     selectionChangedSignal = Signal()
 
+    allow_delete = False
+
     def __init__(self, parent=None, columns=None, data=None, context=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super().__init__(parent, **kwargs)
@@ -251,13 +253,24 @@ class TableView(QtGui.QTableView):
             #self.model().beginRemoveRows(self.rootIndex(), row, row)
             #self.model().endRemoveRows()
 
+    def keyPressEvent(self, event):
+        if self.state() == QtGui.QAbstractItemView.NoState:
+            if event.key() in (Qt.Key_Delete, Qt.Key_Backspace) \
+                    and self.allow_delete:
+                self.removeSelectedRows()
+                event.accept()
+                return
+        super().keyPressEvent(event)
+
     def connectButtons(self, remove, clear=None):
         if remove:
+            self.allow_delete = True
             update = lambda: remove.setEnabled(bool(self.selectedIndexes()))
             remove.clicked.connect(self.removeSelectedRows)
             self.selectionChangedSignal.connect(update)
             update()
         if clear:
+            self.allow_delete = True
             update = lambda: clear.setEnabled(bool(self.rows))
             clear.clicked.connect(self.rows.clear)
             self.selectionChangedSignal.connect(update)
