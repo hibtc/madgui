@@ -16,13 +16,10 @@ from madgui.qt import QtCore, QtGui, uic
 
 from madgui.core.unit import tounit, units
 from madgui.util.collections import List
-from madgui.util.enum import make_enum
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.orbit import fit_initial_orbit
 
 from .match import Matcher, Constraint, variable_from_knob, variable_update
-from ..widget.match import (get_constraint_elem, set_constraint_elem,
-                            get_constraint_axis, set_constraint_value)
 
 
 class MonitorReadout:
@@ -192,11 +189,8 @@ def format_initial(widget, var, index):
     return tounit(var.knob.to(dknob.attr, var.design), ui_unit)
     #return dknob.read()
 
-def set_constraint_axis(widget, c, i, axis):
-    if axis is not None:
-        value = 0
-        widget.matcher.constraints[i] = \
-            Constraint(c.elem, c.pos, str(axis), value)
+def set_constraint_value(widget, c, i, value):
+    widget.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
 class CorrectorWidget(QtGui.QWidget):
 
@@ -211,10 +205,9 @@ class CorrectorWidget(QtGui.QWidget):
     ]
 
     constraint_columns = [
-        ExtColumnInfo("Element", get_constraint_elem, set_constraint_elem,
-                      resize=QtGui.QHeaderView.Stretch),
-        ExtColumnInfo("What", get_constraint_axis, set_constraint_axis,
-                      resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Element", lambda c: c.elem.Name,
+                   resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("Param", 'axis', resize=QtGui.QHeaderView.ResizeToContents),
         ExtColumnInfo("Value", 'value', set_constraint_value,
                       resize=QtGui.QHeaderView.ResizeToContents),
     ]
@@ -228,11 +221,8 @@ class CorrectorWidget(QtGui.QWidget):
     def __init__(self, corrector):
         super().__init__()
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
-        self.corrector = self.matcher = corrector
+        self.corrector = corrector
         self.corrector.start()
-        self.model = model = corrector.model
-        self.elem_enum = make_enum('Elem', model.el_names)
-        self.lcon_enum = make_enum('Local', ['x', 'y', 'px', 'py'])
         self.init_controls()
         self.set_initial_values()
         self.connect_signals()
