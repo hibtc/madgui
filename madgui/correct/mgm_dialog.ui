@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Optic variation method (orbit flattening)</string>
+   <string>Multi grid method (orbit flattening)</string>
   </property>
   <layout class="QGridLayout" columnstretch="1,1">
    <item row="0" column="0">
@@ -63,7 +63,7 @@
         <item>
          <widget class="QPushButton" name="execute_corrections">
           <property name="text">
-           <string>Upload</string>
+           <string>Execute</string>
           </property>
          </widget>
         </item>
