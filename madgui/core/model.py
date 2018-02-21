@@ -278,6 +278,7 @@ class Model(Object):
 
     def load(self, filename):
         """Load model or plain MAD-X file."""
+        self.filename = filename
         self.utool = UnitConverter.from_config_dict(self.config['madx_units'])
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)

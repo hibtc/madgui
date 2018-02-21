@@ -11,11 +11,14 @@ from pkg_resources import resource_filename
 import itertools
 
 import numpy as np
+import yaml
 
 from madgui.qt import QtCore, QtGui, uic
 
 from madgui.core.unit import tounit, units
 from madgui.util.collections import List
+from madgui.util.layout import VBoxLayout
+from madgui.util.font import monospace
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.orbit import fit_initial_orbit
 
@@ -259,6 +262,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.con_tab.set_columns(self.constraint_columns, corr.constraints, self)
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
+        self.btn_edit_conf.clicked.connect(self.edit_config)
 
     def set_initial_values(self):
         self.update_fit_button.setFocus()
@@ -298,3 +302,65 @@ class CorrectorWidget(QtGui.QWidget):
 
         # TODO: make 'optimal'-column in var_tab editable and update
         #       self.execute_corrections.setEnabled according to its values
+
+    def edit_config(self):
+        dialog = EditConfigDialog(self.corrector.model, self.corrector)
+        dialog.exec_()
+
+
+class EditConfigDialog(QtGui.QDialog):
+
+    def __init__(self, model, matcher):
+        super().__init__()
+        self.model = model
+        self.matcher = matcher
+        self.textbox = QtGui.QPlainTextEdit()
+        self.textbox.setFont(monospace(10))
+        buttons = QtGui.QDialogButtonBox()
+        buttons.addButton(buttons.Ok).clicked.connect(self.accept)
+        buttons.addButton(buttons.Apply).clicked.connect(self.apply)
+        buttons.addButton(buttons.Cancel).clicked.connect(self.reject)
+        self.setLayout(VBoxLayout([self.textbox, buttons]))
+        self.setSizeGripEnabled(True)
+        self.resize(QtCore.QSize(600,400))
+        self.setWindowTitle(self.model.filename)
+
+        with open(model.filename) as f:
+            text = f.read()
+        self.textbox.appendPlainText(text)
+
+    def accept(self):
+        if self.apply():
+            super().accept()
+
+    def apply(self):
+        text = self.textbox.toPlainText()
+        try:
+            data = yaml.safe_load(text)
+        except yaml.error.YAMLError:
+            QtGui.QMessageBox.critical(
+                self,
+                'Syntax error in YAML document',
+                'There is a syntax error in the YAML document, please edit.')
+            return False
+
+        configs = data.get('multi_grid')
+        if not configs:
+            QtGui.QMessageBox.critical(
+                self,
+                'No config defined',
+                'No multi grid configuration defined.')
+            return False
+
+        with open(self.model.filename, 'w') as f:
+            f.write(text)
+
+        self.matcher.configs = configs
+        self.model.data['multi_grid'] = configs
+
+        if self.matcher.active in configs:
+            self.matcher.setup(self.matcher.active)
+        else:
+            self.matcher.setup(next(iter(configs)))
+
+        return True
