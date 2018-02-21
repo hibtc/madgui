@@ -14,7 +14,7 @@ import numpy as np
 
 from madgui.qt import QtCore, QtGui, uic
 
-from madgui.core.unit import tounit, units
+from madgui.core.unit import tounit
 from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.orbit import fit_initial_orbit

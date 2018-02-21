@@ -20,9 +20,8 @@ from cpymad.util import normalize_range_name
 from madgui.core.base import Object, Signal, Cache
 from madgui.resource import yaml
 from madgui.core.unit import UnitConverter, from_config, isclose, number_types
-from madgui.util.misc import cachedproperty, sort_to_top
+from madgui.util.misc import sort_to_top
 from madgui.resource.file import FileResource
-from madgui.resource.package import PackageResource
 from madgui.util.datastore import DataStore, SuperStore
 
 
