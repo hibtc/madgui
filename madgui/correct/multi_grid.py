@@ -8,6 +8,7 @@ Multi grid correction method.
 # - combine with optic variation method
 
 from pkg_resources import resource_filename
+from functools import partial
 import itertools
 
 import numpy as np
@@ -39,6 +40,8 @@ class Corrector(Matcher):
     Single target orbit correction via optic variation.
     """
 
+    mode = 'xy'
+
     def __init__(self, control, configs):
         super().__init__(control._model, None)
         self.control = control
@@ -55,12 +58,16 @@ class Corrector(Matcher):
         self.fit_results = List()
         control._frame.open_graph('orbit')
 
-    def setup(self, name):
+    def setup(self, name, dirs=None):
+        dirs = dirs or self.mode
+
         selected = self.selected = self.configs[name]
-        monitors = selected['monitor']
-        steerers = selected['x_steerer'] + selected['y_steerer']
-        targets  = selected['target']
+        monitors = selected['monitors']
+        steerers = sum([selected['steerers'][d] for d in dirs], [])
+        targets  = selected['targets']
+
         self.active = name
+        self.mode = dirs
 
         self.monitors[:] = monitors
         elements = self.model.elements
@@ -69,6 +76,7 @@ class Corrector(Matcher):
                        self.utool.add_unit(key, value))
             for target, values in targets.items()
             for key, value in values.items()
+            if key[-1] in dirs
         ], key=lambda c: c.pos)
         self.variables[:] = sorted([
             variable_from_knob(self, self._knobs[el.lower()][0])
@@ -263,10 +271,14 @@ class CorrectorWidget(QtGui.QWidget):
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
         self.btn_edit_conf.clicked.connect(self.edit_config)
+        self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
+        self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
+        self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
 
     def set_initial_values(self):
         self.update_fit_button.setFocus()
         self.update_fit()
+        self.radio_mode_xy.setChecked(True)
 
     def connect_signals(self):
         self.update_fit_button.clicked.connect(self.update_fit)
@@ -298,7 +310,10 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
-        self.corrector.setup(name)
+        self.corrector.setup(name, self.corrector.mode)
+
+    def on_change_mode(self, dirs):
+        self.corrector.setup(self.corrector.active, dirs)
 
         # TODO: make 'optimal'-column in var_tab editable and update
         #       self.execute_corrections.setEnabled according to its values

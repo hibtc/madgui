@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" columnstretch="1,1">
    <item row="0" column="0" colspan="2">
-    <layout class="QHBoxLayout" stretch="0,1,0">
+    <layout class="QHBoxLayout" stretch="0,1,0,0,0,0,0,0">
      <item>
       <widget class="QLabel">
        <property name="text">
@@ -30,6 +30,47 @@
       <widget class="QPushButton" name="btn_edit_conf">
        <property name="text">
         <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel">
+       <property name="text">
+        <string>Mode:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radio_mode_x">
+       <property name="text">
+        <string>x</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radio_mode_y">
+       <property name="text">
+        <string>y</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radio_mode_xy">
+       <property name="text">
+        <string>x/y</string>
        </property>
       </widget>
      </item>
