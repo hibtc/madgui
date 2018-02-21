@@ -14,7 +14,21 @@
    <string>Multi grid method (orbit flattening)</string>
   </property>
   <layout class="QGridLayout" columnstretch="1,1">
-   <item row="0" column="0">
+   <item row="0" column="0" colspan="2">
+    <layout class="QHBoxLayout" stretch="0,1,0,0">
+     <item>
+      <widget class="QLabel">
+       <property name="text">
+        <string>Configuration:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="combo_config"/>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
     <widget class="QGroupBox">
      <property name="title">
       <string>Monitor readouts:</string>
@@ -26,7 +40,7 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="1">
+   <item row="1" column="1">
     <widget class="QGroupBox">
      <property name="title">
       <string>Target values:</string>
@@ -38,7 +52,7 @@
      </layout>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
+   <item row="2" column="0" colspan="2">
     <widget class="QGroupBox">
      <property name="title">
       <string>Calculated steerer corrections</string>

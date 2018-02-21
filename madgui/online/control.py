@@ -237,15 +237,12 @@ class Control(Object):
         from madgui.widget.dialog import Dialog
 
         varyconf = self._model.data.get('multi_grid', {})
-        selected = next(iter(varyconf.values()))  # FIXME!!
-
-        monitors = selected['monitor']
-        steerers = selected['x_steerer'] + selected['y_steerer']
-        targets  = selected['target']
+        selected = next(iter(varyconf))
 
         self.read_all()
 
-        method = module.Corrector(self, monitors, targets, steerers)
+        method = module.Corrector(self, varyconf)
+        method.setup(selected)
 
         widget = module.CorrectorWidget(method)
         dialog = Dialog(self._frame)

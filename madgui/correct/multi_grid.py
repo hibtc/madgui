@@ -39,34 +39,41 @@ class Corrector(Matcher):
     Single target orbit correction via optic variation.
     """
 
-    def __init__(self, control, monitors, targets, steerers):
+    def __init__(self, control, configs):
         super().__init__(control._model, None)
         self.control = control
+        self.configs = configs
         self.control.read_all()
         self.utool = control._model.utool
         knobs = control.get_knobs()
         self._optics = {mknob.param: (mknob, dknob) for mknob, dknob in knobs}
         self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
         # save elements
-        elements = self.model.elements
         self.design_values = {}
-        self.monitors = List(list(monitors))
+        self.monitors = List()
         self.readouts = List()
         self.fit_results = List()
+        control._frame.open_graph('orbit')
 
-        self.constraints.extend(sorted([
+    def setup(self, name):
+        selected = self.selected = self.configs[name]
+        monitors = selected['monitor']
+        steerers = selected['x_steerer'] + selected['y_steerer']
+        targets  = selected['target']
+        self.active = name
+
+        self.monitors[:] = monitors
+        elements = self.model.elements
+        self.constraints[:] = sorted([
             Constraint(elements[target], elements[target].At, key,
                        self.utool.add_unit(key, value))
             for target, values in targets.items()
             for key, value in values.items()
-        ], key=lambda c: c.pos))
-
-        self.variables.extend(sorted([
+        ], key=lambda c: c.pos)
+        self.variables[:] = sorted([
             variable_from_knob(self, self._knobs[el.lower()][0])
             for el in steerers
-        ], key=lambda v: v.pos))
-
-        control._frame.open_graph('orbit')
+        ], key=lambda v: v.pos)
         self.update_readouts()
 
     def dknob(self, var):
@@ -260,6 +267,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.mon_tab.set_columns(self.readout_columns, corr.readouts, self)
         self.var_tab.set_columns(self.steerer_columns, corr.variables, self)
         self.con_tab.set_columns(self.constraint_columns, corr.constraints, self)
+        self.combo_config.addItems(list(self.corrector.configs))
+        self.combo_config.setCurrentText(self.corrector.active)
 
     def set_initial_values(self):
         self.update_fit_button.setFocus()
@@ -268,6 +277,7 @@ class CorrectorWidget(QtGui.QWidget):
     def connect_signals(self):
         self.update_fit_button.clicked.connect(self.update_fit)
         self.execute_corrections.clicked.connect(self.on_execute_corrections)
+        self.combo_config.currentIndexChanged.connect(self.on_change_config)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
@@ -291,6 +301,10 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.variables[:] = [
             variable_update(self.corrector, v) for v in self.corrector.variables]
         self.var_tab.resizeColumnToContents(0)
+
+    def on_change_config(self, index):
+        name = self.combo_config.itemText(index)
+        self.corrector.setup(name)
 
         # TODO: make 'optimal'-column in var_tab editable and update
         #       self.execute_corrections.setEnabled according to its values
