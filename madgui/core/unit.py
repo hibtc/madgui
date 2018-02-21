@@ -10,11 +10,7 @@ import pint
 from madgui.util.symbol import SymbolicValue
 from madgui.util.defaultdict import DefaultDict
 
-try:
-    # special handling for cpymad.Expression if available
-    from cpymad.types import Expression
-except ImportError:
-    Expression = ()
+from cpymad.types import Expression
 
 
 __all__ = [
