@@ -76,7 +76,7 @@ def main():
                                 # stricter requirements than cpymad
         ],
         entry_points="""
-            [gui_scripts]
+            [console_scripts]
             madgui = madgui.core.app:main
         """,
         include_package_data=True,  # install files matched by MANIFEST.in
