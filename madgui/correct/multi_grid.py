@@ -8,14 +8,18 @@ Multi grid correction method.
 # - combine with optic variation method
 
 from pkg_resources import resource_filename
+from functools import partial
 import itertools
 
 import numpy as np
+import yaml
 
 from madgui.qt import QtCore, QtGui, uic
 
 from madgui.core.unit import tounit
 from madgui.util.collections import List
+from madgui.util.layout import VBoxLayout
+from madgui.util.font import monospace
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.orbit import fit_initial_orbit
 
@@ -36,6 +40,8 @@ class Corrector(Matcher):
     Single target orbit correction via optic variation.
     """
 
+    mode = 'xy'
+
     def __init__(self, control, configs):
         super().__init__(control._model, None)
         self.control = control
@@ -52,12 +58,16 @@ class Corrector(Matcher):
         self.fit_results = List()
         control._frame.open_graph('orbit')
 
-    def setup(self, name):
+    def setup(self, name, dirs=None):
+        dirs = dirs or self.mode
+
         selected = self.selected = self.configs[name]
-        monitors = selected['monitor']
-        steerers = selected['x_steerer'] + selected['y_steerer']
-        targets  = selected['target']
+        monitors = selected['monitors']
+        steerers = sum([selected['steerers'][d] for d in dirs], [])
+        targets  = selected['targets']
+
         self.active = name
+        self.mode = dirs
 
         self.monitors[:] = monitors
         elements = self.model.elements
@@ -66,6 +76,7 @@ class Corrector(Matcher):
                        self.utool.add_unit(key, value))
             for target, values in targets.items()
             for key, value in values.items()
+            if key[-1] in dirs
         ], key=lambda c: c.pos)
         self.variables[:] = sorted([
             variable_from_knob(self, self._knobs[el.lower()][0])
@@ -259,10 +270,15 @@ class CorrectorWidget(QtGui.QWidget):
         self.con_tab.set_columns(self.constraint_columns, corr.constraints, self)
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
+        self.btn_edit_conf.clicked.connect(self.edit_config)
+        self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
+        self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
+        self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
 
     def set_initial_values(self):
         self.update_fit_button.setFocus()
         self.update_fit()
+        self.radio_mode_xy.setChecked(True)
 
     def connect_signals(self):
         self.update_fit_button.clicked.connect(self.update_fit)
@@ -294,7 +310,72 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
-        self.corrector.setup(name)
+        self.corrector.setup(name, self.corrector.mode)
+
+    def on_change_mode(self, dirs):
+        self.corrector.setup(self.corrector.active, dirs)
 
         # TODO: make 'optimal'-column in var_tab editable and update
         #       self.execute_corrections.setEnabled according to its values
+
+    def edit_config(self):
+        dialog = EditConfigDialog(self.corrector.model, self.corrector)
+        dialog.exec_()
+
+
+class EditConfigDialog(QtGui.QDialog):
+
+    def __init__(self, model, matcher):
+        super().__init__()
+        self.model = model
+        self.matcher = matcher
+        self.textbox = QtGui.QPlainTextEdit()
+        self.textbox.setFont(monospace(10))
+        buttons = QtGui.QDialogButtonBox()
+        buttons.addButton(buttons.Ok).clicked.connect(self.accept)
+        buttons.addButton(buttons.Apply).clicked.connect(self.apply)
+        buttons.addButton(buttons.Cancel).clicked.connect(self.reject)
+        self.setLayout(VBoxLayout([self.textbox, buttons]))
+        self.setSizeGripEnabled(True)
+        self.resize(QtCore.QSize(600,400))
+        self.setWindowTitle(self.model.filename)
+
+        with open(model.filename) as f:
+            text = f.read()
+        self.textbox.appendPlainText(text)
+
+    def accept(self):
+        if self.apply():
+            super().accept()
+
+    def apply(self):
+        text = self.textbox.toPlainText()
+        try:
+            data = yaml.safe_load(text)
+        except yaml.error.YAMLError:
+            QtGui.QMessageBox.critical(
+                self,
+                'Syntax error in YAML document',
+                'There is a syntax error in the YAML document, please edit.')
+            return False
+
+        configs = data.get('multi_grid')
+        if not configs:
+            QtGui.QMessageBox.critical(
+                self,
+                'No config defined',
+                'No multi grid configuration defined.')
+            return False
+
+        with open(self.model.filename, 'w') as f:
+            f.write(text)
+
+        self.matcher.configs = configs
+        self.model.data['multi_grid'] = configs
+
+        if self.matcher.active in configs:
+            self.matcher.setup(self.matcher.active)
+        else:
+            self.matcher.setup(next(iter(configs)))
+
+        return True
