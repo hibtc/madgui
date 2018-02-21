@@ -5,7 +5,7 @@ CHANGELOG
 -----
 Date: (in preparation)
 
-
+- rework the multi-grid dialog (for orbit correction)
 - rename back to madgui
 - new versioning scheme: interpret old madgui 0.X.Y -> 1.X.Y, madqt 0.0.X -> 2.X.0
 - remove pytao binding

@@ -3,7 +3,6 @@ Multi grid correction method.
 """
 
 # TODO:
-# - allow more than 2 monitors
 # - use CORRECT command from MAD-X rather than custom numpy method?
 # - combine with optic variation method
 
