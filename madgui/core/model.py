@@ -148,12 +148,31 @@ class Model(Object):
             return None
         val = self.utool.strip_unit('s', pos)
         i0 = bisect_right(self.positions, val)
-        if i0 == 0:
+        return self.elements[i0-1 if i0 > 0 else 0]
+
+    def get_element_by_mouse_position(self, axes, pos):
+        """Find an element close to the mouse cursor."""
+        elem = self.get_element_by_position(pos)
+        if elem is None:
             return None
-        elem = self.elements[i0-1]
+        # Fuzzy select nearby elements, if they are <= 3px:
         at, L = elem.At, elem.L
-        if pos < at or pos > at+L:
-            return None
+        el_id = elem.El_id
+        x0_px = axes.transData.transform_point((0, 0))[0]
+        strip = lambda x: self.utool.strip_unit('at', x)
+        x2pix = lambda x: axes.transData.transform_point((strip(x), 0))[0]-x0_px
+        len_px = x2pix(L)
+        pos_px = x2pix(pos)
+        if len_px > 5 or elem.Type == 'drift':
+            edge_px = max(1, min(2, round(0.2*len_px))) # max 2px cursor distance
+            if el_id > 0 \
+                    and x2pix(pos-at) < edge_px \
+                    and x2pix(self.elements[el_id-1].L) <= 3:
+                return self.elements[el_id-1]
+            if el_id < len(self.elements) \
+                    and x2pix(at+L-pos) < edge_px \
+                    and x2pix(self.elements[el_id+1].L) <= 3:
+                return self.elements[el_id+1]
         return elem
 
     def get_element_by_name(self, name):

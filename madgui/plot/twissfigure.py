@@ -183,7 +183,7 @@ class TwissFigure(Object):
         curve = next(c for c in self.twiss_curves.items if c.axes is ax)
         parts = [coord_fmt(x, get_raw_label(curve.x_unit)),
                  coord_fmt(y, get_raw_label(curve.y_unit))]
-        elem = self.model.get_element_by_position(x * curve.x_unit)
+        elem = self.model.get_element_by_mouse_position(ax, x * curve.x_unit)
         if elem and 'name' in elem:
             name = strip_suffix(elem.Name, '[0]')
             parts.insert(0, name.upper())
