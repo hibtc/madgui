@@ -2,6 +2,9 @@
 Qt utilities.
 """
 
+from madgui.qt import Qt, QtCore, QtGui
+
+
 def notifyCloseEvent(widget, handler):
     """Connect a closeEvent observer."""
     # There are three basic ways to get notified when a window is closed:
@@ -28,3 +31,14 @@ def present(window, raise_=False):
     window.activateWindow()
     if raise_:
         window.raise_()
+
+
+def fit_button(button):
+    text_size = button.fontMetrics().size(Qt.TextShowMnemonic, button.text())
+    opt = QtGui.QStyleOptionButton()
+    opt.initFrom(button)
+    opt.rect.setSize(text_size)
+    full_size = button.style().sizeFromContents(
+        QtGui.QStyle.CT_PushButton, opt, text_size, button)
+    button.setMinimumWidth(full_size.width())
+    button.setMaximumWidth(full_size.width())

@@ -4,6 +4,7 @@ Info boxes to display element detail.
 
 from madgui.qt import QtGui
 from madgui.core.base import Signal
+from madgui.util.qt import fit_button
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.params import TabParamTables
 
@@ -34,6 +35,9 @@ class ElementInfoBox(QtGui.QWidget):
         button_right = QtGui.QPushButton(">")
         button_left.clicked.connect(lambda: self.advance(-1))
         button_right.clicked.connect(lambda: self.advance(+1))
+
+        fit_button(button_left)
+        fit_button(button_right)
 
         self.setLayout(VBoxLayout([
             HBoxLayout([button_left, self.select, button_right]),

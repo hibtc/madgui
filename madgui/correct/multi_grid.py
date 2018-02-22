@@ -18,6 +18,7 @@ from madgui.qt import QtCore, QtGui, uic
 from madgui.core.unit import tounit
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout
+from madgui.util.qt import fit_button
 from madgui.util.font import monospace
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.orbit import fit_initial_orbit
@@ -269,10 +270,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.con_tab.set_columns(self.constraint_columns, corr.constraints, self)
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
-        self.btn_edit_conf.clicked.connect(self.edit_config)
-        self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
-        self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
-        self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
+        fit_button(self.btn_edit_conf)
 
     def set_initial_values(self):
         self.update_fit_button.setFocus()
@@ -283,6 +281,10 @@ class CorrectorWidget(QtGui.QWidget):
         self.update_fit_button.clicked.connect(self.update_fit)
         self.execute_corrections.clicked.connect(self.on_execute_corrections)
         self.combo_config.currentIndexChanged.connect(self.on_change_config)
+        self.btn_edit_conf.clicked.connect(self.edit_config)
+        self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
+        self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
+        self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
 
     def update_fit(self):
         """Calculate initial positions / corrections."""

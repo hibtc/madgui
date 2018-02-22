@@ -24,7 +24,14 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="combo_config"/>
+      <widget class="QComboBox" name="combo_config">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="btn_edit_conf">
