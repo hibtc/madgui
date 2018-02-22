@@ -59,7 +59,7 @@ class NumberFormat(Object):
     changed = Signal()
     spinbox = False
     fmtspec = '.4g'
-    align = Qt.AlignLeft
+    align = Qt.AlignRight
 
 # Global format, as singleton, for now:
 NumberFormat = NumberFormat()
