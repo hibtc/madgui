@@ -23,8 +23,7 @@ class ElementInfoBox(QtGui.QWidget):
     def __init__(self, model, el_id, **kwargs):
         super().__init__()
 
-        datastore = model.get_elem_ds(el_id)
-        self.tab = TabParamTables(datastore, **kwargs)
+        self.tab = TabParamTables(None, **kwargs)
 
         # navigation
         self.select = QtGui.QComboBox()
@@ -70,19 +69,11 @@ class ElementInfoBox(QtGui.QWidget):
     def set_element(self, name):
         if name != self._el_id:
             self._el_id = name
+            self.tab.datastore = self.model.get_elem_ds(self.el_id)
+            self.select.setCurrentIndex(self.model.get_element_index(self.el_id))
             self.update()
             self.changed_element.emit()
 
     @property
     def element(self):
         return self.model.elements[self.el_id]
-
-    def update(self):
-        """
-        Update the contents of the managed popup window.
-        """
-        # FIXME: this does not update substores/tabs
-        if hasattr(self, 'model'):
-            self.tab.datastore = self.model.get_elem_ds(self.el_id)
-            self.select.setCurrentIndex(self.model.get_element_index(self.el_id))
-        super().update()

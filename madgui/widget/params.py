@@ -69,8 +69,14 @@ class ParamTable(tableview.TableView):
     def update(self):
         """Update dialog from the datastore."""
         # TODO: get along without resetting all the rows?
-        self.rows = [ParamInfo(self.datastore, k, v)
-                     for k, v in self.datastore.get().items()]
+        rows = [ParamInfo(self.datastore, k, v)
+                for k, v in self.datastore.get().items()]
+        if len(rows) == len(self.rows):
+            for i, row in enumerate(rows):
+                self.rows[i] = row
+        else:
+            self.rows = rows
+
         # Set initial size:
         if not self.isVisible():
             self.selectRow(0)
@@ -124,6 +130,8 @@ class TabParamTables(QtGui.QTabWidget):
         self._datastore = datastore
         # TODO: keep+reuse existing tabs as far as possible (?)
         self.clear()
+        if datastore is None:
+            return
         self.tabs = tabs = [
             ParamTable(ds, **self.kwargs)
             for ds in datastore.substores.values()
