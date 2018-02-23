@@ -263,6 +263,11 @@ parameter_sets:
       bety: 1,
     ]
 
+  sigma:
+    title: Sigma
+    data_key: sigma
+    params: []
+
 constraints: [
   betx, alfx, mux,
   bety, alfy, muy,

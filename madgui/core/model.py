@@ -490,6 +490,7 @@ class Model(Object):
         return SuperStore(OrderedDict([
             ('attributes', ElementDataStore(self, 'element', elem_index=elem_index)),
             ('twiss', TwissDataStore(self, 'twiss', elem_index=elem_index)),
+            ('sigma', SigmaDataStore(self, 'sigma', elem_index=elem_index)),
         ]), utool=self.utool)
 
     # TODO…
@@ -594,6 +595,15 @@ class Model(Object):
             'alfy': self.get_twiss_column('alfy')[i0],
             'betx': self.get_twiss_column('betx')[i0],
             'bety': self.get_twiss_column('bety')[i0],
+        }
+
+    def get_elem_sigma(self, elem):
+        ix = self.get_element_index(elem)
+        i0 = self.indices[ix].stop
+        return {
+            sig_ij: self.get_twiss_column(sig_ij)[i0]
+            for i, j in itertools.product(range(6), range(6))
+            for sig_ij in ['sig{}{}'.format(i+1, j+1)]
         }
 
     def contains(self, element):
@@ -1068,6 +1078,12 @@ class TwissDataStore(MadxDataStore):
 
     def mutable(self, key):
         return False
+
+
+class SigmaDataStore(TwissDataStore):
+
+    def _get(self):
+        return self.model.get_elem_sigma(self.kw['elem_index'])
 
 
 # TODO: support expressions
