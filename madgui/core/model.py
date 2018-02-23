@@ -22,7 +22,7 @@ from madgui.resource import yaml
 from madgui.core.unit import UnitConverter, from_config, isclose, number_types
 from madgui.util.misc import sort_to_top
 from madgui.resource.file import FileResource
-from madgui.util.datastore import DataStore, SuperStore
+from madgui.util.datastore import DataStore
 
 
 # stuff for online control:
@@ -205,9 +205,10 @@ class Model(Object):
 
     def set_element_attribute(self, elem, attr, value):
         elem = self.elements[elem].El_id
-        self.get_elem_ds(elem).substores['attributes'].update({
+        self.get_elem_ds(elem).update({
             attr: value,
         })
+
     # curves
 
     @property
@@ -480,16 +481,15 @@ class Model(Object):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def get_init_ds(self):
-        return SuperStore(OrderedDict([
-            ('beam', MadxDataStore(self, 'beam')),
-            ('twiss', MadxDataStore(self, 'twiss_args')),
-        ]), utool=self.utool)
+    def get_beam_ds(self):
+        return MadxDataStore(self, 'beam')
+
+    def get_twiss_ds(self):
+        return MadxDataStore(self, 'twiss_args')
 
     def get_elem_ds(self, elem_index):
-        return SuperStore(OrderedDict([
-            ('attributes', ElementDataStore(self, 'element', elem_index=elem_index)),
-        ]), utool=self.utool)
+        return ElementDataStore(
+            self, 'element', elem_index=elem_index)
 
     # TODO…
     def _is_mutable_attribute(self, k, v):
@@ -585,6 +585,30 @@ class Model(Object):
 
         return y[i0] + dx * (y[i1]-y[i0]) / (s[i1]-s[i0])
 
+    def get_elem_twiss(self, elem):
+        ix = self.get_element_index(elem)
+        i0 = self.indices[ix].stop
+        # TODO: use the sigma matrix instead?
+        twiss = {
+            'alfx': self.get_twiss_column('alfx')[i0],
+            'alfy': self.get_twiss_column('alfy')[i0],
+            'betx': self.get_twiss_column('betx')[i0],
+            'bety': self.get_twiss_column('bety')[i0],
+            'ex': self.ex(),
+            'ey': self.ey(),
+        }
+        twiss['gamx'] = (1+twiss['alfx']**2) / twiss['betx']
+        twiss['gamy'] = (1+twiss['alfy']**2) / twiss['bety']
+        return twiss
+
+    def get_elem_sigma(self, elem):
+        ix = self.get_element_index(elem)
+        i0 = self.indices[ix].stop
+        return {
+            sig_ij: self.get_twiss_column(sig_ij)[i0]
+            for i, j in itertools.product(range(6), range(6))
+            for sig_ij in ['sig{}{}'.format(i+1, j+1)]
+        }
 
     def contains(self, element):
         return (self.start.index <= element.index and
@@ -817,6 +841,8 @@ class MadxDataStore(DataStore):
         return getattr(self.model, self.name)
 
     def get(self):
+        if not self.valid():
+            return OrderedDict()
         data = self._get()
         self.data = process_spec(self.conf['params'], data)
         return OrderedDict([
@@ -833,6 +859,9 @@ class MadxDataStore(DataStore):
 
     def default(self, key):
         return self.data[key.lower()]
+
+    def valid(self):
+        return True
 
 
 class ElementList(Sequence):
@@ -1049,6 +1078,9 @@ class ElementDataStore(MadxDataStore):
     def mutable(self, key):
         key = key.lower()
         return self.model._is_mutable_attribute(key, self.data[key])
+
+    def valid(self):
+        return 'elem_index' in self.kw
 
 
 # TODO: support expressions

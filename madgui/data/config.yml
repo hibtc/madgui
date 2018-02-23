@@ -114,6 +114,8 @@ madx_units:
   y:        m
   betx:     m
   bety:     m
+  gamx:     1/m
+  gamy:     1/m
   angle:    rad
   k1:       m^-2
   k1s:      m^-2
@@ -241,17 +243,33 @@ parameter_sets:
     title: Element attributes
     data_key: element
     readonly: [at, l, s, el_id]
+    params: []
+    show:
+      common:       [name, type, el_id, at, l]
+      srotation:    [angle]
+      solenoid:     [ks]
+      multipole:    [knl, ksl, tilt]
+      sbend:        [angle, e1, e2, tilt]
+      quadrupole:   [k1, k1s, tilt]
+      collimator:   [apertype, aperture]
+      hkicker:      [kick, tilt]
+      vkicker:      [kick, tilt]
+      kicker:       [hkick, vkick, tilt]
+
+  twiss:
+    title: Twiss
+    data_key: twiss
     params: [
-      name:  "",
-      type:  "",
-      at:    0,
-      l:     0,
-      ksl:   [],
-      knl:   [],
-      k1:    0,
-      angle: 0,
-      kick:  0,
+      alfx: 0,
+      alfy: 0,
+      betx: 1,
+      bety: 1,
     ]
+
+  sigma:
+    title: Sigma
+    data_key: sigma
+    params: []
 
 constraints: [
   betx, alfx, mux,

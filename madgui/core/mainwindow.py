@@ -223,11 +223,12 @@ class MainWindow(QtGui.QMainWindow):
 
     @SingleWindow.factory
     def editInitialConditions(self):
-        from madgui.widget.params import TabParamTables
+        from madgui.widget.params import TabParamTables, ParamTable
 
-        datastore = self.model.get_init_ds()
-
-        widget = TabParamTables(datastore)
+        widget = TabParamTables([
+            ('Beam', ParamTable(self.model.get_beam_ds())),
+            ('Twiss', ParamTable(self.model.get_twiss_ds())),
+        ])
         widget.update()
 
         dialog = Dialog(self)

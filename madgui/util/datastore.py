@@ -64,25 +64,3 @@ class DataStore:
             data = {self.data_key: data}
         with open(filename, 'wt') as f:
             yaml.safe_dump(data, f, default_flow_style=False)
-
-
-class SuperStore(DataStore):
-
-    """DataStore that is composed of substores."""
-
-    def __init__(self, substores, utool=None):
-        self.substores = substores
-        self.utool = utool
-
-    def get(self):
-        """Get a dictionary with all values."""
-        return OrderedDict([
-            (key, ds.get())
-            for key, ds in self.substores.items()
-        ])
-
-    def update(self, values):
-        """Update values from dictionary."""
-        for key, vals in values.items():
-            # TODO: warning if no substore for a key available 
-            self.substores[key].update(vals)
