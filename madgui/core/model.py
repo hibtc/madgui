@@ -489,6 +489,7 @@ class Model(Object):
     def get_elem_ds(self, elem_index):
         return SuperStore(OrderedDict([
             ('attributes', ElementDataStore(self, 'element', elem_index=elem_index)),
+            ('twiss', TwissDataStore(self, 'twiss', elem_index=elem_index)),
         ]), utool=self.utool)
 
     # TODO…
@@ -585,6 +586,15 @@ class Model(Object):
 
         return y[i0] + dx * (y[i1]-y[i0]) / (s[i1]-s[i0])
 
+    def get_elem_twiss(self, elem):
+        ix = self.get_element_index(elem)
+        i0 = self.indices[ix].stop
+        return {
+            'alfx': self.get_twiss_column('alfx')[i0],
+            'alfy': self.get_twiss_column('alfy')[i0],
+            'betx': self.get_twiss_column('betx')[i0],
+            'bety': self.get_twiss_column('bety')[i0],
+        }
 
     def contains(self, element):
         return (self.start.index <= element.index and
@@ -1049,6 +1059,15 @@ class ElementDataStore(MadxDataStore):
     def mutable(self, key):
         key = key.lower()
         return self.model._is_mutable_attribute(key, self.data[key])
+
+
+class TwissDataStore(MadxDataStore):
+
+    def _get(self):
+        return self.model.get_elem_twiss(self.kw['elem_index'])
+
+    def mutable(self, key):
+        return False
 
 
 # TODO: support expressions

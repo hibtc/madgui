@@ -253,6 +253,16 @@ parameter_sets:
       kick:  0,
     ]
 
+  twiss:
+    title: Twiss
+    data_key: twiss
+    params: [
+      alfx: 0,
+      alfy: 0,
+      betx: 1,
+      bety: 1,
+    ]
+
 constraints: [
   betx, alfx, mux,
   bety, alfy, muy,
