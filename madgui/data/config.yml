@@ -241,17 +241,18 @@ parameter_sets:
     title: Element attributes
     data_key: element
     readonly: [at, l, s, el_id]
-    params: [
-      name:  "",
-      type:  "",
-      at:    0,
-      l:     0,
-      ksl:   [],
-      knl:   [],
-      k1:    0,
-      angle: 0,
-      kick:  0,
-    ]
+    params: []
+    show:
+      common:       [name, type, el_id, at, l]
+      srotation:    [angle]
+      solenoid:     [ks]
+      multipole:    [knl, ksl, tilt]
+      sbend:        [angle, e1, e2, tilt]
+      quadrupole:   [k1, k1s, tilt]
+      collimator:   [apertype, aperture]
+      hkicker:      [kick, tilt]
+      vkicker:      [kick, tilt]
+      kicker:       [hkick, vkick, tilt]
 
   twiss:
     title: Twiss

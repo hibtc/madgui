@@ -205,7 +205,7 @@ class Model(Object):
 
     def set_element_attribute(self, elem, attr, value):
         elem = self.elements[elem].El_id
-        self.get_elem_ds(elem).substores['attributes'].update({
+        self.get_elem_ds(elem).substores['attrs'].update({
             attr: value,
         })
     # curves
@@ -488,7 +488,8 @@ class Model(Object):
 
     def get_elem_ds(self, elem_index):
         return SuperStore(OrderedDict([
-            ('attributes', ElementDataStore(self, 'element', elem_index=elem_index)),
+            ('basic', BasicDataStore(self, 'element', elem_index=elem_index)),
+            ('attrs', ElementDataStore(self, 'element', elem_index=elem_index)),
             ('twiss', TwissDataStore(self, 'twiss', elem_index=elem_index)),
             ('sigma', SigmaDataStore(self, 'sigma', elem_index=elem_index)),
         ]), utool=self.utool)
@@ -1059,6 +1060,21 @@ class Element(Mapping):
                 'Angle',
                 'Kick',
             ]))
+
+
+class BasicDataStore(MadxDataStore):
+
+    def _get(self):
+        data = self.model.elements[self.kw['elem_index']]
+        show = self.conf['show']
+        return OrderedDict([
+            (k, data[k])
+            for k in show['common'] + show.get(data['type'], [])
+        ])
+
+    def mutable(self, key):
+        key = key.lower()
+        return self.model._is_mutable_attribute(key, self.data[key])
 
 
 class ElementDataStore(MadxDataStore):
