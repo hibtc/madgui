@@ -32,6 +32,10 @@ class ParamInfo:
     def on_edit(self, value):
         self.datastore.update({self.name: value})
 
+    def __repr__(self):
+        return "{}({}={})".format(
+            self.__class__.__name__, self.name, self.proxy.value)
+
 
 class ParamTable(tableview.TableView):
 
