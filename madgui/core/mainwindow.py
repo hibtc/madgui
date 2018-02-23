@@ -133,6 +133,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Beam parameters', 'Ctrl+B',
                      'Change the beam parameters.',
                      self.editBeam),
+                Item('&Magnet strengths', 'Ctrl+M',
+                     'Change globals.',
+                     self.editGlobals),
             ]),
             Menu('&View', [
                 Item('Plo&t window', 'Ctrl+T',
@@ -221,6 +224,10 @@ class MainWindow(QtGui.QMainWindow):
         widget = self.editInitialConditions.create()
         widget.activate_tab('beam')
 
+    def editGlobals(self):
+        widget = self.editInitialConditions.create()
+        widget.activate_tab('globals')
+
     @SingleWindow.factory
     def editInitialConditions(self):
         from madgui.widget.params import TabParamTables, ParamTable
@@ -228,6 +235,7 @@ class MainWindow(QtGui.QMainWindow):
         widget = TabParamTables([
             ('Beam', ParamTable(self.model.get_beam_ds())),
             ('Twiss', ParamTable(self.model.get_twiss_ds())),
+            ('Globals', ParamTable(self.model.get_globals_ds())),
         ])
         widget.update()
 

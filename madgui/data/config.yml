@@ -239,6 +239,11 @@ parameter_sets:
       n1min:    -1,
     ]
 
+  globals:
+    title: Globals
+    data_key: globals
+    params: []
+
   element:
     title: Element attributes
     data_key: element

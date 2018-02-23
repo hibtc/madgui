@@ -139,6 +139,16 @@ class Model(Object):
     def set_twiss_args(self, twiss):
         self.set_twiss_args_raw(self.utool.dict_strip_unit(twiss))
 
+    def get_globals(self):
+        blacklist = ('none', 'twiss_tol', 'degree')
+        return {k: v for k, v in self.madx.globals.items()
+                if k not in blacklist}
+
+    def set_globals(self, knobs):
+        for k, v in knobs.items():
+            self.madx.globals[k] = v
+
+    globals = property(get_globals, set_globals)
     beam = property(get_beam, set_beam)
     twiss_args = property(get_twiss_args, set_twiss_args)
 
@@ -481,6 +491,9 @@ class Model(Object):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
+    def get_globals_ds(self):
+        return MadxDataStore(self, 'globals')
+
     def get_beam_ds(self):
         return MadxDataStore(self, 'beam')
 
@@ -513,6 +526,10 @@ class Model(Object):
         """Set beam from a parameter dictionary."""
         self._beam = beam
         self._use_beam(beam)
+
+    def update_globals(self, globals):
+        self.set_globals(globals)
+        self.twiss.invalidate()
 
     def update_beam(self, beam):
         new_beam = self._beam.copy()
