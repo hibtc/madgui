@@ -131,6 +131,7 @@ class TabParamTables(QtGui.QTabWidget):
 
     @datastore.setter
     def datastore(self, datastore):
+        tab_index = self.currentIndex()
         self._datastore = datastore
         # TODO: keep+reuse existing tabs as far as possible (?)
         self.clear()
@@ -144,6 +145,7 @@ class TabParamTables(QtGui.QTabWidget):
             # TODO: suppress empty tabs
             self.addTab(tab, tab.datastore.label)
         self.tabBar().setVisible(len(tabs) > 1)
+        self.setCurrentIndex(tab_index)
 
     def update(self):
         self.tabs[self.currentIndex()].update()
