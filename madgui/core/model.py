@@ -588,12 +588,18 @@ class Model(Object):
     def get_elem_twiss(self, elem):
         ix = self.get_element_index(elem)
         i0 = self.indices[ix].stop
-        return {
+        # TODO: use the sigma matrix instead?
+        twiss = {
             'alfx': self.get_twiss_column('alfx')[i0],
             'alfy': self.get_twiss_column('alfy')[i0],
             'betx': self.get_twiss_column('betx')[i0],
             'bety': self.get_twiss_column('bety')[i0],
+            'ex': self.ex(),
+            'ey': self.ey(),
         }
+        twiss['gamx'] = (1+twiss['alfx']**2) / twiss['betx']
+        twiss['gamy'] = (1+twiss['alfy']**2) / twiss['bety']
+        return twiss
 
     def get_elem_sigma(self, elem):
         ix = self.get_element_index(elem)

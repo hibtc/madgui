@@ -114,6 +114,8 @@ madx_units:
   y:        m
   betx:     m
   bety:     m
+  gamx:     1/m
+  gamy:     1/m
   angle:    rad
   k1:       m^-2
   k1s:      m^-2

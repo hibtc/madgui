@@ -4,7 +4,16 @@ Info boxes to display element detail.
 
 from collections import OrderedDict
 
-from madgui.qt import QtGui
+from math import sqrt, pi, atan, cos, sin
+
+import numpy as np
+
+import matplotlib as mpl
+mpl.use('Qt5Agg')                       # select before mpl.backends import!
+import matplotlib.backends.backend_qt5agg as mpl_backend
+from matplotlib.patches import Ellipse
+
+from madgui.qt import QtCore, QtGui
 from madgui.core.base import Signal
 from madgui.util.qt import fit_button
 from madgui.util.layout import VBoxLayout, HBoxLayout
@@ -31,6 +40,7 @@ class ElementInfoBox(QtGui.QWidget):
             ('Full', ParamTable(ElementDataStore(model, 'element'))),
             ('Twiss', ParamTable(TwissDataStore(model, 'twiss'))),
             ('Sigma', ParamTable(SigmaDataStore(model, 'sigma'))),
+            ('Ellipse', EllipseWidget(model)),
         ])
 
         # navigation
@@ -117,3 +127,52 @@ class SigmaDataStore(TwissDataStore):
 
     def _get(self):
         return self.model.get_elem_sigma(self.kw['elem_index'])
+
+
+class EllipseWidget(QtGui.QWidget):
+
+    def __init__(self, model):
+        super().__init__()
+
+        self.model = model
+        self.figure = mpl.figure.Figure()
+        self.canvas = canvas = mpl_backend.FigureCanvas(self.figure)
+        self.toolbar = toolbar = mpl_backend.NavigationToolbar2QT(canvas, self)
+        layout = VBoxLayout([canvas, toolbar])
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+        # Needed on PyQt5 with tight_layout=True to prevent crash due to
+        # singular matrix if size=0:
+        canvas.setMinimumSize(QtCore.QSize(100, 100))
+        canvas.resize(QtCore.QSize(100, 100))
+
+    def update(self, elem_index):
+        self.figure.clf()
+        axx = self.figure.add_subplot(121)
+        axy = self.figure.add_subplot(122)
+
+        def ellipse(ax, alfa, beta, gamma, eps):
+            phi = atan(2*alfa/(gamma - beta)) / 2
+            c, s = cos(phi), sin(phi)
+
+            R = np.array([[c, -s], [s, c]])
+            M = np.array([[beta, -alfa], [-alfa, gamma]])
+            T = R.T.dot(M).dot(R)
+
+            w = sqrt(eps*T[0,0])
+            h = sqrt(eps*T[1,1])
+
+            dx = sqrt(eps*beta)
+            dy = sqrt(eps*gamma)
+            ax.set_xlim(-dx*0.6, dx*0.6)
+            ax.set_ylim(-dy*0.6, dy*0.6)
+
+            ax.add_patch(Ellipse((0, 0), w, h, phi/pi*180, fill=False))
+            ax.grid(True)
+
+        twiss = self.model.utool.dict_strip_unit(
+            self.model.get_elem_twiss(elem_index))
+        ellipse(axx, twiss['alfx'], twiss['betx'], twiss['gamx'], twiss['ex'])
+        ellipse(axy, twiss['alfy'], twiss['bety'], twiss['gamy'], twiss['ey'])
+
+        self.canvas.draw()
