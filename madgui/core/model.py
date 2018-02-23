@@ -22,7 +22,7 @@ from madgui.resource import yaml
 from madgui.core.unit import UnitConverter, from_config, isclose, number_types
 from madgui.util.misc import sort_to_top
 from madgui.resource.file import FileResource
-from madgui.util.datastore import DataStore, SuperStore
+from madgui.util.datastore import DataStore
 
 
 # stuff for online control:
@@ -205,9 +205,10 @@ class Model(Object):
 
     def set_element_attribute(self, elem, attr, value):
         elem = self.elements[elem].El_id
-        self.get_elem_ds(elem).substores['attrs'].update({
+        self.get_elem_ds(elem).update({
             attr: value,
         })
+
     # curves
 
     @property
@@ -480,19 +481,15 @@ class Model(Object):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def get_init_ds(self):
-        return SuperStore(OrderedDict([
-            ('beam', MadxDataStore(self, 'beam')),
-            ('twiss', MadxDataStore(self, 'twiss_args')),
-        ]), utool=self.utool)
+    def get_beam_ds(self):
+        return MadxDataStore(self, 'beam')
+
+    def get_twiss_ds(self):
+        return MadxDataStore(self, 'twiss_args')
 
     def get_elem_ds(self, elem_index):
-        return SuperStore(OrderedDict([
-            ('basic', BasicDataStore(self, 'element', elem_index=elem_index)),
-            ('attrs', ElementDataStore(self, 'element', elem_index=elem_index)),
-            ('twiss', TwissDataStore(self, 'twiss', elem_index=elem_index)),
-            ('sigma', SigmaDataStore(self, 'sigma', elem_index=elem_index)),
-        ]), utool=self.utool)
+        return ElementDataStore(
+            self, 'element', elem_index=elem_index)
 
     # TODO…
     def _is_mutable_attribute(self, k, v):
@@ -838,6 +835,8 @@ class MadxDataStore(DataStore):
         return getattr(self.model, self.name)
 
     def get(self):
+        if not self.valid():
+            return OrderedDict()
         data = self._get()
         self.data = process_spec(self.conf['params'], data)
         return OrderedDict([
@@ -854,6 +853,9 @@ class MadxDataStore(DataStore):
 
     def default(self, key):
         return self.data[key.lower()]
+
+    def valid(self):
+        return True
 
 
 class ElementList(Sequence):
@@ -1062,21 +1064,6 @@ class Element(Mapping):
             ]))
 
 
-class BasicDataStore(MadxDataStore):
-
-    def _get(self):
-        data = self.model.elements[self.kw['elem_index']]
-        show = self.conf['show']
-        return OrderedDict([
-            (k, data[k])
-            for k in show['common'] + show.get(data['type'], [])
-        ])
-
-    def mutable(self, key):
-        key = key.lower()
-        return self.model._is_mutable_attribute(key, self.data[key])
-
-
 class ElementDataStore(MadxDataStore):
 
     def _get(self):
@@ -1086,20 +1073,8 @@ class ElementDataStore(MadxDataStore):
         key = key.lower()
         return self.model._is_mutable_attribute(key, self.data[key])
 
-
-class TwissDataStore(MadxDataStore):
-
-    def _get(self):
-        return self.model.get_elem_twiss(self.kw['elem_index'])
-
-    def mutable(self, key):
-        return False
-
-
-class SigmaDataStore(TwissDataStore):
-
-    def _get(self):
-        return self.model.get_elem_sigma(self.kw['elem_index'])
+    def valid(self):
+        return 'elem_index' in self.kw
 
 
 # TODO: support expressions

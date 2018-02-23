@@ -70,9 +70,10 @@ class ParamTable(tableview.TableView):
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Preferred)
 
-    def update(self):
+    def update(self, **kw):
         """Update dialog from the datastore."""
         # TODO: get along without resetting all the rows?
+        self.datastore.kw.update(kw)
         rows = [ParamInfo(self.datastore, k, v)
                 for k, v in self.datastore.get().items()]
         if len(rows) == len(self.rows):
@@ -118,45 +119,19 @@ class TabParamTables(QtGui.QTabWidget):
     TabWidget that manages multiple ParamTables inside.
     """
 
-    def __init__(self, datastore, **kwargs):
+    def __init__(self, tabs=()):
         super().__init__()
-        self.kwargs = kwargs
-        self.datastore = datastore
+        self.kw = {}
         self.setTabsClosable(False)
-        self.currentChanged.connect(self.index_changed)
-
-    @property
-    def datastore(self):
-        return self._datastore
-
-    @datastore.setter
-    def datastore(self, datastore):
-        tab_index = self.currentIndex()
-        self._datastore = datastore
-        # TODO: keep+reuse existing tabs as far as possible (?)
-        self.clear()
-        if datastore is None:
-            return
-        self.tabs = tabs = [
-            ParamTable(ds, **self.kwargs)
-            for ds in datastore.substores.values()
-        ]
-        for tab in tabs:
-            # TODO: suppress empty tabs
-            self.addTab(tab, tab.datastore.label)
-        self.tabBar().setVisible(len(tabs) > 1)
-        self.setCurrentIndex(tab_index)
+        for name, page in tabs:
+            self.addTab(page, name)
+        self.currentChanged.connect(self.update)
 
     def update(self):
-        self.tabs[self.currentIndex()].update()
-
-    def index_changed(self, index):
-        # DO NOT call into `self.update` from here. Otherwise there will be
-        # infinite recursions for `ElementInfoBox`
-        self.tabs[self.currentIndex()].update()
+        self.currentWidget().update(**self.kw)
 
     def activate_tab(self, name):
-        index = next((i for i, l in enumerate(self._datastore.substores)
-                      if l == name), 0)
+        index = next((i for i in range(self.count())
+                      if self.tabText(i).lower() == name.lower()), 0)
         if index != self.currentIndex():
             self.setCurrentIndex(index)
