@@ -213,6 +213,8 @@ class UnitConverter:
     def _add_unit(self, value, unit):
         if isinstance(value, Expression):
             return SymbolicValue(value.expr, value.value, unit)
+        elif isinstance(unit, list):
+            return [self._add_unit(v, u) for v, u in zip(value, unit)]
         else:
             return unit * value
 
