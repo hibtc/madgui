@@ -81,8 +81,8 @@ graphs:
   envelope:
     title: Beam envelope
     curves:
-      - [envx, m, '$\Delta x$']
-      - [envy, m, '$\Delta y$']
+      - [envx, mm, '$\Delta x$']
+      - [envy, mm, '$\Delta y$']
   alpha:
     title: Alpha function
     curves:
@@ -91,8 +91,8 @@ graphs:
   orbit:
     title: Particle orbit
     curves:
-      - [x, m, '$x$']
-      - [y, m, '$y$']
+      - [x, mm, '$x$']
+      - [y, mm, '$y$']
   momentum:
     title: Particle momentum
     curves:
@@ -116,8 +116,8 @@ graphs:
   emittance:
     title: Emittanz
     curves:
-      - [ex, 1, '$\epsilon x$']
-      - [ey, 1, '$\epsilon y$']
+      - [ex, mm mrad, '$\epsilon x$']
+      - [ey, mm mrad, '$\epsilon y$']
 
 
 # Select which element paramters can be varied when matching a TWISS function:

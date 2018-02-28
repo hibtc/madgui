@@ -19,7 +19,8 @@ from cpymad.util import normalize_range_name
 
 from madgui.core.base import Object, Signal, Cache
 from madgui.resource import yaml
-from madgui.core.unit import UnitConverter, from_config, isclose, number_types
+from madgui.core.unit import (UnitConverter, from_config, isclose,
+                              number_types, strip_unit)
 from madgui.util.misc import sort_to_top
 from madgui.resource.file import FileResource
 from madgui.util.datastore import DataStore
@@ -676,9 +677,9 @@ class Model(Object):
         if name == 'posy':
             return self.get_twiss_column('y')
         if name == 'ex':
-            return np.sqrt(col('sig11') * col('sig22') - col('sig12') * col('sig21'))
+            return self.utool.add_unit(name, np.sqrt(col('sig11') * col('sig22') - col('sig12') * col('sig21')))
         if name == 'ey':
-            return np.sqrt(col('sig33') * col('sig44') - col('sig34') * col('sig43'))
+            return self.utool.add_unit(name, np.sqrt(col('sig33') * col('sig44') - col('sig34') * col('sig43')))
         return self.utool.add_unit(name, self.madx.get_table('twiss')[name])
 
     def get_twiss_column(self, column):
@@ -709,7 +710,7 @@ class Model(Object):
         data = {
             curve.short: np.vstack((xdata, ydata)).T
             for curve in info.curves
-            for ydata in [self.get_twiss_column(curve.name)]
+            for ydata in [strip_unit(self.get_twiss_column(curve.name), curve.unit)]
         }
         return info, data
 
