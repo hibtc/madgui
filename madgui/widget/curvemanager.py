@@ -79,7 +79,6 @@ class CurveManager(QtGui.QWidget):
         # UI
         uic.loadUi(resource_filename(__name__, self.ui_file), self)
         self.init_controls()
-        self.set_initial_values()
         self.connect_signals()
 
     def init_controls(self):
@@ -87,10 +86,6 @@ class CurveManager(QtGui.QWidget):
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.tab.set_columns(self.columns, self.available, self)
-
-    def set_initial_values(self):
-        self.btn_remove.setEnabled(len(self.tab.rows) > 0)
-        self.update_btn_remove()
 
     def connect_signals(self):
         self.btn_save.clicked.connect(self.on_btn_save)
