@@ -93,6 +93,26 @@ graphs:
     curves:
       - [x, m, '$x$']
       - [y, m, '$y$']
+  momentum:
+    title: Particle momentum
+    curves:
+      - [px, 1, '$px$']
+      - [py, 1, '$py$']
+  dispersion:
+    title: Dispersion
+    curves:
+      - [dx, m, '$dx$']
+      - [dy, m, '$dy$']
+  momentum_dispersion:
+    title: Momentum dispersion
+    curves:
+      - [dpx, 1, '$dpx$']
+      - [dpy, 1, '$dpy$']
+  phase:
+    title: Phase advance
+    curves:
+      - [mux, 1, '$\mu x$']
+      - [muy, 1, '$\mu y$']
 
 
 # Select which element paramters can be varied when matching a TWISS function:
