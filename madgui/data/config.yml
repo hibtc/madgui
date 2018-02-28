@@ -116,8 +116,8 @@ graphs:
   emittance:
     title: Emittanz
     curves:
-      - [ex, 1, '$\epsilon x$']
-      - [ey, 1, '$\epsilon y$']
+      - [ex, mm mrad, '$\epsilon x$']
+      - [ey, mm mrad, '$\epsilon y$']
 
 
 # Select which element paramters can be varied when matching a TWISS function:

@@ -677,9 +677,9 @@ class Model(Object):
         if name == 'posy':
             return self.get_twiss_column('y')
         if name == 'ex':
-            return np.sqrt(col('sig11') * col('sig22') - col('sig12') * col('sig21'))
+            return self.utool.add_unit(name, np.sqrt(col('sig11') * col('sig22') - col('sig12') * col('sig21')))
         if name == 'ey':
-            return np.sqrt(col('sig33') * col('sig44') - col('sig34') * col('sig43'))
+            return self.utool.add_unit(name, np.sqrt(col('sig33') * col('sig44') - col('sig34') * col('sig43')))
         return self.utool.add_unit(name, self.madx.get_table('twiss')[name])
 
     def get_twiss_column(self, column):
