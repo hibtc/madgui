@@ -53,7 +53,6 @@ line_view:
   # Style for the reference curve. Can contain any keyword arguments to
   # ``motplotlib.axes.Axes.plot()``
   reference_style:
-    marker: "x"
     linestyle: "-"
     color: "black"
 
