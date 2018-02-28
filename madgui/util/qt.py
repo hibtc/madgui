@@ -34,7 +34,8 @@ def present(window, raise_=False):
 
 
 def fit_button(button):
-    text_size = button.fontMetrics().size(Qt.TextShowMnemonic, button.text())
+    text = ' ' + button.text() + ' '
+    text_size = button.fontMetrics().size(Qt.TextShowMnemonic, text)
     opt = QtGui.QStyleOptionButton()
     opt.initFrom(button)
     opt.rect.setSize(text_size)
