@@ -50,7 +50,7 @@ class Matcher(Object):
     def match(self):
         """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""
         # transform constraints (envx => betx, etc)
-        transform = MatchTransform(self.model)
+        transform = MatchTransform()
         constraints = [
             Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
             for c in self.constraints]
@@ -85,7 +85,7 @@ class Matcher(Object):
         # The following uses the most naive, greedy and probably stupid
         # algorithm to select all elements that can be used for varying.
         variables = self.variables
-        transform = MatchTransform(self.model)
+        transform = MatchTransform()
         constraints = [
             Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
             for c in self.constraints]
@@ -138,10 +138,6 @@ class Matcher(Object):
 
 
 class MatchTransform:
-
-    def __init__(self, model):
-        self._ex = model.ex()
-        self._ey = model.ey()
 
     def envx(self, val):
         return 'sig11', val*val

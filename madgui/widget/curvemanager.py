@@ -134,6 +134,7 @@ class CurveManager(QtGui.QWidget):
         if 'sig11' in data:
             data['envx'] = data['sig11'] ** 0.5
         elif 'betx' in data:
+            # FIXME TODO: use position-dependent emittances…
             try:
                 ex = table.summary['ex']
             except ValueError:

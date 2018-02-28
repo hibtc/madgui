@@ -611,8 +611,8 @@ class Model(Object):
             'alfy': self.get_twiss_column('alfy')[i0],
             'betx': self.get_twiss_column('betx')[i0],
             'bety': self.get_twiss_column('bety')[i0],
-            'ex': self.ex(),
-            'ey': self.ey(),
+            'ex': self.get_twiss_column('ex')[i0],
+            'ey': self.get_twiss_column('ey')[i0],
         }
         twiss['gamx'] = (1+twiss['alfx']**2) / twiss['betx']
         twiss['gamy'] = (1+twiss['alfy']**2) / twiss['bety']
@@ -772,6 +772,7 @@ class Model(Object):
              axis: self.utool.strip_unit(axis, val)}
             for elem, pos, axis, val in constraints]
 
+        # FIXME TODO: use position-dependent emittances…
         weights = {
             'sig11': 1/self.utool.strip_unit('ex', self.ex()),
             'sig33': 1/self.utool.strip_unit('ey', self.ey()),
