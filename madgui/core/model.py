@@ -666,14 +666,19 @@ class Model(Object):
 
     def do_get_twiss_column(self, name):
         self.twiss.update()
+        col = self.get_twiss_column
         if name == 'envx':
-            return self.utool.add_unit(name, self.get_twiss_column('sig11')**0.5)
+            return self.utool.add_unit(name, col('sig11')**0.5)
         if name == 'envy':
-            return self.utool.add_unit(name, self.get_twiss_column('sig33')**0.5)
+            return self.utool.add_unit(name, col('sig33')**0.5)
         if name == 'posx':
             return self.get_twiss_column('x')
         if name == 'posy':
             return self.get_twiss_column('y')
+        if name == 'ex':
+            return np.sqrt(col('sig11') * col('sig22') - col('sig12') * col('sig21'))
+        if name == 'ey':
+            return np.sqrt(col('sig33') * col('sig44') - col('sig34') * col('sig43'))
         return self.utool.add_unit(name, self.madx.get_table('twiss')[name])
 
     def get_twiss_column(self, column):
