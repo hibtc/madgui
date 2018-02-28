@@ -189,12 +189,10 @@ class TwissFigure(Object):
             parts.insert(0, name.upper())
         return ', '.join(parts)
 
-    def update(self, autoscale=True):
+    def update(self):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
         self.twiss_curves.update()
-        if autoscale:
-            self.figure.autoscale()
 
     def update_graph_data(self):
         self.graph_info, self.graph_data = \
@@ -216,7 +214,8 @@ class TwissFigure(Object):
             self.x_unit * xend))
         if not allclose(self.xlim, self.data_lim()):
             ax.set_autoscale_on(False)
-            self.update(autoscale=False)
+            self.update()
+            ax.set_autoscale_on(True)
 
     def data_lim(self):
         curve = next(iter(self.graph_data))
