@@ -81,8 +81,8 @@ graphs:
   envelope:
     title: Beam envelope
     curves:
-      - [envx, m, '$\Delta x$']
-      - [envy, m, '$\Delta y$']
+      - [envx, mm, '$\Delta x$']
+      - [envy, mm, '$\Delta y$']
   alpha:
     title: Alpha function
     curves:
