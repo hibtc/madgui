@@ -113,6 +113,11 @@ graphs:
     curves:
       - [mux, 1, '$\mu x$']
       - [muy, 1, '$\mu y$']
+  emittance:
+    title: Emittanz
+    curves:
+      - [ex, 1, '$\epsilon x$']
+      - [ey, 1, '$\epsilon y$']
 
 
 # Select which element paramters can be varied when matching a TWISS function:
