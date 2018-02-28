@@ -33,6 +33,12 @@ line_view:
     multipole:    {color: "#00ff00", alpha: 0.6, ymin: 0.1, ymax: 0.9}
     hkicker:      {color: "#00aaaa", alpha: 0.6, ymin: 0.1, ymax: 0.9}
     vkicker:      {color: "#aaaa00", alpha: 0.6, ymin: 0.1, ymax: 0.9}
+    monitor:      {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,
+                   linestyle: dashed, linewidth: 1}
+    hmonitor:     {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,
+                   linestyle: dashed, linewidth: 1}
+    vmonitor:     {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,
+                   linestyle: dashed, linewidth: 1}
 
   # Style for the constraint markers. Can contain any keyword arguments to
   # ``matplotlib.axes.Axes.plot()``:
@@ -53,7 +59,6 @@ line_view:
   # Style for the reference curve. Can contain any keyword arguments to
   # ``motplotlib.axes.Axes.plot()``
   reference_style:
-    marker: "x"
     linestyle: "-"
     color: "black"
 
@@ -88,6 +93,26 @@ graphs:
     curves:
       - [x, m, '$x$']
       - [y, m, '$y$']
+  momentum:
+    title: Particle momentum
+    curves:
+      - [px, 1, '$px$']
+      - [py, 1, '$py$']
+  dispersion:
+    title: Dispersion
+    curves:
+      - [dx, m, '$dx$']
+      - [dy, m, '$dy$']
+  momentum_dispersion:
+    title: Momentum dispersion
+    curves:
+      - [dpx, 1, '$dpx$']
+      - [dpy, 1, '$dpy$']
+  phase:
+    title: Phase advance
+    curves:
+      - [mux, 1, '$\mu x$']
+      - [muy, 1, '$\mu y$']
 
 
 # Select which element paramters can be varied when matching a TWISS function:
