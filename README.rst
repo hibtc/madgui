@@ -7,7 +7,7 @@ madgui_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_
 Requirements
 ~~~~~~~~~~~~
 
-- **Python 3** (3.3 and above is possible, 3.4 or above is recommended)
+- **Python >= 3.3**
 
   *On linux*, I recommend the latest python version you can find.
 
