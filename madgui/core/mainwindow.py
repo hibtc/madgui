@@ -364,12 +364,17 @@ class MainWindow(QtGui.QMainWindow):
         self.destroyModel()
         self.model = model
         self.user_ns['model'] = model
-        self.user_ns['madx'] = model.madx
         self.user_ns['savedict'] = savedict
+
         if model is None:
             self.model_changed.emit()
             self.setWindowTitle("madgui")
             return
+
+        self.user_ns['madx'] = model.madx
+        self.user_ns['twiss'] = model.twiss.data
+
+        model.twiss.updated.connect(self.update_twiss)
 
         model.selection = Selection()
         model.box_group = InfoBoxGroup(self, model.selection)
@@ -388,6 +393,7 @@ class MainWindow(QtGui.QMainWindow):
     def destroyModel(self):
         if self.model is None:
             return
+        self.model.twiss.updated.disconnect(self.update_twiss)
         self.has_model.value = False
         del self.model.selection.elements[:]
         try:
@@ -397,7 +403,11 @@ class MainWindow(QtGui.QMainWindow):
             pass
         self.model = None
         self.user_ns['model'] = None
+        self.user_ns['twiss'] = None
         self.logfile.close()
+
+    def update_twiss(self):
+        self.user_ns['twiss'] = self.model.twiss.data
 
     def showTwiss(self, name=None):
         import madgui.plot.matplotlib as plt

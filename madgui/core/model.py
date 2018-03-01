@@ -742,6 +742,7 @@ class Model(Object):
             for l in [list(v)]
         ]
         assert len(self.indices) == len(self.elements)
+        return results
 
         # TODO: update elements
 
