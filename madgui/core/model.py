@@ -673,6 +673,8 @@ class Model(Object):
         if name == 'gamy': return +col('sig44') / col('ey')
         if name == 'envx': return col('sig11')**0.5
         if name == 'envy': return col('sig33')**0.5
+        if name == 'posx': return col('x')
+        if name == 'posy': return col('y')
         if name == 'ex': return (col('sig11') * col('sig22') -
                                  col('sig12') * col('sig21'))**0.5
         if name == 'ey': return (col('sig33') * col('sig44') -
