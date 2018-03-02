@@ -194,6 +194,9 @@ class UnitConverter:
         """Convert a config dict of units to their in-memory representation."""
         return cls(DefaultDict(lambda k: from_config(conf_dict[k.lower()])))
 
+    def get(self, name):
+        return self._units.get(name)
+
     def get_unit_label(self, name):
         """Get the name of the unit for the specified parameter name."""
         return get_unit_label(self._units.get(name))
@@ -246,3 +249,6 @@ class UnitConverter:
 
 madx_units = UnitConverter.from_config_dict(yaml.safe_load(
     resource_string('madgui.data', 'madx_units.yml')))
+
+ui_units = UnitConverter.from_config_dict(yaml.safe_load(
+    resource_string('madgui.data', 'ui_units.yml')))

@@ -19,8 +19,8 @@ from cpymad.util import normalize_range_name
 
 from madgui.core.base import Object, Signal, Cache
 from madgui.resource import yaml
-from madgui.core.unit import (madx_units, from_config, isclose,
-                              number_types, strip_unit)
+from madgui.core.unit import (madx_units, ui_units, from_config, isclose,
+                              number_types)
 from madgui.util.misc import sort_to_top
 from madgui.resource.file import FileResource
 from madgui.util.datastore import DataStore
@@ -50,7 +50,6 @@ CurveInfo = namedtuple('CurveInfo', [
     'short',    # display name for statusbar ('beta_a')
     'label',    # y-axis/legend label ('$\beta_a$')
     'style',    # **kwargs for ax.plot
-    'unit',     # y unit
 ])
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
@@ -697,16 +696,14 @@ class Model(Object):
                     name=name,
                     short=name,
                     label=label,
-                    style=style,
-                    unit=from_config(unit))
-                for (name, unit, label), style in zip(conf['curves'], styles)
+                    style=style)
+                for (name, label), style in zip(conf['curves'], styles)
             ])
 
         xdata = self.get_twiss_column('s') + self.start.at
         data = {
-            curve.short: np.vstack((xdata, ydata)).T
+            curve.short: (xdata, self.get_twiss_column(curve.name))
             for curve in info.curves
-            for ydata in [strip_unit(self.get_twiss_column(curve.name), curve.unit)]
         }
         return info, data
 

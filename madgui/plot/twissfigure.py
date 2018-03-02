@@ -5,6 +5,8 @@ s-axis.
 
 from functools import partial
 
+import numpy as np
+
 from madgui.qt import QtGui, Qt
 from madgui.core.worker import fetch_all
 from madgui.core.base import Object, Signal
@@ -12,7 +14,7 @@ from madgui.core.base import Object, Signal
 from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
 from madgui.core.unit import (
-    strip_unit, from_config, get_raw_label, allclose)
+    strip_unit, from_config, get_raw_label, allclose, ui_units)
 from madgui.resource.package import PackageResource
 from madgui.plot.base import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
@@ -128,10 +130,10 @@ class TwissFigure(Object):
         self.twiss_curves.clear([
             Curve(
                 ax,
-                partial(self.get_float_data, curve_info, 0),
-                partial(self.get_float_data, curve_info, 1),
+                partial(self.get_float_data, curve_info.name, 0),
+                partial(self.get_float_data, curve_info.name, 1),
                 curve_info.style,
-                label=ax_label(curve_info.label, curve_info.unit),
+                label=ax_label(curve_info.label, ui_units.get(curve_info.name)),
                 info=curve_info,
             )
             for ax, curve_info in zip(axes, self.graph_info.curves)
@@ -149,7 +151,7 @@ class TwissFigure(Object):
             # set axes properties for convenient access:
             curve.x_unit = self.x_unit
             curve.x_name = self.x_name
-            curve.y_unit = curve.info.unit
+            curve.y_unit = ui_units.get(curve.info.name)
             curve.y_name = curve.info.short
             ax.x_unit = curve.x_unit
             ax.y_unit = curve.y_unit
@@ -195,13 +197,18 @@ class TwissFigure(Object):
         self.twiss_curves.update()
 
     def update_graph_data(self):
-        self.graph_info, self.graph_data = \
+        self.graph_info, graph_data = \
             self.model.get_graph_data(self.graph_name, self.xlim)
+        self.graph_data = {
+            name: np.vstack((ui_units.strip_unit('s', x),
+                             ui_units.strip_unit(name, y))).T
+            for name, (x, y) in graph_data.items()
+        }
         self.graph_name = self.graph_info.name
 
-    def get_float_data(self, curve_info, column):
+    def get_float_data(self, name, column):
         """Get data for the given parameter from model."""
-        return self.graph_data[curve_info.name][:,column]
+        return self.graph_data[name][:,column]
 
     def get_curve_by_name(self, name):
         return next((c for c in self.twiss_curves.items if c.y_name == name), None)

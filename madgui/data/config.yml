@@ -76,53 +76,53 @@ graphs:
   beta:
     title: Beta function
     curves:
-      - [betx, m, '$\beta x$']
-      - [bety, m, '$\beta y$']
+      - [betx, '$\beta x$']
+      - [bety, '$\beta y$']
   envelope:
     title: Beam envelope
     curves:
-      - [envx, mm, '$\Delta x$']
-      - [envy, mm, '$\Delta y$']
+      - [envx, '$\Delta x$']
+      - [envy, '$\Delta y$']
   alpha:
     title: Alpha function
     curves:
-      - [alfx, 1, '$\alpha x$']
-      - [alfy, 1, '$\alpha y$']
+      - [alfx, '$\alpha x$']
+      - [alfy, '$\alpha y$']
   gamma:
     title: Gamma function
     curves:
-      - [gamx, 1/m, '$\gamma x$']
-      - [gamy, 1/m, '$\gamma y$']
+      - [gamx, '$\gamma x$']
+      - [gamy, '$\gamma y$']
   orbit:
     title: Particle orbit
     curves:
-      - [x, mm, '$x$']
-      - [y, mm, '$y$']
+      - [x, '$x$']
+      - [y, '$y$']
   momentum:
     title: Particle momentum
     curves:
-      - [px, 1, '$px$']
-      - [py, 1, '$py$']
+      - [px, '$px$']
+      - [py, '$py$']
   dispersion:
     title: Dispersion
     curves:
-      - [dx, m, '$dx$']
-      - [dy, m, '$dy$']
+      - [dx, '$dx$']
+      - [dy, '$dy$']
   momentum_dispersion:
     title: Momentum dispersion
     curves:
-      - [dpx, 1, '$dpx$']
-      - [dpy, 1, '$dpy$']
+      - [dpx, '$dpx$']
+      - [dpy, '$dpy$']
   phase:
     title: Phase advance
     curves:
-      - [mux, 1, '$\mu x$']
-      - [muy, 1, '$\mu y$']
+      - [mux, '$\mu x$']
+      - [muy, '$\mu y$']
   emittance:
     title: Emittanz
     curves:
-      - [ex, mm mrad, '$\epsilon x$']
-      - [ey, mm mrad, '$\epsilon y$']
+      - [ex, '$\epsilon x$']
+      - [ey, '$\epsilon y$']
 
 
 # Select which element paramters can be varied when matching a TWISS function:
