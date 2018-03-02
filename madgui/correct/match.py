@@ -52,8 +52,10 @@ class Matcher(Object):
         # transform constraints (envx => betx, etc)
         transform = MatchTransform()
         constraints = [
-            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
-            for c in self.constraints]
+            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value, tw))
+            for c in self.constraints
+            for tw in [self._get_tw_row(c.elem, c.pos)]
+        ]
         variables = [v.expr for v in self.variables]
         self.model.match(variables, constraints)
         self.variables[:] = [variable_update(self, v) for v in self.variables]
@@ -75,6 +77,9 @@ class Matcher(Object):
         self.revert()
         self.finished.emit()
 
+    def _get_tw_row(self, elem, pos):
+        return self.model.get_elem_twiss(elem)
+
     def next_best_variable(self):
         return variable_from_knob(self, self.knobs[0])
 
@@ -87,8 +92,10 @@ class Matcher(Object):
         variables = self.variables
         transform = MatchTransform()
         constraints = [
-            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value))
-            for c in self.constraints]
+            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value, tw))
+            for c in self.constraints
+            for tw in [self._get_tw_row(c.elem, c.pos)]
+        ]
         # Copy all needed variable lists (for later modification):
         axes = {c.axis for c in constraints}
         axes = {axis: self._allvars(axis)[:] for axis in axes}
@@ -139,11 +146,14 @@ class Matcher(Object):
 
 class MatchTransform:
 
-    def envx(self, val):
-        return 'sig11', val*val
-
-    def envy(self, val):
-        return 'sig33', val*val
+    def alfx(self, val, tw): return 'sig12', -val*tw.ex
+    def alfy(self, val, tw): return 'sig34', -val*tw.ey
+    def betx(self, val, tw): return 'sig11',  val*tw.ex
+    def bety(self, val, tw): return 'sig33',  val*tw.ey
+    def gamy(self, val, tw): return 'sig22',  val*tw.ex
+    def gamy(self, val, tw): return 'sig44',  val*tw.ey
+    def envx(self, val, tw): return 'sig11',  val**2
+    def envy(self, val, tw): return 'sig33',  val**2
 
     def __getattr__(self, name):
-        return lambda val: (name, val)
+        return lambda val, tw: (name, val)
