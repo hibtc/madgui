@@ -15,6 +15,7 @@ from matplotlib.patches import Ellipse
 
 from madgui.qt import QtCore, QtGui
 from madgui.core.base import Signal
+from madgui.core.unit import madx_units
 from madgui.util.qt import fit_button
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.core.model import ElementDataStore
@@ -170,7 +171,8 @@ class EllipseWidget(QtGui.QWidget):
             ax.add_patch(Ellipse((0, 0), w, h, phi/pi*180, fill=False))
             ax.grid(True)
 
-        twiss = self.model.utool.dict_strip_unit(
+        # FIXME: gui_units
+        twiss = madx_units.dict_strip_unit(
             self.model.get_elem_twiss(elem_index))
         ellipse(axx, twiss['alfx'], twiss['betx'], twiss['gamx'], twiss['ex'])
         ellipse(axy, twiss['alfy'], twiss['bety'], twiss['gamy'], twiss['ey'])

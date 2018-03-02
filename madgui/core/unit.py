@@ -2,10 +2,11 @@
 Provides unit conversion.
 """
 
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename, resource_string
 
 import numpy as np
 import pint
+import yaml
 
 from madgui.util.symbol import SymbolicValue
 from madgui.util.defaultdict import DefaultDict
@@ -241,3 +242,7 @@ class UnitConverter:
     def dict_normalize_unit(self, obj):
         """Normalize unit for all elements in a dictionary."""
         return obj.__class__((k, self.normalize_unit(k, obj[k])) for k in obj)
+
+
+madx_units = UnitConverter.from_config_dict(yaml.safe_load(
+    resource_string('madgui.data', 'madx_units.yml')))

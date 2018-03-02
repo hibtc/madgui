@@ -253,8 +253,7 @@ class MainWindow(QtGui.QMainWindow):
     def viewFloorPlan(self):
         from madgui.widget.floor_plan import LatticeFloorPlan, Selector
         latview = LatticeFloorPlan()
-        latview.setElements(self.model.utool,
-                            self.model.elements,
+        latview.setElements(self.model.elements,
                             self.model.survey(),
                             self.model.selection)
         selector = Selector(latview)

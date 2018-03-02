@@ -15,7 +15,7 @@ import yaml
 
 from madgui.qt import QtCore, QtGui, uic
 
-from madgui.core.unit import tounit
+from madgui.core.unit import tounit, madx_units
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout
 from madgui.util.qt import fit_button
@@ -47,7 +47,6 @@ class Corrector(Matcher):
         self.control = control
         self.configs = configs
         self.control.read_all()
-        self.utool = control._model.utool
         knobs = control.get_knobs()
         self._optics = {mknob.param: (mknob, dknob) for mknob, dknob in knobs}
         self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
@@ -73,7 +72,7 @@ class Corrector(Matcher):
         elements = self.model.elements
         self.constraints[:] = sorted([
             Constraint(elements[target], elements[target].At, key,
-                       self.utool.add_unit(key, value))
+                       madx_units.add_unit(key, value))
             for target, values in targets.items()
             for key, value in values.items()
             if key[-1] in dirs
@@ -128,18 +127,17 @@ class Corrector(Matcher):
     # computations
 
     def fit_particle_orbit(self):
-        utool = self.utool
         records = self.readouts
         self.model.madx.command.select(flag='interpolate', clear=True)
         secmaps = self.model.get_transfer_maps([r.monitor for r in records])
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
 
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (utool.strip_unit('x', record.x),
-                                         utool.strip_unit('y', record.y)))
+            (secmap[:,:6], secmap[:,6], (madx_units.strip_unit('x', record.x),
+                                         madx_units.strip_unit('y', record.y)))
             for record, secmap in zip(records, secmaps)
         ])
-        return utool.dict_add_unit({
+        return madx_units.dict_add_unit({
             'x': x, 'px': px,
             'y': y, 'py': py,
         }), chi_squared, singular
@@ -161,7 +159,7 @@ class Corrector(Matcher):
         # match final conditions
         match_names = [v.knob.param for v in self.variables]
         constraints = [
-            dict(range=c.elem.Name, **self.utool.dict_strip_unit({
+            dict(range=c.elem.Name, **madx_units.dict_strip_unit({
                 c.axis: c.value
             }))
             for c in self.constraints
@@ -173,7 +171,7 @@ class Corrector(Matcher):
             method=('jacobian', {}),
             weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
             constraints=constraints,
-            twiss_init=self.utool.dict_strip_unit(init_twiss))
+            twiss_init=madx_units.dict_strip_unit(init_twiss))
         self.model.twiss.invalidate()
 
         # return corrections
