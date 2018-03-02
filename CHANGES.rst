@@ -1,6 +1,15 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.7.1
+-----
+Date: 02.03.2018
+
+- fix knobs in skew quadrupoles
+- hotfix regression with posx/posy aliases
+- compatible with hit_models 0.7.0, hit_csys 0.6.0
+
+
 1.7.0
 -----
 Date: 02.03.2018

@@ -21,7 +21,6 @@ from madgui.core.base import Object, Signal, Cache
 from madgui.resource import yaml
 from madgui.core.unit import (madx_units, ui_units, from_config, isclose,
                               number_types)
-from madgui.util.misc import sort_to_top
 from madgui.resource.file import FileResource
 from madgui.util.datastore import DataStore
 
@@ -671,6 +670,8 @@ class Model(Object):
         if name == 'gamy': return +col('sig44') / col('ey')
         if name == 'envx': return col('sig11')**0.5
         if name == 'envy': return col('sig33')**0.5
+        if name == 'posx': return col('x')
+        if name == 'posy': return col('y')
         if name == 'ex': return (col('sig11') * col('sig22') -
                                  col('sig12') * col('sig21'))**0.5
         if name == 'ey': return (col('sig33') * col('sig44') -
@@ -1075,17 +1076,7 @@ class Element(Mapping):
         """Retrieve data for key if possible; everything if None."""
         if len(self._merged) == 2 and name not in self._merged:
             data = self._model.active_sequence.expanded_elements[self._idx]
-            self._merged.update(sort_to_top(data, [
-                'Name',
-                'Type',
-                'At',
-                'L',
-                'Ksl',
-                'Knl',
-                'K1',
-                'Angle',
-                'Kick',
-            ]))
+            self._merged.update(data)
 
 
 class ElementDataStore(MadxDataStore):
