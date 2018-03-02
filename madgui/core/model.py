@@ -668,19 +668,15 @@ class Model(Object):
     def do_get_twiss_column(self, name):
         self.twiss.update()
         col = self.get_twiss_column
-        if name == 'envx':
-            return col('sig11')**0.5
-        if name == 'envy':
-            return col('sig33')**0.5
-        if name == 'posx':
-            return self.get_twiss_column('x')
-        if name == 'posy':
-            return self.get_twiss_column('y')
-        if name == 'ex':
-            return np.sqrt(col('sig11') * col('sig22') - col('sig12') * col('sig21'))
-        if name == 'ey':
-            return np.sqrt(col('sig33') * col('sig44') - col('sig34') * col('sig43'))
-        return self.utool.add_unit(name, self.madx.get_table('twiss')[name])
+        if name == 'envx': return col('sig11')**0.5
+        if name == 'envy': return col('sig33')**0.5
+        if name == 'posx': return col('x')
+        if name == 'posy': return col('y')
+        if name == 'ex': return (col('sig11') * col('sig22') -
+                                 col('sig12') * col('sig21'))**0.5
+        if name == 'ey': return (col('sig33') * col('sig44') -
+                                 col('sig34') * col('sig43'))**0.5
+        return self.utool.add_unit(name, self.twiss.data[name])
 
     def get_twiss_column(self, column):
         if column not in self.cache:
