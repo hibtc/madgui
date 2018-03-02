@@ -88,6 +88,11 @@ graphs:
     curves:
       - [alfx, 1, '$\alpha x$']
       - [alfy, 1, '$\alpha y$']
+  gamma:
+    title: Gamma function
+    curves:
+      - [gamx, 1/m, '$\gamma x$']
+      - [gamy, 1/m, '$\gamma y$']
   orbit:
     title: Particle orbit
     curves:
