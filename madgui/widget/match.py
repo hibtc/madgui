@@ -5,6 +5,7 @@ UI for matching.
 from pkg_resources import resource_filename
 
 from madgui.qt import QtGui, uic
+from madgui.core.unit import ui_units
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.match import variable_from_knob, Constraint
 from madgui.util.enum import make_enum
@@ -28,8 +29,15 @@ def set_constraint_axis(widget, c, i, axis):
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, str(axis), value)
 
+def get_constraint_unit(widget, c, i):
+    return ui_units.label(c.axis, c.value)
+
+def get_constraint_value(widget, c, i):
+    return ui_units.strip_unit(c.axis, c.value)
+
 def set_constraint_value(widget, c, i, value):
     if value is not None:
+        value = ui_units.add_unit(c.axis, value)
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, c.axis, value)
 
@@ -42,6 +50,17 @@ def set_knob_display(widget, v, i, text):
         if knob:
             widget.matcher.variables[i] = \
                 variable_from_knob(widget.matcher, knob)
+
+def get_knob_unit(v):
+    return ui_units.label(v.knob.attr, v.value)
+
+def get_knob_init_value(v):
+    return ui_units.strip_unit(v.knob.attr, v.design)
+
+def get_knob_final_value(v):
+    return ui_units.strip_unit(v.knob.attr, v.value)
+
+
 
 def format_knob(knob):
     return (knob.elem and
@@ -69,16 +88,20 @@ class MatchWidget(QtGui.QWidget):
                       resize=QtGui.QHeaderView.Stretch),
         ExtColumnInfo("Name", get_constraint_axis, set_constraint_axis,
                       resize=QtGui.QHeaderView.ResizeToContents),
-        ExtColumnInfo("Target", 'value', set_constraint_value,
+        ExtColumnInfo("Target", get_constraint_value, set_constraint_value,
+                      resize=QtGui.QHeaderView.ResizeToContents),
+        ExtColumnInfo("Unit", get_constraint_unit,
                       resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     variables_columns = [
         ExtColumnInfo("Knob", get_knob_display, set_knob_display,
                       resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Initial", 'design',
+        ColumnInfo("Initial", get_knob_init_value,
                    resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Final", lambda v: v.value,
+        ColumnInfo("Final", get_knob_final_value,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Unit", get_knob_unit,
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
