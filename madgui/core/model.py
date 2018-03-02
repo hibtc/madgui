@@ -666,16 +666,18 @@ class Model(Object):
     def do_get_twiss_column(self, name):
         self.twiss.update()
         col = self.get_twiss_column
+        if name == 'alfx': return -col('sig12') / col('ex')
+        if name == 'alfy': return -col('sig34') / col('ey')
+        if name == 'betx': return +col('sig11') / col('ex')
+        if name == 'bety': return +col('sig33') / col('ey')
+        if name == 'gamx': return +col('sig22') / col('ex')
+        if name == 'gamy': return +col('sig44') / col('ey')
         if name == 'envx': return col('sig11')**0.5
         if name == 'envy': return col('sig33')**0.5
-        if name == 'posx': return col('x')
-        if name == 'posy': return col('y')
         if name == 'ex': return (col('sig11') * col('sig22') -
                                  col('sig12') * col('sig21'))**0.5
         if name == 'ey': return (col('sig33') * col('sig44') -
                                  col('sig34') * col('sig43'))**0.5
-        if name == 'gamx': return (1+col('alfx')**2) / col('betx')
-        if name == 'gamy': return (1+col('alfy')**2) / col('bety')
         return self.utool.add_unit(name, self.twiss.data[name])
 
     def get_twiss_column(self, column):
