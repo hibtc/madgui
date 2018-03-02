@@ -606,18 +606,16 @@ class Model(Object):
     def get_elem_twiss(self, elem):
         ix = self.get_element_index(elem)
         i0 = self.indices[ix].stop
-        # TODO: use the sigma matrix instead?
-        twiss = {
+        return {
             'alfx': self.get_twiss_column('alfx')[i0],
             'alfy': self.get_twiss_column('alfy')[i0],
             'betx': self.get_twiss_column('betx')[i0],
             'bety': self.get_twiss_column('bety')[i0],
+            'gamx': self.get_twiss_column('gamx')[i0],
+            'gamy': self.get_twiss_column('gamy')[i0],
             'ex': self.get_twiss_column('ex')[i0],
             'ey': self.get_twiss_column('ey')[i0],
         }
-        twiss['gamx'] = (1+twiss['alfx']**2) / twiss['betx']
-        twiss['gamy'] = (1+twiss['alfy']**2) / twiss['bety']
-        return twiss
 
     def get_elem_sigma(self, elem):
         ix = self.get_element_index(elem)
@@ -676,6 +674,8 @@ class Model(Object):
                                  col('sig12') * col('sig21'))**0.5
         if name == 'ey': return (col('sig33') * col('sig44') -
                                  col('sig34') * col('sig43'))**0.5
+        if name == 'gamx': return (1+col('alfx')**2) / col('betx')
+        if name == 'gamy': return (1+col('alfy')**2) / col('bety')
         return self.utool.add_unit(name, self.twiss.data[name])
 
     def get_twiss_column(self, column):
