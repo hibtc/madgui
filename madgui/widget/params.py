@@ -41,7 +41,7 @@ class ParamInfo:
 
     @property
     def unit(self):
-        return ui_units.get_unit_label(self.name)
+        return ui_units.label(self.name, self.proxy.value)
 
 
 class ParamTable(tableview.TableView):

@@ -134,8 +134,10 @@ def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
     if quantity is None:
         return ''
+    if isinstance(quantity, list):
+        return '[{}]'.format(', '.join(map(get_raw_label, quantity)))
     if not isinstance(quantity, units.Quantity):
-        return str(quantity)
+        return ''
     short = pint.unit.UnitsContainer(
         {units._get_symbol(key): value
          for key, value in quantity.units._units.items()})
@@ -197,9 +199,12 @@ class UnitConverter:
     def get(self, name):
         return self._units.get(name)
 
-    def get_unit_label(self, name):
+    def label(self, name, value=None):
         """Get the name of the unit for the specified parameter name."""
-        return get_unit_label(self._units.get(name))
+        unit = self.get(name)
+        if unit is None or value is None:
+            return get_raw_label(unit)
+        return get_raw_label(self._add_unit(value, unit))
 
     def add_unit(self, name, value):
         """Add units to a single number."""
@@ -215,10 +220,14 @@ class UnitConverter:
             return value
 
     def _add_unit(self, value, unit):
+        if value is None or unit is None:
+            return value
         if isinstance(value, Expression):
             return SymbolicValue(value.expr, value.value, unit)
         elif isinstance(unit, list):
             return [self._add_unit(v, u) for v, u in zip(value, unit)]
+        elif isinstance(value, units.Quantity):
+            return tounit(value, unit)
         else:
             return unit * value
 
