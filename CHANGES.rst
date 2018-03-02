@@ -1,17 +1,37 @@
 CHANGELOG
 ~~~~~~~~~
 
-2.7.0
+1.7.0
 -----
-Date: (in preparation)
+Date: 02.03.2018
 
+- compute alfa/beta from sigma matrix for consistency
+- expose ``twiss`` variable holding twiss table in python shell widget
+- set better display units for some plots
+- keep plot axis limits on most updates
+- finally start to use position dependent emittances in some places
+- add more plots: momentum/dispersion/phase advance/emittance/gamma
+- plot monitors as dashed lines
+- plot loaded/snapshot curves without markers
+- update infobox window title when changing element
+- add tab with global variables to init-settings dialog
+- add tabs to info box: primary/expert/twiss/sigma/ellipse
+- keep position in info-box when refreshing values or element
+- fit small tool buttons to text size
+- let user click on zero-length elements
+- scale interpolation step length with sequence length, to show smooth curves
+- default number_format.align=right
+- default mirror_mode=True
+- fix python shell, when starting madqt as gui_script under windows
 - rework the multi-grid dialog (for orbit correction)
 - rename back to madgui
-- new versioning scheme: interpret old madgui 0.X.Y -> 1.X.Y, madqt 0.0.X -> 2.X.0
+- new versioning scheme, interpret: ``0.0.X`` -> ``1.X.0``, acknowledging the
+  the ``0.X.Y`` releases of the old wx-based madgui.
 - remove pytao binding
 - match dialog: dropdown menu for knobs, minor visual improvements
 - internal refactoring, module renamings
 - can connect online control without loaded model
+
 
 0.0.6
 -----
