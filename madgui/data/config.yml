@@ -88,6 +88,11 @@ graphs:
     curves:
       - [alfx, 1, '$\alpha x$']
       - [alfy, 1, '$\alpha y$']
+  gamma:
+    title: Gamma function
+    curves:
+      - [gamx, 1/m, '$\gamma x$']
+      - [gamy, 1/m, '$\gamma y$']
   orbit:
     title: Particle orbit
     curves:
@@ -129,6 +134,10 @@ matching:
   alfy:     [quadrupole]
   sig11:    [quadrupole]
   sig33:    [quadrupole]
+  sig12:    [quadrupole]
+  sig22:    [quadrupole]
+  sig34:    [quadrupole]
+  sig43:    [quadrupole]
   x:        [quadrupole,sbend,kicker,hkicker]
   y:        [quadrupole,sbend,kicker,vkicker]
   px:       [quadrupole,sbend,kicker,hkicker]
@@ -160,6 +169,48 @@ madx_units:
   e1:       rad
   e2:       rad
   ks:       1/m
+
+  sig11:    m^2
+  sig12:    m
+  sig13:    m^2
+  sig14:    m
+  sig15:    m^2
+  sig16:    m
+
+  sig21:    m
+  sig22:    1
+  sig23:    m
+  sig24:    1
+  sig25:    m
+  sig26:    1
+
+  sig31:    m^2
+  sig32:    m
+  sig33:    m^2
+  sig34:    m
+  sig35:    m^2
+  sig36:    m
+
+  sig41:    m
+  sig42:    1
+  sig43:    m
+  sig44:    1
+  sig45:    m
+  sig46:    1
+
+  sig51:    m^2
+  sig52:    m
+  sig53:    m^2
+  sig54:    m
+  sig55:    m^2
+  sig56:    m
+
+  sig61:    m
+  sig62:    1
+  sig63:    m
+  sig64:    1
+  sig65:    m
+  sig66:    1
 
   energy:   MeV
   charge:   e

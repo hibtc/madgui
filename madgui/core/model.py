@@ -14,7 +14,7 @@ from threading import RLock
 
 import numpy as np
 
-from cpymad.madx import Madx
+from cpymad.madx import Madx, AttrDict
 from cpymad.util import normalize_range_name
 
 from madgui.core.base import Object, Signal, Cache
@@ -606,18 +606,16 @@ class Model(Object):
     def get_elem_twiss(self, elem):
         ix = self.get_element_index(elem)
         i0 = self.indices[ix].stop
-        # TODO: use the sigma matrix instead?
-        twiss = {
+        return AttrDict({
             'alfx': self.get_twiss_column('alfx')[i0],
             'alfy': self.get_twiss_column('alfy')[i0],
             'betx': self.get_twiss_column('betx')[i0],
             'bety': self.get_twiss_column('bety')[i0],
+            'gamx': self.get_twiss_column('gamx')[i0],
+            'gamy': self.get_twiss_column('gamy')[i0],
             'ex': self.get_twiss_column('ex')[i0],
             'ey': self.get_twiss_column('ey')[i0],
-        }
-        twiss['gamx'] = (1+twiss['alfx']**2) / twiss['betx']
-        twiss['gamy'] = (1+twiss['alfy']**2) / twiss['bety']
-        return twiss
+        })
 
     def get_elem_sigma(self, elem):
         ix = self.get_element_index(elem)
@@ -668,19 +666,19 @@ class Model(Object):
     def do_get_twiss_column(self, name):
         self.twiss.update()
         col = self.get_twiss_column
-        if name == 'envx':
-            return self.utool.add_unit(name, col('sig11')**0.5)
-        if name == 'envy':
-            return self.utool.add_unit(name, col('sig33')**0.5)
-        if name == 'posx':
-            return self.get_twiss_column('x')
-        if name == 'posy':
-            return self.get_twiss_column('y')
-        if name == 'ex':
-            return self.utool.add_unit(name, np.sqrt(col('sig11') * col('sig22') - col('sig12') * col('sig21')))
-        if name == 'ey':
-            return self.utool.add_unit(name, np.sqrt(col('sig33') * col('sig44') - col('sig34') * col('sig43')))
-        return self.utool.add_unit(name, self.madx.get_table('twiss')[name])
+        if name == 'alfx': return -col('sig12') / col('ex')
+        if name == 'alfy': return -col('sig34') / col('ey')
+        if name == 'betx': return +col('sig11') / col('ex')
+        if name == 'bety': return +col('sig33') / col('ey')
+        if name == 'gamx': return +col('sig22') / col('ex')
+        if name == 'gamy': return +col('sig44') / col('ey')
+        if name == 'envx': return col('sig11')**0.5
+        if name == 'envy': return col('sig33')**0.5
+        if name == 'ex': return (col('sig11') * col('sig22') -
+                                 col('sig12') * col('sig21'))**0.5
+        if name == 'ey': return (col('sig33') * col('sig44') -
+                                 col('sig34') * col('sig43'))**0.5
+        return self.utool.add_unit(name, self.twiss.data[name])
 
     def get_twiss_column(self, column):
         if column not in self.cache:
@@ -775,9 +773,11 @@ class Model(Object):
             for elem, pos, axis, val in constraints]
 
         # FIXME TODO: use position-dependent emittances…
+        ex = self.utool.strip_unit('ex', self.ex())
+        ey = self.utool.strip_unit('ey', self.ey())
         weights = {
-            'sig11': 1/self.utool.strip_unit('ex', self.ex()),
-            'sig33': 1/self.utool.strip_unit('ey', self.ey()),
+            'sig11': 1/ex, 'sig12': 1/ex, 'sig21': 1/ex, 'sig22': 1/ex,
+            'sig33': 1/ey, 'sig34': 1/ey, 'sig43': 1/ey, 'sig44': 1/ey,
         }
         twiss_args = self.utool.dict_strip_unit(self.twiss_args)
         self.madx.match(sequence=self.sequence.name,
