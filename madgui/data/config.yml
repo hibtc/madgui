@@ -269,6 +269,11 @@ parameter_sets:
     data_key: sigma
     params: []
 
+  sector:
+    title: Sectormap
+    data_key: sectormap
+    params: []
+
 constraints: [
   betx, alfx, mux,
   bety, alfy, muy,

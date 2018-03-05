@@ -5,6 +5,7 @@ Info boxes to display element detail.
 from collections import OrderedDict
 
 from math import sqrt, pi, atan, cos, sin
+import itertools
 
 import numpy as np
 
@@ -42,6 +43,7 @@ class ElementInfoBox(QtGui.QWidget):
             ('Twiss', ParamTable(TwissDataStore(model, 'twiss'))),
             ('Sigma', ParamTable(SigmaDataStore(model, 'sigma'))),
             ('Ellipse', EllipseWidget(model)),
+            ('Sector', ParamTable(SectormapDataStore(model, 'sector'))),
         ])
 
         # navigation
@@ -128,6 +130,21 @@ class SigmaDataStore(TwissDataStore):
 
     def _get(self):
         return self.model.get_elem_sigma(self.kw['elem_index'])
+
+
+class SectormapDataStore(TwissDataStore):
+
+    def _get(self):
+        sectormap = self.model.sectormap(self.kw['elem_index'])
+        ret = {
+            't{}{}'.format(i+1, j+1): sectormap[i,j]
+            for i, j in itertools.product(range(6), range(6))
+        }
+        ret.update({
+            'k{}'.format(i+1): sectormap[6,i]
+            for i in range(6)
+        })
+        return ret
 
 
 class EllipseWidget(QtGui.QWidget):
