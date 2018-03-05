@@ -29,11 +29,7 @@ __all__ = [
 
 
 def initialize():
-    # Make sure 'constants_en.txt' exists as well (it is imported by
-    # 'default_en.txt'):
-    # TODO: use consts?
-    units_spec = resource_filename('madgui.data', 'default_en.txt')
-    units = pint.UnitRegistry(units_spec)
+    units = pint.UnitRegistry()
 
     # make `str(quantity)` slightly nicer
     units.default_format = 'P~'
