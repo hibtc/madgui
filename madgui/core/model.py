@@ -637,6 +637,21 @@ class Model(Object):
         twiss_args.update(kwargs)
         return twiss_args
 
+    def sectormap(self, elem_from, elem_to=None):
+        """
+        Return SECTORMAP|KICKS in the closed range [from,to] as 7x7 matrix.
+
+        If only one parameter is given, return its transfer map.
+
+        Elements can be specified by name or index.
+        """
+        if elem_to is None:
+            elem_to = elem_from
+            elem_from = self.get_element_info(elem_from).index - 1
+            if elem_from == -1:
+                return np.eye(7)
+        return self.get_transfer_maps([elem_from, elem_to])[1]
+
     def get_transfer_maps(self, elems):
         """
         Get the transfer matrices R(i,j) between the given elements.
