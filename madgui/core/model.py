@@ -14,7 +14,7 @@ from threading import RLock
 
 import numpy as np
 
-from cpymad.madx import Madx, AttrDict
+from cpymad.madx import Madx
 from cpymad.util import normalize_range_name
 
 from madgui.core.base import Object, Signal, Cache
@@ -605,7 +605,7 @@ class Model(Object):
     def get_elem_twiss(self, elem):
         ix = self.get_element_index(elem)
         i0 = self.indices[ix].stop
-        return AttrDict({
+        return {
             'alfx': self.get_twiss_column('alfx')[i0],
             'alfy': self.get_twiss_column('alfy')[i0],
             'betx': self.get_twiss_column('betx')[i0],
@@ -614,7 +614,7 @@ class Model(Object):
             'gamy': self.get_twiss_column('gamy')[i0],
             'ex': self.get_twiss_column('ex')[i0],
             'ey': self.get_twiss_column('ey')[i0],
-        })
+        }
 
     def get_elem_sigma(self, elem):
         ix = self.get_element_index(elem)
