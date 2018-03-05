@@ -575,4 +575,4 @@ class InfoBoxGroup:
         old_el_id = self.selection.elements[box_index]
         if new_el_id != old_el_id:
             self.selection.elements[box_index] = new_el_id
-            box.window().setWindowTitle("Element details: " + self.model.elements[new_el_id].Name)
+        box.window().setWindowTitle("Element details: " + self.model.elements[new_el_id].Name)
