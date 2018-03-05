@@ -164,10 +164,10 @@ class EllipseWidget(QtGui.QWidget):
 
             dx = sqrt(eps*beta)
             dy = sqrt(eps*gamma)
-            ax.set_xlim(-dx*0.6, dx*0.6)
-            ax.set_ylim(-dy*0.6, dy*0.6)
+            ax.set_xlim(-dx*1.2, dx*1.2)
+            ax.set_ylim(-dy*1.2, dy*1.2)
 
-            ax.add_patch(Ellipse((0, 0), w, h, phi/pi*180, fill=False))
+            ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180, fill=False))
             ax.grid(True)
 
         twiss = self.model.utool.dict_strip_unit(
