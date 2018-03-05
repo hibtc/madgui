@@ -153,21 +153,27 @@ class EllipseWidget(QtGui.QWidget):
 
         def ellipse(ax, alfa, beta, gamma, eps):
             phi = atan(2*alfa/(gamma - beta)) / 2
-            c, s = cos(phi), sin(phi)
 
-            R = np.array([[c, -s], [s, c]])
-            M = np.array([[beta, -alfa], [-alfa, gamma]])
-            T = R.T.dot(M).dot(R)
+            # See: ELLIPTICAL TRANSFORMATIONS FOR BEAM OPTICS, R.B. Moore, 2004
+            # http://www.physics.mcgill.ca/~moore/Notes/Ellipses.pdf
+            H = (beta + gamma) / 2
+            w = sqrt(eps/2) * (sqrt(H+1) + sqrt(H-1))
+            h = sqrt(eps/2) * (sqrt(H+1) - sqrt(H-1))
 
-            w = sqrt(eps*T[0,0])
-            h = sqrt(eps*T[1,1])
+            # Same as:
+            # c, s = cos(phi), sin(phi)
+            # R = np.array([[c, -s], [s, c]])
+            # M = np.array([[beta, -alfa], [-alfa, gamma]])
+            # T = R.T.dot(M).dot(R)
+            # w = sqrt(eps*T[0,0])
+            # h = sqrt(eps*T[1,1])
 
             dx = sqrt(eps*beta)
             dy = sqrt(eps*gamma)
-            ax.set_xlim(-dx*0.6, dx*0.6)
-            ax.set_ylim(-dy*0.6, dy*0.6)
+            ax.set_xlim(-dx*1.2, dx*1.2)
+            ax.set_ylim(-dy*1.2, dy*1.2)
 
-            ax.add_patch(Ellipse((0, 0), w, h, phi/pi*180, fill=False))
+            ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180, fill=False))
             ax.grid(True)
 
         twiss = self.model.utool.dict_strip_unit(
