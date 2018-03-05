@@ -153,14 +153,20 @@ class EllipseWidget(QtGui.QWidget):
 
         def ellipse(ax, alfa, beta, gamma, eps):
             phi = atan(2*alfa/(gamma - beta)) / 2
-            c, s = cos(phi), sin(phi)
 
-            R = np.array([[c, -s], [s, c]])
-            M = np.array([[beta, -alfa], [-alfa, gamma]])
-            T = R.T.dot(M).dot(R)
+            # See: ELLIPTICAL TRANSFORMATIONS FOR BEAM OPTICS, R.B. Moore, 2004
+            # http://www.physics.mcgill.ca/~moore/Notes/Ellipses.pdf
+            H = (beta + gamma) / 2
+            w = sqrt(eps/2) * (sqrt(H+1) + sqrt(H-1))
+            h = sqrt(eps/2) * (sqrt(H+1) - sqrt(H-1))
 
-            w = sqrt(eps*T[0,0])
-            h = sqrt(eps*T[1,1])
+            # Same as:
+            # c, s = cos(phi), sin(phi)
+            # R = np.array([[c, -s], [s, c]])
+            # M = np.array([[beta, -alfa], [-alfa, gamma]])
+            # T = R.T.dot(M).dot(R)
+            # w = sqrt(eps*T[0,0])
+            # h = sqrt(eps*T[1,1])
 
             dx = sqrt(eps*beta)
             dy = sqrt(eps*gamma)
