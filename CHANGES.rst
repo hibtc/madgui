@@ -1,6 +1,14 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.7.2
+-----
+Date: 05.03.2018
+
+- added missing factor 2 in ellipse axes lengths
+- don't need AttrDict from new cpymad in this version
+
+
 1.7.1
 -----
 Date: 02.03.2018
