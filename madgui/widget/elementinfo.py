@@ -178,5 +178,9 @@ class EllipseWidget(QtGui.QWidget):
         ellipse(axx, twiss['alfx'], twiss['betx'], twiss['gamx'], twiss['ex'])
         ellipse(axy, twiss['alfy'], twiss['bety'], twiss['gamy'], twiss['ey'])
 
+        axx.set_xlabel("x [{}]".format(ui_units.label('x')))
+        axy.set_xlabel("y [{}]".format(ui_units.label('y')))
+        axx.set_ylabel("px | py")
+
         self.figure.tight_layout()
         self.canvas.draw()
