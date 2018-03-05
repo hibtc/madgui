@@ -19,8 +19,8 @@ from cpymad.util import normalize_range_name
 
 from madgui.core.base import Object, Signal, Cache
 from madgui.resource import yaml
-from madgui.core.unit import (UnitConverter, from_config, isclose,
-                              number_types, strip_unit)
+from madgui.core.unit import (madx_units, ui_units, from_config, isclose,
+                              number_types)
 from madgui.resource.file import FileResource
 from madgui.util.datastore import DataStore
 
@@ -49,7 +49,6 @@ CurveInfo = namedtuple('CurveInfo', [
     'short',    # display name for statusbar ('beta_a')
     'label',    # y-axis/legend label ('$\beta_a$')
     'style',    # **kwargs for ax.plot
-    'unit',     # y unit
 ])
 
 ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
@@ -65,7 +64,6 @@ class Model(Object):
     :ivar Madx madx: CPyMAD interpreter
     :ivar dict data: loaded model data
     :ivar madgui.resource.ResourceProvider repo: resource provider
-    :ivar utool: Unit conversion tool for MAD-X.
     """
 
     backend_libname = 'cpymad'
@@ -128,16 +126,16 @@ class Model(Object):
         return ElementInfo(name, element, pos)
 
     def get_beam(self):
-        return self.utool.dict_add_unit(self.get_beam_raw())
+        return madx_units.dict_add_unit(self.get_beam_raw())
 
     def set_beam(self, beam):
-        self.set_beam_raw(self.utool.dict_strip_unit(beam))
+        self.set_beam_raw(madx_units.dict_strip_unit(beam))
 
     def get_twiss_args(self):
-        return self.utool.dict_add_unit(self.get_twiss_args_raw())
+        return madx_units.dict_add_unit(self.get_twiss_args_raw())
 
     def set_twiss_args(self, twiss):
-        self.set_twiss_args_raw(self.utool.dict_strip_unit(twiss))
+        self.set_twiss_args_raw(madx_units.dict_strip_unit(twiss))
 
     def get_globals(self):
         blacklist = ('none', 'twiss_tol', 'degree')
@@ -156,7 +154,7 @@ class Model(Object):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
-        val = self.utool.strip_unit('s', pos)
+        val = madx_units.strip_unit('s', pos)
         i0 = bisect_right(self.positions, val)
         return self.elements[i0-1 if i0 > 0 else 0]
 
@@ -169,7 +167,7 @@ class Model(Object):
         at, L = elem.At, elem.L
         el_id = elem.El_id
         x0_px = axes.transData.transform_point((0, 0))[0]
-        strip = lambda x: self.utool.strip_unit('at', x)
+        strip = lambda x: madx_units.strip_unit('at', x)
         x2pix = lambda x: axes.transData.transform_point((strip(x), 0))[0]-x0_px
         len_px = x2pix(L)
         pos_px = x2pix(pos)
@@ -308,7 +306,6 @@ class Model(Object):
     def load(self, filename):
         """Load model or plain MAD-X file."""
         self.filename = filename
-        self.utool = UnitConverter.from_config_dict(self.config['madx_units'])
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         self.repo = FileResource(path)
@@ -472,7 +469,7 @@ class Model(Object):
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
-        make_element = partial(Element, self.madx, self.utool)
+        make_element = partial(Element, self.madx)
         self.el_names = self.sequence.expanded_element_names()
         self.elements = ElementList(self.el_names, make_element)
         self.positions = self.sequence.expanded_element_positions()
@@ -535,7 +532,7 @@ class Model(Object):
         new_beam = self._beam.copy()
         new_beam.update(
             (k.lower(), v)
-            for k, v in self.utool.dict_strip_unit(beam).items())
+            for k, v in madx_units.dict_strip_unit(beam).items())
         self.set_beam_raw(new_beam)
         self.twiss.invalidate()
 
@@ -543,7 +540,7 @@ class Model(Object):
         new_twiss = self._twiss_args
         new_twiss.update(
             (k.lower(), v)
-            for k, v in self.utool.dict_strip_unit(twiss).items())
+            for k, v in madx_units.dict_strip_unit(twiss).items())
         self.set_twiss_args_raw(new_twiss)
         self.twiss.invalidate()
 
@@ -556,7 +553,7 @@ class Model(Object):
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
-        d = self.utool.dict_strip_unit(d)
+        d = madx_units.dict_strip_unit(d)
         if any(isinstance(v, (list,str)) for v in d.values()):
             self.madx.command(name, **d)
         else:
@@ -585,7 +582,7 @@ class Model(Object):
         x = self.indices[ix]
 
         # shortcut for thin elements:
-        if self.utool.strip_unit('l', self.elements[ix].L) == 0:
+        if madx_units.strip_unit('l', self.elements[ix].L) == 0:
             return y[x]
 
         lo = x.start-1 if x.start > 0 else x.start
@@ -630,7 +627,7 @@ class Model(Object):
                 self.stop.index >= element.index)
 
     def _get_twiss_args(self, **kwargs):
-        twiss_init = self.utool.dict_strip_unit(self.twiss_args)
+        twiss_init = madx_units.dict_strip_unit(self.twiss_args)
         twiss_args = {
             'sequence': self.sequence.name,
             'range': self.range,
@@ -679,7 +676,7 @@ class Model(Object):
                                  col('sig12') * col('sig21'))**0.5
         if name == 'ey': return (col('sig33') * col('sig44') -
                                  col('sig34') * col('sig43'))**0.5
-        return self.utool.add_unit(name, self.twiss.data[name])
+        return madx_units.add_unit(name, self.twiss.data[name])
 
     def get_twiss_column(self, column):
         if column not in self.cache:
@@ -700,16 +697,14 @@ class Model(Object):
                     name=name,
                     short=name,
                     label=label,
-                    style=style,
-                    unit=from_config(unit))
-                for (name, unit, label), style in zip(conf['curves'], styles)
+                    style=style)
+                for (name, label), style in zip(conf['curves'], styles)
             ])
 
         xdata = self.get_twiss_column('s') + self.start.at
         data = {
-            curve.short: np.vstack((xdata, ydata)).T
+            curve.short: (xdata, self.get_twiss_column(curve.name))
             for curve in info.curves
-            for ydata in [strip_unit(self.get_twiss_column(curve.name), curve.unit)]
         }
         return info, data
 
@@ -725,7 +720,7 @@ class Model(Object):
         self.madx.command.select(flag='interpolate', clear=True)
         self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args())
-        self.summary = self.utool.dict_add_unit(results.summary)
+        self.summary = madx_units.dict_add_unit(results.summary)
 
         # FIXME: this will fail if subsequent element have the same name.
         # Safer alternatives:
@@ -770,17 +765,17 @@ class Model(Object):
         madx_constraints = [
             {'range': elem.Name,
              'iindex': elem_positions[elem.Name].index(pos),
-             axis: self.utool.strip_unit(axis, val)}
+             axis: madx_units.strip_unit(axis, val)}
             for elem, pos, axis, val in constraints]
 
         # FIXME TODO: use position-dependent emittances…
-        ex = self.utool.strip_unit('ex', self.ex())
-        ey = self.utool.strip_unit('ey', self.ey())
+        ex = madx_units.strip_unit('ex', self.ex())
+        ey = madx_units.strip_unit('ey', self.ey())
         weights = {
             'sig11': 1/ex, 'sig12': 1/ex, 'sig21': 1/ex, 'sig22': 1/ex,
             'sig33': 1/ey, 'sig34': 1/ey, 'sig43': 1/ey, 'sig44': 1/ey,
         }
-        twiss_args = self.utool.dict_strip_unit(self.twiss_args)
+        twiss_args = madx_units.dict_strip_unit(self.twiss_args)
         self.madx.match(sequence=self.sequence.name,
                         vary=variables,
                         constraints=madx_constraints,
@@ -816,7 +811,7 @@ class Model(Object):
         if expr is not None:
             return api.Knob(
                 self, elem, attr, expr,
-                self.utool._units.get(attr))
+                madx_units._units.get(attr))
 
     def read_param(self, expr):
         """Read element attribute. Return numeric value. No units!"""
@@ -856,7 +851,6 @@ class MadxDataStore(DataStore):
 
     def __init__(self, model, name, **kw):
         self.model = model
-        self.utool = model.utool
         self.name = name
         self.label = name.title()
         self.data_key = name
@@ -1029,9 +1023,8 @@ class Element(Mapping):
     INVALIDATE_PARAM = 1
     INVALIDATE_ALL   = 2
 
-    def __init__(self, model, utool, idx, name):
+    def __init__(self, model, idx, name):
         self._model = model
-        self._utool = utool
         self._idx = idx
         self._name = name.lower()
         self.invalidate(self.INVALIDATE_ALL)
@@ -1043,7 +1036,7 @@ class Element(Mapping):
             index = int(tail[:-1])
             return self._get_field(head, index)
         self._retrieve(name)
-        return self._utool.add_unit(name, self._merged[name])
+        return madx_units.add_unit(name, self._merged[name])
 
     def __iter__(self):
         self._retrieve(None)

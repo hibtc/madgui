@@ -3,6 +3,7 @@ Parameter input dialog.
 """
 
 from madgui.qt import QtGui, Qt
+from madgui.core.unit import ui_units
 
 import madgui.widget.tableview as tableview
 
@@ -12,6 +13,7 @@ __all__ = [
     'TabParamTables',
 ]
 
+# TODO: combobox for unit?
 
 class ParamInfo:
 
@@ -24,17 +26,22 @@ class ParamInfo:
         editable = datastore.mutable(key)
         textcolor = Qt.black if editable else Qt.darkGray
         self.proxy = tableview.makeValue(
-            value, default=default,
+            ui_units.strip_unit(key, value),
+            default=ui_units.strip_unit(key, default),
             editable=editable,
             textcolor=textcolor)
         self.proxy.dataChanged.connect(self.on_edit)
 
     def on_edit(self, value):
-        self.datastore.update({self.name: value})
+        self.datastore.update({self.name: ui_units.add_unit(self.name, value)})
 
     def __repr__(self):
         return "{}({}={})".format(
             self.__class__.__name__, self.name, self.proxy.value)
+
+    @property
+    def unit(self):
+        return ui_units.label(self.name, self.proxy.value)
 
 
 class ParamTable(tableview.TableView):
@@ -58,6 +65,8 @@ class ParamTable(tableview.TableView):
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
             tableview.ColumnInfo("Value", 'proxy', padding=50),
+            tableview.ColumnInfo("Unit", 'unit',
+                                 resize=QtGui.QHeaderView.ResizeToContents),
         ]
 
         super().__init__(columns=columns, **kwargs)

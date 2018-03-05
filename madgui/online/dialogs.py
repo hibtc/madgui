@@ -3,7 +3,7 @@ Dialog for selecting DVM parameters to be synchronized.
 """
 
 from madgui.qt import QtGui
-from madgui.core.unit import tounit
+from madgui.core.unit import strip_unit, get_raw_label, ui_units
 from madgui.util.layout import VBoxLayout
 from madgui.widget.tableview import TableView, ColumnInfo
 
@@ -48,8 +48,10 @@ class SyncParamItem:
     def __init__(self, param, dvm_value, mad_value):
         self.param = param
         self.name = param.name
-        self.dvm_value = tounit(dvm_value, param.ui_unit)
-        self.mad_value = tounit(mad_value, param.ui_unit)
+        # TODO: simply use ui_units, remove param.ui_unit
+        self.unit = get_raw_label(param.ui_unit)
+        self.dvm_value = strip_unit(dvm_value, param.ui_unit)
+        self.mad_value = strip_unit(mad_value, param.ui_unit)
 
 
 class SyncParamWidget(ListSelectWidget):
@@ -62,6 +64,8 @@ class SyncParamWidget(ListSelectWidget):
         ColumnInfo("Param", 'name'),
         ColumnInfo("DVM value", 'dvm_value'),
         ColumnInfo("MAD-X value", 'mad_value'),
+        ColumnInfo("Unit", 'unit',
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, title, headline):
@@ -85,10 +89,11 @@ class MonitorItem:
 
     def __init__(self, el_name, values):
         self.name = el_name
-        self.posx = values.get('posx')
-        self.posy = values.get('posy')
-        self.envx = values.get('envx')
-        self.envy = values.get('envy')
+        self.posx = ui_units.strip_unit('x', values.get('posx'))
+        self.posy = ui_units.strip_unit('x', values.get('posy'))
+        self.envx = ui_units.strip_unit('x', values.get('envx'))
+        self.envy = ui_units.strip_unit('x', values.get('envy'))
+        self.unit = ui_units.label('x')
 
 
 class MonitorWidget(ListSelectWidget):
@@ -106,6 +111,7 @@ class MonitorWidget(ListSelectWidget):
         ColumnInfo("y", 'posy'),
         ColumnInfo("x width", 'envx'),
         ColumnInfo("y width", 'envy'),
+        ColumnInfo("Unit", 'unit', resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self):

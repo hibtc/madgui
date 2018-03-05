@@ -2,6 +2,8 @@ from abc import abstractmethod
 from collections import OrderedDict
 
 from madgui.resource import yaml
+# TODO: drop madx_units - just save the units into the YAML file?
+from madgui.core.unit import madx_units
 
 
 class DataStore:
@@ -11,8 +13,6 @@ class DataStore:
     ParamTable.
     """
 
-    # TODO: drop utool parameter - just save the units into the YAML file
-    utool = None
     label = None
     data_key = None
 
@@ -51,15 +51,13 @@ class DataStore:
             data = yaml.safe_load(f)
         if self.data_key:
             data = data[self.data_key]
-        if self.utool:
-            data = self.utool.dict_add_unit(data)
+        data = madx_units.dict_add_unit(data)
         self.set(data)
 
     def exportTo(self, filename):
         """Export parameters to YAML file."""
         data = self.get()
-        if self.utool:
-            data = self.utool.dict_strip_unit(data)
+        data = madx_units.dict_strip_unit(data)
         if self.data_key:
             data = {self.data_key: data}
         with open(filename, 'wt') as f:

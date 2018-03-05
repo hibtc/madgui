@@ -2,10 +2,11 @@
 Provides unit conversion.
 """
 
-from pkg_resources import resource_filename
+from pkg_resources import resource_filename, resource_string
 
 import numpy as np
 import pint
+import yaml
 
 from madgui.util.symbol import SymbolicValue
 from madgui.util.defaultdict import DefaultDict
@@ -27,25 +28,14 @@ __all__ = [
 ]
 
 
-def initialize():
-    # Make sure 'constants_en.txt' exists as well (it is imported by
-    # 'default_en.txt'):
-    # TODO: use consts?
-    units_spec = resource_filename('madgui.data', 'default_en.txt')
-    units = pint.UnitRegistry(units_spec)
-
-    # make `str(quantity)` slightly nicer
-    units.default_format = 'P~'
-
-    # extend unit registry
-    # NOTE: parsing %, ‰ doesn't work automatically yet in pint.
-    units.define('ratio = []')
-    units.define('percent = 0.01 ratio = %')
-    units.define('permille = 0.001 ratio = ‰')
-    return units
+units = pint.UnitRegistry()
+units.default_format = 'P~'     # make `str(quantity)` slightly nicer
+units.define('ratio = []')
+units.define('percent = 0.01 ratio = %')
+units.define('permille = 0.001 ratio = ‰')
+units.define('degree = pi / 180 * radian = ° = deg = arcdeg = arcdegree = angular_degree')
 
 
-units = initialize()
 number_types = (int, float, units.Quantity, SymbolicValue, Expression)
 
 
@@ -133,8 +123,10 @@ def get_raw_label(quantity):
     """Get the name of the unit, without enclosing brackets."""
     if quantity is None:
         return ''
+    if isinstance(quantity, list):
+        return '[{}]'.format(', '.join(map(get_raw_label, quantity)))
     if not isinstance(quantity, units.Quantity):
-        return str(quantity)
+        return ''
     short = pint.unit.UnitsContainer(
         {units._get_symbol(key): value
          for key, value in quantity.units._units.items()})
@@ -193,9 +185,15 @@ class UnitConverter:
         """Convert a config dict of units to their in-memory representation."""
         return cls(DefaultDict(lambda k: from_config(conf_dict[k.lower()])))
 
-    def get_unit_label(self, name):
+    def get(self, name):
+        return self._units.get(name)
+
+    def label(self, name, value=None):
         """Get the name of the unit for the specified parameter name."""
-        return get_unit_label(self._units.get(name))
+        unit = self.get(name)
+        if unit is None or value is None:
+            return get_raw_label(unit)
+        return get_raw_label(self._add_unit(value, unit))
 
     def add_unit(self, name, value):
         """Add units to a single number."""
@@ -211,10 +209,14 @@ class UnitConverter:
             return value
 
     def _add_unit(self, value, unit):
+        if value is None or unit is None:
+            return value
         if isinstance(value, Expression):
             return SymbolicValue(value.expr, value.value, unit)
         elif isinstance(unit, list):
             return [self._add_unit(v, u) for v, u in zip(value, unit)]
+        elif isinstance(value, units.Quantity):
+            return tounit(value, unit)
         else:
             return unit * value
 
@@ -241,3 +243,10 @@ class UnitConverter:
     def dict_normalize_unit(self, obj):
         """Normalize unit for all elements in a dictionary."""
         return obj.__class__((k, self.normalize_unit(k, obj[k])) for k in obj)
+
+
+madx_units = UnitConverter.from_config_dict(yaml.safe_load(
+    resource_string('madgui.data', 'madx_units.yml')))
+
+ui_units = UnitConverter.from_config_dict(yaml.safe_load(
+    resource_string('madgui.data', 'ui_units.yml')))

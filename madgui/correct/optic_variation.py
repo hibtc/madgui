@@ -6,7 +6,7 @@ alignment.
 from pkg_resources import resource_filename
 
 from madgui.qt import Qt, QtCore, QtGui, uic
-from madgui.core.unit import get_unit, allclose, tounit
+from madgui.core.unit import get_unit, allclose, tounit, madx_units
 from madgui.widget.tableview import ColumnInfo
 from madgui.util.collections import List
 from madgui.util.qt import notifyEvent
@@ -64,7 +64,6 @@ class Corrector:
         monitors = [target]
         self.target = target
         self.control = control
-        self.utool = control._model.utool
         self.model = control._model
         knobs = control.get_knobs()
         self._optics = {dknob.param: (mknob, dknob) for mknob, dknob in knobs}
@@ -185,7 +184,7 @@ class Corrector:
         ])
         initial_orbit, chi_squared, singular = self.fit_results
         x, px, y, py = initial_orbit
-        return self.utool.dict_add_unit({
+        return madx_units.dict_add_unit({
             'x': x, 'px': px,
             'y': y, 'py': py,
         }), chi_squared, singular
@@ -227,7 +226,7 @@ class Corrector:
         # match final conditions
         match_names = [mknob.param for mknob, _ in steerer_knobs]
         constraints = [
-            dict(range=target, **self.utool.dict_strip_unit(orbit))
+            dict(range=target, **madx_units.dict_strip_unit(orbit))
             for target, orbit in zip(self.targets, design_orbit)
         ]
         self.model.madx.match(
@@ -235,7 +234,7 @@ class Corrector:
             vary=match_names,
             weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
             constraints=constraints,
-            twiss_init=self.utool.dict_strip_unit(init_twiss))
+            twiss_init=madx_units.dict_strip_unit(init_twiss))
         self.model.twiss.invalidate()
 
         # return corrections
@@ -255,7 +254,7 @@ class Corrector:
         self.model.twiss_args = self.backup_twiss_args
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
-        strip_unit = self.utool.strip_unit
+        strip_unit = madx_units.strip_unit
         return (strip_unit('x', sd_values[prefix + 'x']),
                 strip_unit('y', sd_values[prefix + 'y']))
 

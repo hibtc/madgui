@@ -9,6 +9,7 @@ from math import sqrt
 import numpy as np
 
 from madgui.qt import QtGui, uic
+from madgui.core.unit import madx_units
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 
 from madgui.util.collections import List
@@ -148,7 +149,7 @@ class EmittanceDialog(QtGui.QDialog):
             return
 
         model = self.control._model
-        strip = model.utool.strip_unit
+        strip = madx_units.strip_unit
 
         monitors = sorted(
             self.monitors, key=lambda m: model.elements.index(m.name))
@@ -214,7 +215,7 @@ class EmittanceDialog(QtGui.QDialog):
 
 
         beam = model.sequence.beam
-        twiss_args = model.utool.dict_strip_unit(model.twiss_args)
+        twiss_args = madx_units.dict_strip_unit(model.twiss_args)
 
         results = []
         results += [

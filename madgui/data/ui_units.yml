@@ -1,0 +1,91 @@
+l:        m
+lrad:     m
+at:       m
+s:        m
+x:        mm
+y:        mm
+betx:     m
+bety:     m
+gamx:     1/m
+gamy:     1/m
+angle:    degree
+k1:       m^-2
+k1s:      m^-2
+k1l:      m^-1
+ex:       mm mrad
+ey:       mm mrad
+tilt:     degree
+hgap:     m
+h:        rad/m
+fint:     1
+fintx:    1
+e1:       degree
+e2:       degree
+ks:       1/m
+
+sig11:    m^2
+sig12:    m
+sig13:    m^2
+sig14:    m
+sig15:    m^2
+sig16:    m
+
+sig21:    m
+sig22:    1
+sig23:    m
+sig24:    1
+sig25:    m
+sig26:    1
+
+sig31:    m^2
+sig32:    m
+sig33:    m^2
+sig34:    m
+sig35:    m^2
+sig36:    m
+
+sig41:    m
+sig42:    1
+sig43:    m
+sig44:    1
+sig45:    m
+sig46:    1
+
+sig51:    m^2
+sig52:    m
+sig53:    m^2
+sig54:    m
+sig55:    m^2
+sig56:    m
+
+sig61:    m
+sig62:    1
+sig63:    m
+sig64:    1
+sig65:    m
+sig66:    1
+
+# TODO: kinetic energy per nucleon
+energy:   MeV
+charge:   e
+mass:     GeV/c^2
+
+# TODO: write out vector components as scalars
+knl:      [rad, m^-1, m^-2, m^-3, m^-4]
+ksl:      [rad, m^-1, m^-2, m^-3, m^-4]
+"knl[0]": mrad
+"knl[1]": m^-1
+"knl[2]": m^-2
+"knl[3]": m^-3
+"knl[4]": m^-4
+
+# used in online database:
+kl:       m^-1
+
+# FIXME: MAD-X uses the tan() internally, but not the angle per se…
+kick:     mrad
+
+posx:     mm
+posy:     mm
+envx:     mm
+envy:     mm
