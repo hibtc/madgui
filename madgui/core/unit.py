@@ -28,21 +28,13 @@ __all__ = [
 ]
 
 
-def initialize():
-    units = pint.UnitRegistry()
-
-    # make `str(quantity)` slightly nicer
-    units.default_format = 'P~'
-
-    # extend unit registry
-    # NOTE: parsing %, ‰ doesn't work automatically yet in pint.
-    units.define('ratio = []')
-    units.define('percent = 0.01 ratio = %')
-    units.define('permille = 0.001 ratio = ‰')
-    return units
+units = pint.UnitRegistry()
+units.default_format = 'P~'     # make `str(quantity)` slightly nicer
+units.define('ratio = []')
+units.define('percent = 0.01 ratio = %')
+units.define('permille = 0.001 ratio = ‰')
 
 
-units = initialize()
 number_types = (int, float, units.Quantity, SymbolicValue, Expression)
 
 
