@@ -15,7 +15,8 @@ from threading import RLock
 import numpy as np
 
 from cpymad.madx import Madx, AttrDict
-from cpymad.util import normalize_range_name
+from cpymad.util import normalize_range_name, is_identifier
+from cpymad.types import Expression
 
 from madgui.core.base import Object, Signal, Cache
 from madgui.resource import yaml
@@ -27,8 +28,6 @@ from madgui.util.datastore import DataStore
 
 # stuff for online control:
 import madgui.online.api as api
-from cpymad.types import Expression
-from cpymad.util import is_identifier
 from madgui.util.symbol import SymbolicValue
 
 
