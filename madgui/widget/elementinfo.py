@@ -191,7 +191,9 @@ class EllipseWidget(QtGui.QWidget):
             ax.set_xlim(-dx*1.2, dx*1.2)
             ax.set_ylim(-dy*1.2, dy*1.2)
 
-            ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180, fill=False))
+            # zorder needed to draw on top of grid:
+            ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180,
+                                 fill=False, zorder=5))
             ax.grid(True)
 
 
