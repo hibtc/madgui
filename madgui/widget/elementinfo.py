@@ -175,8 +175,8 @@ class EllipseWidget(QtGui.QWidget):
             # See: ELLIPTICAL TRANSFORMATIONS FOR BEAM OPTICS, R.B. Moore, 2004
             # http://www.physics.mcgill.ca/~moore/Notes/Ellipses.pdf
             H = (beta + gamma) / 2
-            w = sqrt(eps/2) * (sqrt(H+1) + sqrt(H-1))
-            h = sqrt(eps/2) * (sqrt(H+1) - sqrt(H-1))
+            w = sqrt(eps/2) * (sqrt(H+1) - sqrt(H-1))
+            h = sqrt(eps/2) * (sqrt(H+1) + sqrt(H-1))
 
             # Same as:
             # c, s = cos(phi), sin(phi)
