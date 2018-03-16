@@ -4,7 +4,7 @@ Info boxes to display element detail.
 
 from collections import OrderedDict
 
-from math import sqrt, pi, atan, cos, sin
+from math import sqrt, pi, atan2, cos, sin
 import itertools
 
 import numpy as np
@@ -170,13 +170,13 @@ class EllipseWidget(QtGui.QWidget):
         axy = self.figure.add_subplot(122)
 
         def ellipse(ax, alfa, beta, gamma, eps):
-            phi = atan(2*alfa/(gamma - beta)) / 2
+            phi = atan2(2*alfa, gamma-beta) / 2
 
             # See: ELLIPTICAL TRANSFORMATIONS FOR BEAM OPTICS, R.B. Moore, 2004
             # http://www.physics.mcgill.ca/~moore/Notes/Ellipses.pdf
             H = (beta + gamma) / 2
-            w = sqrt(eps/2) * (sqrt(H+1) + sqrt(H-1))
-            h = sqrt(eps/2) * (sqrt(H+1) - sqrt(H-1))
+            w = sqrt(eps/2) * (sqrt(H+1) - sqrt(H-1))
+            h = sqrt(eps/2) * (sqrt(H+1) + sqrt(H-1))
 
             # Same as:
             # c, s = cos(phi), sin(phi)
@@ -191,7 +191,9 @@ class EllipseWidget(QtGui.QWidget):
             ax.set_xlim(-dx*1.2, dx*1.2)
             ax.set_ylim(-dy*1.2, dy*1.2)
 
-            ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180, fill=False))
+            # zorder needed to draw on top of grid:
+            ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180,
+                                 fill=False, zorder=5))
             ax.grid(True)
 
 
