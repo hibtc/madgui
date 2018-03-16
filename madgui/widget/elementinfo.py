@@ -4,7 +4,7 @@ Info boxes to display element detail.
 
 from collections import OrderedDict
 
-from math import sqrt, pi, atan, cos, sin
+from math import sqrt, pi, atan2, cos, sin
 import itertools
 
 import numpy as np
@@ -170,7 +170,7 @@ class EllipseWidget(QtGui.QWidget):
         axy = self.figure.add_subplot(122)
 
         def ellipse(ax, alfa, beta, gamma, eps):
-            phi = atan(2*alfa/(gamma - beta)) / 2
+            phi = atan2(2*alfa, gamma-beta) / 2
 
             # See: ELLIPTICAL TRANSFORMATIONS FOR BEAM OPTICS, R.B. Moore, 2004
             # http://www.physics.mcgill.ca/~moore/Notes/Ellipses.pdf
