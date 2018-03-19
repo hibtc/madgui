@@ -157,7 +157,10 @@ class Corrector(Matcher):
         self.model.twiss_args = init_twiss
 
         # match final conditions
-        match_names = [v.knob.param for v in self.variables]
+        blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
+        match_names = {var for v in self.variables
+                       for var in v.knob.vars
+                       if var.lower() not in blacklist}
         constraints = [
             dict(range=c.elem.Name, **madx_units.dict_strip_unit({
                 c.axis: c.value

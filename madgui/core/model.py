@@ -559,7 +559,7 @@ class Model(Object):
             # TODO: …KNL/KSL
             for k, v in d.items():
                 # TODO: filter those with default values
-                self.madx.set_value(_get_property_lval(elem, k), v)
+                self.madx.set_value(_get_property_lval(elem, k)[0], v)
 
         self.elements.invalidate(elem)
         self.twiss.invalidate()
@@ -815,17 +815,16 @@ class Model(Object):
         defd = [attr for attr in attrs if _is_property_defined(elem, attr)]
         return defd or attrs[:1]
 
-
     def get_knob(self, elem, attr):
         """Return a :class:`Knob` belonging to the given attribute."""
         try:
-            expr = _get_property_lval(elem, attr)
+            expr, vars = _get_property_lval(elem, attr)
         except IndexError:
-            expr = None
+            return
         if expr is not None:
             return api.Knob(
                 self, elem, attr, expr,
-                madx_units._units.get(attr))
+                madx_units._units.get(attr), vars)
 
     def read_param(self, expr):
         """Read element attribute. Return numeric value. No units!"""
@@ -1141,10 +1140,11 @@ def _get_property_lval(elem, attr):
     """
     expr = elem[attr]
     if not isinstance(expr, list):
-        name = _get_identifier(expr)
-        if is_identifier(name):
-            return name
-        return elem.Name + '->' + attr
+        madx = elem._model
+        expr = _get_identifier(expr)
+        name = expr if is_identifier(expr) else elem.Name + '->' + attr
+        vars = madx.expr_vars(expr) if expr else [name]
+        return name, vars
 
 
 def _is_property_defined(elem, attr):
