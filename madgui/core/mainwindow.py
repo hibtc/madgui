@@ -116,29 +116,18 @@ class MainWindow(QtGui.QMainWindow):
                      'Load model or open new model from a MAD-X file.',
                      self.fileOpen,
                      QtGui.QStyle.SP_DialogOpenButton),
-                Item('&Save', 'Ctrl+S',
-                     'Save the current model (beam + twiss) to a file.',
-                     self.fileSave,
-                     QtGui.QStyle.SP_DialogSaveButton),
+                Separator,
+                Item('&Initial conditions', 'Ctrl+I',
+                     'Modify the initial conditions, beam, and parameters.',
+                     self.editInitialConditions.create),
+                Item('&Load strengths', 'Ctrl+L',
+                     'Execute MAD-X file in current context.',
+                     self.execFile),
                 Separator,
                 Item('&Quit', 'Ctrl+Q',
                      'Close window.',
                      self.close,
                      QtGui.QStyle.SP_DialogCloseButton),
-            ]),
-            Menu('&Edit', [
-                Item('&TWISS initial conditions', 'Ctrl+I',
-                     'Modify the initial conditions.',
-                     self.editTwiss),
-                Item('&Beam parameters', 'Ctrl+B',
-                     'Change the beam parameters.',
-                     self.editBeam),
-                Item('&Magnet strengths', 'Ctrl+M',
-                     'Change globals.',
-                     self.editGlobals),
-                Item('&Load strengths', 'Ctrl+L',
-                     'Execute MAD-X file in current context.',
-                     self.execFile),
             ]),
             Menu('&View', [
                 Item('Plo&t window', 'Ctrl+T',
@@ -232,18 +221,6 @@ class MainWindow(QtGui.QMainWindow):
     def fileSave(self):
         pass
 
-    def editTwiss(self):
-        widget = self.editInitialConditions.create()
-        widget.activate_tab('twiss')
-
-    def editBeam(self):
-        widget = self.editInitialConditions.create()
-        widget.activate_tab('beam')
-
-    def editGlobals(self):
-        widget = self.editInitialConditions.create()
-        widget.activate_tab('globals')
-
     @SingleWindow.factory
     def editInitialConditions(self):
         from madgui.widget.params import TabParamTables, ParamTable
@@ -253,8 +230,8 @@ class MainWindow(QtGui.QMainWindow):
             def update(self): super().update(0)
 
         widget = TabParamTables([
-            ('Beam', ParamTable(self.model.get_beam_ds())),
             ('Twiss', ParamTable(self.model.get_twiss_ds())),
+            ('Beam', ParamTable(self.model.get_beam_ds())),
             ('Globals', ParamTable(self.model.get_globals_ds())),
             ('Ellipse', InitEllipseWidget(self.model)),
         ])
