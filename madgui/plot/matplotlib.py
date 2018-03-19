@@ -32,6 +32,17 @@ KeyboardEvent = namedtuple('KeyboardEvent', [
     'key', 'guiEvent'])
 
 
+class Toolbar(mpl_backend.NavigationToolbar2QT):
+
+    """Toolbar that autoscales the figure when pressing the "Home" button."""
+
+    def home(self):
+        self.parent.figure.autoscale()
+        self.push_current()
+        self.set_history_buttons()
+        self._update_view()
+
+
 class PlotWidget(QtGui.QWidget):
 
     """
@@ -56,7 +67,7 @@ class PlotWidget(QtGui.QWidget):
 
         self.figure = figure
         self.canvas = canvas = mpl_backend.FigureCanvas(figure.backend_figure)
-        self.toolbar = toolbar = mpl_backend.NavigationToolbar2QT(canvas, self)
+        self.toolbar = toolbar = Toolbar(canvas, self)
         layout = VBoxLayout([canvas, toolbar])
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
