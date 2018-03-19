@@ -137,7 +137,7 @@ class SectormapDataStore(TwissDataStore):
     def _get(self):
         sectormap = self.model.sectormap(self.kw['elem_index'])
         ret = {
-            't{}{}'.format(i+1, j+1): sectormap[i,j]
+            'r{}{}'.format(i+1, j+1): sectormap[i,j]
             for i, j in itertools.product(range(6), range(6))
         }
         ret.update({
