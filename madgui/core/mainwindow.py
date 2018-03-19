@@ -136,6 +136,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Magnet strengths', 'Ctrl+M',
                      'Change globals.',
                      self.editGlobals),
+                Item('&Load strengths', 'Ctrl+L',
+                     'Execute MAD-X file in current context.',
+                     self.execFile),
             ]),
             Menu('&View', [
                 Item('Plo&t window', 'Ctrl+T',
@@ -212,6 +215,19 @@ class MainWindow(QtGui.QMainWindow):
             self, 'Open file', self.folder, filters)
         if filename:
             self.loadFile(filename)
+
+    def execFile(self):
+        from madgui.widget.filedialog import getOpenFileName
+        filters = [
+            ("Strength files", "*.str"),
+            ("All MAD-X files", "*.madx", "*.str", "*.seq"),
+            ("All files", "*"),
+        ]
+        filename = getOpenFileName(
+            self, 'Open MAD-X strengths file', self.folder, filters)
+        if filename:
+            self.model.madx.call(filename)
+            self.model.twiss.invalidate()
 
     def fileSave(self):
         pass
