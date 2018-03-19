@@ -231,11 +231,16 @@ class MainWindow(QtGui.QMainWindow):
     @SingleWindow.factory
     def editInitialConditions(self):
         from madgui.widget.params import TabParamTables, ParamTable
+        from madgui.widget.elementinfo import EllipseWidget
+
+        class InitEllipseWidget(EllipseWidget):
+            def update(self): super().update(0)
 
         widget = TabParamTables([
             ('Beam', ParamTable(self.model.get_beam_ds())),
             ('Twiss', ParamTable(self.model.get_twiss_ds())),
             ('Globals', ParamTable(self.model.get_globals_ds())),
+            ('Ellipse', InitEllipseWidget(self.model)),
         ])
         widget.update()
 
