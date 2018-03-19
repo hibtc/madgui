@@ -248,6 +248,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
+        twiss_args = self.corrector.model.twiss_args
         self.corrector.restore()
         for mknob, mval, dknob, dval in self.steerer_corrections:
             mknob.write(mval)
@@ -255,6 +256,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.apply()
         self.corrector.backup()
         self.corrector.control._plugin.execute()
+        self.corrector.model.twiss_args = twiss_args
         self.corrector.model.twiss.invalidate()
 
     def init_controls(self):
