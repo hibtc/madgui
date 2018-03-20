@@ -19,21 +19,22 @@ class ParamInfo:
 
     """Row info for the TableView [internal]."""
 
-    def __init__(self, datastore, key, value):
+    def __init__(self, datastore, units, key, value):
         self.name = key
+        self.units = units
         self.datastore = datastore
         default = datastore.default(key)
         editable = datastore.mutable(key)
         textcolor = Qt.black if editable else Qt.darkGray
         self.proxy = tableview.makeValue(
-            ui_units.strip_unit(key, value),
-            default=ui_units.strip_unit(key, default),
+            value=units.strip_unit(key, value) if units else value,
+            default=units.strip_unit(key, default) if units else default,
             editable=editable,
             textcolor=textcolor)
         self.proxy.dataChanged.connect(self.on_edit)
 
     def on_edit(self, value):
-        self.datastore.update({self.name: ui_units.add_unit(self.name, value)})
+        self.datastore.update({self.name: self.units.add_unit(self.name, value)})
 
     def __repr__(self):
         return "{}({}={})".format(
@@ -41,7 +42,7 @@ class ParamInfo:
 
     @property
     def unit(self):
-        return ui_units.label(self.name, self.proxy.value)
+        return self.units.label(self.name, self.proxy.value)
 
 
 class ParamTable(tableview.TableView):
@@ -57,10 +58,11 @@ class ParamTable(tableview.TableView):
     # TODO: visually indicate rows with non-default values: "bold"
     # TODO: move rows with default or unset values to bottom? [MAD-X]
 
-    def __init__(self, datastore, **kwargs):
+    def __init__(self, datastore, units=ui_units, **kwargs):
         """Initialize data."""
 
         self.datastore = datastore
+        self.units = units
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
@@ -68,6 +70,8 @@ class ParamTable(tableview.TableView):
             tableview.ColumnInfo("Unit", 'unit',
                                  resize=QtGui.QHeaderView.ResizeToContents),
         ]
+        if not units:
+            columns = columns[:2]
 
         super().__init__(columns=columns, **kwargs)
         # in case anyone turns the horizontalHeader back on:
@@ -83,7 +87,7 @@ class ParamTable(tableview.TableView):
         """Update dialog from the datastore."""
         # TODO: get along without resetting all the rows?
         self.datastore.kw.update(kw)
-        rows = [ParamInfo(self.datastore, k, v)
+        rows = [ParamInfo(self.datastore, self.units, k, v)
                 for k, v in self.datastore.get().items()]
         if len(rows) == len(self.rows):
             for i, row in enumerate(rows):

@@ -43,7 +43,8 @@ class ElementInfoBox(QtGui.QWidget):
             ('Twiss', ParamTable(TwissDataStore(model, 'twiss'))),
             ('Sigma', ParamTable(SigmaDataStore(model, 'sigma'))),
             ('Ellipse', EllipseWidget(model)),
-            ('Sector', ParamTable(SectormapDataStore(model, 'sector'))),
+            ('Sector', ParamTable(SectormapDataStore(model, 'sector'),
+                                  units=False)),
         ])
 
         # navigation
