@@ -11,6 +11,7 @@ import logging
 from bisect import bisect_right
 import subprocess
 from threading import RLock
+from math import isclose
 
 import numpy as np
 
@@ -20,8 +21,6 @@ from cpymad.types import Expression
 
 from madgui.core.base import Object, Signal, Cache
 from madgui.resource import yaml
-from madgui.core.unit import (madx_units, ui_units, from_config, isclose,
-                              number_types)
 from madgui.resource.file import FileResource
 from madgui.util.datastore import DataStore
 
@@ -125,16 +124,13 @@ class Model(Object):
         return ElementInfo(name, element, pos)
 
     def get_beam(self):
-        return madx_units.dict_add_unit(self.get_beam_raw())
+        """Get the beam parameter dictionary."""
+        return self._beam
 
     def set_beam(self, beam):
-        self.set_beam_raw(madx_units.dict_strip_unit(beam))
-
-    def get_twiss_args(self):
-        return madx_units.dict_add_unit(self.get_twiss_args_raw())
-
-    def set_twiss_args(self, twiss):
-        self.set_twiss_args_raw(madx_units.dict_strip_unit(twiss))
+        """Set beam from a parameter dictionary."""
+        self._beam = beam
+        self._use_beam(beam)
 
     def get_globals(self):
         blacklist = ('none', 'twiss_tol', 'degree')
@@ -147,14 +143,12 @@ class Model(Object):
 
     globals = property(get_globals, set_globals)
     beam = property(get_beam, set_beam)
-    twiss_args = property(get_twiss_args, set_twiss_args)
 
     def get_element_by_position(self, pos):
         """Find optics element by longitudinal position."""
         if pos is None:
             return None
-        val = madx_units.strip_unit('s', pos)
-        i0 = bisect_right(self.positions, val)
+        i0 = bisect_right(self.positions, pos)
         return self.elements[i0-1 if i0 > 0 else 0]
 
     def get_element_by_mouse_position(self, axes, pos):
@@ -166,8 +160,7 @@ class Model(Object):
         at, L = elem.At, elem.L
         el_id = elem.El_id
         x0_px = axes.transData.transform_point((0, 0))[0]
-        strip = lambda x: madx_units.strip_unit('at', x)
-        x2pix = lambda x: axes.transData.transform_point((strip(x), 0))[0]-x0_px
+        x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
         len_px = x2pix(L)
         pos_px = x2pix(pos)
         if len_px > 5 or elem.Type == 'drift':
@@ -462,7 +455,7 @@ class Model(Object):
         self.continuous_matching = True
 
         self._beam = beam
-        self._twiss_args = twiss_args
+        self.twiss_args = twiss_args
         self._use_beam(beam)
         self.sequence.use()
 
@@ -503,44 +496,23 @@ class Model(Object):
     # TODO…
     def _is_mutable_attribute(self, k, v):
         blacklist = self.config['parameter_sets']['element']['readonly']
-        allowed_types = (list, number_types)
+        allowed_types = (list, int, float, Expression)
         return isinstance(v, allowed_types) and k.lower() not in blacklist
 
-    # TODO: get data from MAD-X
-    def get_twiss_args_raw(self):
-        return self._twiss_args
-
-    def set_twiss_args_raw(self, twiss):
-        self._twiss_args = twiss
-
-    # TODO: get data from MAD-X
-    def get_beam_raw(self):
-        """Get the beam parameter dictionary."""
-        return self._beam
-
-    def set_beam_raw(self, beam):
-        """Set beam from a parameter dictionary."""
-        self._beam = beam
-        self._use_beam(beam)
-
     def update_globals(self, globals):
-        self.set_globals(globals)
+        self.globals = globals
         self.twiss.invalidate()
 
     def update_beam(self, beam):
-        new_beam = self._beam.copy()
-        new_beam.update(
-            (k.lower(), v)
-            for k, v in madx_units.dict_strip_unit(beam).items())
-        self.set_beam_raw(new_beam)
+        new_beam = self.beam.copy()
+        new_beam.update((k.lower(), v) for k, v in beam.items())
+        self.beam = new_beam
         self.twiss.invalidate()
 
     def update_twiss_args(self, twiss):
-        new_twiss = self._twiss_args
-        new_twiss.update(
-            (k.lower(), v)
-            for k, v in madx_units.dict_strip_unit(twiss).items())
-        self.set_twiss_args_raw(new_twiss)
+        new_twiss = self.twiss_args.copy()
+        new_twiss.update((k.lower(), v) for k, v in twiss.items())
+        self.twiss_args = new_twiss
         self.twiss.invalidate()
 
     def update_element(self, data, elem_index):
@@ -552,7 +524,6 @@ class Model(Object):
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
-        d = madx_units.dict_strip_unit(d)
         if any(isinstance(v, (list,str)) for v in d.values()):
             self.madx.command(name, **d)
         else:
@@ -581,7 +552,7 @@ class Model(Object):
         x = self.indices[ix]
 
         # shortcut for thin elements:
-        if madx_units.strip_unit('l', self.elements[ix].L) == 0:
+        if float(self.elements[ix].L) == 0:
             return y[x]
 
         lo = x.start-1 if x.start > 0 else x.start
@@ -626,12 +597,11 @@ class Model(Object):
                 self.stop.index >= element.index)
 
     def _get_twiss_args(self, **kwargs):
-        twiss_init = madx_units.dict_strip_unit(self.twiss_args)
         twiss_args = {
             'sequence': self.sequence.name,
             'range': self.range,
             'columns': self._columns,
-            'twiss_init': twiss_init,
+            'twiss_init': self.twiss_args,
         }
         twiss_args.update(kwargs)
         return twiss_args
@@ -690,7 +660,7 @@ class Model(Object):
                                  col('sig12') * col('sig21'))**0.5
         if name == 'ey': return (col('sig33') * col('sig44') -
                                  col('sig34') * col('sig43'))**0.5
-        return madx_units.add_unit(name, self.twiss.data[name])
+        return self.twiss.data[name]
 
     def get_twiss_column(self, column):
         if column not in self.cache:
@@ -734,7 +704,7 @@ class Model(Object):
         self.madx.command.select(flag='interpolate', clear=True)
         self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args())
-        self.summary = madx_units.dict_add_unit(results.summary)
+        self.summary = results.summary
 
         # FIXME: this will fail if subsequent element have the same name.
         # Safer alternatives:
@@ -779,22 +749,21 @@ class Model(Object):
         madx_constraints = [
             {'range': elem.Name,
              'iindex': elem_positions[elem.Name].index(pos),
-             axis: madx_units.strip_unit(axis, val)}
+             axis: val}
             for elem, pos, axis, val in constraints]
 
         # FIXME TODO: use position-dependent emittances…
-        ex = madx_units.strip_unit('ex', self.ex())
-        ey = madx_units.strip_unit('ey', self.ey())
+        ex = self.ex()
+        ey = self.ey()
         weights = {
             'sig11': 1/ex, 'sig12': 1/ex, 'sig21': 1/ex, 'sig22': 1/ex,
             'sig33': 1/ey, 'sig34': 1/ey, 'sig43': 1/ey, 'sig44': 1/ey,
         }
-        twiss_args = madx_units.dict_strip_unit(self.twiss_args)
         self.madx.match(sequence=self.sequence.name,
                         vary=variables,
                         constraints=madx_constraints,
                         weight=weights,
-                        twiss_init=twiss_args)
+                        twiss_init=self.twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()
         self.twiss.invalidate()
@@ -822,16 +791,14 @@ class Model(Object):
         except IndexError:
             return
         if expr is not None:
-            return api.Knob(
-                self, elem, attr, expr,
-                madx_units._units.get(attr), vars)
+            return api.Knob(self, elem, attr, expr, None, vars)
 
     def read_param(self, expr):
-        """Read element attribute. Return numeric value. No units!"""
+        """Read element attribute. Return numeric value."""
         return self.madx.evaluate(expr)
 
     def write_param(self, expr, value):
-        """Update element attribute into control system. No units!"""
+        """Update element attribute into control system."""
         self.madx.set_value(expr, value)
         self.twiss.invalidate()
         # TODO: invalidate element…
@@ -1049,7 +1016,7 @@ class Element(Mapping):
             index = int(tail[:-1])
             return self._get_field(head, index)
         self._retrieve(name)
-        return madx_units.add_unit(name, self._merged[name])
+        return self._merged[name]
 
     def __iter__(self):
         self._retrieve(None)

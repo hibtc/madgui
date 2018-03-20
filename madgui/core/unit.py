@@ -78,6 +78,8 @@ def strip_unit(quantity, unit=None):
         # FIXME: 'zip' truncates without warning if not enough units
         # are defined
         return [q.to(u).magnitude for q, u in zip(quantity, unit)]
+    if isinstance(quantity, Expression):
+        return float(quantity)
     try:
         return quantity.to(unit).magnitude
     except AttributeError:
@@ -197,7 +199,7 @@ class UnitConverter:
 
     def add_unit(self, name, value):
         """Add units to a single number."""
-        unit = self._units.get(name)
+        unit = self._units.get(name) if isinstance(name, str) else name
         if unit:
             if isinstance(value, (list, tuple)):
                 # FIXME: 'zip' truncates without warning if not enough units
@@ -222,7 +224,8 @@ class UnitConverter:
 
     def strip_unit(self, name, value):
         """Convert to MAD-X units."""
-        return strip_unit(value, self._units.get(name))
+        unit = self._units.get(name) if isinstance(name, str) else name
+        return strip_unit(value, unit)
 
     def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
@@ -250,3 +253,19 @@ madx_units = UnitConverter.from_config_dict(yaml.safe_load(
 
 ui_units = UnitConverter.from_config_dict(yaml.safe_load(
     resource_string('madgui.data', 'ui_units.yml')))
+
+
+def convert(from_, to, *args):
+    if len(args) == 1:
+        return to.dict_strip_unit(from_.dict_add_unit(*args))
+    if len(args) == 2:
+        return to.strip_unit(args[0], from_.add_unit(*args))
+    if len(args) == 3:
+        return to.strip_unit(args[0], from_.add_unit(*args[1:]))
+    raise TypeError("convert can only be called with one or two arguments.")
+
+def from_ui(*args):
+    return convert(ui_units, madx_units, *args)
+
+def to_ui(*args):
+    return convert(madx_units, ui_units, *args)

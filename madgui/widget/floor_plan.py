@@ -14,7 +14,6 @@ import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.model import FloorCoords
-from madgui.core.unit import madx_units
 
 __all__ = [
     'LatticeFloorPlan',
@@ -119,7 +118,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setScene(QtGui.QGraphicsScene(self))
         survey = [FloorCoords(0,0,0, 0,0,0)] + survey
         for element, floor in zip(elements, zip(survey, survey[1:])):
-            element = madx_units.dict_strip_unit(dict(element))
+            element = dict(element)
             self.scene().addItem(
                 ElementGraphicsItem(self, element, floor, selection))
         self.setViewRect(self._sceneRect())

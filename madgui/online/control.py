@@ -150,7 +150,7 @@ class Control(Object):
         ]
         rows = [
             SyncParamItem(self._plugin.param_info(dknob),
-                          dval, mknob.to(dknob.attr, mval))
+                          dval, mknob.to(dknob.attr, mval), dknob.attr)
             for mknob, mval, dknob, dval in knobs
         ]
         if not rows:

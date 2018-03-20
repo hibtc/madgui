@@ -14,7 +14,7 @@ from madgui.core.base import Object, Signal
 from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
 from madgui.core.unit import (
-    strip_unit, from_config, get_raw_label, allclose, ui_units)
+    to_ui, get_raw_label, allclose, ui_units)
 from madgui.resource.package import PackageResource
 from madgui.plot.base import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
@@ -92,8 +92,8 @@ class TwissFigure(Object):
         self.scene_graph.parent = self.figure   # for invalidation
         # style
         self.x_name = 's'
-        self.x_label = config['x_label']
-        self.x_unit = from_config(config['x_unit'])
+        self.x_label = 's'
+        self.x_unit = ui_units.get('s')
         self.element_style = config['element_style']
         # slots
         self.model.twiss.updated.connect(self.update, Qt.QueuedConnection)
@@ -153,8 +153,8 @@ class TwissFigure(Object):
             curve.x_name = self.x_name
             curve.y_unit = ui_units.get(curve.info.name)
             curve.y_name = curve.info.short
-            ax.x_unit = curve.x_unit
-            ax.y_unit = curve.y_unit
+            ax.x_name = curve.x_name
+            ax.y_name = curve.y_name
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
         self.figure.autoscale()
@@ -185,7 +185,7 @@ class TwissFigure(Object):
         curve = next(c for c in self.twiss_curves.items if c.axes is ax)
         parts = [coord_fmt(x, get_raw_label(curve.x_unit)),
                  coord_fmt(y, get_raw_label(curve.y_unit))]
-        elem = self.model.get_element_by_mouse_position(ax, x * curve.x_unit)
+        elem = self.model.get_element_by_mouse_position(ax, x)
         if elem and 'name' in elem:
             name = strip_suffix(elem.Name, '[0]')
             parts.insert(0, name.upper())
@@ -200,8 +200,8 @@ class TwissFigure(Object):
         self.graph_info, graph_data = \
             self.model.get_graph_data(self.graph_name, self.xlim)
         self.graph_data = {
-            name: np.vstack((ui_units.strip_unit('s', x),
-                             ui_units.strip_unit(name, y))).T
+            name: np.vstack((to_ui('s', x),
+                             to_ui(name, y))).T
             for name, (x, y) in graph_data.items()
         }
         self.graph_name = self.graph_info.name
@@ -216,9 +216,7 @@ class TwissFigure(Object):
     def xlim_changed(self, ax):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
         xend = xstart + xdelta
-        self.xlim = self.model.elements.bound_range((
-            self.x_unit * xstart,
-            self.x_unit * xend))
+        self.xlim = self.model.elements.bound_range((xstart, xend))
         if not allclose(self.xlim, self.data_lim()):
             ax.set_autoscale_on(False)
             self.update()
@@ -227,8 +225,7 @@ class TwissFigure(Object):
     def data_lim(self):
         curve = next(iter(self.graph_data))
         xdata = self.graph_data[curve][:,0]
-        return (self.x_unit * xdata[0],
-                self.x_unit * xdata[-1])
+        return (xdata[0], xdata[-1])
 
     @property
     def show_indicators(self):
@@ -350,10 +347,9 @@ class ElementIndicators(SimpleArtist):
         ]
 
     def make_element_indicator(self, elem, style):
-        x_unit = self.scene.x_unit
-        at = strip_unit(elem.At, x_unit)
-        if strip_unit(elem.L) != 0:
-            patch_w = strip_unit(elem.L, x_unit)
+        at = to_ui('at', elem.At)
+        if elem.L != 0:
+            patch_w = to_ui('l', elem.L)
             return self.axes.axvspan(at, at + patch_w, **style)
         else:
             return self.axes.axvline(at, **style)
@@ -365,9 +361,9 @@ class ElementIndicators(SimpleArtist):
         type_name = elem.Type.lower()
         focussing = None
         if type_name == 'quadrupole':
-            focussing = strip_unit(elem.K1) > 0
+            focussing = float(elem.K1) > 0
         elif type_name == 'sbend':
-            focussing = strip_unit(elem.Angle) > 0
+            focussing = float(elem.Angle) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
@@ -551,8 +547,8 @@ def draw_constraint(scene, constraint):
     curve = scene.get_curve_by_name(axis)
     style = scene.config['constraint_style']
     return curve and curve.axes.plot(
-        strip_unit(pos, curve.x_unit),
-        strip_unit(val, curve.y_unit),
+        to_ui(curve.x_name, pos),
+        to_ui(curve.y_name, val),
         **style) or ()
 
 
@@ -638,7 +634,7 @@ def draw_selection_marker(axes, scene, el_idx):
     """In-figure markers for active/selected elements."""
     style = scene.config['select_style']
     element = scene.model.elements[el_idx]
-    at = strip_unit(element.At, scene.x_unit)
+    at = to_ui('at', element.At)
     return [axes.axvline(at, **style)]
 
 
@@ -681,8 +677,8 @@ def make_user_curve(scene, idx):
     return SceneGraph([
         Curve(
             curve.axes,
-            partial(strip_unit, data[curve.x_name], curve.x_unit),
-            partial(strip_unit, data[curve.y_name], curve.y_unit),
+            partial(to_ui, curve.x_name, data[curve.x_name]),
+            partial(to_ui, curve.y_name, data[curve.y_name]),
             style, label=name,
         )
         for curve in scene.twiss_curves.items

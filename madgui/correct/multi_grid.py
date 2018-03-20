@@ -15,7 +15,7 @@ import yaml
 
 from madgui.qt import QtCore, QtGui, uic
 
-from madgui.core.unit import tounit, madx_units
+from madgui.core.unit import tounit
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout
 from madgui.util.qt import fit_button
@@ -71,8 +71,7 @@ class Corrector(Matcher):
         self.monitors[:] = monitors
         elements = self.model.elements
         self.constraints[:] = sorted([
-            Constraint(elements[target], elements[target].At, key,
-                       madx_units.add_unit(key, value))
+            Constraint(elements[target], elements[target].At, key, value)
             for target, values in targets.items()
             for key, value in values.items()
             if key[-1] in dirs
@@ -133,14 +132,13 @@ class Corrector(Matcher):
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
 
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (madx_units.strip_unit('x', record.x),
-                                         madx_units.strip_unit('y', record.y)))
+            (secmap[:,:6], secmap[:,6], (record.x, record.y))
             for record, secmap in zip(records, secmaps)
         ])
-        return madx_units.dict_add_unit({
+        return {
             'x': x, 'px': px,
             'y': y, 'py': py,
-        }), chi_squared, singular
+        }, chi_squared, singular
 
     def compute_steerer_corrections(self, init_orbit):
 
@@ -162,9 +160,7 @@ class Corrector(Matcher):
                        for var in v.knob.vars
                        if var.lower() not in blacklist}
         constraints = [
-            dict(range=c.elem.Name, **madx_units.dict_strip_unit({
-                c.axis: c.value
-            }))
+            dict(range=c.elem.Name, **{c.axis: c.value})
             for c in self.constraints
         ]
         self.model.madx.command.select(flag='interpolate', clear=True)
@@ -174,7 +170,7 @@ class Corrector(Matcher):
             method=('jacobian', {}),
             weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
             constraints=constraints,
-            twiss_init=madx_units.dict_strip_unit(init_twiss))
+            twiss_init=init_twiss)
         self.model.twiss.invalidate()
 
         # return corrections

@@ -7,7 +7,7 @@ from os.path import abspath
 
 import numpy as np
 
-from madgui.core.unit import from_config
+from madgui.core.unit import from_config, from_ui
 
 
 TFS_READER = None
@@ -38,16 +38,16 @@ def read_table(filename):
 
     For which this function returns an ordered dictionary:
 
-        's'     -> Quantity(np.array([0, 1, 2]), 'mm')
-        'envx'  -> Quantity(np.array([1, 2, 1]), 'mm')
-        'envy'  -> Quantity(np.array([1, 1, 2]), 'mm')
+        's'     -> np.array([0, 1000, 2000])
+        'envx'  -> np.array([1000, 2000, 1000])
+        'envy'  -> np.array([1000, 1000, 2000])
     """
     with open(filename) as f:
         titles = _parse_header(f)
     columns = map(_parse_column_title, titles)
     data = np.loadtxt(filename, unpack=True)
     return OrderedDict([
-        (name, _add_unit(dat, name, unit))
+        (name, from_ui(name, _add_unit(dat, unit)))
         for dat, (name, unit) in zip(data, columns)
     ])
 
@@ -80,7 +80,7 @@ def _parse_column_title(title):
     return name.strip(), unit.strip()
 
 
-def _add_unit(data, name, unit):
+def _add_unit(data, unit):
     # TODO: does not use `name` so far:
     if not unit:
         return data

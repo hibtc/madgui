@@ -3,12 +3,9 @@ Dialog for selecting DVM parameters to be synchronized.
 """
 
 from madgui.qt import QtGui
-from madgui.core.unit import strip_unit, get_raw_label, ui_units
+from madgui.core.unit import to_ui, ui_units
 from madgui.util.layout import VBoxLayout
 from madgui.widget.tableview import TableView, ColumnInfo
-
-
-# TODO: use UI units
 
 
 class ListSelectWidget(QtGui.QWidget):
@@ -45,13 +42,12 @@ class ListSelectWidget(QtGui.QWidget):
 
 class SyncParamItem:
 
-    def __init__(self, param, dvm_value, mad_value):
+    def __init__(self, param, dvm_value, mad_value, attr):
         self.param = param
         self.name = param.name
-        # TODO: simply use ui_units, remove param.ui_unit
-        self.unit = get_raw_label(param.ui_unit)
-        self.dvm_value = strip_unit(dvm_value, param.ui_unit)
-        self.mad_value = strip_unit(mad_value, param.ui_unit)
+        self.unit = ui_units.label(attr)
+        self.dvm_value = to_ui(attr, dvm_value)
+        self.mad_value = to_ui(attr, mad_value)
 
 
 class SyncParamWidget(ListSelectWidget):
@@ -89,10 +85,10 @@ class MonitorItem:
 
     def __init__(self, el_name, values):
         self.name = el_name
-        self.posx = ui_units.strip_unit('x', values.get('posx'))
-        self.posy = ui_units.strip_unit('x', values.get('posy'))
-        self.envx = ui_units.strip_unit('x', values.get('envx'))
-        self.envy = ui_units.strip_unit('x', values.get('envy'))
+        self.posx = to_ui('x', values.get('posx'))
+        self.posy = to_ui('x', values.get('posy'))
+        self.envx = to_ui('x', values.get('envx'))
+        self.envy = to_ui('x', values.get('envy'))
         self.unit = ui_units.label('x')
 
 

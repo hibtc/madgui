@@ -6,7 +6,7 @@ alignment.
 from pkg_resources import resource_filename
 
 from madgui.qt import Qt, QtCore, QtGui, uic
-from madgui.core.unit import get_unit, allclose, tounit, madx_units
+from madgui.core.unit import get_unit, allclose, tounit
 from madgui.widget.tableview import ColumnInfo
 from madgui.util.collections import List
 from madgui.util.qt import notifyEvent
@@ -184,10 +184,10 @@ class Corrector:
         ])
         initial_orbit, chi_squared, singular = self.fit_results
         x, px, y, py = initial_orbit
-        return madx_units.dict_add_unit({
+        return {
             'x': x, 'px': px,
             'y': y, 'py': py,
-        }), chi_squared, singular
+        }, chi_squared, singular
 
     def compute_steerer_corrections(self, init_orbit, design_orbit,
                                     correct_x=None, correct_y=None,
@@ -226,7 +226,7 @@ class Corrector:
         # match final conditions
         match_names = [mknob.param for mknob, _ in steerer_knobs]
         constraints = [
-            dict(range=target, **madx_units.dict_strip_unit(orbit))
+            dict(range=target, **orbit)
             for target, orbit in zip(self.targets, design_orbit)
         ]
         self.model.madx.match(
@@ -234,7 +234,7 @@ class Corrector:
             vary=match_names,
             weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
             constraints=constraints,
-            twiss_init=madx_units.dict_strip_unit(init_twiss))
+            twiss_init=init_twiss)
         self.model.twiss.invalidate()
 
         # return corrections
@@ -254,9 +254,8 @@ class Corrector:
         self.model.twiss_args = self.backup_twiss_args
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
-        strip_unit = madx_units.strip_unit
-        return (strip_unit('x', sd_values[prefix + 'x']),
-                strip_unit('y', sd_values[prefix + 'y']))
+        return ('x', sd_values[prefix + 'x'],
+                'y', sd_values[prefix + 'y'])
 
 
 def _is_steerer(el):
