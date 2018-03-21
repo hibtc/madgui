@@ -9,6 +9,7 @@ from math import sqrt
 import numpy as np
 
 from madgui.qt import QtGui, uic
+from madgui.core.unit import ui_units, to_ui
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 
 from madgui.util.collections import List
@@ -55,14 +56,18 @@ class EmittanceDialog(QtGui.QDialog):
     monitor_columns = [
         ExtColumnInfo("Monitor", get_monitor_elem, set_monitor_elem,
                       resize=QtGui.QHeaderView.Stretch),
-        ExtColumnInfo("Δx", 'envx'),
-        ExtColumnInfo("Δy", 'envy'),
+        ColumnInfo("Δx", lambda item: to_ui('envx', item.envx)),
+        ColumnInfo("Δy", lambda item: to_ui('envy', item.envy)),
+        ColumnInfo("Unit", lambda item: ui_units.label('envx'),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     result_columns = [
         ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Measured", 'measured'),
-        ColumnInfo("Model", 'model'),
+        ColumnInfo("Measured", lambda item: to_ui(item.name, item.measured)),
+        ColumnInfo("Model", lambda item: to_ui(item.name, item.model)),
+        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, control):
