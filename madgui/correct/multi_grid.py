@@ -15,7 +15,7 @@ import yaml
 
 from madgui.qt import QtCore, QtGui, uic
 
-from madgui.core.unit import tounit
+from madgui.core.unit import to_ui, ui_units
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout
 from madgui.util.qt import fit_button
@@ -188,14 +188,16 @@ def format_knob(widget, var, index):
 
 def format_final(widget, var, index):
     dknob = widget.corrector.dknob(var)
-    ui_unit = getattr(dknob.param, 'ui_unit', dknob.unit)
-    return tounit(var.knob.to(dknob.attr, var.value), ui_unit)
+    return to_ui(dknob.attr, var.knob.to(dknob.attr, var.value))
 
 def format_initial(widget, var, index):
     dknob = widget.corrector.dknob(var)
-    ui_unit = getattr(dknob.param, 'ui_unit', dknob.unit)
-    return tounit(var.knob.to(dknob.attr, var.design), ui_unit)
+    return to_ui(dknob.attr, var.knob.to(dknob.attr, var.design))
     #return dknob.read()
+
+def format_unit(widget, var, index):
+    dknob = widget.corrector.dknob(var)
+    return ui_units.label(dknob.attr)
 
 def set_constraint_value(widget, c, i, value):
     widget.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
@@ -208,8 +210,10 @@ class CorrectorWidget(QtGui.QWidget):
 
     readout_columns = [
         ColumnInfo("Monitor", 'monitor', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("X", 'x', resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Y", 'y', resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("X", 'x', convert=True),
+        ColumnInfo("Y", 'y', convert=True),
+        ColumnInfo("Unit", lambda item: ui_units.label('x'),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     constraint_columns = [
@@ -217,13 +221,17 @@ class CorrectorWidget(QtGui.QWidget):
                    resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Param", 'axis', resize=QtGui.QHeaderView.ResizeToContents),
         ExtColumnInfo("Value", 'value', set_constraint_value,
+                      convert='axis',
                       resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Unit", lambda item: ui_units.label(item.axis),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     steerer_columns = [
         ExtColumnInfo("Steerer", format_knob, resize=QtGui.QHeaderView.Stretch),
         ExtColumnInfo("Initial", format_initial, resize=QtGui.QHeaderView.ResizeToContents),
         ExtColumnInfo("Final", format_final, resize=QtGui.QHeaderView.ResizeToContents),
+        ExtColumnInfo("Unit", format_unit, resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, corrector):

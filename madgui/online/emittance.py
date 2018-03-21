@@ -56,16 +56,16 @@ class EmittanceDialog(QtGui.QDialog):
     monitor_columns = [
         ExtColumnInfo("Monitor", get_monitor_elem, set_monitor_elem,
                       resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Δx", lambda item: to_ui('envx', item.envx)),
-        ColumnInfo("Δy", lambda item: to_ui('envy', item.envy)),
+        ColumnInfo("Δx", 'envx', convert=True),
+        ColumnInfo("Δy", 'envy', convert=True),
         ColumnInfo("Unit", lambda item: ui_units.label('envx'),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     result_columns = [
         ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Measured", lambda item: to_ui(item.name, item.measured)),
-        ColumnInfo("Model", lambda item: to_ui(item.name, item.model)),
+        ColumnInfo("Measured", 'measured', convert='name'),
+        ColumnInfo("Model", 'model', convert='name'),
         ColumnInfo("Unit", lambda item: ui_units.label(item.name),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
