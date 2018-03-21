@@ -3,9 +3,8 @@ Dialog for managing shown curves.
 """
 
 import os
-from pkg_resources import resource_filename
 
-from madgui.qt import Qt, QtGui, uic
+from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.unit import madx_units
 from madgui.widget.tableview import ExtColumnInfo, StringValue
 from madgui.widget.filedialog import getOpenFileName
@@ -77,8 +76,7 @@ class CurveManager(QtGui.QWidget):
         self.available = scene.loaded_curves
         self.selected = scene.shown_curves
         self.folder = scene.model.repo.path
-        # UI
-        uic.loadUi(resource_filename(__name__, self.ui_file), self)
+        load_ui(self, __package__, self.ui_file)
         self.init_controls()
         self.connect_signals()
 

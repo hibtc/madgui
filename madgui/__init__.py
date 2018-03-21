@@ -48,7 +48,6 @@ __classifiers__ = [
     'Topic :: Scientific/Engineering :: Physics',
 ]
 
-# importing pkg_resources is pretty expensive, so don't do it by default:
 def get_copyright_notice():
-    from pkg_resources import resource_string
-    return resource_string('madgui', 'COPYING.txt').decode('utf-8')
+    from importlib_resources import read_binary
+    return read_binary('madgui', 'COPYING.txt').decode('utf-8')

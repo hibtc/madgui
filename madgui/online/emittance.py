@@ -2,13 +2,12 @@
 UI for matching.
 """
 
-from pkg_resources import resource_filename
 from collections import namedtuple
 from math import sqrt
 
 import numpy as np
 
-from madgui.qt import QtGui, uic
+from madgui.qt import QtGui, load_ui
 from madgui.core.unit import madx_units
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 
@@ -68,7 +67,7 @@ class EmittanceDialog(QtGui.QDialog):
 
     def __init__(self, control):
         super().__init__(control._frame)
-        uic.loadUi(resource_filename(__name__, self.ui_file), self)
+        load_ui(self, __package__, self.ui_file)
         self.control = control
 
         self.monitor_list = [el.Name

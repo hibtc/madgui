@@ -26,7 +26,7 @@ import traceback
 import signal
 import sys
 
-from pkg_resources import resource_string
+from importlib_resources import read_binary
 
 from docopt import docopt
 
@@ -63,7 +63,7 @@ def main(argv=None):
     app.dispatch = QueuedDispatcher()
     mainwindow = MainWindow(opts)
     mainwindow.show()
-    app.setStyleSheet(resource_string('madgui.data', 'style.css').decode('utf-8'))
+    app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
     return sys.exit(app.exec_())
 
 

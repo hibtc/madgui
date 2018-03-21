@@ -2,7 +2,7 @@
 Provides unit conversion.
 """
 
-from pkg_resources import resource_filename, resource_string
+from importlib_resources import read_binary
 
 import numpy as np
 import pint
@@ -246,7 +246,7 @@ class UnitConverter:
 
 
 madx_units = UnitConverter.from_config_dict(yaml.safe_load(
-    resource_string('madgui.data', 'madx_units.yml')))
+    read_binary('madgui.data', 'madx_units.yml')))
 
 ui_units = UnitConverter.from_config_dict(yaml.safe_load(
-    resource_string('madgui.data', 'ui_units.yml')))
+    read_binary('madgui.data', 'ui_units.yml')))
