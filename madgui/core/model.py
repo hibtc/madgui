@@ -133,7 +133,8 @@ class Model(Object):
 
     def get_globals(self):
         blacklist = ('none', 'twiss_tol', 'degree')
-        return {k: v for k, v in self.madx.globals.items()
+        return {k: _eval_expr(v)
+                for k, v in self.madx.globals.items()
                 if k not in blacklist}
 
     def set_globals(self, knobs):
@@ -388,8 +389,8 @@ class Model(Object):
         return {
             'sequence': sequence_name,
             'range': range,
-            'beam': beam,
-            'twiss': twiss,
+            'beam': _eval_expr(beam),
+            'twiss': _eval_expr(twiss),
         }
 
     def _get_twiss(self, sequence):
@@ -1055,6 +1056,7 @@ class Element(Mapping):
         """Retrieve data for key if possible; everything if None."""
         if len(self._merged) == 2 and name not in self._merged:
             data = self._model.active_sequence.expanded_elements[self._idx]
+            data = _eval_expr(data)
             self._merged.update(data)
 
 
@@ -1118,3 +1120,15 @@ def _is_property_defined(elem, attr):
         return hasattr(value, '_expression') or float(value) != 0
     except (ValueError, TypeError, IndexError):
         return False
+
+
+def _eval_expr(value):
+    """Helper method that replaces :class:`Expression` by their values."""
+    # NOTE: This method will become unnecessary in cpymad 1.0.
+    if isinstance(value, Expression):
+        return value.value
+    if isinstance(value, list):
+        return [_eval_expr(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _eval_expr(v) for k, v in value.items()}
+    return value

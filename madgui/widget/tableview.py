@@ -6,7 +6,6 @@ from inspect import getmro
 
 from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Object, Signal
-from madgui.core.unit import Expression
 from madgui.core.config import NumberFormat
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property
@@ -588,7 +587,6 @@ defaultTypes.update({
     bytes: StringValue,
     list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,
-    Expression: QuantityValue,
     Enum: EnumValue,
 })
 
