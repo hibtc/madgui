@@ -582,7 +582,7 @@ class EnumValue(StringValue):
 
 
 defaultTypes.update({
-    float: FloatValue,
+    float: QuantityValue,
     int: IntValue,
     bool: BoolValue,
     str: StringValue,
