@@ -2,9 +2,7 @@
 UI for matching.
 """
 
-from pkg_resources import resource_filename
-
-from madgui.qt import QtGui, uic
+from madgui.qt import QtGui, load_ui
 from madgui.core.unit import ui_units
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.match import variable_from_knob, Constraint
@@ -107,7 +105,7 @@ class MatchWidget(QtGui.QWidget):
 
     def __init__(self, matcher):
         super().__init__()
-        uic.loadUi(resource_filename(__name__, self.ui_file), self)
+        load_ui(self, __package__, self.ui_file)
         self.matcher = matcher
         self.model = model = matcher.model
         local_constraints = ['envx', 'envy'] + model.config['constraints']

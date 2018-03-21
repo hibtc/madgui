@@ -6,14 +6,13 @@ Multi grid correction method.
 # - use CORRECT command from MAD-X rather than custom numpy method?
 # - combine with optic variation method
 
-from pkg_resources import resource_filename
 from functools import partial
 import itertools
 
 import numpy as np
 import yaml
 
-from madgui.qt import QtCore, QtGui, uic
+from madgui.qt import QtCore, QtGui, load_ui
 
 from madgui.core.unit import tounit, madx_units
 from madgui.util.collections import List
@@ -232,7 +231,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def __init__(self, corrector):
         super().__init__()
-        uic.loadUi(resource_filename(__name__, self.ui_file), self)
+        load_ui(self, __package__, self.ui_file)
         self.corrector = corrector
         self.corrector.start()
         self.init_controls()

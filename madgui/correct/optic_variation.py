@@ -3,9 +3,7 @@ Utilities for the optic variation method (Optikvarianzmethode) for beam
 alignment.
 """
 
-from pkg_resources import resource_filename
-
-from madgui.qt import Qt, QtCore, QtGui, uic
+from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.unit import get_unit, allclose, tounit, madx_units
 from madgui.widget.tableview import ColumnInfo
 from madgui.util.collections import List
@@ -312,7 +310,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def __init__(self, corrector):
         super().__init__()
-        uic.loadUi(resource_filename(__name__, self.ui_file), self)
+        load_ui(self, __package__, self.ui_file)
         self.corrector = corrector
         self.corrector.start()
         self.init_controls()
@@ -593,7 +591,7 @@ class SelectWidget(QtGui.QWidget):
 
     def __init__(self, elements, config):
         super().__init__()
-        uic.loadUi(resource_filename(__name__, 'ovm_select.ui'), self)
+        load_ui(self, __package__, 'ovm_select.ui')
         self.choice_monitor.currentIndexChanged.connect(self.on_change_monitor)
         self.ctrl_qps = (self.choice_qp1, self.choice_qp2)
         self.ctrl_hst = (self.choice_hsteer1, self.choice_hsteer2)

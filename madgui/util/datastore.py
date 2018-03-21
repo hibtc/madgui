@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from collections import OrderedDict
 
-from madgui.resource import yaml
+from madgui.util import yaml
 # TODO: drop madx_units - just save the units into the YAML file?
 from madgui.core.unit import madx_units
 

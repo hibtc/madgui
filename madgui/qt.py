@@ -27,3 +27,9 @@ Qt = QtCore.Qt
 
 del types, QtGuiCompat
 del QtWidgets, QtPrintSupport
+
+
+def load_ui(widget, package, filename):
+    from importlib_resources import open_binary
+    with open_binary(package, filename) as f:
+        uic.loadUi(f, widget)

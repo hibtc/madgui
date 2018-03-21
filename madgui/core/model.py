@@ -19,11 +19,10 @@ from cpymad.util import normalize_range_name, is_identifier
 from cpymad.types import Expression
 
 from madgui.core.base import Object, Signal, Cache
-from madgui.resource import yaml
 from madgui.core.unit import (madx_units, ui_units, from_config, isclose,
                               number_types)
-from madgui.resource.file import FileResource
 from madgui.util.datastore import DataStore
+from madgui.util import yaml
 
 
 # stuff for online control:
@@ -62,7 +61,7 @@ class Model(Object):
 
     :ivar Madx madx: CPyMAD interpreter
     :ivar dict data: loaded model data
-    :ivar madgui.resource.ResourceProvider repo: resource provider
+    :ivar str path: base folder
     """
 
     backend_libname = 'cpymad'
@@ -76,7 +75,7 @@ class Model(Object):
         self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
         self.data = {}
-        self.repo = None
+        self.path = None
         self.init_files = []
         self.command_log = command_log
         self.config = config
@@ -108,7 +107,8 @@ class Model(Object):
         """Load parameter dict from file if necessary."""
         vals = data.get(name, {})
         if isinstance(vals, str):
-            data[name] = self.repo.yaml(vals, encoding='utf-8')
+            with open(os.path.join(self.path, vals), 'rb') as f:
+                data[name] = yaml.safe_load(f)
             if len(data[name]) == 1 and name in data[name]:
                 data[name] = data[name][name]
 
@@ -258,8 +258,8 @@ class Model(Object):
 
     def call(self, name):
         """Load a MAD-X file into the current workspace."""
-        with self.repo.filename(name) as f:
-            self.madx.call(f, True)
+        name = os.path.join(self.path, name)
+        self.madx.call(name, True)
         self.init_files.append(name)
 
     #----------------------------------------
@@ -304,12 +304,12 @@ class Model(Object):
 
     def load(self, filename):
         """Load model or plain MAD-X file."""
-        self.filename = filename
+        self.filename = os.path.abspath(filename)
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
-        self.repo = FileResource(path)
-        self.madx = Madx(command_log=self.command_log, **self.minrpc_flags())
+        self.path = path
         self.name = base
+        self.madx = Madx(command_log=self.command_log, **self.minrpc_flags())
         if ext.lower() in ('.yml', '.yaml'):
             self.load_model(name)
         else:
@@ -317,9 +317,10 @@ class Model(Object):
 
     def load_model(self, filename):
         """Load model data from file."""
-        self.data = data = self.repo.yaml(filename, encoding='utf-8')
+        with open(os.path.join(self.path, filename), 'rb') as f:
+            self.data = data = yaml.safe_load(f)
         self.check_compatibility(data)
-        self.repo = self.repo.get(data.get('path', '.'))
+        self.path = os.path.join(self.path, data.get('path', '.'))
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
         for filename in data.get('init-files', []):

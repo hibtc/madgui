@@ -56,7 +56,6 @@ def main():
             'madgui.data',
             'madgui.online',
             'madgui.plot',
-            'madgui.resource',
             'madgui.util',
             'madgui.widget',
         ],
@@ -74,6 +73,7 @@ def main():
             # 'PyQt5',
             'minrpc>=0.0.6',    # listed here in order to be able to enforce
                                 # stricter requirements than cpymad
+            'importlib_resources>=0.3', # replace by importlib.resources in 3.7!
         ],
         entry_points="""
             [console_scripts]

@@ -3,10 +3,10 @@ Config serialization utilities.
 """
 
 import os
+from importlib_resources import read_binary
 
-from madgui.resource.file import FileResource
-from madgui.resource.package import PackageResource
 from madgui.core.base import Object, Signal
+from madgui.util import yaml
 from madgui.qt import Qt
 
 
@@ -33,25 +33,31 @@ def update_recursive(a, b):
     return a
 
 
+def _read_file(filename):
+    try:
+        with open(filename, 'rb') as f:
+            return f.read()
+    except IOError:
+        return None
+
+
 def load(*config_files):
     """Read config file and recursively merge it with a base config file."""
     resources = [
-        PackageResource('madgui.data', 'config.yml'),    # package default
-        FileResource(get_default_user_config_path()),   # user folder
-        FileResource('madgui.yml'),                      # current directory
+        read_binary('madgui.data', 'config.yml'),   # package default
+        _read_file(get_default_user_config_path()), # user folder
+        _read_file('madgui.yml'),                   # current directory
     ]
     resources.extend([
-        FileResource(config_path)                       # command line
+        _read_file(config_path)                       # command line
         for config_path in config_files
         if config_path
     ])
     config = {}
     for resource in resources:
-        try:
-            merge = resource.yaml()
-        except IOError:
-            continue
-        update_recursive(config, merge)
+        if resource:
+            merge = yaml.safe_load(resource)
+            update_recursive(config, merge)
     return config
 
 
