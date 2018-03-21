@@ -492,6 +492,9 @@ class IntValue(ValueProxy):
     def textAlignment(self):
         return NumberFormat.align | Qt.AlignVCenter
 
+    def delegate(self):
+        return IntDelegate()
+
 
 class BoolValue(ValueProxy):
 
@@ -582,7 +585,7 @@ class EnumValue(StringValue):
 
 
 defaultTypes.update({
-    float: FloatValue,
+    float: QuantityValue,
     int: IntValue,
     bool: BoolValue,
     str: StringValue,
@@ -661,6 +664,31 @@ class DoubleValidator(_DoubleValidator):
         if not text:
             return (QtGui.QValidator.Acceptable, text, pos)
         return super().validate(text, pos)
+
+
+class IntDelegate(QtGui.QStyledItemDelegate):
+
+    # NOTE: This class is needed to create a spinbox without
+    # `editor.setFrame(False)` which causes a display bug: display value is
+    # still shown, partially covered by the spin buttons.
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QSpinBox(parent)
+        editor.setRange(-(1<<30), +(1<<30))
+        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(Qt.EditRole)
+        editor.setValue(value)
+
+    def setModelData(self, editor, model, index):
+        value = editor.text()
+        try:
+            parsed = int(value)
+        except ValueError:
+            parsed = None
+        model.setData(index, parsed)
 
 
 class FloatDelegate(QtGui.QStyledItemDelegate):
