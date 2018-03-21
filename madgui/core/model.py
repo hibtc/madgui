@@ -525,8 +525,8 @@ class Model(Object):
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
-        if any(isinstance(v, (list,str)) for v in d.values()):
-            self.madx.command(name, **d)
+        if any(isinstance(v, (list,str,bool)) for v in d.values()):
+            self.madx.elements[name](**d)
         else:
             # TODO: …KNL/KSL
             for k, v in d.items():
