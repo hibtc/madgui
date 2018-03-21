@@ -9,7 +9,7 @@
 number:
   align: right
   fmtspec: .4g
-  spinbox: false
+  spinbox: true
 
 mainwindow:
   init_size: [1000, 300]
