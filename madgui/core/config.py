@@ -5,8 +5,8 @@ Config serialization utilities.
 import os
 from importlib_resources import read_binary
 
-from madgui.resource import yaml
 from madgui.core.base import Object, Signal
+from madgui.util import yaml
 from madgui.qt import Qt
 
 

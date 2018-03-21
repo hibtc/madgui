@@ -56,7 +56,6 @@ def main():
             'madgui.data',
             'madgui.online',
             'madgui.plot',
-            'madgui.resource',
             'madgui.util',
             'madgui.widget',
         ],

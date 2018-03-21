@@ -75,7 +75,7 @@ class CurveManager(QtGui.QWidget):
         self.scene = scene
         self.available = scene.loaded_curves
         self.selected = scene.shown_curves
-        self.folder = scene.model.repo.path
+        self.folder = scene.model.path
         load_ui(self, __package__, self.ui_file)
         self.init_controls()
         self.connect_signals()
