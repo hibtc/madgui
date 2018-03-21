@@ -17,7 +17,6 @@ __all__ = [
     'units',
     'strip_unit',
     'tounit',
-    'get_unit_label',
     'format_quantity',
     'get_raw_label',
     'from_config',
@@ -86,13 +85,6 @@ def tounit(quantity, unit):
     if unit is None:
         unit = 1
     return toquantity(quantity).to(toquantity(unit))
-
-
-def get_unit_label(quantity):
-    """Get name of the unit."""
-    if quantity is None:
-        return ''
-    return '[' + get_raw_label(quantity) + ']'
 
 
 def format_quantity(quantity, num_spec=''):
@@ -219,18 +211,6 @@ class UnitConverter:
     def dict_strip_unit(self, obj):
         """Remove units from all elements in a dictionary."""
         return obj.__class__((k, self.strip_unit(k, obj[k])) for k in obj)
-
-    def normalize_unit(self, name, value):
-        """Normalize unit to unit used in MAD-X."""
-        unit = self._units.get(name)
-        if unit:
-            if not isinstance(value, Expression):
-                return tounit(value, unit)
-        return value
-
-    def dict_normalize_unit(self, obj):
-        """Normalize unit for all elements in a dictionary."""
-        return obj.__class__((k, self.normalize_unit(k, obj[k])) for k in obj)
 
 
 madx_units = UnitConverter.from_config_dict(yaml.safe_load(

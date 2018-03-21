@@ -24,20 +24,6 @@ __all__ = [
 ]
 
 
-def savedict(filename, data):
-    import numpy as np
-    from madgui.core.unit import get_unit_label
-    cols = list(data)
-    body = list(data.values())
-    for i, col in enumerate(body[:]):
-        try:
-            cols[i] += get_unit_label(col)
-            body[i] = col.magnitude
-        except AttributeError:
-            pass
-    np.savetxt(filename, np.array(body).T, header=' '.join(cols))
-
-
 def expand_ext(path, *exts):
     for ext in exts:
         if os.path.isfile(path+ext):
@@ -361,7 +347,6 @@ class MainWindow(QtGui.QMainWindow):
         self.destroyModel()
         self.model = model
         self.user_ns['model'] = model
-        self.user_ns['savedict'] = savedict
 
         if model is None:
             self.model_changed.emit()
