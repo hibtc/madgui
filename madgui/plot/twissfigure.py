@@ -5,6 +5,8 @@ s-axis.
 
 from functools import partial
 
+from importlib_resources import path
+
 import numpy as np
 
 from madgui.qt import QtGui, Qt
@@ -15,7 +17,6 @@ from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
 from madgui.core.unit import (
     strip_unit, from_config, get_raw_label, allclose, ui_units)
-from madgui.resource.package import PackageResource
 from madgui.plot.base import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
@@ -447,8 +448,8 @@ class MatchTool(CaptureTool):
     short = 'match constraints'
     text = 'Match for desired target value'
 
-    with PackageResource('madgui.data', 'target.xpm').filename() as xpm:
-        icon = QtGui.QIcon(QtGui.QPixmap(xpm, 'XPM'))
+    with path('madgui.data', 'target.xpm') as xpm:
+        icon = QtGui.QIcon(QtGui.QPixmap(str(xpm), 'XPM'))
 
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""

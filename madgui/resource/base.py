@@ -124,16 +124,7 @@ class ResourceProvider:
         """
         Yield the path of a file containing the resource.
 
-        Use this as a context manager to make sure temporary files are
-        deleted when done using. Example:
-
-        .. code-block:: python
-
-            res = PackageResource('foo_module_123') # may .egg or filesystem
-            with res.filename('foo.txt') as filename:
-                with open(filename) as file:
-                    content = file.read()
-            # temporarily extracted files are deleted at this point
+        Use this as a context manager.
         """
         try:
             tmp = NamedTemporaryFile(mode='wb', delete=False)
