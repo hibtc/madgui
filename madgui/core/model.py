@@ -840,11 +840,17 @@ class Model(Object):
 
 
 def process_spec(prespec, data):
+    # NOTE: we cast integers specified in the config to floats, in order to
+    # get the correct ValueProxy in TableView. Technically, this makes it
+    # impossible to specify a pure int parameter in the config file, but we
+    # don't have any so far anyway… Note that we can't use `isinstance` here,
+    # because that matches bool as well.
+    float_ = lambda x: float(x) if type(x) is int else x
     # TODO: Handle defaults for hard-coded and ad-hoc keys homogeniously.
     # The simplest option would be to simply specify list of priority keys in
     # the config file…
     spec = OrderedDict([
-        (k, data.get(k, v))
+        (k, float_(data.get(k, v)))
         for item in prespec
         for spec in item.items()
         for k, v in process_spec_item(*spec)
