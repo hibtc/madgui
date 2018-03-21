@@ -27,7 +27,6 @@ from madgui.util.datastore import DataStore
 
 # stuff for online control:
 import madgui.online.api as api
-from madgui.util.symbol import SymbolicValue
 
 
 __all__ = [
@@ -1089,9 +1088,7 @@ def process_spec_item(key, value):
 #----------------------------------------
 
 def _get_identifier(expr):
-    if isinstance(expr, SymbolicValue):
-        return str(expr._expression)
-    elif isinstance(expr, Expression):
+    if isinstance(expr, Expression):
         return str(expr)
     else:
         return ''

@@ -8,7 +8,6 @@ import numpy as np
 import pint
 import yaml
 
-from madgui.util.symbol import SymbolicValue
 from madgui.util.defaultdict import DefaultDict
 
 from cpymad.types import Expression
@@ -36,7 +35,7 @@ units.define('permille = 0.001 ratio = ‰')
 units.define('degree = pi / 180 * radian = ° = deg = arcdeg = arcdegree = angular_degree')
 
 
-number_types = (int, float, units.Quantity, SymbolicValue, Expression)
+number_types = (int, float, units.Quantity, Expression)
 
 
 def isclose(q1, q2):
@@ -52,8 +51,6 @@ def allclose(q1, q2):
 def get_unit(quantity):
     if isinstance(quantity, units.Quantity):
         return units.Quantity(1, quantity.units)
-    if isinstance(quantity, SymbolicValue):
-        return units.Quantity(1, quantity._unit)
     return None
 
 
@@ -214,7 +211,7 @@ class UnitConverter:
         if value is None or unit is None:
             return value
         if isinstance(value, Expression):
-            return SymbolicValue(value.expr, value.value, unit)
+            return unit * float(value)
         elif isinstance(unit, list):
             return [self._add_unit(v, u) for v, u in zip(value, unit)]
         elif isinstance(value, units.Quantity):

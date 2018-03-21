@@ -12,7 +12,6 @@ from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property
 from madgui.util.collections import List
 from madgui.util.enum import Enum
-from madgui.util.symbol import SymbolicValue
 from madgui.widget.spinbox import QuantitySpinBox
 from madgui.widget.quantity import DoubleValidator as _DoubleValidator
 
@@ -589,7 +588,6 @@ defaultTypes.update({
     bytes: StringValue,
     list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,
-    SymbolicValue: QuantityValue,
     Expression: QuantityValue,
     Enum: EnumValue,
 })
