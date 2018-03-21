@@ -5,8 +5,10 @@ alignment.
 
 from pkg_resources import resource_filename
 
+import numpy as np
+
 from madgui.qt import Qt, QtCore, QtGui, uic
-from madgui.core.unit import get_unit, allclose, tounit
+from madgui.core.unit import get_unit, tounit
 from madgui.widget.tableview import ColumnInfo
 from madgui.util.collections import List
 from madgui.util.qt import notifyEvent
@@ -561,7 +563,7 @@ class CorrectorWidget(QtGui.QWidget):
         displ_optics = [self.displ_qp1_value.quantity,
                         self.displ_qp2_value.quantity]
         self.qp_settings_execute.setEnabled(
-            not allclose(input_optics, displ_optics))
+            not np.allclose(input_optics, displ_optics))
 
     def update_clear_button(self, *args):
         self.clear_records.setEnabled(
@@ -574,7 +576,7 @@ class CorrectorWidget(QtGui.QWidget):
                      for record in self.corrector.orbit_records]
         same_values = (
             idx for idx, optics in enumerate(kL_values)
-            if allclose(optics, current_optics))
+            if np.allclose(optics, current_optics))
         self.update_record_index = next(same_values, None)
         self.qp_settings_record.setEnabled(self.update_record_index is None)
         self.records_table.clearSelection()

@@ -16,8 +16,6 @@ from cpymad.types import Expression
 __all__ = [
     'units',
     'strip_unit',
-    'isclose',
-    'allclose',
     'tounit',
     'get_unit_label',
     'format_quantity',
@@ -36,16 +34,6 @@ units.define('degree = pi / 180 * radian = ° = deg = arcdeg = arcdegree = angul
 
 
 number_types = (int, float, units.Quantity, Expression)
-
-
-def isclose(q1, q2):
-    m1 = strip_unit(q1, get_unit(q1))
-    m2 = strip_unit(q2, get_unit(q1))
-    return np.isclose(m1, m2)
-
-
-def allclose(q1, q2):
-    return all(isclose(a, b) for a, b in zip(q1, q2))
 
 
 def get_unit(quantity):

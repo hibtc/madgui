@@ -14,7 +14,7 @@ from madgui.core.base import Object, Signal
 from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
 from madgui.core.unit import (
-    to_ui, get_raw_label, allclose, ui_units)
+    to_ui, get_raw_label, ui_units)
 from madgui.resource.package import PackageResource
 from madgui.plot.base import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
@@ -217,7 +217,7 @@ class TwissFigure(Object):
         xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
         xend = xstart + xdelta
         self.xlim = self.model.elements.bound_range((xstart, xend))
-        if not allclose(self.xlim, self.data_lim()):
+        if not np.allclose(self.xlim, self.data_lim()):
             ax.set_autoscale_on(False)
             self.update()
             ax.set_autoscale_on(True)
