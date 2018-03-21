@@ -14,6 +14,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
 from madgui.core.base import Signal, Cache
+from madgui.core.unit import from_ui
 from madgui.util.layout import VBoxLayout
 
 
@@ -129,8 +130,8 @@ class PlotWidget(QtGui.QWidget):
         if mpl_event.inaxes is None:
             return
         axes = mpl_event.inaxes
-        xpos = mpl_event.xdata * axes.x_unit
-        ypos = mpl_event.ydata * axes.y_unit
+        xpos = from_ui(axes.x_name, mpl_event.xdata)
+        ypos = from_ui(axes.y_name, mpl_event.ydata)
         elem = self.scene.model.get_element_by_mouse_position(axes, xpos)
         event = MouseEvent(mpl_event.button, xpos, ypos,
                            axes, elem, mpl_event.guiEvent)

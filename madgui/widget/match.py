@@ -3,7 +3,7 @@ UI for matching.
 """
 
 from madgui.qt import QtGui, load_ui
-from madgui.core.unit import ui_units
+from madgui.core.unit import ui_units, to_ui, from_ui
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.match import variable_from_knob, Constraint
 from madgui.util.enum import make_enum
@@ -31,11 +31,11 @@ def get_constraint_unit(widget, c, i):
     return ui_units.label(c.axis, c.value)
 
 def get_constraint_value(widget, c, i):
-    return ui_units.strip_unit(c.axis, c.value)
+    return to_ui(c.axis, c.value)
 
 def set_constraint_value(widget, c, i, value):
     if value is not None:
-        value = ui_units.add_unit(c.axis, value)
+        value = from_ui(c.axis, value)
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, c.axis, value)
 
@@ -53,10 +53,10 @@ def get_knob_unit(v):
     return ui_units.label(v.knob.attr, v.value)
 
 def get_knob_init_value(v):
-    return ui_units.strip_unit(v.knob.attr, v.design)
+    return to_ui(v.knob.attr, v.design)
 
 def get_knob_final_value(v):
-    return ui_units.strip_unit(v.knob.attr, v.value)
+    return to_ui(v.knob.attr, v.value)
 
 
 

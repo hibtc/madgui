@@ -3,7 +3,7 @@ Parameter input dialog.
 """
 
 from madgui.qt import QtGui, Qt
-from madgui.core.unit import ui_units
+from madgui.core.unit import madx_units, ui_units, convert
 
 import madgui.widget.tableview as tableview
 
@@ -27,14 +27,14 @@ class ParamInfo:
         editable = datastore.mutable(key)
         textcolor = Qt.black if editable else Qt.darkGray
         self.proxy = tableview.makeValue(
-            value=units.strip_unit(key, value) if units else value,
-            default=units.strip_unit(key, default) if units else default,
+            value=convert(madx_units, units, key, value) if units else value,
+            default=convert(madx_units, units, key, default) if units else default,
             editable=editable,
             textcolor=textcolor)
         self.proxy.dataChanged.connect(self.on_edit)
 
     def on_edit(self, value):
-        self.datastore.update({self.name: self.units.add_unit(self.name, value)})
+        self.datastore.update({self.name: convert(self.units, madx_units, self.name, value)})
 
     def __repr__(self):
         return "{}({}={})".format(

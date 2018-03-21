@@ -5,7 +5,7 @@ Dialog for managing shown curves.
 import os
 
 from madgui.qt import Qt, QtGui, load_ui
-from madgui.core.unit import madx_units
+from madgui.core.unit import from_ui
 from madgui.widget.tableview import ExtColumnInfo, StringValue
 from madgui.widget.filedialog import getOpenFileName
 
@@ -102,6 +102,7 @@ class CurveManager(QtGui.QWidget):
         }
         curve = next(iter(self.scene.twiss_curves.items))
         data[curve.x_name] = curve.get_xdata()
+        data = from_ui(data)
         self.scene.snapshot_num += 1
         name = "snapshot {}".format(self.scene.snapshot_num)
         self.available.append((name, data))
@@ -136,7 +137,7 @@ class CurveManager(QtGui.QWidget):
             try:
                 ex = table.summary['ex']
             except ValueError:
-                ex = madx_units.strip_unit('ex', model.ex())
+                ex = model.ex()
             data['envx'] = (data['betx'] * ex) ** 0.5
         if 'sig33' in data:
             data['envy'] = data['sig33']**0.5
@@ -144,6 +145,6 @@ class CurveManager(QtGui.QWidget):
             try:
                 ey = table.summary['ey']
             except ValueError:
-                ey = madx_units.strip_unit('ey', model.ey())
+                ey = model.ey()
             data['envy'] = (data['bety'] * ey) ** 0.5
-        return madx_units.dict_add_unit(data)
+        return data

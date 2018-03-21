@@ -3,8 +3,10 @@ Utilities for the optic variation method (Optikvarianzmethode) for beam
 alignment.
 """
 
+import numpy as np
+
 from madgui.qt import Qt, QtCore, QtGui, load_ui
-from madgui.core.unit import get_unit, allclose, tounit, madx_units
+from madgui.core.unit import get_unit, tounit
 from madgui.widget.tableview import ColumnInfo
 from madgui.util.collections import List
 from madgui.util.qt import notifyEvent
@@ -182,10 +184,10 @@ class Corrector:
         ])
         initial_orbit, chi_squared, singular = self.fit_results
         x, px, y, py = initial_orbit
-        return madx_units.dict_add_unit({
+        return {
             'x': x, 'px': px,
             'y': y, 'py': py,
-        }), chi_squared, singular
+        }, chi_squared, singular
 
     def compute_steerer_corrections(self, init_orbit, design_orbit,
                                     correct_x=None, correct_y=None,
@@ -224,7 +226,7 @@ class Corrector:
         # match final conditions
         match_names = [mknob.param for mknob, _ in steerer_knobs]
         constraints = [
-            dict(range=target, **madx_units.dict_strip_unit(orbit))
+            dict(range=target, **orbit)
             for target, orbit in zip(self.targets, design_orbit)
         ]
         self.model.madx.match(
@@ -232,7 +234,7 @@ class Corrector:
             vary=match_names,
             weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
             constraints=constraints,
-            twiss_init=madx_units.dict_strip_unit(init_twiss))
+            twiss_init=init_twiss)
         self.model.twiss.invalidate()
 
         # return corrections
@@ -252,9 +254,8 @@ class Corrector:
         self.model.twiss_args = self.backup_twiss_args
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
-        strip_unit = madx_units.strip_unit
-        return (strip_unit('x', sd_values[prefix + 'x']),
-                strip_unit('y', sd_values[prefix + 'y']))
+        return ('x', sd_values[prefix + 'x'],
+                'y', sd_values[prefix + 'y'])
 
 
 def _is_steerer(el):
@@ -293,19 +294,26 @@ class CorrectorWidget(QtGui.QWidget):
     records_columns = [
         ColumnInfo("QP1", get_kL(0), resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("QP2", get_kL(1)),
-        ColumnInfo("x", 'x'),
-        ColumnInfo("y", 'y'),
+        ColumnInfo("x", 'x', convert=True),
+        ColumnInfo("y", 'y', convert=True),
+        ColumnInfo("Unit", lambda item: ui_units.label('x'),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
+    # FIXME: units are broken in these two tabs:
     fit_columns = [
         ColumnInfo("Param", 'name'),
-        ColumnInfo("Value", 'value'),
+        ColumnInfo("Value", 'value', convert='name'),
+        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     steerer_columns = [
         ColumnInfo("Steerer", 'name'),
-        ColumnInfo("Optimal", 'value'),
-        ColumnInfo("Current", 'current'),
+        ColumnInfo("Optimal", 'value', convert='name'),
+        ColumnInfo("Current", 'current', convert='name'),
+        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, corrector):
@@ -560,7 +568,7 @@ class CorrectorWidget(QtGui.QWidget):
         displ_optics = [self.displ_qp1_value.quantity,
                         self.displ_qp2_value.quantity]
         self.qp_settings_execute.setEnabled(
-            not allclose(input_optics, displ_optics))
+            not np.allclose(input_optics, displ_optics))
 
     def update_clear_button(self, *args):
         self.clear_records.setEnabled(
@@ -573,7 +581,7 @@ class CorrectorWidget(QtGui.QWidget):
                      for record in self.corrector.orbit_records]
         same_values = (
             idx for idx, optics in enumerate(kL_values)
-            if allclose(optics, current_optics))
+            if np.allclose(optics, current_optics))
         self.update_record_index = next(same_values, None)
         self.qp_settings_record.setEnabled(self.update_record_index is None)
         self.records_table.clearSelection()

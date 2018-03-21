@@ -8,7 +8,6 @@ import numpy as np
 import pint
 import yaml
 
-from madgui.util.symbol import SymbolicValue
 from madgui.util.defaultdict import DefaultDict
 
 from cpymad.types import Expression
@@ -17,10 +16,7 @@ from cpymad.types import Expression
 __all__ = [
     'units',
     'strip_unit',
-    'isclose',
-    'allclose',
     'tounit',
-    'get_unit_label',
     'format_quantity',
     'get_raw_label',
     'from_config',
@@ -36,24 +32,12 @@ units.define('permille = 0.001 ratio = ‰')
 units.define('degree = pi / 180 * radian = ° = deg = arcdeg = arcdegree = angular_degree')
 
 
-number_types = (int, float, units.Quantity, SymbolicValue, Expression)
-
-
-def isclose(q1, q2):
-    m1 = strip_unit(q1, get_unit(q1))
-    m2 = strip_unit(q2, get_unit(q1))
-    return np.isclose(m1, m2)
-
-
-def allclose(q1, q2):
-    return all(isclose(a, b) for a, b in zip(q1, q2))
+number_types = (int, float, units.Quantity, Expression)
 
 
 def get_unit(quantity):
     if isinstance(quantity, units.Quantity):
         return units.Quantity(1, quantity.units)
-    if isinstance(quantity, SymbolicValue):
-        return units.Quantity(1, quantity._unit)
     return None
 
 
@@ -78,6 +62,8 @@ def strip_unit(quantity, unit=None):
         # FIXME: 'zip' truncates without warning if not enough units
         # are defined
         return [q.to(u).magnitude for q, u in zip(quantity, unit)]
+    if isinstance(quantity, Expression):
+        return float(quantity)
     try:
         return quantity.to(unit).magnitude
     except AttributeError:
@@ -99,13 +85,6 @@ def tounit(quantity, unit):
     if unit is None:
         unit = 1
     return toquantity(quantity).to(toquantity(unit))
-
-
-def get_unit_label(quantity):
-    """Get name of the unit."""
-    if quantity is None:
-        return ''
-    return '[' + get_raw_label(quantity) + ']'
 
 
 def format_quantity(quantity, num_spec=''):
@@ -197,7 +176,7 @@ class UnitConverter:
 
     def add_unit(self, name, value):
         """Add units to a single number."""
-        unit = self._units.get(name)
+        unit = self._units.get(name) if isinstance(name, str) else name
         if unit:
             if isinstance(value, (list, tuple)):
                 # FIXME: 'zip' truncates without warning if not enough units
@@ -212,7 +191,7 @@ class UnitConverter:
         if value is None or unit is None:
             return value
         if isinstance(value, Expression):
-            return SymbolicValue(value.expr, value.value, unit)
+            return unit * float(value)
         elif isinstance(unit, list):
             return [self._add_unit(v, u) for v, u in zip(value, unit)]
         elif isinstance(value, units.Quantity):
@@ -222,7 +201,8 @@ class UnitConverter:
 
     def strip_unit(self, name, value):
         """Convert to MAD-X units."""
-        return strip_unit(value, self._units.get(name))
+        unit = self._units.get(name) if isinstance(name, str) else name
+        return strip_unit(value, unit)
 
     def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
@@ -232,21 +212,25 @@ class UnitConverter:
         """Remove units from all elements in a dictionary."""
         return obj.__class__((k, self.strip_unit(k, obj[k])) for k in obj)
 
-    def normalize_unit(self, name, value):
-        """Normalize unit to unit used in MAD-X."""
-        unit = self._units.get(name)
-        if unit:
-            if not isinstance(value, Expression):
-                return tounit(value, unit)
-        return value
-
-    def dict_normalize_unit(self, obj):
-        """Normalize unit for all elements in a dictionary."""
-        return obj.__class__((k, self.normalize_unit(k, obj[k])) for k in obj)
-
 
 madx_units = UnitConverter.from_config_dict(yaml.safe_load(
     read_binary('madgui.data', 'madx_units.yml')))
 
 ui_units = UnitConverter.from_config_dict(yaml.safe_load(
     read_binary('madgui.data', 'ui_units.yml')))
+
+
+def convert(from_, to, *args):
+    if len(args) == 1:
+        return to.dict_strip_unit(from_.dict_add_unit(*args))
+    if len(args) == 2:
+        return to.strip_unit(args[0], from_.add_unit(*args))
+    if len(args) == 3:
+        return to.strip_unit(args[0], from_.add_unit(*args[1:]))
+    raise TypeError("convert can only be called with one or two arguments.")
+
+def from_ui(*args):
+    return convert(ui_units, madx_units, *args)
+
+def to_ui(*args):
+    return convert(madx_units, ui_units, *args)

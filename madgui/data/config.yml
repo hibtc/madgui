@@ -19,9 +19,6 @@ mainwindow:
 # subcomponents):
 line_view:
 
-  x_label: s
-  x_unit: m
-
   # Plot style for the element indicators. Supports common keyword arguments
   # for ``matplotlib.axes.Axes.axvspan`` and ``matplotlib.axes.Axes.axvline``:
   element_style:

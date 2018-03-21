@@ -8,7 +8,7 @@ from math import sqrt
 import numpy as np
 
 from madgui.qt import QtGui, load_ui
-from madgui.core.unit import madx_units
+from madgui.core.unit import ui_units
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 
 from madgui.util.collections import List
@@ -55,14 +55,18 @@ class EmittanceDialog(QtGui.QDialog):
     monitor_columns = [
         ExtColumnInfo("Monitor", get_monitor_elem, set_monitor_elem,
                       resize=QtGui.QHeaderView.Stretch),
-        ExtColumnInfo("Δx", 'envx'),
-        ExtColumnInfo("Δy", 'envy'),
+        ColumnInfo("Δx", 'envx', convert=True),
+        ColumnInfo("Δy", 'envy', convert=True),
+        ColumnInfo("Unit", lambda item: ui_units.label('envx'),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     result_columns = [
         ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Measured", 'measured'),
-        ColumnInfo("Model", 'model'),
+        ColumnInfo("Measured", 'measured', convert='name'),
+        ColumnInfo("Model", 'model', convert='name'),
+        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, control):
@@ -148,7 +152,6 @@ class EmittanceDialog(QtGui.QDialog):
             return
 
         model = self.control._model
-        strip = madx_units.strip_unit
 
         monitors = sorted(
             self.monitors, key=lambda m: model.elements.index(m.name))
@@ -177,8 +180,8 @@ class EmittanceDialog(QtGui.QDialog):
         coupled = coup_xy or coup_yx
         dispersive = coup_xt or coup_yt
 
-        envx = [strip('envx', m.envx) for m in monitors]
-        envy = [strip('envy', m.envy) for m in monitors]
+        envx = [m.envx for m in monitors]
+        envy = [m.envy for m in monitors]
         xcs = [[(0, cx**2), (2, cy**2)]
                for cx, cy in zip(envx, envy)]
 
@@ -214,7 +217,7 @@ class EmittanceDialog(QtGui.QDialog):
 
 
         beam = model.sequence.beam
-        twiss_args = madx_units.dict_strip_unit(model.twiss_args)
+        twiss_args = model.twiss_args
 
         results = []
         results += [

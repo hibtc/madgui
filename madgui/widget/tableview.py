@@ -6,13 +6,12 @@ from inspect import getmro
 
 from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Object, Signal
-from madgui.core.unit import Expression
+from madgui.core.unit import to_ui, from_ui
 from madgui.core.config import NumberFormat
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property
 from madgui.util.collections import List
 from madgui.util.enum import Enum
-from madgui.util.symbol import SymbolicValue
 from madgui.widget.spinbox import QuantitySpinBox
 from madgui.widget.quantity import DoubleValidator as _DoubleValidator
 
@@ -40,6 +39,7 @@ class ColumnInfo:
 
     def __init__(self, title, getter, setter=None,
                  resize=None, types=None, padding=0,
+                 convert=False,
                  **kwargs):
         """
         :param str title: column title
@@ -54,6 +54,7 @@ class ColumnInfo:
         self.resize = resize
         self.padding = padding
         self.kwargs = kwargs
+        self.convert = convert
         if types is not None:
             self.types = types
         if setter is not None:
@@ -65,13 +66,30 @@ class ColumnInfo:
             value = getattr(item, self.getter)
         else:
             value = self.getter(*self.getter_args(model, index))
+        if self.convert:
+            # NOTE: incompatible with columns that return ValueProxy
+            convert = self.convert
+            if isinstance(convert, str):
+                name = getattr(item, convert)
+            elif callable(convert):
+                name = convert(item)
+            else:
+                # NOTE: incompatible with custom getters/setters
+                name = self.getter
+            name = self.convert if isinstance(self.convert, str) else self.getter
+            tu = lambda value: to_ui(name, value)
+            fu = lambda value: from_ui(name, value)
+        else:
+            tu = lambda value: value
+            fu = lambda value: value
         if isinstance(value, ValueProxy):
             proxy = value
         else:
-            proxy = makeValue(value, self.types, **self.kwargs)
+            proxy = makeValue(tu(value), self.types, **self.kwargs)
         if self.setter is not None:
             proxy.dataChanged.connect(
-                lambda value: self.setter(*self.setter_args(model, index, value)))
+                lambda value: self.setter(*self.setter_args(
+                    model, index, fu(value))))
         return proxy
 
     def getter_args(self, model, index):
@@ -592,8 +610,6 @@ defaultTypes.update({
     bytes: StringValue,
     list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,
-    SymbolicValue: QuantityValue,
-    Expression: QuantityValue,
     Enum: EnumValue,
 })
 

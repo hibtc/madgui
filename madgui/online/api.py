@@ -23,8 +23,9 @@ The interface contract is currently designed as follows:
 """
 
 from abc import ABCMeta, abstractmethod
+from math import pi
 
-from madgui.core.unit import add_unit, strip_unit, units
+from madgui.core.unit import from_ui, to_ui
 
 _Interface = ABCMeta('_Interface', (object,), {})
 
@@ -81,11 +82,11 @@ class OnlinePlugin(_Interface):
 
     @abstractmethod
     def read_param(self, param):
-        """Read parameter. Return numeric value. No units!"""
+        """Read parameter. Return numeric value."""
 
     @abstractmethod
     def write_param(self, param, value):
-        """Update parameter into control system. No units!"""
+        """Update parameter into control system."""
 
     @abstractmethod
     def get_beam(self):
@@ -114,15 +115,15 @@ class Knob:
     def __repr__(self):
         return "{}({})".format(self.__class__.__name__, self)
 
-    # mixins for units and conversion:
+    # mixins:
 
     def read(self):
-        """Read element attribute. Return numeric value including unit."""
-        return add_unit(self.plug.read_param(self.param), self.unit)
+        """Read element attribute."""
+        return from_ui(self.attr, self.unit, self.plug.read_param(self.param))
 
     def write(self, value):
         """Update element attribute into control system."""
-        self.plug.write_param(self.param, strip_unit(value, self.unit))
+        self.plug.write_param(self.param, to_ui(self.unit, self.attr, value))
 
     def to(self, attr, value):
         try:
@@ -137,6 +138,6 @@ CONVERTERS = {
     ('kl', 'k1'): lambda knob, val: val / knob.elem.L,
     ('k1s', 'kl'): lambda knob, val: val * knob.elem.L,
     ('kl', 'k1s'): lambda knob, val: val / knob.elem.L,
-    ('angle', 'gantry'): lambda knob, val: -val + 90*units.degree,
-    ('gantry', 'angle'): lambda knob, val: -val + 90*units.degree,
+    ('angle', 'gantry'): lambda knob, val: -val + pi/2,
+    ('gantry', 'angle'): lambda knob, val: -val + pi/2,
 }
