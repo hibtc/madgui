@@ -142,6 +142,8 @@ class TabParamTables(QtGui.QTabWidget):
 
     def update(self):
         self.currentWidget().update(**self.kw)
+        if hasattr(self.window(), 'serious'):
+            self.window().serious.updateButtons()
 
     def activate_tab(self, name):
         index = next((i for i in range(self.count())

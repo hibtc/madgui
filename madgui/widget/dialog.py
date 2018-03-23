@@ -49,6 +49,11 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         self.addButton(Button.Save).clicked.connect(self.onExport)
         expand(self, perpendicular(self.orientation()))
 
+    def updateButtons(self):
+        enabled = hasattr(self.widget, 'datastore')
+        self.button(Button.Save).setEnabled(enabled)
+        self.button(Button.Open).setEnabled(enabled)
+
     def onImport(self):
         """Import data from JSON/YAML file."""
         from madgui.widget.filedialog import getOpenFileName
@@ -120,8 +125,9 @@ class Dialog(QtGui.QDialog):
         self.setWidget([widget, self.standardButtons()])
 
     def setExportWidget(self, widget, folder):
+        self.serious = SerializeButtons(widget, folder, Qt.Vertical)
         self.setWidget(HBoxLayout([widget, [
-            SerializeButtons(widget, folder, Qt.Vertical),
+            self.serious,
             Stretch(),
             Spacing(20),
             self.standardButtons(Qt.Vertical),
