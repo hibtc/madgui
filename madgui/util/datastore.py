@@ -49,7 +49,7 @@ class DataStore:
             data = yaml.safe_load(f)
         if self.data_key:
             data = data[self.data_key]
-        self.set(data)
+        self.update(data)
 
     def exportTo(self, filename):
         """Export parameters to YAML file."""

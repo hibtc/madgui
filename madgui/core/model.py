@@ -15,7 +15,7 @@ from math import isclose
 
 import numpy as np
 
-from cpymad.madx import Madx, AttrDict
+from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command
 from cpymad.util import normalize_range_name, is_identifier
 from cpymad.types import Expression
 
@@ -1118,6 +1118,8 @@ def _eval_expr(value):
         return value.value
     if isinstance(value, list):
         return [_eval_expr(v) for v in value]
-    if isinstance(value, dict):
+    if isinstance(value, (dict, Command)):
         return {k: _eval_expr(v) for k, v in value.items()}
+    if isinstance(value, ArrayAttribute):
+        return list(value)
     return value
