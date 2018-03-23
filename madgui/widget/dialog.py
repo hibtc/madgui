@@ -50,9 +50,11 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         expand(self, perpendicular(self.orientation()))
 
     def updateButtons(self):
-        enabled = hasattr(self.widget, 'datastore')
-        self.button(Button.Save).setEnabled(enabled)
-        self.button(Button.Open).setEnabled(enabled)
+        datastore = getattr(self.widget, 'datastore', None)
+        available = bool(datastore)
+        self.button(Button.Save).setEnabled(available)
+        self.button(Button.Open).setEnabled(
+            available and any(map(datastore.mutable, datastore.get())))
 
     def onImport(self):
         """Import data from JSON/YAML file."""
