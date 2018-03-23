@@ -148,3 +148,7 @@ class TabParamTables(QtGui.QTabWidget):
                       if self.tabText(i).lower() == name.lower()), 0)
         if index != self.currentIndex():
             self.setCurrentIndex(index)
+
+    @property
+    def datastore(self):
+        return self.currentWidget().datastore
