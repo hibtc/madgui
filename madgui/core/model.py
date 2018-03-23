@@ -259,23 +259,6 @@ class Model(Object):
     # Serialization
     #----------------------------------------
 
-    # current version of model API
-    API_VERSION = 1
-
-    @classmethod
-    def check_compatibility(cls, data):
-        """
-        Check a model definition for compatibility.
-
-        :param dict data: a model definition to be tested
-        :raises ValueError: if the model definition is incompatible
-        """
-        model_api = data.get('api_version', 'undefined')
-        if model_api != cls.API_VERSION:
-            raise ValueError(("Incompatible model API version: {!r},\n"
-                              "              Required version: {!r}")
-                             .format(model_api, cls.API_VERSION))
-
     # TODO: save reproducible state of workspace?
     def save(self, filename):
         """Save model to file."""
@@ -312,7 +295,6 @@ class Model(Object):
         """Load model data from file."""
         with open(os.path.join(self.path, filename), 'rb') as f:
             self.data = data = yaml.safe_load(f)
-        self.check_compatibility(data)
         self.path = os.path.join(self.path, data.get('path', '.'))
         self._load_params(data, 'beam')
         self._load_params(data, 'twiss')
