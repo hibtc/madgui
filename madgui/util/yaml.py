@@ -1,6 +1,7 @@
 import sys
 from collections import OrderedDict
 
+import numpy as np
 import yaml
 
 
@@ -40,4 +41,9 @@ def safe_dump(data, stream=None, Dumper=SafeDumper, **kwds):
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
             data.items())
     OrderedDumper.add_representer(OrderedDict, _dict_representer)
+    OrderedDumper.add_representer(np.bool, Dumper.represent_bool)
+    OrderedDumper.add_representer(np.int32, Dumper.represent_int)
+    OrderedDumper.add_representer(np.int64, Dumper.represent_int)
+    OrderedDumper.add_representer(np.float32, Dumper.represent_float)
+    OrderedDumper.add_representer(np.float64, Dumper.represent_float)
     return yaml.dump(data, stream, OrderedDumper, **kwds)
