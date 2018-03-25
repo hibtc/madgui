@@ -1,6 +1,62 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.8.0
+-----
+Date: 25.03.2018
+
+- remove ``api_version`` entry from model files
+- add menu item to load MAD-X file
+- autoscale plots when pressing "Home" button
+- add shortcut method ``model.sectormap`` for use in ipython shell
+
+- twiss/beam init dialog:
+    - remove menuitems for separate init tabs, move to file menu
+    - treat attributes specified in the config as reals, not ints
+    - update enabled-state of save/open buttons according to current widget
+
+- element infobox:
+    - add tab with sectormap for element infobox
+    - update title clicking on another element (previously was updated only
+      when changing using the combobox)
+    - fix "open" button
+
+- both:
+    - use spinbox=true by default
+    - use QuantityValue for floats (spin to win!)
+    - fix editting bool values
+    - fix display bug when showing SpinBox for IntValue
+    - fix "save" button
+
+- matching:
+    - match against variables inside expressions
+    - reuse computed init conditions after applying corrections
+
+- internal resource handling:
+    - remove PackageResource
+    - replace pkg_resources with importlib_resources where appropriate
+    - remove madgui.resource package
+
+- ellipses plots:
+    - add ellipse tab for init dialog
+    - add x/y labels
+    - use tight_layout
+    - use ui units
+    - draw ellipse over grid
+    - fix swapped ellipse axes when alpha is negative
+    - fix swapped formulas for the half axes
+
+- units:
+    - pass values internally as plain floats, convert only for IO/UI (#2)
+    - Replace all Expression instances by their values, get rid of
+      SymbolicValue
+    - introduce globals for ``madx_units`` and ``ui_units`` used for
+      conversion
+    - format degrees with "°" symbol
+    - improve unit labels for lists
+    - remove pint units file, use the default one shipped with pint instead
+
+
 1.7.2
 -----
 Date: 05.03.2018
