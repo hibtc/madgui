@@ -11,7 +11,6 @@ import logging
 from bisect import bisect_right
 import subprocess
 from threading import RLock
-from math import isclose
 
 import numpy as np
 
@@ -723,7 +722,7 @@ class Model(Object):
         for name, positions in elem_positions.items():
             at = self.elements[name].At
             l = self.elements[name].L
-            if any(not isclose(p, at+l) for p in positions):
+            if any(not np.isclose(p, at+l) for p in positions):
                 x = [float((p-at)/l) for p in positions]
                 self.madx.command.select(
                     flag='interpolate', range=name, at=x)
