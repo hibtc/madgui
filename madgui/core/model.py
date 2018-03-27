@@ -563,6 +563,10 @@ class Model(Object):
             'gamy': self.get_twiss_column('gamy')[i0],
             'ex': self.get_twiss_column('ex')[i0],
             'ey': self.get_twiss_column('ey')[i0],
+            'x': self.get_twiss_column('x')[i0],
+            'y': self.get_twiss_column('y')[i0],
+            'px': self.get_twiss_column('px')[i0],
+            'py': self.get_twiss_column('py')[i0],
         })
 
     def get_elem_sigma(self, elem):
