@@ -222,7 +222,7 @@ class Model(Object):
         return self.matcher
 
     ELEM_KNOBS = {
-        'sbend':        ['angle'],
+        'sbend':        ['angle', 'k0'],
         'quadrupole':   ['k1', 'k1s'],
         'hkicker':      ['kick'],
         'vkicker':      ['kick'],
