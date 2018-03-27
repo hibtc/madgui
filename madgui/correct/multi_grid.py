@@ -70,7 +70,7 @@ class Corrector(Matcher):
         self.monitors[:] = monitors
         elements = self.model.elements
         self.constraints[:] = sorted([
-            Constraint(elements[target], elements[target].At, key, value)
+            Constraint(elements[target], elements[target].At, key, float(value))
             for target, values in targets.items()
             for key, value in values.items()
             if key[-1] in dirs
