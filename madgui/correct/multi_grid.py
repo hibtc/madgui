@@ -215,11 +215,11 @@ def format_knob(widget, var, index):
 
 def format_final(widget, var, index):
     dknob = widget.corrector.dknob(var)
-    return to_ui(dknob.attr, var.knob.to(dknob.attr, var.value))
+    return to_ui(dknob.attr, var.value)
 
 def format_initial(widget, var, index):
     dknob = widget.corrector.dknob(var)
-    return to_ui(dknob.attr, var.knob.to(dknob.attr, var.design))
+    return to_ui(dknob.attr, var.design)
     #return dknob.read()
 
 def format_unit(widget, var, index):
@@ -286,7 +286,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.restore()
         for mknob, mval, dknob, dval in self.steerer_corrections:
             mknob.write(mval)
-            dknob.write(mknob.to(dknob.attr, mval))
+            dknob.write(mval)
         self.corrector.apply()
         self.corrector.backup()
         self.corrector.control._plugin.execute()

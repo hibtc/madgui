@@ -150,7 +150,7 @@ class Control(Object):
         ]
         rows = [
             SyncParamItem(self._plugin.param_info(dknob),
-                          dval, mknob.to(dknob.attr, mval), dknob.attr)
+                          dval, mval, dknob.attr)
             for mknob, mval, dknob, dval in knobs
         ]
         if not rows:
@@ -294,7 +294,7 @@ class Control(Object):
         :param list params: List of tuples (ParamConverterBase, dvm_value)
         """
         for mknob, mval, dknob, dval in params:
-            mknob.write(dknob.to(mknob.attr, dval))
+            mknob.write(dval)
 
     def write_these(self, params):
         """
@@ -303,5 +303,5 @@ class Control(Object):
         :param list params: List of ParamConverterBase
         """
         for mknob, mval, dknob, dval in params:
-            dknob.write(mknob.to(dknob.attr, mval))
+            dknob.write(mval)
         self._plugin.execute()

@@ -394,7 +394,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.execute_corrections.setEnabled(True)
         # update table view
         steerer_corrections_rows = [
-            ParameterInfo(dknob.param, mknob.to(dknob.attr, mval), dval)
+            ParameterInfo(dknob.param, mval, dval)
             for mknob, mval, dknob, dval in self.steerer_corrections
         ]
         self.corrections_table.rows = steerer_corrections_rows
@@ -408,7 +408,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.restore()
         for mknob, mval, dknob, dval in self.steerer_corrections:
             mknob.write(mval)
-            dknob.write(mknob.to(dknob.attr, mval))
+            dknob.write(mval)
         self.corrector.backup()
         self.corrector.control._plugin.execute()
         self.corrector.model.twiss.invalidate()

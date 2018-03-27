@@ -124,20 +124,3 @@ class Knob:
     def write(self, value):
         """Update element attribute into control system."""
         self.plug.write_param(self.param, to_ui(self.unit, self.attr, value))
-
-    def to(self, attr, value):
-        try:
-            converter = CONVERTERS[(self.attr, attr)]
-            return converter(self, value)
-        except KeyError:
-            return value
-
-
-CONVERTERS = {
-    ('k1', 'kl'): lambda knob, val: val * knob.elem.L,
-    ('kl', 'k1'): lambda knob, val: val / knob.elem.L,
-    ('k1s', 'kl'): lambda knob, val: val * knob.elem.L,
-    ('kl', 'k1s'): lambda knob, val: val / knob.elem.L,
-    ('angle', 'gantry'): lambda knob, val: val - pi/2,
-    ('gantry', 'angle'): lambda knob, val: val - pi/2,
-}
