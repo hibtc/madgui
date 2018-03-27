@@ -551,23 +551,16 @@ class Model(Object):
 
         return y[i0] + dx * (y[i1]-y[i0]) / (s[i1]-s[i0])
 
+    twiss_columns = [
+        'alfx', 'alfy', 'betx', 'bety', 'gamx', 'gamy', 'ex', 'ey',
+        'x', 'y', 'px', 'py',
+    ]
+
     def get_elem_twiss(self, elem):
         ix = self.get_element_index(elem)
         i0 = self.indices[ix].stop
-        return AttrDict({
-            'alfx': self.get_twiss_column('alfx')[i0],
-            'alfy': self.get_twiss_column('alfy')[i0],
-            'betx': self.get_twiss_column('betx')[i0],
-            'bety': self.get_twiss_column('bety')[i0],
-            'gamx': self.get_twiss_column('gamx')[i0],
-            'gamy': self.get_twiss_column('gamy')[i0],
-            'ex': self.get_twiss_column('ex')[i0],
-            'ey': self.get_twiss_column('ey')[i0],
-            'x': self.get_twiss_column('x')[i0],
-            'y': self.get_twiss_column('y')[i0],
-            'px': self.get_twiss_column('px')[i0],
-            'py': self.get_twiss_column('py')[i0],
-        })
+        return AttrDict({col: self.get_twiss_column(col)[i0]
+                         for col in self.twiss_columns})
 
     def get_elem_sigma(self, elem):
         ix = self.get_element_index(elem)
