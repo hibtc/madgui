@@ -269,7 +269,6 @@ class Model(Object):
     def model_data(self):
         """Return model data as dictionary."""
         return dict(self.data, **{
-            'api_version': self.API_VERSION,
             'init-files': self.init_files,
             'sequence': self.seq_name,
             'range': list(self.range),
