@@ -100,14 +100,13 @@ class Knob:
 
     """Base class for knobs."""
 
-    def __init__(self, plug, elem, attr, param, unit, vars=None):
+    def __init__(self, plug, elem, attr, param, unit):
         self.plug = plug
         self.elem = elem
         self.el_name = elem.Name.lower()
         self.attr = attr.lower()
         self.param = param
         self.unit = unit
-        self.vars = vars
 
     def __str__(self):
         return self.param

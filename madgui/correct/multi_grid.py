@@ -181,9 +181,8 @@ class Corrector(Matcher):
 
         # match final conditions
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
-        match_names = {var for v in self.variables
-                       for var in v.knob.vars
-                       if var.lower() not in blacklist}
+        match_names = {v.knob.param for v in self.variables
+                       if v.knob.param.lower() not in blacklist}
         constraints = [
             dict(range=c.elem.Name, **{c.axis: from_ui(c.axis, c.value)})
             for c in self.constraints
