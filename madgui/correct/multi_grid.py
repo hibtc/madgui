@@ -49,6 +49,7 @@ class Corrector(Matcher):
         knobs = control.get_knobs()
         self._optics = {mknob.param: (mknob, dknob) for mknob, dknob in knobs}
         self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
+        self.backup()
         # save elements
         self.design_values = {}
         self.monitors = List()
@@ -94,7 +95,7 @@ class Corrector(Matcher):
             self.backup()
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.update_readouts)
-            self.timer.start(1000)
+            self.timer.start(2000)
 
     def stop(self):
         if self.started:
@@ -116,11 +117,25 @@ class Corrector(Matcher):
         for mknob, value in self.backup_strengths:
             mknob.write(value)
 
-    def update_readouts(self):
+    def update_readouts(self, plot=True):
         self.readouts[:] = [
             MonitorReadout(monitor, self.control.read_monitor(monitor))
             for monitor in self.monitors
         ]
+
+        if len(self.readouts) >= 2:
+            self.control.read_all()
+            self.model.twiss_args = self.backup_twiss_args
+            init_orbit, chi_squared, singular = \
+                self.fit_particle_orbit()
+            if singular:
+                return
+            init_twiss = {}
+            init_twiss.update(self.model.twiss_args)
+            init_twiss.update(init_orbit)
+            self.model.twiss_args = init_twiss
+            self.model.twiss.invalidate()
+
 
     # computations
 
@@ -308,6 +323,7 @@ class CorrectorWidget(QtGui.QWidget):
     def update_fit(self):
         """Calculate initial positions / corrections."""
         twiss_init = None
+        self.corrector.update_readouts(plot=False)
         if len(self.corrector.readouts) >= 2:
             self.corrector.control.read_all()
             self.corrector.model.twiss_args = self.corrector.backup_twiss_args
