@@ -14,7 +14,7 @@ import yaml
 
 from madgui.qt import QtCore, QtGui, load_ui
 
-from madgui.core.unit import to_ui, ui_units
+from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout
 from madgui.util.qt import fit_button
@@ -70,7 +70,7 @@ class Corrector(Matcher):
         self.monitors[:] = monitors
         elements = self.model.elements
         self.constraints[:] = sorted([
-            Constraint(elements[target], elements[target].At, key, value)
+            Constraint(elements[target], elements[target].At, key, float(value))
             for target, values in targets.items()
             for key, value in values.items()
             if key[-1] in dirs
@@ -153,15 +153,28 @@ class Corrector(Matcher):
         init_twiss.update(init_orbit)
         self.model.twiss_args = init_twiss
 
+        for name, expr in self.selected.get('assign', {}).items():
+            self.model.madx.input(name.replace('->', ', ') + ':=' + expr + ';')
+        knobs = self.control.get_knobs()
+        self._optics = {mknob.param: (mknob, dknob) for mknob, dknob in knobs}
+        self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
+        steerers = sum([self.selected['steerers'][d] for d in self.mode], [])
+        self.variables[:] = sorted([
+            variable_from_knob(self, self._knobs[el.lower()][0])
+            for el in steerers
+        ], key=lambda v: v.pos)
+
         # match final conditions
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
         match_names = {var for v in self.variables
                        for var in v.knob.vars
                        if var.lower() not in blacklist}
         constraints = [
-            dict(range=c.elem.Name, **{c.axis: c.value})
+            dict(range=c.elem.Name, **{c.axis: from_ui(c.axis, c.value)})
             for c in self.constraints
         ]
+        for name, expr in self.selected.get('assign', {}).items():
+            self.model.madx.input(name.replace('->', ', ') + ':=' + expr + ';')
         self.model.madx.command.select(flag='interpolate', clear=True)
         self.model.madx.match(
             sequence=self.model.sequence.name,
