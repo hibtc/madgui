@@ -77,7 +77,7 @@ class OnlinePlugin(_Interface):
         """
 
     @abstractmethod
-    def get_knob(self, element, attr):
+    def get_knob(self, mad_knob):
         """Return a :class:`Knob` belonging to the given attribute."""
 
     @abstractmethod

@@ -136,7 +136,7 @@ class Control(Object):
         return [
             (knob_mad, knob_dvm)
             for knob_mad in self._model.get_knobs()
-            for knob_dvm in [self._plugin.get_knob(knob_mad.elem, knob_mad.attr)]
+            for knob_dvm in [self._plugin.get_knob(knob_mad)]
             if knob_dvm
         ]
 
