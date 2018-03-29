@@ -673,8 +673,7 @@ class CompareTool(CheckTool):
 
 
 def make_user_curve(scene, idx):
-    name, data = scene.loaded_curves[idx]
-    style = scene.config['reference_style']
+    name, data, style = scene.loaded_curves[idx]
     return SceneGraph([
         Curve(
             curve.axes,
