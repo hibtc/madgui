@@ -768,8 +768,8 @@ class Model(Object):
             expr, vars = _get_property_lval(elem, attr)
         except IndexError:
             return
-        if expr is not None:
-            return api.Knob(self, elem, attr, expr, None, vars)
+        for var in vars:
+            return api.Knob(self, elem, attr, var, None)
 
     def read_param(self, expr):
         """Read element attribute. Return numeric value."""

@@ -77,7 +77,7 @@ class OnlinePlugin(_Interface):
         """
 
     @abstractmethod
-    def get_knob(self, element, attr):
+    def get_knob(self, mad_knob):
         """Return a :class:`Knob` belonging to the given attribute."""
 
     @abstractmethod
@@ -100,14 +100,13 @@ class Knob:
 
     """Base class for knobs."""
 
-    def __init__(self, plug, elem, attr, param, unit, vars=None):
+    def __init__(self, plug, elem, attr, param, unit):
         self.plug = plug
         self.elem = elem
         self.el_name = elem.Name.lower()
         self.attr = attr.lower()
         self.param = param
         self.unit = unit
-        self.vars = vars
 
     def __str__(self):
         return self.param
@@ -124,20 +123,3 @@ class Knob:
     def write(self, value):
         """Update element attribute into control system."""
         self.plug.write_param(self.param, to_ui(self.unit, self.attr, value))
-
-    def to(self, attr, value):
-        try:
-            converter = CONVERTERS[(self.attr, attr)]
-            return converter(self, value)
-        except KeyError:
-            return value
-
-
-CONVERTERS = {
-    ('k1', 'kl'): lambda knob, val: val * knob.elem.L,
-    ('kl', 'k1'): lambda knob, val: val / knob.elem.L,
-    ('k1s', 'kl'): lambda knob, val: val * knob.elem.L,
-    ('kl', 'k1s'): lambda knob, val: val / knob.elem.L,
-    ('angle', 'gantry'): lambda knob, val: val - pi/2,
-    ('gantry', 'angle'): lambda knob, val: val - pi/2,
-}

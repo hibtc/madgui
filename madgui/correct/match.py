@@ -57,9 +57,8 @@ class Matcher(Object):
             for tw in [self._get_tw_row(c.elem, c.pos)]
         ]
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
-        variables = {var for v in self.variables
-                     for var in v.knob.vars
-                     if var.lower() not in blacklist}
+        variables = {v.knob.param for v in self.variables
+                     if v.knob.param.lower() not in blacklist}
         self.model.match(variables, constraints)
         self.variables[:] = [variable_update(self, v) for v in self.variables]
 
