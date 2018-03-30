@@ -4,7 +4,7 @@ Dialog for selecting DVM parameters to be synchronized.
 
 import numpy as np
 
-from madgui.qt import Qt, QtGui
+from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import VBoxLayout
 from madgui.widget.tableview import (TableView, ColumnInfo, ExtColumnInfo,
@@ -142,7 +142,7 @@ def set_monitor_show(mgr, monitor, i, show):
         mgr.deselect(i)
 
 
-class MonitorWidget(ListSelectWidget):
+class MonitorWidget(QtGui.QWidget):
 
     """
     Dialog for selecting SD monitor values to be imported.
@@ -150,6 +150,8 @@ class MonitorWidget(ListSelectWidget):
 
     title = 'Set values in DVM from current sequence'
     headline = "Select for which monitors to plot measurements:"
+
+    ui_file = 'monitorwidget.ui'
 
     # TODO: disable/deselect monitors with invalid values?
 
@@ -162,21 +164,25 @@ class MonitorWidget(ListSelectWidget):
         ColumnInfo("Unit", 'unit', resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
-    def __init__(self, model, frame, monitors):
-        super().__init__(self.columns, self.headline)
+    def __init__(self, control, model, frame):
+        super().__init__()
+        load_ui(self, __package__, self.ui_file)
+
+        self.control = control
+        self.model = model
+        self.frame = frame
+
+        self.grid.set_columns(self.columns, context=self)
         self.grid.horizontalHeader().setHighlightSections(False)
         self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.grid.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
-        self.monitors = monitors
-
-        self.model = model
-        self.frame = frame
+        self.btn_update.clicked.connect(self.update)
 
         if not frame.graphs('envelope'):
             frame.open_graph('orbit')
 
-        self.draw()
+        self.update()
 
     def draw(self):
 
@@ -192,6 +198,10 @@ class MonitorWidget(ListSelectWidget):
             mon.y = mon.posy
 
         name = "monitors"
+
+        self.grid.horizontalHeader().setHighlightSections(False)
+        self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.grid.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         data = from_ui({
             name: np.array([getattr(mon, name)
                             for mon in self.monitors
@@ -204,10 +214,10 @@ class MonitorWidget(ListSelectWidget):
             scene._curveManager.create()
             for i, (n, d, s) in enumerate(scene.loaded_curves):
                 if n == name:
-                    scene.loaded_curves[i] = (name, data, style)
+                    del scene.loaded_curves[i]
                     break
-            else:
-                scene.loaded_curves.append((name, data, style))
+            scene.loaded_curves.append((name, data, style))
+            scene.user_curves.invalidate()
 
     def select(self, index):
         self.monitors[index].show = True
@@ -215,4 +225,12 @@ class MonitorWidget(ListSelectWidget):
 
     def deselect(self, index):
         self.monitors[index].show = False
+        self.draw()
+
+    def update(self):
+        self.grid.rows = self.monitors = [
+            MonitorItem(el.Name, self.control.read_monitor(el.Name))
+            for el in self.model.elements
+            if el.Type.lower().endswith('monitor')
+            or el.Type.lower() == 'instrument']
         self.draw()

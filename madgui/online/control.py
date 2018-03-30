@@ -202,29 +202,17 @@ class Control(Object):
 
     def on_read_monitors(self):
         """Read out SD values (beam position/envelope)."""
-        from madgui.online.dialogs import MonitorWidget, MonitorItem
+        from madgui.online.dialogs import MonitorWidget
+        widget = MonitorWidget(self, self._model, self._frame)
+        self._show_dialog(widget, export=False)
 
-        # TODO: cache list of used SD monitors
-        rows = [MonitorItem(el.Name, self.read_monitor(el.Name))
-                for el in self._model.elements
-                if el.Type.lower().endswith('monitor')
-                or el.Type.lower() == 'instrument']
-        if not rows:
-            QtGui.QMessageBox.critical(
-                self._frame,
-                'No usable monitors available',
-                'There are no usable SD monitors in the current sequence.')
-            return
-
-        widget = MonitorWidget(self._model, self._frame, rows)
-        widget.data = rows
-        widget.data_key = 'monitor_values'
-        self._show_dialog(widget)
-
-    def _show_dialog(self, widget, apply=None):
+    def _show_dialog(self, widget, apply=None, export=True):
         from madgui.widget.dialog import Dialog
         dialog = Dialog(self._frame)
-        dialog.setExportWidget(widget, self._frame.folder)
+        if export:
+            dialog.setExportWidget(widget, self._frame.folder)
+        else:
+            dialog.setWidget(widget, tight=True)
         # dialog.setWindowTitle()
         if apply is not None:
             dialog.applied.connect(apply)
