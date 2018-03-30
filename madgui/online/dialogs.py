@@ -2,11 +2,13 @@
 Dialog for selecting DVM parameters to be synchronized.
 """
 
-from madgui.qt import QtGui
-from madgui.core.unit import to_ui, ui_units
-from madgui.util.layout import VBoxLayout
-from madgui.widget.tableview import TableView, ColumnInfo
+import numpy as np
 
+from madgui.qt import Qt, QtGui
+from madgui.core.unit import to_ui, from_ui, ui_units
+from madgui.util.layout import VBoxLayout
+from madgui.widget.tableview import (TableView, ColumnInfo, ExtColumnInfo,
+                                     StringValue)
 
 class ListSelectWidget(QtGui.QWidget):
 
@@ -22,7 +24,7 @@ class ListSelectWidget(QtGui.QWidget):
     def __init__(self, columns, headline):
         """Create sizer with content area, i.e. input fields."""
         super().__init__()
-        self.grid = grid = TableView(columns=columns)
+        self.grid = grid = TableView(columns=columns, context=self)
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, grid]))
 
@@ -90,6 +92,54 @@ class MonitorItem:
         self.envx = to_ui('x', values.get('envx'))
         self.envy = to_ui('x', values.get('envy'))
         self.unit = ui_units.label('x')
+        self.show = (self.envx > 0 and
+                     self.envy > 0 and
+                     not np.isclose(self.posx, -9999) and
+                     not np.isclose(self.posy, -9999))
+
+
+# TODO: merge this with madgui.widget.curvemanager.CheckedStringValue
+class CheckedStringValue(StringValue):
+
+    """String value with checkbox."""
+
+    default = False
+
+    def __init__(self, mgr, _, idx):
+        self.mgr = mgr
+        self.idx = idx
+        super().__init__(get_monitor_name(mgr, mgr.monitors[idx], idx),
+                         editable=False)
+
+    def checked(self):
+        return get_monitor_show(self.mgr, self.mgr.monitors[self.idx], self.idx)
+
+    def flags(self):
+        base_flags = super().flags()
+        return base_flags | Qt.ItemIsUserCheckable
+
+    def setData(self, value, role):
+        mgr = self.mgr
+        idx = self.idx
+        val = self.mgr.monitors[idx]
+        if role == Qt.CheckStateRole:
+            set_monitor_show(mgr, val, idx, value == Qt.Checked)
+            return True
+        return super().setData(value, role)
+
+
+def get_monitor_name(mgr, monitor, i):
+    return monitor.name
+
+def get_monitor_show(mgr, monitor, i):
+    return monitor.show
+
+def set_monitor_show(mgr, monitor, i, show):
+    shown = monitor.show
+    if show and not shown:
+        mgr.select(i)
+    elif not show and shown:
+        mgr.deselect(i)
 
 
 class MonitorWidget(ListSelectWidget):
@@ -99,10 +149,12 @@ class MonitorWidget(ListSelectWidget):
     """
 
     title = 'Set values in DVM from current sequence'
-    headline = "Import selected monitor measurements:"
+    headline = "Select for which monitors to plot measurements:"
+
+    # TODO: disable/deselect monitors with invalid values?
 
     columns = [
-        ColumnInfo("Monitor", 'name'),
+        ExtColumnInfo("Monitor", CheckedStringValue),
         ColumnInfo("x", 'posx'),
         ColumnInfo("y", 'posy'),
         ColumnInfo("x width", 'envx'),
@@ -110,5 +162,57 @@ class MonitorWidget(ListSelectWidget):
         ColumnInfo("Unit", 'unit', resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
-    def __init__(self):
+    def __init__(self, model, frame, monitors):
         super().__init__(self.columns, self.headline)
+        self.grid.horizontalHeader().setHighlightSections(False)
+        self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.grid.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+
+        self.monitors = monitors
+
+        self.model = model
+        self.frame = frame
+
+        if not frame.graphs('envelope'):
+            frame.open_graph('orbit')
+
+        self.draw()
+
+    def draw(self):
+
+        # TODO: Our way of adding ourselves to existing and to-be-opened
+        # figures is tedious and error-prone. We should really rework the
+        # plotting system to separate the artist from the scene element. We
+        # could then simply register a generic artist to plot the content into
+        # all potential scenes.
+
+        for mon in self.monitors:
+            mon.s = to_ui('s', self.model.elements[mon.name].At)
+            mon.x = mon.posx
+            mon.y = mon.posy
+
+        name = "monitors"
+        data = from_ui({
+            name: np.array([getattr(mon, name)
+                            for mon in self.monitors
+                            if mon.show])
+            for name in ['s', 'envx', 'envy', 'x', 'y']
+        })
+        style = self.frame.config['line_view']['monitor_style']
+
+        for scene in self.frame.views:
+            scene._curveManager.create()
+            for i, (n, d, s) in enumerate(scene.loaded_curves):
+                if n == name:
+                    scene.loaded_curves[i] = (name, data, style)
+                    break
+            else:
+                scene.loaded_curves.append((name, data, style))
+
+    def select(self, index):
+        self.monitors[index].show = True
+        self.draw()
+
+    def deselect(self, index):
+        self.monitors[index].show = False
+        self.draw()

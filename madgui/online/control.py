@@ -80,8 +80,8 @@ class Control(Object):
                  self.on_read_beam,
                  enabled=self.has_sequence),
             Separator,
-            Item('Read &monitors', None,
-                 'Read SD values (beam envelope/position) from monitors',
+            Item('Show beam &monitors', None,
+                 'Show beam monitor values (envelope/position)',
                  self.on_read_monitors,
                  enabled=self.has_sequence),
             Separator,
@@ -216,11 +216,10 @@ class Control(Object):
                 'There are no usable SD monitors in the current sequence.')
             return
 
-        widget = MonitorWidget()
+        widget = MonitorWidget(self._model, self._frame, rows)
         widget.data = rows
         widget.data_key = 'monitor_values'
         self._show_dialog(widget)
-        # TODO: show SD values in plot?
 
     def _show_dialog(self, widget, apply=None):
         from madgui.widget.dialog import Dialog

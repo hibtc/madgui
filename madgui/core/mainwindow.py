@@ -468,8 +468,11 @@ class MainWindow(QtGui.QMainWindow):
         self.views.append(scene)
         return scene
 
+    def graphs(self, name):
+        return [scene for scene in self.views if scene.graph_name == name]
+
     def open_graph(self, name):
-        if name in (scene.graph_name for scene in self.views):
+        if name in self.graphs(name):
             return
         if self.views:
             self.views[-1].set_graph('orbit')
