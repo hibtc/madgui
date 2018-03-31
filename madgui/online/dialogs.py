@@ -142,7 +142,7 @@ def set_monitor_show(mgr, monitor, i, show):
         mgr.deselect(i)
 
 
-class MonitorWidget(QtGui.QWidget):
+class MonitorWidget(QtGui.QDialog):
 
     """
     Dialog for selecting SD monitor values to be imported.
@@ -177,12 +177,25 @@ class MonitorWidget(QtGui.QWidget):
         self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.grid.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
+        Buttons = QtGui.QDialogButtonBox
         self.btn_update.clicked.connect(self.update)
+        self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
+        self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
 
         if not frame.graphs('envelope'):
             frame.open_graph('orbit')
 
         self.update()
+
+    def reject(self):
+        self.remove()
+        super().reject()
+
+    def remove(self):
+        for scene in self.frame.views:
+            for i, (n, d, s) in enumerate(scene.loaded_curves):
+                if n == "monitors":
+                    del scene.loaded_curves[i]
 
     def draw(self):
 
