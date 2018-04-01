@@ -86,7 +86,6 @@ class MonitorItem:
         self.posy = to_ui('x', values.get('posy'))
         self.envx = to_ui('x', values.get('envx'))
         self.envy = to_ui('x', values.get('envy'))
-        self.unit = ui_units.label('x')
         self.show = (self.envx > 0 and
                      self.envy > 0 and
                      not np.isclose(self.posx, -9999) and
@@ -152,9 +151,8 @@ class MonitorWidget(QtGui.QDialog):
         ExtColumnInfo("Monitor", CheckedStringValue),
         ColumnInfo("x", 'posx'),
         ColumnInfo("y", 'posy'),
-        ColumnInfo("x width", 'envx'),
-        ColumnInfo("y width", 'envy'),
-        ColumnInfo("Unit", 'unit', resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Δx", 'envx'),
+        ColumnInfo("Δy", 'envy'),
     ]
 
     def __init__(self, control, model, frame):
@@ -164,6 +162,9 @@ class MonitorWidget(QtGui.QDialog):
         self.control = control
         self.model = model
         self.frame = frame
+
+        for col in self.columns[1:]:
+            col.title += '/' + ui_units.label(col.getter)
 
         self.grid.set_columns(self.columns, context=self)
         self.grid.horizontalHeader().setHighlightSections(False)
