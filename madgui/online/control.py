@@ -10,6 +10,7 @@ from pkg_resources import iter_entry_points
 
 from madgui.qt import QtGui
 from madgui.core.base import Object
+from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool
 import madgui.core.menu as menu
 
@@ -82,7 +83,7 @@ class Control(Object):
             Separator,
             Item('Show beam &monitors', None,
                  'Show beam monitor values (envelope/position)',
-                 self.on_read_monitors,
+                 self.monitor_widget.create,
                  enabled=self.has_sequence),
             Separator,
             menu.Menu('&Orbit correction', [
@@ -200,11 +201,13 @@ class Control(Object):
     def read_monitor(self, name):
         return self._plugin.read_monitor(name)
 
-    def on_read_monitors(self):
+    @SingleWindow.factory
+    def monitor_widget(self):
         """Read out SD values (beam position/envelope)."""
         from madgui.online.dialogs import MonitorWidget
         widget = MonitorWidget(self, self._model, self._frame)
         widget.show()
+        return widget
 
     def _show_dialog(self, widget, apply=None, export=True):
         from madgui.widget.dialog import Dialog
