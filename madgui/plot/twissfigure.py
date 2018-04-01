@@ -676,8 +676,8 @@ def make_user_curve(scene, idx):
     return SceneGraph([
         Curve(
             curve.axes,
-            partial(to_ui, curve.x_name, data[curve.x_name]),
-            partial(to_ui, curve.y_name, data[curve.y_name]),
+            partial(lambda c: to_ui(c.x_name, data[c.x_name]), c=curve),
+            partial(lambda c: to_ui(c.y_name, data[c.y_name]), c=curve),
             style, label=name,
         )
         for curve in scene.twiss_curves.items
