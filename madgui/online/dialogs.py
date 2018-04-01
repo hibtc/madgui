@@ -16,10 +16,10 @@ class ListSelectWidget(QtGui.QWidget):
     Widget for selecting from an immutable list of items.
     """
 
-    _headline = 'Select desired items:'
+    # TODO: use CheckedStringValue to let user select which items to
+    # import/export.
 
-    # TODO: allow to customize initial selection
-    # FIXME: select-all looks ugly, check/uncheck-each is tedious...
+    _headline = 'Select desired items:'
 
     def __init__(self, columns, headline):
         """Create sizer with content area, i.e. input fields."""
@@ -35,11 +35,6 @@ class ListSelectWidget(QtGui.QWidget):
     @data.setter
     def data(self, data):
         self.grid.rows = data
-        # TODO: replace SELECT(ALL) by SELECT(SELECTED)
-        # TODO: the following was disabled for convenience. Currently, the
-        # selection is not even used from the client code!
-        #for idx in range(len(data)):
-        #    self.grid.Select(idx)
 
 
 class SyncParamItem:
@@ -153,8 +148,6 @@ class MonitorWidget(QtGui.QDialog):
 
     ui_file = 'monitorwidget.ui'
 
-    # TODO: disable/deselect monitors with invalid values?
-
     columns = [
         ExtColumnInfo("Monitor", CheckedStringValue),
         ColumnInfo("x", 'posx'),
@@ -199,7 +192,7 @@ class MonitorWidget(QtGui.QDialog):
 
     def draw(self):
 
-        # TODO: Our way of adding ourselves to existing and to-be-opened
+        # FIXME: Our way of adding ourselves to existing and to-be-opened
         # figures is tedious and error-prone. We should really rework the
         # plotting system to separate the artist from the scene element. We
         # could then simply register a generic artist to plot the content into

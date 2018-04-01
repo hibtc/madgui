@@ -2,8 +2,6 @@
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
 
-# TODO: steerer corrections should be in DVM units
-
 from functools import partial
 
 from pkg_resources import iter_entry_points
@@ -245,8 +243,7 @@ class Control(Object):
         varyconf = self._model.data.get('optic_variation', {})
 
         self.read_all()
-        # TODO: open an orbit plot if none is present
-        # self._frame.showTwiss('orbit')
+        self._frame.open_graph('orbit')
 
         model = self._model
         elements = model.elements
