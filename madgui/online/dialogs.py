@@ -224,7 +224,6 @@ class MonitorWidget(QtGui.QDialog):
         style = self.frame.config['line_view']['monitor_style']
 
         for scene in self.frame.views:
-            scene._curveManager.create()
             for i, (n, d, s) in enumerate(scene.loaded_curves):
                 if n == name:
                     del scene.loaded_curves[i]

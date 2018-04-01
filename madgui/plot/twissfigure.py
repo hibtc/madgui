@@ -658,7 +658,6 @@ class CompareTool(CheckTool):
     def __init__(self, plot, selection):
         super().__init__(plot)
         self.selection = selection
-        selection.update_after.connect(self._update)
         self.plot.scene._curveManager.holds_value.changed.connect(self._update)
 
     def _update(self, *args):
