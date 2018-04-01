@@ -2,14 +2,13 @@
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
 
-# TODO: steerer corrections should be in DVM units
-
 from functools import partial
 
 from pkg_resources import iter_entry_points
 
 from madgui.qt import QtGui
 from madgui.core.base import Object
+from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool
 import madgui.core.menu as menu
 
@@ -80,9 +79,9 @@ class Control(Object):
                  self.on_read_beam,
                  enabled=self.has_sequence),
             Separator,
-            Item('Read &monitors', None,
-                 'Read SD values (beam envelope/position) from monitors',
-                 self.on_read_monitors,
+            Item('Show beam &monitors', None,
+                 'Show beam monitor values (envelope/position)',
+                 self.monitor_widget.create,
                  enabled=self.has_sequence),
             Separator,
             menu.Menu('&Orbit correction', [
@@ -200,32 +199,21 @@ class Control(Object):
     def read_monitor(self, name):
         return self._plugin.read_monitor(name)
 
-    def on_read_monitors(self):
+    @SingleWindow.factory
+    def monitor_widget(self):
         """Read out SD values (beam position/envelope)."""
-        from madgui.online.dialogs import MonitorWidget, MonitorItem
+        from madgui.online.dialogs import MonitorWidget
+        widget = MonitorWidget(self, self._model, self._frame)
+        widget.show()
+        return widget
 
-        # TODO: cache list of used SD monitors
-        rows = [MonitorItem(el.Name, self.read_monitor(el.Name))
-                for el in self._model.elements
-                if el.Type.lower().endswith('monitor')
-                or el.Type.lower() == 'instrument']
-        if not rows:
-            QtGui.QMessageBox.critical(
-                self._frame,
-                'No usable monitors available',
-                'There are no usable SD monitors in the current sequence.')
-            return
-
-        widget = MonitorWidget()
-        widget.data = rows
-        widget.data_key = 'monitor_values'
-        self._show_dialog(widget)
-        # TODO: show SD values in plot?
-
-    def _show_dialog(self, widget, apply=None):
+    def _show_dialog(self, widget, apply=None, export=True):
         from madgui.widget.dialog import Dialog
         dialog = Dialog(self._frame)
-        dialog.setExportWidget(widget, self._frame.folder)
+        if export:
+            dialog.setExportWidget(widget, self._frame.folder)
+        else:
+            dialog.setWidget(widget, tight=True)
         # dialog.setWindowTitle()
         if apply is not None:
             dialog.applied.connect(apply)
@@ -255,8 +243,7 @@ class Control(Object):
         varyconf = self._model.data.get('optic_variation', {})
 
         self.read_all()
-        # TODO: open an orbit plot if none is present
-        # self._frame.showTwiss('orbit')
+        self._frame.open_graph('orbit')
 
         model = self._model
         elements = model.elements

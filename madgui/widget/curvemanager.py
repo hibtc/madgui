@@ -43,12 +43,12 @@ class CheckedStringValue(StringValue):
 
 
 def get_curve_name(mgr, curve, i):
-    name, data = curve
+    name, data, style = curve
     return name
 
 def set_curve_name(mgr, curve, i, name):
-    _, data = curve
-    mgr.available[i] = (name, data)
+    _, data, style = curve
+    mgr.available[i] = (name, data, style)
 
 def get_curve_show(mgr, curve, i):
     return i in mgr.selected
@@ -103,9 +103,10 @@ class CurveManager(QtGui.QWidget):
         curve = next(iter(self.scene.twiss_curves.items))
         data[curve.x_name] = curve.get_xdata()
         data = from_ui(data)
+        style = self.scene.config['reference_style']
         self.scene.snapshot_num += 1
         name = "snapshot {}".format(self.scene.snapshot_num)
-        self.available.append((name, data))
+        self.available.append((name, data, style))
         self.tab.edit(self.tab.model().index(len(self.available)-1, 0))
 
     def on_btn_load(self):
@@ -115,7 +116,8 @@ class CurveManager(QtGui.QWidget):
         if filename:
             self.folder, basename = os.path.split(filename)
             data = self.load_file(filename)
-            self.available.append((basename, data))
+            style = self.scene.config['reference_style']
+            self.available.append((basename, data, style))
 
     dataFileFilters = [
         ("Text files", "*.txt", "*.dat"),

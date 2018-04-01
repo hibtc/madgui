@@ -658,7 +658,6 @@ class CompareTool(CheckTool):
     def __init__(self, plot, selection):
         super().__init__(plot)
         self.selection = selection
-        selection.update_after.connect(self._update)
         self.plot.scene._curveManager.holds_value.changed.connect(self._update)
 
     def _update(self, *args):
@@ -673,13 +672,12 @@ class CompareTool(CheckTool):
 
 
 def make_user_curve(scene, idx):
-    name, data = scene.loaded_curves[idx]
-    style = scene.config['reference_style']
+    name, data, style = scene.loaded_curves[idx]
     return SceneGraph([
         Curve(
             curve.axes,
-            partial(to_ui, curve.x_name, data[curve.x_name]),
-            partial(to_ui, curve.y_name, data[curve.y_name]),
+            partial(lambda c: to_ui(c.x_name, data[c.x_name]), c=curve),
+            partial(lambda c: to_ui(c.y_name, data[c.y_name]), c=curve),
             style, label=name,
         )
         for curve in scene.twiss_curves.items

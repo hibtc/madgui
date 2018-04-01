@@ -59,6 +59,15 @@ line_view:
     linestyle: "-"
     color: "black"
 
+  # Style for monitor markers:
+  monitor_style:
+    marker: x
+    fillstyle: full
+    markersize: 10
+    color: orange
+    zorder: 2
+    linestyle: none
+
   curve_style:
     - &base_style
       color: "#8b1a0e"
