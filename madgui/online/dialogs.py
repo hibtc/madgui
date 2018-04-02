@@ -176,9 +176,9 @@ class MonitorWidget(QtGui.QDialog):
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
 
-        if not frame.graphs('envelope'):
-            frame.open_graph('orbit')
-
+    def showEvent(self, event):
+        if not self.frame.graphs('envelope'):
+            self.frame.open_graph('orbit')
         self.update()
 
     def reject(self):
