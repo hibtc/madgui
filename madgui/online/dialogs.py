@@ -129,10 +129,10 @@ def get_monitor_name(mgr, monitor, i):
     return monitor.name
 
 def get_monitor_show(mgr, monitor, i):
-    return monitor.show
+    return mgr.selected(monitor)
 
 def set_monitor_show(mgr, monitor, i, show):
-    shown = monitor.show
+    shown = mgr.selected(monitor)
     if show and not shown:
         mgr.select(i)
     elif not show and shown:
@@ -157,6 +157,8 @@ class MonitorWidget(QtGui.QDialog):
         ColumnInfo("Δx", 'envx'),
         ColumnInfo("Δy", 'envy'),
     ]
+
+    _monitor_show = {}
 
     def __init__(self, control, model, frame):
         super().__init__()
@@ -216,7 +218,7 @@ class MonitorWidget(QtGui.QDialog):
         data = from_ui({
             name: np.array([getattr(mon, name)
                             for mon in self.monitors
-                            if mon.show])
+                            if self.selected(mon)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         })
         style = self.frame.config['line_view']['monitor_style']
@@ -232,12 +234,15 @@ class MonitorWidget(QtGui.QDialog):
             else:
                 scene.loaded_curves.append((name, data, style))
 
+    def selected(self, monitor):
+        return self._monitor_show.setdefault(monitor.name, monitor.show)
+
     def select(self, index):
-        self.monitors[index].show = True
+        self._monitor_show[self.monitors[index].name] = True
         self.draw()
 
     def deselect(self, index):
-        self.monitors[index].show = False
+        self._monitor_show[self.monitors[index].name] = False
         self.draw()
 
     def update(self):
@@ -272,7 +277,7 @@ class MonitorWidget(QtGui.QDialog):
                 m.name: {'x': m.posx, 'y': m.posy,
                          'envx': m.envx, 'envy': m.envy }
                 for m in self.grid.rows
-                if m.show
+                if self.selected(m)
             }}
             with open(filename, 'wt') as f:
                 yaml.safe_dump(data, f, default_flow_style=False)
@@ -283,7 +288,7 @@ class MonitorWidget(QtGui.QDialog):
             data = np.array([
                 [pos(m), m.posx, m.posy, m.envx, m.envy]
                 for m in self.grid.rows
-                if m.show
+                if m.selected(m)
             ])
             np.savetxt(filename, data, header='s x y envx envy')
             return
