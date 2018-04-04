@@ -2,11 +2,14 @@
 Dialog for selecting DVM parameters to be synchronized.
 """
 
+import os
+
 import numpy as np
 
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import VBoxLayout
+from madgui.util import yaml
 from madgui.widget.tableview import (TableView, ColumnInfo, ExtColumnInfo,
                                      StringValue)
 
@@ -175,6 +178,7 @@ class MonitorWidget(QtGui.QDialog):
         self.btn_update.clicked.connect(self.update)
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
+        self.std_buttons.button(Buttons.Save).clicked.connect(self.save)
 
     def showEvent(self, event):
         if not self.frame.graphs('envelope'):
@@ -243,3 +247,47 @@ class MonitorWidget(QtGui.QDialog):
             if el.Type.lower().endswith('monitor')
             or el.Type.lower() == 'instrument']
         self.draw()
+
+    folder = None
+    exportFilters = [
+        ("YAML file", ".yml"),
+        ("TEXT file (numpy compatible)", ".txt"),
+    ]
+
+    def save(self):
+        from madgui.widget.filedialog import getSaveFileName
+        filename = getSaveFileName(
+            self.window(), 'Export values', self.folder,
+            self.exportFilters)
+        if filename:
+            self.export_to(filename)
+            self.folder, _ = os.path.split(filename)
+
+    def export_to(self, filename):
+        ext = os.path.splitext(filename)[1].lower()
+
+        # TODO: add '.tfs' output format?
+        if ext == '.yml':
+            data = {'monitor': {
+                m.name: {'x': m.posx, 'y': m.posy,
+                         'envx': m.envx, 'envy': m.envy }
+                for m in self.grid.rows
+                if m.show
+            }}
+            with open(filename, 'wt') as f:
+                yaml.safe_dump(data, f, default_flow_style=False)
+            return
+        elif ext == '.txt':
+            def pos(m):
+                return self.model.elements[m.name]['at']
+            data = np.array([
+                [pos(m), m.posx, m.posy, m.envx, m.envy]
+                for m in self.grid.rows
+                if m.show
+            ])
+            np.savetxt(filename, data, header='s x y envx envy')
+            return
+
+        raise NotImplementedError(
+            "Don't know how to serialize to {!r} format."
+            .format(ext))
