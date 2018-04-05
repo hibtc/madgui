@@ -139,6 +139,7 @@ class TwissFigure(Object):
             )
             for ax, curve_info in zip(axes, self.graph_info.curves)
         ])
+        self.user_curves.renew()
         self.draw()
 
     def draw(self):
@@ -283,11 +284,15 @@ class ListView(SceneGraph):
         super().__init__()
         self.fn = fn
         self.model = model
-        for idx, item in enumerate(model):
-            self._add(idx, item)
+        self.renew()
         model.insert_notify.connect(self._add)
         model.delete_notify.connect(self._rm)
         model.modify_notify.connect(self._chg)
+
+    def renew(self):
+        self.items.clear()
+        for idx, item in enumerate(self.model):
+            self._add(idx, item)
 
     def _add(self, idx, item):
         self.insert(idx, self.fn(item))
