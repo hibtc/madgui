@@ -171,6 +171,8 @@ class MultiFigure:
             axes.append(figure.add_subplot(num_axes, 1, 1))
             for i in range(1, num_axes):
                 axes.append(figure.add_subplot(num_axes, 1, i+1, sharex=axes[0]))
+        for ax in axes:
+            ax.grid(True)
         return axes
 
     @property
