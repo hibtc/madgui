@@ -15,6 +15,7 @@ from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogWindow
 
+import madgui.online.control as control
 import madgui.core.config as config
 import madgui.core.menu as menu
 
@@ -48,7 +49,7 @@ class MainWindow(QtGui.QMainWindow):
         self.options = options
         self.config = config.load(options['--config'])
         self.model = None
-        self.configure()
+        self.control = control.Control(self)
         self.initUI()
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
         # the main loop is entered: (Being in the mainloop simplifies
@@ -74,6 +75,7 @@ class MainWindow(QtGui.QMainWindow):
         self.createMenu()
         self.createControls()
         self.createStatusBar()
+        self.configure()
         self.initPos()
 
     def initPos(self):
@@ -95,9 +97,10 @@ class MainWindow(QtGui.QMainWindow):
             self.log.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
 
     def createMenu(self):
+        control = self.control
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menubar = self.menuBar()
-        menu.extend(self, menubar, [
+        items = menu.extend(self, menubar, [
             Menu('&File', [
                 Item('&Open', 'Ctrl+O',
                      'Load model or open new model from a MAD-X file.',
@@ -137,6 +140,54 @@ class MainWindow(QtGui.QMainWindow):
                      'Display spinboxes for number input controls',
                      self.setSpinBox, checked=config.NumberFormat.spinbox),
             ]),
+            Menu('&Online control', [
+                Item('&Disconnect', None,
+                    'Disconnect online control interface',
+                    control.disconnect,
+                    enabled=control.is_connected),
+                Separator,
+                Item('&Read strengths', None,
+                    'Read magnet strengths from the online database',
+                    control.on_read_all,
+                    enabled=control.has_sequence),
+                Item('&Write strengths', None,
+                    'Write magnet strengths to the online database',
+                    control.on_write_all,
+                    enabled=control.has_sequence),
+                Item('Read &beam', None,
+                    'Read beam settings from the online database',
+                    control.on_read_beam,
+                    enabled=control.has_sequence),
+                Separator,
+                Item('Show beam &monitors', None,
+                    'Show beam monitor values (envelope/position)',
+                    control.monitor_widget.create,
+                    enabled=control.has_sequence),
+                Separator,
+                menu.Menu('&Orbit correction', [
+                    Item('Optic &variation', 'Ctrl+V',
+                        'Perform orbit correction via 2-optics method',
+                        control.on_correct_optic_variation_method,
+                        enabled=control.has_sequence),
+                    Item('Multi &grid', 'Ctrl+G',
+                        'Perform orbit correction via 2-grids method',
+                        control.on_correct_multi_grid_method,
+                        enabled=control.has_sequence),
+                ]),
+                Item('&Emittance measurement', 'Ctrl+E',
+                    'Perform emittance measurement using at least 3 monitors',
+                    control.on_emittance_measurement,
+                    enabled=control.has_sequence),
+                Separator,
+                menu.Menu('&Settings', [
+                    # TODO: dynamically fill by plugin
+                    Item('&Jitter', None,
+                        'Random Jitter for test interface',
+                        control.toggle_jitter,
+                        enabled=control.is_connected,
+                        checked=True),
+                ]),
+            ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
                      'About the madgui GUI application.',
@@ -154,9 +205,15 @@ class MainWindow(QtGui.QMainWindow):
                      self.helpAboutQt),
             ]),
         ])
+        self.csys_menu = items[3]
+        self.dc_action = self.csys_menu.actions()[0]
 
-        import madgui.online.control as control
-        self.control = control.Control(self, menubar)
+    def add_online_plugin(self, loader):
+        self.csys_menu.insertAction(self.dc_action, menu.Item(
+            'Connect ' + loader.title, loader.hotkey,
+            'Connect ' + loader.descr,
+            partial(self.control.connect, loader),
+            enabled=self.control.can_connect).action(self.menuBar()))
 
     def createControls(self):
         self.log_window = LogWindow()

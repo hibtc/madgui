@@ -51,7 +51,9 @@ class Item:
         return action
 
     def append_to(self, menu, parent=None):
-        menu.addAction(self.action(parent))
+        action = self.action(parent)
+        menu.addAction(action)
+        return action
 
     def _dynamic_property(self, prop, setter):
         try:
@@ -71,17 +73,18 @@ class Menu:
     def append_to(self, menu, parent):
         submenu = menu.addMenu(self.label)
         extend(parent, submenu, self.items)
+        return submenu
 
 
 class Separator:
 
     @classmethod
     def append_to(cls, menu, parent):
-        menu.addSeparator()
+        return menu.addSeparator()
 
 
 def extend(parent, menu, items):
     """Append menu items to menu."""
-    for item in items:
-        if item is not None:
-            item.append_to(menu, parent)
+    return [item.append_to(menu, parent)
+            for item in items
+            if item is not None]
