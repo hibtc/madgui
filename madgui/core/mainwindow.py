@@ -43,7 +43,7 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.has_model = Bool(False)
-        self.user_ns = {
+        self.context = {
             'frame': self,
         }
         self.options = options
@@ -67,7 +67,7 @@ class MainWindow(QtGui.QMainWindow):
         config.NumberFormat.fmtspec = self.config['number']['fmtspec']
         config.NumberFormat.spinbox = self.config['number']['spinbox']
         config.NumberFormat.changed.emit()
-        exec(self.config.get('onload', ''), self.user_ns)
+        exec(self.config.get('onload', ''), self.context)
 
     def initUI(self):
         self.views = []
@@ -404,16 +404,16 @@ class MainWindow(QtGui.QMainWindow):
             return
         self.destroyModel()
         self.model = model
-        self.user_ns['model'] = model
+        self.context['model'] = model
 
         if model is None:
             self.model_changed.emit()
             self.setWindowTitle("madgui")
             return
 
-        self.user_ns['madx'] = model.madx
-        self.user_ns['twiss'] = model.twiss.data
-        exec(model.data.get('onload', ''), self.user_ns)
+        self.context['madx'] = model.madx
+        self.context['twiss'] = model.twiss.data
+        exec(model.data.get('onload', ''), self.context)
 
         model.twiss.updated.connect(self.update_twiss)
 
@@ -443,12 +443,12 @@ class MainWindow(QtGui.QMainWindow):
             # The connection may already be terminated in case MAD-X crashed.
             pass
         self.model = None
-        self.user_ns['model'] = None
-        self.user_ns['twiss'] = None
+        self.context['model'] = None
+        self.context['twiss'] = None
         self.logfile.close()
 
     def update_twiss(self):
-        self.user_ns['twiss'] = self.model.twiss.data
+        self.context['twiss'] = self.model.twiss.data
 
     def showTwiss(self, name=None):
         import madgui.plot.matplotlib as plt
@@ -471,7 +471,7 @@ class MainWindow(QtGui.QMainWindow):
         scene.attach(plot)
 
         # for convenience when debugging:
-        self.user_ns.update({
+        self.context.update({
             'plot': plot,
             'figure': figure.backend_figure,
             'canvas': plot.canvas,
@@ -541,7 +541,7 @@ class MainWindow(QtGui.QMainWindow):
     def _createShell(self):
         """Create a python shell widget."""
         import madgui.core.pyshell as pyshell
-        self.shell = pyshell.create(self.user_ns)
+        self.shell = pyshell.create(self.context)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
         dock.setWindowTitle("python shell")

@@ -8,13 +8,13 @@ from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager
 
 
-def create(user_ns):
+def create(context):
     """Create an in-process kernel."""
     manager = QtInProcessKernelManager()
     manager.start_kernel(show_banner=False)
     kernel = manager.kernel
     kernel.gui = 'qt'
-    kernel.user_ns = user_ns
+    kernel.context = context
 
     client = manager.client()
     client.start_channels()
