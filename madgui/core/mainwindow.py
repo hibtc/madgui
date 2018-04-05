@@ -66,6 +66,7 @@ class MainWindow(QtGui.QMainWindow):
         config.NumberFormat.fmtspec = self.config['number']['fmtspec']
         config.NumberFormat.spinbox = self.config['number']['spinbox']
         config.NumberFormat.changed.emit()
+        exec(self.config.get('onload', ''), self.user_ns)
 
     def initUI(self):
         self.views = []
