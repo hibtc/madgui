@@ -413,6 +413,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.user_ns['madx'] = model.madx
         self.user_ns['twiss'] = model.twiss.data
+        exec(model.data.get('onload', ''), self.user_ns)
 
         model.twiss.updated.connect(self.update_twiss)
 
