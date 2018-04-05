@@ -61,9 +61,10 @@ line_view:
 
   # Style for monitor markers:
   monitor_style:
-    marker: x
+    marker: +
     fillstyle: full
-    markersize: 10
+    markersize: 12
+    markeredgewidth: 1.5
     color: orange
     zorder: 2
     linestyle: none

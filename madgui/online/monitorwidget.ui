@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>450</width>
-    <height>150</height>
+    <width>449</width>
+    <height>270</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,6 +30,16 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="btn_backtrack">
+       <property name="text">
+        <string>backtrack</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -48,7 +58,7 @@
         <enum>Qt::Vertical</enum>
        </property>
        <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+        <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
        </property>
       </widget>
      </item>
