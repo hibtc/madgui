@@ -178,9 +178,12 @@ class MonitorWidget(QtGui.QDialog):
 
         Buttons = QtGui.QDialogButtonBox
         self.btn_update.clicked.connect(self.update)
+        self.btn_backtrack.toggled.connect(self.toggle_backtrack)
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.save)
+
+        self.backup()
 
     def showEvent(self, event):
         if not self.frame.graphs('envelope'):
@@ -189,6 +192,7 @@ class MonitorWidget(QtGui.QDialog):
 
     def reject(self):
         self.remove()
+        self.restore()
         super().reject()
 
     def remove(self):
@@ -251,6 +255,8 @@ class MonitorWidget(QtGui.QDialog):
             for el in self.model.elements
             if el.Type.lower().endswith('monitor')
             or el.Type.lower() == 'instrument']
+        if self.btn_backtrack.isChecked():
+            self.backtrack()
         self.draw()
 
     folder = None
@@ -296,3 +302,39 @@ class MonitorWidget(QtGui.QDialog):
         raise NotImplementedError(
             "Don't know how to serialize to {!r} format."
             .format(ext))
+
+    def toggle_backtrack(self, enabled):
+        if enabled:
+            self.backtrack()
+
+    def backtrack(self):
+        init_orbit, chi_squared, singular = \
+            self.fit_particle_orbit()
+        if not singular:
+            self.model.twiss_args = dict(self.model.twiss_args, **init_orbit)
+            self.model.twiss.invalidate()
+
+    def fit_particle_orbit(self):
+        from madgui.correct.orbit import fit_initial_orbit
+        import itertools
+
+        records = [m for m in self.monitors if self.selected(m)]
+        self.restore()
+        self.model.madx.command.select(flag='interpolate', clear=True)
+        secmaps = self.model.get_transfer_maps([r.name for r in records])
+        secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
+        (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
+            (secmap[:,:6], secmap[:,6], (record.posx/1000, record.posy/1000))
+            for record, secmap in zip(records, secmaps)
+        ])
+        return {
+            'x': x, 'px': px,
+            'y': y, 'py': py,
+        }, chi_squared, singular
+
+    def backup(self):
+        self.backup_twiss_args = self.model.twiss_args
+
+    def restore(self):
+        self.model.twiss_args = self.backup_twiss_args
+        self.model.twiss.invalidate()
