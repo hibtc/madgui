@@ -64,15 +64,9 @@ class MainWindow(QtGui.QMainWindow):
 
     def configure(self):
         self.folder = self.config.get('model_path', '')
-        align = {'left': Qt.AlignLeft, 'right': Qt.AlignRight}
-        config.NumberFormat.align = align[self.config['number']['align']]
-        config.NumberFormat.fmtspec = self.config['number']['fmtspec']
-        config.NumberFormat.spinbox = self.config['number']['spinbox']
-        config.NumberFormat.changed.emit()
         exec(self.config.get('onload', ''), self.context)
 
     def session_data(self):
-        align = {Qt.AlignLeft: 'left', Qt.AlignRight: 'right'}
         return {
             'mainwindow': {
                 'init_size': [self.size().width(), self.size().height()],
@@ -84,11 +78,7 @@ class MainWindow(QtGui.QMainWindow):
             },
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,
-            'number': {
-                'align': align[config.NumberFormat.align],
-                'fmtspec': config.NumberFormat.fmtspec,
-                'spinbox': config.NumberFormat.spinbox,
-            },
+            'number': self.config['number'],
         }
 
     def initUI(self):
@@ -160,7 +150,7 @@ class MainWindow(QtGui.QMainWindow):
                      self.setNumberFormat),
                 Item('&Wheels', None,
                      'Display spinboxes for number input controls',
-                     self.setSpinBox, checked=config.NumberFormat.spinbox),
+                     self.setSpinBox, checked=self.config.number.spinbox),
             ]),
             Menu('&Online control', [
                 Item('&Disconnect', None,
@@ -344,7 +334,7 @@ class MainWindow(QtGui.QMainWindow):
     def setNumberFormat(self):
         fmtspec, ok = QtGui.QInputDialog.getText(
             self, "Set number format", "Number format:",
-            text=config.NumberFormat.fmtspec)
+            text=self.config.number.fmtspec)
         if not ok:
             return
         try:
@@ -352,13 +342,11 @@ class MainWindow(QtGui.QMainWindow):
         except ValueError:
             # TODO: show warning
             return
-        config.NumberFormat.fmtspec = fmtspec
-        config.NumberFormat.changed.emit()
+        self.config.number.fmtspec = fmtspec
 
     def setSpinBox(self):
         # TODO: sync with menu state
-        config.NumberFormat.spinbox = not config.NumberFormat.spinbox
-        config.NumberFormat.changed.emit()
+        self.config.number.spinbox = not self.config.number.spinbox
 
     @SingleWindow.factory
     def helpAboutMadGUI(self):

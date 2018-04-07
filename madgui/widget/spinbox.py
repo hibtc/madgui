@@ -8,7 +8,7 @@ from madgui.qt import Qt, QtCore, QtGui
 
 from madgui.widget.quantity import ValueControlBase, QuantityControlBase
 from madgui.core.base import Signal
-from madgui.core.config import NumberFormat
+import madgui.core.config as config
 
 
 class AbstractSpinBox(ValueControlBase, QtGui.QAbstractSpinBox):
@@ -158,5 +158,5 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
     def updateEdit(self):
         buttons = [QtGui.QAbstractSpinBox.NoButtons,
                    QtGui.QAbstractSpinBox.UpDownArrows]
-        self.setButtonSymbols(buttons[bool(NumberFormat.spinbox)])
+        self.setButtonSymbols(buttons[bool(config.number.spinbox)])
         super().updateEdit()

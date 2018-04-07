@@ -15,6 +15,9 @@ __all__ = [
 ]
 
 
+ALIGN = {'left': Qt.AlignLeft, 'right': Qt.AlignRight}
+
+
 def get_default_user_config_path():
     """Return the default path of the user config."""
     return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'config.yml')
@@ -74,16 +77,6 @@ def load(*config_files):
             update_recursive(config, merge)
     config['session_file'] = os.path.abspath(session_file)
     return ConfigSection(config)
-
-
-class NumberFormat(Object):
-    changed = Signal()
-    spinbox = True
-    fmtspec = '.4g'
-    align = Qt.AlignRight
-
-# Global format, as singleton, for now:
-NumberFormat = NumberFormat()
 
 
 class ConfigSection(Object):

@@ -10,8 +10,9 @@ from madgui.qt import Qt, QtGui
 
 from madgui.core.unit import units, get_raw_label, get_unit, tounit
 from madgui.core.base import Signal
-from madgui.core.config import NumberFormat
 from madgui.util.misc import rw_property
+
+import madgui.core.config as config
 
 
 Acceptable = QtGui.QValidator.Acceptable
@@ -281,7 +282,7 @@ class ValueControlBase(AffixControlBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAlignment(NumberFormat.align)
+        self.setAlignment(config.ALIGN[config.number.align])
 
     def sanitize(self, value):
         if value is None:
@@ -316,7 +317,7 @@ class QuantityControlBase(ValueControlBase):
                 self.set_quantity_checked(value)
         else:
             self.set_magnitude(value)
-        NumberFormat.changed.connect(self.updateEdit)
+        config.number.changed.connect(self.updateEdit)
 
     def _validate_value(self, text, pos):
         if not text or self.validator is None:
@@ -334,7 +335,7 @@ class QuantityControlBase(ValueControlBase):
 
     @rw_property
     def fmtspec(self):
-        return NumberFormat.fmtspec
+        return config.number.fmtspec
 
     # own methods
 
@@ -385,7 +386,7 @@ class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAlignment(NumberFormat.align)
+        self.setAlignment(config.ALIGN[config.number.align])
         self.setReadOnly(True)
         self.selectionChanged.connect(self.clear_selectall_pending)
 
