@@ -158,8 +158,6 @@ class MonitorWidget(QtGui.QDialog):
         ColumnInfo("Δy", 'envy'),
     ]
 
-    _monitor_show = {}
-
     def __init__(self, control, model, frame):
         super().__init__(frame)
         load_ui(self, __package__, self.ui_file)
@@ -167,6 +165,10 @@ class MonitorWidget(QtGui.QDialog):
         self.control = control
         self.model = model
         self.frame = frame
+
+        # TODO: we should eventually load this from model-specific session
+        # file, but it's fine like this for now:
+        self._monitor_show = self.frame.config['online_control']['monitors']
 
         for col in self.columns[1:]:
             col.title += '/' + ui_units.label(col.getter)

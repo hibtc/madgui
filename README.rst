@@ -69,6 +69,36 @@ follows, which may provide you with more error information::
     python -c "from madgui.core.app import main; main()"
 
 
+Configuration
+~~~~~~~~~~~~~
+
+The application loads a YAML config file ``madgui.yml`` in the current
+directory or the user's home directory.
+
+Example file:
+
+.. code-block:: yaml
+
+    number:
+      align: right
+      fmtspec: .4g
+
+    model_path: ../hit_models
+    load_default: hht3
+
+    mainwindow:
+      init_size: [683, 150]
+      init_pos:  [0, 0]
+
+    onload: |
+      from hit_csys.plugin import Loader
+      frame.add_online_plugin(Loader)
+
+Note that the onload handler can be used to execute user-defined code, import
+modules and e.g. add loaders for online control plugins. The API is defined in
+the ``madgui.online.api`` module.
+
+
 Development guidelines
 ~~~~~~~~~~~~~~~~~~~~~~
 

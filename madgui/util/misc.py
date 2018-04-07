@@ -146,11 +146,11 @@ class Property:
 
     def _set(self, val):
         self._val = val
-        self.holds_value.set_value(True)
+        self.holds_value.set(True)
 
     def _del(self):
         del self._val
-        self.holds_value.set_value(False)
+        self.holds_value.set(False)
 
     # use lambdas to enable overriding the _get/_set/_del methods
     # without having to redefine the 'val' property

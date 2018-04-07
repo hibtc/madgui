@@ -21,9 +21,9 @@ def _operator(get, rtype=None):
     @wraps(get)
     def operation(*operands):
         rtype_ = operands[0].__class__ if rtype is None else rtype
-        values = lambda: [operand.value for operand in operands]
+        values = lambda: [operand() for operand in operands]
         result = rtype_(get(*values()))
-        update = lambda *args: result.set_value(get(*values()))
+        update = lambda *args: result.set(get(*values()))
         for operand in operands:
             operand.changed.connect(update)
         return result
@@ -40,16 +40,14 @@ class Bool(Object):
         super().__init__()
         self._value = bool(value)
 
-    def get_value(self):
+    def __call__(self, *value):
         return self._value
 
-    def set_value(self, value):
+    def set(self, value):
         value = bool(value)
         if value != self._value:
             self._value = value
             self.changed.emit(value)
-
-    value = property(get_value, set_value)
 
     __eq__  = _operator(operator.__eq__)
     __ne__  = _operator(operator.__ne__)

@@ -7,7 +7,6 @@ from inspect import getmro
 from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Object, Signal
 from madgui.core.unit import to_ui, from_ui
-from madgui.core.config import NumberFormat
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property
 from madgui.util.collections import List
@@ -16,6 +15,7 @@ from madgui.widget.spinbox import QuantitySpinBox
 from madgui.widget.quantity import DoubleValidator as _DoubleValidator
 
 import madgui.core.unit as unit
+import madgui.core.config as config
 
 
 __all__ = [
@@ -232,7 +232,7 @@ class TableView(QtGui.QTableView):
         self.setAlternatingRowColors(True)
         if columns is not None:
             self.set_columns(columns, data, context)
-        NumberFormat.changed.connect(self.format_changed)
+        config.number.changed.connect(self.format_changed)
 
     def format_changed(self):
         # NOTE: this is only okay as long as there is only a single view for
@@ -491,14 +491,14 @@ class FloatValue(ValueProxy):
     default = 0.0
 
     def textAlignment(self):
-        return NumberFormat.align | Qt.AlignVCenter
+        return config.ALIGN[config.number.align] | Qt.AlignVCenter
 
     def delegate(self):
         return FloatDelegate()
 
     @rw_property
     def fmtspec(self):
-        return NumberFormat.fmtspec
+        return config.number.fmtspec
 
 
 class IntValue(ValueProxy):
@@ -508,7 +508,7 @@ class IntValue(ValueProxy):
     default = 0
 
     def textAlignment(self):
-        return NumberFormat.align | Qt.AlignVCenter
+        return config.ALIGN[config.number.align] | Qt.AlignVCenter
 
     def delegate(self):
         return IntDelegate()
@@ -586,7 +586,7 @@ class ListValue(ValueProxy):
         return makeValue(value, self.types).display()
 
     def textAlignment(self):
-        return NumberFormat.align | Qt.AlignVCenter
+        return config.ALIGN[config.number.align] | Qt.AlignVCenter
 
     def delegate(self):
         return ListDelegate()

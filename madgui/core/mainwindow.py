@@ -15,8 +15,10 @@ from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogWindow
 
+import madgui.online.control as control
 import madgui.core.config as config
 import madgui.core.menu as menu
+import madgui.util.yaml as yaml
 
 
 __all__ = [
@@ -42,13 +44,14 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.has_model = Bool(False)
-        self.user_ns = {
+        self.context = {
             'frame': self,
         }
         self.options = options
         self.config = config.load(options['--config'])
+        self.session_file = self.config.session_file
         self.model = None
-        self.configure()
+        self.control = control.Control(self)
         self.initUI()
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
         # the main loop is entered: (Being in the mainloop simplifies
@@ -60,12 +63,24 @@ class MainWindow(QtGui.QMainWindow):
         QtCore.QTimer.singleShot(0, self.loadDefault)
 
     def configure(self):
-        self.folder = self.config.get('model_path', '')
-        align = {'left': Qt.AlignLeft, 'right': Qt.AlignRight}
-        config.NumberFormat.align = align[self.config['number']['align']]
-        config.NumberFormat.fmtspec = self.config['number']['fmtspec']
-        config.NumberFormat.spinbox = self.config['number']['spinbox']
-        config.NumberFormat.changed.emit()
+        self.folder = self.config.model_path
+        config.number = self.config.number
+        exec(self.config.onload, self.context)
+
+    def session_data(self):
+        return {
+            'mainwindow': {
+                'init_size': [self.size().width(), self.size().height()],
+                'init_pos': [self.pos().x(), self.pos().y()],
+            },
+            'online_control': {
+                'connect': self.control.is_connected(),
+                'monitors': self.config.online_control['monitors'],
+            },
+            'model_path': self.folder,
+            'load_default': self.model and self.model.filename,
+            'number': self.config['number'],
+        }
 
     def initUI(self):
         self.views = []
@@ -73,30 +88,25 @@ class MainWindow(QtGui.QMainWindow):
         self.createMenu()
         self.createControls()
         self.createStatusBar()
+        self.configure()
         self.initPos()
 
     def initPos(self):
-        if 'init_size' in self.config['mainwindow']:
-            size = QtCore.QSize(*self.config['mainwindow']['init_size'])
-        else:
-            size = QtGui.QDesktopWidget().availableGeometry() * 0.8
-        self.resize(size)
-        if 'init_pos' in self.config['mainwindow']:
-            self.move(QtCore.QPoint(*self.config['mainwindow']['init_pos']))
+        self.resize(QtCore.QSize(*self.config.mainwindow.init_size))
+        self.move(QtCore.QPoint(*self.config.mainwindow.init_pos))
 
     def loadDefault(self):
-        filename = self.options['FILE']
-        if filename is None:
-            filename = self.config.get('load_default')
+        filename = self.options['FILE'] or self.config.load_default
         if filename:
             self.loadFile(self.searchFile(filename))
         else:
             self.log.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
 
     def createMenu(self):
+        control = self.control
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menubar = self.menuBar()
-        menu.extend(self, menubar, [
+        items = menu.extend(self, menubar, [
             Menu('&File', [
                 Item('&Open', 'Ctrl+O',
                      'Load model or open new model from a MAD-X file.',
@@ -132,9 +142,57 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Number format', None,
                      'Set the number format/precision used in dialogs',
                      self.setNumberFormat),
-                Item('&Wheels', None,
+                Item('&Spin box', None,
                      'Display spinboxes for number input controls',
-                     self.setSpinBox, checked=config.NumberFormat.spinbox),
+                     self.setSpinBox, checked=self.config.number.spinbox),
+            ]),
+            Menu('&Online control', [
+                Item('&Disconnect', None,
+                    'Disconnect online control interface',
+                    control.disconnect,
+                    enabled=control.is_connected),
+                Separator,
+                Item('&Read strengths', None,
+                    'Read magnet strengths from the online database',
+                    control.on_read_all,
+                    enabled=control.has_sequence),
+                Item('&Write strengths', None,
+                    'Write magnet strengths to the online database',
+                    control.on_write_all,
+                    enabled=control.has_sequence),
+                Item('Read &beam', None,
+                    'Read beam settings from the online database',
+                    control.on_read_beam,
+                    enabled=control.has_sequence),
+                Separator,
+                Item('Show beam &monitors', None,
+                    'Show beam monitor values (envelope/position)',
+                    control.monitor_widget.create,
+                    enabled=control.has_sequence),
+                Separator,
+                menu.Menu('&Orbit correction', [
+                    Item('Optic &variation', 'Ctrl+V',
+                        'Perform orbit correction via 2-optics method',
+                        control.on_correct_optic_variation_method,
+                        enabled=control.has_sequence),
+                    Item('Multi &grid', 'Ctrl+G',
+                        'Perform orbit correction via 2-grids method',
+                        control.on_correct_multi_grid_method,
+                        enabled=control.has_sequence),
+                ]),
+                Item('&Emittance measurement', 'Ctrl+E',
+                    'Perform emittance measurement using at least 3 monitors',
+                    control.on_emittance_measurement,
+                    enabled=control.has_sequence),
+                Separator,
+                menu.Menu('&Settings', [
+                    # TODO: dynamically fill by plugin
+                    Item('&Jitter', None,
+                        'Random Jitter for test interface',
+                        control.toggle_jitter,
+                        enabled=control.is_connected,
+                        checked=True),
+                ]),
             ]),
             Menu('&Help', [
                 Item('About Mad&Qt', None,
@@ -153,9 +211,19 @@ class MainWindow(QtGui.QMainWindow):
                      self.helpAboutQt),
             ]),
         ])
+        self.csys_menu = items[3]
+        self.dc_action = self.csys_menu.actions()[0]
 
-        import madgui.online.control as control
-        self.control = control.Control(self, menubar)
+    def add_online_plugin(self, loader):
+        if loader.check_avail():
+            self.csys_menu.insertAction(self.dc_action, menu.Item(
+                'Connect ' + loader.title, loader.hotkey,
+                'Connect ' + loader.descr,
+                partial(self.control.connect, loader),
+                enabled=self.control.can_connect).action(self.menuBar()))
+            if self.config.online_control.connect and \
+                    not self.control.is_connected():
+                self.control.connect(loader)
 
     def createControls(self):
         self.log_window = LogWindow()
@@ -260,7 +328,7 @@ class MainWindow(QtGui.QMainWindow):
     def setNumberFormat(self):
         fmtspec, ok = QtGui.QInputDialog.getText(
             self, "Set number format", "Number format:",
-            text=config.NumberFormat.fmtspec)
+            text=self.config.number.fmtspec)
         if not ok:
             return
         try:
@@ -268,13 +336,11 @@ class MainWindow(QtGui.QMainWindow):
         except ValueError:
             # TODO: show warning
             return
-        config.NumberFormat.fmtspec = fmtspec
-        config.NumberFormat.changed.emit()
+        self.config.number.fmtspec = fmtspec
 
     def setSpinBox(self):
         # TODO: sync with menu state
-        config.NumberFormat.spinbox = not config.NumberFormat.spinbox
-        config.NumberFormat.changed.emit()
+        self.config.number.spinbox = not self.config.number.spinbox
 
     @SingleWindow.factory
     def helpAboutMadGUI(self):
@@ -346,15 +412,16 @@ class MainWindow(QtGui.QMainWindow):
             return
         self.destroyModel()
         self.model = model
-        self.user_ns['model'] = model
+        self.context['model'] = model
 
         if model is None:
             self.model_changed.emit()
             self.setWindowTitle("madgui")
             return
 
-        self.user_ns['madx'] = model.madx
-        self.user_ns['twiss'] = model.twiss.data
+        self.context['madx'] = model.madx
+        self.context['twiss'] = model.twiss.data
+        exec(model.data.get('onload', ''), self.context)
 
         model.twiss.updated.connect(self.update_twiss)
 
@@ -368,7 +435,7 @@ class MainWindow(QtGui.QMainWindow):
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
         QtGui.qApp.aboutToQuit.connect(self.destroyModel)
-        self.has_model.value = True
+        self.has_model.set(True)
         self.model_changed.emit()
         self.setWindowTitle(model.name)
 
@@ -376,7 +443,7 @@ class MainWindow(QtGui.QMainWindow):
         if self.model is None:
             return
         self.model.twiss.updated.disconnect(self.update_twiss)
-        self.has_model.value = False
+        self.has_model.set(False)
         del self.model.selection.elements[:]
         try:
             self.model.destroy()
@@ -384,20 +451,19 @@ class MainWindow(QtGui.QMainWindow):
             # The connection may already be terminated in case MAD-X crashed.
             pass
         self.model = None
-        self.user_ns['model'] = None
-        self.user_ns['twiss'] = None
+        self.context['model'] = None
+        self.context['twiss'] = None
         self.logfile.close()
 
     def update_twiss(self):
-        self.user_ns['twiss'] = self.model.twiss.data
+        self.context['twiss'] = self.model.twiss.data
 
     def showTwiss(self, name=None):
         import madgui.plot.matplotlib as plt
         import madgui.plot.twissfigure as twissfigure
 
         model = self.model
-        config = self.config['line_view'].copy()
-        config['matching'] = self.config['matching']
+        config = self.config.line_view
 
         # indicators require retrieving data for all elements which can be too
         # time consuming for large lattices:
@@ -408,11 +474,11 @@ class MainWindow(QtGui.QMainWindow):
 
         scene = twissfigure.TwissFigure(figure, model, config)
         scene.show_indicators = show_indicators
-        scene.set_graph(name or config['default_graph'])
+        scene.set_graph(name or config.default_graph)
         scene.attach(plot)
 
         # for convenience when debugging:
-        self.user_ns.update({
+        self.context.update({
             'plot': plot,
             'figure': figure.backend_figure,
             'canvas': plot.canvas,
@@ -482,7 +548,7 @@ class MainWindow(QtGui.QMainWindow):
     def _createShell(self):
         """Create a python shell widget."""
         import madgui.core.pyshell as pyshell
-        self.shell = pyshell.create(self.user_ns)
+        self.shell = pyshell.create(self.context)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
         dock.setWindowTitle("python shell")
@@ -491,9 +557,17 @@ class MainWindow(QtGui.QMainWindow):
         return dock
 
     def closeEvent(self, event):
+        if self.session_file:
+            self.save_session(self.session_file)
         # Terminate the remote session, otherwise `_readLoop()` may hang:
         self.destroyModel()
         event.accept()
+
+    def save_session(self, filename):
+        data = self.session_data()
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'wt') as f:
+            yaml.safe_dump(data, f, default_flow_style=False)
 
 
 class InfoBoxGroup:

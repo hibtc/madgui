@@ -4,8 +4,6 @@ Plugin that integrates a beamoptikdll UI into MadGUI.
 
 from functools import partial
 
-from pkg_resources import iter_entry_points
-
 from madgui.qt import QtGui
 from madgui.core.base import Object
 from madgui.util.misc import SingleWindow
@@ -22,7 +20,7 @@ class Control(Object):
     Plugin class for MadGUI.
     """
 
-    def __init__(self, frame, menubar):
+    def __init__(self, frame):
         """
         Add plugin to the frame.
 
@@ -38,91 +36,20 @@ class Control(Object):
         self.is_connected = Bool(False)
         self.can_connect = ~self.is_connected
         self.has_sequence = self.is_connected & frame.has_model
-        # plugins
-        loaders = [
-            loader
-            for ep in iter_entry_points('madgui.online.PluginLoader')
-            for loader in [ep.load()]
-            if loader.check_avail()
-        ]
-        if loaders:
-            submenu = self.create_menu(loaders)
-            menu.extend(frame, menubar, [submenu])
-
-    def create_menu(self, loaders):
-        """Create menu."""
-        Item = menu.Item
-        Separator = menu.Separator
-        items = []
-        for loader in loaders:
-            items.append(
-                Item('Connect ' + loader.title, loader.hotkey,
-                     'Connect ' + loader.descr,
-                     partial(self.connect, loader),
-                     enabled=self.can_connect))
-        items += [
-            Item('&Disconnect', None,
-                 'Disconnect online control interface',
-                 self.disconnect,
-                 enabled=self.is_connected),
-            Separator,
-            Item('&Read strengths', None,
-                 'Read magnet strengths from the online database',
-                 self.on_read_all,
-                 enabled=self.has_sequence),
-            Item('&Write strengths', None,
-                 'Write magnet strengths to the online database',
-                 self.on_write_all,
-                 enabled=self.has_sequence),
-            Item('Read &beam', None,
-                 'Read beam settings from the online database',
-                 self.on_read_beam,
-                 enabled=self.has_sequence),
-            Separator,
-            Item('Show beam &monitors', None,
-                 'Show beam monitor values (envelope/position)',
-                 self.monitor_widget.create,
-                 enabled=self.has_sequence),
-            Separator,
-            menu.Menu('&Orbit correction', [
-                Item('Optic &variation', 'Ctrl+V',
-                     'Perform orbit correction via 2-optics method',
-                     self.on_correct_optic_variation_method,
-                     enabled=self.has_sequence),
-                Item('Multi &grid', 'Ctrl+G',
-                     'Perform orbit correction via 2-grids method',
-                     self.on_correct_multi_grid_method,
-                     enabled=self.has_sequence),
-            ]),
-            Item('&Emittance measurement', 'Ctrl+E',
-                 'Perform emittance measurement using at least 3 monitors',
-                 self.on_emittance_measurement,
-                 enabled=self.has_sequence),
-            Separator,
-            menu.Menu('&Settings', [
-                # TODO: dynamically fill by plugin
-                Item('&Jitter', None,
-                     'Random Jitter for test interface',
-                     self.toggle_jitter,
-                     enabled=self.is_connected,
-                     checked=True),
-            ]),
-        ]
-        return menu.Menu('&Online control', items)
 
     # menu handlers
 
     def connect(self, loader):
         self._plugin = loader.load(self._frame)
         self._plugin.connect()
-        self._frame.user_ns['csys'] = self._plugin
-        self.is_connected.value = True
+        self._frame.context['csys'] = self._plugin
+        self.is_connected.set(True)
 
     def disconnect(self):
-        self._frame.user_ns.pop('csys', None)
+        self._frame.context.pop('csys', None)
         self._plugin.disconnect()
         self._plugin = None
-        self.is_connected.value = False
+        self.is_connected.set(False)
 
     def toggle_jitter(self):
         # I know…
@@ -152,11 +79,6 @@ class Control(Object):
                           dval, mval, dknob.attr)
             for mknob, mval, dknob, dval in knobs
         ]
-        if not rows:
-            QtGui.QMessageBox.warning(
-                self._frame,
-                'No parameters available',
-                'There are no DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
         return knobs, rows
 
     def on_read_all(self):
