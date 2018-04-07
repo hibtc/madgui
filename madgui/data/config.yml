@@ -17,6 +17,7 @@ mainwindow:
 
 online_control:
   connect: false
+  monitors: {}
 
 # Settings for beam line and TWISS function display (component.TwissView and
 # subcomponents):

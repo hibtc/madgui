@@ -80,6 +80,7 @@ class MainWindow(QtGui.QMainWindow):
             },
             'online_control': {
                 'connect': self.control.is_connected.value,
+                'monitors': self.config['online_control']['monitors'],
             },
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,
