@@ -74,7 +74,7 @@ class MainWindow(QtGui.QMainWindow):
                 'init_pos': [self.pos().x(), self.pos().y()],
             },
             'online_control': {
-                'connect': self.control.is_connected.value,
+                'connect': self.control.is_connected(),
                 'monitors': self.config.online_control['monitors'],
             },
             'model_path': self.folder,
@@ -222,7 +222,7 @@ class MainWindow(QtGui.QMainWindow):
                 partial(self.control.connect, loader),
                 enabled=self.control.can_connect).action(self.menuBar()))
             if self.config.online_control.connect and \
-                    not self.control.is_connected.value:
+                    not self.control.is_connected():
                 self.control.connect(loader)
 
     def createControls(self):
@@ -435,7 +435,7 @@ class MainWindow(QtGui.QMainWindow):
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:
         QtGui.qApp.aboutToQuit.connect(self.destroyModel)
-        self.has_model.value = True
+        self.has_model.set(True)
         self.model_changed.emit()
         self.setWindowTitle(model.name)
 
@@ -443,7 +443,7 @@ class MainWindow(QtGui.QMainWindow):
         if self.model is None:
             return
         self.model.twiss.updated.disconnect(self.update_twiss)
-        self.has_model.value = False
+        self.has_model.set(False)
         del self.model.selection.elements[:]
         try:
             self.model.destroy()

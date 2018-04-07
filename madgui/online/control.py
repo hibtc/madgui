@@ -43,13 +43,13 @@ class Control(Object):
         self._plugin = loader.load(self._frame)
         self._plugin.connect()
         self._frame.context['csys'] = self._plugin
-        self.is_connected.value = True
+        self.is_connected.set(True)
 
     def disconnect(self):
         self._frame.context.pop('csys', None)
         self._plugin.disconnect()
         self._plugin = None
-        self.is_connected.value = False
+        self.is_connected.set(False)
 
     def toggle_jitter(self):
         # I know…

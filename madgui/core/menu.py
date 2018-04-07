@@ -57,9 +57,9 @@ class Item:
 
     def _dynamic_property(self, prop, setter):
         try:
-            cur = prop.value
+            cur = prop()
             prop.changed.connect(setter)
-        except AttributeError:
+        except TypeError:
             cur = prop
         setter(cur)
 
