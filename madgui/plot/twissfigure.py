@@ -640,7 +640,7 @@ def draw_selection_marker(axes, scene, el_idx):
     """In-figure markers for active/selected elements."""
     style = scene.config['select_style']
     element = scene.model.elements[el_idx]
-    at = to_ui('at', element.At)
+    at = to_ui('at', element.At + element.L)
     return [axes.axvline(at, **style)]
 
 
