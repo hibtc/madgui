@@ -19,6 +19,11 @@ online_control:
   connect: false
   monitors: {}
 
+onload: ""
+model_path: ""
+load_default: ""
+monitors: {}
+
 # Settings for beam line and TWISS function display (component.TwissView and
 # subcomponents):
 line_view:

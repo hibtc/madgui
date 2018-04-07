@@ -49,7 +49,7 @@ class MainWindow(QtGui.QMainWindow):
         }
         self.options = options
         self.config = config.load(options['--config'])
-        self.session_file = self.config['session_file']
+        self.session_file = self.config.session_file
         self.model = None
         self.control = control.Control(self)
         self.initUI()
@@ -63,8 +63,9 @@ class MainWindow(QtGui.QMainWindow):
         QtCore.QTimer.singleShot(0, self.loadDefault)
 
     def configure(self):
-        self.folder = self.config.get('model_path', '')
-        exec(self.config.get('onload', ''), self.context)
+        self.folder = self.config.model_path
+        config.number = self.config.number
+        exec(self.config.onload, self.context)
 
     def session_data(self):
         return {
@@ -74,7 +75,7 @@ class MainWindow(QtGui.QMainWindow):
             },
             'online_control': {
                 'connect': self.control.is_connected.value,
-                'monitors': self.config['online_control']['monitors'],
+                'monitors': self.config.online_control['monitors'],
             },
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,
@@ -91,18 +92,11 @@ class MainWindow(QtGui.QMainWindow):
         self.initPos()
 
     def initPos(self):
-        if 'init_size' in self.config['mainwindow']:
-            size = QtCore.QSize(*self.config['mainwindow']['init_size'])
-        else:
-            size = QtGui.QDesktopWidget().availableGeometry() * 0.8
-        self.resize(size)
-        if 'init_pos' in self.config['mainwindow']:
-            self.move(QtCore.QPoint(*self.config['mainwindow']['init_pos']))
+        self.resize(QtCore.QSize(*self.config.mainwindow.init_size))
+        self.move(QtCore.QPoint(*self.config.mainwindow.init_pos))
 
     def loadDefault(self):
-        filename = self.options['FILE']
-        if filename is None:
-            filename = self.config.get('load_default')
+        filename = self.options['FILE'] or self.config.load_default
         if filename:
             self.loadFile(self.searchFile(filename))
         else:
@@ -148,7 +142,7 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Number format', None,
                      'Set the number format/precision used in dialogs',
                      self.setNumberFormat),
-                Item('&Wheels', None,
+                Item('&Spin box', None,
                      'Display spinboxes for number input controls',
                      self.setSpinBox, checked=self.config.number.spinbox),
             ]),
@@ -227,7 +221,7 @@ class MainWindow(QtGui.QMainWindow):
                 'Connect ' + loader.descr,
                 partial(self.control.connect, loader),
                 enabled=self.control.can_connect).action(self.menuBar()))
-            if self.config['online_control']['connect'] and \
+            if self.config.online_control.connect and \
                     not self.control.is_connected.value:
                 self.control.connect(loader)
 
@@ -469,8 +463,7 @@ class MainWindow(QtGui.QMainWindow):
         import madgui.plot.twissfigure as twissfigure
 
         model = self.model
-        config = self.config['line_view'].copy()
-        config['matching'] = self.config['matching']
+        config = self.config.line_view
 
         # indicators require retrieving data for all elements which can be too
         # time consuming for large lattices:
@@ -481,7 +474,7 @@ class MainWindow(QtGui.QMainWindow):
 
         scene = twissfigure.TwissFigure(figure, model, config)
         scene.show_indicators = show_indicators
-        scene.set_graph(name or config['default_graph'])
+        scene.set_graph(name or config.default_graph)
         scene.attach(plot)
 
         # for convenience when debugging:
