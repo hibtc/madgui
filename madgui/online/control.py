@@ -79,11 +79,6 @@ class Control(Object):
                           dval, mval, dknob.attr)
             for mknob, mval, dknob, dval in knobs
         ]
-        if not rows:
-            QtGui.QMessageBox.warning(
-                self._frame,
-                'No parameters available',
-                'There are no DVM parameters in the current sequence. Note that this operation requires a list of DVM parameters to be loaded.')
         return knobs, rows
 
     def on_read_all(self):

@@ -78,6 +78,9 @@ class MainWindow(QtGui.QMainWindow):
                 'init_size': [self.size().width(), self.size().height()],
                 'init_pos': [self.pos().x(), self.pos().y()],
             },
+            'online_control': {
+                'connect': self.control.is_connected.value,
+            },
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,
             'number': {
@@ -227,11 +230,15 @@ class MainWindow(QtGui.QMainWindow):
         self.dc_action = self.csys_menu.actions()[0]
 
     def add_online_plugin(self, loader):
-        self.csys_menu.insertAction(self.dc_action, menu.Item(
-            'Connect ' + loader.title, loader.hotkey,
-            'Connect ' + loader.descr,
-            partial(self.control.connect, loader),
-            enabled=self.control.can_connect).action(self.menuBar()))
+        if loader.check_avail():
+            self.csys_menu.insertAction(self.dc_action, menu.Item(
+                'Connect ' + loader.title, loader.hotkey,
+                'Connect ' + loader.descr,
+                partial(self.control.connect, loader),
+                enabled=self.control.can_connect).action(self.menuBar()))
+            if self.config['online_control']['connect'] and \
+                    not self.control.is_connected.value:
+                self.control.connect(loader)
 
     def createControls(self):
         self.log_window = LogWindow()

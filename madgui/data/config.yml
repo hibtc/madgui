@@ -15,6 +15,9 @@ mainwindow:
   init_size: [1000, 300]
   init_pos:  [   0,   0]
 
+online_control:
+  connect: false
+
 # Settings for beam line and TWISS function display (component.TwissView and
 # subcomponents):
 line_view:
