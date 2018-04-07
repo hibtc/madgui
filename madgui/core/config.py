@@ -17,7 +17,12 @@ __all__ = [
 
 def get_default_user_config_path():
     """Return the default path of the user config."""
-    return os.path.join(os.path.expanduser('~'), '.config', 'madgui.yml')
+    return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'config.yml')
+
+
+def get_default_user_session_path():
+    """Return the default path of the user config."""
+    return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'session.yml')
 
 
 def update_recursive(a, b):
@@ -43,8 +48,12 @@ def _read_file(filename):
 
 def load(*config_files):
     """Read config file and recursively merge it with a base config file."""
+    # NOTE: we deliberately mixin the autosaved session data on lower priority
+    # than user defined config files! This allows to always reset specific
+    # settings on startup by specifying it in the config file.
     resources = [
         read_binary('madgui.data', 'config.yml'),   # package default
+        _read_file(get_default_user_session_path()),# user folder
         _read_file(get_default_user_config_path()), # user folder
         _read_file('madgui.yml'),                   # current directory
     ]

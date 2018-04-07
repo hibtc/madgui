@@ -18,6 +18,7 @@ from madgui.widget.log import LogWindow
 import madgui.online.control as control
 import madgui.core.config as config
 import madgui.core.menu as menu
+import madgui.util.yaml as yaml
 
 
 __all__ = [
@@ -48,6 +49,7 @@ class MainWindow(QtGui.QMainWindow):
         }
         self.options = options
         self.config = config.load(options['--config'])
+        self.session_file = config.get_default_user_session_path()
         self.model = None
         self.control = control.Control(self)
         self.initUI()
@@ -68,6 +70,22 @@ class MainWindow(QtGui.QMainWindow):
         config.NumberFormat.spinbox = self.config['number']['spinbox']
         config.NumberFormat.changed.emit()
         exec(self.config.get('onload', ''), self.context)
+
+    def session_data(self):
+        align = {Qt.AlignLeft: 'left', Qt.AlignRight: 'right'}
+        return {
+            'mainwindow': {
+                'init_size': [self.size().width(), self.size().height()],
+                'init_pos': [self.pos().x(), self.pos().y()],
+            },
+            'model_path': self.folder,
+            'load_default': self.model and self.model.filename,
+            'number': {
+                'align': align[config.NumberFormat.align],
+                'fmtspec': config.NumberFormat.fmtspec,
+                'spinbox': config.NumberFormat.spinbox,
+            },
+        }
 
     def initUI(self):
         self.views = []
@@ -550,9 +568,16 @@ class MainWindow(QtGui.QMainWindow):
         return dock
 
     def closeEvent(self, event):
+        self.save_session(self.session_file)
         # Terminate the remote session, otherwise `_readLoop()` may hang:
         self.destroyModel()
         event.accept()
+
+    def save_session(self, filename):
+        data = self.session_data()
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'wt') as f:
+            yaml.safe_dump(data, f, default_flow_style=False)
 
 
 class InfoBoxGroup:
