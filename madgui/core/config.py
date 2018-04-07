@@ -45,28 +45,34 @@ def _read_file(filename):
     except IOError:
         return None
 
+def _loads(text):
+    return yaml.safe_load(text) if text else None
+
+def _load_file(path):
+    return yaml.safe_load(path and _read_file(path) or '')
+
 
 def load(*config_files):
     """Read config file and recursively merge it with a base config file."""
+    resources = [
+        _loads(read_binary('madgui.data', 'config.yml')),   # package default
+        _load_file(get_default_user_config_path()),         # user folder
+        _load_file('madgui.yml'),                           # current directory
+    ]
+    resources.extend(map(_load_file, config_files))         # command line
     # NOTE: we deliberately mixin the autosaved session data on lower priority
     # than user defined config files! This allows to always reset specific
     # settings on startup by specifying it in the config file.
-    resources = [
-        read_binary('madgui.data', 'config.yml'),   # package default
-        _read_file(get_default_user_session_path()),# user folder
-        _read_file(get_default_user_config_path()), # user folder
-        _read_file('madgui.yml'),                   # current directory
-    ]
-    resources.extend([
-        _read_file(config_path)                       # command line
-        for config_path in config_files
-        if config_path
-    ])
+    session_file = next(
+        (d['session_file'] for d in resources[::-1]
+         if d and 'session_file' in d),
+        get_default_user_session_path())
+    resources.insert(1, _load_file(session_file))
     config = {}
-    for resource in resources:
-        if resource:
-            merge = yaml.safe_load(resource)
+    for merge in resources:
+        if merge:
             update_recursive(config, merge)
+    config['session_file'] = os.path.abspath(session_file)
     return config
 
 

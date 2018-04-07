@@ -49,7 +49,7 @@ class MainWindow(QtGui.QMainWindow):
         }
         self.options = options
         self.config = config.load(options['--config'])
-        self.session_file = config.get_default_user_session_path()
+        self.session_file = self.config['session_file']
         self.model = None
         self.control = control.Control(self)
         self.initUI()
@@ -568,7 +568,8 @@ class MainWindow(QtGui.QMainWindow):
         return dock
 
     def closeEvent(self, event):
-        self.save_session(self.session_file)
+        if self.session_file:
+            self.save_session(self.session_file)
         # Terminate the remote session, otherwise `_readLoop()` may hang:
         self.destroyModel()
         event.accept()
