@@ -161,7 +161,7 @@ class MonitorWidget(QtGui.QDialog):
     _monitor_show = {}
 
     def __init__(self, control, model, frame):
-        super().__init__()
+        super().__init__(frame)
         load_ui(self, __package__, self.ui_file)
 
         self.control = control
