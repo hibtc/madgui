@@ -73,7 +73,7 @@ def load(*config_files):
         if merge:
             update_recursive(config, merge)
     config['session_file'] = os.path.abspath(session_file)
-    return config
+    return ConfigSection(config)
 
 
 class NumberFormat(Object):
@@ -84,3 +84,72 @@ class NumberFormat(Object):
 
 # Global format, as singleton, for now:
 NumberFormat = NumberFormat()
+
+
+class ConfigSection(Object):
+
+    """
+    Wrapper class for a config section (dict-like structure in YAML) that
+    supports attribute access to config entries, and allows to subscribe for
+    updates.
+
+    The ``changed`` signal is is emitted whenever a property in this section
+    changes (not in subsections).
+
+    Attribute access is overloaded to return subsections as
+    :class:`ConfigSection` and scalar entries as plain values.
+    """
+
+    # Returning non-section entries as plain values has the benefit of
+    # - less verbose property access (no need for parentheses)
+    # - creating fewer `QObject` instances
+    # and the following downsides:
+    # - less granular changed signal (not needed anyway I guess?)
+
+    changed = Signal()
+
+    def __init__(self, value, parent=None, name=''):
+        super().__init__(parent)
+        self.setObjectName(name)
+        self._value = value
+        if isinstance(value, dict):
+            self._subsections = {
+                name: ConfigSection(value, self, name)
+                for name, value in self._value.items()
+                if isinstance(value, dict)
+            }
+
+    def get(self, name, default=None):
+        return self._value.get(name, default)
+
+    def __iter__(self):
+        return iter(self._value)
+
+    def __len__(self):
+        return len(self._value)
+
+    def __getitem__(self, name):
+        return self._value[name]
+
+    def __getattr__(self, name):
+        if name not in self._value:
+            raise AttributeError(name)
+        if name in self._subsections:
+            return self._subsections[name]
+        return self._value[name]
+
+    def __setitem__(self, name, val):
+        if name in self._subsections or isinstance(val, dict):
+            raise NotImplementedError('Can only update scalar values!')
+        self._value[name] = val
+        self.changed.emit()
+
+    def __setattr__(self, name, val):
+        if name.startswith('_'):
+            super().__setattr__(name, val)
+        else:
+            self[name] = val
+
+    def __repr__(self):
+        return "<{} {}({!r})>".format(
+            self.__class__.__name__, self.objectName(), self._value)
