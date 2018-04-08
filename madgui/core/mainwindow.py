@@ -11,8 +11,7 @@ from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
-from madgui.util.qt import notifyCloseEvent, notifyEvent
-from madgui.util.font import monospace
+from madgui.util.qt import notifyCloseEvent, notifyEvent, monospace
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogWindow
 

@@ -21,8 +21,8 @@ except ImportError:     # py2
 from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.base import Object, Signal
 from madgui.util.collections import List
+from madgui.util.qt import monospace
 from madgui.widget.tableview import ColumnInfo, TableModel, MultiLineDelegate
-import madgui.util.font as font
 
 
 LogRecord = namedtuple('LogRecord', ['time', 'domain', 'title', 'text', 'extra'])
@@ -54,7 +54,7 @@ class LogWindow(QtGui.QListView):
     def __init__(self, *args):
         self.records = List()
         super().__init__(*args)
-        self.setFont(font.monospace(10))
+        self.setFont(monospace())
         self.setModel(TableModel(self.columns, self.records))
         self.setItemDelegate(LogDelegate(self.font()))
         self.setAlternatingRowColors(True)
