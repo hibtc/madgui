@@ -95,6 +95,8 @@ class TextEditSideBar(QtGui.QWidget):
 
     """Widget that displays line numbers for a QPlainTextEdit."""
 
+    align = Qt.AlignLeft
+
     # Thanks to:
     # https://nachtimwald.com/2009/08/19/better-qplaintextedit-with-line-numbers/
 
@@ -120,7 +122,7 @@ class TextEditSideBar(QtGui.QWidget):
                 break
             paint_rect = QtCore.QRect(
                 0, block_top, self.width(), font_metrics.height())
-            painter.drawText(paint_rect, Qt.AlignRight, self.block_text(count))
+            painter.drawText(paint_rect, self.align, self.block_text(count))
             block = block.next()
         painter.end()
         super().paintEvent(event)
@@ -139,6 +141,8 @@ class TextEditSideBar(QtGui.QWidget):
 
 class LineNumberBar(TextEditSideBar):
 
+    align = Qt.AlignRight
+
     def block_text(self, count):
         return str(count)
 
@@ -146,23 +150,29 @@ class LineNumberBar(TextEditSideBar):
         return self.fontMetrics().width(str(count))
 
 
-class TimeStampBar(TextEditSideBar):
+class RecordInfoBar(TextEditSideBar):
 
-    def __init__(self, edit, records):
-        super().__init__(edit)
+    def __init__(self, edit, records, domains):
         self.records = records
+        self.domains = domains
+        super().__init__(edit)
         font = self.font()
         font.setBold(True)
         self.setFont(font)
+        self.adjustWidth(1)
 
     def block_text(self, count):
         if count in self.records:
             record = self.records[count]
-            return time.strftime('%H:%M:%S', time.localtime(record.time))
+            return "{} {}:".format(
+                time.strftime('%H:%M:%S', time.localtime(record.time)),
+                record.domain)
         return ''
 
     def calc_width(self, count):
-        return self.fontMetrics().width("23:59:59")
+        width_time = self.fontMetrics().width("23:59:59: ")
+        width_kind = max(map(self.fontMetrics().width, self.domains), default=0)
+        return width_time + width_kind
 
 
 class TextLog(QtGui.QFrame):
@@ -189,7 +199,7 @@ class TextLog(QtGui.QFrame):
         self.setFont(monospace())
         self.textctrl = QtGui.QPlainTextEdit()
         self.textctrl.setReadOnly(True)
-        self.linumbar = TimeStampBar(self.textctrl, {})
+        self.linumbar = RecordInfoBar(self.textctrl, {}, set())
         hbox = HBoxLayout([self.linumbar, self.textctrl], tight=True)
         hbox.setSpacing(0)
         self.setLayout(hbox)
@@ -215,6 +225,7 @@ class TextLog(QtGui.QFrame):
 
     def _insert_record(self, index, record):
         self.linumbar.records[self.textctrl.document().blockCount()] = record
+        self.linumbar.domains.add(record.domain)
         if record.domain not in self.formats:
             self.textctrl.appendPlainText(record.text)
             return
