@@ -22,7 +22,7 @@ from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.base import Object, Signal
 from madgui.util.collections import List
 from madgui.util.qt import monospace
-from madgui.util.layout import VBoxLayout
+from madgui.util.layout import HBoxLayout
 from madgui.widget.tableview import ColumnInfo, TableModel, MultiLineDelegate
 
 
@@ -91,7 +91,81 @@ class LogWindow(QtGui.QListView):
                 time.time(), domain, '<stdout>', text, None))
 
 
-class TextLog(QtGui.QWidget):
+class TextEditSideBar(QtGui.QWidget):
+
+    """Widget that displays line numbers for a QPlainTextEdit."""
+
+    # Thanks to:
+    # https://nachtimwald.com/2009/08/19/better-qplaintextedit-with-line-numbers/
+
+    def __init__(self, edit):
+        super().__init__(edit)
+        self.edit = edit
+        self.adjustWidth(1)
+        edit.blockCountChanged.connect(self.adjustWidth)
+        edit.updateRequest.connect(self.updateContents)
+
+    def paintEvent(self, event):
+        edit = self.edit
+        font_metrics = edit.fontMetrics()
+        block = edit.firstVisibleBlock()
+        count = block.blockNumber()
+        painter = QtGui.QPainter(self)
+        painter.fillRect(event.rect(), edit.palette().base())
+        while block.isValid():
+            count += 1
+            block_top = edit.blockBoundingGeometry(block).translated(
+                edit.contentOffset()).top()
+            if not block.isVisible() or block_top > event.rect().bottom():
+                break
+            paint_rect = QtCore.QRect(
+                0, block_top, self.width(), font_metrics.height())
+            painter.drawText(paint_rect, Qt.AlignRight, self.block_text(count))
+            block = block.next()
+        painter.end()
+        super().paintEvent(event)
+
+    def adjustWidth(self, count):
+        width = self.calc_width(count)
+        if self.width() != width:
+            self.setFixedWidth(width)
+
+    def updateContents(self, rect, scroll):
+        if scroll:
+            self.scroll(0, scroll)
+        else:
+            self.update()
+
+
+class LineNumberBar(TextEditSideBar):
+
+    def block_text(self, count):
+        return str(count)
+
+    def calc_width(self, count):
+        return self.fontMetrics().width(str(count))
+
+
+class TimeStampBar(TextEditSideBar):
+
+    def __init__(self, edit, records):
+        super().__init__(edit)
+        self.records = records
+        font = self.font()
+        font.setBold(True)
+        self.setFont(font)
+
+    def block_text(self, count):
+        if count in self.records:
+            record = self.records[count]
+            return time.strftime('%H:%M:%S', time.localtime(record.time))
+        return ''
+
+    def calc_width(self, count):
+        return self.fontMetrics().width("23:59:59")
+
+
+class TextLog(QtGui.QFrame):
 
     """
     Simple log window based on QPlainTextEdit using ExtraSelection to
@@ -112,10 +186,13 @@ class TextLog(QtGui.QWidget):
 
     def __init__(self, *args):
         super().__init__(*args)
+        self.setFont(monospace())
         self.textctrl = QtGui.QPlainTextEdit()
         self.textctrl.setReadOnly(True)
-        self.textctrl.setFont(monospace())
-        self.setLayout(VBoxLayout([self.textctrl], tight=True))
+        self.linumbar = TimeStampBar(self.textctrl, {})
+        hbox = HBoxLayout([self.linumbar, self.textctrl], tight=True)
+        hbox.setSpacing(0)
+        self.setLayout(hbox)
         self.records = List()
         self.records.insert_notify.connect(self._insert_record)
         self.formats = {}
@@ -137,6 +214,7 @@ class TextLog(QtGui.QWidget):
                 time.time(), domain, '<stdout>', text, None))
 
     def _insert_record(self, index, record):
+        self.linumbar.records[self.textctrl.document().blockCount()] = record
         if record.domain not in self.formats:
             self.textctrl.appendPlainText(record.text)
             return
