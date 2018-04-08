@@ -14,7 +14,7 @@ from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
 from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
-from madgui.widget.log import LogWindow, TextLog, LogRecord
+from madgui.widget.log import TextLog, LogRecord
 
 import madgui.online.control as control
 import madgui.core.config as config
@@ -227,14 +227,21 @@ class MainWindow(QtGui.QMainWindow):
                 self.control.connect(loader)
 
     def createControls(self):
-        self.log_window = LogWindow()
+        self.log_window = TextLog()
         self.log_window.setup_logging()
-        self.cmd_window = TextLog()
-        self.cmd_window.highlight('<stdin>', QtGui.QColor(Qt.yellow).lighter(160))
-        self.cmd_window.highlight('<stdout>', QtGui.QColor(Qt.white).darker(120))
+
+        QColor = QtGui.QColor
+        self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
+        self.log_window.highlight('MADX',     QColor(Qt.lightGray))
+
+        self.log_window.highlight('DEBUG',    QColor(Qt.blue).lighter(150))
+        self.log_window.highlight('INFO',     QColor(Qt.green))
+        self.log_window.highlight('WARNING',  QColor(Qt.yellow))
+        self.log_window.highlight('ERROR',    QColor(Qt.red))
+        self.log_window.highlight('CRITICAL', QColor(Qt.red))
+
         self.notebook = QtGui.QTabWidget()
         self.notebook.addTab(self.log_window, "Log")
-        self.notebook.addTab(self.cmd_window, "MAD-X")
         self.setCentralWidget(self.notebook)
 
     def createStatusBar(self):
@@ -244,8 +251,8 @@ class MainWindow(QtGui.QMainWindow):
         text = text.rstrip()
         self.logfile.write(text + '\n')
         self.logfile.flush()
-        self.cmd_window.records.append(LogRecord(
-            time.time(), '<stdin>', '<stdin>', text, None))
+        self.log_window.records.append(LogRecord(
+            time.time(), 'SEND', text))
 
     #----------------------------------------
     # Menu actions
@@ -423,6 +430,8 @@ class MainWindow(QtGui.QMainWindow):
             self.setWindowTitle("madgui")
             return
 
+        self.log_window.async_reader('MADX', model.remote_process.stdout)
+
         self.context['madx'] = model.madx
         self.context['twiss'] = model.twiss.data
         exec(model.data.get('onload', ''), self.context)
@@ -431,11 +440,6 @@ class MainWindow(QtGui.QMainWindow):
 
         model.selection = Selection()
         model.box_group = InfoBoxGroup(self, model.selection)
-
-        self.notebook.setCurrentIndex(1)
-        self.cmd_window.async_reader(
-            '<stdout>',
-            model.remote_process.stdout)
 
         # This is required to make the thread exit (and hence allow the
         # application to close) by calling app.quit() on Ctrl-C:

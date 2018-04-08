@@ -213,6 +213,18 @@ class TextLog(QtGui.QFrame):
         format.setBackground(color)
         self.formats[domain] = format
 
+    def setup_logging(self, level=logging.INFO, fmt='%(message)s'):
+        # TODO: MAD-X log should be separate from basic logging
+        root = logging.getLogger('')
+        manager = logging.Manager(root)
+        formatter = logging.Formatter(fmt)
+        handler = RecordHandler(self.records)
+        handler.setFormatter(formatter)
+        root.addHandler(handler)
+        root.level = level
+        # store member variables:
+        self._log_manager = manager
+
     def async_reader(self, domain, stream):
         AsyncRead(stream, self.recv_log, domain)
 
