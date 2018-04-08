@@ -12,6 +12,7 @@ from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
 from madgui.util.qt import notifyCloseEvent, notifyEvent
+from madgui.util.font import monospace
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogWindow
 
@@ -229,6 +230,7 @@ class MainWindow(QtGui.QMainWindow):
         self.log_window = LogWindow()
         self.log_window.setup_logging()
         self.cmd_window = QtGui.QPlainTextEdit()
+        self.cmd_window.setFont(monospace())
         self.notebook = QtGui.QTabWidget()
         self.notebook.addTab(self.log_window, "Log")
         self.notebook.addTab(self.cmd_window, "Commands")
