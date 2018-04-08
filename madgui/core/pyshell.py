@@ -14,7 +14,7 @@ def create(context):
     manager.start_kernel(show_banner=False)
     kernel = manager.kernel
     kernel.gui = 'qt'
-    kernel.context = context
+    kernel.user_ns = context
 
     client = manager.client()
     client.start_channels()
