@@ -22,6 +22,7 @@ from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.base import Object, Signal
 from madgui.util.collections import List
 from madgui.util.qt import monospace
+from madgui.util.layout import VBoxLayout
 from madgui.widget.tableview import ColumnInfo, TableModel, MultiLineDelegate
 
 
@@ -80,8 +81,7 @@ class LogWindow(QtGui.QListView):
         self._log_manager = manager
 
     def async_reader(self, domain, stream):
-        reader = AsyncRead(stream)
-        reader.dataReceived.connect(partial(self.recv_log, reader.queue, domain))
+        AsyncRead(stream, self.recv_log, domain)
 
     def recv_log(self, queue, domain):
         lines = list(pop_all(queue))
@@ -89,6 +89,84 @@ class LogWindow(QtGui.QListView):
             text = "\n".join(lines)
             self.records.append(LogRecord(
                 time.time(), domain, '<stdout>', text, None))
+
+
+class TextLog(QtGui.QWidget):
+
+    """
+    Simple log window based on QPlainTextEdit using ExtraSelection to
+    highlight input/output sections with different backgrounds, see:
+    http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
+    """
+
+    # TODO:
+    # - add timestamps/headlines, fully replace LogWindow
+    # - add toggle buttons to show/hide specific domains, and titles+timestamps
+    # - A more advanced version could use QTextEdit with QSyntaxHighlighter:
+    #   http://doc.qt.io/qt-5/qtwidgets-richtext-syntaxhighlighter-example.html
+    # - make sure to read all available stdout lines before sending more input
+    #   to MAD-X (ensure the real chronological order!), see:
+    #       windows: https://stackoverflow.com/a/34504971/650222
+    #       linux:   https://gist.github.com/techtonik/48c2561f38f729a15b7b
+    #                https://stackoverflow.com/q/375427/650222
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.textctrl = QtGui.QPlainTextEdit()
+        self.textctrl.setReadOnly(True)
+        self.textctrl.setFont(monospace())
+        self.setLayout(VBoxLayout([self.textctrl], tight=True))
+        self.records = List()
+        self.records.insert_notify.connect(self._insert_record)
+        self.formats = {}
+
+    def highlight(self, domain, color):
+        format = QtGui.QTextCharFormat()
+        format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
+        format.setBackground(color)
+        self.formats[domain] = format
+
+    def async_reader(self, domain, stream):
+        AsyncRead(stream, self.recv_log, domain)
+
+    def recv_log(self, queue, domain):
+        lines = list(pop_all(queue))
+        if lines:
+            text = "\n".join(lines)
+            self.records.append(LogRecord(
+                time.time(), domain, '<stdout>', text, None))
+
+    def _insert_record(self, index, record):
+        if record.domain not in self.formats:
+            self.textctrl.appendPlainText(record.text)
+            return
+
+        QTextCursor = QtGui.QTextCursor
+
+        # NOTE: For some reason, we must use `setPosition` in order to
+        # guarantee a absolute, fixed selection (at least on linux). It seems
+        # almost if `movePosition(End)` will be re-evaluated at any time the
+        # cursor/selection is used and therefore always point to the end of
+        # the document.
+
+        cursor = QTextCursor(self.textctrl.document())
+        cursor.movePosition(QTextCursor.End)
+        pos0 = cursor.position()
+        cursor.insertText(record.text + '\n')
+        pos1 = cursor.position()
+
+        cursor = QTextCursor(self.textctrl.document())
+        cursor.setPosition(pos0)
+        cursor.setPosition(pos1, QTextCursor.KeepAnchor)
+
+        selection = QtGui.QTextEdit.ExtraSelection()
+        selection.format = self.formats[record.domain]
+        selection.cursor = cursor
+
+        selections = self.textctrl.extraSelections()
+        selections.append(selection)
+        self.textctrl.setExtraSelections(selections)
+        self.textctrl.ensureCursorVisible()
 
 
 class LogDelegate(MultiLineDelegate):
@@ -233,9 +311,10 @@ class AsyncRead(Object):
 
     dataReceived = Signal()
 
-    def __init__(self, stream):
+    def __init__(self, stream, callback, *args):
         super().__init__()
         self.queue = Queue()
+        self.dataReceived.connect(partial(callback, self.queue, *args))
         self.stream = stream
         self.thread = threading.Thread(target=self._readLoop)
         self.thread.daemon = True   # don't block program exit
