@@ -241,6 +241,7 @@ class MainWindow(QtGui.QMainWindow):
         self.log_window.highlight('CRITICAL', QColor(Qt.red))
 
         self.notebook = QtGui.QTabWidget()
+        self.notebook.tabBar().hide()
         self.notebook.addTab(self.log_window, "Log")
         self.setCentralWidget(self.notebook)
 
