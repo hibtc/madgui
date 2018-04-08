@@ -199,10 +199,10 @@ class TextLog(QtGui.QFrame):
         self.setFont(monospace())
         self.textctrl = QtGui.QPlainTextEdit()
         self.textctrl.setReadOnly(True)
-        self.linumbar = RecordInfoBar(self.textctrl, {}, set())
-        hbox = HBoxLayout([self.linumbar, self.textctrl], tight=True)
-        hbox.setSpacing(0)
-        self.setLayout(hbox)
+        self.infobar = RecordInfoBar(self.textctrl, {}, set())
+        self.linumbar = LineNumberBar(self.textctrl)
+        self.setLayout(HBoxLayout([
+            self.infobar, self.linumbar, self.textctrl], tight=True))
         self.records = List()
         self.records.insert_notify.connect(self._insert_record)
         self.formats = {}
@@ -224,8 +224,8 @@ class TextLog(QtGui.QFrame):
                 time.time(), domain, '<stdout>', text, None))
 
     def _insert_record(self, index, record):
-        self.linumbar.records[self.textctrl.document().blockCount()] = record
-        self.linumbar.domains.add(record.domain)
+        self.infobar.records[self.textctrl.document().blockCount()] = record
+        self.infobar.domains.add(record.domain)
         if record.domain not in self.formats:
             self.textctrl.appendPlainText(record.text)
             return
