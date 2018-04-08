@@ -14,7 +14,7 @@ from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
 from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
-from madgui.widget.log import TextLog, LogRecord
+from madgui.widget.log import LogWindow, LogRecord
 
 import madgui.online.control as control
 import madgui.core.config as config
@@ -227,7 +227,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.control.connect(loader)
 
     def createControls(self):
-        self.log_window = TextLog()
+        self.log_window = LogWindow()
         self.log_window.setup_logging()
 
         QColor = QtGui.QColor
