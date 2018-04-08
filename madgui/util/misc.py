@@ -12,7 +12,6 @@ from madgui.util.collections import Bool
 from madgui.util.qt import notifyCloseEvent, present
 
 __all__ = [
-    'safe_hasattr',
     'suppress',
     'memoize',
     'cachedproperty',
@@ -32,18 +31,6 @@ def try_import(name):
         return importlib.import_module(name)
     except ImportError:
         return None
-
-
-def safe_hasattr(obj, key):
-    """
-    Safe replacement for `hasattr()`. The py2 builtin `hasattr()` shadows all
-    exceptions, see https://hynek.me/articles/hasattr/.
-    """
-    try:
-        getattr(obj, key)
-        return True
-    except AttributeError:
-        return False
 
 
 def suppress(exc, fun, *args, **kwargs):
@@ -139,7 +126,7 @@ class Property:
 
     @property
     def _has(self):
-        return safe_hasattr(self, '_val')
+        return hasattr(self, '_val')
 
     def _get(self):
         return self._val
