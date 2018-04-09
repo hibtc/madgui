@@ -16,9 +16,10 @@ from madgui.qt import QtCore, QtGui, load_ui
 
 from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.collections import List
-from madgui.util.layout import VBoxLayout
+from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import fit_button, monospace
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
+from madgui.widget.edit import LineNumberBar
 from madgui.correct.orbit import fit_initial_orbit
 
 from .match import Matcher, Constraint, variable_from_knob, variable_update
@@ -365,11 +366,15 @@ class EditConfigDialog(QtGui.QDialog):
         self.matcher = matcher
         self.textbox = QtGui.QPlainTextEdit()
         self.textbox.setFont(monospace())
+        self.linenos = LineNumberBar(self.textbox)
         buttons = QtGui.QDialogButtonBox()
         buttons.addButton(buttons.Ok).clicked.connect(self.accept)
         buttons.addButton(buttons.Apply).clicked.connect(self.apply)
         buttons.addButton(buttons.Cancel).clicked.connect(self.reject)
-        self.setLayout(VBoxLayout([self.textbox, buttons]))
+        self.setLayout(VBoxLayout([
+            HBoxLayout([self.linenos, self.textbox], tight=True),
+            buttons,
+        ]))
         self.setSizeGripEnabled(True)
         self.resize(QtCore.QSize(600,400))
         self.setWindowTitle(self.model.filename)
