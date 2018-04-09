@@ -58,7 +58,7 @@ class TextEditSideBar(QtGui.QWidget):
                 break
             rect = QtCore.QRect(
                 0, block_top, self.width(), font_metrics.height())
-            self.draw_block(painter, rect, count, first)
+            self.draw_block(painter, rect, block, first)
             first = False
             block = block.next()
         painter.end()
@@ -78,8 +78,10 @@ class TextEditSideBar(QtGui.QWidget):
 
 class LineNumberBar(TextEditSideBar):
 
-    def draw_block(self, painter, rect, count, first):
-        painter.drawText(rect, Qt.AlignRight, str(count))
+    def draw_block(self, painter, rect, block, first):
+        count = block.blockNumber()+1
+        if count != block.document().blockCount() or block.text():
+            painter.drawText(rect, Qt.AlignRight, str(count))
 
     def calc_width(self, count):
         return self.fontMetrics().width(str(count))
@@ -96,7 +98,8 @@ class RecordInfoBar(TextEditSideBar):
         self.setFont(font)
         self.adjustWidth(1)
 
-    def draw_block(self, painter, rect, count, first):
+    def draw_block(self, painter, rect, block, first):
+        count = block.blockNumber()+1
         if count in self.records:
             painter.setPen(QtGui.QColor(Qt.black))
         elif first:
