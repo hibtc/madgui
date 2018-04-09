@@ -32,8 +32,6 @@ class TextEditSideBar(QtGui.QWidget):
 
     """Widget that displays line numbers for a QPlainTextEdit."""
 
-    align = Qt.AlignLeft
-
     # Thanks to:
     # https://nachtimwald.com/2009/08/19/better-qplaintextedit-with-line-numbers/
 
@@ -51,15 +49,17 @@ class TextEditSideBar(QtGui.QWidget):
         count = block.blockNumber()
         painter = QtGui.QPainter(self)
         painter.fillRect(event.rect(), edit.palette().base())
+        first = True
         while block.isValid():
             count += 1
             block_top = edit.blockBoundingGeometry(block).translated(
                 edit.contentOffset()).top()
             if not block.isVisible() or block_top > event.rect().bottom():
                 break
-            paint_rect = QtCore.QRect(
+            rect = QtCore.QRect(
                 0, block_top, self.width(), font_metrics.height())
-            painter.drawText(paint_rect, self.align, self.block_text(count))
+            self.draw_block(painter, rect, count, first)
+            first = False
             block = block.next()
         painter.end()
         super().paintEvent(event)
@@ -78,10 +78,8 @@ class TextEditSideBar(QtGui.QWidget):
 
 class LineNumberBar(TextEditSideBar):
 
-    align = Qt.AlignRight
-
-    def block_text(self, count):
-        return str(count)
+    def draw_block(self, painter, rect, count, first):
+        painter.drawText(rect, Qt.AlignRight, str(count))
 
     def calc_width(self, count):
         return self.fontMetrics().width(str(count))
@@ -98,13 +96,18 @@ class RecordInfoBar(TextEditSideBar):
         self.setFont(font)
         self.adjustWidth(1)
 
-    def block_text(self, count):
+    def draw_block(self, painter, rect, count, first):
+        if count in self.records:
+            painter.setPen(QtGui.QColor(Qt.black))
+        elif first:
+            painter.setPen(QtGui.QColor(Qt.gray))
+            count = max([c for c in self.records if c <= count])
         if count in self.records:
             record = self.records[count]
-            return "{} {}:".format(
+            text = "{} {}:".format(
                 time.strftime('%H:%M:%S', time.localtime(record.time)),
                 record.domain)
-        return ''
+            painter.drawText(rect, Qt.AlignLeft, text)
 
     def calc_width(self, count):
         width_time = self.fontMetrics().width("23:59:59: ")
