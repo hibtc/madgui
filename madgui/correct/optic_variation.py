@@ -6,7 +6,7 @@ alignment.
 import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui, load_ui
-from madgui.core.unit import get_unit, tounit
+from madgui.core.unit import get_unit, tounit, ui_units
 from madgui.widget.tableview import ColumnInfo
 from madgui.util.collections import List
 from madgui.util.qt import notifyEvent

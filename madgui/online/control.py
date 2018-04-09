@@ -2,13 +2,10 @@
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
 
-from functools import partial
-
 from madgui.qt import QtGui
 from madgui.core.base import Object
 from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool
-import madgui.core.menu as menu
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook

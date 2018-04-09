@@ -4,7 +4,6 @@ Provides unit conversion.
 
 from importlib_resources import read_binary
 
-import numpy as np
 import pint
 import yaml
 

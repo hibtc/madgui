@@ -152,7 +152,7 @@ class MatchTransform:
     def alfy(self, val, tw): return 'sig34', -val*tw.ey
     def betx(self, val, tw): return 'sig11',  val*tw.ex
     def bety(self, val, tw): return 'sig33',  val*tw.ey
-    def gamy(self, val, tw): return 'sig22',  val*tw.ex
+    def gamx(self, val, tw): return 'sig22',  val*tw.ex
     def gamy(self, val, tw): return 'sig44',  val*tw.ey
     def envx(self, val, tw): return 'sig11',  val**2
     def envy(self, val, tw): return 'sig33',  val**2

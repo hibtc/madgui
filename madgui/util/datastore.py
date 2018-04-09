@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from collections import OrderedDict
 
 from madgui.util import yaml
 

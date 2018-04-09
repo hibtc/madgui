@@ -23,7 +23,6 @@ The interface contract is currently designed as follows:
 """
 
 from abc import ABCMeta, abstractmethod
-from math import pi
 
 from madgui.core.unit import from_ui, to_ui
 

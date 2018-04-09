@@ -4,10 +4,8 @@ Info boxes to display element detail.
 
 from collections import OrderedDict
 
-from math import sqrt, pi, atan2, cos, sin
+from math import sqrt, pi, atan2
 import itertools
-
-import numpy as np
 
 import matplotlib as mpl
 mpl.use('Qt5Agg')                       # select before mpl.backends import!
