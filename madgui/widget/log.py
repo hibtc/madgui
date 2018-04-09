@@ -8,6 +8,8 @@ Logging utils.
 # ? single line ListView overview over all log events ("quick jump")
 # ? deselect on single click
 
+import sys
+import traceback
 import logging
 import threading
 import time
@@ -167,6 +169,7 @@ class LogWindow(QtGui.QFrame):
         root.level = level
         # store member variables:
         self._log_manager = manager
+        sys.excepthook = self.excepthook
 
     def async_reader(self, domain, stream):
         AsyncRead(stream, self.recv_log, domain)
@@ -177,6 +180,9 @@ class LogWindow(QtGui.QFrame):
             text = "\n".join(lines)
             self.records.append(LogRecord(
                 time.time(), domain, text))
+
+    def excepthook(self, *args, **kwargs):
+        logging.error("".join(traceback.format_exception(*args, **kwargs)))
 
     def _insert_record(self, index, record):
         self.infobar.records[self.textctrl.document().blockCount()] = record
