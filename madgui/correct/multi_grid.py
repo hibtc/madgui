@@ -17,8 +17,7 @@ from madgui.qt import QtCore, QtGui, load_ui
 from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout
-from madgui.util.qt import fit_button
-from madgui.util.font import monospace
+from madgui.util.qt import fit_button, monospace
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.orbit import fit_initial_orbit
 
@@ -365,7 +364,7 @@ class EditConfigDialog(QtGui.QDialog):
         self.model = model
         self.matcher = matcher
         self.textbox = QtGui.QPlainTextEdit()
-        self.textbox.setFont(monospace(10))
+        self.textbox.setFont(monospace())
         buttons = QtGui.QDialogButtonBox()
         buttons.addButton(buttons.Ok).clicked.connect(self.accept)
         buttons.addButton(buttons.Apply).clicked.connect(self.apply)

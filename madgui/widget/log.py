@@ -8,61 +8,142 @@ Logging utils.
 # ? single line ListView overview over all log events ("quick jump")
 # ? deselect on single click
 
+import sys
+import traceback
 import logging
-import threading
 import time
 from collections import namedtuple
-from functools import partial
-from queue import Queue, Empty
 
 from madgui.qt import Qt, QtCore, QtGui
-from madgui.core.base import Object, Signal
 from madgui.util.collections import List
-from madgui.widget.tableview import ColumnInfo, TableModel, MultiLineDelegate
-import madgui.util.font as font
+from madgui.util.qt import monospace
+from madgui.util.layout import HBoxLayout
 
 
-LogRecord = namedtuple('LogRecord', ['time', 'domain', 'title', 'text', 'extra'])
-
-TextInfo = namedtuple('TextInfo', ['text', 'rect', 'font'])
+LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text'])
 
 
-def get_record_text(record):
-    return "{} {}:\n{}".format(
-        time.strftime('%H:%M:%S', time.localtime(record.time)),
-        record.domain,
-        record.text)
+class TextEditSideBar(QtGui.QWidget):
 
-def get_record_head(record):
-    return "{} {}:".format(
-        time.strftime('%H:%M:%S', time.localtime(record.time)),
-        record.domain)
+    """Widget that displays line numbers for a QPlainTextEdit."""
 
-def get_record_body(record):
-    return record.text
+    # Thanks to:
+    # https://nachtimwald.com/2009/08/19/better-qplaintextedit-with-line-numbers/
+
+    def __init__(self, edit):
+        super().__init__(edit)
+        self.edit = edit
+        self.adjustWidth(1)
+        edit.blockCountChanged.connect(self.adjustWidth)
+        edit.updateRequest.connect(self.updateContents)
+
+    def paintEvent(self, event):
+        edit = self.edit
+        font_metrics = edit.fontMetrics()
+        block = edit.firstVisibleBlock()
+        count = block.blockNumber()
+        painter = QtGui.QPainter(self)
+        painter.fillRect(event.rect(), edit.palette().base())
+        first = True
+        while block.isValid():
+            count += 1
+            block_top = edit.blockBoundingGeometry(block).translated(
+                edit.contentOffset()).top()
+            if not block.isVisible() or block_top > event.rect().bottom():
+                break
+            rect = QtCore.QRect(
+                0, block_top, self.width(), font_metrics.height())
+            self.draw_block(painter, rect, block, first)
+            first = False
+            block = block.next()
+        painter.end()
+        super().paintEvent(event)
+
+    def adjustWidth(self, count):
+        width = self.calc_width(count)
+        if self.width() != width:
+            self.setFixedWidth(width)
+
+    def updateContents(self, rect, scroll):
+        if scroll:
+            self.scroll(0, scroll)
+        else:
+            self.update()
 
 
-class LogWindow(QtGui.QListView):
+class LineNumberBar(TextEditSideBar):
 
-    columns = [
-        ColumnInfo('', 'text')
-    ]
+    def draw_block(self, painter, rect, block, first):
+        count = block.blockNumber()+1
+        if count != block.document().blockCount() or block.text():
+            painter.drawText(rect, Qt.AlignRight, str(count))
+
+    def calc_width(self, count):
+        return self.fontMetrics().width(str(count))
+
+
+class RecordInfoBar(TextEditSideBar):
+
+    def __init__(self, edit, records, domains):
+        self.records = records
+        self.domains = domains
+        super().__init__(edit)
+        font = self.font()
+        font.setBold(True)
+        self.setFont(font)
+        self.adjustWidth(1)
+
+    def draw_block(self, painter, rect, block, first):
+        count = block.blockNumber()+1
+        if count in self.records:
+            painter.setPen(QtGui.QColor(Qt.black))
+        elif first:
+            painter.setPen(QtGui.QColor(Qt.gray))
+            count = max([c for c in self.records if c <= count])
+        if count in self.records:
+            record = self.records[count]
+            text = "{} {}:".format(
+                time.strftime('%H:%M:%S', time.localtime(record.time)),
+                record.domain)
+            painter.drawText(rect, Qt.AlignLeft, text)
+
+    def calc_width(self, count):
+        width_time = self.fontMetrics().width("23:59:59: ")
+        width_kind = max(map(self.fontMetrics().width, self.domains), default=0)
+        return width_time + width_kind
+
+
+class LogWindow(QtGui.QFrame):
+
+    """
+    Simple log window based on QPlainTextEdit using ExtraSelection to
+    highlight input/output sections with different backgrounds, see:
+    http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
+    """
+
+    # TODO:
+    # - add toggle buttons to show/hide specific domains, and titles+timestamps
+    # - A more advanced version could use QTextEdit with QSyntaxHighlighter:
+    #   http://doc.qt.io/qt-5/qtwidgets-richtext-syntaxhighlighter-example.html
 
     def __init__(self, *args):
-        self.records = List()
         super().__init__(*args)
-        self.setFont(font.monospace(10))
-        self.setModel(TableModel(self.columns, self.records))
-        self.setItemDelegate(LogDelegate(self.font()))
-        self.setAlternatingRowColors(True)
-        self.setUniformItemSizes(False)
-        self.setVerticalScrollMode(QtGui.QAbstractItemView.ScrollPerPixel)
-        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.model().layoutChanged.connect(self.scrollToBottom)
+        self.setFont(monospace())
+        self.textctrl = QtGui.QPlainTextEdit()
+        self.textctrl.setReadOnly(True)
+        self.infobar = RecordInfoBar(self.textctrl, {}, set())
+        self.linumbar = LineNumberBar(self.textctrl)
+        self.setLayout(HBoxLayout([
+            self.infobar, self.linumbar, self.textctrl], tight=True))
+        self.records = List()
+        self.records.insert_notify.connect(self._insert_record)
+        self.formats = {}
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Escape:
-            self.clearSelection()
+    def highlight(self, domain, color):
+        format = QtGui.QTextCharFormat()
+        format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
+        format.setBackground(color)
+        self.formats[domain] = format
 
     def setup_logging(self, level=logging.INFO, fmt='%(message)s'):
         # TODO: MAD-X log should be separate from basic logging
@@ -75,133 +156,51 @@ class LogWindow(QtGui.QListView):
         root.level = level
         # store member variables:
         self._log_manager = manager
+        sys.excepthook = self.excepthook
 
-    def async_reader(self, domain, stream):
-        reader = AsyncRead(stream)
-        reader.dataReceived.connect(partial(self.recv_log, reader.queue, domain))
-
-    def recv_log(self, queue, domain):
-        lines = list(pop_all(queue))
+    def recv_log(self, domain, reader):
+        lines = list(reader.read_all())
         if lines:
             text = "\n".join(lines)
             self.records.append(LogRecord(
-                time.time(), domain, '<stdout>', text, None))
+                time.time(), domain, text))
 
+    def excepthook(self, *args, **kwargs):
+        logging.error("".join(traceback.format_exception(*args, **kwargs)))
 
-class LogDelegate(MultiLineDelegate):
-
-    # Basic mechanism from:
-    # https://3adly.blogspot.fr/2013/09/qt-custom-qlistview-delegate-with-word.html
-
-    padding = 8
-    margin = 4
-    corner_radius = 10
-    pen_width = 1
-    text_flags = Qt.AlignLeft|Qt.AlignTop|Qt.TextWordWrap
-
-    def __init__(self, font):
-        self.font = font
-        super().__init__()
-
-    def _get_text_info(self, option, index):
-        record = index.model().rows[index.row()]
-        head_text = get_record_head(record)
-        info_text = record.title
-        body_text = record.text
-
-        head_font = QtGui.QFont(self.font)
-        head_font.setBold(True)
-        info_font = QtGui.QFont(self.font)
-        body_font = QtGui.QFont(self.font)
-        head_fm = QtGui.QFontMetrics(head_font)
-        info_fm = QtGui.QFontMetrics(info_font)
-        body_fm = QtGui.QFontMetrics(body_font)
-
-        # Note that the given height is 0. That is because boundingRect() will return
-        # the suitable height if the given geometry does not fit. And this is exactly
-        # what we want.
-        width = option.rect.width()-2*self.padding-2*self.margin
-
-        head_rect = head_fm.boundingRect(
-            option.rect.left() + self.padding + self.margin,
-            option.rect.top() + self.padding + self.margin,
-            width, 0,
-            self.text_flags, head_text)
-
-        info_rect = info_fm.boundingRect(
-            head_rect.right() + self.padding,
-            head_rect.top(),
-            width-head_rect.width()-self.padding, 0,
-            self.text_flags, info_text)
-
-        body_rect = body_fm.boundingRect(
-            head_rect.left(),
-            max(head_rect.bottom(), info_rect.bottom())  + self.padding,
-            width, 0,
-            self.text_flags, body_text)
-
-        return (TextInfo(head_text, head_rect, head_font),
-                TextInfo(info_text, info_rect, info_font),
-                TextInfo(body_text, body_rect, body_font))
-
-    def sizeHint(self, option, index):
-        if not index.isValid():
-            return QtCore.QSize()
-        head, info, body = self._get_text_info(option, index)
-        return QtCore.QSize(
-            option.rect.width(),
-            max(head.rect.height(), info.rect.height()) + body.rect.height()
-            + 3*self.padding
-            + 2*self.margin)
-
-    def paint(self, painter, option, index):
-        if not index.isValid():
+    def _insert_record(self, index, record):
+        self.infobar.records[self.textctrl.document().blockCount()] = record
+        self.infobar.domains.add(record.domain)
+        if record.domain not in self.formats:
+            self.textctrl.appendPlainText(record.text)
             return
 
-        if option.state & QtGui.QStyle.State_Selected:
-            fill = option.palette.highlight()
-        elif index.row() % 2 == 0:
-            fill = option.palette.base()
-        else:
-            fill = option.palette.alternateBase()
-            #fill = option.backgroundBrush
+        QTextCursor = QtGui.QTextCursor
 
-        painter.save()
+        # NOTE: For some reason, we must use `setPosition` in order to
+        # guarantee a absolute, fixed selection (at least on linux). It seems
+        # almost if `movePosition(End)` will be re-evaluated at any time the
+        # cursor/selection is used and therefore always point to the end of
+        # the document.
 
-        # paint background
-        painter.fillRect(option.rect, option.palette.base())
+        cursor = QTextCursor(self.textctrl.document())
+        cursor.movePosition(QTextCursor.End)
+        pos0 = cursor.position()
+        cursor.insertText(record.text + '\n')
+        pos1 = cursor.position()
 
-        # Qt Drawing a filled rounded rectangle with border:
-        # https://stackoverflow.com/a/29196812/650222/
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        path = QtGui.QPainterPath()
-        rect = option.rect
-        rect = QtCore.QRectF(
-            rect.x() + self.margin - 0.5,
-            rect.y() + self.margin - 0.5,
-            rect.width() - 2*self.margin,
-            rect.height() - 2*self.margin)
-        path.addRoundedRect(rect, self.corner_radius, self.corner_radius)
-        pen = QtGui.QPen(Qt.black, self.pen_width)
-        painter.setPen(pen)
-        painter.fillPath(path, fill)
-        painter.drawPath(path)
+        cursor = QTextCursor(self.textctrl.document())
+        cursor.setPosition(pos0)
+        cursor.setPosition(pos1, QTextCursor.KeepAnchor)
 
-        painter.setPen(Qt.black)
-        for block in self._get_text_info(option, index):
-            painter.setFont(block.font)
-            painter.drawText(block.rect, self.text_flags, block.text)
+        selection = QtGui.QTextEdit.ExtraSelection()
+        selection.format = self.formats[record.domain]
+        selection.cursor = cursor
 
-        painter.restore()
-
-
-def pop_all(queue):
-    while True:
-        try:
-            x = queue.get_nowait()
-        except Empty:
-            return
-        yield x
+        selections = self.textctrl.extraSelections()
+        selections.append(selection)
+        self.textctrl.setExtraSelections(selections)
+        self.textctrl.ensureCursorVisible()
 
 
 class RecordHandler(logging.Handler):
@@ -216,30 +215,6 @@ class RecordHandler(logging.Handler):
         self.records.append(LogRecord(
             record.created,
             record.levelname,
-            '{0.name}:{0.lineno} in {0.funcName}()'.format(record),
             self.format(record),
-            record,
         ))
 
-
-class AsyncRead(Object):
-
-    """
-    Write to a text control.
-    """
-
-    dataReceived = Signal()
-
-    def __init__(self, stream):
-        super().__init__()
-        self.queue = Queue()
-        self.stream = stream
-        self.thread = threading.Thread(target=self._readLoop)
-        self.thread.daemon = True   # don't block program exit
-        self.thread.start()
-
-    def _readLoop(self):
-        # The file iterator seems to be buffered:
-        for line in iter(self.stream.readline, b''):
-            self.queue.put(line.decode('utf-8', 'replace')[:-1])
-            self.dataReceived.emit()

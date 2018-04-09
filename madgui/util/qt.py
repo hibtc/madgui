@@ -43,3 +43,7 @@ def fit_button(button):
         QtGui.QStyle.CT_PushButton, opt, text_size, button)
     button.setMinimumWidth(full_size.width())
     button.setMaximumWidth(full_size.width())
+
+
+def monospace():
+    return QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
