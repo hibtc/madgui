@@ -10,7 +10,8 @@ import itertools
 import logging
 from bisect import bisect_right
 import subprocess
-from threading import RLock
+from threading import Thread, Event, RLock
+from queue import Queue, Empty
 
 import numpy as np
 
@@ -50,6 +51,101 @@ ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
+# The following code makes sure to read all available stdout lines before
+# sending more input to MAD-X (ensure the real chronological order!), see:
+#       linux:   https://stackoverflow.com/q/375427/650222
+#       windows: https://stackoverflow.com/a/34504971/650222
+#                https://gist.github.com/techtonik/48c2561f38f729a15b7b
+
+import time
+try:
+    import fcntl
+    from os import O_NONBLOCK
+    def set_nonblocking(pipe):
+        fd = pipe.fileno()
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | O_NONBLOCK)
+
+except ImportError:
+    import msvcrt
+    from ctypes import windll, byref, WinError
+    from ctypes.wintypes import HANDLE, DWORD, LPDWORD, BOOL
+
+    PIPE_NOWAIT = DWORD(0x00000001)
+
+    SetNamedPipeHandleState = windll.kernel32.SetNamedPipeHandleState
+    SetNamedPipeHandleState.argtypes = [HANDLE, LPDWORD, LPDWORD, LPDWORD]
+    SetNamedPipeHandleState.restype = BOOL
+
+    def set_nonblocking(pipe):
+        fd = pipe.fileno()
+        hd = msvcrt.get_osfhandle(fd)
+        if SetNamedPipeHandleState(hd, byref(PIPE_NOWAIT), None, None) == 0:
+            raise OSError(WinError())
+
+
+def read_nonblocking(pipe):
+    return pipe.readline()
+
+
+class AsyncReader:
+
+    """
+    Write to a text control.
+    """
+
+    def __init__(self, event, stream, callback):
+        super().__init__()
+        self.queue = Queue()
+        self.event = event
+        self.stream = stream
+        self.callback = callback
+        self.thread = Thread(target=self._readLoop)
+        self.thread.daemon = True   # don't block program exit
+        self.thread.start()
+
+    def read_all(self):
+        while True:
+            try:
+                x = self.queue.get_nowait()
+            except Empty:
+                return
+            yield x
+
+    def _readLoop(self):
+        set_nonblocking(self.stream)
+        while True:
+            try:
+                line = read_nonblocking(self.stream)
+            except IOError:
+                self.event.set()
+                time.sleep(0.001)
+                continue
+            if not line:
+                return
+            self.queue.put(line.decode('utf-8', 'replace')[:-1])
+            self.callback(self)
+
+
+class Madx(Madx):
+
+    def __init__(self, *args, stdout_log, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.event = Event()
+        self.reader = AsyncReader(self.event, self._process.stdout, stdout_log)
+        self.flush()
+
+    def input(self, text):
+        super().input(text)
+        self.flush()
+
+    def flush(self):
+        self.event.clear()
+        self.event.wait()
+        if not self.reader.queue.empty():
+            self.reader.callback(self.reader) # emit signal in direct mode!
+
+
 class Model(Object):
 
     """
@@ -67,7 +163,7 @@ class Model(Object):
     destroyed = Signal()
     matcher = None
 
-    def __init__(self, filename, config, command_log):
+    def __init__(self, filename, config, command_log, stdout_log):
         super().__init__()
         self.twiss = Cache(self._retrack)
         self.log = logging.getLogger(__name__)
@@ -75,6 +171,7 @@ class Model(Object):
         self.path = None
         self.init_files = []
         self.command_log = command_log
+        self.stdout_log = stdout_log
         self.config = config
         self.load(filename)
         self.twiss.invalidate()
@@ -283,7 +380,9 @@ class Model(Object):
         base, ext = os.path.splitext(name)
         self.path = path
         self.name = base
-        self.madx = Madx(command_log=self.command_log, **self.minrpc_flags())
+        self.madx = Madx(command_log=self.command_log,
+                         stdout_log=self.stdout_log,
+                         **self.minrpc_flags())
         if ext.lower() in ('.yml', '.yaml'):
             self.load_model(name)
         else:

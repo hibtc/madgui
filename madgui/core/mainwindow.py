@@ -226,9 +226,12 @@ class MainWindow(QtGui.QMainWindow):
                     not self.control.is_connected():
                 self.control.connect(loader)
 
+    dataReceived = Signal(object)
+
     def createControls(self):
         self.log_window = LogWindow()
         self.log_window.setup_logging()
+        self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
 
         QColor = QtGui.QColor
         self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
@@ -416,7 +419,8 @@ class MainWindow(QtGui.QMainWindow):
         self.log.info('Loading {}'.format(filename))
         self.log.info('Logging commands to: {}'.format(logfile))
         self.setModel(Model(filename, self.config,
-                            command_log=self.log_command))
+                            command_log=self.log_command,
+                            stdout_log=self.dataReceived.emit))
         self.showTwiss()
 
     def setModel(self, model):
@@ -430,8 +434,6 @@ class MainWindow(QtGui.QMainWindow):
             self.model_changed.emit()
             self.setWindowTitle("madgui")
             return
-
-        self.log_window.async_reader('MADX', model.remote_process.stdout)
 
         self.context['madx'] = model.madx
         self.context['twiss'] = model.twiss.data

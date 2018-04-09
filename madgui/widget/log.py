@@ -11,17 +11,10 @@ Logging utils.
 import sys
 import traceback
 import logging
-import threading
 import time
 from collections import namedtuple
-from functools import partial
-try:
-    from queue import Queue, Empty
-except ImportError:     # py2
-    from Queue import Queue, Empty
 
 from madgui.qt import Qt, QtCore, QtGui
-from madgui.core.base import Object, Signal
 from madgui.util.collections import List
 from madgui.util.qt import monospace
 from madgui.util.layout import HBoxLayout
@@ -129,15 +122,9 @@ class LogWindow(QtGui.QFrame):
     """
 
     # TODO:
-    # - add timestamps/headlines, fully replace LogWindow
     # - add toggle buttons to show/hide specific domains, and titles+timestamps
     # - A more advanced version could use QTextEdit with QSyntaxHighlighter:
     #   http://doc.qt.io/qt-5/qtwidgets-richtext-syntaxhighlighter-example.html
-    # - make sure to read all available stdout lines before sending more input
-    #   to MAD-X (ensure the real chronological order!), see:
-    #       windows: https://stackoverflow.com/a/34504971/650222
-    #       linux:   https://gist.github.com/techtonik/48c2561f38f729a15b7b
-    #                https://stackoverflow.com/q/375427/650222
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -171,11 +158,8 @@ class LogWindow(QtGui.QFrame):
         self._log_manager = manager
         sys.excepthook = self.excepthook
 
-    def async_reader(self, domain, stream):
-        AsyncRead(stream, self.recv_log, domain)
-
-    def recv_log(self, queue, domain):
-        lines = list(pop_all(queue))
+    def recv_log(self, domain, reader):
+        lines = list(reader.read_all())
         if lines:
             text = "\n".join(lines)
             self.records.append(LogRecord(
@@ -219,15 +203,6 @@ class LogWindow(QtGui.QFrame):
         self.textctrl.ensureCursorVisible()
 
 
-def pop_all(queue):
-    while True:
-        try:
-            x = queue.get_nowait()
-        except Empty:
-            return
-        yield x
-
-
 class RecordHandler(logging.Handler):
 
     """Handle incoming logging events by adding them to a list."""
@@ -243,26 +218,3 @@ class RecordHandler(logging.Handler):
             self.format(record),
         ))
 
-
-class AsyncRead(Object):
-
-    """
-    Write to a text control.
-    """
-
-    dataReceived = Signal()
-
-    def __init__(self, stream, callback, *args):
-        super().__init__()
-        self.queue = Queue()
-        self.dataReceived.connect(partial(callback, self.queue, *args))
-        self.stream = stream
-        self.thread = threading.Thread(target=self._readLoop)
-        self.thread.daemon = True   # don't block program exit
-        self.thread.start()
-
-    def _readLoop(self):
-        # The file iterator seems to be buffered:
-        for line in iter(self.stream.readline, b''):
-            self.queue.put(line.decode('utf-8', 'replace')[:-1])
-            self.dataReceived.emit()
