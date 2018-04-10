@@ -17,7 +17,6 @@ import numpy as np
 
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command
 from cpymad.util import normalize_range_name, is_identifier
-from cpymad.types import Expression
 
 from madgui.core.base import Object, Signal, Cache
 from madgui.util.datastore import DataStore
@@ -576,7 +575,7 @@ class Model(Object):
     # TODO…
     def _is_mutable_attribute(self, k, v):
         blacklist = self.config['parameter_sets']['element']['readonly']
-        allowed_types = (list, int, float, Expression)
+        allowed_types = (list, int, float)
         return isinstance(v, allowed_types) and k.lower() not in blacklist
 
     def update_globals(self, globals):
@@ -1173,9 +1172,9 @@ def process_spec_item(key, value):
 #----------------------------------------
 
 def _get_identifier(expr):
-    if isinstance(expr, Expression):
-        return str(expr)
-    else:
+    try:
+        return expr.expr
+    except AttributeError:
         return ''
 
 
@@ -1190,9 +1189,9 @@ def _get_property_lval(elem, attr):
     if attr.endswith(']'):
         head, tail = attr.split('[', 1)
         index = int(tail[:-1])
-        expr = elem._model.elements[elem['name']][head][index]
+        expr = elem._model.elements[elem['name']].cmdpar[head].expr[index]
     else:
-        expr = elem._model.elements[elem['name']][attr]
+        expr = elem._model.elements[elem['name']].cmdpar[attr].expr
     if not isinstance(expr, list):
         madx = elem._model
         expr = _get_identifier(expr)
@@ -1213,8 +1212,6 @@ def _is_property_defined(elem, attr):
 def _eval_expr(value):
     """Helper method that replaces :class:`Expression` by their values."""
     # NOTE: This method will become unnecessary in cpymad 1.0.
-    if isinstance(value, Expression):
-        return value.value
     if isinstance(value, list):
         return [_eval_expr(v) for v in value]
     if isinstance(value, (dict, Command)):

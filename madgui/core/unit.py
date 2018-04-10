@@ -9,8 +9,6 @@ import yaml
 
 from madgui.util.defaultdict import DefaultDict
 
-from cpymad.types import Expression
-
 
 __all__ = [
     'units',
@@ -31,7 +29,7 @@ units.define('permille = 0.001 ratio = ‰')
 units.define('degree = pi / 180 * radian = ° = deg = arcdeg = arcdegree = angular_degree')
 
 
-number_types = (int, float, units.Quantity, Expression)
+number_types = (int, float, units.Quantity)
 
 
 def get_unit(quantity):
@@ -61,8 +59,6 @@ def strip_unit(quantity, unit=None):
         # FIXME: 'zip' truncates without warning if not enough units
         # are defined
         return [q.to(u).magnitude for q, u in zip(quantity, unit)]
-    if isinstance(quantity, Expression):
-        return float(quantity)
     try:
         return quantity.to(unit).magnitude
     except AttributeError:
@@ -189,8 +185,6 @@ class UnitConverter:
     def _add_unit(self, value, unit):
         if value is None or unit is None:
             return value
-        if isinstance(value, Expression):
-            return unit * float(value)
         elif isinstance(unit, list):
             return [self._add_unit(v, u) for v, u in zip(value, unit)]
         elif isinstance(value, units.Quantity):
