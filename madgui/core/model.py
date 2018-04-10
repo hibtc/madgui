@@ -418,10 +418,10 @@ class Model(Object):
 
     def _get_main_sequence(self):
         """Try to guess the 'main' sequence to be viewed."""
-        sequence = self.madx.active_sequence
+        sequence = self.madx.sequence()
         if sequence:
             return sequence.name
-        sequences = self.madx.sequences
+        sequences = self.madx.sequence
         if not sequences:
             raise ValueError("No sequences defined!")
         if len(sequences) != 1:
@@ -453,7 +453,7 @@ class Model(Object):
         :raises RuntimeError: if the sequence is undefined
         """
         try:
-            sequence = self.madx.sequences[sequence_name]
+            sequence = self.madx.sequence[sequence_name]
         except KeyError:
             raise RuntimeError("The sequence is not defined.")
         try:
@@ -529,7 +529,7 @@ class Model(Object):
         :param tuple range:
         """
 
-        self.sequence = self.madx.sequences[sequence]
+        self.sequence = self.madx.sequence[sequence]
         self.seq_name = self.sequence.name
         self.continuous_matching = True
 
@@ -609,7 +609,7 @@ class Model(Object):
             # TODO: …KNL/KSL
             for k, v in d.items():
                 # TODO: filter those with default values
-                self.madx.set_value(_get_property_lval(elem, k)[0], v)
+                self.madx.globals[_get_property_lval(elem, k)[0]] = v
 
         self.elements.invalidate(elem)
         self.twiss.invalidate()
@@ -676,9 +676,8 @@ class Model(Object):
         twiss_args = {
             'sequence': self.sequence.name,
             'range': self.range,
-            'columns': self._columns,
-            'twiss_init': self.twiss_args,
         }
+        twiss_args.update(self.twiss_args)
         twiss_args.update(kwargs)
         return twiss_args
 
@@ -839,7 +838,7 @@ class Model(Object):
                         vary=variables,
                         constraints=madx_constraints,
                         weight=weights,
-                        twiss_init=self.twiss_args)
+                        **self.twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()
         self.twiss.invalidate()
@@ -871,11 +870,11 @@ class Model(Object):
 
     def read_param(self, expr):
         """Read element attribute. Return numeric value."""
-        return self.madx.evaluate(expr)
+        return self.madx.eval(expr)
 
     def write_param(self, expr, value):
         """Update element attribute into control system."""
-        self.madx.set_value(expr, value)
+        self.madx.globals[expr] = value
         self.twiss.invalidate()
         # TODO: invalidate element…
         # knob.elem.invalidate()
@@ -1139,7 +1138,7 @@ class Element(Mapping):
                 d['kick'] = d['k0'] * d['length'] - d['angle']
 
     def elem(self):
-        return self._model.active_sequence.expanded_elements[self._idx]
+        return self._model.sequence().expanded_elements[self._idx]
 
 
 class ElementDataStore(MadxDataStore):
