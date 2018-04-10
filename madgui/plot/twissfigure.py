@@ -353,23 +353,21 @@ class ElementIndicators(SimpleArtist):
         ]
 
     def make_element_indicator(self, elem, style):
-        at = to_ui('at', elem.At)
-        if elem.L != 0:
-            patch_w = to_ui('l', elem.L)
+        at = to_ui('s', elem.position)
+        if elem.length != 0:
+            patch_w = to_ui('l', elem.length)
             return self.axes.axvspan(at, at + patch_w, **style)
         else:
             return self.axes.axvline(at, **style)
 
     def get_element_style(self, elem):
         """Return the element type name used for properties like coloring."""
-        if 'type' not in elem or 'at' not in elem:
-            return None
-        type_name = elem.Type.lower()
+        type_name = elem.base_name.lower()
         focussing = None
         if type_name == 'quadrupole':
-            focussing = float(elem.K1) > 0
+            focussing = float(elem.k1) > 0
         elif type_name == 'sbend':
-            focussing = float(elem.Angle) > 0
+            focussing = float(elem.angle) > 0
         if focussing is not None:
             if focussing:
                 type_name = 'f-' + type_name
@@ -640,7 +638,7 @@ def draw_selection_marker(axes, scene, el_idx):
     """In-figure markers for active/selected elements."""
     style = scene.config['select_style']
     element = scene.model.elements[el_idx]
-    at = to_ui('at', element.At + element.L)
+    at = to_ui('s', element.position + element.length)
     return [axes.axvline(at, **style)]
 
 

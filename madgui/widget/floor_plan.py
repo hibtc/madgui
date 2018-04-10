@@ -210,7 +210,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self.rotate = (Rotation3(floor[0].theta, floor[0].phi, floor[0].psi),
                        Rotation3(floor[1].theta, floor[1].phi, floor[1].psi))
         self.element = element
-        self.length = float(element.get('l', 0.0))
+        self.length = element.length
         self.angle = float(element.get('angle', 0.0))
         self.width = getElementWidth(element)
         self.color = getElementColor(element)
@@ -293,11 +293,11 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
 
 
 def getElementColor(element, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(element['type'].upper(), default))
+    return QtGui.QColor(ELEMENT_COLOR.get(element.base_name.upper(), default))
 
 
 def getElementWidth(element, default=0.2):
-    return ELEMENT_WIDTH.get(element['type'].upper(), default)
+    return ELEMENT_WIDTH.get(element.base_name.upper(), default)
 
 
 def createPen(style=Qt.SolidLine, color='black', width=1):

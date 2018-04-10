@@ -256,10 +256,10 @@ parameter_sets:
   element:
     title: Element attributes
     data_key: element
-    readonly: [at, l, s, el_id]
+    readonly: [name, base_name, node_name, position, length, s, el_id]
     params: []
     show:
-      common:       [name, type, el_id, at, l]
+      common:       [name, base_name, el_id, position, length]
       srotation:    [angle]
       solenoid:     [ks]
       multipole:    [knl, ksl, tilt]

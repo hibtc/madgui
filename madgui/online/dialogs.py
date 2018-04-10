@@ -212,7 +212,7 @@ class MonitorWidget(QtGui.QDialog):
         # all potential scenes.
 
         for mon in self.monitors:
-            mon.s = to_ui('s', self.model.elements[mon.name].At)
+            mon.s = to_ui('s', self.model.elements[mon.name].position)
             mon.x = mon.posx
             mon.y = mon.posy
 
@@ -255,8 +255,8 @@ class MonitorWidget(QtGui.QDialog):
         self.grid.rows = self.monitors = [
             MonitorItem(el.Name, self.control.read_monitor(el.Name))
             for el in self.model.elements
-            if el.Type.lower().endswith('monitor')
-            or el.Type.lower() == 'instrument']
+            if el.base_name.lower().endswith('monitor')
+            or el.base_name.lower() == 'instrument']
         if self.btn_backtrack.isChecked():
             self.backtrack()
         self.draw()
@@ -292,7 +292,7 @@ class MonitorWidget(QtGui.QDialog):
             return
         elif ext == '.txt':
             def pos(m):
-                return self.model.elements[m.name]['at']
+                return self.model.elements[m.name].position
             data = np.array([
                 [pos(m), m.posx, m.posy, m.envx, m.envy]
                 for m in self.grid.rows

@@ -252,21 +252,21 @@ class Model(Object):
         if elem is None:
             return None
         # Fuzzy select nearby elements, if they are <= 3px:
-        at, L = elem.At, elem.L
+        at, L = elem.position, elem.length
         el_id = elem.El_id
         x0_px = axes.transData.transform_point((0, 0))[0]
         x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
         len_px = x2pix(L)
         pos_px = x2pix(pos)
-        if len_px > 5 or elem.Type == 'drift':
+        if len_px > 5 or elem.base_name == 'drift':
             edge_px = max(1, min(2, round(0.2*len_px))) # max 2px cursor distance
             if el_id > 0 \
                     and x2pix(pos-at) < edge_px \
-                    and x2pix(self.elements[el_id-1].L) <= 3:
+                    and x2pix(self.elements[el_id-1].length) <= 3:
                 return self.elements[el_id-1]
             if el_id < len(self.elements) \
                     and x2pix(at+L-pos) < edge_px \
-                    and x2pix(self.elements[el_id+1].L) <= 3:
+                    and x2pix(self.elements[el_id+1].length) <= 3:
                 return self.elements[el_id+1]
         return elem
 
@@ -275,14 +275,14 @@ class Model(Object):
 
     def el_pos(self, el):
         """Position for matching / output."""
-        return el.At + el.L
+        return el.position + el.length
 
     continuous_matching = False
 
     def adjust_match_pos(self, el, pos):
         if not self.continuous_matching:
             return self.el_pos(el)
-        at, l = el.At, el.L
+        at, l = el.position, el.length
         if pos <= at:   return at
         if pos >= at+l: return at+l
         return pos
@@ -631,7 +631,7 @@ class Model(Object):
         x = self.indices[ix]
 
         # shortcut for thin elements:
-        if float(self.elements[ix].L) == 0:
+        if float(self.elements[ix].length) == 0:
             return y[x]
 
         lo = x.start-1 if x.start > 0 else x.start
@@ -776,7 +776,7 @@ class Model(Object):
     def _retrack(self):
         """Recalculate TWISS parameters."""
         self.cache.clear()
-        step = self.sequence.elements[-1]['at']/400
+        step = self.sequence.elements[-1].position/400
         self.madx.command.select(flag='interpolate', clear=True)
         self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args())
@@ -814,8 +814,8 @@ class Model(Object):
         # activate matching at specified positions
         self.madx.command.select(flag='interpolate', clear=True)
         for name, positions in elem_positions.items():
-            at = self.elements[name].At
-            l = self.elements[name].L
+            at = self.elements[name].position
+            l = self.elements[name].length
             if any(not np.isclose(p, at+l) for p in positions):
                 x = [float((p-at)/l) for p in positions]
                 self.madx.command.select(
@@ -856,7 +856,7 @@ class Model(Object):
         }
 
     def _get_attrs(self, elem):
-        attrs = self.ELEM_KNOBS.get(elem.Type.lower(), ())
+        attrs = self.ELEM_KNOBS.get(elem.base_name.lower(), ())
         defd = [attr for attr in attrs if _is_property_defined(elem, attr)]
         return defd or attrs[:1]
 
@@ -965,8 +965,8 @@ class ElementList(Sequence):
             for elem in self._elems:
                 elem.invalidate()
             beg, end = self[0], self[-1]
-            self.min_x = beg.At
-            self.max_x = end.At + end.L
+            self.min_x = beg.position
+            self.max_x = end.position + end.length
         else:
             index = self.index(elem)
             self._elems[index].invalidate()
@@ -1132,8 +1132,8 @@ class Element(Mapping):
         """Retrieve data for key if possible; everything if None."""
         if len(self._merged) == 2 and name not in self._merged:
             data = self._model.active_sequence.expanded_elements[self._idx]
-            data = _eval_expr(data)
-            self._merged.update(data)
+            self._merged.update(data._attr)
+            self._merged.update(_eval_expr(data))
 
 
 class ElementDataStore(MadxDataStore):

@@ -112,7 +112,7 @@ class BasicDataStore(ElementDataStore):
         show = self.conf['show']
         return OrderedDict([
             (k, data[k])
-            for k in show['common'] + show.get(data['type'], [])
+            for k in show['common'] + show.get(data['base_name'], [])
         ])
 
 

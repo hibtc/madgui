@@ -14,7 +14,7 @@ Variable = namedtuple('Variable', ['knob', 'pos', 'expr', 'value', 'design'])
 
 def variable_from_knob(matcher, knob):
     elem = knob.elem
-    pos = elem and elem.At + elem.L
+    pos = elem and elem.position + elem.length
     value = knob.read()
     design = matcher.design_values.setdefault(knob.param, value)
     return Variable(knob, pos, knob.param, value, design)
@@ -124,7 +124,7 @@ class Matcher(Object):
         return [
             variable_from_knob(self, knob)
             for knob in self.knobs
-            if knob.elem.Type.lower() in elem_types
+            if knob.elem.base_name.lower() in elem_types
         ]
 
     # Set value back to factory defaults
