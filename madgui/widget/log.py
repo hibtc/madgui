@@ -108,6 +108,7 @@ class LogWindow(QtGui.QFrame):
                 time.time(), domain, text))
 
     def excepthook(self, *args, **kwargs):
+        traceback.print_exception(*args, **kwargs)
         logging.error("".join(traceback.format_exception(*args, **kwargs)))
 
     def _insert_record(self, index, record):
