@@ -36,8 +36,8 @@ class ElementInfoBox(QtGui.QWidget):
         super().__init__()
 
         self.notebook = TabParamTables([
-            ('Basic', ParamTable(BasicDataStore(model, 'element'))),
-            ('Full', ParamTable(ElementDataStore(model, 'element'))),
+            ('Summary', ParamTable(BasicDataStore(model, 'element'))),
+            ('Params', ParamTable(ElementDataStore(model, 'element'))),
             ('Twiss', ParamTable(TwissDataStore(model, 'twiss'))),
             ('Sigma', ParamTable(SigmaDataStore(model, 'sigma'))),
             ('Ellipse', EllipseWidget(model)),
@@ -112,7 +112,7 @@ class BasicDataStore(ElementDataStore):
         show = self.conf['show']
         return OrderedDict([
             (k, data[k])
-            for k in show['common'] + show.get(data['type'], [])
+            for k in show['common'] + show.get(data['base_name'], [])
         ])
 
 

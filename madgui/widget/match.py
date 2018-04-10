@@ -16,7 +16,7 @@ def set_constraint_elem(widget, c, i, name):
     if name is not None:
         el = widget.model.elements[str(name)]
         widget.matcher.constraints[i] = \
-            Constraint(el, el.At+el.L, c.axis, c.value)
+            Constraint(el, el.position+el.length, c.axis, c.value)
 
 def get_constraint_axis(widget, c, i):
     return widget.lcon_enum(c.axis)
@@ -176,7 +176,7 @@ class MatchWidget(QtGui.QWidget):
         el   = self.elem_enum._values[0]
         elem = self.model.elements[el]
         axis = self.lcon_enum._values[0]  # TODO: -> curve.y_name?
-        pos  = elem.AT + elem.L
+        pos  = elem.position + elem.length
         value = self.model.get_twiss(el, axis, pos)
         self.matcher.constraints.append(Constraint(
             elem, pos, axis, value))

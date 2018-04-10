@@ -259,9 +259,9 @@ class Corrector:
 
 
 def _is_steerer(el):
-    return el.Type == 'sbend' \
-        or el.Type.endswith('kicker') \
-        or el.Type == 'multipole' and (
+    return el.base_name == 'sbend' \
+        or el.base_name.endswith('kicker') \
+        or el.base_name == 'multipole' and (
             el.Knl[0] != 0 or
             el.Ksl[0] != 0)
 
@@ -610,8 +610,8 @@ class SelectWidget(QtGui.QWidget):
         """Set valid elements and default choices."""
         self.config = config if config else {}
         self.elements = elements
-        self.elem_mon = [el for el in elements if el.Type.endswith('monitor')]
-        self.elem_qps = [el for el in elements if el.Type == 'quadrupole']
+        self.elem_mon = [el for el in elements if el.base_name.endswith('monitor')]
+        self.elem_qps = [el for el in elements if el.base_name == 'quadrupole']
         self.elem_dip = [el for el in elements if _is_steerer(el)]
         self.choice_monitor.addItems(el_names(self.elem_mon))
         for ctrl in self.ctrl_qps:
@@ -657,7 +657,7 @@ class SelectWidget(QtGui.QWidget):
         def _at(sel, elems):
             if sel == -1:
                 raise ValueError
-            return elems[sel].At
+            return elems[sel].position
         try:
             at_mon = _at(sel_mon, self.elem_mon)
             at_qp = [_at(sel, self.elem_qps) for sel in sel_qp]
