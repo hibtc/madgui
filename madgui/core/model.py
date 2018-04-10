@@ -1114,13 +1114,7 @@ class Element(Mapping):
     _RE_ATTR = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
 
     def __getattr__(self, name):
-        """
-        Provide attribute access to element properties.
-
-        Attribute names must start with capital letter, e.g. Name, K1, KNL.
-        """
-        if not self._RE_ATTR.match(name):
-            raise AttributeError(name)
+        """Provide attribute access to element properties."""
         try:
             return self[name.lower()]
         except KeyError:
