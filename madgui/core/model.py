@@ -93,10 +93,10 @@ class AsyncReader:
     Write to a text control.
     """
 
-    def __init__(self, event, stream, callback):
+    def __init__(self, stream, callback):
         super().__init__()
         self.queue = Queue()
-        self.event = event
+        self.event = Event()
         self.stream = stream
         self.callback = callback
         self.thread = Thread(target=self._readLoop)
@@ -125,24 +125,23 @@ class AsyncReader:
             self.queue.put(line.decode('utf-8', 'replace')[:-1])
             self.callback(self)
 
+    def flush(self):
+        self.event.clear()
+        self.event.wait()
+        if not self.queue.empty():
+            self.callback(self)         # emit signal in direct mode!
+
 
 class Madx(Madx):
 
     def __init__(self, *args, stdout_log, **kwargs):
         super().__init__(*args, **kwargs)
-        self.event = Event()
-        self.reader = AsyncReader(self.event, self._process.stdout, stdout_log)
-        self.flush()
+        self.reader = AsyncReader(self._process.stdout, stdout_log)
+        self.reader.flush()
 
     def input(self, text):
         super().input(text)
-        self.flush()
-
-    def flush(self):
-        self.event.clear()
-        self.event.wait()
-        if not self.reader.queue.empty():
-            self.reader.callback(self.reader) # emit signal in direct mode!
+        self.reader.flush()
 
 
 class Model(Object):
