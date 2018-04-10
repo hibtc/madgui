@@ -1130,10 +1130,13 @@ class Element(Mapping):
 
     def _retrieve(self, name):
         """Retrieve data for key if possible; everything if None."""
-        if len(self._merged) == 2 and name not in self._merged:
+        d = self._merged
+        if len(d) == 2 and name not in d:
             data = self.elem()
-            self._merged.update(data._attr)
-            self._merged.update(_eval_expr(data))
+            d.update(data._attr)
+            d.update(_eval_expr(data))
+            if d['base_name'] == 'sbend':
+                d['kick'] = d['k0'] * d['length'] - d['angle']
 
     def elem(self):
         return self._model.active_sequence.expanded_elements[self._idx]

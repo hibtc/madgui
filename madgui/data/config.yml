@@ -263,7 +263,7 @@ parameter_sets:
       srotation:    [angle]
       solenoid:     [ks]
       multipole:    [knl, ksl, tilt]
-      sbend:        [angle, e1, e2, tilt]
+      sbend:        [angle, kick, e1, e2, tilt]
       quadrupole:   [k1, k1s, tilt]
       collimator:   [apertype, aperture]
       hkicker:      [kick, tilt]
