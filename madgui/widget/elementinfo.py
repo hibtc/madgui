@@ -36,8 +36,8 @@ class ElementInfoBox(QtGui.QWidget):
         super().__init__()
 
         self.notebook = TabParamTables([
-            ('Basic', ParamTable(BasicDataStore(model, 'element'))),
-            ('Full', ParamTable(ElementDataStore(model, 'element'))),
+            ('Summary', ParamTable(BasicDataStore(model, 'element'))),
+            ('Params', ParamTable(ElementDataStore(model, 'element'))),
             ('Twiss', ParamTable(TwissDataStore(model, 'twiss'))),
             ('Sigma', ParamTable(SigmaDataStore(model, 'sigma'))),
             ('Ellipse', EllipseWidget(model)),

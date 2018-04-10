@@ -1131,15 +1131,19 @@ class Element(Mapping):
     def _retrieve(self, name):
         """Retrieve data for key if possible; everything if None."""
         if len(self._merged) == 2 and name not in self._merged:
-            data = self._model.active_sequence.expanded_elements[self._idx]
+            data = self.elem()
             self._merged.update(data._attr)
             self._merged.update(_eval_expr(data))
+
+    def elem(self):
+        return self._model.active_sequence.expanded_elements[self._idx]
 
 
 class ElementDataStore(MadxDataStore):
 
     def _get(self):
-        return self.model.elements[self.kw['elem_index']]
+        elem = self.model.elements[self.kw['elem_index']].elem()
+        return {k: v.value for k, v in elem.cmdpar.items()}
 
     def mutable(self, key):
         key = key.lower()
