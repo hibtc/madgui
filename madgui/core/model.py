@@ -1171,13 +1171,6 @@ def process_spec_item(key, value):
 # stuff for online control
 #----------------------------------------
 
-def _get_identifier(expr):
-    try:
-        return expr.expr
-    except AttributeError:
-        return ''
-
-
 # TODO: …KNL/KSL
 def _get_property_lval(elem, attr):
     """
@@ -1194,7 +1187,7 @@ def _get_property_lval(elem, attr):
         expr = elem._model.elements[elem['name']].cmdpar[attr].expr
     if not isinstance(expr, list):
         madx = elem._model
-        expr = _get_identifier(expr)
+        expr = expr or ''
         name = expr if is_identifier(expr) else elem.Name + '->' + attr
         vars = madx.expr_vars(expr) if expr else [name]
         return name, vars
