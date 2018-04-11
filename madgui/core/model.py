@@ -774,7 +774,7 @@ class Model(Object):
     def _get_attrs(self, elem):
         attrs = self.ELEM_KNOBS.get(elem.base_name.lower(), ())
         defd = [attr for attr in attrs if _is_property_defined(elem, attr)]
-        return defd or attrs[:1]
+        return defd
 
     def get_knob(self, elem, attr):
         """Return a :class:`Knob` belonging to the given attribute."""
@@ -1122,7 +1122,7 @@ def _is_property_defined(elem, attr):
         try:
             cmdpar = elem.cmdpar[attr]
             if cmdpar.inform:
-                return bool(cmdpar.value if index is None else cmdpar.value[index])
+                return bool(cmdpar.expr if index is None else cmdpar.expr[index])
         except (KeyError, IndexError):
             pass
         elem = elem.parent
