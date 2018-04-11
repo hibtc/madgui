@@ -1195,11 +1195,21 @@ def _get_property_lval(elem, attr):
 
 def _is_property_defined(elem, attr):
     """Check if attribute of an element was defined."""
-    try:
-        value = elem.get(attr)
-        return hasattr(value, '_expression') or float(value) != 0
-    except (ValueError, TypeError, IndexError):
-        return False
+    if attr.endswith(']'):
+        attr, tail = attr.split('[', 1)
+        index = int(tail[:-1])
+    else:
+        index = None
+    elem = elem.elem()
+    while elem.parent is not elem:
+        try:
+            cmdpar = elem.cmdpar[attr]
+            if cmdpar.inform:
+                return bool(cmdpar.value if index is None else cmdpar.value[index])
+        except (KeyError, IndexError):
+            pass
+        elem = elem.parent
+    return False
 
 
 def _eval_expr(value):
