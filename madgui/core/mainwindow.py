@@ -230,15 +230,15 @@ class MainWindow(QtGui.QMainWindow):
 
     def createControls(self):
         self.log_window = LogWindow()
-        self.log_window.setup_logging()
+        self.log_window.setup_logging(logging.DEBUG)
         self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
 
         QColor = QtGui.QColor
         self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
         self.log_window.highlight('MADX',     QColor(Qt.lightGray))
 
-        self.log_window.highlight('DEBUG',    QColor(Qt.blue).lighter(150))
-        self.log_window.highlight('INFO',     QColor(Qt.green))
+        self.log_window.highlight('DEBUG',    QColor(Qt.blue).lighter(180))
+        self.log_window.highlight('INFO',     QColor(Qt.green).lighter(150))
         self.log_window.highlight('WARNING',  QColor(Qt.yellow))
         self.log_window.highlight('ERROR',    QColor(Qt.red))
         self.log_window.highlight('CRITICAL', QColor(Qt.red))
