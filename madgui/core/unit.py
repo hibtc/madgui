@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-units = pint.UnitRegistry()
+units = pint.UnitRegistry(on_redefinition='ignore')
 units.default_format = 'P~'     # make `str(quantity)` slightly nicer
 units.define('ratio = []')
 units.define('percent = 0.01 ratio = %')
