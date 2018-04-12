@@ -58,8 +58,8 @@ class Madx(Madx):
         self.reader.flush()
 
     def input(self, text):
-        super().input(text)
-        self.reader.flush()
+        with self.reader:
+            super().input(text)
 
 
 class Model(Object):
