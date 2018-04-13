@@ -118,7 +118,6 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setScene(QtGui.QGraphicsScene(self))
         survey = [FloorCoords(0,0,0, 0,0,0)] + survey
         for element, floor in zip(elements, zip(survey, survey[1:])):
-            element = dict(element)
             self.scene().addItem(
                 ElementGraphicsItem(self, element, floor, selection))
         self.setViewRect(self._sceneRect())
