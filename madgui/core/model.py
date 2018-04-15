@@ -253,21 +253,21 @@ class Model(Object):
             return None
         # Fuzzy select nearby elements, if they are <= 3px:
         at, L = elem.position, elem.length
-        el_id = elem.El_id
+        index = elem.index
         x0_px = axes.transData.transform_point((0, 0))[0]
         x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
         len_px = x2pix(L)
         pos_px = x2pix(pos)
         if len_px > 5 or elem.base_name == 'drift':
             edge_px = max(1, min(2, round(0.2*len_px))) # max 2px cursor distance
-            if el_id > 0 \
+            if index > 0 \
                     and x2pix(pos-at) < edge_px \
-                    and x2pix(self.elements[el_id-1].length) <= 3:
-                return self.elements[el_id-1]
-            if el_id < len(self.elements) \
+                    and x2pix(self.elements[index-1].length) <= 3:
+                return self.elements[index-1]
+            if index < len(self.elements) \
                     and x2pix(at+L-pos) < edge_px \
-                    and x2pix(self.elements[el_id+1].length) <= 3:
-                return self.elements[el_id+1]
+                    and x2pix(self.elements[index+1].length) <= 3:
+                return self.elements[index+1]
         return elem
 
     def get_element_by_name(self, name):
@@ -299,7 +299,7 @@ class Model(Object):
         return True
 
     def set_element_attribute(self, elem, attr, value):
-        elem = self.elements[elem].El_id
+        elem = self.elements[elem].id
         self.get_elem_ds(elem).update({
             attr: value,
         })
@@ -998,7 +998,7 @@ class ElementList(Sequence):
         if isinstance(index, ElementInfo):
             return self._get_by_dict({
                 'name': index.name,
-                'el_id': index.index,
+                'id': index.index,
             })
         if isinstance(index, str):
             return self._get_by_name(index)
@@ -1023,7 +1023,7 @@ class ElementList(Sequence):
         if isinstance(element, ElementInfo):
             return self._index_by_dict({
                 'name': element.node_name,
-                'el_id': element.index,
+                'id': element.index,
             })
         if isinstance(element, str):
             return self._index_by_name(element)
@@ -1031,9 +1031,9 @@ class ElementList(Sequence):
 
     # TODO: remove?
     def _get_by_dict(self, elem):
-        if 'el_id' not in elem:
+        if 'id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
-        index = elem.El_id
+        index = elem.index
         data = self._get_by_index(index)
         if elem.node_name != data.node_name:
             raise ValueError("Element name mismatch: expected {}, got {}."
@@ -1050,9 +1050,9 @@ class ElementList(Sequence):
 
     # TODO: remove
     def _index_by_dict(self, elem):
-        if 'el_id' not in elem:
+        if 'id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
-        index = elem.El_id
+        index = elem.index
         if elem.node_name.lower() != self._el_names[index].lower():
             raise ValueError("Element name mismatch: expected {}, got {}."
                              .format(self._el_names[index], elem.node_name))
@@ -1124,7 +1124,7 @@ class Element(Mapping):
         if level >= self.INVALIDATE_PARAM:
             self._merged = OrderedDict([
                 ('name', self._name),
-                ('el_id', self._idx),
+                ('id', self._idx),
             ])
 
     def _retrieve(self, name):
