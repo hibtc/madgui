@@ -711,10 +711,10 @@ class Model(Object):
         return [FloorCoords(*row) for row in array.T]
 
     def ex(self):
-        return self.summary['ex']
+        return self.summary.ex
 
     def ey(self):
-        return self.summary['ey']
+        return self.summary.ey
 
     # curves
 

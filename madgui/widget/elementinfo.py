@@ -112,7 +112,7 @@ class BasicDataStore(ElementDataStore):
         show = self.conf['show']
         return OrderedDict([
             (k, data[k])
-            for k in show['common'] + show.get(data['base_name'], [])
+            for k in show['common'] + show.get(data.base_name, [])
         ])
 
 
@@ -198,8 +198,8 @@ class EllipseWidget(QtGui.QWidget):
 
         # FIXME: gui_units
         twiss = to_ui(self.model.get_elem_twiss(elem_index))
-        ellipse(axx, twiss['alfx'], twiss['betx'], twiss['gamx'], twiss['ex'])
-        ellipse(axy, twiss['alfy'], twiss['bety'], twiss['gamy'], twiss['ey'])
+        ellipse(axx, twiss.alfx, twiss.betx, twiss.gamx, twiss.ex)
+        ellipse(axy, twiss.alfy, twiss.bety, twiss.gamy, twiss.ey)
 
         axx.set_xlabel("x [{}]".format(ui_units.label('x')))
         axy.set_xlabel("y [{}]".format(ui_units.label('y')))

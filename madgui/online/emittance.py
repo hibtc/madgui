@@ -221,11 +221,11 @@ class EmittanceDialog(QtGui.QDialog):
 
         results = []
         results += [
-            ResultItem('ex',   ex,   beam['ex']),
-            ResultItem('ey',   ey,   beam['ey']),
+            ResultItem('ex',   ex,   beam.ex),
+            ResultItem('ey',   ey,   beam.ey),
         ]
         results += [
-            ResultItem('pt',   pt,   beam['et']),
+            ResultItem('pt',   pt,   beam.et),
         ] if use_dispersion else []
         results += [
             ResultItem('betx', betx, twiss_args.get('betx')),
