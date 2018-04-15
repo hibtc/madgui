@@ -271,7 +271,7 @@ def display_name(name):
 
 
 def el_names(elems):
-    return [display_name(el.Name) for el in elems]
+    return [display_name(el.node_name) for el in elems]
 
 
 def set_text(ctrl, text):

@@ -253,7 +253,7 @@ class MonitorWidget(QtGui.QDialog):
 
     def update(self):
         self.grid.rows = self.monitors = [
-            MonitorItem(el.Name, self.control.read_monitor(el.Name))
+            MonitorItem(el.node_name, self.control.read_monitor(el.node_name))
             for el in self.model.elements
             if el.base_name.lower().endswith('monitor')
             or el.base_name.lower() == 'instrument']

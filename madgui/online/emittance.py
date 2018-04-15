@@ -74,7 +74,7 @@ class EmittanceDialog(QtGui.QDialog):
         load_ui(self, __package__, self.ui_file)
         self.control = control
 
-        self.monitor_list = [el.Name
+        self.monitor_list = [el.node_name
                              for el in control._model.elements
                              if el.base_name.lower().endswith('monitor')
                              or el.base_name.lower() == 'instrument']

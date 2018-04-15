@@ -599,7 +599,7 @@ class Model(Object):
         # - proper mutability detection
         # - update only changed values
         elem = self.elements[elem_index]
-        name = elem.Name
+        name = elem.node_name
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
@@ -788,7 +788,7 @@ class Model(Object):
         #   it clear in the table which rows are 'interpolated'
         # - change MAD-X interpolate option to produce 2 tables
         # - extract information via cpymad (table now has 'node' attribute)
-        groups = itertools.groupby(enumerate(results['name']), lambda x: x[1])
+        groups = itertools.groupby(enumerate(results.name), lambda x: x[1])
         self.indices = [
             slice(l[0][0], l[-1][0])
             for k, v in groups
@@ -805,8 +805,8 @@ class Model(Object):
         # NOTE: need list instead of set, because quantity is unhashable:
         elem_positions = defaultdict(list)
         for elem, pos, axis, val in constraints:
-            if pos not in elem_positions[elem.Name]:
-                elem_positions[elem.Name].append(pos)
+            if pos not in elem_positions[elem.node_name]:
+                elem_positions[elem.node_name].append(pos)
         elem_positions = {name: sorted(positions)
                           for name, positions in elem_positions.items()}
 
@@ -822,8 +822,8 @@ class Model(Object):
 
         # create constraints list to be passed to Madx.match
         madx_constraints = [
-            {'range': elem.Name,
-             'iindex': elem_positions[elem.Name].index(pos),
+            {'range': elem.node_name,
+             'iindex': elem_positions[elem.node_name].index(pos),
              axis: val}
             for elem, pos, axis, val in constraints]
 
@@ -1022,7 +1022,7 @@ class ElementList(Sequence):
             return self._index_by_dict(element)
         if isinstance(element, ElementInfo):
             return self._index_by_dict({
-                'name': element.name,
+                'name': element.node_name,
                 'el_id': element.index,
             })
         if isinstance(element, str):
@@ -1035,9 +1035,9 @@ class ElementList(Sequence):
             raise TypeError("Not an element dict: {!r}".format(elem))
         index = elem.El_id
         data = self._get_by_index(index)
-        if elem.Name != data.Name:
+        if elem.node_name != data.node_name:
             raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(data.Name, elem.Name))
+                             .format(data.node_name, elem.node_name))
         return data
 
     def _get_by_name(self, name):
@@ -1053,9 +1053,9 @@ class ElementList(Sequence):
         if 'el_id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
         index = elem.El_id
-        if elem.Name.lower() != self._el_names[index].lower():
+        if elem.node_name.lower() != self._el_names[index].lower():
             raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(self._el_names[index], elem.Name))
+                             .format(self._el_names[index], elem.node_name))
         return index
 
     def _index_by_name(self, name):
@@ -1182,13 +1182,13 @@ def _get_property_lval(elem, attr):
     if attr.endswith(']'):
         head, tail = attr.split('[', 1)
         index = int(tail[:-1])
-        expr = elem._model.elements[elem['name']].cmdpar[head].expr[index]
+        expr = elem._model.elements[elem.node_name].cmdpar[head].expr[index]
     else:
-        expr = elem._model.elements[elem['name']].cmdpar[attr].expr
+        expr = elem._model.elements[elem.node_name].cmdpar[attr].expr
     if not isinstance(expr, list):
         madx = elem._model
         expr = expr or ''
-        name = expr if is_identifier(expr) else elem.Name + '->' + attr
+        name = expr if is_identifier(expr) else elem.node_name + '->' + attr
         vars = madx.expr_vars(expr) if expr else [name]
         return name, vars
 

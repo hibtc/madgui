@@ -184,7 +184,7 @@ class Corrector(Matcher):
         match_names = {v.knob.param for v in self.variables
                        if v.knob.param.lower() not in blacklist}
         constraints = [
-            dict(range=c.elem.Name, **{c.axis: from_ui(c.axis, c.value)})
+            dict(range=c.elem.node_name, **{c.axis: from_ui(c.axis, c.value)})
             for c in self.constraints
         ]
         for name, expr in self.selected.get('assign', {}).items():
@@ -243,7 +243,7 @@ class CorrectorWidget(QtGui.QWidget):
     ]
 
     constraint_columns = [
-        ColumnInfo("Element", lambda c: c.elem.Name,
+        ColumnInfo("Element", lambda c: c.elem.node_name,
                    resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Param", 'axis', resize=QtGui.QHeaderView.ResizeToContents),
         ExtColumnInfo("Value", 'value', set_constraint_value,

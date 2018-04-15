@@ -189,7 +189,7 @@ class TwissFigure(Object):
                  coord_fmt(y, get_raw_label(curve.y_unit))]
         elem = self.model.get_element_by_mouse_position(ax, x)
         if elem and 'name' in elem:
-            name = strip_suffix(elem.Name, '[0]')
+            name = strip_suffix(elem.node_name, '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
 
@@ -511,7 +511,7 @@ class MatchTool(CaptureTool):
             # TODO: should do this only once for each yname!
             constraints.extend([
                 Constraint(elem, pos, c.y_name,
-                        self.model.get_twiss(elem.Name, c.y_name, pos))
+                        self.model.get_twiss(elem.node_name, c.y_name, pos))
                 for c in curves
                 if c.y_name != name
             ])

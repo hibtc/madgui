@@ -47,7 +47,7 @@ class ElementInfoBox(QtGui.QWidget):
 
         # navigation
         self.select = QtGui.QComboBox()
-        self.select.addItems([elem.Name for elem in model.elements])
+        self.select.addItems([elem.node_name for elem in model.elements])
         self.select.currentIndexChanged.connect(self.set_element)
 
         self.model = model
