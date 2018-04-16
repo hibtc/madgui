@@ -11,13 +11,12 @@ Requirements
 
   *On linux*, I recommend the latest python version you can find.
 
-  *On windows*, I strongly recommend `WinPython 3.4`_ (pick an installer with
-  Qt5 suffix, should be about 300MiB in size). In particular, you **can not
-  use python 3.5 and above**, since there are problems building cpymad for
-  these versions, see `hibtc/cpymad#32`_.
+  *On windows*, I recommend `WinPython 3.4 Qt5`_ (should be about 300MiB in
+  size). In particular, you **can not use 64bit python 3.5 and above** on
+  windows 10, since there are problems building cpymad for these versions, see
+  `hibtc/cpymad#41`_.
 
-- PyQt5_, should be installed using the official installer or your
-  distributions package manager.
+- PyQt5_
 
 - cpymad_, in order to work with MAD-X_.
 
@@ -27,8 +26,8 @@ Requirements
 
   Otherwise, please refer to cpymad's `installation instructions`_.
 
-.. _WinPython 3.4: https://sourceforge.net/projects/winpython/files/WinPython_3.4/
-.. _hibtc/cpymad#32: https://github.com/hibtc/cpymad/issues/32
+.. _WinPython 3.4: https://sourceforge.net/projects/winpython/files/WinPython_3.4/3.4.4.6/
+.. _hibtc/cpymad#41: https://github.com/hibtc/cpymad/issues/41
 .. _installation instructions: http://hibtc.github.io/cpymad/installation/index.html
 .. _MAD-X: http://madx.web.cern.ch/madx
 .. _cpymad: https://github.com/hibtc/cpymad
@@ -79,16 +78,8 @@ Example file:
 
 .. code-block:: yaml
 
-    number:
-      align: right
-      fmtspec: .4g
-
     model_path: ../hit_models
     load_default: hht3
-
-    mainwindow:
-      init_size: [683, 150]
-      init_pos:  [0, 0]
 
     onload: |
       from hit_csys.plugin import Loader
@@ -105,23 +96,17 @@ Development guidelines
 **Coding:**
 
 - Try to be consistent with PEP8_ and PEP257_.
-- Add `unit tests`_ for all non-trivial functionality.
-- `Dependency injection`_ is a great pattern to keep modules testable.
-- Prefer `composition over inheritance`_
 - Add `sphinx`_ style docstrings for all modules, classes, functions
 - Check regularly for unused imports etc with ``pyflakes madgui``
 
 .. _PEP8: http://www.python.org/dev/peps/pep-0008/
 .. _PEP257: http://www.python.org/dev/peps/pep-0257/
-.. _`unit tests`: http://docs.python.org/2/library/unittest.html
-.. _`Dependency injection`: http://www.youtube.com/watch?v=RlfLCWKxHJ0
-.. _`composition over inheritance`: https://www.youtube.com/watch?v=Tedt47e9qsQ
 .. _`sphinx`: http://sphinx-doc.org/
 
 **Naming:**
 
 - Stick to ``names_with_underscores`` for methods and variable names as
-  mandated by PEP8_ (I admit that the code base is currently very
+  recommended by PEP8_ (I admit that the code base is currently somewhat
   inconsistent in this regard)
 - class names are in ``CamelCase``
 - only PyQt class method overrides and their parameters shall be written in
