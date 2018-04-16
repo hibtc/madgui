@@ -402,8 +402,6 @@ class Model(Object):
             raise RuntimeError("TWISS table inaccessible or nonsensical.")
         if first not in sequence.expanded_elements or last not in sequence.expanded_elements:
             raise RuntimeError("The TWISS table appears to belong to a different sequence.")
-        # TODO: this inefficiently copies over the whole table over the pipe
-        # rather than just the first row.
         mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
         optional_fields = {
             'x', 'px', 'mux', 'dx', 'dpx',
@@ -417,11 +415,11 @@ class Model(Object):
         # TODO: periodic lines -> only mux/muy/deltap
         # TODO: logical parameters like CHROM
         twiss = {
-            key: float(data[0])
-            for key, data in table.items()
-            if issubclass(data.dtype.type, np.number) and (
+            key: float(val)
+            for key, val in table[0].items()
+            if issubclass(val.dtype.type, np.number) and (
                     (key in mandatory_fields) or
-                    (key in optional_fields and data[0] != 0)
+                    (key in optional_fields and val != 0)
             )
         }
         return (first, last), twiss
