@@ -234,7 +234,7 @@ class Corrector:
             vary=match_names,
             weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
             constraints=constraints,
-            twiss_init=init_twiss)
+            **init_twiss)
         self.model.twiss.invalidate()
 
         # return corrections
@@ -271,7 +271,7 @@ def display_name(name):
 
 
 def el_names(elems):
-    return [display_name(el.Name) for el in elems]
+    return [display_name(el.node_name) for el in elems]
 
 
 def set_text(ctrl, text):

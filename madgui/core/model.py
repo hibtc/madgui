@@ -170,21 +170,21 @@ class Model(Object):
             return None
         # Fuzzy select nearby elements, if they are <= 3px:
         at, L = elem.position, elem.length
-        el_id = elem.El_id
+        index = elem.index
         x0_px = axes.transData.transform_point((0, 0))[0]
         x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
         len_px = x2pix(L)
         pos_px = x2pix(pos)
         if len_px > 5 or elem.base_name == 'drift':
             edge_px = max(1, min(2, round(0.2*len_px))) # max 2px cursor distance
-            if el_id > 0 \
+            if index > 0 \
                     and x2pix(pos-at) < edge_px \
-                    and x2pix(self.elements[el_id-1].length) <= 3:
-                return self.elements[el_id-1]
-            if el_id < len(self.elements) \
+                    and x2pix(self.elements[index-1].length) <= 3:
+                return self.elements[index-1]
+            if index < len(self.elements) \
                     and x2pix(at+L-pos) < edge_px \
-                    and x2pix(self.elements[el_id+1].length) <= 3:
-                return self.elements[el_id+1]
+                    and x2pix(self.elements[index+1].length) <= 3:
+                return self.elements[index+1]
         return elem
 
     def get_element_by_name(self, name):
@@ -216,7 +216,7 @@ class Model(Object):
         return True
 
     def set_element_attribute(self, elem, attr, value):
-        elem = self.elements[elem].El_id
+        elem = self.elements[elem].id
         self.get_elem_ds(elem).update({
             attr: value,
         })
@@ -335,10 +335,10 @@ class Model(Object):
 
     def _get_main_sequence(self):
         """Try to guess the 'main' sequence to be viewed."""
-        sequence = self.madx.active_sequence
+        sequence = self.madx.sequence()
         if sequence:
             return sequence.name
-        sequences = self.madx.sequences
+        sequences = self.madx.sequence
         if not sequences:
             raise ValueError("No sequences defined!")
         if len(sequences) != 1:
@@ -370,7 +370,7 @@ class Model(Object):
         :raises RuntimeError: if the sequence is undefined
         """
         try:
-            sequence = self.madx.sequences[sequence_name]
+            sequence = self.madx.sequence[sequence_name]
         except KeyError:
             raise RuntimeError("The sequence is not defined.")
         try:
@@ -446,7 +446,7 @@ class Model(Object):
         :param tuple range:
         """
 
-        self.sequence = self.madx.sequences[sequence]
+        self.sequence = self.madx.sequence[sequence]
         self.seq_name = self.sequence.name
         self.continuous_matching = True
 
@@ -516,7 +516,7 @@ class Model(Object):
         # - proper mutability detection
         # - update only changed values
         elem = self.elements[elem_index]
-        name = elem.Name
+        name = elem.node_name
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
@@ -526,7 +526,7 @@ class Model(Object):
             # TODO: …KNL/KSL
             for k, v in d.items():
                 # TODO: filter those with default values
-                self.madx.set_value(_get_property_lval(elem, k)[0], v)
+                self.madx.globals[_get_property_lval(elem, k)[0]] = v
 
         self.elements.invalidate(elem)
         self.twiss.invalidate()
@@ -593,9 +593,8 @@ class Model(Object):
         twiss_args = {
             'sequence': self.sequence.name,
             'range': self.range,
-            'columns': self._columns,
-            'twiss_init': self.twiss_args,
         }
+        twiss_args.update(self.twiss_args)
         twiss_args.update(kwargs)
         return twiss_args
 
@@ -629,10 +628,10 @@ class Model(Object):
         return [FloorCoords(*row) for row in array.T]
 
     def ex(self):
-        return self.summary['ex']
+        return self.summary.ex
 
     def ey(self):
-        return self.summary['ey']
+        return self.summary.ey
 
     # curves
 
@@ -706,7 +705,7 @@ class Model(Object):
         #   it clear in the table which rows are 'interpolated'
         # - change MAD-X interpolate option to produce 2 tables
         # - extract information via cpymad (table now has 'node' attribute)
-        groups = itertools.groupby(enumerate(results['name']), lambda x: x[1])
+        groups = itertools.groupby(enumerate(results.name), lambda x: x[1])
         self.indices = [
             slice(l[0][0], l[-1][0])
             for k, v in groups
@@ -723,8 +722,8 @@ class Model(Object):
         # NOTE: need list instead of set, because quantity is unhashable:
         elem_positions = defaultdict(list)
         for elem, pos, axis, val in constraints:
-            if pos not in elem_positions[elem.Name]:
-                elem_positions[elem.Name].append(pos)
+            if pos not in elem_positions[elem.node_name]:
+                elem_positions[elem.node_name].append(pos)
         elem_positions = {name: sorted(positions)
                           for name, positions in elem_positions.items()}
 
@@ -740,8 +739,8 @@ class Model(Object):
 
         # create constraints list to be passed to Madx.match
         madx_constraints = [
-            {'range': elem.Name,
-             'iindex': elem_positions[elem.Name].index(pos),
+            {'range': elem.node_name,
+             'iindex': elem_positions[elem.node_name].index(pos),
              axis: val}
             for elem, pos, axis, val in constraints]
 
@@ -756,7 +755,7 @@ class Model(Object):
                         vary=variables,
                         constraints=madx_constraints,
                         weight=weights,
-                        twiss_init=self.twiss_args)
+                        **self.twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()
         self.twiss.invalidate()
@@ -788,11 +787,11 @@ class Model(Object):
 
     def read_param(self, expr):
         """Read element attribute. Return numeric value."""
-        return self.madx.evaluate(expr)
+        return self.madx.eval(expr)
 
     def write_param(self, expr, value):
         """Update element attribute into control system."""
-        self.madx.set_value(expr, value)
+        self.madx.globals[expr] = value
         self.twiss.invalidate()
         # TODO: invalidate element…
         # knob.elem.invalidate()
@@ -916,7 +915,7 @@ class ElementList(Sequence):
         if isinstance(index, ElementInfo):
             return self._get_by_dict({
                 'name': index.name,
-                'el_id': index.index,
+                'id': index.index,
             })
         if isinstance(index, str):
             return self._get_by_name(index)
@@ -940,8 +939,8 @@ class ElementList(Sequence):
             return self._index_by_dict(element)
         if isinstance(element, ElementInfo):
             return self._index_by_dict({
-                'name': element.name,
-                'el_id': element.index,
+                'name': element.node_name,
+                'id': element.index,
             })
         if isinstance(element, str):
             return self._index_by_name(element)
@@ -949,13 +948,13 @@ class ElementList(Sequence):
 
     # TODO: remove?
     def _get_by_dict(self, elem):
-        if 'el_id' not in elem:
+        if 'id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
-        index = elem.El_id
+        index = elem.index
         data = self._get_by_index(index)
-        if elem.Name != data.Name:
+        if elem.node_name != data.node_name:
             raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(data.Name, elem.Name))
+                             .format(data.node_name, elem.node_name))
         return data
 
     def _get_by_name(self, name):
@@ -968,12 +967,12 @@ class ElementList(Sequence):
 
     # TODO: remove
     def _index_by_dict(self, elem):
-        if 'el_id' not in elem:
+        if 'id' not in elem:
             raise TypeError("Not an element dict: {!r}".format(elem))
-        index = elem.El_id
-        if elem.Name.lower() != self._el_names[index].lower():
+        index = elem.index
+        if elem.node_name.lower() != self._el_names[index].lower():
             raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(self._el_names[index], elem.Name))
+                             .format(self._el_names[index], elem.node_name))
         return index
 
     def _index_by_name(self, name):
@@ -1042,7 +1041,7 @@ class Element(Mapping):
         if level >= self.INVALIDATE_PARAM:
             self._merged = OrderedDict([
                 ('name', self._name),
-                ('el_id', self._idx),
+                ('id', self._idx),
             ])
 
     def _retrieve(self, name):
@@ -1056,7 +1055,7 @@ class Element(Mapping):
                 d['kick'] = d['k0'] * d['length'] - d['angle']
 
     def elem(self):
-        return self._model.active_sequence.expanded_elements[self._idx]
+        return self._model.sequence().expanded_elements[self._idx]
 
 
 class ElementDataStore(MadxDataStore):
@@ -1089,13 +1088,6 @@ def process_spec_item(key, value):
 # stuff for online control
 #----------------------------------------
 
-def _get_identifier(expr):
-    try:
-        return expr.expr
-    except AttributeError:
-        return ''
-
-
 # TODO: …KNL/KSL
 def _get_property_lval(elem, attr):
     """
@@ -1107,24 +1099,34 @@ def _get_property_lval(elem, attr):
     if attr.endswith(']'):
         head, tail = attr.split('[', 1)
         index = int(tail[:-1])
-        expr = elem._model.elements[elem['name']].cmdpar[head].expr[index]
+        expr = elem._model.elements[elem.node_name].cmdpar[head].expr[index]
     else:
-        expr = elem._model.elements[elem['name']].cmdpar[attr].expr
+        expr = elem._model.elements[elem.node_name].cmdpar[attr].expr
     if not isinstance(expr, list):
         madx = elem._model
-        expr = _get_identifier(expr)
-        name = expr if is_identifier(expr) else elem.Name + '->' + attr
+        expr = expr or ''
+        name = expr if is_identifier(expr) else elem.node_name + '->' + attr
         vars = madx.expr_vars(expr) if expr else [name]
         return name, vars
 
 
 def _is_property_defined(elem, attr):
     """Check if attribute of an element was defined."""
-    try:
-        value = elem.get(attr)
-        return hasattr(value, '_expression') or float(value) != 0
-    except (ValueError, TypeError, IndexError):
-        return False
+    if attr.endswith(']'):
+        attr, tail = attr.split('[', 1)
+        index = int(tail[:-1])
+    else:
+        index = None
+    elem = elem.elem()
+    while elem.parent is not elem:
+        try:
+            cmdpar = elem.cmdpar[attr]
+            if cmdpar.inform:
+                return bool(cmdpar.value if index is None else cmdpar.value[index])
+        except (KeyError, IndexError):
+            pass
+        elem = elem.parent
+    return False
 
 
 def _eval_expr(value):

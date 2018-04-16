@@ -47,7 +47,7 @@ class ElementInfoBox(QtGui.QWidget):
 
         # navigation
         self.select = QtGui.QComboBox()
-        self.select.addItems([elem.Name for elem in model.elements])
+        self.select.addItems([elem.node_name for elem in model.elements])
         self.select.currentIndexChanged.connect(self.set_element)
 
         self.model = model
@@ -76,7 +76,7 @@ class ElementInfoBox(QtGui.QWidget):
         elements  = self.model.elements
         old_index = self.model.get_element_index(self.el_id)
         new_index = old_index + step
-        new_el_id = elements[new_index % len(elements)].El_id
+        new_el_id = elements[new_index % len(elements)].id
         self.el_id = new_el_id
 
     @property
@@ -112,7 +112,7 @@ class BasicDataStore(ElementDataStore):
         show = self.conf['show']
         return OrderedDict([
             (k, data[k])
-            for k in show['common'] + show.get(data['base_name'], [])
+            for k in show['common'] + show.get(data.base_name, [])
         ])
 
 
@@ -198,8 +198,8 @@ class EllipseWidget(QtGui.QWidget):
 
         # FIXME: gui_units
         twiss = to_ui(self.model.get_elem_twiss(elem_index))
-        ellipse(axx, twiss['alfx'], twiss['betx'], twiss['gamx'], twiss['ex'])
-        ellipse(axy, twiss['alfy'], twiss['bety'], twiss['gamy'], twiss['ey'])
+        ellipse(axx, twiss.alfx, twiss.betx, twiss.gamx, twiss.ex)
+        ellipse(axy, twiss.alfy, twiss.bety, twiss.gamy, twiss.ey)
 
         axx.set_xlabel("x [{}]".format(ui_units.label('x')))
         axy.set_xlabel("y [{}]".format(ui_units.label('y')))

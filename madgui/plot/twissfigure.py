@@ -189,7 +189,7 @@ class TwissFigure(Object):
                  coord_fmt(y, get_raw_label(curve.y_unit))]
         elem = self.model.get_element_by_mouse_position(ax, x)
         if elem and 'name' in elem:
-            name = strip_suffix(elem.Name, '[0]')
+            name = strip_suffix(elem.node_name, '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
 
@@ -511,7 +511,7 @@ class MatchTool(CaptureTool):
             # TODO: should do this only once for each yname!
             constraints.extend([
                 Constraint(elem, pos, c.y_name,
-                        self.model.get_twiss(elem.Name, c.y_name, pos))
+                        self.model.get_twiss(elem.node_name, c.y_name, pos))
                 for c in curves
                 if c.y_name != name
             ])
@@ -532,7 +532,7 @@ class MatchTool(CaptureTool):
     def removeConstraint(self, elem, axis):
         """Remove the constraint for elem."""
         indexes = [i for i, c in enumerate(self.matcher.constraints)
-                   if c.elem.El_id == elem.El_id and c.axis == axis]
+                   if c.elem.id == elem.id and c.axis == axis]
         for i in indexes[::-1]:
             del self.matcher.constraints[i]
         # NOTE: we should probably only delete "automatic" variables, but for
@@ -595,7 +595,7 @@ class InfoTool(CaptureTool):
 
         if event.elem is None:
             return
-        el_id = event.elem.El_id
+        el_id = event.elem.id
 
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
@@ -630,7 +630,7 @@ class InfoTool(CaptureTool):
         old_el_id = selected[top]
         old_index = self.model.get_element_index(old_el_id)
         new_index = old_index + move_step
-        new_el_id = self.model.elements[new_index % len(elements)].El_id
+        new_el_id = self.model.elements[new_index % len(elements)].id
         selected[top] = new_el_id
 
 

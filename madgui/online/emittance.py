@@ -74,7 +74,7 @@ class EmittanceDialog(QtGui.QDialog):
         load_ui(self, __package__, self.ui_file)
         self.control = control
 
-        self.monitor_list = [el.Name
+        self.monitor_list = [el.node_name
                              for el in control._model.elements
                              if el.base_name.lower().endswith('monitor')
                              or el.base_name.lower() == 'instrument']
@@ -221,11 +221,11 @@ class EmittanceDialog(QtGui.QDialog):
 
         results = []
         results += [
-            ResultItem('ex',   ex,   beam['ex']),
-            ResultItem('ey',   ey,   beam['ey']),
+            ResultItem('ex',   ex,   beam.ex),
+            ResultItem('ey',   ey,   beam.ey),
         ]
         results += [
-            ResultItem('pt',   pt,   beam['et']),
+            ResultItem('pt',   pt,   beam.et),
         ] if use_dispersion else []
         results += [
             ResultItem('betx', betx, twiss_args.get('betx')),

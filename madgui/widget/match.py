@@ -10,7 +10,7 @@ from madgui.util.enum import make_enum
 
 
 def get_constraint_elem(widget, c, i):
-    return widget.elem_enum(c.elem.Name if c.elem else "(global)")
+    return widget.elem_enum(c.elem.node_name if c.elem else "(global)")
 
 def set_constraint_elem(widget, c, i, name):
     if name is not None:
@@ -23,7 +23,7 @@ def get_constraint_axis(widget, c, i):
 
 def set_constraint_axis(widget, c, i, axis):
     if axis is not None:
-        value = widget.model.get_twiss(c.elem.Name, str(axis), c.pos)
+        value = widget.model.get_twiss(c.elem.node_name, str(axis), c.pos)
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, str(axis), value)
 
@@ -62,7 +62,7 @@ def get_knob_final_value(v):
 
 def format_knob(knob):
     return (knob.elem and
-            "{}: {}".format(knob.elem.Name, knob.attr) or
+            "{}: {}".format(knob.elem.node_name, knob.attr) or
             knob.param)
 
 def parse_knob(model, text):

@@ -607,7 +607,7 @@ class InfoBoxGroup:
 
     def _modify(self, index, el_id):
         self.boxes[index].el_id = el_id
-        self.boxes[index].setWindowTitle(self.model.elements[el_id].Name)
+        self.boxes[index].setWindowTitle(self.model.elements[el_id].node_name)
 
     # utility methods
 
@@ -629,7 +629,7 @@ class InfoBoxGroup:
         info = ElementInfoBox(self.model, el_id)
         dock = Dialog(self.mainwindow)
         dock.setExportWidget(info, None)
-        dock.setWindowTitle("Element details: " + self.model.elements[el_id].Name)
+        dock.setWindowTitle("Element details: " + self.model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
 
@@ -646,4 +646,4 @@ class InfoBoxGroup:
         old_el_id = self.selection.elements[box_index]
         if new_el_id != old_el_id:
             self.selection.elements[box_index] = new_el_id
-        box.window().setWindowTitle("Element details: " + self.model.elements[new_el_id].Name)
+        box.window().setWindowTitle("Element details: " + self.model.elements[new_el_id].node_name)

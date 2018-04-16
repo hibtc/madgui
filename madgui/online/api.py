@@ -102,7 +102,7 @@ class Knob:
     def __init__(self, plug, elem, attr, param, unit):
         self.plug = plug
         self.elem = elem
-        self.el_name = elem.Name.lower()
+        self.el_name = elem.node_name.lower()
         self.attr = attr.lower()
         self.param = param
         self.unit = unit
