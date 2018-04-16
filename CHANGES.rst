@@ -1,6 +1,69 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.9.0
+-----
+Date: 16.04.2018
+
+Improvements:
+
+- add x/y/px/py values to *Twiss* tab in element info dialog
+- replot backtracked twiss on every new monitor readout
+- consider ``SBEND->K0`` when detecting knobs
+- remove conversion mechanism for knobs, this is now the responsibility of the
+  model itself (by using appropriate expressions) or the online plugin
+- use only user defined variables in deferred expressions as knobs, consider
+  fixed numbers as static
+- show marks with monitor width/position when opening monitor dialog, can
+  select which ones to show
+- add update/backtrack functionality to monitor widget
+- show unit on the column title
+- add simple data export for monitors
+- make the monitorwidget child to the main window (so it will be closed like
+  everything else when the main window is closed)
+- persist some settings across multiple madgui runs using *session* files:
+  main window size/position, model, folder, selected monitors
+- enable grid in twiss plot (mainly for y=0)
+- add ``onload`` config entry for application, and in model
+- remove setuptools based entrypoint for online models, must be manually
+  loaded by the user using the ``onload`` handler instead
+- draw element markers at the exit end of the element
+- unify log window with MAD-X input commands, output, as well as logging
+  records, based on PlainTextEdit with extra selections in different colors,
+  much easier on the eyes and hands! Shows line numbers and times on the left.
+- show exceptions in log window as well
+- silence Pint redefinition warning
+- log interleaved MAD-X input/output in chronological order!
+- display line numbers for config edit dialog (multi grid)
+- show only the actual MAD-X command parameters in the second info tab
+- add ``kick`` attribute for SBEND in summary tab
+
+Bug fixes:
+
+- fix exception on py34: missing ``math.isclose``
+- fix exception in floor plan
+- fix error in matching due to discarding ``Expression``
+- fix unit conversion for gantry angle
+- fix multi grid with ``assign`` in config file
+- use float edit boxes for target values
+- fix input unit of multi-grid target values
+- fix bug with disappearing monitor widget (GC related)
+
+Internal changes:
+
+- use function call syntax to get the values from Bool proxies
+- remove some remaining py2 compatibility code
+- support attribute access and *on_change* signals for config entries, make
+  ``config.NumberFormat`` a simple config entry
+- rename ``user_ns`` to ``context``
+- cleanup some unused imports, undefined names etc (pyflakes)
+- replace ``monospace`` function by a simpler one without ``size`` parameter
+- remove uppercase restritcion when accessing element attributes
+- adapt to changes in cpymad 1.0 API
+- flip definition of ``gantry_angle`` (``SROTATION->ANGLE`` has changed in
+  MAD-X 5.04.00)
+
+
 1.8.0
 -----
 Date: 25.03.2018
