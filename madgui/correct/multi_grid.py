@@ -93,17 +93,11 @@ class Corrector(Matcher):
         if not self.started:
             self.started = True
             self.backup()
-            self.timer = QtCore.QTimer()
-            self.timer.timeout.connect(self.update_readouts)
-            self.timer.start(2000)
 
     def stop(self):
         if self.started:
             self.started = False
             self.restore()
-            self.timer.timeout.disconnect(self.update_readouts)
-            self.timer.stop()
-            self.timer = None
 
     def backup(self):
         self.backup_twiss_args = self.model.twiss_args
