@@ -45,7 +45,6 @@ class Corrector(Matcher):
         super().__init__(control._model, None)
         self.control = control
         self.configs = configs
-        self.control.read_all()
         knobs = control.get_knobs()
         self._optics = {mknob.param: (mknob, dknob) for mknob, dknob in knobs}
         self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
@@ -54,8 +53,7 @@ class Corrector(Matcher):
         self.design_values = {}
         self.monitors = List()
         self.readouts = List()
-        self.fit_results = List()
-        control._frame.open_graph('orbit')
+        QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None):
         dirs = dirs or self.mode
@@ -80,7 +78,6 @@ class Corrector(Matcher):
             variable_from_knob(self, self._knobs[el.lower()][0])
             for el in steerers
         ], key=lambda v: v.pos)
-        self.update_readouts()
 
     def dknob(self, var):
         return self._optics[var.knob.param][1]
@@ -93,17 +90,11 @@ class Corrector(Matcher):
         if not self.started:
             self.started = True
             self.backup()
-            self.timer = QtCore.QTimer()
-            self.timer.timeout.connect(self.update_readouts)
-            self.timer.start(2000)
 
     def stop(self):
         if self.started:
             self.started = False
             self.restore()
-            self.timer.timeout.disconnect(self.update_readouts)
-            self.timer.stop()
-            self.timer = None
 
     def backup(self):
         self.backup_twiss_args = self.model.twiss_args
@@ -117,25 +108,33 @@ class Corrector(Matcher):
         for mknob, value in self.backup_strengths:
             mknob.write(value)
 
-    def update_readouts(self, plot=True):
+    def update(self):
+        self.update_readouts()
+        self.update_fit()
+
+    def update_readouts(self):
         self.readouts[:] = [
+            # NOTE: this triggers model._retrack in stub!
             MonitorReadout(monitor, self.control.read_monitor(monitor))
             for monitor in self.monitors
         ]
 
-        if len(self.readouts) >= 2:
-            self.control.read_all()
-            self.model.twiss_args = self.backup_twiss_args
-            init_orbit, chi_squared, singular = \
-                self.fit_particle_orbit()
-            if singular:
-                return
-            init_twiss = {}
-            init_twiss.update(self.model.twiss_args)
-            init_twiss.update(init_orbit)
-            self.model.twiss_args = init_twiss
-            self.model.twiss.invalidate()
-
+    def update_fit(self):
+        self.fit_results = None
+        if len(self.readouts) < 2:
+            return
+        self.control.read_all()
+        self.model.twiss_args = self.backup_twiss_args
+        init_orbit, chi_squared, singular = \
+            self.fit_particle_orbit()
+        if singular:
+            return
+        init_twiss = {}
+        init_twiss.update(self.model.twiss_args)
+        init_twiss.update(init_orbit)
+        self.fit_results = init_orbit
+        self.model.twiss_args = init_twiss
+        self.model.twiss.invalidate()
 
     # computations
 
@@ -307,8 +306,8 @@ class CorrectorWidget(QtGui.QWidget):
 
     def set_initial_values(self):
         self.update_fit_button.setFocus()
-        self.update_fit()
         self.radio_mode_xy.setChecked(True)
+        self.corrector.update()
 
     def connect_signals(self):
         self.update_fit_button.clicked.connect(self.update_fit)
@@ -321,22 +320,14 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
-        twiss_init = None
-        self.corrector.update_readouts(plot=False)
-        if len(self.corrector.readouts) >= 2:
-            self.corrector.control.read_all()
-            self.corrector.model.twiss_args = self.corrector.backup_twiss_args
-            init_orbit, chi_squared, singular = \
-                self.corrector.fit_particle_orbit()
-            if not singular:
-                twiss_init = init_orbit
+        self.corrector.update()
 
-        if twiss_init is None or not self.corrector.variables:
+        if not self.corrector.fit_results or not self.corrector.variables:
             self.steerer_corrections = None
             self.execute_corrections.setEnabled(False)
             return
         self.steerer_corrections = \
-            self.corrector.compute_steerer_corrections(twiss_init)
+            self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.execute_corrections.setEnabled(True)
         # update table view
         self.corrector.variables[:] = [
@@ -346,9 +337,11 @@ class CorrectorWidget(QtGui.QWidget):
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
         self.corrector.setup(name, self.corrector.mode)
+        self.corrector.update()
 
     def on_change_mode(self, dirs):
         self.corrector.setup(self.corrector.active, dirs)
+        self.corrector.update()
 
         # TODO: make 'optimal'-column in var_tab editable and update
         #       self.execute_corrections.setEnabled according to its values
@@ -412,9 +405,8 @@ class EditConfigDialog(QtGui.QDialog):
         self.matcher.configs = configs
         self.model.data['multi_grid'] = configs
 
-        if self.matcher.active in configs:
-            self.matcher.setup(self.matcher.active)
-        else:
-            self.matcher.setup(next(iter(configs)))
+        conf = configs.get(self.matcher.active, next(iter(configs)))
+        self.matcher.setup(conf)
+        self.matcher.update()
 
         return True
