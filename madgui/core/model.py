@@ -791,10 +791,11 @@ class Model(Object):
 
     def write_param(self, expr, value):
         """Update element attribute into control system."""
-        self.madx.globals[expr] = value
-        self.twiss.invalidate()
-        # TODO: invalidate element…
-        # knob.elem.invalidate()
+        if self.madx.eval(expr) != value:
+            self.madx.globals[expr] = value
+            self.twiss.invalidate()
+            # TODO: invalidate element…
+            # knob.elem.invalidate()
 
 
 def process_spec(prespec, data):
