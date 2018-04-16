@@ -30,12 +30,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="btn_backtrack">
+      <widget class="QPushButton" name="btn_backtrack">
        <property name="text">
-        <string>backtrack</string>
-       </property>
-       <property name="checkable">
-        <bool>true</bool>
+        <string>Backtrack</string>
        </property>
       </widget>
      </item>

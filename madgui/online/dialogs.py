@@ -180,7 +180,7 @@ class MonitorWidget(QtGui.QDialog):
 
         Buttons = QtGui.QDialogButtonBox
         self.btn_update.clicked.connect(self.update)
-        self.btn_backtrack.toggled.connect(self.toggle_backtrack)
+        self.btn_backtrack.clicked.connect(self.backtrack)
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.save)
@@ -257,8 +257,6 @@ class MonitorWidget(QtGui.QDialog):
             for el in self.model.elements
             if el.base_name.lower().endswith('monitor')
             or el.base_name.lower() == 'instrument']
-        if self.btn_backtrack.isChecked():
-            self.backtrack()
         self.draw()
 
     folder = None
@@ -304,10 +302,6 @@ class MonitorWidget(QtGui.QDialog):
         raise NotImplementedError(
             "Don't know how to serialize to {!r} format."
             .format(ext))
-
-    def toggle_backtrack(self, enabled):
-        if enabled:
-            self.backtrack()
 
     def backtrack(self):
         init_orbit, chi_squared, singular = \
