@@ -100,10 +100,8 @@ class LogWindow(QtGui.QFrame):
         self._log_manager = manager
         sys.excepthook = self.excepthook
 
-    def recv_log(self, domain, reader):
-        lines = list(reader.read_all())
-        if lines:
-            text = "\n".join(lines)
+    def recv_log(self, domain, text):
+        if text:
             self.records.append(LogRecord(
                 time.time(), domain, text))
 

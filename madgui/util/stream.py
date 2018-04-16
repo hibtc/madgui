@@ -1,7 +1,3 @@
-from threading import Thread, Event
-from queue import Queue, Empty
-
-
 # The following code makes sure to read all available stdout lines before
 # sending more input to MAD-X (ensure the real chronological order!), see:
 #       linux:   https://stackoverflow.com/q/375427/650222
@@ -36,62 +32,43 @@ except ImportError:         # Windows
             raise OSError(WinError())
 
 
-class AsyncReader:
+class StreamReader:
 
     """Read stream asynchronously in a worker thread. Note that the worker
     thread will only be active while have entered the `with` context."""
 
+    # NOTE: If MAD-X writes too much output to its STDOUT pipe without any
+    # consumer running in parallel, the write will block -- leading to a
+    # deadlock. Therefore we *should* ensure to read the pipe while waiting
+    # for MAD-X commands to finish. However, any threaded solution I came up
+    # with that is able to keep the chronological order had a *huge*
+    # performance deficit (every command takes ~100ms) -- which is why we
+    # currently stay with a single-threaded solution that keeps the
+    # chronological order but could potentially deadlock.
+
     def __init__(self, stream, callback):
         super().__init__()
-        self.queue = Queue()
-        self.loop = Event()
-        self.idle = Event()
-        self.poll = Event()
+        set_nonblocking(stream)
         self.stream = stream
         self.callback = callback
-        self.thread = Thread(target=self._read_thread)
-        self.thread.daemon = True   # don't block program exit
-        self.thread.start()
-
-    def read_all(self):
-        """Read all data currently available in the queue."""
-        while True:
-            try:
-                x = self.queue.get_nowait()
-            except Empty:
-                return
-            yield x
 
     def __enter__(self):
-        self.poll.set()
-        return self
+        pass
 
     def __exit__(self, *exc_info):
-        self.flush()
-
-    def _read_thread(self):
-        set_nonblocking(self.stream)
+        lines = []
         while True:
-            self.loop.set()
             try:
                 line = self.stream.readline()
             except IOError:
-                time.sleep(0)
-                self.idle.set()
-                self.poll.wait()
-                continue
+                break
             if not line:
-                return
-            self.queue.put(line.decode('utf-8', 'replace')[:-1])
-            self.callback(self)
+                break
+            lines.append(line.decode('utf-8', 'replace')[:-1])
+        if lines:
+            self.callback("\n".join(lines))
 
     def flush(self):
         """Read all data from the remote."""
-        self.poll.set()
-        self.loop.clear()
-        self.loop.wait()
-        self.idle.clear()
-        self.idle.wait()
-        self.poll.clear()
-        if not self.queue.empty():
-            self.callback(self)         # emit signal in direct mode!
+        with self:
+            pass
