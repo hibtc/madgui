@@ -81,6 +81,7 @@ class MainWindow(QtGui.QMainWindow):
             'online_control': {
                 'connect': self.control.is_connected(),
                 'monitors': self.config.online_control['monitors'],
+                'offsets': self.config.online_control['offsets'],
             },
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,

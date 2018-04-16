@@ -169,6 +169,7 @@ class MonitorWidget(QtGui.QDialog):
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
         self._monitor_show = self.frame.config['online_control']['monitors']
+        self._monitor_offs = self.frame.config['online_control']['offsets']
 
         for col in self.columns[1:]:
             col.title += '/' + ui_units.label(col.getter)
@@ -181,6 +182,7 @@ class MonitorWidget(QtGui.QDialog):
         Buttons = QtGui.QDialogButtonBox
         self.btn_update.clicked.connect(self.update)
         self.btn_backtrack.clicked.connect(self.backtrack)
+        self.btn_offsets.clicked.connect(self.save_offsets)
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.save)
@@ -213,8 +215,9 @@ class MonitorWidget(QtGui.QDialog):
 
         for mon in self.monitors:
             mon.s = to_ui('s', self.model.elements[mon.name].position)
-            mon.x = mon.posx
-            mon.y = mon.posy
+            dx, dy = self._monitor_offs.get(mon.name.lower(), (0, 0))
+            mon.x = (mon.posx + dx*1000) if mon.posx is not None else None
+            mon.y = (mon.posy + dy*1000) if mon.posy is not None else None
 
         name = "monitors"
 
@@ -303,6 +306,15 @@ class MonitorWidget(QtGui.QDialog):
             "Don't know how to serialize to {!r} format."
             .format(ext))
 
+    def save_offsets(self):
+        self.model.twiss.update()
+        for m in self.monitors:
+            tw = self.model.get_elem_twiss(m.name)
+            if self.selected(m):
+                self._monitor_offs[m.name.lower()] = (
+                    tw.x - m.posx/1000,
+                    tw.y - m.posy/1000)
+
     def backtrack(self):
         init_orbit, chi_squared, singular = \
             self.fit_particle_orbit()
@@ -320,8 +332,9 @@ class MonitorWidget(QtGui.QDialog):
         secmaps = self.model.get_transfer_maps([r.name for r in records])
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (record.posx/1000, record.posy/1000))
+            (secmap[:,:6], secmap[:,6], (record.posx/1000+dx, record.posy/1000+dy))
             for record, secmap in zip(records, secmaps)
+            for dx, dy in [self._monitor_offs.get(record.name.lower(), (0, 0))]
         ])
         return {
             'x': x, 'px': px,

@@ -53,6 +53,7 @@ class Corrector(Matcher):
         self.design_values = {}
         self.monitors = List()
         self.readouts = List()
+        self._monitor_offs = control._frame.config['online_control']['offsets']
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None):
@@ -145,8 +146,9 @@ class Corrector(Matcher):
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
 
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (record.x, record.y))
+            (secmap[:,:6], secmap[:,6], (record.x+dx, record.y+dy))
             for record, secmap in zip(records, secmaps)
+            for dx, dy in [self._monitor_offs.get(record.monitor.lower(), (0, 0))]
         ])
         return {
             'x': x, 'px': px,
@@ -182,8 +184,13 @@ class Corrector(Matcher):
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
         match_names = {v.knob.param for v in self.variables
                        if v.knob.param.lower() not in blacklist}
+        def offset(c):
+            dx, dy = self._monitor_offs.get(c.elem.name.lower(), (0, 0))
+            if c.axis in ('x', 'posx'): return dx
+            if c.axis in ('y', 'posy'): return dy
+            return 0
         constraints = [
-            dict(range=c.elem.node_name, **{c.axis: from_ui(c.axis, c.value)})
+            dict(range=c.elem.node_name, **{c.axis: from_ui(c.axis, c.value)+offset(c)})
             for c in self.constraints
         ]
         for name, expr in self.selected.get('assign', {}).items():

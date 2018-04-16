@@ -18,6 +18,7 @@ mainwindow:
 online_control:
   connect: false
   monitors: {}
+  offsets: {}
 
 onload: ""
 model_path: ""
