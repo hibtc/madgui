@@ -70,7 +70,6 @@ class MainWindow(QtGui.QMainWindow):
             os.environ['PATH'] += os.pathsep + os.path.abspath(path)
         self.folder = self.config.model_path
         config.number = self.config.number
-        exec(self.config.onload, self.context)
 
     def session_data(self):
         return {
@@ -106,6 +105,7 @@ class MainWindow(QtGui.QMainWindow):
             self.loadFile(self.searchFile(filename))
         else:
             self.log.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
+        exec(self.config.onload, self.context)
 
     def createMenu(self):
         control = self.control
