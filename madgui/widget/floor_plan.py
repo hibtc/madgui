@@ -8,7 +8,7 @@ Components to draw a 2D floor plan of a given MAD-X lattice.
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
-from math import cos, sin, sqrt, pi
+from math import cos, sin, sqrt, pi, atan2
 
 import numpy as np
 
@@ -121,6 +121,8 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             self.scene().addItem(
                 ElementGraphicsItem(self, element, floor, selection))
         self.setViewRect(self._sceneRect())
+        self.coordinate_axes = CoordinateAxes(self)
+        self.scene().addItem(self.coordinate_axes)
         selection.elements.update_after.connect(self._update_selection)
 
     def _sceneRect(self):
@@ -134,6 +136,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         """Maintain visible region on resize."""
         self.setViewRect(self.view_rect)
         super().resizeEvent(event)
+        self.coordinate_axes.update()
 
     def mapRectToScene(self, rect):
         """
@@ -144,6 +147,10 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         return QtCore.QRectF(
             self.mapToScene(rect.topLeft()),
             self.mapToScene(rect.bottomRight()))
+
+    def mapSizeToScene(self, size):
+        return (self.mapToScene(QtCore.QPoint(size.width(), size.height())) -
+                self.mapToScene(QtCore.QPoint(0, 0)))
 
     def setViewRect(self, rect):
         """
@@ -318,3 +325,94 @@ def createPen(style=Qt.SolidLine, color='black', width=1):
         pen.setWidthF(width)
         pen.setCosmetic(False)
     return pen
+
+
+class CoordinateAxes(QtGui.QGraphicsItem):
+
+    """Display axes of coordinates."""
+
+    el_id = None
+    pen = {'style': Qt.SolidLine,
+           'color': 'orange',
+           'width': 1}
+
+    def __init__(self, plan):
+        super().__init__()
+        self.plan = plan
+        self.update()
+
+    def update(self):
+        self._path = self.draw_path()
+
+    def shape(self):
+        return self._path
+
+    def boundingRect(self):
+        # Ignore this item when calculating the scene rect:
+        return QtCore.QRectF()
+
+    def paint(self, painter, option, widget):
+        pen = createPen(**self.pen)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setPen(pen)
+        painter.setBrush(QtGui.QBrush(pen.color(), Qt.SolidPattern))
+        painter.drawPath(self._path)
+
+    def draw_path(self):
+        l, s, d = 5, 1, 0.8
+        proj = self.plan.projection.dot
+        orig = np.array([0, 0])
+        axes = QtGui.QPainterPath()
+        axes.addPath(self.axis_arrow("x", orig, orig+l*proj([1, 0, 0]), s))
+        axes.addPath(self.axis_arrow("y", orig, orig+l*proj([0, 1, 0]), s))
+        axes.addPath(self.axis_arrow("z", orig, orig+l*proj([0, 0, 1]), s))
+        view = self.plan.mapRectToScene(self.plan.viewport().rect())
+        rect = axes.boundingRect()
+        axes.translate(view.left() + view.width()/15 - rect.left(),
+                       view.bottom() - view.height()/15 - rect.bottom())
+        path = QtGui.QPainterPath()
+        path.addPath(axes)
+        path.addEllipse(-d/2, -d/2, d, d)
+        return path
+
+    def axis_arrow(self, label, x0, x1, arrow_size):
+        path = arrow(x0, x1, arrow_size)
+        if not path:
+            return QtGui.QPainterPath()
+        plan = self.plan
+        font = QtGui.QFont(plan.font())
+        font.setPointSize(1)
+        rect = QtGui.QFontMetrics(font).boundingRect(label)
+        size = plan.mapSizeToScene(rect.size())
+        x, y = x1 - x0
+        offs = [sgn(x) * arrow_size - size.x() * (x < 0),
+                sgn(y) * arrow_size + size.y() * (y > 0)]
+        path.addText(QtCore.QPointF(*(x1 + offs)), font, label)
+        return path
+
+
+def sgn(n):
+    if n < 0: return -1
+    if n > 0: return +1
+    return 0
+
+
+def arrow(x0, x1, arrow_size=0.3, arrow_angle=pi/5):
+    dx, dy = x1 - x0
+    if dy**2 + dx**2 < arrow_size**2:
+        return None
+    path = QtGui.QPainterPath()
+    path.moveTo(*x0)
+    path.lineTo(*x1)
+    angle = atan2(dy, dx)
+    p1 = x1 + [cos(angle + pi + arrow_angle) * arrow_size,
+               sin(angle + pi + arrow_angle) * arrow_size]
+    p2 = x1 + [cos(angle + pi - arrow_angle) * arrow_size,
+               sin(angle + pi - arrow_angle) * arrow_size]
+    path.addPolygon(QtGui.QPolygonF([
+        QtCore.QPointF(*x1),
+        QtCore.QPointF(*p1),
+        QtCore.QPointF(*p2),
+        QtCore.QPointF(*x1),
+    ]))
+    return path
