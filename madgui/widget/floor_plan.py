@@ -147,10 +147,6 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             self.mapToScene(rect.topLeft()),
             self.mapToScene(rect.bottomRight()))
 
-    def mapSizeToScene(self, size):
-        return (self.mapToScene(QtCore.QPoint(size.width(), size.height())) -
-                self.mapToScene(QtCore.QPoint(0, 0)))
-
     def setViewRect(self, rect):
         """
         Fit the given scene rectangle into the visible view.
@@ -384,19 +380,16 @@ class CoordinateAxes(QtGui.QGraphicsItem):
         plan = self.plan
         font = QtGui.QFont(plan.font())
         font.setPointSize(14)
-        rect = QtGui.QFontMetrics(font).boundingRect(label)
-        size = plan.mapSizeToScene(rect.size())
-        x, y = x1 - x0
-        offs = [sgn(x) * arrow_size - size.x() * (x < 0),
-                sgn(y) * arrow_size + size.y() * (y > 0)]
+        metr = QtGui.QFontMetrics(font)
+        rect = metr.boundingRect(label)
+        rect.setHeight(metr.xHeight())
+        tran = self.deviceTransform(self.plan.viewportTransform()).inverted()[0]
+        size = tran.mapRect(QtCore.QRectF(rect)).size()
+        w, h = size.width(), size.height()
+        dir_ = (x1 - x0) / np.linalg.norm(x1 - x0)
+        offs = [-w/2, +h/2] + dir_ * max(w, h)
         path.addText(QtCore.QPointF(*(x1 + offs)), font, label)
         return path
-
-
-def sgn(n):
-    if n < 0: return -1
-    if n > 0: return +1
-    return 0
 
 
 def arrow(x0, x1, arrow_size=0.3, arrow_angle=pi/5):
