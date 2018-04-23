@@ -120,9 +120,9 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         for element, floor in zip(elements, zip(survey, survey[1:])):
             self.scene().addItem(
                 ElementGraphicsItem(self, element, floor, selection))
-        self.setViewRect(self._sceneRect())
         self.coordinate_axes = CoordinateAxes(self)
         self.scene().addItem(self.coordinate_axes)
+        self.setViewRect(self._sceneRect())
         selection.elements.update_after.connect(self._update_selection)
 
     def _sceneRect(self):
@@ -136,7 +136,6 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         """Maintain visible region on resize."""
         self.setViewRect(self.view_rect)
         super().resizeEvent(event)
-        self.coordinate_axes.update()
 
     def mapRectToScene(self, rect):
         """
@@ -163,6 +162,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.zoom(min(cur.width()/new.width(),
                       cur.height()/new.height()))
         self.view_rect = new
+        self.coordinate_axes.update()
 
     def zoom(self, scale):
         """Scale the figure uniformly along both axes."""
@@ -339,7 +339,7 @@ class CoordinateAxes(QtGui.QGraphicsItem):
     def __init__(self, plan):
         super().__init__()
         self.plan = plan
-        self.update()
+        self.setFlag(QtGui.QGraphicsItem.ItemIgnoresTransformations, True)
 
     def update(self):
         self._path = self.draw_path()
@@ -359,14 +359,16 @@ class CoordinateAxes(QtGui.QGraphicsItem):
         painter.drawPath(self._path)
 
     def draw_path(self):
-        l, s, d = 5, 1, 0.8
+        l, s, d = 45, 10, 10
         proj = self.plan.projection.dot
         orig = np.array([0, 0])
         axes = QtGui.QPainterPath()
         axes.addPath(self.axis_arrow("x", orig, orig+l*proj([1, 0, 0]), s))
         axes.addPath(self.axis_arrow("y", orig, orig+l*proj([0, 1, 0]), s))
         axes.addPath(self.axis_arrow("z", orig, orig+l*proj([0, 0, 1]), s))
-        view = self.plan.mapRectToScene(self.plan.viewport().rect())
+
+        tran = self.deviceTransform(self.plan.viewportTransform()).inverted()[0]
+        view = tran.mapRect(QtCore.QRectF(self.plan.viewport().rect()))
         rect = axes.boundingRect()
         axes.translate(view.left() + view.width()/15 - rect.left(),
                        view.bottom() - view.height()/15 - rect.bottom())
@@ -381,7 +383,7 @@ class CoordinateAxes(QtGui.QGraphicsItem):
             return QtGui.QPainterPath()
         plan = self.plan
         font = QtGui.QFont(plan.font())
-        font.setPointSize(1)
+        font.setPointSize(14)
         rect = QtGui.QFontMetrics(font).boundingRect(label)
         size = plan.mapSizeToScene(rect.size())
         x, y = x1 - x0
