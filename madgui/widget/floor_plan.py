@@ -8,7 +8,7 @@ Components to draw a 2D floor plan of a given MAD-X lattice.
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
-from math import cos, sin, sqrt, pi, atan2
+from math import cos, sin, sqrt, pi, atan2, floor, log10
 
 import numpy as np
 
@@ -121,7 +121,9 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             self.scene().addItem(
                 ElementGraphicsItem(self, element, floor, selection))
         self.coordinate_axes = CoordinateAxes(self)
+        self.scale_indicator = ScaleIndicator(self)
         self.scene().addItem(self.coordinate_axes)
+        self.scene().addItem(self.scale_indicator)
         self.setViewRect(self._sceneRect())
         selection.elements.update_after.connect(self._update_selection)
 
@@ -159,6 +161,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
                       cur.height()/new.height()))
         self.view_rect = new
         self.coordinate_axes.update()
+        self.scale_indicator.update()
 
     def zoom(self, scale):
         """Scale the figure uniformly along both axes."""
@@ -411,3 +414,70 @@ def arrow(x0, x1, arrow_size=0.3, arrow_angle=pi/5):
         QtCore.QPointF(*x1),
     ]))
     return path
+
+
+class ScaleIndicator(QtGui.QGraphicsItem):
+
+    """Display small scale indicator."""
+
+    el_id = None
+    pen = {'style': Qt.SolidLine,
+           'color': 'orange',
+           'width': 2}
+
+    def __init__(self, plan):
+        super().__init__()
+        self.plan = plan
+        self.setFlag(QtGui.QGraphicsItem.ItemIgnoresTransformations, True)
+
+    def update(self):
+        self._path = self.draw_path()
+
+    def shape(self):
+        return self._path
+
+    def boundingRect(self):
+        # Ignore this item when calculating the scene rect:
+        return QtCore.QRectF()
+
+    def paint(self, painter, option, widget):
+        pen = createPen(**self.pen)
+        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setPen(pen)
+        painter.setBrush(Qt.NoBrush)
+        painter.drawPath(self._path)
+
+    def draw_path(self):
+        plan = self.plan
+        rect = plan.mapRectToScene(plan.viewport().rect())
+        rect.setWidth(10**floor(log10(rect.width()/2)))
+        text = "{} m".format(round(rect.width()))
+
+        tran = self.deviceTransform(plan.viewportTransform()).inverted()[0]
+        width = tran.mapRect(QtCore.QRectF(
+            plan.mapFromScene(rect.topLeft()),
+            plan.mapFromScene(rect.bottomRight()))).width()
+
+        view = tran.mapRect(plan.viewport().rect())
+        x0 = QtCore.QPointF(view.right() - view.width()/15,
+                            view.bottom() - view.height()/15)
+        x1 = x0 - QtCore.QPointF(width, 0)
+
+        head = QtCore.QPointF(0, 8)
+        path = QtGui.QPainterPath()
+        path.moveTo(x0)
+        path.lineTo(x1)
+        path.moveTo(x0 + head)
+        path.lineTo(x0 - head)
+        path.moveTo(x1 + head)
+        path.lineTo(x1 - head)
+
+        # add label
+        font = QtGui.QFont(plan.font())
+        font.setPointSize(14)
+        rect = QtGui.QFontMetrics(font).boundingRect(text)
+        size = tran.mapRect(QtCore.QRectF(rect)).size()
+        w, h = size.width(), size.height()
+        offs = [-w/2, -h/2]
+        path.addText((x0+x1)/2 + QtCore.QPointF(*offs), font, text)
+        return path
