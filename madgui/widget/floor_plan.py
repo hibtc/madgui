@@ -78,9 +78,9 @@ class Selector(QtGui.QWidget):
         super().__init__()
         self.floorplan = floorplan
         self.setLayout(QtGui.QHBoxLayout())
-        self._addItem("Z|X", pi/2, pi/2)
-        self._addItem("X|Y",    0,    0)
-        self._addItem("Z|Y",-pi/2,    0)
+        self._addItem("Z|X", -pi/2, pi/2)
+        self._addItem("X|Y",     0,    0)
+        self._addItem("Z|Y", -pi/2,    0)
 
     def _addItem(self, label, *args):
         button = QtGui.QPushButton(label)
@@ -99,7 +99,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.setInteractive(True)
         self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
-        self.setProjection(pi/2, pi/2)
+        self.setProjection(-pi/2, pi/2)
 
     def setProjection(self, theta, phi, psi=0):
         phi = np.clip(phi, -pi/8, pi/2)
