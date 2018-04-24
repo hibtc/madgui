@@ -86,11 +86,11 @@ class MonitorItem:
     def __init__(self, el_name, values):
         self.name = el_name
         self.posx = to_ui('x', values.get('posx'))
-        self.posy = to_ui('x', values.get('posy'))
-        self.envx = to_ui('x', values.get('envx'))
-        self.envy = to_ui('x', values.get('envy'))
-        self.show = (self.envx > 0 and
-                     self.envy > 0 and
+        self.posy = to_ui('y', values.get('posy'))
+        self.envx = to_ui('envx', values.get('envx'))
+        self.envy = to_ui('envy', values.get('envy'))
+        self.show = (self.envx is not None and self.envx > 0 and
+                     self.envy is not None and self.envy > 0 and
                      not np.isclose(self.posx, -9999) and
                      not np.isclose(self.posy, -9999))
 

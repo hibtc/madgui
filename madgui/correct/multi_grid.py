@@ -405,7 +405,7 @@ class EditConfigDialog(QtGui.QDialog):
         self.matcher.configs = configs
         self.model.data['multi_grid'] = configs
 
-        conf = configs.get(self.matcher.active, next(iter(configs)))
+        conf = self.matcher.active if self.matcher.active in configs else next(iter(configs))
         self.matcher.setup(conf)
         self.matcher.update()
 
