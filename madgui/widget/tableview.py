@@ -76,7 +76,6 @@ class ColumnInfo:
             else:
                 # NOTE: incompatible with custom getters/setters
                 name = self.getter
-            name = self.convert if isinstance(self.convert, str) else self.getter
             tu = lambda value: to_ui(name, value)
             fu = lambda value: from_ui(name, value)
         else:
