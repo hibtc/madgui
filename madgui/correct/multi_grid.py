@@ -244,8 +244,6 @@ class CorrectorWidget(QtGui.QWidget):
         ColumnInfo("Monitor", 'monitor', resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("X", 'x', convert=True),
         ColumnInfo("Y", 'y', convert=True),
-        ColumnInfo("Unit", lambda item: ui_units.label('x'),
-                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     constraint_columns = [

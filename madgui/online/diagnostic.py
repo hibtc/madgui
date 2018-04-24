@@ -98,9 +98,6 @@ class MonitorWidget(QtGui.QDialog):
         self._monitor_show = self.frame.config['online_control']['monitors']
         self._monitor_offs = self.frame.config['online_control']['offsets']
 
-        for col in self.columns[1:]:
-            col.title += '/' + ui_units.label(col.getter)
-
         self.grid.set_columns(self.columns, context=self)
         self.grid.horizontalHeader().setHighlightSections(False)
         self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)

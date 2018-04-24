@@ -296,8 +296,6 @@ class CorrectorWidget(QtGui.QWidget):
         ColumnInfo("QP2", get_kL(1)),
         ColumnInfo("x", 'x', convert=True),
         ColumnInfo("y", 'y', convert=True),
-        ColumnInfo("Unit", lambda item: ui_units.label('x'),
-                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     # FIXME: units are broken in these two tabs:

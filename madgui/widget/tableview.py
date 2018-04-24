@@ -6,7 +6,7 @@ from inspect import getmro
 
 from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Object, Signal
-from madgui.core.unit import to_ui, from_ui
+from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property
 from madgui.util.collections import List
@@ -59,6 +59,8 @@ class ColumnInfo:
             self.types = types
         if setter is not None:
             self.kwargs.setdefault('editable', True)
+        if convert is True:
+            self.title += '/' + ui_units.label(getter)
 
     def valueProxy(self, model, index):
         item = model.rows[index]
