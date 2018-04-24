@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 from madgui.qt import Qt, QtGui, load_ui
-from madgui.core.unit import to_ui, from_ui, ui_units
+from madgui.core.unit import to_ui, ui_units
 from madgui.util.layout import VBoxLayout
 from madgui.util import yaml
 from madgui.widget.tableview import (TableView, ColumnInfo, ExtColumnInfo,
@@ -85,14 +85,14 @@ class MonitorItem:
 
     def __init__(self, el_name, values):
         self.name = el_name
-        self.posx = to_ui('x', values.get('posx'))
-        self.posy = to_ui('y', values.get('posy'))
-        self.envx = to_ui('envx', values.get('envx'))
-        self.envy = to_ui('envy', values.get('envy'))
+        self.posx = values.get('posx')
+        self.posy = values.get('posy')
+        self.envx = values.get('envx')
+        self.envy = values.get('envy')
         self.show = (self.envx is not None and self.envx > 0 and
                      self.envy is not None and self.envy > 0 and
-                     not np.isclose(self.posx, -9999) and
-                     not np.isclose(self.posy, -9999))
+                     not np.isclose(self.posx, -9.999) and
+                     not np.isclose(self.posy, -9.999))
 
 
 # TODO: merge this with madgui.widget.curvemanager.CheckedStringValue
@@ -152,10 +152,10 @@ class MonitorWidget(QtGui.QDialog):
 
     columns = [
         ExtColumnInfo("Monitor", CheckedStringValue),
-        ColumnInfo("x", 'posx'),
-        ColumnInfo("y", 'posy'),
-        ColumnInfo("Δx", 'envx'),
-        ColumnInfo("Δy", 'envy'),
+        ColumnInfo("x", 'posx', convert=True),
+        ColumnInfo("y", 'posy', convert=True),
+        ColumnInfo("Δx", 'envx', convert=True),
+        ColumnInfo("Δy", 'envy', convert=True),
     ]
 
     def __init__(self, control, model, frame):
@@ -214,22 +214,22 @@ class MonitorWidget(QtGui.QDialog):
         # all potential scenes.
 
         for mon in self.monitors:
-            mon.s = to_ui('s', self.model.elements[mon.name].position)
+            mon.s = self.model.elements[mon.name].position
             dx, dy = self._monitor_offs.get(mon.name.lower(), (0, 0))
-            mon.x = (mon.posx + dx*1000) if mon.posx is not None else None
-            mon.y = (mon.posy + dy*1000) if mon.posy is not None else None
+            mon.x = (mon.posx + dx) if mon.posx is not None else None
+            mon.y = (mon.posy + dy) if mon.posy is not None else None
 
         name = "monitors"
 
         self.grid.horizontalHeader().setHighlightSections(False)
         self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.grid.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        data = from_ui({
+        data = {
             name: np.array([getattr(mon, name)
                             for mon in self.monitors
                             if self.selected(mon)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
-        })
+        }
         style = self.frame.config['line_view']['monitor_style']
 
         for scene in self.frame.views:
@@ -312,8 +312,8 @@ class MonitorWidget(QtGui.QDialog):
             tw = self.model.get_elem_twiss(m.name)
             if self.selected(m):
                 self._monitor_offs[m.name.lower()] = (
-                    tw.x - m.posx/1000,
-                    tw.y - m.posy/1000)
+                    tw.x - m.posx,
+                    tw.y - m.posy)
 
     def backtrack(self):
         init_orbit, chi_squared, singular = \
@@ -332,7 +332,7 @@ class MonitorWidget(QtGui.QDialog):
         secmaps = self.model.get_transfer_maps([r.name for r in records])
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (record.posx/1000+dx, record.posy/1000+dy))
+            (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
             for record, secmap in zip(records, secmaps)
             for dx, dy in [self._monitor_offs.get(record.name.lower(), (0, 0))]
         ])
