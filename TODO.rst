@@ -356,9 +356,8 @@ treeview
       to column resizing
     - keep user resized columns
 
-floor plan
-~~~~~~~~~~
-- true 3D with opengl
+floor plan 3D
+~~~~~~~~~~~~~
 - improve camera movement
 - customize settings via UI (wireframe etc)
 - export to 3D model

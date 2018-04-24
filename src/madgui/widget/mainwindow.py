@@ -123,9 +123,12 @@ class MainWindow(QMainWindow):
                 Item('&Python shell', 'Ctrl+P',
                      'Show a python shell.',
                      self.viewShell),
-                Item('&Floor plan', 'Ctrl+F',
+                Item('2D &floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
                      self.viewFloorPlan),
+                Item('3D s&urvey', 'Ctrl+U',
+                     'Show a 3D scene of the lattice.',
+                     self.viewLayout3d),
                 Separator,
                 Item('&Refresh', 'F5',
                      'Redo TWISS and refresh plot.',
@@ -432,6 +435,10 @@ class MainWindow(QMainWindow):
 
     def viewFloorPlan(self):
         from madgui.widget.floor_plan import FloorPlanWidget
+        return Dialog(self, FloorPlanWidget(self.session))
+
+    def viewLayout3d(self):
+        from madgui.widget.floor_plan_3d import FloorPlanWidget
         return Dialog(self, FloorPlanWidget(self.session))
 
     @SingleWindow.factory
