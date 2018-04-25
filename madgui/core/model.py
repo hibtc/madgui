@@ -7,7 +7,6 @@ import re
 from collections import namedtuple, Sequence, Mapping, OrderedDict, defaultdict
 from functools import partial
 import itertools
-import logging
 from bisect import bisect_right
 import subprocess
 from threading import RLock
@@ -82,7 +81,6 @@ class Model(Object):
     def __init__(self, filename, config, command_log, stdout_log):
         super().__init__()
         self.twiss = Cache(self._retrack)
-        self.log = logging.getLogger(__name__)
         self.data = {}
         self.path = None
         self.init_files = []

@@ -60,7 +60,6 @@ class MainWindow(QtGui.QMainWindow):
         # signal. Without this, if the setup code excepts after creating the
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
-        self.log = logging.getLogger(__name__)
         QtCore.QTimer.singleShot(0, self.loadDefault)
 
     def configure(self):
@@ -104,7 +103,7 @@ class MainWindow(QtGui.QMainWindow):
         if filename:
             self.loadFile(self.searchFile(filename))
         else:
-            self.log.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
+            logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
         exec(self.config.onload, self.context)
 
     def createMenu(self):
@@ -420,8 +419,8 @@ class MainWindow(QtGui.QMainWindow):
         base, ext = os.path.splitext(name)
         logfile = logfile_name(self.folder, base, '.commands.madx')
         self.logfile = open(logfile, 'wt')
-        self.log.info('Loading {}'.format(filename))
-        self.log.info('Logging commands to: {}'.format(logfile))
+        logging.info('Loading {}'.format(filename))
+        logging.info('Logging commands to: {}'.format(logfile))
         self.setModel(Model(filename, self.config,
                             command_log=self.log_command,
                             stdout_log=self.dataReceived.emit))
