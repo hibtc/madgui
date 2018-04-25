@@ -4,6 +4,7 @@ UI for matching.
 
 from collections import namedtuple
 from math import sqrt
+import logging
 
 import numpy as np
 
@@ -189,7 +190,7 @@ class EmittanceDialog(QtGui.QDialog):
 
         def calc_sigma(tms, xcs, dispersive):
             if dispersive and not use_dispersion:
-                print("Warning: dispersive lattice")
+                logging.warn("Dispersive lattice!")
             if not use_dispersion:
                 tms = tms[:,:-1,:-1]
             sigma, residuals, singular = solve_emit_sys(tms, xcs)
@@ -198,7 +199,7 @@ class EmittanceDialog(QtGui.QDialog):
         # TODO: assert no dispersion / or use 6 monitors...
         if not respect_coupling:
             if coupled:
-                print("Warning: coupled lattice")
+                logging.warn("Coupled lattice!")
             tmx = np.delete(np.delete(tms, [2,3], axis=1), [2,3], axis=2)
             tmy = np.delete(np.delete(tms, [0,1], axis=1), [0,1], axis=2)
             xcx = [[(0, cx[1])] for cx, cy in xcs]
