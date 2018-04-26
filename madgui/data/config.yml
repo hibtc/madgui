@@ -7,7 +7,6 @@
 # NOTE: Use lower-case keys, unless there is a special reason.
 
 number:
-  align: right
   fmtspec: .4g
   spinbox: true
 

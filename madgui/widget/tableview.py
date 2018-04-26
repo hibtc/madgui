@@ -465,7 +465,7 @@ class FloatValue(ValueProxy):
     unit = None
 
     def textAlignment(self):
-        return config.ALIGN[config.number.align] | Qt.AlignVCenter
+        return Qt.AlignRight | Qt.AlignVCenter
 
     @rw_property
     def fmtspec(self):
@@ -503,7 +503,7 @@ class IntValue(ValueProxy):
     default = 0
 
     def textAlignment(self):
-        return config.ALIGN[config.number.align] | Qt.AlignVCenter
+        return Qt.AlignRight | Qt.AlignVCenter
 
     # NOTE: This class is needed to create a spinbox without
     # `editor.setFrame(False)` which causes a display bug: display value is
@@ -609,7 +609,7 @@ class ListValue(ValueProxy):
         return makeValue(value, self.types).display()
 
     def textAlignment(self):
-        return config.ALIGN[config.number.align] | Qt.AlignVCenter
+        return Qt.AlignRight | Qt.AlignVCenter
 
     # QStyledItemDelegate
 

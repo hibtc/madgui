@@ -282,7 +282,7 @@ class ValueControlBase(AffixControlBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAlignment(config.ALIGN[config.number.align])
+        self.setAlignment(Qt.AlignRight)
 
     def sanitize(self, value):
         if value is None:
@@ -386,7 +386,7 @@ class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setAlignment(config.ALIGN[config.number.align])
+        self.setAlignment(Qt.AlignRight)
         self.setReadOnly(True)
         self.selectionChanged.connect(self.clear_selectall_pending)
 
