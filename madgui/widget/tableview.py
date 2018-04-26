@@ -35,11 +35,8 @@ class ColumnInfo:
 
     """Column specification for a table widget."""
 
-    types = defaultTypes
-
     def __init__(self, title, getter, setter=None,
-                 resize=None, types=None, padding=0,
-                 convert=False,
+                 resize=None, padding=0, convert=False,
                  **kwargs):
         """
         :param str title: column title
@@ -55,8 +52,6 @@ class ColumnInfo:
         self.padding = padding
         self.kwargs = kwargs
         self.convert = convert
-        if types is not None:
-            self.types = types
         if setter is not None:
             self.kwargs.setdefault('editable', True)
 
@@ -84,7 +79,7 @@ class ColumnInfo:
         if isinstance(value, ValueProxy):
             proxy = value
         else:
-            proxy = makeValue(tu(value), self.types, **self.kwargs)
+            proxy = makeValue(tu(value), **self.kwargs)
         if self.setter is not None:
             proxy.dataChanged.connect(
                 lambda value: self.setter(*self.setter_args(
