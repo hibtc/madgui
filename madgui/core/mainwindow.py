@@ -232,11 +232,9 @@ class MainWindow(QtGui.QMainWindow):
     dataReceived = Signal(object)
 
     def createControls(self):
-        self.log_window = LogWindow()
-        self.log_window.setup_logging(logging.DEBUG)
-        self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
-
         QColor = QtGui.QColor
+
+        self.log_window = LogWindow()
         self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
         self.log_window.highlight('MADX',     QColor(Qt.lightGray))
 
@@ -245,6 +243,9 @@ class MainWindow(QtGui.QMainWindow):
         self.log_window.highlight('WARNING',  QColor(Qt.yellow))
         self.log_window.highlight('ERROR',    QColor(Qt.red))
         self.log_window.highlight('CRITICAL', QColor(Qt.red))
+        self.log_window.setup_logging(logging.DEBUG)
+
+        self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
 
         self.notebook = QtGui.QTabWidget()
         self.notebook.tabBar().hide()
