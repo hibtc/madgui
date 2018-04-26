@@ -99,8 +99,6 @@ class MatchWidget(QtGui.QWidget):
                    resize=QtGui.QHeaderView.ResizeToContents),
         ColumnInfo("Final", get_knob_final_value,
                    resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Unit", get_knob_unit,
-                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, matcher):
