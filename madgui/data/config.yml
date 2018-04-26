@@ -24,7 +24,7 @@ logging:
   level: info
   madx:
     in: true
-    out: true
+    out: false
 
 onload: ""
 model_path: ""
