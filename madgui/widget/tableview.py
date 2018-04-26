@@ -320,15 +320,9 @@ class TableView(QtGui.QTableView):
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
-    # NOTE: The QItemEditorFactory/QItemEditorCreatorBase has some problems
-    # regarding registration and creation of QVariant types for custom python
-    # types, so we use QItemDelegate as a simpler replacement.
-
     def delegate(self, index):
         valueProxy = index.model().value(index)
-        return (not valueProxy.editable and ReadOnlyDelegate() or
-                valueProxy.delegate() or
-                super())
+        return valueProxy if valueProxy.editable else ReadOnlyDelegate()
 
     def createEditor(self, parent, option, index):
         return self.delegate(index).createEditor(parent, option, index)
@@ -347,7 +341,7 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
 
 
 # TODO: rename to ItemProxy (or ItemDelegate if that were available).
-class ValueProxy(Object):
+class ValueProxy(QtGui.QStyledItemDelegate):
 
     """Wrap a value of a specific type for string rendering and editting."""
 
@@ -367,7 +361,8 @@ class ValueProxy(Object):
         Qt.ToolTipRole:                 'toolTip',
         Qt.StatusTipRole:               'statusTip',
         Qt.WhatsThisRole:               'whatsThis',
-        Qt.SizeHintRole:                'sizeHint',
+        # dodge conflict with QStyledItemDelegate::sizeHint():
+        Qt.SizeHintRole:                'sizeHint_',
         # appearance and meta data
         Qt.FontRole:                    'font',
         Qt.TextAlignmentRole:           'textAlignment',
@@ -398,7 +393,7 @@ class ValueProxy(Object):
         if fmtspec is not None: self.fmtspec = fmtspec
         if types is not None: self.types = types
         if textcolor is not None: self.textbrush = QtGui.QBrush(textcolor)
-        if sizeHint is not None: self.sizeHint = sizeHint
+        if sizeHint is not None: self.sizeHint_ = sizeHint
         self.value = value
 
     def __str__(self):
@@ -428,9 +423,6 @@ class ValueProxy(Object):
         flags |= Qt.ItemIsEditable
         return flags
 
-    def delegate(self):
-        return None
-
     # role query functions
 
     def display(self):
@@ -457,8 +449,6 @@ class ValueProxy(Object):
     def foreground(self):
         return self.textbrush
 
-    # TODO: delegate functions (initiateEdit / createEditor)
-
 
 class StringValue(ValueProxy):
 
@@ -472,16 +462,38 @@ class FloatValue(ValueProxy):
     """Float value."""
 
     default = 0.0
+    unit = None
 
     def textAlignment(self):
         return config.ALIGN[config.number.align] | Qt.AlignVCenter
 
-    def delegate(self):
-        return FloatDelegate()
-
     @rw_property
     def fmtspec(self):
         return config.number.fmtspec
+
+    # QStyledItemDelegate
+
+    # TODO: *infer* number of decimals from the value in a sensible manner
+    # TODO: use same inference for ordinary FloatValue's as well
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QLineEdit(parent)
+        editor.setFrame(False)
+        editor.setValidator(DoubleValidator())
+        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(Qt.DisplayRole)
+        editor.setText(value)
+
+    def setModelData(self, editor, model, index):
+        value = editor.text()
+        try:
+            parsed = float(value)
+        except ValueError:
+            parsed = None
+        model.setData(index, parsed)
 
 
 class IntValue(ValueProxy):
@@ -493,8 +505,27 @@ class IntValue(ValueProxy):
     def textAlignment(self):
         return config.ALIGN[config.number.align] | Qt.AlignVCenter
 
-    def delegate(self):
-        return IntDelegate()
+    # NOTE: This class is needed to create a spinbox without
+    # `editor.setFrame(False)` which causes a display bug: display value is
+    # still shown, partially covered by the spin buttons.
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QSpinBox(parent)
+        editor.setRange(-(1<<30), +(1<<30))
+        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
+        return editor
+
+    def setEditorData(self, editor, index):
+        value = index.data(Qt.EditRole)
+        editor.setValue(value)
+
+    def setModelData(self, editor, model, index):
+        value = editor.text()
+        try:
+            parsed = int(value)
+        except ValueError:
+            parsed = None
+        model.setData(index, parsed)
 
 
 class BoolValue(ValueProxy):
@@ -553,8 +584,17 @@ class QuantityValue(FloatValue):
             return unit.format_quantity(self.value, self.fmtspec)
         return format(self.value)
 
-    def delegate(self):
-        return QuantityDelegate(self.unit)
+    # QStyledItemDelegate
+
+    def createEditor(self, parent, option, index):
+        return QuantitySpinBox(parent, unit=self.unit)
+
+    def setEditorData(self, editor, index):
+        editor.set_quantity_checked(index.data(Qt.EditRole))
+        editor.selectAll()
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.quantity)
 
 
 class ListValue(ValueProxy):
@@ -571,8 +611,30 @@ class ListValue(ValueProxy):
     def textAlignment(self):
         return config.ALIGN[config.number.align] | Qt.AlignVCenter
 
-    def delegate(self):
-        return ListDelegate()
+    # QStyledItemDelegate
+
+    # TODO: select sections individually, cycle through with <Tab>
+    # TODO: adjust increase editor size while typing? (so prefix/suffix will
+    # always be directly after the edit text)
+    # TODO: use QDoubleSpinBox for current section? Show other parts as
+    # prefix/suffix
+    # TODO: intercept and handle <Enter>
+
+    def createEditor(self, parent, option, index):
+        editor = AffixLineEdit(parent)
+        editor.prefix.setText('[')
+        editor.suffix.setText(']')
+        return editor
+
+    def setEditorData(self, editor, index):
+        text = index.data().lstrip('[').rstrip(']')
+        editor.edit.setText(text)
+        editor.edit.selectAll()
+
+    def setModelData(self, editor, model, index):
+        value = editor.edit.text()
+        items = [unit.from_config(item) for item in value.split(',')]
+        model.setData(index, items)
 
 
 class EnumValue(StringValue):
@@ -581,8 +643,21 @@ class EnumValue(StringValue):
         self.enum = type(value)
         super().__init__(value, **kwargs)
 
-    def delegate(self):
-        return EnumDelegate(self.enum)
+    # QStyledItemDelegate
+
+    def createEditor(self, parent, option, index):
+        editor = QtGui.QComboBox(parent)
+        editor.setEditable(not self.enum._strict)
+        return editor
+
+    def setEditorData(self, editor, index):
+        editor.clear()
+        editor.addItems(self.enum._values)
+        editor.setCurrentIndex(editor.findText(str(index.data())))
+
+    def setModelData(self, editor, model, index):
+        value = editor.currentText()
+        model.setData(index, self.enum(value))
 
 
 defaultTypes.update({
@@ -641,7 +716,6 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
         pass
 
 
-
 class DoubleValidator(_DoubleValidator):
 
     def validate(self, text, pos):
@@ -649,75 +723,6 @@ class DoubleValidator(_DoubleValidator):
         if not text:
             return (QtGui.QValidator.Acceptable, text, pos)
         return super().validate(text, pos)
-
-
-class IntDelegate(QtGui.QStyledItemDelegate):
-
-    # NOTE: This class is needed to create a spinbox without
-    # `editor.setFrame(False)` which causes a display bug: display value is
-    # still shown, partially covered by the spin buttons.
-
-    def createEditor(self, parent, option, index):
-        editor = QtGui.QSpinBox(parent)
-        editor.setRange(-(1<<30), +(1<<30))
-        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
-        return editor
-
-    def setEditorData(self, editor, index):
-        value = index.data(Qt.EditRole)
-        editor.setValue(value)
-
-    def setModelData(self, editor, model, index):
-        value = editor.text()
-        try:
-            parsed = int(value)
-        except ValueError:
-            parsed = None
-        model.setData(index, parsed)
-
-
-class FloatDelegate(QtGui.QStyledItemDelegate):
-
-    unit = None
-
-    # TODO: *infer* number of decimals from the value in a sensible manner
-    # TODO: use same inference for ordinary FloatValue's as well
-
-    def createEditor(self, parent, option, index):
-        editor = QtGui.QLineEdit(parent)
-        editor.setFrame(False)
-        editor.setValidator(DoubleValidator())
-        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
-        return editor
-
-    def setEditorData(self, editor, index):
-        value = index.data(Qt.DisplayRole)
-        editor.setText(value)
-
-    def setModelData(self, editor, model, index):
-        value = editor.text()
-        try:
-            parsed = float(value)
-        except ValueError:
-            parsed = None
-        model.setData(index, parsed)
-
-
-class QuantityDelegate(QtGui.QStyledItemDelegate):
-
-    def __init__(self, unit):
-        super().__init__()
-        self.unit = unit
-
-    def createEditor(self, parent, option, index):
-        return QuantitySpinBox(parent, unit=self.unit)
-
-    def setEditorData(self, editor, index):
-        editor.set_quantity_checked(index.data(Qt.EditRole))
-        editor.selectAll()
-
-    def setModelData(self, editor, model, index):
-        model.setData(index, editor.quantity)
 
 
 class AffixLineEdit(QtGui.QWidget):
@@ -742,50 +747,3 @@ class AffixLineEdit(QtGui.QWidget):
     def focusInEvent(self, event):
         self.edit.setFocus()
         event.accept()
-
-
-class ListDelegate(QtGui.QStyledItemDelegate):
-
-    # TODO: select sections individually, cycle through with <Tab>
-    # TODO: adjust increase editor size while typing? (so prefix/suffix will
-    # always be directly after the edit text)
-    # TODO: use QDoubleSpinBox for current section? Show other parts as
-    # prefix/suffix
-    # TODO: intercept and handle <Enter>
-
-    def createEditor(self, parent, option, index):
-        editor = AffixLineEdit(parent)
-        editor.prefix.setText('[')
-        editor.suffix.setText(']')
-        return editor
-
-    def setEditorData(self, editor, index):
-        text = index.data().lstrip('[').rstrip(']')
-        editor.edit.setText(text)
-        editor.edit.selectAll()
-
-    def setModelData(self, editor, model, index):
-        value = editor.edit.text()
-        items = [unit.from_config(item) for item in value.split(',')]
-        model.setData(index, items)
-
-
-class EnumDelegate(QtGui.QStyledItemDelegate):
-
-    def __init__(self, enum):
-        super().__init__()
-        self.enum = enum
-
-    def createEditor(self, parent, option, index):
-        editor = QtGui.QComboBox(parent)
-        editor.setEditable(not self.enum._strict)
-        return editor
-
-    def setEditorData(self, editor, index):
-        editor.clear()
-        editor.addItems(self.enum._values)
-        editor.setCurrentIndex(editor.findText(str(index.data())))
-
-    def setModelData(self, editor, model, index):
-        value = editor.currentText()
-        model.setData(index, self.enum(value))
