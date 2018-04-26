@@ -8,7 +8,7 @@ import logging
 import time
 from functools import partial
 
-from madgui.qt import Qt, QtCore, QtGui
+from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
@@ -37,6 +37,7 @@ def expand_ext(path, *exts):
 class MainWindow(QtGui.QMainWindow):
 
     model_changed = Signal()
+    ui_file = 'mainwindow.ui'
 
     #----------------------------------------
     # Basic setup
@@ -44,6 +45,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        load_ui(self, __package__, self.ui_file)
         self.has_model = Bool(False)
         self.context = {
             'frame': self,
@@ -87,10 +89,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def initUI(self):
         self.views = []
-        self.setWindowTitle("madgui")
         self.createMenu()
         self.createControls()
-        self.createStatusBar()
         self.configure()
         self.initPos()
 
@@ -233,8 +233,6 @@ class MainWindow(QtGui.QMainWindow):
 
     def createControls(self):
         QColor = QtGui.QColor
-
-        self.log_window = LogWindow()
         self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
         self.log_window.highlight('MADX',     QColor(Qt.lightGray))
 
@@ -246,11 +244,6 @@ class MainWindow(QtGui.QMainWindow):
         self.log_window.setup_logging(logging.DEBUG)
 
         self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
-
-        self.notebook = QtGui.QTabWidget()
-        self.notebook.tabBar().hide()
-        self.notebook.addTab(self.log_window, "Log")
-        self.setCentralWidget(self.notebook)
 
     def createStatusBar(self):
         self.statusBar()
