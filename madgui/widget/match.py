@@ -40,7 +40,7 @@ def set_constraint_value(widget, c, i, value):
             Constraint(c.elem, c.pos, c.axis, value)
 
 def get_knob_display(widget, v, i):
-    return widget.knob_enum(format_knob(v.knob))
+    return widget.knob_enum(v.knob)
 
 def set_knob_display(widget, v, i, text):
     if text is not None:
@@ -49,21 +49,6 @@ def set_knob_display(widget, v, i, text):
             widget.matcher.variables[i] = \
                 variable_from_knob(widget.matcher, knob)
 
-def get_knob_unit(v):
-    return ui_units.label(v.knob.attr, v.value)
-
-def get_knob_init_value(v):
-    return to_ui(v.knob.attr, v.design)
-
-def get_knob_final_value(v):
-    return to_ui(v.knob.attr, v.value)
-
-
-
-def format_knob(knob):
-    return (knob.elem and
-            "{}: {}".format(knob.elem.node_name, knob.attr) or
-            knob.param)
 
 def parse_knob(model, text):
     if ':' in text:
@@ -95,11 +80,9 @@ class MatchWidget(QtGui.QWidget):
     variables_columns = [
         ExtColumnInfo("Knob", get_knob_display, set_knob_display,
                       resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Initial", get_knob_init_value,
+        ColumnInfo("Initial", 'design',
                    resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Final", get_knob_final_value,
-                   resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Unit", get_knob_unit,
+        ColumnInfo("Final", 'value',
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
@@ -110,10 +93,9 @@ class MatchWidget(QtGui.QWidget):
         self.model = model = matcher.model
         local_constraints = ['envx', 'envy'] + model.config['constraints']
         local_constraints = sorted(local_constraints)
-        knob_names = [format_knob(knob) for knob in matcher.knobs]
         self.elem_enum = make_enum('Elem', model.el_names)
         self.lcon_enum = make_enum('Local', local_constraints, strict=False)
-        self.knob_enum = make_enum('Knobs', knob_names, strict=False)
+        self.knob_enum = make_enum('Knobs', matcher.knobs, strict=False)
         self.init_controls()
         self.set_initial_values()
         self.connect_signals()

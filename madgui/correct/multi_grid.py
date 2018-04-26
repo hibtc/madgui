@@ -14,7 +14,7 @@ import yaml
 
 from madgui.qt import QtCore, QtGui, load_ui
 
-from madgui.core.unit import to_ui, from_ui, ui_units
+from madgui.core.unit import from_ui, ui_units, change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import fit_button, monospace
@@ -45,9 +45,7 @@ class Corrector(Matcher):
         super().__init__(control._model, None)
         self.control = control
         self.configs = configs
-        knobs = control.get_knobs()
-        self._optics = {mknob.param: (mknob, dknob) for mknob, dknob in knobs}
-        self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
+        self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
         self.backup()
         # save elements
         self.design_values = {}
@@ -74,13 +72,11 @@ class Corrector(Matcher):
             for key, value in values.items()
             if key[-1] in dirs
         ], key=lambda c: c.pos)
-        self.variables[:] = sorted([
-            variable_from_knob(self, self._knobs[el.lower()][0])
-            for el in steerers
-        ], key=lambda v: v.pos)
-
-    def dknob(self, var):
-        return self._optics[var.knob.param][1]
+        self.variables[:] = [
+            variable_from_knob(self, knob, self._knobs[knob.lower()])
+            for knob in steerers + list(selected.get('assign', ()))
+            if knob.lower() in self._knobs
+        ]
 
     # manage 'active' state
 
@@ -98,15 +94,14 @@ class Corrector(Matcher):
 
     def backup(self):
         self.backup_twiss_args = self.model.twiss_args
-        self.backup_strengths = [
-            (mknob, mknob.read())
-            for mknob, _ in self._knobs.values()
-        ]
+        self.backup_strengths = {
+            knob: self.model.read_param(knob)
+            for knob in self._knobs
+        }
 
     def restore(self):
         self.model.twiss_args = self.backup_twiss_args
-        for mknob, value in self.backup_strengths:
-            mknob.write(value)
+        self.model.write_params(self.backup_strengths.items())
 
     def update(self):
         self.update_readouts()
@@ -169,19 +164,11 @@ class Corrector(Matcher):
 
         for name, expr in self.selected.get('assign', {}).items():
             self.model.madx.input(name.replace('->', ', ') + ':=' + expr + ';')
-        knobs = self.control.get_knobs()
-        self._optics = {mknob.param: (mknob, dknob) for mknob, dknob in knobs}
-        self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
-        steerers = sum([self.selected['steerers'][d] for d in self.mode], [])
-        self.variables[:] = sorted([
-            variable_from_knob(self, self._knobs[el.lower()][0])
-            for el in steerers
-        ], key=lambda v: v.pos)
 
         # match final conditions
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
-        match_names = {v.knob.param for v in self.variables
-                       if v.knob.param.lower() not in blacklist}
+        match_names = {v.knob for v in self.variables
+                       if v.knob.lower() not in blacklist}
         constraints = [
             dict(range=c.elem.node_name, **{c.axis: from_ui(c.axis, c.value)})
             for c in self.constraints
@@ -199,30 +186,24 @@ class Corrector(Matcher):
         self.model.twiss.invalidate()
 
         # return corrections
-        return [(mknob, mknob.read(), dknob, dknob.read())
-                for v in self.variables
-                for mknob, dknob in [self._optics[v.knob.param]]]
+        return {v.knob: self.model.read_param(v.knob)
+                for v in self.variables}
 
 
 def display_name(name):
     return name.upper()
 
 def format_knob(widget, var, index):
-    dknob = widget.corrector.dknob(var)
-    return dknob.param
+    return var.knob
 
 def format_final(widget, var, index):
-    dknob = widget.corrector.dknob(var)
-    return to_ui(dknob.attr, var.value)
+    return change_unit(var.value, var.info.unit, var.info.ui_unit)
 
 def format_initial(widget, var, index):
-    dknob = widget.corrector.dknob(var)
-    return to_ui(dknob.attr, var.design)
-    #return dknob.read()
+    return change_unit(var.design, var.info.unit, var.info.ui_unit)
 
 def format_unit(widget, var, index):
-    dknob = widget.corrector.dknob(var)
-    return ui_units.label(dknob.attr)
+    return get_raw_label(var.info.ui_unit)
 
 def set_constraint_value(widget, c, i, value):
     widget.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
@@ -282,9 +263,8 @@ class CorrectorWidget(QtGui.QWidget):
         """Apply calculated corrections."""
         twiss_args = self.corrector.model.twiss_args
         self.corrector.restore()
-        for mknob, mval, dknob, dval in self.steerer_corrections:
-            mknob.write(mval)
-            dknob.write(mval)
+        self.corrector.model.write_params(self.steerer_corrections.items())
+        self.corrector.control.write_params(self.steerer_corrections.items())
         self.corrector.apply()
         self.corrector.backup()
         self.corrector.control._plugin.execute()

@@ -9,21 +9,17 @@ from madgui.util.collections import List
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
-Variable = namedtuple('Variable', ['knob', 'pos', 'expr', 'value', 'design'])
+Variable = namedtuple('Variable', ['knob', 'info', 'value', 'design'])
 
 
-def variable_from_knob(matcher, knob):
-    elem = knob.elem
-    pos = elem and elem.position + elem.length
-    value = knob.read()
-    design = matcher.design_values.setdefault(knob.param, value)
-    return Variable(knob, pos, knob.param, value, design)
+def variable_from_knob(matcher, knob, info=None):
+    value = matcher.model.read_param(knob)
+    design = matcher.design_values.setdefault(knob, value)
+    return Variable(knob, info, value, design)
 
 
 def variable_update(matcher, variable):
-    value = variable.knob.read()
-    design = matcher.design_values[variable.expr]
-    return Variable(variable.knob, variable.pos, variable.expr, value, design)
+    return variable_from_knob(matcher, variable.knob, variable.info)
 
 
 class Matcher(Object):
@@ -57,14 +53,14 @@ class Matcher(Object):
             for tw in [self._get_tw_row(c.elem, c.pos)]
         ]
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
-        variables = {v.knob.param for v in self.variables
-                     if v.knob.param.lower() not in blacklist}
+        variables = {v.knob for v in self.variables
+                     if v.knob.lower() not in blacklist}
         self.model.match(variables, constraints)
         self.variables[:] = [variable_update(self, v) for v in self.variables]
 
     def apply(self):
         for v in self.variables:
-            self.design_values[v.expr] = v.value
+            self.design_values[v.knob] = v.value
         self.variables[:] = [variable_update(self, v) for v in self.variables]
 
     def accept(self):
@@ -101,6 +97,7 @@ class Matcher(Object):
         # Copy all needed variable lists (for later modification):
         axes = {c.axis for c in constraints}
         axes = {axis: self._allvars(axis)[:] for axis in axes}
+        used = set()
         for c in sorted(constraints, key=lambda c: c.pos):
             # Stop as soon as we have enough variables:
             if len(variables) >= len(constraints):
@@ -108,8 +105,9 @@ class Matcher(Object):
             try:
                 # TODO: just bisect this…
                 var = next(v for v in reversed(axes[c.axis])
-                           if v.pos < c.pos and v not in variables)
-                variables.append(var)
+                           if v.info.position < c.pos and v.knob not in used)
+                variables.insert(0, var)
+                used.add(var.knob)
             except StopIteration:
                 # No variable in range found! Ok?
                 pass
@@ -122,28 +120,21 @@ class Matcher(Object):
         """
         elem_types = self.rules.get(axis, ())
         return [
-            variable_from_knob(self, knob)
-            for knob in self.knobs
-            if knob.elem.base_name.lower() in elem_types
+            variable_from_knob(self, knob, elem)
+            for elem in self.model.elements
+            if elem.base_name.lower() in elem_types
+            for knob in self.model.get_elem_knobs(elem)
         ]
 
     # Set value back to factory defaults
 
     def _on_update_variables(self, indices, old_values, new_values):
-
-        old = {v.expr: (v.knob, v.design) for v in old_values}
-        new = {v.expr: (v.knob, v.value)  for v in new_values}
-
-        # On removal, revert unapplied variables to design settings:
+        new = {v.knob: v.value  for v in new_values}
+        old = {v.knob: v.design for v in old_values if v.knob not in new}
+        # Revert unapplied variables to design settings:
         # TODO: this should be handled on the level of the model, see #17.
-        # TODO: set many values in one go
-        for expr, (knob, value) in old.items():
-            if expr not in new:
-                knob.write(value)
-
-        # Set new variable values into the model:
-        for knob, value in new.values():
-            knob.write(value)
+        self.model.write_params(old.items())
+        self.model.write_params(new.items())
 
 
 class MatchTransform:

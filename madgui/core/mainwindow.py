@@ -304,7 +304,7 @@ class MainWindow(QtGui.QMainWindow):
         widget = TabParamTables([
             ('Twiss', ParamTable(self.model.get_twiss_ds())),
             ('Beam', ParamTable(self.model.get_beam_ds())),
-            ('Globals', ParamTable(self.model.get_globals_ds())),
+            ('Globals', ParamTable(self.model.get_globals_ds(), units=None)),
             ('Ellipse', InitEllipseWidget(self.model)),
         ])
         widget.update()
