@@ -1088,10 +1088,10 @@ def process_spec_item(key, value):
 # TODO: …KNL/KSL
 def _get_property_lval(elem, attr):
     """
-    Return lvalue name for a given element attribute from MAD-X.
+    Return knobs names for a given element attribute from MAD-X.
 
     >>> get_element_attribute(elements['r1qs1'], 'k1')
-    'r1qs1->k1'
+    ('r1qs1->k1', ['kL_R1QS1'])
     """
     if attr.endswith(']'):
         head, tail = attr.split('[', 1)
@@ -1103,7 +1103,7 @@ def _get_property_lval(elem, attr):
         madx = elem._model
         expr = expr or ''
         name = expr if is_identifier(expr) else elem.node_name + '->' + attr
-        vars = madx.expr_vars(expr) if expr else [name]
+        vars = madx.expr_vars(expr) if expr else []
         return name, vars
 
 
