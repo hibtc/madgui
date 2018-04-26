@@ -65,9 +65,7 @@ class Corrector:
         self.target = target
         self.control = control
         self.model = control._model
-        knobs = control.get_knobs()
-        self._optics = {dknob.param: (mknob, dknob) for mknob, dknob in knobs}
-        self._knobs = {mknob.el_name: (mknob, dknob) for mknob, dknob in knobs}
+        self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
         # save elements
         self.targets = targets
         self.magnets = magnets
@@ -92,20 +90,15 @@ class Corrector:
 
     # access element values
 
-    def get_info(self, elem):
-        mknob, dknob = self._knobs[elem]
-        return dknob.info
+    def get_dvm(self, knob):
+        return self.control._plugin.read_param(knob)
 
-    def get_dvm(self, elem):
-        mknob, dknob = self._knobs[elem]
-        return dknob.read()
-
-    def set_dvm(self, elem, data):
-        mknob, dknob = self._knobs[elem]
-        dknob.write(data)
+    def set_dvm(self, knob, value):
+        self.control._plugin.write_param(knob, value)
 
     def get_transfer_map(self, dest, orig=None, optics=(), init_orbit=None):
-        self.apply_mad_optics(optics)
+        self.model.write_params(optics)
+        self.control.write_params(optics)
         # TODO: get multiple transfer maps in one TWISS call
 
         # update initial conditions to compute sectormaps accounting for the
@@ -129,16 +122,8 @@ class Corrector:
         self.model.twiss_args = self.backup_twiss_args
 
     def get_csys_optics(self):
-        return [(knob.param, knob.read())
-                for _, knob in self._knobs.values()]
-
-    def apply_mad_optics(self, optics):
-        knobs = self._optics
-        self.control.read_these([
-            (mknob, None, dknob, val)
-            for param, val in optics
-            for mknob, dknob in [knobs[param]]
-        ])
+        return {knob: self.control._plugin.read_param(knob)
+                for knob in self._knobs}
 
     # record monitor/model
 
@@ -224,7 +209,7 @@ class Corrector:
         self.model.twiss_args = init_twiss
 
         # match final conditions
-        match_names = [mknob.param for mknob, _ in steerer_knobs]
+        match_names = steerer_names
         constraints = [
             dict(range=target, **orbit)
             for target, orbit in zip(self.targets, design_orbit)
@@ -238,20 +223,19 @@ class Corrector:
         self.model.twiss.invalidate()
 
         # return corrections
-        return [(mknob, mknob.read(), dknob, dknob.read())
-                for mknob, dknob in steerer_knobs]
+        return {knob: self.model.read_param(knob)
+                for knob in steerer_knobs}
 
     def backup(self):
         self.backup_twiss_args = self.model.twiss_args
-        self.backup_strengths = [
-            (mknob, mknob.read())
-            for mknob, _ in self._knobs.values()
-        ]
+        self.backup_strengths = {
+            knob: self.model.read_param(knob)
+            for knob in self._knobs
+        }
 
     def restore(self):
-        for mknob, value in self.backup_strengths:
-            mknob.write(value)
         self.model.twiss_args = self.backup_twiss_args
+        self.model.write_params(self.backup_strengths.items())
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
         return ('x', sd_values[prefix + 'x'],
@@ -394,8 +378,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.execute_corrections.setEnabled(True)
         # update table view
         steerer_corrections_rows = [
-            ParameterInfo(dknob.param, mval, dval)
-            for mknob, mval, dknob, dval in self.steerer_corrections
+            ParameterInfo(knob, value, self.corrector.get_dvm(knob))
+            for knob, value in self.steerer_corrections.items()
         ]
         self.corrections_table.rows = steerer_corrections_rows
         self.corrections_table.resizeColumnToContents(0)
@@ -406,9 +390,8 @@ class CorrectorWidget(QtGui.QWidget):
     def on_execute_corrections(self):
         """Apply calculated corrections."""
         self.corrector.restore()
-        for mknob, mval, dknob, dval in self.steerer_corrections:
-            mknob.write(mval)
-            dknob.write(mval)
+        self.corrector.model.write_params(self.steerer_corrections.items())
+        self.corrector.control.write_params(self.steerer_corrections.items())
         self.corrector.backup()
         self.corrector.control._plugin.execute()
         self.corrector.model.twiss.invalidate()
@@ -423,8 +406,8 @@ class CorrectorWidget(QtGui.QWidget):
                          for i in range(self.num_focus_levels)]
         self.focus_choice.addItems(focus_choices)
         self.focus_choice.setCurrentIndex(0)
-        par1 = self.corrector.get_info(self.corrector.magnets[0])
-        par2 = self.corrector.get_info(self.corrector.magnets[1])
+        par1 = self.corrector._knobs[self.corrector.magnets[0]]
+        par2 = self.corrector._knobs[self.corrector.magnets[1]]
         self.input_qp1_label.setText(par1.name + ':')
         self.input_qp2_label.setText(par2.name + ':')
         self.input_qp1_value.unit = par1.ui_unit
