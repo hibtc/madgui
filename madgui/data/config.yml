@@ -20,6 +20,13 @@ online_control:
   monitors: {}
   offsets: {}
 
+logging:
+  enable: true
+  level: info
+  madx:
+    in: true
+    out: true
+
 onload: ""
 model_path: ""
 load_default: ""

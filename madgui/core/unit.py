@@ -65,6 +65,10 @@ def strip_unit(quantity, unit=None):
         return quantity
 
 
+def change_unit(quantity, from_unit, to_unit):
+    return strip_unit(add_unit(quantity, from_unit), to_unit)
+
+
 def toquantity(value):
     if value is None:
         return None

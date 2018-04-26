@@ -3,7 +3,7 @@ Dialog for selecting DVM parameters to be synchronized.
 """
 
 from madgui.qt import QtGui
-from madgui.core.unit import to_ui, ui_units
+from madgui.core.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
 from madgui.widget.tableview import TableView, ColumnInfo
 
@@ -36,12 +36,12 @@ class ListSelectWidget(QtGui.QWidget):
 
 class SyncParamItem:
 
-    def __init__(self, param, dvm_value, mad_value, attr):
+    def __init__(self, param, dvm_value, mad_value):
         self.param = param
         self.name = param.name
-        self.unit = ui_units.label(attr)
-        self.dvm_value = to_ui(attr, dvm_value)
-        self.mad_value = to_ui(attr, mad_value)
+        self.unit = get_raw_label(param.ui_unit)
+        self.dvm_value = change_unit(dvm_value, param.unit, param.ui_unit)
+        self.mad_value = change_unit(mad_value, param.unit, param.ui_unit)
 
 
 class SyncParamWidget(ListSelectWidget):

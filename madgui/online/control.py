@@ -53,60 +53,49 @@ class Control(Object):
         self._plugin._dvm._lib.jitter = not self._plugin._dvm._lib.jitter
 
     def get_knobs(self):
-        """Get list of knobs, returned as tuples `(mad,dvm)`."""
+        """Get list of :class:`ParamInfo`."""
         if not self._model:
             return []
-        return [
-            (knob_mad, knob_dvm)
-            for knob_mad in self._model.get_knobs()
-            for knob_dvm in [self._plugin.get_knob(knob_mad)]
-            if knob_dvm
-        ]
+        return list(filter(
+            None, map(self._plugin.param_info, self._model.globals)))
 
-    def _params(self):
-        # TODO: cache and reuse 'active' flag for each parameter
-        from madgui.online.dialogs import SyncParamItem
-        knobs = [
-            (mknob, mknob.read(),
-             dknob, dknob.read())
-            for mknob, dknob in self.get_knobs()
-        ]
-        rows = [
-            SyncParamItem(self._plugin.param_info(dknob),
-                          dval, mval, dknob.attr)
-            for mknob, mval, dknob, dval in knobs
-        ]
-        return knobs, rows
-
+    # TODO: unify export/import dialog -> "show knobs"
+    # TODO: can we drop the read-all button in favor of automatic reads?
+    # (SetNewValueCallback?)
     def on_read_all(self):
         """Read all parameters from the online database."""
-        elems, rows = self._params()
-        if not rows:
-            return
         from madgui.online.dialogs import ImportParamWidget
-        widget = ImportParamWidget()
-        widget.data = rows
-        widget.data_key = 'dvm_parameters'
-        self._show_dialog(widget, lambda: self.read_these(elems))
+        self._show_sync_dialog(ImportParamWidget(), self.read_all)
 
     def on_write_all(self):
         """Write all parameters to the online database."""
-        elems, rows = self._params()
-        if not rows:
-            return
         from madgui.online.dialogs import ExportParamWidget
-        widget = ExportParamWidget()
-        widget.data = rows
+        self._show_sync_dialog(ExportParamWidget(), self.write_all)
+
+    def _show_sync_dialog(self, widget, apply):
+        from madgui.online.dialogs import SyncParamItem
+        model, live = self._model, self._plugin
+        widget.data = [
+            SyncParamItem(
+                knob, live.read_param(knob.name), model.read_param(knob.name))
+            for knob in self.get_knobs()
+        ]
         widget.data_key = 'dvm_parameters'
-        self._show_dialog(widget, lambda: self.write_these(elems))
+        self._show_dialog(widget, apply)
 
-    def read_all(self):
-        elems, rows = self._params()
-        self.read_these(elems)
+    def read_all(self, knobs=None):
+        live = self._plugin
+        self._model.write_params([
+            (knob.name, live.read_param(knob.name))
+            for knob in knobs or self.get_knobs()
+        ])
 
-    def write_all(self):
-        elems, rows = self._params()
-        self.write_these(elems)
+    def write_all(self, knobs=None):
+        model = self._model
+        self.write_params([
+            (knob.name, model.read_param(knob.name))
+            for knob in knobs or self.get_knobs()
+        ])
 
     def on_read_beam(self):
         # TODO: add confirmation dialog
@@ -193,21 +182,8 @@ class Control(Object):
         """Return the online control."""
         return self._frame.model
 
-    def read_these(self, params):
-        """
-        Import list of DVM parameters to MAD-X.
-
-        :param list params: List of tuples (ParamConverterBase, dvm_value)
-        """
-        for mknob, mval, dknob, dval in params:
-            mknob.write(dval)
-
-    def write_these(self, params):
-        """
-        Set parameter values in DVM from a list of parameters.
-
-        :param list params: List of ParamConverterBase
-        """
-        for mknob, mval, dknob, dval in params:
-            dknob.write(mval)
+    def write_params(self, params):
+        write = self._plugin.write_param
+        for param, value in params:
+            write(param, value)
         self._plugin.execute()

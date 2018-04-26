@@ -7,7 +7,6 @@ import re
 from collections import namedtuple, Sequence, Mapping, OrderedDict, defaultdict
 from functools import partial
 import itertools
-import logging
 from bisect import bisect_right
 import subprocess
 from threading import RLock
@@ -21,10 +20,6 @@ from madgui.core.base import Object, Signal, Cache
 from madgui.util.datastore import DataStore
 from madgui.util.stream import StreamReader
 from madgui.util import yaml
-
-
-# stuff for online control:
-import madgui.online.api as api
 
 
 __all__ = [
@@ -82,7 +77,6 @@ class Model(Object):
     def __init__(self, filename, config, command_log, stdout_log):
         super().__init__()
         self.twiss = Cache(self._retrack)
-        self.log = logging.getLogger(__name__)
         self.data = {}
         self.path = None
         self.init_files = []
@@ -143,17 +137,15 @@ class Model(Object):
         self._beam = beam
         self._use_beam(beam)
 
-    def get_globals(self):
-        blacklist = ('none', 'twiss_tol', 'degree')
-        return {k: _eval_expr(v)
-                for k, v in self.madx.globals.items()
-                if k not in blacklist}
+    @property
+    def globals(self):
+        return self.madx.globals
 
-    def set_globals(self, knobs):
+    @globals.setter
+    def globals(self, knobs):
         for k, v in knobs.items():
             self.madx.globals[k] = v
 
-    globals = property(get_globals, set_globals)
     beam = property(get_beam, set_beam)
 
     def get_element_by_position(self, pos):
@@ -246,14 +238,20 @@ class Model(Object):
         'srotation':    ['angle'],
     }
 
+    def get_elem_knobs(self, elem):
+        return [
+            knob
+            for attr in self.ELEM_KNOBS.get(elem.base_name.lower(), ())
+            if _is_property_defined(elem, attr)
+            for knob in self._get_knobs(elem, attr)
+        ]
+
     def get_knobs(self):
         """Get list of knobs."""
         return [
             knob
             for elem in self.elements
-            for attr in self._get_attrs(elem)
-            for knob in [self.get_knob(elem, attr)]
-            if knob
+            for knob in self.get_elem_knobs(elem)
         ]
 
     @property
@@ -769,19 +767,13 @@ class Model(Object):
             'posy': self.get_twiss_column('y')[index],
         }
 
-    def _get_attrs(self, elem):
-        attrs = self.ELEM_KNOBS.get(elem.base_name.lower(), ())
-        defd = [attr for attr in attrs if _is_property_defined(elem, attr)]
-        return defd
-
-    def get_knob(self, elem, attr):
-        """Return a :class:`Knob` belonging to the given attribute."""
+    def _get_knobs(self, elem, attr):
+        """Return list of all knob names belonging to the given attribute."""
         try:
             expr, vars = _get_property_lval(elem, attr)
+            return vars
         except IndexError:
-            return
-        for var in vars:
-            return api.Knob(self, elem, attr, var, None)
+            return []
 
     def read_param(self, expr):
         """Read element attribute. Return numeric value."""
@@ -794,6 +786,11 @@ class Model(Object):
             self.twiss.invalidate()
             # TODO: invalidate element…
             # knob.elem.invalidate()
+
+    def write_params(self, params):
+        write = self.write_param
+        for param, value in params:
+            write(param, value)
 
 
 def process_spec(prespec, data):
@@ -1090,10 +1087,10 @@ def process_spec_item(key, value):
 # TODO: …KNL/KSL
 def _get_property_lval(elem, attr):
     """
-    Return lvalue name for a given element attribute from MAD-X.
+    Return knobs names for a given element attribute from MAD-X.
 
     >>> get_element_attribute(elements['r1qs1'], 'k1')
-    'r1qs1->k1'
+    ('r1qs1->k1', ['kL_R1QS1'])
     """
     if attr.endswith(']'):
         head, tail = attr.split('[', 1)
@@ -1105,7 +1102,7 @@ def _get_property_lval(elem, attr):
         madx = elem._model
         expr = expr or ''
         name = expr if is_identifier(expr) else elem.node_name + '->' + attr
-        vars = madx.expr_vars(expr) if expr else [name]
+        vars = madx.expr_vars(expr) if expr else []
         return name, vars
 
 

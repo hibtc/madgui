@@ -23,8 +23,7 @@ The interface contract is currently designed as follows:
 """
 
 from abc import ABCMeta, abstractmethod
-
-from madgui.core.unit import from_ui, to_ui
+from collections import namedtuple
 
 _Interface = ABCMeta('_Interface', (object,), {})
 
@@ -76,10 +75,6 @@ class OnlinePlugin(_Interface):
         """
 
     @abstractmethod
-    def get_knob(self, mad_knob):
-        """Return a :class:`Knob` belonging to the given attribute."""
-
-    @abstractmethod
     def read_param(self, param):
         """Read parameter. Return numeric value."""
 
@@ -95,30 +90,12 @@ class OnlinePlugin(_Interface):
         """
 
 
-class Knob:
-
-    """Base class for knobs."""
-
-    def __init__(self, plug, elem, attr, param, unit):
-        self.plug = plug
-        self.elem = elem
-        self.el_name = elem.node_name.lower()
-        self.attr = attr.lower()
-        self.param = param
-        self.unit = unit
-
-    def __str__(self):
-        return self.param
-
-    def __repr__(self):
-        return "{}({})".format(self.__class__.__name__, self)
-
-    # mixins:
-
-    def read(self):
-        """Read element attribute."""
-        return from_ui(self.attr, self.unit, self.plug.read_param(self.param))
-
-    def write(self, value):
-        """Update element attribute into control system."""
-        self.plug.write_param(self.param, to_ui(self.unit, self.attr, value))
+ParamInfo = namedtuple('ParamInfo', [
+    'name',
+    'ui_name',
+    'ui_hint',
+    'ui_prec',
+    'unit',
+    'ui_unit',
+    'ui_conv',
+])

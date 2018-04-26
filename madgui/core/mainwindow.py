@@ -8,13 +8,13 @@ import logging
 import time
 from functools import partial
 
-from madgui.qt import Qt, QtCore, QtGui
+from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
 from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
-from madgui.widget.log import LogWindow, LogRecord
+from madgui.widget.log import LogRecord
 
 import madgui.online.control as control
 import madgui.core.config as config
@@ -37,6 +37,7 @@ def expand_ext(path, *exts):
 class MainWindow(QtGui.QMainWindow):
 
     model_changed = Signal()
+    ui_file = 'mainwindow.ui'
 
     #----------------------------------------
     # Basic setup
@@ -44,6 +45,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        load_ui(self, __package__, self.ui_file)
         self.has_model = Bool(False)
         self.context = {
             'frame': self,
@@ -60,7 +62,6 @@ class MainWindow(QtGui.QMainWindow):
         # signal. Without this, if the setup code excepts after creating the
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
-        self.log = logging.getLogger(__name__)
         QtCore.QTimer.singleShot(0, self.loadDefault)
 
     def configure(self):
@@ -70,7 +71,6 @@ class MainWindow(QtGui.QMainWindow):
             os.environ['PATH'] += os.pathsep + os.path.abspath(path)
         self.folder = self.config.model_path
         config.number = self.config.number
-        exec(self.config.onload, self.context)
 
     def session_data(self):
         return {
@@ -83,6 +83,14 @@ class MainWindow(QtGui.QMainWindow):
                 'monitors': self.config.online_control['monitors'],
                 'offsets': self.config.online_control['offsets'],
             },
+            'logging': {
+                'enable': self.log_window.logging_enabled,
+                'level': self.log_window.loglevel,
+                'madx': {
+                    'in': self.log_window.enabled('SEND'),
+                    'out': self.log_window.enabled('MADX'),
+                }
+            },
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,
             'number': self.config['number'],
@@ -90,10 +98,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def initUI(self):
         self.views = []
-        self.setWindowTitle("madgui")
         self.createMenu()
         self.createControls()
-        self.createStatusBar()
         self.configure()
         self.initPos()
 
@@ -106,7 +112,8 @@ class MainWindow(QtGui.QMainWindow):
         if filename:
             self.loadFile(self.searchFile(filename))
         else:
-            self.log.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
+            logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
+        exec(self.config.onload, self.context)
 
     def createMenu(self):
         control = self.control
@@ -234,10 +241,6 @@ class MainWindow(QtGui.QMainWindow):
     dataReceived = Signal(object)
 
     def createControls(self):
-        self.log_window = LogWindow()
-        self.log_window.setup_logging(logging.DEBUG)
-        self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
-
         QColor = QtGui.QColor
         self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
         self.log_window.highlight('MADX',     QColor(Qt.lightGray))
@@ -248,10 +251,28 @@ class MainWindow(QtGui.QMainWindow):
         self.log_window.highlight('ERROR',    QColor(Qt.red))
         self.log_window.highlight('CRITICAL', QColor(Qt.red))
 
-        self.notebook = QtGui.QTabWidget()
-        self.notebook.tabBar().hide()
-        self.notebook.addTab(self.log_window, "Log")
-        self.setCentralWidget(self.notebook)
+        self.log_window.setup_logging(logging.DEBUG)
+        self.log_window.enable_logging(self.config.logging.enable)
+        self.log_window.set_loglevel(self.config.logging.level)
+        self.log_window.enable('SEND', self.config.logging.madx['in'])
+        self.log_window.enable('MADX', self.config.logging.madx['out'])
+
+        self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
+
+        self.checkbox_logging.setChecked(self.log_window.logging_enabled)
+        self.combobox_loglevel.setEnabled(self.log_window.logging_enabled)
+        self.combobox_loglevel.setCurrentText(self.log_window.loglevel)
+        self.checkbox_madx_input.setChecked(self.log_window.enabled('SEND'))
+        self.checkbox_madx_output.setChecked(self.log_window.enabled('MADX'))
+
+        self.checkbox_logging.clicked.connect(
+            self.log_window.enable_logging)
+        self.combobox_loglevel.currentTextChanged.connect(
+            self.log_window.set_loglevel)
+        self.checkbox_madx_input.clicked.connect(
+            partial(self.log_window.enable, 'SEND'))
+        self.checkbox_madx_output.clicked.connect(
+            partial(self.log_window.enable, 'MADX'))
 
     def createStatusBar(self):
         self.statusBar()
@@ -306,7 +327,7 @@ class MainWindow(QtGui.QMainWindow):
         widget = TabParamTables([
             ('Twiss', ParamTable(self.model.get_twiss_ds())),
             ('Beam', ParamTable(self.model.get_beam_ds())),
-            ('Globals', ParamTable(self.model.get_globals_ds())),
+            ('Globals', ParamTable(self.model.get_globals_ds(), units=None)),
             ('Ellipse', InitEllipseWidget(self.model)),
         ])
         widget.update()
@@ -421,8 +442,8 @@ class MainWindow(QtGui.QMainWindow):
         base, ext = os.path.splitext(name)
         logfile = logfile_name(self.folder, base, '.commands.madx')
         self.logfile = open(logfile, 'wt')
-        self.log.info('Loading {}'.format(filename))
-        self.log.info('Logging commands to: {}'.format(logfile))
+        logging.info('Loading {}'.format(filename))
+        logging.info('Logging commands to: {}'.format(logfile))
         self.setModel(Model(filename, self.config,
                             command_log=self.log_command,
                             stdout_log=self.dataReceived.emit))
@@ -531,7 +552,7 @@ class MainWindow(QtGui.QMainWindow):
         def toggleIndicators():
             scene.show_indicators = not scene.show_indicators
 
-        Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
+        Menu, Item = menu.Menu, menu.Item
         menu.extend(widget, menubar, [
             Menu('&View', [
                 # TODO: dynamic checked state
