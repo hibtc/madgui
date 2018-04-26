@@ -22,10 +22,6 @@ from madgui.util.stream import StreamReader
 from madgui.util import yaml
 
 
-# stuff for online control:
-import madgui.online.api as api
-
-
 __all__ = [
     'ElementInfo',
     'Model',

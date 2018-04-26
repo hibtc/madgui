@@ -25,8 +25,6 @@ The interface contract is currently designed as follows:
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 
-from madgui.core.unit import from_ui, to_ui
-
 _Interface = ABCMeta('_Interface', (object,), {})
 
 

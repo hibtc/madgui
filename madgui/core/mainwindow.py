@@ -14,7 +14,7 @@ from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
 from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
-from madgui.widget.log import LogWindow, LogRecord
+from madgui.widget.log import LogRecord
 
 import madgui.online.control as control
 import madgui.core.config as config
@@ -551,7 +551,7 @@ class MainWindow(QtGui.QMainWindow):
         def toggleIndicators():
             scene.show_indicators = not scene.show_indicators
 
-        Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
+        Menu, Item = menu.Menu, menu.Item
         menu.extend(widget, menubar, [
             Menu('&View', [
                 # TODO: dynamic checked state
