@@ -467,17 +467,6 @@ class StringValue(ValueProxy):
     pass
 
 
-class QuotedStringValue(StringValue):
-
-    """String value, but format with enclosing quotes."""
-
-    def display(self):
-        """Quote string."""
-        if self.value is None:
-            return ""
-        return repr(self.value)
-
-
 class FloatValue(ValueProxy):
 
     """Float value."""
@@ -651,20 +640,6 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
     def setModelData(self, editor, model, index):
         pass
 
-
-class MultiLineDelegate(QtGui.QStyledItemDelegate):
-
-    def createEditor(self, parent, option, index):
-        editor = QtGui.QPlainTextEdit(parent)
-        editor.setReadOnly(True)
-        return editor
-
-    def setEditorData(self, editor, index):
-        editor.setPlainText(index.data(Qt.DisplayRole))
-        editor.selectAll()
-
-    def setModelData(self, editor, model, index):
-        pass
 
 
 class DoubleValidator(_DoubleValidator):
