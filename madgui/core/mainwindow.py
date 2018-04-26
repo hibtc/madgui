@@ -82,6 +82,14 @@ class MainWindow(QtGui.QMainWindow):
                 'connect': self.control.is_connected(),
                 'monitors': self.config.online_control['monitors'],
             },
+            'logging': {
+                'enable': self.log_window.logging_enabled,
+                'level': self.log_window.loglevel,
+                'madx': {
+                    'in': self.log_window.enabled('SEND'),
+                    'out': self.log_window.enabled('MADX'),
+                }
+            },
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,
             'number': self.config['number'],
@@ -241,9 +249,29 @@ class MainWindow(QtGui.QMainWindow):
         self.log_window.highlight('WARNING',  QColor(Qt.yellow))
         self.log_window.highlight('ERROR',    QColor(Qt.red))
         self.log_window.highlight('CRITICAL', QColor(Qt.red))
+
         self.log_window.setup_logging(logging.DEBUG)
+        self.log_window.enable_logging(self.config.logging.enable)
+        self.log_window.set_loglevel(self.config.logging.level)
+        self.log_window.enable('SEND', self.config.logging.madx['in'])
+        self.log_window.enable('MADX', self.config.logging.madx['out'])
 
         self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
+
+        self.checkbox_logging.setChecked(self.log_window.logging_enabled)
+        self.combobox_loglevel.setEnabled(self.log_window.logging_enabled)
+        self.combobox_loglevel.setCurrentText(self.log_window.loglevel)
+        self.checkbox_madx_input.setChecked(self.log_window.enabled('SEND'))
+        self.checkbox_madx_output.setChecked(self.log_window.enabled('MADX'))
+
+        self.checkbox_logging.clicked.connect(
+            self.log_window.enable_logging)
+        self.combobox_loglevel.currentTextChanged.connect(
+            self.log_window.set_loglevel)
+        self.checkbox_madx_input.clicked.connect(
+            partial(self.log_window.enable, 'SEND'))
+        self.checkbox_madx_output.clicked.connect(
+            partial(self.log_window.enable, 'MADX'))
 
     def createStatusBar(self):
         self.statusBar()

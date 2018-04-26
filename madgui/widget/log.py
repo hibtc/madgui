@@ -21,6 +21,8 @@ from madgui.util.layout import HBoxLayout
 from madgui.widget.edit import LineNumberBar
 
 
+LOGLEVELS = [None, 'CRITICAL', 'ERROR', 'WARNING',  'INFO', 'DEBUG']
+
 LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text'])
 
 
@@ -41,7 +43,7 @@ class RecordInfoBar(LineNumberBar):
             painter.setPen(QtGui.QColor(Qt.black))
         elif first:
             painter.setPen(QtGui.QColor(Qt.gray))
-            count = max([c for c in self.records if c <= count])
+            count = max([c for c in self.records if c <= count], default=None)
         if count in self.records:
             record = self.records[count]
             text = "{} {}:".format(
@@ -80,6 +82,9 @@ class LogWindow(QtGui.QFrame):
         self.records = List()
         self.records.insert_notify.connect(self._insert_record)
         self.formats = {}
+        self._enabled = {}
+        self._domains = set()
+        self.loglevel = 'INFO'
 
     def highlight(self, domain, color):
         format = QtGui.QTextCharFormat()
@@ -89,6 +94,8 @@ class LogWindow(QtGui.QFrame):
 
     def setup_logging(self, level=logging.INFO, fmt='%(message)s'):
         # TODO: MAD-X log should be separate from basic logging
+        self.loglevel = logging.getLevelName(level)
+        self.logging_enabled = True
         root = logging.getLogger('')
         manager = logging.Manager(root)
         formatter = logging.Formatter(fmt)
@@ -100,6 +107,33 @@ class LogWindow(QtGui.QFrame):
         self._log_manager = manager
         sys.excepthook = self.excepthook
 
+    def enable_logging(self, enable):
+        self.logging_enabled = enable
+        self.set_loglevel(self.loglevel)
+
+    def set_loglevel(self, loglevel):
+        self.loglevel = loglevel = loglevel.upper()
+        index = LOGLEVELS.index(loglevel)
+        if any([self._enable(level, i <= index and self.logging_enabled)
+                for i, level in enumerate(LOGLEVELS)]):
+            self.rebuild_log()
+
+    def enable(self, domain, enable):
+        if self._enable(domain, enable):
+            self.rebuild_log()
+
+    def _enable(self, domain, enable):
+        if self.enabled(domain) != enable:
+            self._enabled[domain] = enable
+            return self.has_entries(domain)
+        return False
+
+    def enabled(self, domain):
+        return self._enabled.get(domain, True)
+
+    def has_entries(self, domain):
+        return domain in self._domains
+
     def recv_log(self, domain, text):
         if text:
             self.records.append(LogRecord(
@@ -109,7 +143,21 @@ class LogWindow(QtGui.QFrame):
         traceback.print_exception(*args, **kwargs)
         logging.error("".join(traceback.format_exception(*args, **kwargs)))
 
+    def rebuild_log(self):
+        self.textctrl.clear()
+        self.infobar.records.clear()
+        self.infobar.domains.clear()
+        for record in self.records:
+            self._append_log(record)
+
     def _insert_record(self, index, record):
+        self._domains.add(record.domain)
+        self._append_log(record)
+
+    def _append_log(self, record):
+        if not self.enabled(record.domain):
+            return
+
         self.infobar.records[self.textctrl.document().blockCount()] = record
         self.infobar.domains.add(record.domain)
         if record.domain not in self.formats:

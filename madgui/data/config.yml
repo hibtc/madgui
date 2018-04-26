@@ -19,6 +19,13 @@ online_control:
   connect: false
   monitors: {}
 
+logging:
+  enable: true
+  level: info
+  madx:
+    in: true
+    out: true
+
 onload: ""
 model_path: ""
 load_default: ""
