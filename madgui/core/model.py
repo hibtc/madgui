@@ -473,7 +473,7 @@ class Model(Object):
                 self.get_element_info(stop_name))
 
     def get_globals_ds(self):
-        return MadxDataStore(self, 'globals')
+        return MadxDataStore(self, 'globals', str.upper)
 
     def get_beam_ds(self):
         return MadxDataStore(self, 'beam')
@@ -823,11 +823,12 @@ def process_spec(prespec, data):
 
 class MadxDataStore(DataStore):
 
-    def __init__(self, model, name, **kw):
+    def __init__(self, model, name, get_title=str.title, **kw):
         self.model = model
         self.name = name
         self.label = name.title()
         self.data_key = name
+        self.get_title = get_title
         self.kw = kw
         self.conf = model.config['parameter_sets'][name]
 
@@ -840,7 +841,7 @@ class MadxDataStore(DataStore):
         data = self._get()
         self.data = process_spec(self.conf['params'], data)
         return OrderedDict([
-            (key.title(), val)
+            (self.get_title(key), val)
             for key, val in self.data.items()
         ])
 
