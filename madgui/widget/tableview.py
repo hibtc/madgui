@@ -249,7 +249,7 @@ class TableView(QtGui.QTableView):
             resize = (self._default_resize_modes[index > 0]
                       if column.resize is None
                       else column.resize)
-            self._setColumnResizeMode(index, resize)
+            self.horizontalHeader().setSectionResizeMode(index, resize)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
@@ -317,14 +317,6 @@ class TableView(QtGui.QTableView):
     def sizeHintForColumn(self, column):
         return (super().sizeHintForColumn(column)
                 + self.model().columns[column].padding)
-
-    @property
-    def _setColumnResizeMode(self):
-        return self.horizontalHeader().setSectionResizeMode
-
-    @property
-    def _setRowResizeMode(self):
-        return self.verticalHeader().setSectionResizeMode
 
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
