@@ -17,6 +17,7 @@ mainwindow:
 online_control:
   connect: false
   monitors: {}
+  offsets: {}
 
 logging:
   enable: true

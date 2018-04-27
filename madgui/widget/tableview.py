@@ -6,7 +6,7 @@ from inspect import getmro
 
 from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Signal
-from madgui.core.unit import to_ui, from_ui
+from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property
 from madgui.util.collections import List
@@ -91,6 +91,7 @@ class ColumnInfo:
         if delegate is not None: self.delegate = lift(delegate)
         if sizeHint is not None: self.sizeHint = lift(sizeHint)
         if checkable is not None: self.checkable = lift(checkable)
+        if convert is True: self.title += '/' + ui_units.label(getter)
 
     # QAbstractTableModel queries
 

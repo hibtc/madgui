@@ -58,8 +58,6 @@ class EmittanceDialog(QtGui.QDialog):
                       resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Δx", 'envx', convert=True),
         ColumnInfo("Δy", 'envy', convert=True),
-        ColumnInfo("Unit", lambda item: ui_units.label('envx'),
-                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     result_columns = [
