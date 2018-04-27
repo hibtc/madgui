@@ -6,12 +6,11 @@ import os
 
 import numpy as np
 
-from madgui.qt import Qt, QtGui, load_ui
+from madgui.qt import QtGui, load_ui
 from madgui.core.unit import to_ui, from_ui, ui_units, change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
 from madgui.util import yaml
-from madgui.widget.tableview import (TableView, ColumnInfo, ExtColumnInfo,
-                                     StringValue)
+from madgui.widget.tableview import TableView, ColumnInfo, ExtColumnInfo
 
 class ListSelectWidget(QtGui.QWidget):
 
@@ -95,43 +94,15 @@ class MonitorItem:
                      not np.isclose(self.posy, -9999))
 
 
-# TODO: merge this with madgui.widget.curvemanager.CheckedStringValue
-class CheckedStringValue(StringValue):
-
-    """String value with checkbox."""
-
-    default = False
-
-    def __init__(self, mgr, _, idx):
-        self.mgr = mgr
-        self.idx = idx
-        super().__init__(get_monitor_name(mgr, mgr.monitors[idx], idx),
-                         editable=False)
-
-    def checked(self):
-        return get_monitor_show(self.mgr, self.mgr.monitors[self.idx], self.idx)
-
-    def flags(self):
-        base_flags = super().flags()
-        return base_flags | Qt.ItemIsUserCheckable
-
-    def setData(self, value, role):
-        mgr = self.mgr
-        idx = self.idx
-        val = self.mgr.monitors[idx]
-        if role == Qt.CheckStateRole:
-            set_monitor_show(mgr, val, idx, value == Qt.Checked)
-            return True
-        return super().setData(value, role)
-
-
 def get_monitor_name(mgr, monitor, i):
     return monitor.name
 
-def get_monitor_show(mgr, monitor, i):
+def get_monitor_show(cell):
+    monitor, mgr = cell.item, cell.model.context
     return mgr.selected(monitor)
 
-def set_monitor_show(mgr, monitor, i, show):
+def set_monitor_show(cell, show):
+    i, monitor, mgr = cell.row, cell.item, cell.model.context
     shown = mgr.selected(monitor)
     if show and not shown:
         mgr.select(i)
@@ -151,7 +122,8 @@ class MonitorWidget(QtGui.QDialog):
     ui_file = 'monitorwidget.ui'
 
     columns = [
-        ExtColumnInfo("Monitor", CheckedStringValue),
+        ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
+                      checked=get_monitor_show, setChecked=set_monitor_show),
         ColumnInfo("x", 'posx'),
         ColumnInfo("y", 'posy'),
         ColumnInfo("Δx", 'envx'),

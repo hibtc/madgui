@@ -4,42 +4,10 @@ Dialog for managing shown curves.
 
 import os
 
-from madgui.qt import Qt, QtGui, load_ui
+from madgui.qt import QtGui, load_ui
 from madgui.core.unit import from_ui
-from madgui.widget.tableview import ExtColumnInfo, StringValue
+from madgui.widget.tableview import ExtColumnInfo
 from madgui.widget.filedialog import getOpenFileName
-
-
-class CheckedStringValue(StringValue):
-
-    """String value with checkbox."""
-
-    default = False
-
-    def __init__(self, mgr, _, idx):
-        self.mgr = mgr
-        self.idx = idx
-        super().__init__(get_curve_name(mgr, mgr.available[idx], idx),
-                         editable=True)
-
-    def checked(self):
-        return get_curve_show(self.mgr, self.mgr.available[self.idx], self.idx)
-
-    def flags(self):
-        base_flags = super().flags()
-        return base_flags | Qt.ItemIsEditable | Qt.ItemIsUserCheckable
-
-    def setData(self, value, role):
-        mgr = self.mgr
-        idx = self.idx
-        val = self.mgr.available[idx]
-        if role == Qt.CheckStateRole:
-            set_curve_show(mgr, val, idx, value == Qt.Checked)
-            return True
-        elif role == Qt.EditRole:
-            set_curve_name(mgr, val, idx, value)
-            return True
-        return super().setData(value, role)
 
 
 def get_curve_name(mgr, curve, i):
@@ -50,10 +18,12 @@ def set_curve_name(mgr, curve, i, name):
     _, data, style = curve
     mgr.available[i] = (name, data, style)
 
-def get_curve_show(mgr, curve, i):
+def get_curve_show(cell):
+    i, mgr = cell.row, cell.model.context
     return i in mgr.selected
 
-def set_curve_show(mgr, curve, i, show):
+def set_curve_show(cell, show):
+    i, mgr = cell.row, cell.model.context
     shown = i in mgr.selected
     if show and not shown:
         mgr.selected.append(i)
@@ -66,7 +36,9 @@ class CurveManager(QtGui.QWidget):
     ui_file = 'curvemanager.ui'
 
     columns = [
-        ExtColumnInfo("curves", CheckedStringValue,
+        ExtColumnInfo("curves", get_curve_name, set_curve_name,
+                      checked=get_curve_show, setChecked=set_curve_show,
+                      checkable=True,
                       resize=QtGui.QHeaderView.Stretch),
     ]
 

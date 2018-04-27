@@ -851,9 +851,6 @@ class MadxDataStore(DataStore):
     def mutable(self, key):
         return True
 
-    def default(self, key):
-        return self.data[key.lower()]
-
     def valid(self):
         return True
 

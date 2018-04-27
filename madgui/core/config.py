@@ -7,15 +7,11 @@ from importlib_resources import read_binary
 
 from madgui.core.base import Object, Signal
 from madgui.util import yaml
-from madgui.qt import Qt
 
 
 __all__ = [
     'load',
 ]
-
-
-ALIGN = {'left': Qt.AlignLeft, 'right': Qt.AlignRight}
 
 
 def get_default_user_config_path():

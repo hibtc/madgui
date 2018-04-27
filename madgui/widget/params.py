@@ -2,8 +2,10 @@
 Parameter input dialog.
 """
 
+from functools import partial
+
 from madgui.qt import QtGui, Qt
-from madgui.core.unit import madx_units, ui_units, convert
+from madgui.core.unit import ui_units
 
 import madgui.widget.tableview as tableview
 
@@ -19,30 +21,15 @@ class ParamInfo:
 
     """Row info for the TableView [internal]."""
 
-    def __init__(self, datastore, units, key, value):
+    def __init__(self, key, value):
         self.name = key
-        self.units = units
-        self.datastore = datastore
-        default = datastore.default(key)
-        editable = datastore.mutable(key)
-        textcolor = Qt.black if editable else Qt.darkGray
-        self.proxy = tableview.makeValue(
-            value=convert(madx_units, units, key, value) if units else value,
-            default=convert(madx_units, units, key, default) if units else default,
-            editable=editable,
-            textcolor=textcolor)
-        self.proxy.dataChanged.connect(self.on_edit)
+        self.value = value
+        self.unit = ui_units.label(key, value)
 
-    def on_edit(self, value):
-        self.datastore.update({self.name: convert(self.units, madx_units, self.name, value)})
 
-    def __repr__(self):
-        return "{}({}={})".format(
-            self.__class__.__name__, self.name, self.proxy.value)
-
-    @property
-    def unit(self):
-        return self.units.label(self.name, self.proxy.value)
+def set_value(datastore, rows, index, value):
+    datastore.update({rows[index].name: value})
+    rows[index].value = value
 
 
 class ParamTable(tableview.TableView):
@@ -58,15 +45,20 @@ class ParamTable(tableview.TableView):
     # TODO: visually indicate rows with non-default values: "bold"
     # TODO: move rows with default or unset values to bottom? [MAD-X]
 
-    def __init__(self, datastore, units=ui_units, **kwargs):
+    def __init__(self, datastore, units=True, **kwargs):
         """Initialize data."""
 
         self.datastore = datastore
-        self.units = units
+        setter = partial(set_value, datastore)
+        mutable = lambda cell: datastore.mutable(cell.item.name)
+        textcolor = lambda cell: Qt.black if cell.mutable else Qt.darkGray
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
-            tableview.ColumnInfo("Value", 'proxy', padding=50),
+            tableview.ColumnInfo("Value", 'value', setter, padding=50,
+                                 convert=units and 'name',
+                                 mutable=mutable,
+                                 textcolor=textcolor),
             tableview.ColumnInfo("Unit", 'unit',
                                  resize=QtGui.QHeaderView.ResizeToContents),
         ]
@@ -87,7 +79,7 @@ class ParamTable(tableview.TableView):
         """Update dialog from the datastore."""
         # TODO: get along without resetting all the rows?
         self.datastore.kw.update(kw)
-        rows = [ParamInfo(self.datastore, self.units, k, v)
+        rows = [ParamInfo(k, v)
                 for k, v in self.datastore.get().items()]
         if len(rows) == len(self.rows):
             for i, row in enumerate(rows):
