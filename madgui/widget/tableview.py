@@ -25,9 +25,6 @@ __all__ = [
 ]
 
 
-defaultTypes = {}       # default {type: value proxy} mapping
-
-
 # TODO: more consistent behaviour/feel of controls: Quantity vs Bare
 
 
@@ -345,7 +342,6 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
 
 # Value types
 
-
 # TODO: rename to ItemProxy (or ItemDelegate if that were available).
 class ValueProxy(QtGui.QStyledItemDelegate):
 
@@ -354,7 +350,6 @@ class ValueProxy(QtGui.QStyledItemDelegate):
     default = ""
     fmtspec = ''
     editable = False
-    types = defaultTypes
     textbrush = None
 
     # data role, see: http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
@@ -387,7 +382,6 @@ class ValueProxy(QtGui.QStyledItemDelegate):
                  default=None,
                  editable=None,
                  fmtspec=None,
-                 types=None,
                  textcolor=None,
                  sizeHint=None,
                  ):
@@ -396,7 +390,6 @@ class ValueProxy(QtGui.QStyledItemDelegate):
         if default is not None: self.default = default
         if editable is not None: self.editable = editable
         if fmtspec is not None: self.fmtspec = fmtspec
-        if types is not None: self.types = types
         if textcolor is not None: self.textbrush = QtGui.QBrush(textcolor)
         if sizeHint is not None: self.sizeHint_ = sizeHint
         self.value = value
@@ -610,7 +603,7 @@ class ListValue(ValueProxy):
             ", ".join(map(self.formatValue, self.value)))
 
     def formatValue(self, value):
-        return makeValue(value, self.types).display()
+        return makeValue(value).display()
 
     def textAlignment(self):
         return Qt.AlignRight | Qt.AlignVCenter
@@ -664,7 +657,7 @@ class EnumValue(StringValue):
         model.setData(index, self.enum(value))
 
 
-defaultTypes.update({
+defaultTypes = {        # default {type: value proxy} mapping
     float: QuantityValue,
     int: IntValue,
     bool: BoolValue,
@@ -673,32 +666,26 @@ defaultTypes.update({
     list: ListValue,                        # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityValue,
     Enum: EnumValue,
-})
+}
 
 
 # makeValue
 
-def makeValue(value, types=defaultTypes, **kwargs):
-    types = _setdefault(types, defaultTypes)
+def makeValue(value, **kwargs):
+    types = defaultTypes
     try:
         match = _get_best_base(value.__class__, types)
     except ValueError:
         factory = ValueProxy
     else:
         factory = types[match]
-    return factory(value, types=types, **kwargs)
+    return factory(value, **kwargs)
 
 
 def _get_best_base(cls, bases):
     bases = tuple(base for base in bases if issubclass(cls, base))
     mro = getmro(cls)
     return min(bases, key=(mro + bases).index)
-
-
-def _setdefault(dict_, default):
-    result = default.copy()
-    result.update(dict_)
-    return result
 
 
 # Editors
