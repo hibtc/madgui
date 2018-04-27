@@ -665,7 +665,7 @@ class CompareTool(CheckTool):
 
     def _update(self, *args):
         self.setChecked(len(self.selection) > 0 or
-                        self.plot.scene._curveManager.holds_value.value)
+                        self.plot.scene._curveManager.holds_value())
 
     def activate(self):
         self.plot.scene._curveManager.create()

@@ -5,7 +5,7 @@ Table widget specified by column behaviour.
 from inspect import getmro
 
 from madgui.qt import QtCore, QtGui, Qt
-from madgui.core.base import Object, Signal
+from madgui.core.base import Signal
 from madgui.core.unit import to_ui, from_ui
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property
@@ -28,93 +28,212 @@ __all__ = [
 # TODO: more consistent behaviour/feel of controls: Quantity vs Bare
 
 
+# data role, see: http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
+ROLES = {
+    # general purpose roles
+    Qt.DisplayRole:                 'display',
+    Qt.DecorationRole:              'decoration',
+    Qt.EditRole:                    'edit',
+    Qt.ToolTipRole:                 'toolTip',
+    Qt.StatusTipRole:               'statusTip',
+    Qt.WhatsThisRole:               'whatsThis',
+    Qt.SizeHintRole:                'sizeHint',
+    # appearance and meta data
+    Qt.FontRole:                    'font',
+    Qt.TextAlignmentRole:           'textAlignment',
+    Qt.BackgroundRole:              'background',
+    Qt.BackgroundColorRole:         'backgroundColor',
+    Qt.ForegroundRole:              'foreground',
+    #Qt.TextColorRole:               'textColor',   # = ForegroundRole
+    Qt.CheckStateRole:              'checkState',
+    Qt.InitialSortOrderRole:        'initialSortOrder',
+    # Accessibility roles
+    Qt.AccessibleTextRole:          'accessibleText',
+    Qt.AccessibleDescriptionRole:   'accessibleDescription',
+}
+
+
+def lift(value):
+    return value if callable(value) else lambda cell: value
+
+
 class ColumnInfo:
 
     """Column specification for a table widget."""
 
     def __init__(self, title, getter, setter=None,
                  resize=None, padding=0, convert=False,
-                 makeValue=None, **kwargs):
+                 checkable=None, checked=None, setChecked=None,
+                 textcolor=None, mutable=None, sizeHint=None,
+                 delegate=None):
         """
         :param str title: column title
-        :param callable getter: item -> :class:`ValueProxy`
+        :param callable getter: item -> value
         :param QtGui.QHeaderView.ResizeMode resize:
         :param int padding:
-        :param dict kwargs: arguments for ``getter``, e.g. ``editable``
         """
+        # column globals:
         self.title = title
-        self.getter = getter or (lambda x: x)
-        self.setter = setter
         self.resize = resize
         self.padding = padding
-        self.kwargs = kwargs
+        # value accessors
+        self.getter = getter or (lambda x: x)
+        self.setter = setter
         self.convert = convert
-        if setter is not None:
-            self.kwargs.setdefault('editable', True)
-        if makeValue is not None:
-            self.makeValue = makeValue
+        # method overrides:
+        if checked is not None: self.checked = checked
+        if setChecked is not None: self.setChecked = setChecked
+        # simple values
+        if mutable is None: mutable = setter is not None
+        self.mutable = lift(mutable)
+        self.textcolor = lift(textcolor)
+        # Can be passed in as static values or functions (F: cell -> X)
+        if delegate is not None: self.delegate = lift(delegate)
+        if sizeHint is not None: self.sizeHint = lift(sizeHint)
+        if checkable is not None: self.checkable = lift(checkable)
 
-    def data(self, model, index, role):
-        return self.valueProxy(model, index).data(role)
+    # QAbstractTableModel queries
 
-    def flags(self, model, index):
-        return self.valueProxy(model, index).flags()
+    def flags(self, cell):
+        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
+        if cell.checkable:
+            flags |= Qt.ItemIsUserCheckable
+        if not isinstance(cell.delegate, BoolDelegate):
+            # Otherwise always editable with ReadOnlyDelegate
+            flags |= Qt.ItemIsEditable
+        return flags
 
-    def setData(self, model, index, value, role):
-        proxy = self.valueProxy(model, index)
-        changed = proxy.setData(value, role)
-        if changed:
-            self.setter(*self.setter_args(
-                model, index, self.from_ui(model, index, proxy.value)))
-        return changed
+    # role queries
 
-    def from_ui(self, model, index, value):
-        return from_ui(self._name(model, index), value)
+    def display(self, cell):
+        """Render the value as string."""
+        return cell.delegate.display(cell.value)
 
-    def to_ui(self, model, index, value):
-        return to_ui(self._name(model, index), value)
+    def edit(self, cell):
+        """Obtain value for the editor."""
+        return cell.delegate.edit(cell)
 
-    def valueProxy(self, model, index):
-        item = model.rows[index]
+    def checkState(self, cell):
+        checked = cell.checked
+        if checked is None:
+            return None
+        return Qt.Checked if checked else Qt.Unchecked
+
+    def textAlignment(self, cell):
+        return cell.delegate.textAlignment(cell)
+
+    def foreground(self, cell):
+        color = cell.textcolor
+        if color is not None:
+            return QtGui.QBrush(color)
+
+    # value type
+
+    def editable(self, cell):
+        return self.mutable and not isinstance(cell.delegate, BoolDelegate)
+
+    def checkable(self, cell):
+        return self.mutable and isinstance(cell.delegate, BoolDelegate)
+
+    def delegate(self, cell):
+        return lookupDelegate(cell.value)
+
+    # value queries
+
+    def value(self, cell):
         if isinstance(self.getter, str):
-            value = getattr(item, self.getter)
+            value = getattr(cell.item, self.getter)
         else:
-            value = self.getter(*self.getter_args(model, index))
-        if isinstance(value, ValueProxy):
-            return value
-        return self.makeValue(model, index, self.to_ui(model, index, value))
+            value = self.getter(*self.getter_args(cell))
+        return cell.to_ui(value)
 
-    def makeValue(self, model, index, value):
-        return makeValue(value, **self.kwargs)
+    def checked(self, cell):
+        if isinstance(cell.delegate, BoolDelegate):
+            return bool(cell.value)
 
-    def _name(self, model, index):
+    def name(self, cell):
         convert = self.convert
         if convert:
-            item = model.rows[index]
-            # NOTE: incompatible with columns that return ValueProxy
             if isinstance(convert, str):
-                return getattr(item, convert)
+                return getattr(cell.item, convert)
             elif callable(convert):
-                return convert(item)
+                return convert(cell.item)
             else:
                 # NOTE: incompatible with custom getters/setters
                 return self.getter
 
-    def getter_args(self, model, index):
-        return (model.rows[index],)
+    # edit requests:
 
-    def setter_args(self, model, index, value):
-        return (model.rows, index, value)
+    def setValue(self, cell, value):
+        self.setter(*self.setter_args(
+            cell, cell.from_ui(value)))
+
+    def setChecked(self, cell, value):
+        """Implement setting BoolDelegate via checkbox."""
+        self.setter(*self.setter_args(
+            cell, value))
+
+    # internal
+
+    def getter_args(self, cell):
+        return (cell.item,)
+
+    def setter_args(self, cell, value):
+        return (cell.model.rows, cell.row, value)
 
 
 class ExtColumnInfo(ColumnInfo):
 
-    def getter_args(self, model, index):
-        return (model.context, model.rows[index], index)
+    def getter_args(self, cell):
+        return (cell.model.context, cell.item, cell.row)
 
-    def setter_args(self, model, index, value):
-        return (model.context, model.rows[index], index, value)
+    def setter_args(self, cell, value):
+        return (cell.model.context, cell.item, cell.row, value)
 
+
+class TableCell:
+
+    """
+    Proxy class for accessing contents/properties of a table cell. Queries
+    properties from the associated :class`ColumnInfo` and caches the result
+    as attribute.
+    """
+
+    def __init__(self, model, index):
+        self.model = model
+        self.index = index
+        self.row = row = index.row()
+        self.col = col = index.column()
+        self.info = model.columns[col]
+        self.item = model.rows[row]
+
+    # Fetch properties by invoking associated ColumnInfo methods, cache
+    # results automatically as attributes, e.g.: value/delegate/name
+    def __getattr__(self, key):
+        fn = getattr(self.info, key)
+        try:
+            val = fn(self)
+        except AttributeError as e:     # unshadow AttributeError!
+            raise Exception() from e
+        setattr(self, key, val)
+        return val
+
+    # misc
+
+    def from_ui(self, value):
+        return from_ui(self.name, value)
+
+    def to_ui(self, value):
+        return to_ui(self.name, value)
+
+    def setData(self, value, role):
+        if role == Qt.EditRole and self.editable:
+            self.info.setValue(self, value)
+            return True
+        if role == Qt.CheckStateRole and self.checkable:
+            self.info.setChecked(self, value == Qt.Checked)
+            return True
+        return False
 
 
 class TableModel(QtCore.QAbstractTableModel):
@@ -189,27 +308,23 @@ class TableModel(QtCore.QAbstractTableModel):
         return len(self.rows)
 
     def data(self, index, role=Qt.DisplayRole):
-        if not index.isValid():
-            return None
-        col, row = index.column(), index.row()
-        return self.columns[col].data(self, row, role)
+        if index.isValid() and role in ROLES:
+            return getattr(TableCell(self, index), ROLES[role], None)
+        return super().data(index, role)
 
     def flags(self, index):
-        if not index.isValid():
-            return super().flags(index)
-        col, row = index.column(), index.row()
-        return self.columns[col].flags(self, row) | self.baseFlags
+        if index.isValid():
+            return TableCell(self, index).flags
+        return super().flags(index)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal:
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return self.columns[section].title
-        return None
 
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
             return False
-        col, row = index.column(), index.row()
-        changed = self.columns[col].setData(self, row, value, role)
+        changed = TableCell(self, index).setData(value, role)
         if changed:
             # NOTE: technically redundant due to self._update_finalize:
             self.dataChanged.emit(index, index)
@@ -322,10 +437,8 @@ class TableView(QtGui.QTableView):
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
-        model = index.model()
-        col, row = index.column(), index.row()
-        valueProxy = model.columns[col].valueProxy(model, row)
-        return valueProxy if valueProxy.editable else ReadOnlyDelegate()
+        cell = TableCell(index.model(), index)
+        return cell.delegate if cell.editable else ReadOnlyDelegate()
 
     def createEditor(self, parent, option, index):
         return self.delegate(index).createEditor(parent, option, index)
@@ -342,126 +455,49 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
 
 # Value types
 
-# TODO: rename to ItemProxy (or ItemDelegate if that were available).
-class ValueProxy(QtGui.QStyledItemDelegate):
+class ItemDelegate(QtGui.QStyledItemDelegate):
 
     """Wrap a value of a specific type for string rendering and editting."""
 
     default = ""
     fmtspec = ''
-    editable = False
-    textbrush = None
 
-    # data role, see: http://doc.qt.io/qt-5/qt.html#ItemDataRole-enum
-    roles = {
-        # general purpose roles
-        Qt.DisplayRole:                 'display',
-        Qt.DecorationRole:              'decoration',
-        Qt.EditRole:                    'edit',
-        Qt.ToolTipRole:                 'toolTip',
-        Qt.StatusTipRole:               'statusTip',
-        Qt.WhatsThisRole:               'whatsThis',
-        # dodge conflict with QStyledItemDelegate::sizeHint():
-        Qt.SizeHintRole:                'sizeHint_',
-        # appearance and meta data
-        Qt.FontRole:                    'font',
-        Qt.TextAlignmentRole:           'textAlignment',
-        Qt.BackgroundRole:              'background',
-        Qt.BackgroundColorRole:         'backgroundColor',
-        Qt.ForegroundRole:              'foreground',
-        #Qt.TextColorRole:               'textColor',   # = ForegroundRole
-        Qt.CheckStateRole:              'checkState',
-        Qt.InitialSortOrderRole:        'initialSortOrder',
-        # Accessibility roles
-        Qt.AccessibleTextRole:          'accessibleText',
-        Qt.AccessibleDescriptionRole:   'accessibleDescription',
-    }
-
-    def __init__(self, value,
-                 # keyword-only arguments:
+    def __init__(self, *,
                  default=None,
-                 editable=None,
                  fmtspec=None,
-                 textcolor=None,
-                 sizeHint=None,
                  ):
         """Store the value."""
         super().__init__()
         if default is not None: self.default = default
-        if editable is not None: self.editable = editable
         if fmtspec is not None: self.fmtspec = fmtspec
-        if textcolor is not None: self.textbrush = QtGui.QBrush(textcolor)
-        if sizeHint is not None: self.sizeHint_ = sizeHint
-        self.value = value
 
-    def __str__(self):
-        """Render the value."""
-        return self.display()
-
-    def __repr__(self):
-        return "{}({})".format(
-            self.__class__.__name__,
-            self.display())
-
-    def data(self, role):
-        getter_name = self.roles.get(role, '')
-        getter_func = getattr(self, getter_name, lambda: None)
-        return getter_func()
-
-    def setData(self, value, role=Qt.EditRole):
-        if self.editable and role == Qt.EditRole:
-            self.value = value
-            return True
-        return False
-
-    def flags(self):
-        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
-        # Always editable with ReadOnlyDelegate
-        flags |= Qt.ItemIsEditable
-        return flags
-
-    # role query functions
-
-    def display(self):
+    def display(self, value):
         """Render the value as string."""
-        if self.value is None:
+        if value is None:
             return ""
-        return format(self.value, self.fmtspec)
+        return format(value, self.fmtspec)
 
-    def edit(self):
-        return self.default if self.value is None else self.value
+    def edit(self, cell):
+        return self.default if cell.value is None else cell.value
 
-    def checkState(self):
-        checked = self.checked()
-        if checked is None:
-            return None
-        return Qt.Checked if checked else Qt.Unchecked
-
-    def checked(self):
-        return None
-
-    def textAlignment(self):
+    def textAlignment(self, cell):
         return Qt.AlignLeft | Qt.AlignVCenter
 
-    def foreground(self):
-        return self.textbrush
 
-
-class StringValue(ValueProxy):
+class StringDelegate(ItemDelegate):
 
     """Bare string value."""
 
     pass
 
 
-class FloatValue(ValueProxy):
+class FloatValue(ItemDelegate):
 
     """Float value."""
 
     default = 0.0
-    unit = None
 
-    def textAlignment(self):
+    def textAlignment(self, cell):
         return Qt.AlignRight | Qt.AlignVCenter
 
     @rw_property
@@ -493,13 +529,13 @@ class FloatValue(ValueProxy):
         model.setData(index, parsed)
 
 
-class IntValue(ValueProxy):
+class IntDelegate(ItemDelegate):
 
     """Integer value."""
 
     default = 0
 
-    def textAlignment(self):
+    def textAlignment(self, cell):
         return Qt.AlignRight | Qt.AlignVCenter
 
     # NOTE: This class is needed to create a spinbox without
@@ -525,61 +561,27 @@ class IntValue(ValueProxy):
         model.setData(index, parsed)
 
 
-class BoolValue(ValueProxy):
+class BoolDelegate(ItemDelegate):
 
     """Boolean value."""
 
-    default = False
-
     # FIXME: distinguish `None` values, gray out?
-    def get_value(self):
-        return self._value
-    def set_value(self, value):
-        self._value = self.default if value is None else value
-    value = property(get_value, set_value)
-
-    def checked(self):
-        return self.value
-
-    def flags(self):
-        base_flags = super().flags()
-        return base_flags & ~Qt.ItemIsEditable | Qt.ItemIsUserCheckable
-
-    def setData(self, value, role):
-        if role == Qt.CheckStateRole:
-            role = Qt.EditRole
-            value = value == Qt.Checked
-        return super().setData(value, role)
+    default = False
 
 
 # TODO: use UI units
-class QuantityValue(FloatValue):
+class QuantityDelegate(FloatValue):
 
-    def __init__(self, value, **kwargs):
-        if value is not None:
-            self.unit = unit.get_unit(value)
-        else:
-            self.unit = unit.get_unit(kwargs.get('default'))
-        super().__init__(value, **kwargs)
+    def __init__(self, unit=None):
+        super().__init__()
+        self.unit = unit
 
-    @property
-    def value(self):
-        if self.magnitude is None or self.unit is None:
-            return self.magnitude
-        return self.magnitude * self.unit
-
-    @value.setter
-    def value(self, value):
-        self.magnitude = unit.strip_unit(value, self.unit)
-
-    def display(self):
-        value = self.value
-        units = self.unit
+    def display(self, value):
         if value is None:
-            return "" if units is None else unit.get_raw_label(units)
-        if isinstance(self.value, (float, unit.units.Quantity)):
-            return unit.format_quantity(self.value, self.fmtspec)
-        return format(self.value)
+            return "" if self.unit is None else unit.get_raw_label(self.unit)
+        if isinstance(value, (float, unit.units.Quantity)):
+            return unit.format_quantity(value, self.fmtspec)
+        return format(value)
 
     # QStyledItemDelegate
 
@@ -594,18 +596,18 @@ class QuantityValue(FloatValue):
         model.setData(index, editor.quantity)
 
 
-class ListValue(ValueProxy):
+class ListDelegate(ItemDelegate):
 
     """List value."""
 
-    def display(self):
+    def display(self, value):
         return '[{}]'.format(
-            ", ".join(map(self.formatValue, self.value)))
+            ", ".join(map(self.formatValue, value)))
 
     def formatValue(self, value):
-        return makeValue(value).display()
+        return lookupDelegate(value).display(value)
 
-    def textAlignment(self):
+    def textAlignment(self, cell):
         return Qt.AlignRight | Qt.AlignVCenter
 
     # QStyledItemDelegate
@@ -634,46 +636,45 @@ class ListValue(ValueProxy):
         model.setData(index, items)
 
 
-class EnumValue(StringValue):
-
-    def __init__(self, value, **kwargs):
-        self.enum = type(value)
-        super().__init__(value, **kwargs)
+class EnumDelegate(StringDelegate):
 
     # QStyledItemDelegate
 
     def createEditor(self, parent, option, index):
+        enum = type(index.data())
         editor = QtGui.QComboBox(parent)
-        editor.setEditable(not self.enum._strict)
+        editor.setEditable(not enum._strict)
         return editor
 
     def setEditorData(self, editor, index):
+        enum = type(index.data())
         editor.clear()
-        editor.addItems(self.enum._values)
+        editor.addItems(enum._values)
         editor.setCurrentIndex(editor.findText(str(index.data())))
 
     def setModelData(self, editor, model, index):
+        enum = type(index.data())
         value = editor.currentText()
-        model.setData(index, self.enum(value))
+        model.setData(index, enum(value))
 
 
 TYPES = {                   # default {type: value proxy} mapping
-    object: ValueProxy,
-    float: QuantityValue,
-    int: IntValue,
-    bool: BoolValue,
-    str: StringValue,
-    bytes: StringValue,
-    list: ListValue,                        # TODO: VECTOR vs MATRIX…
-    unit.units.Quantity: QuantityValue,
-    Enum: EnumValue,
+    object: ItemDelegate(),
+    float: QuantityDelegate(),
+    int: IntDelegate(),
+    bool: BoolDelegate(),
+    str: StringDelegate(),
+    bytes: StringDelegate(),
+    list: ListDelegate(),                       # TODO: VECTOR vs MATRIX…
+    unit.units.Quantity: QuantityDelegate(),
+    Enum: EnumDelegate(),
 }
 
 
-# makeValue
+# lookupDelegate
 
-def makeValue(value, **kwargs):
-    return TYPES[_get_best_base(value.__class__, TYPES)](value, **kwargs)
+def lookupDelegate(value):
+    return TYPES[_get_best_base(value.__class__, TYPES)]
 
 
 def _get_best_base(cls, bases):

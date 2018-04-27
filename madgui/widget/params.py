@@ -32,15 +32,6 @@ def set_value(datastore, rows, index, value):
     rows[index].value = value
 
 
-def makeValue(datastore, model, index, value):
-    editable = datastore.mutable(model.rows[index].name)
-    textcolor = Qt.black if editable else Qt.darkGray
-    return tableview.makeValue(
-            value=value,
-            editable=editable,
-            textcolor=textcolor)
-
-
 class ParamTable(tableview.TableView):
 
     """
@@ -58,14 +49,16 @@ class ParamTable(tableview.TableView):
         """Initialize data."""
 
         self.datastore = datastore
-
         setter = partial(set_value, datastore)
-        maker = partial(makeValue, datastore)
+        mutable = lambda cell: datastore.mutable(cell.item.name)
+        textcolor = lambda cell: Qt.black if cell.mutable else Qt.darkGray
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
             tableview.ColumnInfo("Value", 'value', setter, padding=50,
-                                 convert=units and 'name', makeValue=maker),
+                                 convert=units and 'name',
+                                 mutable=mutable,
+                                 textcolor=textcolor),
             tableview.ColumnInfo("Unit", 'unit',
                                  resize=QtGui.QHeaderView.ResizeToContents),
         ]
