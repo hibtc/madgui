@@ -55,36 +55,50 @@ class ColumnInfo:
         if setter is not None:
             self.kwargs.setdefault('editable', True)
 
+    def data(self, model, index, role):
+        return self.valueProxy(model, index).data(role)
+
+    def flags(self, model, index):
+        return self.valueProxy(model, index).flags()
+
+    def setData(self, model, index, value, role):
+        proxy = self.valueProxy(model, index)
+        changed = proxy.setData(value, role)
+        if changed:
+            self.setter(*self.setter_args(
+                model, index, self.from_ui(model, index, proxy.value)))
+        return changed
+
+    def from_ui(self, model, index, value):
+        return from_ui(self._name(model, index), value)
+
+    def to_ui(self, model, index, value):
+        return to_ui(self._name(model, index), value)
+
     def valueProxy(self, model, index):
         item = model.rows[index]
         if isinstance(self.getter, str):
             value = getattr(item, self.getter)
         else:
             value = self.getter(*self.getter_args(model, index))
-        if self.convert:
-            # NOTE: incompatible with columns that return ValueProxy
-            convert = self.convert
-            if isinstance(convert, str):
-                name = getattr(item, convert)
-            elif callable(convert):
-                name = convert(item)
-            else:
-                # NOTE: incompatible with custom getters/setters
-                name = self.getter
-            tu = lambda value: to_ui(name, value)
-            fu = lambda value: from_ui(name, value)
-        else:
-            tu = lambda value: value
-            fu = lambda value: value
         if isinstance(value, ValueProxy):
             proxy = value
         else:
-            proxy = makeValue(tu(value), **self.kwargs)
-        if self.setter is not None:
-            proxy.dataChanged.connect(
-                lambda value: self.setter(*self.setter_args(
-                    model, index, fu(value))))
+            proxy = makeValue(self.to_ui(model, index, value), **self.kwargs)
         return proxy
+
+    def _name(self, model, index):
+        convert = self.convert
+        if convert:
+            item = model.rows[index]
+            # NOTE: incompatible with columns that return ValueProxy
+            if isinstance(convert, str):
+                return getattr(item, convert)
+            elif callable(convert):
+                return convert(item)
+            else:
+                # NOTE: incompatible with custom getters/setters
+                return self.getter
 
     def getter_args(self, model, index):
         return (model.rows[index],)
@@ -166,13 +180,6 @@ class TableModel(QtCore.QAbstractTableModel):
     def rows(self, rows):
         self._rows[:] = rows
 
-    def value(self, index):
-        # TODO: cache the valueproxy? However, we have to recreate the proxy
-        # at least whenever the value changes, because also the type may
-        # change.
-        column = self.columns[index.column()]
-        return column.valueProxy(self, index.row())
-
     # QAbstractTableModel overrides
 
     def columnCount(self, parent=None):
@@ -184,12 +191,14 @@ class TableModel(QtCore.QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return None
-        return self.value(index).data(role)
+        col, row = index.column(), index.row()
+        return self.columns[col].data(self, row, role)
 
     def flags(self, index):
         if not index.isValid():
             return super().flags(index)
-        return self.value(index).flags() | self.baseFlags
+        col, row = index.column(), index.row()
+        return self.columns[col].flags(self, row) | self.baseFlags
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
@@ -199,8 +208,8 @@ class TableModel(QtCore.QAbstractTableModel):
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
             return False
-        proxy = self.value(index)
-        changed = proxy.setData(value, role)
+        col, row = index.column(), index.row()
+        changed = self.columns[col].setData(self, row, value, role)
         if changed:
             # NOTE: technically redundant due to self._update_finalize:
             self.dataChanged.emit(index, index)
@@ -321,7 +330,9 @@ class TableView(QtGui.QTableView):
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
-        valueProxy = index.model().value(index)
+        model = index.model()
+        col, row = index.column(), index.row()
+        valueProxy = model.columns[col].valueProxy(model, row)
         return valueProxy if valueProxy.editable else ReadOnlyDelegate()
 
     def createEditor(self, parent, option, index):
@@ -348,7 +359,6 @@ class ValueProxy(QtGui.QStyledItemDelegate):
     default = ""
     fmtspec = ''
     editable = False
-    dataChanged = Signal(object)
     types = defaultTypes
     textbrush = None
 
@@ -413,7 +423,6 @@ class ValueProxy(QtGui.QStyledItemDelegate):
     def setData(self, value, role=Qt.EditRole):
         if self.editable and role == Qt.EditRole:
             self.value = value
-            self.dataChanged.emit(self.value)
             return True
         return False
 
