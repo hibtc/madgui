@@ -657,7 +657,8 @@ class EnumValue(StringValue):
         model.setData(index, self.enum(value))
 
 
-defaultTypes = {        # default {type: value proxy} mapping
+TYPES = {                   # default {type: value proxy} mapping
+    object: ValueProxy,
     float: QuantityValue,
     int: IntValue,
     bool: BoolValue,
@@ -672,14 +673,7 @@ defaultTypes = {        # default {type: value proxy} mapping
 # makeValue
 
 def makeValue(value, **kwargs):
-    types = defaultTypes
-    try:
-        match = _get_best_base(value.__class__, types)
-    except ValueError:
-        factory = ValueProxy
-    else:
-        factory = types[match]
-    return factory(value, **kwargs)
+    return TYPES[_get_best_base(value.__class__, TYPES)](value, **kwargs)
 
 
 def _get_best_base(cls, bases):
