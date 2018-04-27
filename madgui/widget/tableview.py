@@ -37,7 +37,7 @@ class ColumnInfo:
 
     def __init__(self, title, getter, setter=None,
                  resize=None, padding=0, convert=False,
-                 **kwargs):
+                 makeValue=None, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> :class:`ValueProxy`
@@ -54,6 +54,8 @@ class ColumnInfo:
         self.convert = convert
         if setter is not None:
             self.kwargs.setdefault('editable', True)
+        if makeValue is not None:
+            self.makeValue = makeValue
 
     def data(self, model, index, role):
         return self.valueProxy(model, index).data(role)
@@ -82,10 +84,11 @@ class ColumnInfo:
         else:
             value = self.getter(*self.getter_args(model, index))
         if isinstance(value, ValueProxy):
-            proxy = value
-        else:
-            proxy = makeValue(self.to_ui(model, index, value), **self.kwargs)
-        return proxy
+            return value
+        return self.makeValue(model, index, self.to_ui(model, index, value))
+
+    def makeValue(self, model, index, value):
+        return makeValue(value, **self.kwargs)
 
     def _name(self, model, index):
         convert = self.convert
