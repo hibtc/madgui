@@ -23,12 +23,10 @@ class ParamInfo:
         self.name = key
         self.units = units
         self.datastore = datastore
-        default = datastore.default(key)
         editable = datastore.mutable(key)
         textcolor = Qt.black if editable else Qt.darkGray
         self.proxy = tableview.makeValue(
             value=convert(madx_units, units, key, value) if units else value,
-            default=convert(madx_units, units, key, default) if units else default,
             editable=editable,
             textcolor=textcolor)
 

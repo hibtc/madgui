@@ -25,10 +25,6 @@ class DataStore:
     def mutable(self, key):
         """Check whether the parameter belonging to a certain key is mutable."""
 
-    @abstractmethod
-    def default(self, key):
-        """Get default value for the given key."""
-
     # data im-/export
 
     exportFilters = [
