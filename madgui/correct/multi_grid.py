@@ -174,7 +174,7 @@ class Corrector(Matcher):
             for c in self.constraints
         ]
         for name, expr in self.selected.get('assign', {}).items():
-            self.model.madx.input(name.replace('->', ', ') + ':=' + expr + ';')
+            self.model.globals[name] = expr
         self.model.madx.command.select(flag='interpolate', clear=True)
         self.model.madx.match(
             sequence=self.model.sequence.name,
