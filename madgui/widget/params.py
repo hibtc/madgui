@@ -31,7 +31,6 @@ class ParamInfo:
             default=convert(madx_units, units, key, default) if units else default,
             editable=editable,
             textcolor=textcolor)
-        self.proxy.dataChanged.connect(self.on_edit)
 
     def on_edit(self, value):
         self.datastore.update({self.name: convert(self.units, madx_units, self.name, value)})
@@ -43,6 +42,10 @@ class ParamInfo:
     @property
     def unit(self):
         return self.units.label(self.name, self.proxy.value)
+
+
+def set_value(rows, index, value):
+    rows[index].on_edit(value)
 
 
 class ParamTable(tableview.TableView):
@@ -66,7 +69,7 @@ class ParamTable(tableview.TableView):
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
-            tableview.ColumnInfo("Value", 'proxy', padding=50),
+            tableview.ColumnInfo("Value", 'proxy', set_value, padding=50),
             tableview.ColumnInfo("Unit", 'unit',
                                  resize=QtGui.QHeaderView.ResizeToContents),
         ]
