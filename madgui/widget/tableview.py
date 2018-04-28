@@ -633,19 +633,19 @@ class EnumDelegate(StringDelegate):
     # QStyledItemDelegate
 
     def createEditor(self, parent, option, index):
-        enum = type(index.data())
+        enum = type(index.data(Qt.EditRole))
         editor = QtGui.QComboBox(parent)
         editor.setEditable(not enum._strict)
         return editor
 
     def setEditorData(self, editor, index):
-        enum = type(index.data())
+        enum = type(index.data(Qt.EditRole))
         editor.clear()
         editor.addItems(enum._values)
         editor.setCurrentIndex(editor.findText(str(index.data())))
 
     def setModelData(self, editor, model, index):
-        enum = type(index.data())
+        enum = type(index.data(Qt.EditRole))
         value = editor.currentText()
         model.setData(index, enum(value))
 
