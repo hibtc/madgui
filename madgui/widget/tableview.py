@@ -131,10 +131,10 @@ class ColumnInfo:
     # value type
 
     def editable(self, cell):
-        return self.mutable and not isinstance(cell.delegate, BoolDelegate)
+        return cell.mutable and not isinstance(cell.delegate, BoolDelegate)
 
     def checkable(self, cell):
-        return self.mutable and isinstance(cell.delegate, BoolDelegate)
+        return cell.mutable and isinstance(cell.delegate, BoolDelegate)
 
     def delegate(self, cell):
         return lookupDelegate(cell.value)
