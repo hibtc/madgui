@@ -96,12 +96,10 @@ class ColumnInfo:
     # QAbstractTableModel queries
 
     def flags(self, cell):
-        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
+        # Always editable with ReadOnlyDelegate:
+        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
         if cell.checkable:
             flags |= Qt.ItemIsUserCheckable
-        if not isinstance(cell.delegate, BoolDelegate):
-            # Otherwise always editable with ReadOnlyDelegate
-            flags |= Qt.ItemIsEditable
         return flags
 
     # role queries
