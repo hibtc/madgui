@@ -119,7 +119,7 @@ class ColumnInfo:
         return Qt.Checked if checked else Qt.Unchecked
 
     def textAlignment(self, cell):
-        return cell.delegate.textAlignment(cell)
+        return cell.delegate.textAlignment
 
     def foreground(self, cell):
         color = cell.textcolor
@@ -460,6 +460,7 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
 
     default = ""
     fmtspec = ''
+    textAlignment = Qt.AlignLeft | Qt.AlignVCenter
 
     def __init__(self, *,
                  default=None,
@@ -479,9 +480,6 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
     def edit(self, cell):
         return self.default if cell.value is None else cell.value
 
-    def textAlignment(self, cell):
-        return Qt.AlignLeft | Qt.AlignVCenter
-
 
 class StringDelegate(ItemDelegate):
 
@@ -495,9 +493,7 @@ class FloatValue(ItemDelegate):
     """Float value."""
 
     default = 0.0
-
-    def textAlignment(self, cell):
-        return Qt.AlignRight | Qt.AlignVCenter
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
 
     @rw_property
     def fmtspec(self):
@@ -533,9 +529,7 @@ class IntDelegate(ItemDelegate):
     """Integer value."""
 
     default = 0
-
-    def textAlignment(self, cell):
-        return Qt.AlignRight | Qt.AlignVCenter
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
 
     # NOTE: This class is needed to create a spinbox without
     # `editor.setFrame(False)` which causes a display bug: display value is
@@ -599,15 +593,14 @@ class ListDelegate(ItemDelegate):
 
     """List value."""
 
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
+
     def display(self, value):
         return '[{}]'.format(
             ", ".join(map(self.formatValue, value)))
 
     def formatValue(self, value):
         return lookupDelegate(value).display(value)
-
-    def textAlignment(self, cell):
-        return Qt.AlignRight | Qt.AlignVCenter
 
     # QStyledItemDelegate
 
