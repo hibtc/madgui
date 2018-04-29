@@ -96,12 +96,10 @@ class ColumnInfo:
     # QAbstractTableModel queries
 
     def flags(self, cell):
-        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled
+        # Always editable with ReadOnlyDelegate:
+        flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
         if cell.checkable:
             flags |= Qt.ItemIsUserCheckable
-        if not isinstance(cell.delegate, BoolDelegate):
-            # Otherwise always editable with ReadOnlyDelegate
-            flags |= Qt.ItemIsEditable
         return flags
 
     # role queries
@@ -121,7 +119,7 @@ class ColumnInfo:
         return Qt.Checked if checked else Qt.Unchecked
 
     def textAlignment(self, cell):
-        return cell.delegate.textAlignment(cell)
+        return cell.delegate.textAlignment
 
     def foreground(self, cell):
         color = cell.textcolor
@@ -131,10 +129,10 @@ class ColumnInfo:
     # value type
 
     def editable(self, cell):
-        return self.mutable and not isinstance(cell.delegate, BoolDelegate)
+        return cell.mutable and not isinstance(cell.delegate, BoolDelegate)
 
     def checkable(self, cell):
-        return self.mutable and isinstance(cell.delegate, BoolDelegate)
+        return cell.mutable and isinstance(cell.delegate, BoolDelegate)
 
     def delegate(self, cell):
         return lookupDelegate(cell.value)
@@ -462,6 +460,7 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
 
     default = ""
     fmtspec = ''
+    textAlignment = Qt.AlignLeft | Qt.AlignVCenter
 
     def __init__(self, *,
                  default=None,
@@ -481,9 +480,6 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
     def edit(self, cell):
         return self.default if cell.value is None else cell.value
 
-    def textAlignment(self, cell):
-        return Qt.AlignLeft | Qt.AlignVCenter
-
 
 class StringDelegate(ItemDelegate):
 
@@ -497,9 +493,7 @@ class FloatValue(ItemDelegate):
     """Float value."""
 
     default = 0.0
-
-    def textAlignment(self, cell):
-        return Qt.AlignRight | Qt.AlignVCenter
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
 
     @rw_property
     def fmtspec(self):
@@ -535,9 +529,7 @@ class IntDelegate(ItemDelegate):
     """Integer value."""
 
     default = 0
-
-    def textAlignment(self, cell):
-        return Qt.AlignRight | Qt.AlignVCenter
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
 
     # NOTE: This class is needed to create a spinbox without
     # `editor.setFrame(False)` which causes a display bug: display value is
@@ -601,15 +593,14 @@ class ListDelegate(ItemDelegate):
 
     """List value."""
 
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
+
     def display(self, value):
         return '[{}]'.format(
             ", ".join(map(self.formatValue, value)))
 
     def formatValue(self, value):
         return lookupDelegate(value).display(value)
-
-    def textAlignment(self, cell):
-        return Qt.AlignRight | Qt.AlignVCenter
 
     # QStyledItemDelegate
 
@@ -642,19 +633,19 @@ class EnumDelegate(StringDelegate):
     # QStyledItemDelegate
 
     def createEditor(self, parent, option, index):
-        enum = type(index.data())
+        enum = type(index.data(Qt.EditRole))
         editor = QtGui.QComboBox(parent)
         editor.setEditable(not enum._strict)
         return editor
 
     def setEditorData(self, editor, index):
-        enum = type(index.data())
+        enum = type(index.data(Qt.EditRole))
         editor.clear()
         editor.addItems(enum._values)
         editor.setCurrentIndex(editor.findText(str(index.data())))
 
     def setModelData(self, editor, model, index):
-        enum = type(index.data())
+        enum = type(index.data(Qt.EditRole))
         value = editor.currentText()
         model.setData(index, enum(value))
 
