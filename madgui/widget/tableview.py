@@ -325,8 +325,14 @@ class TableModel(QtCore.QAbstractTableModel):
             return False
         changed = TableCell(self, index).setData(value, role)
         if changed:
-            # NOTE: technically redundant due to self._update_finalize:
-            self.dataChanged.emit(index, index)
+            # NOTE: This takes care to update cells after edits that don't
+            # trigger an update of the self.rows collection for some reason
+            # (and hence self._update_finalize is never called). In fact, we
+            # we should trigger the update by re-querying self.rows, but right
+            # now this is not guaranteed in all places...
+            self.dataChanged.emit(
+                self.createIndex(index.row(), 0),
+                self.createIndex(index.row(), self.columnCount()-1))
         return changed
 
 
