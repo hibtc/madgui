@@ -50,20 +50,24 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         expand(self, perpendicular(self.orientation()))
 
     def updateButtons(self):
-        datastore = getattr(self.widget, 'datastore', None)
-        available = bool(datastore)
-        self.button(Button.Save).setEnabled(available)
+        self.button(Button.Save).setEnabled(
+            hasattr(self.exporter, 'importFrom'))
         self.button(Button.Open).setEnabled(
-            available and any(map(datastore.mutable, datastore.get())))
+            hasattr(self.exporter, 'exportFrom') and
+            not getattr(exporter, 'readonly', None))
+
+    @property
+    def exporter(self):
+        return getattr(self.widget, 'exporter', None)
 
     def onImport(self):
         """Import data from JSON/YAML file."""
         from madgui.widget.filedialog import getOpenFileName
         filename = getOpenFileName(
             self.window(), 'Import values', self.folder,
-            self.widget.datastore.importFilters)
+            self.exporter.importFilters)
         if filename:
-            self.widget.datastore.importFrom(filename)
+            self.exporter.importFrom(filename)
             self.folder, _ = os.path.split(filename)
 
     def onExport(self):
@@ -71,9 +75,9 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         from madgui.widget.filedialog import getSaveFileName
         filename = getSaveFileName(
             self.window(), 'Export values', self.folder,
-            self.widget.datastore.exportFilters)
+            self.exporter.exportFilters)
         if filename:
-            self.widget.datastore.exportTo(filename)
+            self.exporter.exportTo(filename)
             self.folder, _ = os.path.split(filename)
 
 

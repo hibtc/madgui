@@ -17,7 +17,6 @@ from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command
 from cpymad.util import normalize_range_name, is_identifier
 
 from madgui.core.base import Object, Signal, Cache
-from madgui.util.datastore import DataStore
 from madgui.util.stream import StreamReader
 from madgui.util import yaml
 
@@ -208,10 +207,7 @@ class Model(Object):
         return True
 
     def set_element_attribute(self, elem, attr, value):
-        elem = self.elements[elem].id
-        self.get_elem_ds(elem).update({
-            attr: value,
-        })
+        self.update_element({attr: value}, self.elements[elem].id)
 
     # curves
 
@@ -472,18 +468,23 @@ class Model(Object):
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
-    def get_globals_ds(self):
-        return MadxDataStore(self, 'globals', str.upper)
+    def fetch_globals(self):
+        return self._par_list(self.globals, 'globals', str.upper)
 
-    def get_beam_ds(self):
-        return MadxDataStore(self, 'beam')
+    def fetch_beam(self):
+        return self._par_list(self.beam, 'beam')
 
-    def get_twiss_ds(self):
-        return MadxDataStore(self, 'twiss_args')
+    def fetch_twiss(self):
+        return self._par_list(self.twiss_args, 'twiss_args')
 
-    def get_elem_ds(self, elem_index):
-        return ElementDataStore(
-            self, 'element', elem_index=elem_index)
+    def _par_list(self, data, name, title_transform=str.title, **kw):
+        from madgui.widget.params import ParamInfo
+        conf = self.config['parameter_sets'][name]
+        data = process_spec(conf['params'], data)
+        readonly = conf.get('readonly', ())
+        return [ParamInfo(title_transform(key), val,
+                          mutable=key not in readonly)
+                for key, val in data.items()]
 
     # TODO…
     def _is_mutable_attribute(self, k, v):
@@ -821,41 +822,6 @@ def process_spec(prespec, data):
     return spec
 
 
-class MadxDataStore(DataStore):
-
-    def __init__(self, model, name, get_title=str.title, **kw):
-        self.model = model
-        self.name = name
-        self.label = name.title()
-        self.data_key = name
-        self.get_title = get_title
-        self.kw = kw
-        self.conf = model.config['parameter_sets'][name]
-
-    def _get(self):
-        return getattr(self.model, self.name)
-
-    def get(self):
-        if not self.valid():
-            return OrderedDict()
-        data = self._get()
-        self.data = process_spec(self.conf['params'], data)
-        return OrderedDict([
-            (self.get_title(key), val)
-            for key, val in self.data.items()
-        ])
-
-    def update(self, values):
-        return getattr(self.model, 'update_'+self.name)(values, **self.kw)
-
-    # TODO: properly detect which items are mutable
-    def mutable(self, key):
-        return True
-
-    def valid(self):
-        return True
-
-
 class ElementList(Sequence):
 
     """
@@ -1050,20 +1016,6 @@ class Element(Mapping):
 
     def elem(self):
         return self._model.sequence().expanded_elements[self._idx]
-
-
-class ElementDataStore(MadxDataStore):
-
-    def _get(self):
-        elem = self.model.elements[self.kw['elem_index']].elem()
-        return {k: v.value for k, v in elem.cmdpar.items()}
-
-    def mutable(self, key):
-        key = key.lower()
-        return self.model._is_mutable_attribute(key, self.data[key])
-
-    def valid(self):
-        return 'elem_index' in self.kw
 
 
 # TODO: support expressions
