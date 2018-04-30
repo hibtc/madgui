@@ -127,9 +127,11 @@ class ParamTable(tableview.TableView):
         model.setData(index, value)
 
 
-def cmd_background(cell):
+def cmd_font(cell):
     if cell.item.inform:
-        return QtGui.QColor(Qt.darkCyan)
+        font = QtGui.QFont()
+        font.setBold(True)
+        return font
 
 
 from cpymad.util import is_identifier
@@ -165,7 +167,7 @@ class CommandEdit(ParamTable):
     showing the expression!
     """
 
-    _col_style = dict(backgroundColor=cmd_background)
+    _col_style = dict(font=cmd_font)
 
     columns = [
         tableview.ColumnInfo("Parameter", 'name', **_col_style),
