@@ -136,7 +136,7 @@ class ColumnInfo:
             value = getattr(cell.item, self.getter)
         else:
             value = self.getter(*self.getter_args(cell))
-        return cell.to_ui(value)
+        return to_ui(cell.name, value)
 
     def checked(self, cell):
         if isinstance(cell.delegate, BoolDelegate):
@@ -157,7 +157,7 @@ class ColumnInfo:
 
     def setValue(self, cell, value):
         self.setter(*self.setter_args(
-            cell, cell.from_ui(value)))
+            cell, from_ui(cell.name, value)))
 
     def setChecked(self, cell, value):
         """Implement setting BoolDelegate via checkbox."""
@@ -208,14 +208,6 @@ class TableCell:
             raise Exception() from e
         setattr(self, key, val)
         return val
-
-    # misc
-
-    def from_ui(self, value):
-        return from_ui(self.name, value)
-
-    def to_ui(self, value):
-        return to_ui(self.name, value)
 
     def setData(self, value, role):
         if role == Qt.EditRole and self.editable:
