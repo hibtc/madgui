@@ -131,9 +131,25 @@ def cmd_textcolor(cell):
     return QtGui.QColor(Qt.black if cell.item.inform else Qt.darkGray)
 
 
+from cpymad.util import is_identifier
+def cmd_mutable(cell):
+    expr = cell.item.expr
+    return not expr or isinstance(expr, list) or is_identifier(expr)
+
+
 def cmd_set_attr(view, item, idx, value):
-    setattr(view.command, item.name, value)
+    expr = item.expr
+    if expr and not isinstance(expr, list) and is_identifier(expr):
+        view.command._madx.globals[expr] = value
+    else:
+        setattr(view.command, item.name, value)
     item.value = value
+    item.inform = 1
+
+def cmd_set_expr(view, item, idx, value):
+    setattr(view.command, item.name, value)
+    # TODO: update item.value!
+    item.expr = value
     item.inform = 1
 
 
@@ -144,16 +160,20 @@ class CommandEdit(ParamTable):
     viewing/editing elements.
 
     In addition to the ParamTables features, this class is capable of
-    indicating which parameters were explicitly specified by the user.
+    indicating which parameters were explicitly specified by the user and
+    showing the expression!
     """
 
     columns = [
         tableview.ColumnInfo("Parameter", 'name', foreground=cmd_textcolor),
         tableview.ExtColumnInfo("Value", 'value', cmd_set_attr, padding=50,
-                                foreground=cmd_textcolor, mutable=True,
+                                foreground=cmd_textcolor, mutable=cmd_mutable,
                                 convert='name'),
         tableview.ColumnInfo("Unit", get_unit, foreground=cmd_textcolor,
                              resize=QtGui.QHeaderView.ResizeToContents),
+        tableview.ExtColumnInfo("Expression", 'expr', cmd_set_expr, padding=50,
+                                foreground=cmd_textcolor, mutable=True,
+                                resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, retrieve):
