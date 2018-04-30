@@ -61,16 +61,20 @@ class ColumnInfo:
 
     """Column specification for a table widget."""
 
-    def __init__(self, title, getter, setter=None,
-                 resize=None, padding=0, convert=False,
-                 checkable=None, checked=None, setChecked=None,
-                 foreground=None, mutable=None, sizeHint=None,
-                 delegate=None):
+    def __init__(self, title, getter, setter=None, resize=None,
+                 *, convert=False, padding=0, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> value
-        :param QtGui.QHeaderView.ResizeMode resize:
-        :param int padding:
+        :param callable setter: (rows,idx,value) -> ()
+        :param QtGui.QHeaderView.ResizeMode resize: column resize mode
+        :param bool convert: automatic unit conversion, can be string to base
+                             quanitity name on an attribute of the item
+        :param int padding: column padding for size hint
+        :param kwargs: any parameter in ``ROLES`` or a method override, in
+                       particular ``mutable``, ``delegate``, ``checkable``,
+                       ``checked``, ``setChecked``. Can be given as static
+                       value or as function: cell->value
         """
         # column globals:
         self.title = title
@@ -80,18 +84,11 @@ class ColumnInfo:
         self.getter = getter or (lambda x: x)
         self.setter = setter
         self.convert = convert
-        # method overrides:
-        if checked is not None: self.checked = checked
-        if setChecked is not None: self.setChecked = setChecked
-        # simple values
-        if mutable is None: mutable = setter is not None
-        self.mutable = lift(mutable)
-        self.foreground = lift(foreground)
-        # Can be passed in as static values or functions (F: cell -> X)
-        if delegate is not None: self.delegate = lift(delegate)
-        if sizeHint is not None: self.sizeHint = lift(sizeHint)
-        if checkable is not None: self.checkable = lift(checkable)
+        kwargs.setdefault('mutable', setter is not None)
         if convert is True: self.title += '/' + ui_units.label(getter)
+        # method/property overrides
+        for k, v in kwargs.items():
+            setattr(self, k, lift(v))
 
     # QAbstractTableModel queries
 
