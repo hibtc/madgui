@@ -127,8 +127,9 @@ class ParamTable(tableview.TableView):
         model.setData(index, value)
 
 
-def cmd_textcolor(cell):
-    return QtGui.QColor(Qt.black if cell.item.inform else Qt.darkGray)
+def cmd_background(cell):
+    if cell.item.inform:
+        return QtGui.QColor(Qt.darkCyan)
 
 
 from cpymad.util import is_identifier
@@ -164,16 +165,20 @@ class CommandEdit(ParamTable):
     showing the expression!
     """
 
+    _col_style = dict(backgroundColor=cmd_background)
+
     columns = [
-        tableview.ColumnInfo("Parameter", 'name', foreground=cmd_textcolor),
+        tableview.ColumnInfo("Parameter", 'name', **_col_style),
         tableview.ExtColumnInfo("Value", 'value', cmd_set_attr, padding=50,
-                                foreground=cmd_textcolor, mutable=cmd_mutable,
-                                convert='name'),
-        tableview.ColumnInfo("Unit", get_unit, foreground=cmd_textcolor,
-                             resize=QtGui.QHeaderView.ResizeToContents),
+                                mutable=cmd_mutable, convert='name',
+                                **_col_style),
+        tableview.ColumnInfo("Unit", get_unit,
+                             resize=QtGui.QHeaderView.ResizeToContents,
+                             **_col_style),
         tableview.ExtColumnInfo("Expression", 'expr', cmd_set_expr, padding=50,
-                                foreground=cmd_textcolor, mutable=True,
-                                resize=QtGui.QHeaderView.ResizeToContents),
+                                mutable=True,
+                                resize=QtGui.QHeaderView.ResizeToContents,
+                                **_col_style),
     ]
 
     def __init__(self, retrieve):
