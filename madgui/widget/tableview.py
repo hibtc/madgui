@@ -209,9 +209,9 @@ class TableCell:
     # Fetch properties by invoking associated ColumnInfo methods, cache
     # results automatically as attributes, e.g.: value/delegate/name
     def __getattr__(self, key):
-        fn = getattr(self.info, key)
+        fn = getattr(self.info, key, None)
         try:
-            val = fn(self)
+            val = fn and fn(self)
         except AttributeError as e:     # unshadow AttributeError!
             raise Exception() from e
         setattr(self, key, val)
