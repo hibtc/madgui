@@ -64,7 +64,7 @@ class ColumnInfo:
     def __init__(self, title, getter, setter=None,
                  resize=None, padding=0, convert=False,
                  checkable=None, checked=None, setChecked=None,
-                 textcolor=None, mutable=None, sizeHint=None,
+                 foreground=None, mutable=None, sizeHint=None,
                  delegate=None):
         """
         :param str title: column title
@@ -86,7 +86,7 @@ class ColumnInfo:
         # simple values
         if mutable is None: mutable = setter is not None
         self.mutable = lift(mutable)
-        self.textcolor = lift(textcolor)
+        self.foreground = lift(foreground)
         # Can be passed in as static values or functions (F: cell -> X)
         if delegate is not None: self.delegate = lift(delegate)
         if sizeHint is not None: self.sizeHint = lift(sizeHint)
@@ -120,11 +120,6 @@ class ColumnInfo:
 
     def textAlignment(self, cell):
         return cell.delegate.textAlignment
-
-    def foreground(self, cell):
-        color = cell.textcolor
-        if color is not None:
-            return QtGui.QBrush(color)
 
     # value type
 

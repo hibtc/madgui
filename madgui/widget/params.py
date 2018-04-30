@@ -51,14 +51,14 @@ class ParamTable(tableview.TableView):
         self.datastore = datastore
         setter = partial(set_value, datastore)
         mutable = lambda cell: datastore.mutable(cell.item.name)
-        textcolor = lambda cell: Qt.black if cell.mutable else Qt.darkGray
+        textcolor = lambda cell: QtGui.QColor(Qt.black if cell.mutable else Qt.darkGray)
 
         columns = [
             tableview.ColumnInfo("Parameter", 'name'),
             tableview.ColumnInfo("Value", 'value', setter, padding=50,
                                  convert=units and 'name',
                                  mutable=mutable,
-                                 textcolor=textcolor),
+                                 foreground=textcolor),
             tableview.ColumnInfo("Unit", 'unit',
                                  resize=QtGui.QHeaderView.ResizeToContents),
         ]
