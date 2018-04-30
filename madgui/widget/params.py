@@ -27,6 +27,10 @@ class ParamInfo:
         self.unit = ui_units.label(key, value)
 
 
+def get_unit(param):
+    return ui_units.label(param.name, param.value)
+
+
 def set_value(datastore, rows, index, value):
     datastore.update({rows[index].name: value})
     rows[index].value = value
@@ -49,23 +53,9 @@ class ParamTable(tableview.TableView):
         """Initialize data."""
 
         self.datastore = datastore
-        setter = partial(set_value, datastore)
-        mutable = lambda cell: datastore.mutable(cell.item.name)
-        textcolor = lambda cell: QtGui.QColor(Qt.black if cell.mutable else Qt.darkGray)
+        self.use_units = units
 
-        columns = [
-            tableview.ColumnInfo("Parameter", 'name'),
-            tableview.ColumnInfo("Value", 'value', setter, padding=50,
-                                 convert=units and 'name',
-                                 mutable=mutable,
-                                 foreground=textcolor),
-            tableview.ColumnInfo("Unit", 'unit',
-                                 resize=QtGui.QHeaderView.ResizeToContents),
-        ]
-        if not units:
-            columns = columns[:2]
-
-        super().__init__(columns=columns, **kwargs)
+        super().__init__(columns=self.columns, **kwargs)
         # in case anyone turns the horizontalHeader back on:
         self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().hide()
@@ -75,12 +65,27 @@ class ParamTable(tableview.TableView):
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Preferred)
 
+    @property
+    def columns(self):
+        datastore = self.datastore
+        setter = partial(set_value, datastore)
+        mutable = lambda cell: datastore.mutable(cell.item.name)
+        textcolor = lambda cell: QtGui.QColor(Qt.black if cell.mutable else Qt.darkGray)
+        columns = [
+            tableview.ColumnInfo("Parameter", 'name'),
+            tableview.ColumnInfo("Value", 'value', setter, padding=50,
+                                 convert=self.use_units and 'name',
+                                 mutable=mutable,
+                                 foreground=textcolor),
+            tableview.ColumnInfo("Unit", 'unit',
+                                 resize=QtGui.QHeaderView.ResizeToContents),
+        ]
+        return columns if self.use_units else columns[:2]
+
     def update(self, **kw):
         """Update dialog from the datastore."""
         # TODO: get along without resetting all the rows?
-        self.datastore.kw.update(kw)
-        rows = [ParamInfo(k, v)
-                for k, v in self.datastore.get().items()]
+        rows = self.retrieve_rows(**kw)
         if len(rows) == len(self.rows):
             for i, row in enumerate(rows):
                 self.rows[i] = row
@@ -92,6 +97,10 @@ class ParamTable(tableview.TableView):
             self.selectRow(0)
             self.resizeColumnsToContents()
             self.updateGeometries()
+
+    def retrieve_rows(self, **kw):
+        self.datastore.kw.update(kw)
+        return [ParamInfo(k, v) for k, v in self.datastore.get().items()]
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
@@ -116,6 +125,45 @@ class ParamTable(tableview.TableView):
         model = self.model()
         index = model.index(row, 1)
         model.setData(index, value)
+
+
+def cmd_textcolor(cell):
+    return QtGui.QColor(Qt.black if cell.item.inform else Qt.darkGray)
+
+
+def cmd_set_attr(view, item, idx, value):
+    setattr(view.command, item.name, value)
+    item.value = value
+    item.inform = 1
+
+
+class CommandEdit(ParamTable):
+
+    """
+    TableView based editor window for MAD-X commands. Used for
+    viewing/editing elements.
+
+    In addition to the ParamTables features, this class is capable of
+    indicating which parameters were explicitly specified by the user.
+    """
+
+    columns = [
+        tableview.ColumnInfo("Parameter", 'name', foreground=cmd_textcolor),
+        tableview.ExtColumnInfo("Value", 'value', cmd_set_attr, padding=50,
+                                foreground=cmd_textcolor, mutable=True,
+                                convert='name'),
+        tableview.ColumnInfo("Unit", get_unit, foreground=cmd_textcolor,
+                             resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+    def __init__(self, retrieve):
+        self.retrieve = retrieve
+        self.command = None
+        super().__init__(None, context=self)
+
+    def retrieve_rows(self, **kw):
+        self.command = self.retrieve(**kw)
+        return list(self.command.cmdpar.values())
 
 
 class TabParamTables(QtGui.QTabWidget):

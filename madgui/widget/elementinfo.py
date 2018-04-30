@@ -18,7 +18,7 @@ from madgui.core.unit import ui_units, to_ui
 from madgui.util.qt import fit_button
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.core.model import ElementDataStore
-from madgui.widget.params import TabParamTables, ParamTable
+from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
 
 # TODO: updating an element calls into ds.get() 3 times!
 
@@ -32,12 +32,15 @@ class ElementInfoBox(QtGui.QWidget):
     changed_element = Signal()
     _el_id = None
 
+    def get_elem(self, elem_index):
+        return self.model.sequence.expanded_elements[self.el_id]
+
     def __init__(self, model, el_id, **kwargs):
         super().__init__()
 
         self.notebook = TabParamTables([
             ('Summary', ParamTable(BasicDataStore(model, 'element'))),
-            ('Params', ParamTable(ElementDataStore(model, 'element'))),
+            ('Params', CommandEdit(self.get_elem)),
             ('Twiss', ParamTable(TwissDataStore(model, 'twiss'))),
             ('Sigma', ParamTable(SigmaDataStore(model, 'sigma'))),
             ('Ellipse', EllipseWidget(model)),
