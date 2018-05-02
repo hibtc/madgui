@@ -472,7 +472,13 @@ class Model(Object):
         return self._par_list(self.globals, 'globals', str.upper)
 
     def fetch_beam(self):
-        return self._par_list(self.beam, 'beam')
+        from madgui.widget.params import ParamInfo
+        beam = self.beam
+        pars = self._par_list(beam, 'beam')
+        ekin = (beam['energy'] - beam['mass']) / beam['mass']
+        idx = next(i for i, p in enumerate(pars) if p.name.lower() == 'energy')
+        pars.insert(idx, ParamInfo('E_kin', ekin, mutable=False))
+        return pars
 
     def fetch_twiss(self):
         return self._par_list(self.twiss_args, 'twiss_args')

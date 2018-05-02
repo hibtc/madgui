@@ -70,6 +70,7 @@ sig66:    1
 
 # TODO: kinetic energy per nucleon
 energy:   GeV
+e_kin:    MeV/u
 charge:   e
 mass:     u
 

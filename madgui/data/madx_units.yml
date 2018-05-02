@@ -69,6 +69,7 @@ sig65:    m
 sig66:    1
 
 energy:   GeV
+e_kin:    GeV/(GeV/c^2)
 charge:   e
 mass:     GeV/c^2
 
