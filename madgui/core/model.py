@@ -527,6 +527,12 @@ class Model(Object):
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
              and elem[k.lower()] != v}
+        if 'kick' in d and elem.base_name == 'sbend':
+            # FIXME: This assumes the definition `k0:=(angle+k0)/l` and
+            # will deliver incorrect results if this is not the case!
+            var, = (set(self._get_knobs(elem, 'k0')) -
+                    set(self._get_knobs(elem, 'angle')))
+            self.madx.globals[var] = d.pop('kick')
         if any(isinstance(v, (list,str,bool)) for v in d.values()):
             self.madx.elements[name](**d)
         else:

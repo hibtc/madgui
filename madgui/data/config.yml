@@ -255,7 +255,7 @@ parameter_sets:
     params: []
 
   element:
-    readonly: [name, base_name, node_name, position, length, s, index, kick]
+    readonly: [name, base_name, node_name, position, length, s, index]
     params: []
     show:
       common:       [name, base_name, index, position, length]
