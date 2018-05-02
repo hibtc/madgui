@@ -333,6 +333,11 @@ class MainWindow(QtGui.QMainWindow):
             ('Ellipse', InitEllipseWidget(self.model)),
         ])
         widget.update()
+        # NOTE: Ideally, we'd like to update after changing initial conditions
+        # (rather than after twiss), but changing initial conditions usually
+        # implies also updating twiss, so this is a good enough approximation
+        # for now:
+        self.model.twiss.updated.connect(widget.update)
 
         dialog = Dialog(self)
         dialog.setExportWidget(widget, self.folder)
