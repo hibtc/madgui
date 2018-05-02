@@ -5,7 +5,7 @@ MAD-X backend for madgui.
 import os
 import re
 from collections import namedtuple, Sequence, Mapping, OrderedDict, defaultdict
-from functools import partial
+from functools import partial, reduce
 import itertools
 from bisect import bisect_right
 import subprocess
@@ -622,9 +622,14 @@ class Model(Object):
 
         This requires a full twiss call, so don't do it too often.
         """
-        self.madx.command.select(flag='interpolate', clear=True)
-        names = [self.get_element_info(el).name for el in elems]
-        return self.madx.sectormap(names, **self._get_twiss_args())
+        self.twiss.update()
+        indices = [self.get_element_info(el).index for el in elems]
+        if indices[0] != 0:
+            indices.insert(0, 0)
+        return [
+            reduce(np.dot, self.sector[j:i:-1,:,:], np.eye(7))
+            for i, j in zip(indices, indices[1:])
+        ]
 
     def survey(self):
         table = self.madx.survey()
@@ -697,9 +702,11 @@ class Model(Object):
         """Recalculate TWISS parameters."""
         self.cache.clear()
         step = self.sequence.elements[-1].position/400
+        args = self._get_twiss_args()
         self.madx.command.select(flag='interpolate', clear=True)
+        self.sector = self.madx.sectormap((), **args)
         self.madx.command.select(flag='interpolate', step=step)
-        results = self.madx.twiss(**self._get_twiss_args())
+        results = self.madx.twiss(**args)
         self.summary = results.summary
 
         # FIXME: this will fail if subsequent element have the same name.

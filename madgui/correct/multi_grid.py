@@ -121,6 +121,7 @@ class Corrector(Matcher):
             return
         self.control.read_all()
         self.model.twiss_args = self.backup_twiss_args
+        self.model.twiss.invalidate()
         init_orbit, chi_squared, singular = \
             self.fit_particle_orbit()
         if singular:
