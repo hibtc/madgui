@@ -61,16 +61,20 @@ class ColumnInfo:
 
     """Column specification for a table widget."""
 
-    def __init__(self, title, getter, setter=None,
-                 resize=None, padding=0, convert=False,
-                 checkable=None, checked=None, setChecked=None,
-                 textcolor=None, mutable=None, sizeHint=None,
-                 delegate=None):
+    def __init__(self, title, getter, setter=None, resize=None,
+                 *, convert=False, padding=0, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> value
-        :param QtGui.QHeaderView.ResizeMode resize:
-        :param int padding:
+        :param callable setter: (rows,idx,value) -> ()
+        :param QtGui.QHeaderView.ResizeMode resize: column resize mode
+        :param bool convert: automatic unit conversion, can be string to base
+                             quanitity name on an attribute of the item
+        :param int padding: column padding for size hint
+        :param kwargs: any parameter in ``ROLES`` or a method override, in
+                       particular ``mutable``, ``delegate``, ``checkable``,
+                       ``checked``, ``setChecked``. Can be given as static
+                       value or as function: cell->value
         """
         # column globals:
         self.title = title
@@ -80,18 +84,11 @@ class ColumnInfo:
         self.getter = getter or (lambda x: x)
         self.setter = setter
         self.convert = convert
-        # method overrides:
-        if checked is not None: self.checked = checked
-        if setChecked is not None: self.setChecked = setChecked
-        # simple values
-        if mutable is None: mutable = setter is not None
-        self.mutable = lift(mutable)
-        self.textcolor = lift(textcolor)
-        # Can be passed in as static values or functions (F: cell -> X)
-        if delegate is not None: self.delegate = lift(delegate)
-        if sizeHint is not None: self.sizeHint = lift(sizeHint)
-        if checkable is not None: self.checkable = lift(checkable)
+        kwargs.setdefault('mutable', setter is not None)
         if convert is True: self.title += '/' + ui_units.label(getter)
+        # method/property overrides
+        for k, v in kwargs.items():
+            setattr(self, k, lift(v))
 
     # QAbstractTableModel queries
 
@@ -121,11 +118,6 @@ class ColumnInfo:
     def textAlignment(self, cell):
         return cell.delegate.textAlignment
 
-    def foreground(self, cell):
-        color = cell.textcolor
-        if color is not None:
-            return QtGui.QBrush(color)
-
     # value type
 
     def editable(self, cell):
@@ -144,7 +136,7 @@ class ColumnInfo:
             value = getattr(cell.item, self.getter)
         else:
             value = self.getter(*self.getter_args(cell))
-        return cell.to_ui(value)
+        return to_ui(cell.name, value)
 
     def checked(self, cell):
         if isinstance(cell.delegate, BoolDelegate):
@@ -165,7 +157,7 @@ class ColumnInfo:
 
     def setValue(self, cell, value):
         self.setter(*self.setter_args(
-            cell, cell.from_ui(value)))
+            cell, from_ui(cell.name, value)))
 
     def setChecked(self, cell, value):
         """Implement setting BoolDelegate via checkbox."""
@@ -209,21 +201,13 @@ class TableCell:
     # Fetch properties by invoking associated ColumnInfo methods, cache
     # results automatically as attributes, e.g.: value/delegate/name
     def __getattr__(self, key):
-        fn = getattr(self.info, key)
+        fn = getattr(self.info, key, None)
         try:
-            val = fn(self)
+            val = fn and fn(self)
         except AttributeError as e:     # unshadow AttributeError!
             raise Exception() from e
         setattr(self, key, val)
         return val
-
-    # misc
-
-    def from_ui(self, value):
-        return from_ui(self.name, value)
-
-    def to_ui(self, value):
-        return to_ui(self.name, value)
 
     def setData(self, value, role):
         if role == Qt.EditRole and self.editable:
@@ -325,8 +309,14 @@ class TableModel(QtCore.QAbstractTableModel):
             return False
         changed = TableCell(self, index).setData(value, role)
         if changed:
-            # NOTE: technically redundant due to self._update_finalize:
-            self.dataChanged.emit(index, index)
+            # NOTE: This takes care to update cells after edits that don't
+            # trigger an update of the self.rows collection for some reason
+            # (and hence self._update_finalize is never called). In fact, we
+            # we should trigger the update by re-querying self.rows, but right
+            # now this is not guaranteed in all places...
+            self.dataChanged.emit(
+                self.createIndex(index.row(), 0),
+                self.createIndex(index.row(), self.columnCount()-1))
         return changed
 
 

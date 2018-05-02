@@ -17,8 +17,7 @@ from madgui.core.base import Signal
 from madgui.core.unit import ui_units, to_ui
 from madgui.util.qt import fit_button
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.core.model import ElementDataStore
-from madgui.widget.params import TabParamTables, ParamTable
+from madgui.widget.params import TabParamTables, ParamTable, CommandEdit, ParamInfo
 
 # TODO: updating an element calls into ds.get() 3 times!
 
@@ -32,17 +31,19 @@ class ElementInfoBox(QtGui.QWidget):
     changed_element = Signal()
     _el_id = None
 
+    def get_elem(self, elem_index):
+        return self.model.sequence.expanded_elements[self.el_id]
+
     def __init__(self, model, el_id, **kwargs):
         super().__init__()
 
         self.notebook = TabParamTables([
-            ('Summary', ParamTable(BasicDataStore(model, 'element'))),
-            ('Params', ParamTable(ElementDataStore(model, 'element'))),
-            ('Twiss', ParamTable(TwissDataStore(model, 'twiss'))),
-            ('Sigma', ParamTable(SigmaDataStore(model, 'sigma'))),
+            ('Summary', ParamTable(self._fetch_summary, self._update_element)),
+            ('Params', CommandEdit(self.get_elem)),
+            ('Twiss', ParamTable(self._fetch_twiss)),
+            ('Sigma', ParamTable(self._fetch_sigma)),
             ('Ellipse', EllipseWidget(model)),
-            ('Sector', ParamTable(SectormapDataStore(model, 'sector'),
-                                  units=False)),
+            ('Sector', ParamTable(self._fetch_sector, units=False)),
         ])
 
         # navigation
@@ -101,49 +102,41 @@ class ElementInfoBox(QtGui.QWidget):
 
     # for dialog.save/load:
     @property
-    def datastore(self):
-        return self.notebook.currentWidget().datastore
+    def exporter(self):
+        return self.notebook.currentWidget().exporter
 
+    def _update_element(self, *args, **kwargs):
+        return self.model.update_element(*args, **kwargs)
 
-class BasicDataStore(ElementDataStore):
-
-    def _get(self):
-        data = self.model.elements[self.kw['elem_index']]
-        show = self.conf['show']
-        return OrderedDict([
-            (k, data[k])
-            for k in show['common'] + show.get(data.base_name, [])
+    #class BasicDataStore(ElementDataStore):
+    def _fetch_summary(self, elem_index=0):
+        elem = self.model.elements[elem_index]
+        show = self.model.config['parameter_sets']['element']['show']
+        data = OrderedDict([
+            (k, elem[k])
+            for k in show['common'] + show.get(elem.base_name, [])
         ])
+        return self.model._par_list(data, 'element')
 
+    def _fetch_twiss(self, elem_index=0):
+        data = self.model.get_elem_twiss(elem_index)
+        return self.model._par_list(data, 'twiss')
 
-class TwissDataStore(ElementDataStore):
+    def _fetch_sigma(self, elem_index=0):
+        data = self.model.get_elem_sigma(elem_index)
+        return self.model._par_list(data, 'sigma')
 
-    def _get(self):
-        return self.model.get_elem_twiss(self.kw['elem_index'])
-
-    def mutable(self, key):
-        return False
-
-
-class SigmaDataStore(TwissDataStore):
-
-    def _get(self):
-        return self.model.get_elem_sigma(self.kw['elem_index'])
-
-
-class SectormapDataStore(TwissDataStore):
-
-    def _get(self):
-        sectormap = self.model.sectormap(self.kw['elem_index'])
-        ret = {
+    def _fetch_sector(self, elem_index=0):
+        sectormap = self.model.sectormap(elem_index)
+        data = {
             'r{}{}'.format(i+1, j+1): sectormap[i,j]
             for i, j in itertools.product(range(6), range(6))
         }
-        ret.update({
+        data.update({
             'k{}'.format(i+1): sectormap[6,i]
             for i in range(6)
         })
-        return ret
+        return self.model._par_list(data, 'sector')
 
 
 class EllipseWidget(QtGui.QWidget):

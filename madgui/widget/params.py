@@ -20,16 +20,32 @@ __all__ = [
 class ParamInfo:
 
     """Row info for the TableView [internal]."""
+    # TODO: merge this with madgui.online.api.ParamInfo
 
-    def __init__(self, key, value):
-        self.name = key
+    def __init__(self, name, value, expr=None, inform=0, mutable=True):
+        self.name = name
         self.value = value
-        self.unit = ui_units.label(key, value)
+        self.expr = expr
+        self.inform = inform
+        self.mutable = mutable
+        self.unit = ui_units.label(name, value)
 
 
-def set_value(datastore, rows, index, value):
-    datastore.update({rows[index].name: value})
-    rows[index].value = value
+def get_unit(param):
+    return ui_units.label(param.name, param.value)
+
+
+def set_value(tab, item, index, value):
+    tab.store({item.name: value}, **tab.fetch_args)
+    item.value = value
+
+
+def cell_is_mutable(cell):
+    return cell.item.mutable and not cell.model.context.readonly
+
+
+def cell_textcolor(cell):
+    return QtGui.QColor(Qt.black if cell.mutable else Qt.darkGray)
 
 
 class ParamTable(tableview.TableView):
@@ -45,27 +61,17 @@ class ParamTable(tableview.TableView):
     # TODO: visually indicate rows with non-default values: "bold"
     # TODO: move rows with default or unset values to bottom? [MAD-X]
 
-    def __init__(self, datastore, units=True, **kwargs):
+    def __init__(self, fetch, store=None, units=True, data_key=None, **kwargs):
         """Initialize data."""
 
-        self.datastore = datastore
-        setter = partial(set_value, datastore)
-        mutable = lambda cell: datastore.mutable(cell.item.name)
-        textcolor = lambda cell: Qt.black if cell.mutable else Qt.darkGray
+        self.fetch = fetch
+        self.store = store
+        self.units = units
+        self.readonly = store is None
+        self.data_key = data_key
+        self.fetch_args = {}
 
-        columns = [
-            tableview.ColumnInfo("Parameter", 'name'),
-            tableview.ColumnInfo("Value", 'value', setter, padding=50,
-                                 convert=units and 'name',
-                                 mutable=mutable,
-                                 textcolor=textcolor),
-            tableview.ColumnInfo("Unit", 'unit',
-                                 resize=QtGui.QHeaderView.ResizeToContents),
-        ]
-        if not units:
-            columns = columns[:2]
-
-        super().__init__(columns=columns, **kwargs)
+        super().__init__(columns=self.columns, context=self, **kwargs)
         # in case anyone turns the horizontalHeader back on:
         self.horizontalHeader().setHighlightSections(False)
         self.horizontalHeader().hide()
@@ -75,12 +81,25 @@ class ParamTable(tableview.TableView):
         self.setSizePolicy(QtGui.QSizePolicy.Preferred,
                            QtGui.QSizePolicy.Preferred)
 
+    @property
+    def columns(self):
+        columns = [
+            tableview.ColumnInfo("Parameter", 'name'),
+            tableview.ExtColumnInfo(
+                "Value", 'value', set_value, padding=50,
+                convert=self.units and 'name',
+                mutable=cell_is_mutable,
+                foreground=cell_textcolor),
+            tableview.ColumnInfo(
+                "Unit", 'unit', resize=QtGui.QHeaderView.ResizeToContents),
+        ]
+        return columns if self.units else columns[:2]
+
     def update(self, **kw):
         """Update dialog from the datastore."""
+        self.fetch_args.update(kw)
         # TODO: get along without resetting all the rows?
-        self.datastore.kw.update(kw)
-        rows = [ParamInfo(k, v)
-                for k, v in self.datastore.get().items()]
+        rows = self.fetch(**self.fetch_args)
         if len(rows) == len(self.rows):
             for i, row in enumerate(rows):
                 self.rows[i] = row
@@ -117,6 +136,106 @@ class ParamTable(tableview.TableView):
         index = model.index(row, 1)
         model.setData(index, value)
 
+    # data im-/export
+
+    exportFilters = [
+        ("YAML file", "*.yml", "*.yaml"),
+        ("JSON file", "*.json"),
+    ]
+
+    importFilters = [
+        ("YAML file", "*.yml", "*.yaml"),
+    ]
+
+    @property
+    def exporter(self):
+        return self
+
+    def importFrom(self, filename):
+        """Import data from JSON/YAML file."""
+        with open(filename, 'rt') as f:
+            # Since JSON is a subset of YAML there is no need to invoke a
+            # different parser (unless we want to validate the file):
+            data = yaml.safe_load(f)
+        if self.data_key:
+            data = data[self.data_key]
+        self.store(data, **self.fetch_args)
+
+    def exportTo(self, filename):
+        """Export parameters to YAML file."""
+        data = self.fetch(**self.fetch_args)
+        if self.data_key:
+            data = {self.data_key: data}
+        with open(filename, 'wt') as f:
+            yaml.safe_dump(data, f, default_flow_style=False)
+
+
+def cmd_font(cell):
+    if cell.item.inform:
+        font = QtGui.QFont()
+        font.setBold(True)
+        return font
+
+
+from cpymad.util import is_identifier
+def cmd_mutable(cell):
+    expr = cell.item.expr
+    return not expr or isinstance(expr, list) or is_identifier(expr)
+
+
+def cmd_set_attr(view, item, idx, value):
+    expr = item.expr
+    if expr and not isinstance(expr, list) and is_identifier(expr):
+        view.command._madx.globals[expr] = value
+    else:
+        setattr(view.command, item.name, value)
+    item.value = value
+    item.inform = 1
+
+def cmd_set_expr(view, item, idx, value):
+    setattr(view.command, item.name, value)
+    # TODO: update item.value!
+    item.expr = value
+    item.inform = 1
+
+
+class CommandEdit(ParamTable):
+
+    """
+    TableView based editor window for MAD-X commands. Used for
+    viewing/editing elements.
+
+    In addition to the ParamTables features, this class is capable of
+    indicating which parameters were explicitly specified by the user and
+    showing the expression!
+    """
+
+    _col_style = dict(font=cmd_font)
+
+    columns = [
+        tableview.ColumnInfo("Parameter", 'name', **_col_style),
+        tableview.ExtColumnInfo("Value", 'value', cmd_set_attr, padding=50,
+                                mutable=cmd_mutable, convert='name'),
+        tableview.ColumnInfo("Unit", get_unit,
+                             resize=QtGui.QHeaderView.ResizeToContents),
+        tableview.ExtColumnInfo("Expression", 'expr', cmd_set_expr, padding=50,
+                                mutable=True,
+                                resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+    def __init__(self, retrieve):
+        self.retrieve = retrieve
+        self.command = None
+        super().__init__(self._fetch, self._store)
+
+    def _fetch(self, **kw):
+        self.command = self.retrieve(**kw)
+        return list(self.command.cmdpar.values())
+
+    def _store(self, data):
+        # TODO: should not override expressions by plain values
+        self.command(**data)
+
 
 class TabParamTables(QtGui.QTabWidget):
 
@@ -144,5 +263,5 @@ class TabParamTables(QtGui.QTabWidget):
             self.setCurrentIndex(index)
 
     @property
-    def datastore(self):
-        return self.currentWidget().datastore
+    def exporter(self):
+        return self.currentWidget()

@@ -169,8 +169,6 @@ matching:
 
 parameter_sets:
   twiss_args:
-    title: TWISS initial conditions
-    data_key: twiss
     params: [
       # TODO:
       # - exclude more parameters (for most of these parameters, I actually
@@ -221,8 +219,6 @@ parameter_sets:
     ]
 
   beam:
-    title: Beam settings
-    data_key: beam
     params: [
       particle: "positron",
     # sequence: "",             # line/sequence is passed by madgui
@@ -256,13 +252,9 @@ parameter_sets:
     ]
 
   globals:
-    title: Globals
-    data_key: globals
     params: []
 
   element:
-    title: Element attributes
-    data_key: element
     readonly: [name, base_name, node_name, position, length, s, index]
     params: []
     show:
@@ -278,8 +270,6 @@ parameter_sets:
       kicker:       [hkick, vkick, tilt]
 
   twiss:
-    title: Twiss
-    data_key: twiss
     params: [
       alfx: 0,
       alfy: 0,
@@ -288,13 +278,9 @@ parameter_sets:
     ]
 
   sigma:
-    title: Sigma
-    data_key: sigma
     params: []
 
   sector:
-    title: Sectormap
-    data_key: sectormap
     params: []
 
 constraints: [
