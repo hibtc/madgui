@@ -6,6 +6,7 @@ from functools import partial
 
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units
+import madgui.util.yaml as yaml
 
 import madgui.widget.tableview as tableview
 
@@ -163,7 +164,8 @@ class ParamTable(tableview.TableView):
 
     def exportTo(self, filename):
         """Export parameters to YAML file."""
-        data = self.fetch(**self.fetch_args)
+        data = {par.name: par.value
+                for par in self.fetch(**self.fetch_args)}
         if self.data_key:
             data = {self.data_key: data}
         with open(filename, 'wt') as f:
