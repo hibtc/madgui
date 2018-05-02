@@ -479,7 +479,7 @@ class Model(Object):
         pars = self._par_list(beam, 'beam')
         ekin = (beam['energy'] - beam['mass']) / beam['mass']
         idx = next(i for i, p in enumerate(pars) if p.name.lower() == 'energy')
-        pars.insert(idx, ParamInfo('E_kin', ekin, mutable=False))
+        pars.insert(idx, ParamInfo('E_kin', ekin))
         return pars
 
     def fetch_twiss(self):
@@ -507,6 +507,11 @@ class Model(Object):
     def update_beam(self, beam):
         new_beam = self.beam.copy()
         new_beam.update((k.lower(), v) for k, v in beam.items())
+        if 'e_kin' in new_beam:
+            eval = self.madx.eval
+            ekin = eval(new_beam.pop('e_kin'))
+            mass = eval(new_beam.get('mass', 1))
+            new_beam['energy'] = (ekin + 1) * mass
         self.beam = new_beam
         self.twiss.invalidate()
 
