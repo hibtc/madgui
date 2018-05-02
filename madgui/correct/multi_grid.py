@@ -121,6 +121,7 @@ class Corrector(Matcher):
             return
         self.control.read_all()
         self.model.twiss_args = self.backup_twiss_args
+        self.model.sector.invalidate()
         init_orbit, chi_squared, singular = \
             self.fit_particle_orbit()
         if singular:
@@ -136,7 +137,6 @@ class Corrector(Matcher):
 
     def fit_particle_orbit(self):
         records = self.readouts
-        self.model.madx.command.select(flag='interpolate', clear=True)
         secmaps = self.model.get_transfer_maps([r.monitor for r in records])
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
 

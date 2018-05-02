@@ -5,7 +5,7 @@ MAD-X backend for madgui.
 import os
 import re
 from collections import namedtuple, Sequence, Mapping, OrderedDict, defaultdict
-from functools import partial
+from functools import partial, reduce
 import itertools
 from bisect import bisect_right
 import subprocess
@@ -76,6 +76,8 @@ class Model(Object):
     def __init__(self, filename, config, command_log, stdout_log):
         super().__init__()
         self.twiss = Cache(self._retrack)
+        self.sector = Cache(self._sector)
+        self.twiss.invalidated.connect(self.sector.invalidate)
         self.data = {}
         self.path = None
         self.init_files = []
@@ -622,8 +624,14 @@ class Model(Object):
 
         This requires a full twiss call, so don't do it too often.
         """
-        names = [self.get_element_info(el).name for el in elems]
-        return self.madx.sectormap(names, **self._get_twiss_args())
+        maps = self.sector.update()
+        indices = [self.get_element_info(el).index for el in elems]
+        if indices[0] != 0:
+            indices.insert(0, 0)
+        return [
+            reduce(np.dot, maps[j:i:-1,:,:], np.eye(7))
+            for i, j in zip(indices, indices[1:])
+        ]
 
     def survey(self):
         table = self.madx.survey()
@@ -718,6 +726,19 @@ class Model(Object):
         return results
 
         # TODO: update elements
+
+    def _sector(self):
+        """Compute sectormaps of all elements."""
+        # TODO: Ideally, we should compute sectormaps and twiss during the
+        # same MAD-X TWISS command. But, since we don't need interpolated
+        # sectormaps, this will require patching MAD-X first…
+        self.madx.command.select(flag='interpolate', clear=True)
+        # NOTE: we have to pass a different twiss table because madgui
+        # currently fetches twiss columns only demand. Therefore, using the
+        # same twiss table for both TWISS/SECTORMAP routines would lead to
+        # inconsistent table lengths (interpolate vs no-interpolate!).
+        return self.madx.sectormap((), **self._get_twiss_args(),
+                                   table='sectortwiss')
 
     def match(self, variables, constraints):
 

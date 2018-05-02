@@ -24,6 +24,7 @@ class Cache(Object):
     in the main loop at the next idle time.
     """
 
+    invalidated = Signal()
     updated = Signal()      # emitted after update
     invalid = False         # prevents invalidation during callback()
 
@@ -38,7 +39,9 @@ class Cache(Object):
     def invalidate(self):
         if not self.invalid:
             self.invalid = True
-            self.timer.start()
+            if self.receivers(self.updated) > 0:
+                self.timer.start()
+            self.invalidated.emit()
 
     def update(self, force=False):
         if force or self.invalid:
