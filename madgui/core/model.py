@@ -67,9 +67,6 @@ class Model(Object):
     :ivar str path: base folder
     """
 
-    backend_libname = 'cpymad'
-    backend_title = 'MAD-X'
-
     destroyed = Signal()
     matcher = None
 
