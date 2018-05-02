@@ -69,9 +69,9 @@ sig65:    m
 sig66:    1
 
 # TODO: kinetic energy per nucleon
-energy:   MeV
+energy:   GeV
 charge:   e
-mass:     GeV/c^2
+mass:     u
 
 # TODO: write out vector components as scalars
 knl:      [rad, m^-1, m^-2, m^-3, m^-4]
