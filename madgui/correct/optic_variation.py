@@ -108,7 +108,7 @@ class Corrector:
             init_twiss = self.model.twiss_args.copy()
             init_twiss.update(init_orbit)
             self.model.twiss_args = init_twiss
-            self.model.twiss.invalidate()
+            self.model.sector.invalidate()
 
         try:
             return self.model.get_transfer_maps([
@@ -116,7 +116,7 @@ class Corrector:
                 self.model.get_element_info(dest)])[1]
         finally:
             self.model.twiss_args = twiss_args_backup
-            self.model.twiss.invalidate()
+            self.model.sector.invalidate()
 
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
