@@ -4,7 +4,20 @@ import numpy as np
 
 from madgui.qt import QtGui, load_ui
 from madgui.util import yaml
+from madgui.util.layout import VBoxLayout
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
+from madgui.online.emittance import EmittanceDialog
+
+
+class MonitorWidget(QtGui.QDialog):
+
+    def __init__(self, control, model, frame):
+        super().__init__(frame)
+        self.tabs = QtGui.QTabWidget()
+        self.tabs.addTab(PlotMonitorWidget(control, model, frame), "Plot")
+        self.tabs.addTab(EmittanceDialog(control), "Twiss")
+        self.setLayout(VBoxLayout([self.tabs], tight=True))
+        self.setSizeGripEnabled(True)
 
 
 class MonitorItem:
@@ -37,7 +50,7 @@ def set_monitor_show(cell, show):
         mgr.deselect(i)
 
 
-class MonitorWidget(QtGui.QDialog):
+class PlotMonitorWidget(QtGui.QWidget):
 
     """
     Dialog for selecting SD monitor values to be imported.
@@ -90,10 +103,13 @@ class MonitorWidget(QtGui.QDialog):
             self.frame.open_graph('orbit')
         self.update()
 
+    def accept(self):
+        self.window().accept()
+
     def reject(self):
         self.remove()
         self.restore()
-        super().reject()
+        self.window().reject()
 
     def remove(self):
         for scene in self.frame.views:

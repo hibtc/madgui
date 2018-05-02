@@ -160,7 +160,7 @@ class MainWindow(QtGui.QMainWindow):
                      self.setSpinBox, checked=self.config.number.spinbox),
             ]),
             Menu('&Online control', [
-                Item('&Disconnect', None,
+                Item('Disconnect', None,
                     'Disconnect online control interface',
                     control.disconnect,
                     enabled=control.is_connected),
@@ -178,8 +178,8 @@ class MainWindow(QtGui.QMainWindow):
                     control.on_read_beam,
                     enabled=control.has_sequence),
                 Separator,
-                Item('Show beam &monitors', None,
-                    'Show beam monitor values (envelope/position)',
+                Item('Beam &diagnostic', None,
+                    'Plot beam position monitors, backtrack initial orbit, calculate emittance',
                     control.monitor_widget.create,
                     enabled=control.has_sequence),
                 Separator,
@@ -193,10 +193,6 @@ class MainWindow(QtGui.QMainWindow):
                         control.on_correct_multi_grid_method,
                         enabled=control.has_sequence),
                 ]),
-                Item('&Emittance measurement', 'Ctrl+E',
-                    'Perform emittance measurement using at least 3 monitors',
-                    control.on_emittance_measurement,
-                    enabled=control.has_sequence),
                 Separator,
                 menu.Menu('&Settings', [
                     # TODO: dynamically fill by plugin

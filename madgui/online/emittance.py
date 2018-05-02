@@ -49,7 +49,7 @@ def choose_after(available, enabled):
     return next(v for v in available[last+1::-1] if v not in enabled)
 
 
-class EmittanceDialog(QtGui.QDialog):
+class EmittanceDialog(QtGui.QWidget):
 
     ui_file = 'emittance.ui'
 
@@ -119,6 +119,12 @@ class EmittanceDialog(QtGui.QDialog):
     def on_monitor_changed(self):
         self.button_update_monitor.setEnabled(bool(self.monitors))
         self.match_values()
+
+    def accept(self):
+        self.window().accept()
+
+    def reject(self):
+        self.window().reject()
 
     def export(self):
         pass
