@@ -224,7 +224,6 @@ class MonitorWidget(QtGui.QDialog):
 
         records = [m for m in self.monitors if self.selected(m)]
         self.restore()
-        self.model.madx.command.select(flag='interpolate', clear=True)
         secmaps = self.model.get_transfer_maps([r.name for r in records])
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[

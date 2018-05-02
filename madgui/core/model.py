@@ -622,6 +622,7 @@ class Model(Object):
 
         This requires a full twiss call, so don't do it too often.
         """
+        self.madx.command.select(flag='interpolate', clear=True)
         names = [self.get_element_info(el).name for el in elems]
         return self.madx.sectormap(names, **self._get_twiss_args())
 
