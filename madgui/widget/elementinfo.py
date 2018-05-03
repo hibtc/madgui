@@ -77,7 +77,7 @@ class ElementInfoBox(QtGui.QWidget):
         elements  = self.model.elements
         old_index = self.model.get_element_index(self.el_id)
         new_index = old_index + step
-        new_el_id = elements[new_index % len(elements)].id
+        new_el_id = elements[new_index % len(elements)].index
         self.el_id = new_el_id
 
     @property
@@ -113,7 +113,7 @@ class ElementInfoBox(QtGui.QWidget):
         elem = self.model.elements[elem_index]
         show = self.model.config['parameter_sets']['element']['show']
         data = OrderedDict([
-            (k, elem[k])
+            (k, getattr(elem, k))
             for k in show['common'] + show.get(elem.base_name, [])
         ])
         return self.model._par_list(data, 'element')

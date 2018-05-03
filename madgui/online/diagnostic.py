@@ -203,7 +203,7 @@ class MonitorWidget(QtGui.QDialog):
             .format(ext))
 
     def save_offsets(self):
-        self.model.twiss.update()
+        self.model.twiss()
         for m in self.monitors:
             tw = self.model.get_elem_twiss(m.name)
             if self.selected(m):

@@ -33,7 +33,7 @@ class Cache(Object):
         self.data = None
         self.timer = QtCore.QTimer()
         self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self.update)
+        self.timer.timeout.connect(self)
         self.callback = callback
 
     def invalidate(self):
@@ -43,7 +43,7 @@ class Cache(Object):
                 self.timer.start()
             self.invalidated.emit()
 
-    def update(self, force=False):
+    def __call__(self, force=False):
         if force or self.invalid:
             self.timer.stop()
             self.invalid = True     # prevent repeated invalidation in callback
