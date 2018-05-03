@@ -206,7 +206,7 @@ class Model(Object):
         return True
 
     def set_element_attribute(self, elem, attr, value):
-        self.update_element({attr: value}, self.elements[elem].id)
+        self.update_element({attr: value}, self.elements[elem].index)
 
     # curves
 
@@ -969,13 +969,12 @@ class Element(Mapping):
         """Invalidate cached data at and below the given level."""
         self._data = OrderedDict([
             ('name', self._name),
-            ('id', self._idx),
         ])
 
     def _retrieve(self):
         """Retrieve data for key if possible; everything if None."""
         d = self._data
-        if len(d) == 2:
+        if len(d) == 1:
             data = self.elem()
             d.update(data._attr)
             d.update(_eval_expr(data))

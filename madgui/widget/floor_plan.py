@@ -230,7 +230,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
 
     @property
     def el_id(self):
-        return self.element.id
+        return self.element.index
 
     def itemChange(self, change, value):
         if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:

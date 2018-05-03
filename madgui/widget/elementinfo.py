@@ -77,7 +77,7 @@ class ElementInfoBox(QtGui.QWidget):
         elements  = self.model.elements
         old_index = self.model.get_element_index(self.el_id)
         new_index = old_index + step
-        new_el_id = elements[new_index % len(elements)].id
+        new_el_id = elements[new_index % len(elements)].index
         self.el_id = new_el_id
 
     @property
