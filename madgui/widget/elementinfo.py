@@ -113,7 +113,7 @@ class ElementInfoBox(QtGui.QWidget):
         elem = self.model.elements[elem_index]
         show = self.model.config['parameter_sets']['element']['show']
         data = OrderedDict([
-            (k, elem[k])
+            (k, getattr(elem, k))
             for k in show['common'] + show.get(elem.base_name, [])
         ])
         return self.model._par_list(data, 'element')

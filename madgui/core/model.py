@@ -13,7 +13,7 @@ from threading import RLock
 
 import numpy as np
 
-from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command
+from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element
 from cpymad.util import normalize_range_name, is_identifier
 
 from madgui.core.base import Object, Signal, Cache
@@ -447,7 +447,7 @@ class Model(Object):
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
-        make_element = partial(Element, self.madx)
+        make_element = lambda index: Cache(partial(self._get_element, index))
         self.el_names = self.sequence.expanded_element_names()
         self.elements = ElementList(self.el_names, make_element)
         self.positions = self.sequence.expanded_element_positions()
@@ -457,6 +457,14 @@ class Model(Object):
                       normalize_range_name(self.stop.name))
 
         self.cache = {}
+
+    def _get_element(self, index):
+        """Fetch the ``cpymad.madx.Element`` at the specified index in the
+        current sequence."""
+        elem = self.sequence.expanded_elements[index]
+        if elem.base_name == 'sbend':
+            elem._attr['kick'] = elem.k0 * elem.length - elem.angle
+        return elem
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
@@ -525,7 +533,7 @@ class Model(Object):
         name = elem.node_name
         d = {k.lower(): v for k, v in data.items()
              if self._is_mutable_attribute(k, v)
-             and elem[k.lower()] != v}
+             and getattr(elem, k.lower()) != v}
         if 'kick' in d and elem.base_name == 'sbend':
             # FIXME: This assumes the definition `k0:=(angle+k0)/l` and
             # will deliver incorrect results if this is not the case!
@@ -866,7 +874,7 @@ class ElementList(Sequence):
     def __init__(self, el_names, Element):
         self._el_names = el_names
         self._indices = {n.lower(): i for i, n in enumerate(el_names)}
-        self._elems = [Element(i, n) for i, n in enumerate(el_names)]
+        self._elems = [Element(i) for i in range(len(el_names))]
         self.invalidate()
 
     def invalidate(self, elem=None):
@@ -900,7 +908,7 @@ class ElementList(Sequence):
 
     def __getitem__(self, index):
         """Return element with specified index."""
-        return self._elems[self.index(index)]
+        return self._elems[self.index(index)]()
 
     def __len__(self):
         """Get number of elements."""
@@ -934,58 +942,6 @@ class ElementList(Sequence):
         return self._indices[name]
 
 
-class Element(Mapping):
-
-    """
-    Dict-like base class for elements. Provides attribute access to properties
-    by title case attribute names.
-
-    Subclasses must implement ``_retrieve`` and ``invalidate``.
-    """
-
-    def __init__(self, model, idx, name):
-        self._model = model
-        self._idx = idx
-        self._name = name.lower()
-        self.invalidate()
-
-    def __getitem__(self, name):
-        return self._retrieve()[name]
-
-    def __iter__(self):
-        return iter(self._retrieve())
-
-    def __len__(self):
-        return len(self._retrieve())
-
-    def __getattr__(self, name):
-        """Provide attribute access to element properties."""
-        try:
-            return self[name.lower()]
-        except KeyError:
-            raise AttributeError(name)
-
-    def invalidate(self):
-        """Invalidate cached data at and below the given level."""
-        self._data = OrderedDict([
-            ('name', self._name),
-        ])
-
-    def _retrieve(self):
-        """Retrieve data for key if possible; everything if None."""
-        d = self._data
-        if len(d) == 1:
-            data = self.elem()
-            d.update(data._attr)
-            d.update(_eval_expr(data))
-            if d['base_name'] == 'sbend':
-                d['kick'] = d['k0'] * d['length'] - d['angle']
-        return d
-
-    def elem(self):
-        return self._model.sequence().expanded_elements[self._idx]
-
-
 # TODO: support expressions
 def process_spec_item(key, value):
     if isinstance(value, list):
@@ -1009,8 +965,8 @@ def _get_property_lval(elem, attr):
     >>> get_element_attribute(elements['r1qs1'], 'k1')
     ('r1qs1->k1', ['kL_R1QS1'])
     """
-    expr = elem._model.elements[elem.node_name].cmdpar[attr].expr
-    madx = elem._model
+    expr = elem.cmdpar[attr].expr
+    madx = elem._madx
     if isinstance(expr, list):
         vars = list(set.union(*(set(madx.expr_vars(e)) for e in expr if e)))
         if len(vars) == 1 and any(e == vars[0] for e in expr):
@@ -1026,7 +982,6 @@ def _get_property_lval(elem, attr):
 
 def _is_property_defined(elem, attr):
     """Check if attribute of an element was defined."""
-    elem = elem.elem()
     while elem.parent is not elem:
         try:
             cmdpar = elem.cmdpar[attr]
