@@ -105,9 +105,10 @@ class EmittanceDialog(QtGui.QWidget):
         # monitor actions
         self.button_update_monitor.clicked.connect(self.update_monitor)
         # result actions
-        self.button_ok.clicked.connect(self.accept)
-        self.button_cancel.clicked.connect(self.reject)
-        self.button_export.clicked.connect(self.export)
+        Buttons = QtGui.QDialogButtonBox
+        self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
+        self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
+        self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)

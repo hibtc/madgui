@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Emittance measurement</string>
   </property>
-  <layout class="QVBoxLayout">
+  <layout class="QHBoxLayout">
    <item>
     <widget class="QGroupBox">
      <property name="title">
@@ -23,7 +23,19 @@
       <item>
        <widget class="TableView" name="mtab"/>
       </item>
-      <item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Fit results</string>
+     </property>
+     <layout class="QGridLayout">
+      <item row="0" column="0">
+       <widget class="TableView" name="rtab"/>
+      </item>
+      <item row="0" column="1">
        <layout class="QVBoxLayout">
         <item>
          <widget class="QPushButton" name="button_update_monitor">
@@ -45,55 +57,15 @@
           </property>
          </spacer>
         </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox">
-     <property name="title">
-      <string>Fit results</string>
-     </property>
-     <layout class="QGridLayout">
-      <item row="0" column="0">
-       <widget class="TableView" name="rtab"/>
-      </item>
-      <item row="0" column="1">
-       <layout class="QVBoxLayout">
         <item>
-         <widget class="QPushButton" name="button_ok">
-          <property name="text">
-           <string>Ok</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="button_cancel">
-          <property name="text">
-           <string>Cancel</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="button_export">
-          <property name="text">
-           <string>Export</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer>
+         <widget class="QDialogButtonBox" name="std_buttons">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
+          <property name="standardButtons">
+           <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
           </property>
-         </spacer>
+         </widget>
         </item>
        </layout>
       </item>
