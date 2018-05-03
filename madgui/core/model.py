@@ -632,7 +632,7 @@ class Model(Object):
 
         This requires a full twiss call, so don't do it too often.
         """
-        maps = self.sector.update()
+        maps = self.sector()
         indices = [self.get_element_info(el).index for el in elems]
         if indices[0] != 0:
             indices.insert(0, 0)
@@ -655,7 +655,7 @@ class Model(Object):
     # curves
 
     def do_get_twiss_column(self, name):
-        self.twiss.update()
+        self.twiss()
         col = self.get_twiss_column
         if name == 'alfx': return -col('sig12') / col('ex')
         if name == 'alfy': return -col('sig34') / col('ey')
