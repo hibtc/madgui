@@ -228,8 +228,7 @@ class Model(Object):
         'vkicker':      ['kick'],
         'kicker':       ['hkick', 'vkick'],
         'solenoid':     ['ks'],
-        'multipole':    ['knl[0]', 'knl[1]', 'knl[2]', 'knl[3]',
-                         'ksl[0]', 'ksl[1]', 'ksl[2]', 'ksl[3]'],
+        'multipole':    ['knl', 'ksl'],
         'srotation':    ['angle'],
     }
 
@@ -536,7 +535,6 @@ class Model(Object):
         if any(isinstance(v, (list,str,bool)) for v in d.values()):
             self.madx.elements[name](**d)
         else:
-            # TODO: …KNL/KSL
             for k, v in d.items():
                 # TODO: filter those with default values
                 self.madx.globals[_get_property_lval(elem, k)[0]] = v
@@ -998,11 +996,6 @@ class Element(Mapping):
         self.invalidate()
 
     def __getitem__(self, name):
-        # handle direct access to array elements, e.g. "knl[0]":
-        if name.endswith(']'):
-            name, tail = name.split('[', 1)
-            index = int(tail[:-1])
-            return self._retrieve()[name][index]
         return self._retrieve()[name]
 
     def __iter__(self):
@@ -1056,7 +1049,6 @@ def process_spec_item(key, value):
 # stuff for online control
 #----------------------------------------
 
-# TODO: …KNL/KSL
 def _get_property_lval(elem, attr):
     """
     Return knobs names for a given element attribute from MAD-X.
@@ -1064,33 +1056,29 @@ def _get_property_lval(elem, attr):
     >>> get_element_attribute(elements['r1qs1'], 'k1')
     ('r1qs1->k1', ['kL_R1QS1'])
     """
-    if attr.endswith(']'):
-        head, tail = attr.split('[', 1)
-        index = int(tail[:-1])
-        expr = elem._model.elements[elem.node_name].cmdpar[head].expr[index]
+    expr = elem._model.elements[elem.node_name].cmdpar[attr].expr
+    madx = elem._model
+    if isinstance(expr, list):
+        vars = list(set.union(*(set(madx.expr_vars(e)) for e in expr if e)))
+        if len(vars) == 1 and any(e == vars[0] for e in expr):
+            name = vars[0]
+        else:
+            name = elem.node_name + '->' + attr
     else:
-        expr = elem._model.elements[elem.node_name].cmdpar[attr].expr
-    if not isinstance(expr, list):
-        madx = elem._model
         expr = expr or ''
         name = expr if is_identifier(expr) else elem.node_name + '->' + attr
         vars = madx.expr_vars(expr) if expr else []
-        return name, vars
+    return name, vars
 
 
 def _is_property_defined(elem, attr):
     """Check if attribute of an element was defined."""
-    if attr.endswith(']'):
-        attr, tail = attr.split('[', 1)
-        index = int(tail[:-1])
-    else:
-        index = None
     elem = elem.elem()
     while elem.parent is not elem:
         try:
             cmdpar = elem.cmdpar[attr]
             if cmdpar.inform:
-                return bool(cmdpar.expr if index is None else cmdpar.expr[index])
+                return bool(cmdpar.expr)
         except (KeyError, IndexError):
             pass
         elem = elem.parent
