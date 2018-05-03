@@ -26,37 +26,7 @@
       <item>
        <layout class="QVBoxLayout">
         <item>
-         <widget class="QPushButton" name="button_add_monitor">
-          <property name="text">
-           <string>Add</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="button_remove_monitor">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Remove</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="button_clear_monitor">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
-          <property name="text">
-           <string>Clear</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QPushButton" name="button_update_monitor">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
           <property name="text">
            <string>Update</string>
           </property>
@@ -83,7 +53,7 @@
    <item>
     <widget class="QGroupBox">
      <property name="title">
-      <string>Match results</string>
+      <string>Fit results</string>
      </property>
      <layout class="QGridLayout">
       <item row="0" column="0">

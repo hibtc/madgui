@@ -13,22 +13,20 @@ from madgui.core.unit import ui_units
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 
 from madgui.util.collections import List
-from madgui.util.enum import make_enum
 
 
 MonitorItem = namedtuple('MonitorItem', ['name', 'envx', 'envy'])
 ResultItem = namedtuple('ResultItem', ['name', 'measured', 'model'])
 
 
-def get_monitor_elem(widget, m, i):
-    return widget.monitor_enum(m.name)
+def get_monitor_selectable(cell):
+    return cell.item.envx is not None and cell.item.envy is not None
 
-def set_monitor_elem(widget, m, i, name):
-    if name is not None:
-        n = str(name)
-        v = widget.control.read_monitor(n)
-        widget.cached_tms = None
-        widget.monitors[i] = MonitorItem(n, v.get('envx'), v.get('envy'))
+def get_monitor_selected(cell):
+    return cell.model.context.selected(cell.item)
+
+def set_monitor_selected(cell, select):
+    cell.model.context.select(cell.item, select)
 
 
 def accumulate(iterable, func):
@@ -43,19 +41,15 @@ def accumulate(iterable, func):
         yield total
 
 
-def choose_after(available, enabled):
-    indices = map(available.index, enabled)
-    last = max(list(indices) or [-1])
-    return next(v for v in available[last+1::-1] if v not in enabled)
-
-
 class EmittanceDialog(QtGui.QWidget):
 
     ui_file = 'emittance.ui'
 
     monitor_columns = [
-        ExtColumnInfo("Monitor", get_monitor_elem, set_monitor_elem,
-                      resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("Monitor", 'name', checkable=get_monitor_selectable,
+                   checked=get_monitor_selected,
+                   setChecked=set_monitor_selected,
+                   resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Δx", 'envx', convert=True),
         ColumnInfo("Δy", 'envy', convert=True),
     ]
@@ -73,13 +67,17 @@ class EmittanceDialog(QtGui.QWidget):
         load_ui(self, __package__, self.ui_file)
         self.control = control
 
-        self.monitor_list = [el.node_name
-                             for el in control._model.elements
-                             if el.base_name.lower().endswith('monitor')
-                             or el.base_name.lower() == 'instrument']
-        self.monitor_enum = make_enum('Monitor', self.monitor_list)
-        self.monitors = List()
+        monitors = [el.node_name
+                    for el in control._model.elements
+                    if el.base_name.lower().endswith('monitor')
+                    or el.base_name.lower() == 'instrument']
+        self.monitors = List([
+            MonitorItem(name, vals.get('envx'), vals.get('envy'))
+            for name in monitors
+            for vals in [self.control.read_monitor(name)]
+        ])
         self.results = List()
+        self._selected = []
 
         self.init_controls()
         self.set_initial_values()
@@ -102,11 +100,9 @@ class EmittanceDialog(QtGui.QWidget):
 
     def connect_signals(self):
         # update UI
-        self.mtab.connectButtons(self.button_remove_monitor, self.button_clear_monitor)
-        self.monitors.update_after.connect(self.on_monitor_changed)
+        self.monitors.update_after.connect(self.match_values)
         # TODO: update UI: ok/export buttons
         # monitor actions
-        self.button_add_monitor.clicked.connect(self.add_monitor)
         self.button_update_monitor.clicked.connect(self.update_monitor)
         # result actions
         self.button_ok.clicked.connect(self.accept)
@@ -115,10 +111,6 @@ class EmittanceDialog(QtGui.QWidget):
         self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)
-
-    def on_monitor_changed(self):
-        self.button_update_monitor.setEnabled(bool(self.monitors))
-        self.match_values()
 
     def accept(self):
         self.window().accept()
@@ -129,14 +121,6 @@ class EmittanceDialog(QtGui.QWidget):
     def export(self):
         pass
 
-    def add_monitor(self):
-        self.cached_tms = None
-        used = {m.name for m in self.monitors}
-        name = choose_after(self.monitor_enum._values, used)
-        vals = self.control.read_monitor(name)
-        self.monitors.append(MonitorItem(
-            name, vals.get('envx'), vals.get('envy')))
-
     def update_monitor(self):
         # reload values for all the monitors
         self.monitors[:] = [
@@ -145,6 +129,18 @@ class EmittanceDialog(QtGui.QWidget):
             for v in [self.control.read_monitor(m.name)]
         ]
 
+    def selected(self, monitor):
+        return monitor.name in self._selected
+
+    def select(self, monitor, select):
+        if select != self.selected(monitor):
+            if select:
+                self._selected.append(monitor.name)
+            else:
+                self._selected.remove(monitor.name)
+            self.cached_tms = None
+            self.match_values()
+
     def match_values(self):
 
         long_transfer = self.long_transfer.isChecked()
@@ -152,14 +148,14 @@ class EmittanceDialog(QtGui.QWidget):
         respect_coupling = self.respect_coupling.isChecked()
 
         min_monitors = 6 if use_dispersion else 3
-        if len(self.monitors) < min_monitors:
+        if len(self._selected) < min_monitors:
             self.results[:] = []
             return
 
         model = self.control._model
 
-        monitors = sorted(
-            self.monitors, key=lambda m: model.elements.index(m.name))
+        monitors = [m for m in self.monitors if self.selected(m)]
+        monitors = sorted(monitors, key=lambda m: model.elements.index(m.name))
 
         # second case can happen when `removing` a monitor
         if self.cached_tms is None or len(self.cached_tms) != len(monitors):

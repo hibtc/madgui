@@ -15,7 +15,7 @@ class MonitorWidget(QtGui.QDialog):
         super().__init__(frame)
         self.tabs = QtGui.QTabWidget()
         self.tabs.addTab(PlotMonitorWidget(control, model, frame), "Plot")
-        self.tabs.addTab(EmittanceDialog(control), "Twiss")
+        self.tabs.addTab(EmittanceDialog(control), "Optics")
         self.setLayout(VBoxLayout([self.tabs], tight=True))
         self.setSizeGripEnabled(True)
 
