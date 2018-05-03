@@ -3,7 +3,7 @@ UI for matching.
 """
 
 from collections import namedtuple
-from math import sqrt
+from math import sqrt, isnan
 import logging
 
 import numpy as np
@@ -108,12 +108,27 @@ class EmittanceDialog(QtGui.QWidget):
         Buttons = QtGui.QDialogButtonBox
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
+        self.std_buttons.button(Buttons.Apply).clicked.connect(self.apply)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)
 
+    def apply(self):
+        results = {r.name: r.measured
+                   for r in self.results
+                   if not isnan(r.measured)}
+        if results:
+            model = self.model
+            model.update_beam({
+                'ex': results.pop('ex', model.ex()),
+                'ey': results.pop('ey', model.ey()),
+            })
+            model.twiss_args.update(results)
+            model.twiss.invalidate()
+
     def accept(self):
+        self.apply()
         self.window().accept()
 
     def reject(self):
