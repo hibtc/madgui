@@ -1000,22 +1000,16 @@ class Element(Mapping):
     def __getitem__(self, name):
         # handle direct access to array elements, e.g. "knl[0]":
         if name.endswith(']'):
-            head, tail = name.split('[', 1)
+            name, tail = name.split('[', 1)
             index = int(tail[:-1])
-            return self._get_field(head, index)
-        self._retrieve()
-        return self._merged[name]
+            return self._retrieve()[name][index]
+        return self._retrieve()[name]
 
     def __iter__(self):
-        self._retrieve()
-        return iter(self._merged)
+        return iter(self._retrieve())
 
     def __len__(self):
-        self._retrieve()
-        return len(self._merged)
-
-    def _get_field(self, name, index):
-        return self[name][index]
+        return len(self._retrieve())
 
     def __getattr__(self, name):
         """Provide attribute access to element properties."""
@@ -1026,20 +1020,21 @@ class Element(Mapping):
 
     def invalidate(self):
         """Invalidate cached data at and below the given level."""
-        self._merged = OrderedDict([
+        self._data = OrderedDict([
             ('name', self._name),
             ('id', self._idx),
         ])
 
     def _retrieve(self):
         """Retrieve data for key if possible; everything if None."""
-        d = self._merged
+        d = self._data
         if len(d) == 2:
             data = self.elem()
             d.update(data._attr)
             d.update(_eval_expr(data))
             if d['base_name'] == 'sbend':
                 d['kick'] = d['k0'] * d['length'] - d['angle']
+        return d
 
     def elem(self):
         return self._model.sequence().expanded_elements[self._idx]
