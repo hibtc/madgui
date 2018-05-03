@@ -900,13 +900,7 @@ class ElementList(Sequence):
 
     def __getitem__(self, index):
         """Return element with specified index."""
-        if isinstance(index, int):
-            return self._get_by_index(index)
-        if isinstance(index, (Element, ElementInfo)):
-            return self._get_by_index(index.index)
-        if isinstance(index, str):
-            return self._get_by_name(index)
-        raise TypeError("Unhandled type: {!r}", type(index))
+        return self._elems[self.index(index)]
 
     def __len__(self):
         """Get number of elements."""
@@ -923,25 +917,10 @@ class ElementList(Sequence):
         if isinstance(element, int):
             return element
         if isinstance(element, (Element, ElementInfo)):
-            return self._index_by_obj(element)
+            return element.index
         if isinstance(element, str):
             return self._index_by_name(element)
         raise ValueError("Unhandled type: {!r}", type(element))
-
-    def _get_by_name(self, name):
-        index = self._index_by_name(name)
-        return self._get_by_index(index)
-
-    def _get_by_index(self, index):
-        # Support a range of [-len, len-1] similar to builtin lists:
-        return self._elems[index]
-
-    def _index_by_obj(self, elem):
-        index = elem.index
-        if elem.node_name.lower() != self._el_names[index].lower():
-            raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(self._el_names[index], elem.node_name))
-        return index
 
     def _index_by_name(self, name):
         # TODO: warning – names do not always uniquely identify elements:
