@@ -890,7 +890,7 @@ class ElementList(Sequence):
         """
         Check if sequence contains element with specified name.
 
-        Can be invoked with either the element dict or the element name.
+        Can be invoked with the element index or name or the element itself.
         """
         try:
             self.index(element)
@@ -900,16 +900,10 @@ class ElementList(Sequence):
 
     def __getitem__(self, index):
         """Return element with specified index."""
-        # allow element dicts/names to be passed for convenience:
         if isinstance(index, int):
             return self._get_by_index(index)
-        if isinstance(index, (dict, Element)):
-            return self._get_by_dict(index)
-        if isinstance(index, ElementInfo):
-            return self._get_by_dict({
-                'name': index.name,
-                'id': index.index,
-            })
+        if isinstance(index, (Element, ElementInfo)):
+            return self._get_by_index(index.index)
         if isinstance(index, str):
             return self._get_by_name(index)
         raise TypeError("Unhandled type: {!r}", type(index))
@@ -922,33 +916,17 @@ class ElementList(Sequence):
         """
         Find index of element with specified name.
 
-        Can be invoked with either the element dict or the element name.
+        Can be invoked with the element index or name or the element itself.
 
         :raises ValueError: if the element is not found
         """
         if isinstance(element, int):
             return element
-        if isinstance(element, (dict, Element)):
-            return self._index_by_dict(element)
-        if isinstance(element, ElementInfo):
-            return self._index_by_dict({
-                'name': element.node_name,
-                'id': element.index,
-            })
+        if isinstance(element, (Element, ElementInfo)):
+            return self._index_by_obj(element)
         if isinstance(element, str):
             return self._index_by_name(element)
         raise ValueError("Unhandled type: {!r}", type(element))
-
-    # TODO: remove?
-    def _get_by_dict(self, elem):
-        if 'id' not in elem:
-            raise TypeError("Not an element dict: {!r}".format(elem))
-        index = elem.index
-        data = self._get_by_index(index)
-        if elem.node_name != data.node_name:
-            raise ValueError("Element name mismatch: expected {}, got {}."
-                             .format(data.node_name, elem.node_name))
-        return data
 
     def _get_by_name(self, name):
         index = self._index_by_name(name)
@@ -958,10 +936,7 @@ class ElementList(Sequence):
         # Support a range of [-len, len-1] similar to builtin lists:
         return self._elems[index]
 
-    # TODO: remove
-    def _index_by_dict(self, elem):
-        if 'id' not in elem:
-            raise TypeError("Not an element dict: {!r}".format(elem))
+    def _index_by_obj(self, elem):
         index = elem.index
         if elem.node_name.lower() != self._el_names[index].lower():
             raise ValueError("Element name mismatch: expected {}, got {}."
