@@ -991,16 +991,11 @@ class Element(Mapping):
     Subclasses must implement ``_retrieve`` and ``invalidate``.
     """
 
-    # Do not rely on the numeric values, they may be replaced by flags!
-    INVALIDATE_TWISS = 0
-    INVALIDATE_PARAM = 1
-    INVALIDATE_ALL   = 2
-
     def __init__(self, model, idx, name):
         self._model = model
         self._idx = idx
         self._name = name.lower()
-        self.invalidate(self.INVALIDATE_ALL)
+        self.invalidate()
 
     def __getitem__(self, name):
         # handle direct access to array elements, e.g. "knl[0]":
@@ -1008,21 +1003,19 @@ class Element(Mapping):
             head, tail = name.split('[', 1)
             index = int(tail[:-1])
             return self._get_field(head, index)
-        self._retrieve(name)
+        self._retrieve()
         return self._merged[name]
 
     def __iter__(self):
-        self._retrieve(None)
+        self._retrieve()
         return iter(self._merged)
 
     def __len__(self):
-        self._retrieve(None)
+        self._retrieve()
         return len(self._merged)
 
     def _get_field(self, name, index):
         return self[name][index]
-
-    _RE_ATTR = re.compile(r'^[A-Z][A-Za-z0-9_]*$')
 
     def __getattr__(self, name):
         """Provide attribute access to element properties."""
@@ -1031,18 +1024,17 @@ class Element(Mapping):
         except KeyError:
             raise AttributeError(name)
 
-    def invalidate(self, level=INVALIDATE_ALL):
+    def invalidate(self):
         """Invalidate cached data at and below the given level."""
-        if level >= self.INVALIDATE_PARAM:
-            self._merged = OrderedDict([
-                ('name', self._name),
-                ('id', self._idx),
-            ])
+        self._merged = OrderedDict([
+            ('name', self._name),
+            ('id', self._idx),
+        ])
 
-    def _retrieve(self, name):
+    def _retrieve(self):
         """Retrieve data for key if possible; everything if None."""
         d = self._merged
-        if len(d) == 2 and name not in d:
+        if len(d) == 2:
             data = self.elem()
             d.update(data._attr)
             d.update(_eval_expr(data))
