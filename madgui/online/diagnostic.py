@@ -6,7 +6,7 @@ import logging
 
 import numpy as np
 
-from madgui.qt import QtGui, load_ui
+from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.unit import ui_units
 from madgui.util import yaml
 from madgui.util.layout import VBoxLayout
@@ -34,10 +34,10 @@ class MonitorItem:
         self.posy = values.get('posy')
         self.envx = values.get('envx')
         self.envy = values.get('envy')
-        self.show = (self.envx is not None and self.envx > 0 and
-                     self.envy is not None and self.envy > 0 and
-                     not np.isclose(self.posx, -9.999) and
-                     not np.isclose(self.posy, -9.999))
+        self.valid = (self.envx is not None and self.envx > 0 and
+                      self.envy is not None and self.envy > 0 and
+                      not np.isclose(self.posx, -9.999) and
+                      not np.isclose(self.posy, -9.999))
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
@@ -60,7 +60,11 @@ def set_monitor_show(cell, show):
 
 
 def get_monitor_valid(cell):
-    return cell.item.show
+    return cell.item.valid
+
+
+def get_monitor_textcolor(cell):
+    return QtGui.QColor(Qt.black if cell.item.valid else Qt.darkGray)
 
 
 class MonitorWidgetBase(QtGui.QWidget):
@@ -104,7 +108,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.window().reject()
 
     def selected(self, monitor):
-        return self._selected.setdefault(monitor.name, monitor.show)
+        return self._selected.setdefault(monitor.name, monitor.valid)
 
     def select(self, index):
         self._selected[self.monitors[index].name] = True
@@ -158,7 +162,7 @@ class MonitorWidgetBase(QtGui.QWidget):
             name: np.array([getattr(mon, name)
                             for mon in self.monitors
                             if self.selected(mon)
-                            or self._shown.get(mon.name, mon.show)])
+                            or self._shown.get(mon.name, mon.valid)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
         style = self.frame.config['line_view']['monitor_style']
@@ -181,11 +185,12 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
     monitor_columns = [
         ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
+                      foreground=get_monitor_textcolor,
                       checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo("x", 'posx', convert=True),
-        ColumnInfo("y", 'posy', convert=True),
-        ColumnInfo("Δx", 'envx', convert=True),
-        ColumnInfo("Δy", 'envy', convert=True),
+        ColumnInfo("x", 'posx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo("y", 'posy', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo("Δx", 'envx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo("Δy", 'envy', convert=True, foreground=get_monitor_textcolor),
     ]
 
     def __init__(self, control, model, frame):
@@ -278,9 +283,10 @@ class OrbitWidget(_FitWidget):
 
     monitor_columns = [
         ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
+                      foreground=get_monitor_textcolor,
                       checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo("x", 'posx', convert=True),
-        ColumnInfo("y", 'posy', convert=True),
+        ColumnInfo("x", 'posx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo("y", 'posy', convert=True, foreground=get_monitor_textcolor),
     ]
 
     def __init__(self, control, model, frame):
@@ -337,11 +343,12 @@ class EmittanceDialog(_FitWidget):
 
     monitor_columns = [
         ColumnInfo("Monitor", 'name', checkable=get_monitor_valid,
+                   foreground=get_monitor_textcolor,
                    checked=get_monitor_show,
                    setChecked=set_monitor_show,
                    resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Δx", 'envx', convert=True),
-        ColumnInfo("Δy", 'envy', convert=True),
+        ColumnInfo("Δx", 'envx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo("Δy", 'envy', convert=True, foreground=get_monitor_textcolor),
     ]
 
     # The three steps of UI initialization
