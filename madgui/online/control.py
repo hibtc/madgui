@@ -169,12 +169,6 @@ class Control(Object):
         dialog.setWidget(widget)
         dialog.show()
 
-    def on_emittance_measurement(self):
-        from madgui.online.emittance import EmittanceDialog
-        dialog = EmittanceDialog(self)
-        dialog.show()
-        return dialog
-
     # helper functions
 
     @property
