@@ -586,7 +586,7 @@ class MainWindow(QtGui.QMainWindow):
         if name in self.graphs(name):
             return
         if self.views:
-            self.views[-1].set_graph('orbit')
+            self.views[-1].set_graph(name)
         else:
             self.showTwiss(name)
 
