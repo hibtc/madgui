@@ -84,6 +84,8 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.control = control
         self.model = model
         self.frame = frame
+        # TODO: we should eventually load this from model-specific session
+        # file, but it's fine like this for now:
         self._shown = frame.config['online_control']['monitors']
         self._offsets = frame.config['online_control']['offsets']
         self._selected = self._shown.copy()
@@ -205,8 +207,6 @@ class PlotMonitorWidget(MonitorWidgetBase):
     ]
 
     def __init__(self, control, model, frame):
-        # TODO: we should eventually load this from model-specific session
-        # file, but it's fine like this for now:
         super().__init__(control, model, frame)
         self._selected = self._shown
 
