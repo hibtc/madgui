@@ -268,7 +268,7 @@ class _FitWidget(MonitorWidgetBase):
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
         Buttons = QtGui.QDialogButtonBox
-        self.std_buttons.button(Buttons.Apply).clicked.connect(self.apply)
+        self.btn_apply.clicked.connect(self.apply)
         #self.btn_offsets.clicked.connect(self.save_offsets)
         self.results = List()
 

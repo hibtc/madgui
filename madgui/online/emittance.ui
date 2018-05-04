@@ -45,6 +45,13 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="btn_apply">
+          <property name="text">
+           <string>Apply</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
@@ -95,7 +102,7 @@
       <item>
        <widget class="QDialogButtonBox" name="std_buttons">
         <property name="standardButtons">
-         <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
+         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
         </property>
        </widget>
       </item>
