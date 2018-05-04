@@ -382,7 +382,6 @@ class EmittanceDialog(_FitWidget):
         pass
 
     def on_update(self):
-        self.cached_tms = None
         self.match_values()
 
     def match_values(self):
@@ -401,11 +400,7 @@ class EmittanceDialog(_FitWidget):
         monitors = [m for m in self.monitors if self.selected(m)]
         monitors = sorted(monitors, key=lambda m: model.elements.index(m.name))
 
-        # second case can happen when `removing` a monitor
-        if self.cached_tms is None or len(self.cached_tms) != len(monitors):
-            self.cached_tms = model.get_transfer_maps([m.name for m in monitors])
-
-        tms = list(self.cached_tms)
+        tms = model.get_transfer_maps([m.name for m in monitors])
         if not long_transfer:
             tms[0] = np.eye(7)
         tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
