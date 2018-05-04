@@ -3,8 +3,10 @@ import os
 import numpy as np
 
 from madgui.qt import QtGui, load_ui
+from madgui.core.unit import ui_units
 from madgui.util import yaml
 from madgui.util.layout import VBoxLayout
+from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.online.emittance import EmittanceDialog
 
@@ -15,6 +17,7 @@ class MonitorWidget(QtGui.QDialog):
         super().__init__(frame)
         self.tabs = QtGui.QTabWidget()
         self.tabs.addTab(PlotMonitorWidget(control, model, frame), "Plot")
+        self.tabs.addTab(OrbitWidget(control, model, frame), "Orbit")
         self.tabs.addTab(EmittanceDialog(control), "Optics")
         self.setLayout(VBoxLayout([self.tabs], tight=True))
         self.setSizeGripEnabled(True)
@@ -50,7 +53,7 @@ def set_monitor_show(cell, show):
         mgr.deselect(i)
 
 
-class PlotMonitorWidget(QtGui.QWidget):
+class MonitorWidgetBase(QtGui.QWidget):
 
     """
     Dialog for selecting SD monitor values to be imported.
@@ -59,17 +62,6 @@ class PlotMonitorWidget(QtGui.QWidget):
     title = 'Set values in DVM from current sequence'
     headline = "Select for which monitors to plot measurements:"
 
-    ui_file = 'monitorwidget.ui'
-
-    columns = [
-        ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
-                      checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo("x", 'posx', convert=True),
-        ColumnInfo("y", 'posy', convert=True),
-        ColumnInfo("Δx", 'envx', convert=True),
-        ColumnInfo("Δy", 'envy', convert=True),
-    ]
-
     def __init__(self, control, model, frame):
         super().__init__(frame)
         load_ui(self, __package__, self.ui_file)
@@ -77,39 +69,58 @@ class PlotMonitorWidget(QtGui.QWidget):
         self.control = control
         self.model = model
         self.frame = frame
+        self._shown = frame.config['online_control']['monitors']
+        self._offsets = frame.config['online_control']['offsets']
+        self._selected = self._shown.copy()
 
-        # TODO: we should eventually load this from model-specific session
-        # file, but it's fine like this for now:
-        self._monitor_show = self.frame.config['online_control']['monitors']
-        self._monitor_offs = self.frame.config['online_control']['offsets']
-
-        self.grid.set_columns(self.columns, context=self)
-        self.grid.horizontalHeader().setHighlightSections(False)
-        self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.grid.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.mtab.set_columns(self.monitor_columns, context=self)
+        self.mtab.horizontalHeader().setHighlightSections(False)
+        self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
         Buttons = QtGui.QDialogButtonBox
-        self.btn_update.clicked.connect(self.update)
-        self.btn_backtrack.clicked.connect(self.backtrack)
-        self.btn_offsets.clicked.connect(self.save_offsets)
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
-        self.std_buttons.button(Buttons.Save).clicked.connect(self.save)
+        self.btn_update.clicked.connect(self.update)
 
         self.backup()
-
-    def showEvent(self, event):
-        if not self.frame.graphs('envelope'):
-            self.frame.open_graph('orbit')
-        self.update()
 
     def accept(self):
         self.window().accept()
 
     def reject(self):
-        self.remove()
         self.restore()
+        self.remove()
         self.window().reject()
+
+    def selected(self, monitor):
+        return self._selected.setdefault(monitor.name, monitor.show)
+
+    def select(self, index):
+        self._selected[self.monitors[index].name] = True
+        self.on_update()
+        self.draw()
+
+    def deselect(self, index):
+        self._selected[self.monitors[index].name] = False
+        self.on_update()
+        self.draw()
+
+    def update(self):
+        self.mtab.rows = self.monitors = [
+            MonitorItem(el.node_name, self.control.read_monitor(el.node_name))
+            for el in self.model.elements
+            if el.base_name.lower().endswith('monitor')
+            or el.base_name.lower() == 'instrument']
+        self.on_update()
+        self.draw()
+
+    def backup(self):
+        self.backup_twiss_args = self.model.twiss_args
+
+    def restore(self):
+        self.model.twiss_args = self.backup_twiss_args
+        self.model.twiss.invalidate()
 
     def remove(self):
         for scene in self.frame.views:
@@ -127,19 +138,17 @@ class PlotMonitorWidget(QtGui.QWidget):
 
         for mon in self.monitors:
             mon.s = self.model.elements[mon.name].position
-            dx, dy = self._monitor_offs.get(mon.name.lower(), (0, 0))
+            dx, dy = self._offsets.get(mon.name.lower(), (0, 0))
             mon.x = (mon.posx + dx) if mon.posx is not None else None
             mon.y = (mon.posy + dy) if mon.posy is not None else None
 
         name = "monitors"
 
-        self.grid.horizontalHeader().setHighlightSections(False)
-        self.grid.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.grid.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         data = {
             name: np.array([getattr(mon, name)
                             for mon in self.monitors
-                            if self.selected(mon)])
+                            if self.selected(mon)
+                            or self._shown.get(mon.name, mon.show)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
         style = self.frame.config['line_view']['monitor_style']
@@ -155,30 +164,41 @@ class PlotMonitorWidget(QtGui.QWidget):
             else:
                 scene.loaded_curves.append((name, data, style))
 
-    def selected(self, monitor):
-        return self._monitor_show.setdefault(monitor.name, monitor.show)
 
-    def select(self, index):
-        self._monitor_show[self.monitors[index].name] = True
-        self.draw()
+class PlotMonitorWidget(MonitorWidgetBase):
 
-    def deselect(self, index):
-        self._monitor_show[self.monitors[index].name] = False
-        self.draw()
+    ui_file = 'monitorwidget.ui'
 
-    def update(self):
-        self.grid.rows = self.monitors = [
-            MonitorItem(el.node_name, self.control.read_monitor(el.node_name))
-            for el in self.model.elements
-            if el.base_name.lower().endswith('monitor')
-            or el.base_name.lower() == 'instrument']
-        self.draw()
+    monitor_columns = [
+        ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
+                      checked=get_monitor_show, setChecked=set_monitor_show),
+        ColumnInfo("x", 'posx', convert=True),
+        ColumnInfo("y", 'posy', convert=True),
+        ColumnInfo("Δx", 'envx', convert=True),
+        ColumnInfo("Δy", 'envy', convert=True),
+    ]
+
+    def __init__(self, control, model, frame):
+        # TODO: we should eventually load this from model-specific session
+        # file, but it's fine like this for now:
+        super().__init__(control, model, frame)
+        Buttons = QtGui.QDialogButtonBox
+        self.std_buttons.button(Buttons.Save).clicked.connect(self.save)
+        self._selected = self._shown
+
+    def showEvent(self, event):
+        if not self.frame.graphs('envelope'):
+            self.frame.open_graph('orbit')
+        self.update()
 
     folder = None
     exportFilters = [
         ("YAML file", ".yml"),
         ("TEXT file (numpy compatible)", ".txt"),
     ]
+
+    def on_update(self):
+        pass
 
     def save(self):
         from madgui.widget.filedialog import getSaveFileName
@@ -197,7 +217,7 @@ class PlotMonitorWidget(QtGui.QWidget):
             data = {'monitor': {
                 m.name: {'x': m.posx, 'y': m.posy,
                          'envx': m.envx, 'envy': m.envy }
-                for m in self.grid.rows
+                for m in self.mtab.rows
                 if self.selected(m)
             }}
             with open(filename, 'wt') as f:
@@ -208,7 +228,7 @@ class PlotMonitorWidget(QtGui.QWidget):
                 return self.model.elements[m.name].position
             data = np.array([
                 [pos(m), m.posx, m.posy, m.envx, m.envy]
-                for m in self.grid.rows
+                for m in self.mtab.rows
                 if m.selected(m)
             ])
             np.savetxt(filename, data, header='s x y envx envy')
@@ -218,21 +238,67 @@ class PlotMonitorWidget(QtGui.QWidget):
             "Don't know how to serialize to {!r} format."
             .format(ext))
 
+
+class OrbitWidget(MonitorWidgetBase):
+
+    ui_file = 'emittance.ui'
+
+    monitor_columns = [
+        ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
+                      checked=get_monitor_show, setChecked=set_monitor_show),
+        ColumnInfo("x", 'posx', convert=True),
+        ColumnInfo("y", 'posy', convert=True),
+    ]
+
+    result_columns = [
+        ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("Model", 'model', convert='name'),
+        ColumnInfo("Fit", 'fit', convert='name'),
+        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+                   resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+    def __init__(self, control, model, frame):
+        super().__init__(control, model, frame)
+        Buttons = QtGui.QDialogButtonBox
+        self.std_buttons.button(Buttons.Apply).clicked.connect(self.apply)
+        #self.btn_offsets.clicked.connect(self.save_offsets)
+        self.options_box.hide()
+        self.results = List()
+
+        self.rtab.horizontalHeader().setHighlightSections(False)
+        self.rtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.rtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.rtab.set_columns(self.result_columns, self.results, self)
+
+    def showEvent(self, event):
+        self.frame.open_graph('orbit')
+        self.update()
+
     def save_offsets(self):
         self.model.twiss()
         for m in self.monitors:
             tw = self.model.get_elem_twiss(m.name)
             if self.selected(m):
-                self._monitor_offs[m.name.lower()] = (
+                self._offsets[m.name.lower()] = (
                     tw.x - m.posx,
                     tw.y - m.posy)
 
-    def backtrack(self):
-        init_orbit, chi_squared, singular = \
-            self.fit_particle_orbit()
-        if not singular:
-            self.model.twiss_args = dict(self.model.twiss_args, **init_orbit)
+    def apply(self):
+        if not self.singular:
+            self.model.twiss_args = dict(self.model.twiss_args, **self.init_orbit)
             self.model.twiss.invalidate()
+
+    def on_update(self):
+        from madgui.online.emittance import ResultItem
+        self.init_orbit, chi_squared, self.singular = \
+            self.fit_particle_orbit()
+        if not self.singular:
+            initial = self.model.twiss_args
+            self.results[:] = [
+                ResultItem(k, v, initial.get(k, 0))
+                for k, v in self.init_orbit.items()
+            ]
 
     def fit_particle_orbit(self):
         from madgui.correct.orbit import fit_initial_orbit
@@ -245,16 +311,9 @@ class PlotMonitorWidget(QtGui.QWidget):
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
             (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
             for record, secmap in zip(records, secmaps)
-            for dx, dy in [self._monitor_offs.get(record.name.lower(), (0, 0))]
+            for dx, dy in [self._offsets.get(record.name.lower(), (0, 0))]
         ])
         return {
             'x': x, 'px': px,
             'y': y, 'py': py,
         }, chi_squared, singular
-
-    def backup(self):
-        self.backup_twiss_args = self.model.twiss_args
-
-    def restore(self):
-        self.model.twiss_args = self.backup_twiss_args
-        self.model.twiss.invalidate()

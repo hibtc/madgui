@@ -38,7 +38,7 @@
       <item row="0" column="1">
        <layout class="QVBoxLayout">
         <item>
-         <widget class="QPushButton" name="button_update_monitor">
+         <widget class="QPushButton" name="btn_update">
           <property name="text">
            <string>Update</string>
           </property>
@@ -70,29 +70,31 @@
        </layout>
       </item>
       <item row="1" column="0">
-       <layout class="QHBoxLayout">
-        <item>
-         <widget class="QCheckBox" name="long_transfer">
-          <property name="text">
-           <string>Match from start</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="use_dispersion">
-          <property name="text">
-           <string>Dispersion</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="respect_coupling">
-          <property name="text">
-           <string>Coupled</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QWidget" name="options_box" native="true">
+        <layout class="QHBoxLayout" name="layout_options">
+         <item>
+          <widget class="QCheckBox" name="long_transfer">
+           <property name="text">
+            <string>Match from start</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="use_dispersion">
+           <property name="text">
+            <string>Dispersion</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="respect_coupling">
+           <property name="text">
+            <string>Coupled</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </item>
      </layout>
     </widget>

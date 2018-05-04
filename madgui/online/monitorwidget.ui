@@ -15,7 +15,7 @@
   </property>
   <layout class="QHBoxLayout">
    <item>
-    <widget class="TableView" name="grid"/>
+    <widget class="TableView" name="mtab"/>
    </item>
    <item>
     <layout class="QVBoxLayout">
@@ -23,20 +23,6 @@
       <widget class="QPushButton" name="btn_update">
        <property name="text">
         <string>Update</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btn_backtrack">
-       <property name="text">
-        <string>Backtrack</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btn_offsets">
-       <property name="text">
-        <string>Save offsets</string>
        </property>
       </widget>
      </item>

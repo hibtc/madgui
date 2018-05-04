@@ -16,7 +16,7 @@ from madgui.util.collections import List
 
 
 MonitorItem = namedtuple('MonitorItem', ['name', 'envx', 'envy'])
-ResultItem = namedtuple('ResultItem', ['name', 'measured', 'model'])
+ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
 
 
 def get_monitor_selectable(cell):
@@ -56,8 +56,8 @@ class EmittanceDialog(QtGui.QWidget):
 
     result_columns = [
         ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Measured", 'measured', convert='name'),
         ColumnInfo("Model", 'model', convert='name'),
+        ColumnInfo("Fit", 'fit', convert='name'),
         ColumnInfo("Unit", lambda item: ui_units.label(item.name),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
@@ -103,7 +103,7 @@ class EmittanceDialog(QtGui.QWidget):
         self.monitors.update_after.connect(self.match_values)
         # TODO: update UI: ok/export buttons
         # monitor actions
-        self.button_update_monitor.clicked.connect(self.update_monitor)
+        self.btn_update.clicked.connect(self.update_monitor)
         # result actions
         Buttons = QtGui.QDialogButtonBox
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
@@ -115,9 +115,9 @@ class EmittanceDialog(QtGui.QWidget):
         self.respect_coupling.clicked.connect(self.match_values)
 
     def apply(self):
-        results = {r.name: r.measured
+        results = {r.name: r.fit
                    for r in self.results
-                   if not isnan(r.measured)}
+                   if not isnan(r.fit)}
         if results:
             model = self.model
             model.update_beam({
