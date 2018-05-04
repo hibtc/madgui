@@ -75,6 +75,7 @@ class MonitorWidgetBase(QtGui.QWidget):
 
     title = 'Set values in DVM from current sequence'
     headline = "Select for which monitors to plot measurements:"
+    folder = None
 
     def __init__(self, control, model, frame):
         super().__init__(frame)
@@ -95,6 +96,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         Buttons = QtGui.QDialogButtonBox
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
+        self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.btn_update.clicked.connect(self.update)
 
         self.backup()
@@ -178,6 +180,15 @@ class MonitorWidgetBase(QtGui.QWidget):
             else:
                 scene.loaded_curves.append((name, data, style))
 
+    def export(self):
+        from madgui.widget.filedialog import getSaveFileName
+        filename = getSaveFileName(
+            self.window(), 'Export values', self.folder,
+            self.exportFilters)
+        if filename:
+            self.export_to(filename)
+            self.folder, _ = os.path.split(filename)
+
 
 class PlotMonitorWidget(MonitorWidgetBase):
 
@@ -197,8 +208,6 @@ class PlotMonitorWidget(MonitorWidgetBase):
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
         super().__init__(control, model, frame)
-        Buttons = QtGui.QDialogButtonBox
-        self.std_buttons.button(Buttons.Save).clicked.connect(self.save)
         self._selected = self._shown
 
     def showEvent(self, event):
@@ -206,7 +215,6 @@ class PlotMonitorWidget(MonitorWidgetBase):
             self.frame.open_graph('orbit')
         self.update()
 
-    folder = None
     exportFilters = [
         ("YAML file", ".yml"),
         ("TEXT file (numpy compatible)", ".txt"),
@@ -214,15 +222,6 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
     def on_update(self):
         pass
-
-    def save(self):
-        from madgui.widget.filedialog import getSaveFileName
-        filename = getSaveFileName(
-            self.window(), 'Export values', self.folder,
-            self.exportFilters)
-        if filename:
-            self.export_to(filename)
-            self.folder, _ = os.path.split(filename)
 
     def export_to(self, filename):
         ext = os.path.splitext(filename)[1].lower()
@@ -306,6 +305,13 @@ class OrbitWidget(_FitWidget):
                     tw.x - m.posx,
                     tw.y - m.posy)
 
+    exportFilters = [
+        ("YAML file", ".yml"),
+    ]
+
+    def export_to(self, filename):
+        pass
+
     def apply(self):
         if not self.singular:
             self.model.twiss_args = dict(self.model.twiss_args, **self.init_orbit)
@@ -356,7 +362,6 @@ class EmittanceDialog(_FitWidget):
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
         Buttons = QtGui.QDialogButtonBox
-        self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)
@@ -378,7 +383,11 @@ class EmittanceDialog(_FitWidget):
             model.twiss_args.update(results)
             model.twiss.invalidate()
 
-    def export(self):
+    exportFilters = [
+        ("YAML file", ".yml"),
+    ]
+
+    def export_to(self, filename):
         pass
 
     def on_update(self):
