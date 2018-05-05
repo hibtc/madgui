@@ -267,7 +267,6 @@ class _FitWidget(MonitorWidgetBase):
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
-        Buttons = QtGui.QDialogButtonBox
         self.btn_apply.clicked.connect(self.apply)
         #self.btn_offsets.clicked.connect(self.save_offsets)
         self.results = List()
@@ -361,7 +360,6 @@ class EmittanceDialog(_FitWidget):
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
-        Buttons = QtGui.QDialogButtonBox
         self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)

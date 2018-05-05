@@ -17,9 +17,8 @@ from madgui.core.base import Signal
 from madgui.core.unit import ui_units, to_ui
 from madgui.util.qt import fit_button
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.widget.params import TabParamTables, ParamTable, CommandEdit, ParamInfo
+from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
 
-# TODO: updating an element calls into ds.get() 3 times!
 
 __all__ = [
     'ElementInfoBox',

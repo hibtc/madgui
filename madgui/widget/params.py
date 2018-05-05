@@ -2,8 +2,6 @@
 Parameter input dialog.
 """
 
-from functools import partial
-
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units
 import madgui.util.yaml as yaml

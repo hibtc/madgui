@@ -3,8 +3,7 @@ MAD-X backend for madgui.
 """
 
 import os
-import re
-from collections import namedtuple, Sequence, Mapping, OrderedDict, defaultdict
+from collections import namedtuple, Sequence, OrderedDict, defaultdict
 from functools import partial, reduce
 import itertools
 from bisect import bisect_right
@@ -164,7 +163,6 @@ class Model(Object):
         x0_px = axes.transData.transform_point((0, 0))[0]
         x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
         len_px = x2pix(L)
-        pos_px = x2pix(pos)
         if len_px > 5 or elem.base_name == 'drift':
             edge_px = max(1, min(2, round(0.2*len_px))) # max 2px cursor distance
             if index > 0 \

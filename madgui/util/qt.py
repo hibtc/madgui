@@ -2,7 +2,7 @@
 Qt utilities.
 """
 
-from madgui.qt import Qt, QtCore, QtGui
+from madgui.qt import Qt, QtGui
 
 
 def notifyCloseEvent(widget, handler):
