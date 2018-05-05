@@ -257,6 +257,7 @@ class OffsetsWidget(MonitorWidgetBase):
     def __init__(self, *args):
         super().__init__(*args)
         self.btn_offsets.clicked.connect(self.save_offsets)
+        self.btn_calibrate.clicked.connect(self.calibrate_offsets)
         Buttons = QtGui.QDialogButtonBox
         self.std_buttons.button(Buttons.Open).clicked.connect(self.load)
         self.std_buttons.button(Buttons.Discard).clicked.connect(self.discard)
@@ -304,6 +305,17 @@ class OffsetsWidget(MonitorWidgetBase):
                     tw.x - m.posx,
                     tw.y - m.posy)
         self.update()
+
+    def calibrate_offsets(self):
+        from .offcal import OffsetCalibrationWidget
+        from madgui.widget.dialog import Dialog
+        widget = OffsetCalibrationWidget(self, [
+            m.name for m in self.monitors if self.selected(m)])
+        dialog = Dialog(self)
+        dialog.setWidget(widget)
+        dialog.setWindowTitle("Offset calibration")
+        dialog.show()
+
 
 
 class _FitWidget(MonitorWidgetBase):
