@@ -33,6 +33,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.control = parent.control
         self.model = parent.model
         self.monitors = monitors
+        self._parent = parent
         self.fit_results = List()
         first_monitor = min(map(self.model.elements.index, monitors))
         quads = [el.name for el in self.model.elements
@@ -46,10 +47,12 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_abort = self.btns.button(Buttons.Abort)
         self.btn_close = self.btns.button(Buttons.Close)
         self.btn_reset = self.btns.button(Buttons.Reset)
+        self.btn_apply = self.btns.button(Buttons.Apply)
         self.btn_start.clicked.connect(self.start)
         self.btn_abort.clicked.connect(self.cancel)
         self.btn_close.clicked.connect(self._close)
         self.btn_reset.clicked.connect(self.reset)
+        self.btn_apply.clicked.connect(self.apply)
         self.ctrl_results.set_columns(self.result_columns, self.fit_results)
         self.ctrl_file.setText("offset.calibration.yml")
         self.btn_file.clicked.connect(self.change_output_file)
@@ -118,6 +121,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_close.setEnabled(not running)
         self.btn_abort.setEnabled(running)
         self.btn_reset.setEnabled(not running and len(self.fit_results) > 0)
+        self.btn_apply.setEnabled(not running and len(self.fit_results) > 0)
         self.ctrl_quads.setEnabled(not running)
         self.ctrl_stepsize.setReadOnly(running)
         self.ctrl_numsteps.setReadOnly(running)
@@ -230,6 +234,14 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.fit_results[:] = []
         self.ctrl_tab.setCurrentIndex(0)
         self.update_ui()
+
+    def apply(self):
+        self._parent._offsets.update({
+            m.name: (m.x, m.y)
+            for m in self.fit_results
+        })
+        self._parent.update()
+        self.btn_apply.setEnabled(False)
 
     def update_results(self):
 
