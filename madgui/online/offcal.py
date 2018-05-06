@@ -1,3 +1,4 @@
+import os
 from collections import namedtuple
 
 import numpy as np
@@ -50,6 +51,8 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_close.clicked.connect(self._close)
         self.btn_reset.clicked.connect(self.reset)
         self.ctrl_results.set_columns(self.result_columns, self.fit_results)
+        self.ctrl_file.setText("offset.calibration.yml")
+        self.btn_file.clicked.connect(self.change_output_file)
         self.update_ui()
 
     def _close(self):
@@ -78,7 +81,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.progress = 0
         self.backup = None
         self.sectormaps = None
-        self.output_file = open('offset_calibration.yml', 'wt')
+        self.output_file = open(self.ctrl_file.text(), 'wt')
         yaml.safe_dump({
             'monitors': self.monitors,
             'selected': self.selected,
@@ -129,6 +132,22 @@ class OffsetCalibrationWidget(QtGui.QWidget):
             self.control.write_params([self.backup])
             self.model.write_param(*self.backup)
             self.backup = None
+
+    folder = None
+
+    def change_output_file(self):
+        if self.running:
+            return
+        from madgui.widget.filedialog import getSaveFileName
+        ext = '.calibration.yml'
+        filename = getSaveFileName(
+            self.window(), 'Raw data file', self.folder,
+            [("YAML file", "*"+ext)])
+        if filename:
+            if not filename.endswith(ext):
+                filename += ext
+            self.folder, _ = os.path.split(filename)
+            self.ctrl_file.setText(filename)
 
     def poll(self):
         if not self.running:
