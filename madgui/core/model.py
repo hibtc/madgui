@@ -782,8 +782,7 @@ class Model(Object):
         # currently fetches twiss columns only demand. Therefore, using the
         # same twiss table for both TWISS/SECTORMAP routines would lead to
         # inconsistent table lengths (interpolate vs no-interpolate!).
-        return self.madx.sectormap((), **self._get_twiss_args(),
-                                   table='sectortwiss')
+        return self.madx.sectormap((), table='sectortwiss', **self._get_twiss_args())
 
     def match(self, vary, constraints, **kwargs):
 

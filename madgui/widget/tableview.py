@@ -454,7 +454,7 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
 
     def __init__(self, *,
                  default=None,
-                 fmtspec=None,
+                 fmtspec=None
                  ):
         """Store the value."""
         super().__init__()
