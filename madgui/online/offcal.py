@@ -47,10 +47,13 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_reset = self.btns.button(Buttons.Reset)
         self.btn_start.clicked.connect(self.start)
         self.btn_abort.clicked.connect(self.cancel)
-        self.btn_close.clicked.connect(self.close)
+        self.btn_close.clicked.connect(self._close)
         self.btn_reset.clicked.connect(self.reset)
         self.ctrl_results.set_columns(self.result_columns, self.fit_results)
         self.update_ui()
+
+    def _close(self):
+        self.window().close()
 
     def closeEvent(self, event):
         self.cancel()
