@@ -20,6 +20,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
     running = False
     totalops = 100
     progress = 0
+    extension = '.calibration.yml'
 
     result_columns = [
         ColumnInfo('Monitor', 'name'),
@@ -54,7 +55,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_reset.clicked.connect(self.reset)
         self.btn_apply.clicked.connect(self.apply)
         self.ctrl_results.set_columns(self.result_columns, self.fit_results)
-        self.ctrl_file.setText("offset.calibration.yml")
+        self.update_filename()
         self.btn_file.clicked.connect(self.change_output_file)
         self.update_ui()
 
@@ -84,7 +85,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.progress = 0
         self.backup = None
         self.sectormaps = None
-        self.output_file = open(self.ctrl_file.text(), 'wt')
+        self.output_file = open(self.filename, 'wt')
         yaml.safe_dump({
             'monitors': self.monitors,
             'selected': self.selected,
@@ -115,6 +116,23 @@ class OffsetCalibrationWidget(QtGui.QWidget):
             self.restore()
             self.update_ui()
 
+    def update_filename(self):
+        folder = self.folder or os.getcwd()
+        template = os.path.join(folder, "{}_{}.calibration.yml")
+        monitors = "_".join(self.monitors)
+        filename = template.format(monitors, 0)
+        i = 0
+        while os.path.exists(filename):
+            i += 1
+            filename = template.format(monitors, i)
+        self.set_filename(filename)
+
+    def set_filename(self, filename):
+        filename = os.path.abspath(filename)
+        self.folder, basename = os.path.split(filename)
+        self.ctrl_file.setText(basename)
+        self.filename = filename
+
     def update_ui(self):
         running = self.running
         self.btn_start.setEnabled(not running and len(self.fit_results) == 0)
@@ -143,15 +161,13 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         if self.running:
             return
         from madgui.widget.filedialog import getSaveFileName
-        ext = '.calibration.yml'
         filename = getSaveFileName(
             self.window(), 'Raw data file', self.folder,
-            [("YAML file", "*"+ext)])
+            [("YAML file", "*"+self.extension)])
         if filename:
-            if not filename.endswith(ext):
-                filename += ext
-            self.folder, _ = os.path.split(filename)
-            self.ctrl_file.setText(filename)
+            if not filename.endswith(self.extension):
+                filename += self.extension
+            self.set_filename(filename)
 
     def poll(self):
         if not self.running:
@@ -232,6 +248,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
 
     def reset(self):
         self.fit_results[:] = []
+        self.update_filename()
         self.ctrl_tab.setCurrentIndex(0)
         self.update_ui()
 
