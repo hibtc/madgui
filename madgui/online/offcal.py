@@ -10,6 +10,7 @@ from madgui.widget.tableview import ColumnInfo
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'x', 'y'])
+Buttons = QtGui.QDialogButtonBox
 
 
 class OffsetCalibrationWidget(QtGui.QWidget):
@@ -40,8 +41,12 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.ctrl_quads.setCurrentItem(
             self.ctrl_quads.item(len(quads)-1),
             QtCore.QItemSelectionModel.SelectCurrent)
+        self.btn_start = self.btns.button(Buttons.Ok)
+        self.btn_abort = self.btns.button(Buttons.Abort)
+        self.btn_close = self.btns.button(Buttons.Close)
         self.btn_start.clicked.connect(self.start)
-        self.btn_cancel.clicked.connect(self.cancel)
+        self.btn_abort.clicked.connect(self.cancel)
+        self.btn_close.clicked.connect(self.close)
         self.ctrl_results.set_columns(self.result_columns, self.fit_results)
         self.update_ui()
 
@@ -101,7 +106,8 @@ class OffsetCalibrationWidget(QtGui.QWidget):
     def update_ui(self):
         running = self.running
         self.btn_start.setEnabled(not running)
-        self.btn_cancel.setEnabled(running)
+        self.btn_close.setEnabled(not running)
+        self.btn_abort.setEnabled(running)
         self.ctrl_quads.setEnabled(not running)
         self.ctrl_stepsize.setReadOnly(running)
         self.ctrl_numsteps.setReadOnly(running)
