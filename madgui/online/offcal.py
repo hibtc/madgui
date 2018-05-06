@@ -44,9 +44,11 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_start = self.btns.button(Buttons.Ok)
         self.btn_abort = self.btns.button(Buttons.Abort)
         self.btn_close = self.btns.button(Buttons.Close)
+        self.btn_reset = self.btns.button(Buttons.Reset)
         self.btn_start.clicked.connect(self.start)
         self.btn_abort.clicked.connect(self.cancel)
         self.btn_close.clicked.connect(self.close)
+        self.btn_reset.clicked.connect(self.reset)
         self.ctrl_results.set_columns(self.result_columns, self.fit_results)
         self.update_ui()
 
@@ -94,6 +96,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
 
     def cancel(self):
         self.stop()
+        self.reset()
 
     def stop(self):
         if self.running:
@@ -105,9 +108,10 @@ class OffsetCalibrationWidget(QtGui.QWidget):
 
     def update_ui(self):
         running = self.running
-        self.btn_start.setEnabled(not running)
+        self.btn_start.setEnabled(not running and len(self.fit_results) == 0)
         self.btn_close.setEnabled(not running)
         self.btn_abort.setEnabled(running)
+        self.btn_reset.setEnabled(not running and len(self.fit_results) > 0)
         self.ctrl_quads.setEnabled(not running)
         self.ctrl_stepsize.setReadOnly(running)
         self.ctrl_numsteps.setReadOnly(running)
@@ -199,6 +203,11 @@ class OffsetCalibrationWidget(QtGui.QWidget):
     def read_monitors(self):
         return {mon: self.control.read_monitor(mon)
                 for mon in self.monitors}
+
+    def reset(self):
+        self.fit_results[:] = []
+        self.ctrl_tab.setCurrentIndex(0)
+        self.update_ui()
 
     def update_results(self):
 
