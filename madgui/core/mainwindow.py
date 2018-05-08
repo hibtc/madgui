@@ -73,6 +73,7 @@ class MainWindow(QtGui.QMainWindow):
         config.number = self.config.number
 
     def session_data(self):
+        open_plot_windows = list(map(self._save_plot_window, self.views))
         return {
             'mainwindow': {
                 'init_size': [self.size().width(), self.size().height()],
@@ -94,6 +95,7 @@ class MainWindow(QtGui.QMainWindow):
             'model_path': self.folder,
             'load_default': self.model and self.model.filename,
             'number': self.config['number'],
+            'plot_windows': open_plot_windows + self.config.plot_windows,
         }
 
     def initUI(self):
@@ -104,8 +106,8 @@ class MainWindow(QtGui.QMainWindow):
         self.initPos()
 
     def initPos(self):
-        self.resize(QtCore.QSize(*self.config.mainwindow.init_size))
-        self.move(QtCore.QPoint(*self.config.mainwindow.init_pos))
+        self.resize(*self.config.mainwindow.init_size)
+        self.move(*self.config.mainwindow.init_pos)
 
     def loadDefault(self):
         filename = self.options['FILE'] or self.config.load_default
@@ -506,6 +508,10 @@ class MainWindow(QtGui.QMainWindow):
         model = self.model
         config = self.config.line_view
 
+        # NOTE: using the plot_windows list as a stack with its top at 0:
+        settings = (self.config.plot_windows and
+                    self.config.plot_windows.pop(0) or {})
+
         # indicators require retrieving data for all elements which can be too
         # time consuming for large lattices:
         show_indicators = len(model.elements) < 500
@@ -515,7 +521,7 @@ class MainWindow(QtGui.QMainWindow):
 
         scene = twissfigure.TwissFigure(figure, model, config)
         scene.show_indicators = show_indicators
-        scene.set_graph(name or config.default_graph)
+        scene.set_graph(name or settings.get('graph') or config.default_graph)
         scene.attach(plot)
 
         # for convenience when debugging:
@@ -531,7 +537,11 @@ class MainWindow(QtGui.QMainWindow):
         widget = Dialog(self)
         widget.setWidget([select, plot], tight=True)
         widget.layout().setMenuBar(menubar)
-        widget.resize(self.size().width(), widget.sizeHint().height())
+        size = settings.get('size')
+        pos = settings.get('pos')
+        if size: widget.resize(*size)
+        else: widget.resize(self.size().width(), widget.sizeHint().height())
+        if pos: widget.move(*pos)
         widget.show()
         def update_window_title():
             widget.setWindowTitle("{1} ({0})".format(
@@ -543,6 +553,8 @@ class MainWindow(QtGui.QMainWindow):
 
         def destroyed():
             if scene in self.views:
+                self.config.plot_windows.insert(
+                    0, self._save_plot_window(scene))
                 scene.destroy()
                 self.views.remove(scene)
 
@@ -574,6 +586,14 @@ class MainWindow(QtGui.QMainWindow):
         ])
         self.views.append(scene)
         return scene
+
+    def _save_plot_window(self, scene):
+        widget = scene.figure.canvas.window()
+        return {
+            'graph': scene.graph_name,
+            'size': [widget.size().width(), widget.size().height()],
+            'pos': [widget.pos().x(), widget.pos().y()],
+        }
 
     def graphs(self, name):
         return [scene for scene in self.views if scene.graph_name == name]
