@@ -97,9 +97,9 @@ class Model(Object):
             self._load_params(data, 'beam')
             self._load_params(data, 'twiss')
             for filename in data.get('init-files', []):
-                self.call(filename)
+                self._call(filename)
         else:
-            self.call(filename)
+            self._call(filename)
             sequence = self._guess_main_sequence()
             data = self._get_seq_model(sequence)
         self._init_segment(
@@ -275,6 +275,11 @@ class Model(Object):
         return self.madx and self.madx._libmadx
 
     def call(self, name):
+        self._call(name)
+        self.elements.invalidate()
+        self.twiss.invalidate()
+
+    def _call(self, name):
         """Load a MAD-X file into the current workspace."""
         name = os.path.join(self.path, name)
         self.madx.call(name, True)
@@ -731,7 +736,7 @@ class Model(Object):
         return self.madx.sectormap((), **self._get_twiss_args(),
                                    table='sectortwiss')
 
-    def match(self, variables, constraints):
+    def match(self, vary, constraints, **kwargs):
 
         # list intermediate positions
         # NOTE: need list instead of set, because quantity is unhashable:
@@ -747,6 +752,7 @@ class Model(Object):
         for name, positions in elem_positions.items():
             at = self.elements[name].position
             l = self.elements[name].length
+            positions = [at+l if p is None else p for p in positions]
             if any(not np.isclose(p, at+l) for p in positions):
                 x = [float((p-at)/l) for p in positions]
                 self.madx.command.select(
@@ -766,14 +772,20 @@ class Model(Object):
             'sig11': 1/ex, 'sig12': 1/ex, 'sig21': 1/ex, 'sig22': 1/ex,
             'sig33': 1/ey, 'sig34': 1/ey, 'sig43': 1/ey, 'sig44': 1/ey,
         }
+        weights.update(kwargs.pop('weight', {}))
+        twiss_args = self.twiss_args.copy()
+        twiss_args.update(kwargs)
         self.madx.match(sequence=self.sequence.name,
-                        vary=variables,
+                        vary=vary,
                         constraints=madx_constraints,
                         weight=weights,
-                        **self.twiss_args)
+                        **twiss_args)
         # TODO: update only modified elements
         self.elements.invalidate()
         self.twiss.invalidate()
+
+        # return corrections
+        return {v: self.read_param(v) for v in vary}
 
     def read_monitor(self, name):
         """Mitigates read access to a monitor."""

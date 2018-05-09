@@ -158,16 +158,6 @@ class Corrector(Matcher):
         :param dict init_orbit: initial conditions as returned by the fit
         """
 
-        # construct initial conditions
-        init_twiss = {}
-        init_twiss.update(self.model.twiss_args)
-        init_twiss.update(init_orbit)
-        self.model.twiss_args = init_twiss
-
-        for name, expr in self.selected.get('assign', {}).items():
-            self.model.madx.input(name.replace('->', ', ') + ':=' + expr + ';')
-
-        # match final conditions
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
         match_names = {v.knob for v in self.variables
                        if v.knob.lower() not in blacklist}
@@ -177,24 +167,17 @@ class Corrector(Matcher):
             if c.axis in ('y', 'posy'): return dy
             return 0
         constraints = [
-            dict(range=c.elem.node_name, **{c.axis: from_ui(c.axis, c.value)+offset(c)})
+            (c.elem, None, c.axis, from_ui(c.axis, c.value)+offset(c))
             for c in self.constraints
         ]
-        for name, expr in self.selected.get('assign', {}).items():
-            self.model.globals[name] = expr
-        self.model.madx.command.select(flag='interpolate', clear=True)
-        self.model.madx.match(
-            sequence=self.model.sequence.name,
+        self.model.update_globals(self.selected.get('assign', {}))
+
+        self.model.twiss_args = dict(self.model.twiss_args, **init_orbit)
+        return self.model.match(
             vary=match_names,
             method=('jacobian', {}),
             weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
-            constraints=constraints,
-            **init_twiss)
-        self.model.twiss.invalidate()
-
-        # return corrections
-        return {v.knob: self.model.read_param(v.knob)
-                for v in self.variables}
+            constraints=constraints)
 
 
 def display_name(name):

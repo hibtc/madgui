@@ -308,8 +308,7 @@ class MainWindow(QtGui.QMainWindow):
         filename = getOpenFileName(
             self, 'Open MAD-X strengths file', self.folder, filters)
         if filename:
-            self.model.madx.call(filename)
-            self.model.twiss.invalidate()
+            self.model.call(filename)
 
     def fileSave(self):
         pass

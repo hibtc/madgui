@@ -202,31 +202,26 @@ class Corrector:
         steerer_names = []
         if correct_x: steerer_names.extend(self.x_steerers)
         if correct_y: steerer_names.extend(self.y_steerers)
-        steerer_knobs = [self._knobs[elem] for elem in steerer_names]
 
-        # construct initial conditions
-        init_twiss = {}
-        init_twiss.update(self.model.twiss_args)
-        init_twiss.update(init_orbit)
-        self.model.twiss_args = init_twiss
+        def offset(elem, axis):
+            dx, dy = self._monitor_offs.get(elem.name.lower(), (0, 0))
+            if axis in ('x', 'posx'): return dx
+            if axis in ('y', 'posy'): return dy
+            return 0
 
         # match final conditions
         match_names = steerer_names
         constraints = [
-            dict(range=target, **orbit)
+            (elem, None, axis, value+offset(elem, axis))
             for target, orbit in zip(self.targets, design_orbit)
+            for elem in [self.model.elements[target]]
+            for axis, value in orbit.items()
         ]
-        self.model.madx.match(
-            sequence=self.model.sequence.name,
+        self.model.twiss_args = dict(self.model.twiss_args, **init_orbit)
+        return self.model.match(
             vary=match_names,
             weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
-            constraints=constraints,
-            **init_twiss)
-        self.model.twiss.invalidate()
-
-        # return corrections
-        return {knob: self.model.read_param(knob)
-                for knob in steerer_knobs}
+            constraints=constraints)
 
     def backup(self):
         self.backup_twiss_args = self.model.twiss_args
