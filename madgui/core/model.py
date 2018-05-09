@@ -80,12 +80,35 @@ class Model(Object):
         self.command_log = command_log
         self.stdout_log = stdout_log
         self.config = config
-        self.load(filename)
+        self.filename = os.path.abspath(filename)
+        path, name = os.path.split(filename)
+        base, ext = os.path.splitext(name)
+        self.path = path
+        self.name = base
+        self.madx = Madx(command_log=self.command_log,
+                         stdout_log=self.stdout_log,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,
+                         lock=RLock())
+        if ext.lower() in ('.yml', '.yaml'):
+            with open(os.path.join(self.path, filename), 'rb') as f:
+                self.data = data = yaml.safe_load(f)
+            self.path = os.path.join(self.path, data.get('path', '.'))
+            self._load_params(data, 'beam')
+            self._load_params(data, 'twiss')
+            for filename in data.get('init-files', []):
+                self.call(filename)
+        else:
+            self.call(filename)
+            sequence = self._guess_main_sequence()
+            data = self._get_seq_model(sequence)
+        self._init_segment(
+            sequence=data['sequence'],
+            range=data['range'],
+            beam=data['beam'],
+            twiss_args=data['twiss'],
+        )
         self.twiss.invalidate()
-
-    def minrpc_flags(self):
-        """Flags for launching the backend library in a remote process."""
-        return dict(lock=RLock(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def destroy(self):
         """Annihilate current model. Stop interpreter."""
@@ -279,51 +302,7 @@ class Model(Object):
             'twiss': self.twiss_args,
         })
 
-    def load(self, filename):
-        """Load model or plain MAD-X file."""
-        self.filename = os.path.abspath(filename)
-        path, name = os.path.split(filename)
-        base, ext = os.path.splitext(name)
-        self.path = path
-        self.name = base
-        self.madx = Madx(command_log=self.command_log,
-                         stdout_log=self.stdout_log,
-                         **self.minrpc_flags())
-        if ext.lower() in ('.yml', '.yaml'):
-            self.load_model(name)
-        else:
-            self.load_madx_file(name)
-
-    def load_model(self, filename):
-        """Load model data from file."""
-        with open(os.path.join(self.path, filename), 'rb') as f:
-            self.data = data = yaml.safe_load(f)
-        self.path = os.path.join(self.path, data.get('path', '.'))
-        self._load_params(data, 'beam')
-        self._load_params(data, 'twiss')
-        for filename in data.get('init-files', []):
-            self.call(filename)
-        segment_data = {'sequence', 'range', 'beam', 'twiss'}
-        if all(data.get(p) for p in segment_data):
-            self.init_segment(data)
-
-    def load_madx_file(self, filename):
-        """Load a plain MAD-X file."""
-        self.call(filename)
-        sequence = self._get_main_sequence()
-        data = self._get_seq_model(sequence)
-        self.init_segment(data)
-
-    def init_segment(self, data):
-        """Initialize model sequence/range."""
-        self._init_segment(
-            sequence=data['sequence'],
-            range=data['range'],
-            beam=data['beam'],
-            twiss_args=data['twiss'],
-        )
-
-    def _get_main_sequence(self):
+    def _guess_main_sequence(self):
         """Try to guess the 'main' sequence to be viewed."""
         sequence = self.madx.sequence()
         if sequence:
