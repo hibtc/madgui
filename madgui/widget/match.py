@@ -153,6 +153,8 @@ class MatchWidget(QtGui.QWidget):
         role = self.buttonBox.buttonRole(button)
         if role == QtGui.QDialogButtonBox.ApplyRole:
             self.matcher.apply()
+        elif role == QtGui.QDialogButtonBox.ResetRole:
+            self.matcher.revert()
 
     def add_constraint(self):
         el   = self.elem_enum._values[0]
