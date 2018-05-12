@@ -3,7 +3,7 @@ MAD-X backend for madgui.
 """
 
 import os
-from collections import namedtuple, Sequence, OrderedDict, defaultdict
+from collections import namedtuple, Sequence, OrderedDict, defaultdict, Mapping
 from functools import partial, reduce
 import itertools
 from bisect import bisect_right
@@ -15,6 +15,7 @@ import numpy as np
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element
 from cpymad.util import normalize_range_name, is_identifier
 
+from madgui.qt import QtGui
 from madgui.core.base import Object, Signal, Cache
 from madgui.util.stream import StreamReader
 from madgui.util import yaml
@@ -69,7 +70,7 @@ class Model(Object):
     destroyed = Signal()
     matcher = None
 
-    def __init__(self, filename, config, command_log, stdout_log):
+    def __init__(self, filename, config, command_log, stdout_log, undo_stack):
         super().__init__()
         self.twiss = Cache(self._retrack)
         self.sector = Cache(self._sector)
@@ -79,6 +80,7 @@ class Model(Object):
         self.init_files = []
         self.command_log = command_log
         self.stdout_log = stdout_log
+        self.undo_stack = undo_stack
         self.config = config
         self.filename = os.path.abspath(filename)
         path, name = os.path.split(filename)
@@ -276,6 +278,11 @@ class Model(Object):
 
     def call(self, name):
         self._call(name)
+        # Have to clear the stack because MAD-X commands are not reversible in
+        # general (sequence definition, makethin, loading tables, etc)!
+        # TODO: we should analyze the file: if it contains only variable
+        # assignments, we can simply add a corresponding ChangeKnobs action.
+        self.undo_stack.clear()
         self.elements.invalidate()
         self.twiss.invalidate()
 
@@ -486,11 +493,38 @@ class Model(Object):
         allowed_types = (list, int, float)
         return isinstance(v, allowed_types) and k.lower() not in blacklist
 
+    def _exec(self, action):
+        if action:
+            self.undo_stack.push(action)
+            return action
+
     def update_globals(self, globals):
+        return self._exec(UpdateCommand(
+            self.globals, globals, self._update_globals,
+            "Change knobs: {}"))
+
+    def update_beam(self, beam):
+        return self._exec(UpdateCommand(
+            self.beam, beam, self._update_beam,
+            "Change beam: {}"))
+
+    def update_twiss_args(self, twiss):
+        return self._exec(UpdateCommand(
+            self.twiss_args, twiss, self._update_twiss_args,
+            "Change twiss args: {}"))
+
+    def update_element(self, data, elem_index):
+        elem = self.elements[elem_index]
+        return self._exec(UpdateCommand(
+            elem, data,
+            partial(self._update_element, elem_index=elem_index),
+            "Change element {}: {{}}".format(elem.name)))
+
+    def _update_globals(self, globals):
         self.globals = globals
         self.twiss.invalidate()
 
-    def update_beam(self, beam):
+    def _update_beam(self, beam):
         new_beam = self.beam.copy()
         new_beam.update((k.lower(), v) for k, v in beam.items())
         if 'e_kin' in new_beam:
@@ -501,13 +535,13 @@ class Model(Object):
         self.beam = new_beam
         self.twiss.invalidate()
 
-    def update_twiss_args(self, twiss):
+    def _update_twiss_args(self, twiss):
         new_twiss = self.twiss_args.copy()
         new_twiss.update((k.lower(), v) for k, v in twiss.items())
         self.twiss_args = new_twiss
         self.twiss.invalidate()
 
-    def update_element(self, data, elem_index):
+    def _update_element(self, data, elem_index):
         # TODO: this crashes for many parameters
         # - proper mutability detection
         # - update only changed values
@@ -738,6 +772,8 @@ class Model(Object):
 
     def match(self, vary, constraints, **kwargs):
 
+        globals = dict(self.globals)
+
         # list intermediate positions
         # NOTE: need list instead of set, because quantity is unhashable:
         elem_positions = defaultdict(list)
@@ -775,17 +811,20 @@ class Model(Object):
         weights.update(kwargs.pop('weight', {}))
         twiss_args = self.twiss_args.copy()
         twiss_args.update(kwargs)
+
+        old_values = {v: self.read_param(v) for v in vary}
         self.madx.match(sequence=self.sequence.name,
                         vary=vary,
                         constraints=madx_constraints,
                         weight=weights,
                         **twiss_args)
-        # TODO: update only modified elements
-        self.elements.invalidate()
-        self.twiss.invalidate()
+        new_values = {v: self.read_param(v) for v in vary}
+        self._exec(UpdateCommand(
+            old_values, new_values, self._update_globals,
+            "Match: {}"))
 
         # return corrections
-        return {v: self.read_param(v) for v in vary}
+        return new_values
 
     def read_monitor(self, name):
         """Mitigates read access to a monitor."""
@@ -810,18 +849,7 @@ class Model(Object):
         """Read element attribute. Return numeric value."""
         return self.madx.eval(expr)
 
-    def write_param(self, expr, value):
-        """Update element attribute into control system."""
-        if self.madx.eval(expr) != value:
-            self.madx.globals[expr] = value
-            self.twiss.invalidate()
-            # TODO: invalidate element…
-            # knob.elem.invalidate()
-
-    def write_params(self, params):
-        write = self.write_param
-        for param, value in params:
-            write(param, value)
+    write_params = update_globals
 
 
 def process_spec(prespec, data):
@@ -992,3 +1020,27 @@ def _eval_expr(value):
     if isinstance(value, ArrayAttribute):
         return list(value)
     return value
+
+
+# Actions (for undo mechanism):
+
+def items(d):
+    return d.items() if isinstance(d, Mapping) else d
+
+class UpdateCommand(QtGui.QUndoCommand):
+
+    def __init__(self, old, new, write, text):
+        super().__init__()
+        self._new = {k: v for k, v in items(new) if old[k] != v}
+        self._old = {k: v for k, v in items(old) if k in self._new}
+        self._set = write
+        self.setText(text.format(", ".join(self._new)))
+
+    def undo(self):
+        self._set(self._old)
+
+    def redo(self):
+        self._set(self._new)
+
+    def __bool__(self):
+        return bool(self._new)

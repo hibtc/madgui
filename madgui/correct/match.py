@@ -39,7 +39,6 @@ class Matcher(Object):
         self.knobs = model.get_knobs()
         self.constraints = List()
         self.variables = List()
-        self.variables.update_after.connect(self._on_update_variables)
         self.design_values = {}
         self.mirror_mode = model.config['matching'].get('mirror', True)
 
@@ -70,6 +69,7 @@ class Matcher(Object):
     def revert(self):
         self.variables.clear()
         self.constraints.clear()
+        self.model.update_globals(self.design_values)
 
     def reject(self):
         self.revert()
@@ -125,16 +125,6 @@ class Matcher(Object):
             if elem.base_name.lower() in elem_types
             for knob in self.model.get_elem_knobs(elem)
         ]
-
-    # Set value back to factory defaults
-
-    def _on_update_variables(self, indices, old_values, new_values):
-        new = {v.knob: v.value  for v in new_values}
-        old = {v.knob: v.design for v in old_values if v.knob not in new}
-        # Revert unapplied variables to design settings:
-        # TODO: this should be handled on the level of the model, see #17.
-        self.model.write_params(old.items())
-        self.model.write_params(new.items())
 
 
 class MatchTransform:
