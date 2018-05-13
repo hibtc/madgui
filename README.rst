@@ -26,7 +26,7 @@ Requirements
 
   Otherwise, please refer to cpymad's `installation instructions`_.
 
-.. _WinPython 3.4: https://sourceforge.net/projects/winpython/files/WinPython_3.4/3.4.4.6/
+.. _WinPython 3.4 Qt5: https://sourceforge.net/projects/winpython/files/WinPython_3.4/3.4.4.6/
 .. _hibtc/cpymad#41: https://github.com/hibtc/cpymad/issues/41
 .. _installation instructions: http://hibtc.github.io/cpymad/installation/index.html
 .. _MAD-X: http://madx.web.cern.ch/madx
