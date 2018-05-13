@@ -64,6 +64,7 @@ class Corrector(Matcher):
 
         self.active = name
         self.mode = dirs
+        self.match_names = steerers
 
         self.monitors[:] = monitors
         elements = self.model.elements
@@ -158,9 +159,6 @@ class Corrector(Matcher):
         :param dict init_orbit: initial conditions as returned by the fit
         """
 
-        blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
-        match_names = {v.knob for v in self.variables
-                       if v.knob.lower() not in blacklist}
         def offset(c):
             dx, dy = self._monitor_offs.get(c.elem.name.lower(), (0, 0))
             if c.axis in ('x', 'posx'): return dx
@@ -174,7 +172,7 @@ class Corrector(Matcher):
 
         self.model.twiss_args = dict(self.model.twiss_args, **init_orbit)
         return self.model.match(
-            vary=match_names,
+            vary=self.match_names,
             method=('jacobian', {}),
             weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
             constraints=constraints)
