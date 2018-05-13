@@ -60,7 +60,7 @@ def main():
             'madgui.widget',
         ],
         install_requires=[
-            'cpymad>=1.0.0rc0',
+            'cpymad>=1.0.0rc1',
             'docopt',           # command line parsing
             'matplotlib',
             'numpy',

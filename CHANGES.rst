@@ -1,6 +1,58 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.10.0
+------
+Date: 13.05.2018
+
+- execute ``onload`` commands *after* loading models
+- add coordinate axes and size indicator to floor plan
+- use ``logging`` for warnings in emittance module
+- use the global logger instead of personal loggers
+- fix bug in TableView that can cause using the wrong quantity for unit conversion
+- knobs are now exclusively global variables occuring in deferred expressions
+- remove ``Knob`` class
+- don't show units in globals dialog nor in matching dialog
+- show globals names in uppercase
+- use .ui file for mainwindow
+- add UI for filtering shown log records in main window
+- suppress MAD-X output by default
+- refactor and cleanup TableView API considerably; the old ``ValueProxy``
+  classes are now replaced by ``Delegate`` classes that no nothing about the
+  individual cell and a ``Cell`` class that provides a context
+- allow specializing virtually all data roles by passing an apropriate value or
+  callback function to ``ColumnInfo``
+- unify and improve handling of checked columns
+- remove config item for left/right number alignment
+- introduce offsets for monitor calibration
+- add naive way to define monitor offsets as the difference between model and
+  measurement
+- keep monitor values in MAD-X units internally
+- add units to column title for several table views
+- add "Expression" column for elements
+- highlight user-specified values using bold
+- remove ``DataStore``, replaced by simplified TableView API and getter methods
+- fix energy/mass UI units
+- add "E_kin" field for beam
+- fix exception in YAML params exporter
+- fix bug in sectormap due to interpolate
+- compute sectormap only once between changes, and only on demand
+- fix missing redraw after ``twiss``
+- fix editing ``kick`` (works only for HIT-model style angle/k0 definitions)
+- remove ``Element.id`` in favor of ``.index``
+- remove our own proxy layer for ``Element``, use the cpymad elements directly
+- remove support for scalar names referring to vector components ("KNL[0]" etc)
+- simplifications for ``ElementList`` and how elements can be accessed
+- fix ``open_graph`` always showing "orbit" plot
+- make the different beam diagnostic tasks part of a tabbed dialog,
+  increase code sharing
+- rework the beam diagnostic widgets, layout, buttons, defaults
+- remember plot window positions, sizes and graph names
+- inline some initializer methods in ``model``
+- use undo/redo mechanism and a corresponding history widget that fixes the
+  backup/restore mechanism used in several places
+
+
 1.9.0
 -----
 Date: 16.04.2018
