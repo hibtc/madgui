@@ -115,7 +115,7 @@
       <item>
        <widget class="QDialogButtonBox" name="std_buttons">
         <property name="standardButtons">
-         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
+         <set>QDialogButtonBox::Reset|QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
         </property>
        </widget>
       </item>

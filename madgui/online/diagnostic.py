@@ -99,6 +99,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
+        self.std_buttons.button(Buttons.Reset).clicked.connect(self.restore)
         self.btn_update.clicked.connect(self.update)
 
         self.backup()
