@@ -459,12 +459,14 @@ class MatchTool(CaptureTool):
 
     def activate(self):
         """Start matching mode."""
+        self.matcher.start()
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
         self.plot.window().parent().viewMatchDialog.create()
 
     def deactivate(self):
         """Stop matching mode."""
+        self.matcher.stop()
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 

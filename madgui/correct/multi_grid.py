@@ -80,31 +80,6 @@ class Corrector(Matcher):
             if knob.lower() in self._knobs
         ]
 
-    # manage 'active' state
-
-    started = False
-
-    def start(self):
-        if not self.started:
-            self.started = True
-            self.backup()
-
-    def stop(self):
-        if self.started:
-            self.started = False
-            self.restore()
-
-    def backup(self):
-        self.backup_twiss_args = self.model.twiss_args
-        self.backup_strengths = {
-            knob: self.model.read_param(knob)
-            for knob in self._knobs
-        }
-
-    def restore(self):
-        self.model.twiss_args = self.backup_twiss_args
-        self.model.write_params(self.backup_strengths.items())
-
     def update(self):
         self.update_readouts()
         self.update_fit()
@@ -121,18 +96,12 @@ class Corrector(Matcher):
         if len(self.readouts) < 2:
             return
         self.control.read_all()
-        self.model.twiss_args = self.backup_twiss_args
-        self.model.sector.invalidate()
         init_orbit, chi_squared, singular = \
             self.fit_particle_orbit()
         if singular:
             return
-        init_twiss = {}
-        init_twiss.update(self.model.twiss_args)
-        init_twiss.update(init_orbit)
         self.fit_results = init_orbit
-        self.model.twiss_args = init_twiss
-        self.model.twiss.invalidate()
+        self.model.update_twiss_args(init_orbit)
 
     # computations
 
@@ -168,14 +137,14 @@ class Corrector(Matcher):
             (c.elem, None, c.axis, from_ui(c.axis, c.value)+offset(c))
             for c in self.constraints
         ]
-        self.model.update_globals(self.selected.get('assign', {}))
-
-        self.model.twiss_args = dict(self.model.twiss_args, **init_orbit)
-        return self.model.match(
-            vary=self.match_names,
-            method=('jacobian', {}),
-            weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
-            constraints=constraints)
+        with self.model.rollback("Orbit correction"):
+            self.model.update_globals(self.selected.get('assign', {}))
+            self.model.update_twiss_args(init_orbit)
+            return self.model.match(
+                vary=self.match_names,
+                method=('jacobian', {}),
+                weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
+                constraints=constraints)
 
 
 def display_name(name):
@@ -240,15 +209,10 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        twiss_args = self.corrector.model.twiss_args
-        self.corrector.restore()
         self.corrector.model.write_params(self.steerer_corrections.items())
         self.corrector.control.write_params(self.steerer_corrections.items())
         self.corrector.apply()
-        self.corrector.backup()
         self.corrector.control._plugin.execute()
-        self.corrector.model.twiss_args = twiss_args
-        self.corrector.model.twiss.invalidate()
 
     def init_controls(self):
         for tab in (self.mon_tab, self.con_tab, self.var_tab):

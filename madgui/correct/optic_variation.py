@@ -76,18 +76,6 @@ class Corrector:
         self.orbit_records = List()
         control._frame.open_graph('orbit')
 
-    started = False
-
-    def start(self):
-        if not self.started:
-            self.started = True
-            self.backup()
-
-    def stop(self):
-        if self.started:
-            self.started = False
-            self.restore()
-
     # access element values
 
     def get_dvm(self, knob):
@@ -103,25 +91,15 @@ class Corrector:
 
         # update initial conditions to compute sectormaps accounting for the
         # given initial conditions:
-        twiss_args_backup = self.model.twiss_args.copy()
-        if init_orbit:
-            init_twiss = self.model.twiss_args.copy()
-            init_twiss.update(init_orbit)
-            self.model.twiss_args = init_twiss
-            self.model.sector.invalidate()
-
-        try:
+        with self.model.rollback("Orbit correction"):
+            self.model.update_twiss_args(init_orbit or {})
             return self.model.get_transfer_maps([
                 self.model.start if orig is None else orig,
                 self.model.get_element_info(dest)])[1]
-        finally:
-            self.model.twiss_args = twiss_args_backup
-            self.model.sector.invalidate()
 
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
         self.control.read_all()
-        self.model.twiss_args = self.backup_twiss_args
 
     def get_csys_optics(self):
         return {knob: self.control._plugin.read_param(knob)
@@ -217,22 +195,12 @@ class Corrector:
             for elem in [self.model.elements[target]]
             for axis, value in orbit.items()
         ]
-        self.model.twiss_args = dict(self.model.twiss_args, **init_orbit)
-        return self.model.match(
-            vary=match_names,
-            weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
-            constraints=constraints)
-
-    def backup(self):
-        self.backup_twiss_args = self.model.twiss_args
-        self.backup_strengths = {
-            knob: self.model.read_param(knob)
-            for knob in self._knobs
-        }
-
-    def restore(self):
-        self.model.twiss_args = self.backup_twiss_args
-        self.model.write_params(self.backup_strengths.items())
+        with self.model.rollback("Orbit correction"):
+            self.model.update_twiss_args(init_orbit)
+            return self.model.match(
+                vary=match_names,
+                weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
+                constraints=constraints)
 
     def _strip_sd_pair(self, sd_values, prefix='pos'):
         return ('x', sd_values[prefix + 'x'],
@@ -371,12 +339,10 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        self.corrector.restore()
         self.corrector.model.write_params(self.steerer_corrections.items())
         self.corrector.control.write_params(self.steerer_corrections.items())
-        self.corrector.backup()
+        self.corrector.apply()
         self.corrector.control._plugin.execute()
-        self.corrector.model.twiss.invalidate()
         self.corrector.clear_orbit_records()
 
     num_focus_levels = 6

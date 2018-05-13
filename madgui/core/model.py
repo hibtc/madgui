@@ -5,6 +5,7 @@ MAD-X backend for madgui.
 import os
 from collections import namedtuple, Sequence, OrderedDict, defaultdict, Mapping
 from functools import partial, reduce
+from contextlib import contextmanager
 import itertools
 from bisect import bisect_right
 import subprocess
@@ -492,6 +493,23 @@ class Model(Object):
         blacklist = self.config['parameter_sets']['element']['readonly']
         allowed_types = (list, int, float)
         return isinstance(v, allowed_types) and k.lower() not in blacklist
+
+    @contextmanager
+    def macro(self, text):
+        self.undo_stack.beginMacro(text)
+        try:
+            yield None
+        finally:
+            self.undo_stack.endMacro()
+
+    @contextmanager
+    def rollback(self, text="temporary change"):
+        self.undo_stack.beginMacro(text)
+        try:
+            yield None
+        finally:
+            self.undo_stack.endMacro()
+            self.undo_stack.undo()
 
     def _exec(self, action):
         if action:
