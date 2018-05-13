@@ -498,27 +498,24 @@ class Model(Object):
             self.undo_stack.push(action)
             return action
 
-    def update_globals(self, globals):
+    def update_globals(self, globals, text="Change knobs: {}"):
         return self._exec(UpdateCommand(
-            self.globals, globals, self._update_globals,
-            "Change knobs: {}"))
+            self.globals, globals, self._update_globals, text))
 
-    def update_beam(self, beam):
+    def update_beam(self, beam, text="Change beam: {}"):
         return self._exec(UpdateCommand(
-            self.beam, beam, self._update_beam,
-            "Change beam: {}"))
+            self.beam, beam, self._update_beam, text))
 
-    def update_twiss_args(self, twiss):
+    def update_twiss_args(self, twiss, text="Change twiss args: {}"):
         return self._exec(UpdateCommand(
-            self.twiss_args, twiss, self._update_twiss_args,
-            "Change twiss args: {}"))
+            self.twiss_args, twiss, self._update_twiss_args, text))
 
-    def update_element(self, data, elem_index):
+    def update_element(self, data, elem_index, text=None):
         elem = self.elements[elem_index]
         return self._exec(UpdateCommand(
             elem, data,
             partial(self._update_element, elem_index=elem_index),
-            "Change element {}: {{}}".format(elem.name)))
+            text or "Change element {}: {{}}".format(elem.name)))
 
     def _update_globals(self, globals):
         self.globals = globals
