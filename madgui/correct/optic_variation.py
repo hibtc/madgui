@@ -312,19 +312,6 @@ class CorrectorWidget(QtGui.QWidget):
     def closeEvent(self, event):
         self.corrector.stop()
 
-    shown = False
-    def showEvent(self, event):
-        self.shown = True
-        self.update_csys_values_timer = QtCore.QTimer()
-        self.update_csys_values_timer.timeout.connect(self.update_csys_values)
-        self.update_csys_values_timer.start(1000)
-
-    def hideEvent(self, event):
-        if self.shown:
-            self.shown = False
-            self.update_csys_values_timer.timeout.disconnect(self.update_csys_values)
-            self.update_csys_values_timer.stop()
-
     def update_records(self):
         self.records_table.rows = self.corrector.orbit_records
 

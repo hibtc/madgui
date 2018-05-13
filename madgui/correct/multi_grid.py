@@ -257,13 +257,6 @@ class CorrectorWidget(QtGui.QWidget):
     def closeEvent(self, event):
         self.corrector.stop()
 
-    shown = False
-    def showEvent(self, event):
-        self.shown = False
-
-    def hideEvent(self, event):
-        self.shown = True
-
     def on_execute_corrections(self):
         """Apply calculated corrections."""
         twiss_args = self.corrector.model.twiss_args
