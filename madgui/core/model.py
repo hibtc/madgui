@@ -1028,8 +1028,11 @@ class UpdateCommand(QtGui.QUndoCommand):
 
     def __init__(self, old, new, write, text):
         super().__init__()
-        self._new = {k: v for k, v in items(new) if old[k] != v}
+        old = {k.lower(): v for k, v in items(old)}
+        new = {k.lower(): v for k, v in items(new)}
+        self._new = {k: v for k, v in items(new) if old.get(k, 0) != v}
         self._old = {k: v for k, v in items(old) if k in self._new}
+        self._old.update({k: 0 for k in self._new.keys() - self._old.keys()})
         self._set = write
         self.setText(text.format(", ".join(self._new)))
 
