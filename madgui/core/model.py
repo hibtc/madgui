@@ -500,7 +500,7 @@ class Model(Object):
 
     def update_globals(self, globals, text="Change knobs: {}"):
         return self._exec(UpdateCommand(
-            self.globals, globals, self._update_globals, text))
+            self.globals.defs, globals, self._update_globals, text))
 
     def update_beam(self, beam, text="Change beam: {}"):
         return self._exec(UpdateCommand(
@@ -513,7 +513,7 @@ class Model(Object):
     def update_element(self, data, elem_index, text=None):
         elem = self.elements[elem_index]
         return self._exec(UpdateCommand(
-            elem, data,
+            elem.defs, data,
             partial(self._update_element, elem_index=elem_index),
             text or "Change element {}: {{}}".format(elem.name)))
 
