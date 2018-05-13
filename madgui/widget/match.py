@@ -141,6 +141,12 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.resizeColumnToContents(1)
         self.vtab.resizeColumnToContents(2)
 
+    def showEvent(self, event):
+        self.matcher.start()
+
+    def hideEvent(self, event):
+        self.matcher.stop()
+
     def accept(self):
         self.matcher.accept()
         self.window().accept()
@@ -153,6 +159,8 @@ class MatchWidget(QtGui.QWidget):
         role = self.buttonBox.buttonRole(button)
         if role == QtGui.QDialogButtonBox.ApplyRole:
             self.matcher.apply()
+        elif role == QtGui.QDialogButtonBox.ResetRole:
+            self.matcher.reset()
 
     def add_constraint(self):
         el   = self.elem_enum._values[0]

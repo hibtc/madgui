@@ -272,8 +272,21 @@ class MainWindow(QtGui.QMainWindow):
         self.checkbox_madx_output.clicked.connect(
             partial(self.log_window.enable, 'MADX'))
 
-    def createStatusBar(self):
-        self.statusBar()
+        style = self.style()
+        self.undo_stack = undo_stack = QtGui.QUndoStack()
+        self.undo_action = undo_stack.createUndoAction(self)
+        self.redo_action = undo_stack.createRedoAction(self)
+        self.undo_action.setShortcut(QtGui.QKeySequence.Undo)
+        self.redo_action.setShortcut(QtGui.QKeySequence.Redo)
+        self.undo_action.setIcon(style.standardIcon(QtGui.QStyle.SP_ArrowBack))
+        self.redo_action.setIcon(style.standardIcon(QtGui.QStyle.SP_ArrowForward))
+        undo_history_action = QtGui.QAction(
+            style.standardIcon(QtGui.QStyle.SP_ToolBarVerticalExtensionButton),
+            "List", self)
+        undo_history_action.triggered.connect(self.createUndoView.create)
+        self.toolbar.addAction(self.undo_action)
+        self.toolbar.addAction(self.redo_action)
+        self.toolbar.addAction(undo_history_action)
 
     def log_command(self, text):
         text = text.rstrip()
@@ -281,6 +294,16 @@ class MainWindow(QtGui.QMainWindow):
         self.logfile.flush()
         self.log_window.records.append(LogRecord(
             time.time(), 'SEND', text))
+
+    @SingleWindow.factory
+    def createUndoView(self):
+        widget = QtGui.QUndoView(self.undo_stack, self)
+        widget.setEmptyLabel("<Unmodified>")
+        dialog = Dialog(self)
+        dialog.setWidget(widget)
+        dialog.setWindowTitle("Change history")
+        dialog.show()
+        return widget
 
     #----------------------------------------
     # Menu actions
@@ -308,8 +331,7 @@ class MainWindow(QtGui.QMainWindow):
         filename = getOpenFileName(
             self, 'Open MAD-X strengths file', self.folder, filters)
         if filename:
-            self.model.madx.call(filename)
-            self.model.twiss.invalidate()
+            self.model.call(filename)
 
     def fileSave(self):
         pass
@@ -451,7 +473,8 @@ class MainWindow(QtGui.QMainWindow):
         logging.info('Logging commands to: {}'.format(logfile))
         self.setModel(Model(filename, self.config,
                             command_log=self.log_command,
-                            stdout_log=self.dataReceived.emit))
+                            stdout_log=self.dataReceived.emit,
+                            undo_stack=self.undo_stack))
         self.showTwiss()
 
     def setModel(self, model):

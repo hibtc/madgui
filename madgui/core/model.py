@@ -3,8 +3,9 @@ MAD-X backend for madgui.
 """
 
 import os
-from collections import namedtuple, Sequence, OrderedDict, defaultdict
+from collections import namedtuple, Sequence, OrderedDict, defaultdict, Mapping
 from functools import partial, reduce
+from contextlib import contextmanager
 import itertools
 from bisect import bisect_right
 import subprocess
@@ -15,6 +16,7 @@ import numpy as np
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element
 from cpymad.util import normalize_range_name, is_identifier
 
+from madgui.qt import QtGui
 from madgui.core.base import Object, Signal, Cache
 from madgui.util.stream import StreamReader
 from madgui.util import yaml
@@ -69,7 +71,7 @@ class Model(Object):
     destroyed = Signal()
     matcher = None
 
-    def __init__(self, filename, config, command_log, stdout_log):
+    def __init__(self, filename, config, command_log, stdout_log, undo_stack):
         super().__init__()
         self.twiss = Cache(self._retrack)
         self.sector = Cache(self._sector)
@@ -79,13 +81,37 @@ class Model(Object):
         self.init_files = []
         self.command_log = command_log
         self.stdout_log = stdout_log
+        self.undo_stack = undo_stack
         self.config = config
-        self.load(filename)
+        self.filename = os.path.abspath(filename)
+        path, name = os.path.split(filename)
+        base, ext = os.path.splitext(name)
+        self.path = path
+        self.name = base
+        self.madx = Madx(command_log=self.command_log,
+                         stdout_log=self.stdout_log,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,
+                         lock=RLock())
+        if ext.lower() in ('.yml', '.yaml'):
+            with open(os.path.join(self.path, filename), 'rb') as f:
+                self.data = data = yaml.safe_load(f)
+            self.path = os.path.join(self.path, data.get('path', '.'))
+            self._load_params(data, 'beam')
+            self._load_params(data, 'twiss')
+            for filename in data.get('init-files', []):
+                self._call(filename)
+        else:
+            self._call(filename)
+            sequence = self._guess_main_sequence()
+            data = self._get_seq_model(sequence)
+        self._init_segment(
+            sequence=data['sequence'],
+            range=data['range'],
+            beam=data['beam'],
+            twiss_args=data['twiss'],
+        )
         self.twiss.invalidate()
-
-    def minrpc_flags(self):
-        """Flags for launching the backend library in a remote process."""
-        return dict(lock=RLock(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     def destroy(self):
         """Annihilate current model. Stop interpreter."""
@@ -252,6 +278,16 @@ class Model(Object):
         return self.madx and self.madx._libmadx
 
     def call(self, name):
+        self._call(name)
+        # Have to clear the stack because MAD-X commands are not reversible in
+        # general (sequence definition, makethin, loading tables, etc)!
+        # TODO: we should analyze the file: if it contains only variable
+        # assignments, we can simply add a corresponding ChangeKnobs action.
+        self.undo_stack.clear()
+        self.elements.invalidate()
+        self.twiss.invalidate()
+
+    def _call(self, name):
         """Load a MAD-X file into the current workspace."""
         name = os.path.join(self.path, name)
         self.madx.call(name, True)
@@ -279,51 +315,7 @@ class Model(Object):
             'twiss': self.twiss_args,
         })
 
-    def load(self, filename):
-        """Load model or plain MAD-X file."""
-        self.filename = os.path.abspath(filename)
-        path, name = os.path.split(filename)
-        base, ext = os.path.splitext(name)
-        self.path = path
-        self.name = base
-        self.madx = Madx(command_log=self.command_log,
-                         stdout_log=self.stdout_log,
-                         **self.minrpc_flags())
-        if ext.lower() in ('.yml', '.yaml'):
-            self.load_model(name)
-        else:
-            self.load_madx_file(name)
-
-    def load_model(self, filename):
-        """Load model data from file."""
-        with open(os.path.join(self.path, filename), 'rb') as f:
-            self.data = data = yaml.safe_load(f)
-        self.path = os.path.join(self.path, data.get('path', '.'))
-        self._load_params(data, 'beam')
-        self._load_params(data, 'twiss')
-        for filename in data.get('init-files', []):
-            self.call(filename)
-        segment_data = {'sequence', 'range', 'beam', 'twiss'}
-        if all(data.get(p) for p in segment_data):
-            self.init_segment(data)
-
-    def load_madx_file(self, filename):
-        """Load a plain MAD-X file."""
-        self.call(filename)
-        sequence = self._get_main_sequence()
-        data = self._get_seq_model(sequence)
-        self.init_segment(data)
-
-    def init_segment(self, data):
-        """Initialize model sequence/range."""
-        self._init_segment(
-            sequence=data['sequence'],
-            range=data['range'],
-            beam=data['beam'],
-            twiss_args=data['twiss'],
-        )
-
-    def _get_main_sequence(self):
+    def _guess_main_sequence(self):
         """Try to guess the 'main' sequence to be viewed."""
         sequence = self.madx.sequence()
         if sequence:
@@ -502,11 +494,52 @@ class Model(Object):
         allowed_types = (list, int, float)
         return isinstance(v, allowed_types) and k.lower() not in blacklist
 
-    def update_globals(self, globals):
+    @contextmanager
+    def macro(self, text):
+        self.undo_stack.beginMacro(text)
+        try:
+            yield None
+        finally:
+            self.undo_stack.endMacro()
+
+    @contextmanager
+    def rollback(self, text="temporary change"):
+        self.undo_stack.beginMacro(text)
+        try:
+            yield None
+        finally:
+            self.undo_stack.endMacro()
+            self.undo_stack.undo()
+
+    def _exec(self, action):
+        if action:
+            self.undo_stack.push(action)
+            return action
+
+    def update_globals(self, globals, text="Change knobs: {}"):
+        return self._exec(UpdateCommand(
+            self.globals.defs, globals, self._update_globals, text))
+
+    def update_beam(self, beam, text="Change beam: {}"):
+        return self._exec(UpdateCommand(
+            self.beam, beam, self._update_beam, text))
+
+    def update_twiss_args(self, twiss, text="Change twiss args: {}"):
+        return self._exec(UpdateCommand(
+            self.twiss_args, twiss, self._update_twiss_args, text))
+
+    def update_element(self, data, elem_index, text=None):
+        elem = self.elements[elem_index]
+        return self._exec(UpdateCommand(
+            elem.defs, data,
+            partial(self._update_element, elem_index=elem_index),
+            text or "Change element {}: {{}}".format(elem.name)))
+
+    def _update_globals(self, globals):
         self.globals = globals
         self.twiss.invalidate()
 
-    def update_beam(self, beam):
+    def _update_beam(self, beam):
         new_beam = self.beam.copy()
         new_beam.update((k.lower(), v) for k, v in beam.items())
         if 'e_kin' in new_beam:
@@ -517,13 +550,13 @@ class Model(Object):
         self.beam = new_beam
         self.twiss.invalidate()
 
-    def update_twiss_args(self, twiss):
+    def _update_twiss_args(self, twiss):
         new_twiss = self.twiss_args.copy()
         new_twiss.update((k.lower(), v) for k, v in twiss.items())
         self.twiss_args = new_twiss
         self.twiss.invalidate()
 
-    def update_element(self, data, elem_index):
+    def _update_element(self, data, elem_index):
         # TODO: this crashes for many parameters
         # - proper mutability detection
         # - update only changed values
@@ -752,7 +785,9 @@ class Model(Object):
         return self.madx.sectormap((), **self._get_twiss_args(),
                                    table='sectortwiss')
 
-    def match(self, variables, constraints):
+    def match(self, vary, constraints, **kwargs):
+
+        globals = dict(self.globals)
 
         # list intermediate positions
         # NOTE: need list instead of set, because quantity is unhashable:
@@ -768,6 +803,7 @@ class Model(Object):
         for name, positions in elem_positions.items():
             at = self.elements[name].position
             l = self.elements[name].length
+            positions = [at+l if p is None else p for p in positions]
             if any(not np.isclose(p, at+l) for p in positions):
                 x = [float((p-at)/l) for p in positions]
                 self.madx.command.select(
@@ -787,14 +823,23 @@ class Model(Object):
             'sig11': 1/ex, 'sig12': 1/ex, 'sig21': 1/ex, 'sig22': 1/ex,
             'sig33': 1/ey, 'sig34': 1/ey, 'sig43': 1/ey, 'sig44': 1/ey,
         }
+        weights.update(kwargs.pop('weight', {}))
+        twiss_args = self.twiss_args.copy()
+        twiss_args.update(kwargs)
+
+        old_values = {v: self.read_param(v) for v in vary}
         self.madx.match(sequence=self.sequence.name,
-                        vary=variables,
+                        vary=vary,
                         constraints=madx_constraints,
                         weight=weights,
-                        **self.twiss_args)
-        # TODO: update only modified elements
-        self.elements.invalidate()
-        self.twiss.invalidate()
+                        **twiss_args)
+        new_values = {v: self.read_param(v) for v in vary}
+        self._exec(UpdateCommand(
+            old_values, new_values, self._update_globals,
+            "Match: {}"))
+
+        # return corrections
+        return new_values
 
     def read_monitor(self, name):
         """Mitigates read access to a monitor."""
@@ -819,18 +864,7 @@ class Model(Object):
         """Read element attribute. Return numeric value."""
         return self.madx.eval(expr)
 
-    def write_param(self, expr, value):
-        """Update element attribute into control system."""
-        if self.madx.eval(expr) != value:
-            self.madx.globals[expr] = value
-            self.twiss.invalidate()
-            # TODO: invalidate element…
-            # knob.elem.invalidate()
-
-    def write_params(self, params):
-        write = self.write_param
-        for param, value in params:
-            write(param, value)
+    write_params = update_globals
 
 
 def process_spec(prespec, data):
@@ -1001,3 +1035,30 @@ def _eval_expr(value):
     if isinstance(value, ArrayAttribute):
         return list(value)
     return value
+
+
+# Actions (for undo mechanism):
+
+def items(d):
+    return d.items() if isinstance(d, Mapping) else d
+
+class UpdateCommand(QtGui.QUndoCommand):
+
+    def __init__(self, old, new, write, text):
+        super().__init__()
+        old = {k.lower(): v for k, v in items(old)}
+        new = {k.lower(): v for k, v in items(new)}
+        self._new = {k: v for k, v in items(new) if old.get(k, 0) != v}
+        self._old = {k: v for k, v in items(old) if k in self._new}
+        self._old.update({k: 0 for k in self._new.keys() - self._old.keys()})
+        self._set = write
+        self.setText(text.format(", ".join(self._new)))
+
+    def undo(self):
+        self._set(self._old)
+
+    def redo(self):
+        self._set(self._new)
+
+    def __bool__(self):
+        return bool(self._new)

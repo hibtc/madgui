@@ -99,6 +99,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
+        self.std_buttons.button(Buttons.Reset).clicked.connect(self.restore)
         self.btn_update.clicked.connect(self.update)
 
         self.backup()
@@ -134,11 +135,11 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def backup(self):
-        self.backup_twiss_args = self.model.twiss_args
+        self.clean_index = self.model.undo_stack.index()
 
     def restore(self):
-        self.model.twiss_args = self.backup_twiss_args
-        self.model.twiss.invalidate()
+        # TODO: don't undo commands issued by other parties!
+        self.model.undo_stack.setIndex(self.clean_index)
 
     def remove(self):
         for scene in self.frame.views:
@@ -313,8 +314,7 @@ class OrbitWidget(_FitWidget):
 
     def apply(self):
         if not self.singular:
-            self.model.twiss_args = dict(self.model.twiss_args, **self.init_orbit)
-            self.model.twiss.invalidate()
+            self.model.update_twiss_args(self.init_orbit)
 
     def on_update(self):
         self.init_orbit, chi_squared, self.singular = \
@@ -330,7 +330,6 @@ class OrbitWidget(_FitWidget):
         from madgui.correct.orbit import fit_initial_orbit
 
         records = [m for m in self.monitors if self.selected(m)]
-        self.restore()
         secmaps = self.model.get_transfer_maps([r.name for r in records])
         secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
@@ -378,8 +377,7 @@ class EmittanceDialog(_FitWidget):
                 'ex': results.pop('ex', model.ex()),
                 'ey': results.pop('ey', model.ey()),
             })
-            model.twiss_args.update(results)
-            model.twiss.invalidate()
+            model.update_twiss_args(results)
 
     exportFilters = [
         ("YAML file", ".yml"),

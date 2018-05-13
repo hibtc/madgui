@@ -88,7 +88,7 @@ class Control(Object):
         self._model.write_params([
             (knob.name, live.read_param(knob.name))
             for knob in knobs or self.get_knobs()
-        ])
+        ], "Read params from online control")
 
     def write_all(self, knobs=None):
         model = self._model
