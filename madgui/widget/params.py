@@ -233,8 +233,55 @@ class CommandEdit(ParamTable):
         return list(self.command.cmdpar.values())
 
     def _store(self, data):
+        # TODO: must change values via model.update_element!
         # TODO: should not override expressions by plain values
         self.command(**data)
+
+
+def is_var_mutable(cell):
+    expr = cell.item.expr
+    return not expr or isinstance(expr, list) or is_identifier(expr)
+
+def set_var_value(view, item, idx, value):
+    expr = item.expr
+    name = expr if expr and is_identifier(expr) else item.name
+    view._model.update_globals({name: value})
+    item.value = value
+    item.inform = 1
+
+def set_var_expr(view, item, idx, value):
+    view._model.update_globals({item.name: value})
+    # TODO: update item.value!
+    item.expr = value
+    item.inform = 1
+
+
+# TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
+class GlobalsEdit(ParamTable):
+
+    columns = [
+        tableview.ColumnInfo("Name", 'name'),
+        tableview.ExtColumnInfo("Value", 'value', set_var_value, padding=50,
+                                mutable=is_var_mutable),
+        tableview.ExtColumnInfo("Expression", 'expr', set_var_expr, padding=50,
+                                mutable=True,
+                                resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+    def __init__(self, model):
+        self._model = model
+        super().__init__(self._fetch, self._store)
+
+    def _fetch(self, **kw):
+        globals = self._model.globals
+        return [
+            ParamInfo(k.upper(), v, globals.expr(k))
+            for k, v in globals.items()
+        ]
+
+    def _store(self, data):
+        self._model.update_globals(data)
+
 
 
 class TabParamTables(QtGui.QTabWidget):
