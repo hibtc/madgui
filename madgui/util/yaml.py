@@ -9,11 +9,18 @@ import yaml
 __all__ = [
     'safe_load',
     'safe_dump',
+    'YAMLError',
+    'ParserError',
+    'ScannerError',
 ]
 
 # For speed:
 SafeLoader = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)
 SafeDumper = getattr(yaml, 'CSafeDumper', yaml.SafeDumper)
+
+YAMLError = yaml.error.YAMLError
+ParserError = yaml.parser.ParserError
+ScannerError = yaml.scanner.ScannerError
 
 
 if sys.version_info >= (3, 6):

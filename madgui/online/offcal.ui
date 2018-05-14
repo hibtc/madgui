@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>444</width>
-    <height>344</height>
+    <width>492</width>
+    <height>453</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,73 +24,89 @@
        <string>Scan</string>
       </attribute>
       <layout class="QFormLayout">
+       <item row="0" column="0" colspan="2">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Optics</string>
+         </property>
+         <layout class="QFormLayout">
+          <item row="0" column="0">
+           <widget class="QListWidget" name="ctrl_quads">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::ExtendedSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPlainTextEdit" name="ctrl_optics">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Import from file:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDialogButtonBox" name="btns_io">
+            <property name="standardButtons">
+             <set>QDialogButtonBox::Open|QDialogButtonBox::Save</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Import from focus:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <layout class="QFormLayout">
+            <item row="1" column="1">
+             <layout class="QHBoxLayout">
+              <item>
+               <widget class="QLineEdit" name="ctrl_focus">
+                <property name="text">
+                 <string>1,2,3,4</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="btn_focus">
+                <property name="text">
+                 <string>Read</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item row="1" column="0">
-        <widget class="QLabel">
-         <property name="text">
-          <string>K1 step size:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QDoubleSpinBox" name="ctrl_stepsize">
-         <property name="singleStep">
-          <double>0.050000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.050000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel">
-         <property name="text">
-          <string>Sampling points:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QSpinBox" name="ctrl_numsteps">
-         <property name="value">
-          <number>5</number>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <layout class="QHBoxLayout">
-         <item>
-          <widget class="QRadioButton" name="radio_active">
-           <property name="text">
-            <string>active value</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="radio_zero">
-           <property name="text">
-            <string>zero</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel">
-         <property name="text">
-          <string>Scan vicinity:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel">
+        <widget class="QLabel" name="label">
          <property name="text">
           <string>Number of shots:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
+       <item row="1" column="1">
         <widget class="QSpinBox" name="ctrl_numshots">
          <property name="minimum">
           <number>1</number>
@@ -100,21 +116,14 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0" colspan="2">
-        <widget class="QListWidget" name="ctrl_quads">
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label">
          <property name="text">
           <string>Save raw data:</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="1">
+       <item row="2" column="1">
         <layout class="QHBoxLayout">
          <item>
           <widget class="QLineEdit" name="ctrl_file">
