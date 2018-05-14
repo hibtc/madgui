@@ -536,17 +536,23 @@ class Model(Object):
             text or "Change element {}: {{}}".format(elem.name)))
 
     def _update_globals(self, globals):
-        self.globals = globals
+        for k, v in globals.items():
+            if v is None:
+                v = 0
+            elif v == '':
+                v = self.madx.globals[k]
+            self.madx.globals[k] = v
         self.twiss.invalidate()
 
     def _update_beam(self, beam):
         new_beam = self.beam.copy()
         new_beam.update((k.lower(), v) for k, v in beam.items())
-        if 'e_kin' in new_beam:
+        if 'e_kin' in beam:
             eval = self.madx.eval
-            ekin = eval(new_beam.pop('e_kin'))
+            ekin = eval(new_beam.get('e_kin'))
             mass = eval(new_beam.get('mass', 1))
             new_beam['energy'] = (ekin + 1) * mass
+        new_beam.pop('e_kin', None)
         self.beam = new_beam
         self.twiss.invalidate()
 
@@ -1041,15 +1047,22 @@ def _eval_expr(value):
 def items(d):
     return d.items() if isinstance(d, Mapping) else d
 
+def trim(s):
+    return s.replace(' ', '') if isinstance(s, str) else s
+
+
 class UpdateCommand(QtGui.QUndoCommand):
 
     def __init__(self, old, new, write, text):
         super().__init__()
         old = {k.lower(): v for k, v in items(old)}
         new = {k.lower(): v for k, v in items(new)}
-        self._new = {k: v for k, v in items(new) if old.get(k, 0) != v}
+        # NOTE: This trims not only expressions (as intended) but also regular
+        # string arguments (which is incorrect). However, this should be a
+        # sufficiently rare use case, so we don't care for now…
+        self._new = {k: v for k, v in items(new) if trim(old.get(k)) != trim(v)}
         self._old = {k: v for k, v in items(old) if k in self._new}
-        self._old.update({k: 0 for k in self._new.keys() - self._old.keys()})
+        self._old.update({k: None for k in self._new.keys() - self._old.keys()})
         self._set = write
         self.setText(text.format(", ".join(self._new)))
 
