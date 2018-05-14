@@ -935,7 +935,7 @@ class ElementList(Sequence):
         try:
             self.index(element)
             return True
-        except ValueError:
+        except (KeyError, ValueError):
             return False
 
     def __getitem__(self, index):
