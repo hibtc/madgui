@@ -536,7 +536,12 @@ class Model(Object):
             text or "Change element {}: {{}}".format(elem.name)))
 
     def _update_globals(self, globals):
-        self.globals = globals
+        for k, v in globals.items():
+            if v is None:
+                v = 0
+            elif v == '':
+                v = self.madx.globals[k]
+            self.madx.globals[k] = v
         self.twiss.invalidate()
 
     def _update_beam(self, beam):
@@ -1049,9 +1054,9 @@ class UpdateCommand(QtGui.QUndoCommand):
         super().__init__()
         old = {k.lower(): v for k, v in items(old)}
         new = {k.lower(): v for k, v in items(new)}
-        self._new = {k: v for k, v in items(new) if old.get(k, 0) != v}
+        self._new = {k: v for k, v in items(new) if old.get(k) != v}
         self._old = {k: v for k, v in items(old) if k in self._new}
-        self._old.update({k: 0 for k in self._new.keys() - self._old.keys()})
+        self._old.update({k: None for k in self._new.keys() - self._old.keys()})
         self._set = write
         self.setText(text.format(", ".join(self._new)))
 
