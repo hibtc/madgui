@@ -93,12 +93,7 @@ class ParamTable(TableView):
         """Update dialog from the datastore."""
         self.fetch_args.update(kw)
         # TODO: get along without resetting all the rows?
-        rows = self.fetch(**self.fetch_args)
-        if len(rows) == len(self.rows):
-            for i, row in enumerate(rows):
-                self.rows[i] = row
-        else:
-            self.rows = rows
+        self.rows = self.fetch(**self.fetch_args)
 
         # Set initial size:
         if not self.isVisible():
