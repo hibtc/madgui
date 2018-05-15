@@ -36,7 +36,6 @@ def get_unit(param):
 
 def set_value(tab, item, index, value):
     tab.store({item.name: value}, **tab.fetch_args)
-    item.value = value
 
 
 def cell_is_mutable(cell):
@@ -172,26 +171,15 @@ def cmd_font(cell):
         return font
 
 
-from cpymad.util import is_identifier
-def cmd_mutable(cell):
-    expr = cell.item.expr
-    return not expr or isinstance(expr, list) or is_identifier(expr)
+def set_expr(tab, item, index, value):
+    # Replace deferred expressions by their value if `not value`:
+    tab.store({item.name: value or item.value}, **tab.fetch_args)
 
 
-def cmd_set_attr(view, item, idx, value):
-    expr = item.expr
-    if expr and not isinstance(expr, list) and is_identifier(expr):
-        view.command._madx.globals[expr] = value
-    else:
-        setattr(view.command, item.name, value)
-    item.value = value
-    item.inform = 1
-
-def cmd_set_expr(view, item, idx, value):
-    setattr(view.command, item.name, value)
-    # TODO: update item.value!
-    item.expr = value
-    item.inform = 1
+import cpymad.util as _dtypes
+def is_expr_mutable(cell):
+    return cell.item.dtype not in (_dtypes.PARAM_TYPE_STRING,
+                                   _dtypes.PARAM_TYPE_STRING_ARRAY)
 
 
 class CommandEdit(ParamTable):
@@ -209,46 +197,18 @@ class CommandEdit(ParamTable):
 
     columns = [
         tableview.ColumnInfo("Parameter", 'name', **_col_style),
-        tableview.ExtColumnInfo("Value", 'value', cmd_set_attr, padding=50,
-                                mutable=cmd_mutable, convert='name'),
+        tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
+                                mutable=True, convert='name'),
         tableview.ColumnInfo("Unit", get_unit,
                              resize=QtGui.QHeaderView.ResizeToContents),
-        tableview.ExtColumnInfo("Expression", 'expr', cmd_set_expr, padding=50,
-                                mutable=True,
+        tableview.ExtColumnInfo("Expression", 'expr', set_expr, padding=50,
+                                mutable=is_expr_mutable,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
-    def __init__(self, retrieve):
-        self.retrieve = retrieve
-        self.command = None
-        super().__init__(self._fetch, self._store)
-
-    def _fetch(self, **kw):
-        self.command = self.retrieve(**kw)
-        return list(self.command.cmdpar.values())
-
-    def _store(self, data):
-        # TODO: must change values via model.update_element!
-        # TODO: should not override expressions by plain values
-        self.command(**data)
-
 
 def is_var_mutable(cell):
-    expr = cell.item.expr
-    return not expr or isinstance(expr, list) or is_identifier(expr)
-
-def set_var_value(view, item, idx, value):
-    expr = item.expr
-    name = expr if expr and is_identifier(expr) else item.name
-    view._model.update_globals({name: value})
-    item.value = value
-    item.inform = 1
-
-def set_var_expr(view, item, idx, value):
-    view._model.update_globals({item.name: value})
-    # TODO: update item.value!
-    item.expr = value
-    item.inform = 1
+    return cell.item.inform > 0
 
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
@@ -256,27 +216,24 @@ class GlobalsEdit(ParamTable):
 
     columns = [
         tableview.ColumnInfo("Name", 'name'),
-        tableview.ExtColumnInfo("Value", 'value', set_var_value, padding=50,
+        tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
                                 mutable=is_var_mutable),
-        tableview.ExtColumnInfo("Expression", 'expr', set_var_expr, padding=50,
+        tableview.ExtColumnInfo("Expression", 'expr', set_expr, padding=50,
                                 mutable=True,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, model):
         self._model = model
-        super().__init__(self._fetch, self._store)
+        super().__init__(self._fetch, self._model.update_globals)
 
-    def _fetch(self, **kw):
+    def _fetch(self):
         globals = self._model.globals
         return [
             ParamInfo(k.upper(), p.value, p.expr)
             for k, p in globals.cmdpar.items()
             if p.inform > 0
         ]
-
-    def _store(self, data):
-        self._model.update_globals(data)
 
 
 

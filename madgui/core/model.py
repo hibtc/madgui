@@ -491,8 +491,7 @@ class Model(Object):
     # TODO…
     def _is_mutable_attribute(self, k, v):
         blacklist = self.config['parameter_sets']['element']['readonly']
-        allowed_types = (list, int, float)
-        return isinstance(v, allowed_types) and k.lower() not in blacklist
+        return k.lower() not in blacklist
 
     @contextmanager
     def macro(self, text):
@@ -569,20 +568,14 @@ class Model(Object):
         elem = self.elements[elem_index]
         name = elem.node_name
         d = {k.lower(): v for k, v in data.items()
-             if self._is_mutable_attribute(k, v)
-             and getattr(elem, k.lower()) != v}
+             if self._is_mutable_attribute(k, v)}
         if 'kick' in d and elem.base_name == 'sbend':
             # FIXME: This assumes the definition `k0:=(angle+k0)/l` and
             # will deliver incorrect results if this is not the case!
             var, = (set(self._get_knobs(elem, 'k0')) -
                     set(self._get_knobs(elem, 'angle')))
             self.madx.globals[var] = d.pop('kick')
-        if any(isinstance(v, (list,str,bool)) for v in d.values()):
-            self.madx.elements[name](**d)
-        else:
-            for k, v in d.items():
-                # TODO: filter those with default values
-                self.madx.globals[_get_property_lval(elem, k)[0]] = v
+        self.madx.elements[name](**d)
 
         self.elements.invalidate(elem)
         self.twiss.invalidate()
