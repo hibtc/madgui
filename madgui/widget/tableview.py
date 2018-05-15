@@ -199,7 +199,7 @@ class TableCell:
         return False
 
 
-class TableModel(QtCore.QAbstractItemModel):
+class TableModel(QtGui.QStandardItemModel):
 
     """
     Table data model.
@@ -211,46 +211,41 @@ class TableModel(QtCore.QAbstractItemModel):
     baseFlags = Qt.ItemNeverHasChildren
 
     def __init__(self, columns, data=None, context=None):
-        super().__init__()
+        self._rows = List() if data is None else data
+        self._rows.update_after.connect(self._update_finalize)
+        super().__init__(len(self._rows), len(columns))
         self.columns = columns
         self.context = context if context is not None else self
-        self._rows = List() if data is None else data
-        self._rows.update_before.connect(self._update_prepare)
-        self._rows.update_after.connect(self._update_finalize)
+        for col, info in enumerate(columns):
+            self.setHeaderData(col, Qt.Horizontal, info.title, Qt.DisplayRole)
+        for row, item in enumerate(self._rows):
+            for col in range(self.columnCount()):
+                self.setItem(row, col, self._create_item(row, col, item))
 
-    def _update_prepare(self, slice, old_values, new_values):
-        simple = slice.step is None or slice.step == 1
-        parent = QtCore.QModelIndex()
-        num_old = len(old_values)
-        num_new = len(new_values)
-        start = slice.start or 0
-        if simple and num_old == 0 and num_new > 0:
-            stop = start+num_new-1
-            self.beginInsertRows(parent, start, stop)
-        elif simple and num_old > 0 and num_new == 0:
-            stop = start+num_old-1
-            self.beginRemoveRows(parent, start, stop)
-        elif simple and num_old == num_new:
-            pass
-        else:
-            self.beginResetModel()
+    def _create_item(self, row, col, data):
+        cell = self.cell(self.index(row, col))
+        item = QtGui.QStandardItem()
+        item.setFlags(cell.flags)
+        for role, name in ROLES.items():
+            value = getattr(cell, name, None)
+            if value is not None:
+                item.setData(value, role)
+        return item
 
     def _update_finalize(self, slice, old_values, new_values):
         simple = slice.step is None or slice.step == 1
+        if not simple:
+            raise NotImplementedError()
         num_old = len(old_values)
         num_new = len(new_values)
-        if simple and num_old == 0 and num_new > 0:
-            self.endInsertRows()
-        elif simple and num_old > 0 and num_new == 0:
-            self.endRemoveRows()
-        elif simple and num_old == num_new:
-            start = slice.start or 0
-            stop = start + num_old - 1
-            self.dataChanged.emit(
-                self.index(start, 0),
-                self.index(stop, self.columnCount()-1))
-        else:
-            self.endResetModel()
+        start = (slice.start or 0) % len(self.rows)
+        if num_new > num_old:
+            self.insertRows(start+num_old, num_new-num_old)
+        elif num_old > num_new:
+            self.removeRows(start+num_new, num_old-num_new)
+        for row, item in enumerate(new_values):
+            for col in range(self.columnCount()):
+                self.setItem(row, col, self._create_item(row, col, item))
 
     # data accessors
 
@@ -267,32 +262,6 @@ class TableModel(QtCore.QAbstractItemModel):
 
     # QAbstractItemModel overrides
 
-    def index(self, row, col, parent=None):
-        return self.createIndex(row, col)
-
-    def parent(self, index):
-        return QtCore.QModelIndex()
-
-    def columnCount(self, parent=None):
-        return len(self.columns)
-
-    def rowCount(self, parent=None):
-        return 0 if parent and parent.isValid() else len(self.rows)
-
-    def data(self, index, role=Qt.DisplayRole):
-        if index.isValid() and role in ROLES:
-            return getattr(self.cell(index), ROLES[role], None)
-        return super().data(index, role)
-
-    def flags(self, index):
-        if index.isValid():
-            return self.cell(index).flags
-        return super().flags(index)
-
-    def headerData(self, section, orientation, role=Qt.DisplayRole):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.columns[section].title
-
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
             return False
@@ -303,9 +272,10 @@ class TableModel(QtCore.QAbstractItemModel):
             # (and hence self._update_finalize is never called). In fact, we
             # we should trigger the update by re-querying self.rows, but right
             # now this is not guaranteed in all places...
-            self.dataChanged.emit(
-                self.index(index.row(), 0),
-                self.index(index.row(), self.columnCount()-1))
+            row = index.row()
+            item = self.rows[row]
+            for col in range(self.columnCount()):
+                self.setItem(row, col, self._create_item(row, col, item))
         return changed
 
 
