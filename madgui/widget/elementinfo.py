@@ -30,15 +30,12 @@ class ElementInfoBox(QtGui.QWidget):
     changed_element = Signal()
     _el_id = None
 
-    def get_elem(self, elem_index):
-        return self.model.sequence.expanded_elements[self.el_id]
-
     def __init__(self, model, el_id, **kwargs):
         super().__init__()
 
         self.notebook = TabParamTables([
             ('Summary', ParamTable(self._fetch_summary, self._update_element)),
-            ('Params', CommandEdit(self.get_elem)),
+            ('Params', CommandEdit(self._fetch_cmdpar, self._update_element)),
             ('Twiss', ParamTable(self._fetch_twiss)),
             ('Sigma', ParamTable(self._fetch_sigma)),
             ('Ellipse', EllipseWidget(model)),
@@ -103,6 +100,10 @@ class ElementInfoBox(QtGui.QWidget):
     @property
     def exporter(self):
         return self.notebook.currentWidget().exporter
+
+    def _fetch_cmdpar(self, elem_index):
+        return list(self.model.sequence.expanded_elements[self.el_id]
+                    .cmdpar.values())
 
     def _update_element(self, *args, **kwargs):
         return self.model.update_element(*args, **kwargs)

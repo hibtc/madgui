@@ -173,12 +173,12 @@ def cmd_font(cell):
 
 
 def cmd_set_attr(view, item, idx, value):
-    setattr(view.command, item.name, value)
+    view.store({item.name: value}, **view.fetch_args)
     item.value = value
     item.inform = 1
 
 def cmd_set_expr(view, item, idx, value):
-    setattr(view.command, item.name, value)
+    view.store({item.name: value}, **view.fetch_args)
     # TODO: update item.value!
     item.expr = value
     item.inform = 1
@@ -207,20 +207,6 @@ class CommandEdit(ParamTable):
                                 mutable=True,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
-
-    def __init__(self, retrieve):
-        self.retrieve = retrieve
-        self.command = None
-        super().__init__(self._fetch, self._store)
-
-    def _fetch(self, **kw):
-        self.command = self.retrieve(**kw)
-        return list(self.command.cmdpar.values())
-
-    def _store(self, data):
-        # TODO: must change values via model.update_element!
-        # TODO: should not override expressions by plain values
-        self.command(**data)
 
 
 def is_var_mutable(cell):
