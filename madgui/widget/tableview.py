@@ -325,6 +325,7 @@ class TableView(QtGui.QTreeView):
         super().__init__(parent, **kwargs)
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
+        self.setRootIsDecorated(False)
         if columns is not None:
             self.set_columns(columns, data, context)
         config.number.changed.connect(self.format_changed)
