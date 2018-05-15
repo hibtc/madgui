@@ -14,7 +14,7 @@ import yaml
 
 from madgui.qt import QtCore, QtGui, load_ui
 
-from madgui.core.unit import from_ui, ui_units, change_unit, get_raw_label
+from madgui.core.unit import ui_units, change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import fit_button, monospace
@@ -134,7 +134,7 @@ class Corrector(Matcher):
             if c.axis in ('y', 'posy'): return dy
             return 0
         constraints = [
-            (c.elem, None, c.axis, from_ui(c.axis, c.value)+offset(c))
+            (c.elem, None, c.axis, c.value+offset(c))
             for c in self.constraints
         ]
         with self.model.rollback("Orbit correction"):
