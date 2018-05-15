@@ -172,18 +172,8 @@ def cmd_font(cell):
         return font
 
 
-from cpymad.util import is_identifier
-def cmd_mutable(cell):
-    expr = cell.item.expr
-    return not expr or isinstance(expr, list) or is_identifier(expr)
-
-
 def cmd_set_attr(view, item, idx, value):
-    expr = item.expr
-    if expr and not isinstance(expr, list) and is_identifier(expr):
-        view.command._madx.globals[expr] = value
-    else:
-        setattr(view.command, item.name, value)
+    setattr(view.command, item.name, value)
     item.value = value
     item.inform = 1
 
@@ -210,7 +200,7 @@ class CommandEdit(ParamTable):
     columns = [
         tableview.ColumnInfo("Parameter", 'name', **_col_style),
         tableview.ExtColumnInfo("Value", 'value', cmd_set_attr, padding=50,
-                                mutable=cmd_mutable, convert='name'),
+                                mutable=True, convert='name'),
         tableview.ColumnInfo("Unit", get_unit,
                              resize=QtGui.QHeaderView.ResizeToContents),
         tableview.ExtColumnInfo("Expression", 'expr', cmd_set_expr, padding=50,
@@ -234,13 +224,10 @@ class CommandEdit(ParamTable):
 
 
 def is_var_mutable(cell):
-    expr = cell.item.expr
-    return not expr or isinstance(expr, list) or is_identifier(expr)
+    return cell.item.inform > 0
 
 def set_var_value(view, item, idx, value):
-    expr = item.expr
-    name = expr if expr and is_identifier(expr) else item.name
-    view._model.update_globals({name: value})
+    view._model.update_globals({item.name: value})
     item.value = value
     item.inform = 1
 

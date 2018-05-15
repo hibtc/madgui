@@ -577,12 +577,7 @@ class Model(Object):
             var, = (set(self._get_knobs(elem, 'k0')) -
                     set(self._get_knobs(elem, 'angle')))
             self.madx.globals[var] = d.pop('kick')
-        if any(isinstance(v, (list,str,bool)) for v in d.values()):
-            self.madx.elements[name](**d)
-        else:
-            for k, v in d.items():
-                # TODO: filter those with default values
-                self.madx.globals[_get_property_lval(elem, k)[0]] = v
+        self.madx.elements[name](**d)
 
         self.elements.invalidate(elem)
         self.twiss.invalidate()
