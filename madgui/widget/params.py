@@ -55,11 +55,6 @@ class ParamTable(tableview.TableView):
     The parameters are displayed in 3 columns: name / value / unit.
     """
 
-    # TODO: disable/remove Cancel/Apply buttons in non-transactional mode
-    # TODO: add "transactional" mode: update only after *applying*
-    # TODO: visually indicate rows with non-default values: "bold"
-    # TODO: move rows with default or unset values to bottom? [MAD-X]
-
     def __init__(self, fetch, store=None, units=True, data_key=None, **kwargs):
         """Initialize data."""
 
