@@ -171,10 +171,10 @@ class TableCell:
     as attribute.
     """
 
-    def __init__(self, model, index):
+    def __init__(self, model, row, col):
         self.model = model
-        self.row = row = index.row()
-        self.col = col = index.column()
+        self.row = row
+        self.col = col
         self.info = model.columns[col]
         self.item = model.rows[row]
 
@@ -215,11 +215,14 @@ class TableModel(QtCore.QAbstractItemModel):
         self.columns = columns
         self.context = context if context is not None else self
         self._rows = List() if data is None else data
+        self._items = [self._create_row(row) for row in range(self.rowCount())]
         self._rows.update_before.connect(self._update_prepare)
         self._rows.update_after.connect(self._update_finalize)
 
     def _update_prepare(self, slice, old_values, new_values):
         simple = slice.step is None or slice.step == 1
+        if not simple:
+            raise NotImplementedError()
         parent = QtCore.QModelIndex()
         num_old = len(old_values)
         num_new = len(new_values)
@@ -237,8 +240,15 @@ class TableModel(QtCore.QAbstractItemModel):
 
     def _update_finalize(self, slice, old_values, new_values):
         simple = slice.step is None or slice.step == 1
+        if not simple:
+            raise NotImplementedError()
         num_old = len(old_values)
         num_new = len(new_values)
+        start = (slice.start or 0) % len(self.rows)
+        self._items[slice] = [
+            self._create_row(start+row)
+            for row in range(num_new)
+        ]
         if simple and num_old == 0 and num_new > 0:
             self.endInsertRows()
         elif simple and num_old > 0 and num_new == 0:
@@ -252,6 +262,10 @@ class TableModel(QtCore.QAbstractItemModel):
         else:
             self.endResetModel()
 
+    def _create_row(self, row):
+        return [TableCell(self, row, col)
+                for col in range(self.columnCount())]
+
     # data accessors
 
     @property
@@ -263,7 +277,7 @@ class TableModel(QtCore.QAbstractItemModel):
         self._rows[:] = rows
 
     def cell(self, index):
-        return TableCell(self, index)
+        return self._items[index.row()][index.column()]
 
     # QAbstractItemModel overrides
 
@@ -303,9 +317,11 @@ class TableModel(QtCore.QAbstractItemModel):
             # (and hence self._update_finalize is never called). In fact, we
             # we should trigger the update by re-querying self.rows, but right
             # now this is not guaranteed in all places...
+            row = index.row()
+            self._items[row] = self._create_row(row)
             self.dataChanged.emit(
-                self.index(index.row(), 0),
-                self.index(index.row(), self.columnCount()-1))
+                self.index(row, 0),
+                self.index(row, self.columnCount()-1))
         return changed
 
 
