@@ -192,7 +192,6 @@ class TableCell:
 
     def __init__(self, model, index):
         self.model = model
-        self.index = index
         self.row = row = index.row()
         self.col = col = index.column()
         self.info = model.columns[col]
