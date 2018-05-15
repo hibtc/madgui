@@ -264,7 +264,7 @@ class TableModel(QtCore.QAbstractTableModel):
             self.endRemoveRows()
         elif simple and num_old == num_new:
             start = slice.start or 0
-            stop = start + num_old
+            stop = start + num_old - 1
             self.dataChanged.emit(
                 self.createIndex(start, 0),
                 self.createIndex(stop, self.columnCount()-1))
