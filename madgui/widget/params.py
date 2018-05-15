@@ -171,6 +171,11 @@ def cmd_font(cell):
         return font
 
 
+def set_expr(tab, item, index, value):
+    # Replace deferred expressions by their value if `not value`:
+    tab.store({item.name: value or item.value}, **tab.fetch_args)
+
+
 class CommandEdit(ParamTable):
 
     """
@@ -190,7 +195,7 @@ class CommandEdit(ParamTable):
                                 mutable=True, convert='name'),
         tableview.ColumnInfo("Unit", get_unit,
                              resize=QtGui.QHeaderView.ResizeToContents),
-        tableview.ExtColumnInfo("Expression", 'expr', set_value, padding=50,
+        tableview.ExtColumnInfo("Expression", 'expr', set_expr, padding=50,
                                 mutable=True,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
@@ -207,7 +212,7 @@ class GlobalsEdit(ParamTable):
         tableview.ColumnInfo("Name", 'name'),
         tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
                                 mutable=is_var_mutable),
-        tableview.ExtColumnInfo("Expression", 'expr', set_value, padding=50,
+        tableview.ExtColumnInfo("Expression", 'expr', set_expr, padding=50,
                                 mutable=True,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
