@@ -421,6 +421,11 @@ class TableViewDelegate(QtGui.QStyledItemDelegate):
         cell = index.model().cell(index)
         return cell.delegate if cell.editable else ReadOnlyDelegate()
 
+    def sizeHint(self, option, index):
+        hint = super().sizeHint(option, index)
+        hint.setHeight(hint.height() + 10)
+        return hint
+
     def createEditor(self, parent, option, index):
         return self.delegate(index).createEditor(parent, option, index)
 
