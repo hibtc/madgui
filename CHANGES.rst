@@ -1,6 +1,27 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.10.1
+------
+Date: 15.05.2018
+
+- fix ``ElementList.__contains__``
+- show/edit expression field for global variables
+- fix SyntaxError on py34
+- require cpymad 1.0.0rc2
+- use ``e_kin`` only if it was given explicitly when editting beam
+- more accurate undo handling for setting *new* parameters
+- use space-insensitive string comparison before updating expressions
+- fix bug that results in squared UI unit conversion factor during matching
+- use the builtin unit conversion mechanism in match widget
+- allow overwriting deferred expressions by direct values when editting
+- fix for not tracking modifications to element attributes on the undo stack
+- fix obsolete checks that would prevent certain updates to element attributes
+- simplify and unify ParamTable flavours by relying on model invalidation
+- implement "expression deletion" by replacing them with their values
+- make "Expression" field immutable for string attributes
+
+
 1.10.0
 ------
 Date: 13.05.2018
