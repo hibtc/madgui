@@ -36,7 +36,6 @@ def get_unit(param):
 
 def set_value(tab, item, index, value):
     tab.store({item.name: value}, **tab.fetch_args)
-    item.value = value
 
 
 def cell_is_mutable(cell):
@@ -172,18 +171,6 @@ def cmd_font(cell):
         return font
 
 
-def cmd_set_attr(view, item, idx, value):
-    view.store({item.name: value}, **view.fetch_args)
-    item.value = value
-    item.inform = 1
-
-def cmd_set_expr(view, item, idx, value):
-    view.store({item.name: value}, **view.fetch_args)
-    # TODO: update item.value!
-    item.expr = value
-    item.inform = 1
-
-
 class CommandEdit(ParamTable):
 
     """
@@ -199,11 +186,11 @@ class CommandEdit(ParamTable):
 
     columns = [
         tableview.ColumnInfo("Parameter", 'name', **_col_style),
-        tableview.ExtColumnInfo("Value", 'value', cmd_set_attr, padding=50,
+        tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
                                 mutable=True, convert='name'),
         tableview.ColumnInfo("Unit", get_unit,
                              resize=QtGui.QHeaderView.ResizeToContents),
-        tableview.ExtColumnInfo("Expression", 'expr', cmd_set_expr, padding=50,
+        tableview.ExtColumnInfo("Expression", 'expr', set_value, padding=50,
                                 mutable=True,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
@@ -212,44 +199,30 @@ class CommandEdit(ParamTable):
 def is_var_mutable(cell):
     return cell.item.inform > 0
 
-def set_var_value(view, item, idx, value):
-    view._model.update_globals({item.name: value})
-    item.value = value
-    item.inform = 1
-
-def set_var_expr(view, item, idx, value):
-    view._model.update_globals({item.name: value})
-    # TODO: update item.value!
-    item.expr = value
-    item.inform = 1
-
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
     columns = [
         tableview.ColumnInfo("Name", 'name'),
-        tableview.ExtColumnInfo("Value", 'value', set_var_value, padding=50,
+        tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
                                 mutable=is_var_mutable),
-        tableview.ExtColumnInfo("Expression", 'expr', set_var_expr, padding=50,
+        tableview.ExtColumnInfo("Expression", 'expr', set_value, padding=50,
                                 mutable=True,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, model):
         self._model = model
-        super().__init__(self._fetch, self._store)
+        super().__init__(self._fetch, self._model.update_globals)
 
-    def _fetch(self, **kw):
+    def _fetch(self):
         globals = self._model.globals
         return [
             ParamInfo(k.upper(), p.value, p.expr)
             for k, p in globals.cmdpar.items()
             if p.inform > 0
         ]
-
-    def _store(self, data):
-        self._model.update_globals(data)
 
 
 
