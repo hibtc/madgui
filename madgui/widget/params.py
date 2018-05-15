@@ -182,6 +182,10 @@ def is_expr_mutable(cell):
                                    _dtypes.PARAM_TYPE_STRING_ARRAY)
 
 
+def get_name(item):
+    return item.name.title()
+
+
 class CommandEdit(ParamTable):
 
     """
@@ -196,7 +200,7 @@ class CommandEdit(ParamTable):
     _col_style = dict(font=cmd_font)
 
     columns = [
-        tableview.ColumnInfo("Parameter", 'name', **_col_style),
+        tableview.ColumnInfo("Parameter", get_name, **_col_style),
         tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
                                 mutable=True, convert='name'),
         tableview.ColumnInfo("Unit", get_unit,
