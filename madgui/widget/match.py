@@ -3,7 +3,7 @@ UI for matching.
 """
 
 from madgui.qt import QtGui, load_ui
-from madgui.core.unit import ui_units, to_ui, from_ui
+from madgui.core.unit import ui_units
 from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
 from madgui.correct.match import variable_from_knob, Constraint
 from madgui.util.enum import make_enum
@@ -30,12 +30,8 @@ def set_constraint_axis(widget, c, i, axis):
 def get_constraint_unit(widget, c, i):
     return ui_units.label(c.axis, c.value)
 
-def get_constraint_value(widget, c, i):
-    return to_ui(c.axis, c.value)
-
 def set_constraint_value(widget, c, i, value):
     if value is not None:
-        value = from_ui(c.axis, value)
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, c.axis, value)
 
@@ -71,7 +67,7 @@ class MatchWidget(QtGui.QWidget):
                       resize=QtGui.QHeaderView.Stretch),
         ExtColumnInfo("Name", get_constraint_axis, set_constraint_axis,
                       resize=QtGui.QHeaderView.ResizeToContents),
-        ExtColumnInfo("Target", get_constraint_value, set_constraint_value,
+        ExtColumnInfo("Target", 'value', set_constraint_value, convert='axis',
                       resize=QtGui.QHeaderView.ResizeToContents),
         ExtColumnInfo("Unit", get_constraint_unit,
                       resize=QtGui.QHeaderView.ResizeToContents),
