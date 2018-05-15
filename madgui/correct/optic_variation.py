@@ -375,8 +375,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.fit_table.set_columns(self.fit_columns)
         self.corrections_table.set_columns(self.steerer_columns)
         self.records_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.records_table.horizontalHeader().setHighlightSections(False)
-        self.fit_table.horizontalHeader().hide()
+        self.records_table.header().setHighlightSections(False)
+        self.fit_table.header().hide()
 
     def set_initial_values(self):
         self.x_target_value.value = 0
@@ -516,8 +516,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.update_record_index = next(same_values, None)
         self.qp_settings_record.setEnabled(self.update_record_index is None)
         self.records_table.clearSelection()
-        if self.update_record_index is not None:
-            self.records_table.selectRow(self.update_record_index)
+        #if self.update_record_index is not None:
+        #    self.records_table.selectRow(self.update_record_index)
         # new_text = "Record" if self.update_record_index is None else "Update"
         # set_text(self.qp_settings_record, new_text)
 

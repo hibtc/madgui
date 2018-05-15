@@ -54,7 +54,7 @@ class CurveManager(QtGui.QWidget):
         self.connect_signals()
 
     def init_controls(self):
-        self.tab.horizontalHeader().setHighlightSections(False)
+        self.tab.header().setHighlightSections(False)
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.tab.set_columns(self.columns, self.available, self)

@@ -91,7 +91,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self._selected = self._shown.copy()
 
         self.mtab.set_columns(self.monitor_columns, context=self)
-        self.mtab.horizontalHeader().setHighlightSections(False)
+        self.mtab.header().setHighlightSections(False)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
@@ -272,7 +272,7 @@ class _FitWidget(MonitorWidgetBase):
         #self.btn_offsets.clicked.connect(self.save_offsets)
         self.results = List()
 
-        self.rtab.horizontalHeader().setHighlightSections(False)
+        self.rtab.header().setHighlightSections(False)
         self.rtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.rtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.rtab.set_columns(self.result_columns, self.results, self)

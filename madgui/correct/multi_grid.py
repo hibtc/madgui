@@ -216,7 +216,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def init_controls(self):
         for tab in (self.mon_tab, self.con_tab, self.var_tab):
-            tab.horizontalHeader().setHighlightSections(False)
+            tab.header().setHighlightSections(False)
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector

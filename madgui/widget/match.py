@@ -107,8 +107,8 @@ class MatchWidget(QtGui.QWidget):
     # The three steps of UI initialization
 
     def init_controls(self):
-        self.ctab.horizontalHeader().setHighlightSections(False)
-        self.vtab.horizontalHeader().setHighlightSections(False)
+        self.ctab.header().setHighlightSections(False)
+        self.vtab.header().setHighlightSections(False)
         self.ctab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.vtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.ctab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)

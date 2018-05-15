@@ -90,7 +90,7 @@ class ColumnInfo:
         for k, v in kwargs.items():
             setattr(self, k, lift(v))
 
-    # QAbstractTableModel queries
+    # QAbstractItemModel queries
 
     def flags(self, cell):
         # Always editable with ReadOnlyDelegate:
@@ -199,7 +199,7 @@ class TableCell:
         return False
 
 
-class TableModel(QtCore.QAbstractTableModel):
+class TableModel(QtCore.QAbstractItemModel):
 
     """
     Table data model.
@@ -265,13 +265,19 @@ class TableModel(QtCore.QAbstractTableModel):
     def cell(self, index):
         return TableCell(self, index)
 
-    # QAbstractTableModel overrides
+    # QAbstractItemModel overrides
+
+    def index(self, row, col, parent=None):
+        return self.createIndex(row, col)
+
+    def parent(self, index):
+        return QtCore.QModelIndex()
 
     def columnCount(self, parent=None):
         return len(self.columns)
 
     def rowCount(self, parent=None):
-        return len(self.rows)
+        return 0 if parent and parent.isValid() else len(self.rows)
 
     def data(self, index, role=Qt.DisplayRole):
         if index.isValid() and role in ROLES:
@@ -303,7 +309,7 @@ class TableModel(QtCore.QAbstractTableModel):
         return changed
 
 
-class TableView(QtGui.QTableView):
+class TableView(QtGui.QTreeView):
 
     """A table widget using a :class:`TableModel` to handle the data."""
 
@@ -317,7 +323,6 @@ class TableView(QtGui.QTableView):
     def __init__(self, parent=None, columns=None, data=None, context=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super().__init__(parent, **kwargs)
-        self.verticalHeader().hide()
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
         if columns is not None:
@@ -336,7 +341,7 @@ class TableView(QtGui.QTableView):
             resize = (self._default_resize_modes[index > 0]
                       if column.resize is None
                       else column.resize)
-            self.horizontalHeader().setSectionResizeMode(index, resize)
+            self.header().setSectionResizeMode(index, resize)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
@@ -360,6 +365,10 @@ class TableView(QtGui.QTableView):
             del self.model().rows[row]
             #self.model().beginRemoveRows(self.rootIndex(), row, row)
             #self.model().endRemoveRows()
+
+    def resizeColumnsToContents(self):
+        for i in range(self.model().columnCount()):
+            self.resizeColumnToContents(i)
 
     def keyPressEvent(self, event):
         if self.state() == QtGui.QAbstractItemView.NoState:
@@ -387,7 +396,7 @@ class TableView(QtGui.QTableView):
 
     def _columnContentWidth(self, column):
         return max(self.sizeHintForColumn(column),
-                   self.horizontalHeader().sectionSizeHint(column))
+                   self.header().sectionSizeHint(column))
 
     def sizeHint(self):
         content_width = sum(map(self._columnContentWidth,

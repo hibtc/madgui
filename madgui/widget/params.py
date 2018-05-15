@@ -67,9 +67,9 @@ class ParamTable(TableView):
         self.fetch_args = {}
 
         super().__init__(columns=self.columns, context=self, **kwargs)
-        # in case anyone turns the horizontalHeader back on:
-        self.horizontalHeader().setHighlightSections(False)
-        self.horizontalHeader().hide()
+        # in case anyone turns the header back on:
+        self.header().setHighlightSections(False)
+        self.header().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
@@ -102,7 +102,7 @@ class ParamTable(TableView):
 
         # Set initial size:
         if not self.isVisible():
-            self.selectRow(0)
+            #self.selectRow(0)
             self.resizeColumnsToContents()
             self.updateGeometries()
 
