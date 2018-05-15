@@ -176,6 +176,12 @@ def set_expr(tab, item, index, value):
     tab.store({item.name: value or item.value}, **tab.fetch_args)
 
 
+import cpymad.util as _dtypes
+def is_expr_mutable(cell):
+    return cell.item.dtype not in (_dtypes.PARAM_TYPE_STRING,
+                                   _dtypes.PARAM_TYPE_STRING_ARRAY)
+
+
 class CommandEdit(ParamTable):
 
     """
@@ -196,7 +202,7 @@ class CommandEdit(ParamTable):
         tableview.ColumnInfo("Unit", get_unit,
                              resize=QtGui.QHeaderView.ResizeToContents),
         tableview.ExtColumnInfo("Expression", 'expr', set_expr, padding=50,
-                                mutable=True,
+                                mutable=is_expr_mutable,
                                 resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
