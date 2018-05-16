@@ -824,6 +824,8 @@ class Model(Object):
             'sig33': 1/ey, 'sig34': 1/ey, 'sig43': 1/ey, 'sig44': 1/ey,
         }
         weights.update(kwargs.pop('weight', {}))
+        used_cols = {axis.lower() for elem, pos, axis, val in constraints}
+        weights = {k: v for k, v in weights.items() if k in used_cols}
         twiss_args = self.twiss_args.copy()
         twiss_args.update(kwargs)
 
