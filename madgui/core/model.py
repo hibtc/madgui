@@ -808,11 +808,13 @@ class Model(Object):
                     flag='interpolate', range=name, at=x)
 
         # create constraints list to be passed to Madx.match
+        cons = {}
+        for elem, pos, axis, val in constraints:
+            key = (elem.node_name, elem_positions[elem.node_name].index(pos))
+            cons.setdefault(key, {})[axis] = val
         madx_constraints = [
-            {'range': elem.node_name,
-             'iindex': elem_positions[elem.node_name].index(pos),
-             axis: val}
-            for elem, pos, axis, val in constraints]
+            dict(range=name, iindex=pos, **c)
+            for (name, pos), c in cons.items()]
 
         # FIXME TODO: use position-dependent emittances…
         ex = self.ex()
