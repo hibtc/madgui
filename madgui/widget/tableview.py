@@ -216,50 +216,18 @@ class TableModel(QtCore.QAbstractItemModel):
         self.context = context if context is not None else self
         self._rows = List() if data is None else data
         self._items = [self._create_row(row) for row in range(self.rowCount())]
-        self._rows.update_before.connect(self._update_prepare)
         self._rows.update_after.connect(self._update_finalize)
 
-    def _update_prepare(self, slice, old_values, new_values):
-        simple = slice.step is None or slice.step == 1
-        if not simple:
-            raise NotImplementedError()
-        parent = QtCore.QModelIndex()
-        num_old = len(old_values)
-        num_new = len(new_values)
-        start = slice.start or 0
-        if simple and num_old == 0 and num_new > 0:
-            stop = start+num_new-1
-            self.beginInsertRows(parent, start, stop)
-        elif simple and num_old > 0 and num_new == 0:
-            stop = start+num_old-1
-            self.beginRemoveRows(parent, start, stop)
-        elif simple and num_old == num_new:
-            pass
-        else:
-            self.beginResetModel()
-
     def _update_finalize(self, slice, old_values, new_values):
-        simple = slice.step is None or slice.step == 1
-        if not simple:
-            raise NotImplementedError()
-        num_old = len(old_values)
         num_new = len(new_values)
         start = (slice.start or 0) % len(self.rows)
-        self._items[slice] = [
-            self._create_row(start+row)
-            for row in range(num_new)
-        ]
-        if simple and num_old == 0 and num_new > 0:
-            self.endInsertRows()
-        elif simple and num_old > 0 and num_new == 0:
-            self.endRemoveRows()
-        elif simple and num_old == num_new:
-            start = slice.start or 0
-            stop = start + num_old - 1
-            self.dataChanged.emit(
-                self.index(start, 0),
-                self.index(stop, self.columnCount()-1))
-        else:
+        self.beginResetModel()
+        try:
+            self._items[slice] = [
+                self._create_row(start+row)
+                for row in range(num_new)
+            ]
+        finally:
             self.endResetModel()
 
     def _create_row(self, row):
