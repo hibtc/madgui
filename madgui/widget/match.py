@@ -4,41 +4,48 @@ UI for matching.
 
 from madgui.qt import QtGui, load_ui
 from madgui.core.unit import ui_units
-from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
+from madgui.widget.tableview import ColumnInfo
 from madgui.correct.match import variable_from_knob, Constraint
 from madgui.util.enum import make_enum
 
 
-def get_constraint_elem(widget, c, i):
+def get_constraint_elem(cell):
+    widget, c = cell.model.context, cell.item
     return widget.elem_enum(c.elem.node_name if c.elem else "(global)")
 
-def set_constraint_elem(widget, c, i, name):
+def set_constraint_elem(cell, name):
+    widget, c, i = cell.model.context, cell.item, cell.row
     if name is not None:
         el = widget.model.elements[str(name)]
         widget.matcher.constraints[i] = \
             Constraint(el, el.position+el.length, c.axis, c.value)
 
-def get_constraint_axis(widget, c, i):
-    return widget.lcon_enum(c.axis)
+def get_constraint_axis(cell):
+    return widget.lcon_enum(cell.item.axis)
 
-def set_constraint_axis(widget, c, i, axis):
+def set_constraint_axis(cell, axis):
+    widget, c, i = cell.model.context, cell.item, cell.row
     if axis is not None:
         value = widget.model.get_twiss(c.elem.node_name, str(axis), c.pos)
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, str(axis), value)
 
-def get_constraint_unit(widget, c, i):
+def get_constraint_unit(cell):
+    c = cell.item
     return ui_units.label(c.axis, c.value)
 
-def set_constraint_value(widget, c, i, value):
+def set_constraint_value(cell, value):
+    widget, c, i = cell.model.context, cell.item, cell.row
     if value is not None:
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, c.axis, value)
 
-def get_knob_display(widget, v, i):
+def get_knob_display(cell):
+    widget, v = cell.model.context, cell.item
     return widget.knob_enum(v.knob)
 
-def set_knob_display(widget, v, i, text):
+def set_knob_display(cell, text):
+    widget, v, i = cell.model.context, cell.item, cell.row
     if text is not None:
         knob = parse_knob(widget.model, str(text))
         if knob:
@@ -63,19 +70,19 @@ class MatchWidget(QtGui.QWidget):
     ui_file = 'match.ui'
 
     constraints_columns = [
-        ExtColumnInfo("Element", get_constraint_elem, set_constraint_elem,
-                      resize=QtGui.QHeaderView.Stretch),
-        ExtColumnInfo("Name", get_constraint_axis, set_constraint_axis,
-                      resize=QtGui.QHeaderView.ResizeToContents),
-        ExtColumnInfo("Target", 'value', set_constraint_value, convert='axis',
-                      resize=QtGui.QHeaderView.ResizeToContents),
-        ExtColumnInfo("Unit", get_constraint_unit,
-                      resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Element", get_constraint_elem, set_constraint_elem,
+                   resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("Name", get_constraint_axis, set_constraint_axis,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Target", 'value', set_constraint_value, convert='axis',
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Unit", get_constraint_unit,
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     variables_columns = [
-        ExtColumnInfo("Knob", get_knob_display, set_knob_display,
-                      resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("Knob", get_knob_display, set_knob_display,
+                   resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Initial", 'design',
                    resize=QtGui.QHeaderView.ResizeToContents),
         ColumnInfo("Final", 'value',

@@ -6,16 +6,17 @@ import os
 
 from madgui.qt import QtGui, load_ui
 from madgui.core.unit import from_ui
-from madgui.widget.tableview import ExtColumnInfo
+from madgui.widget.tableview import ColumnInfo
 from madgui.widget.filedialog import getOpenFileName
 
 
-def get_curve_name(mgr, curve, i):
-    name, data, style = curve
+def get_curve_name(cell):
+    name, data, style = cell.item
     return name
 
-def set_curve_name(mgr, curve, i, name):
-    _, data, style = curve
+def set_curve_name(cell, name):
+    i, mgr = cell.row, cell.model.context
+    _, data, style = cell.item
     mgr.available[i] = (name, data, style)
 
 def get_curve_show(cell):
@@ -36,10 +37,10 @@ class CurveManager(QtGui.QWidget):
     ui_file = 'curvemanager.ui'
 
     columns = [
-        ExtColumnInfo("curves", get_curve_name, set_curve_name,
-                      checked=get_curve_show, setChecked=set_curve_show,
-                      checkable=True,
-                      resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("curves", get_curve_name, set_curve_name,
+                   checked=get_curve_show, setChecked=set_curve_show,
+                   checkable=True,
+                   resize=QtGui.QHeaderView.Stretch),
     ]
 
     def __init__(self, scene):

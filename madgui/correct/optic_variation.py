@@ -230,7 +230,7 @@ def set_text(ctrl, text):
 
 
 def get_kL(index):
-    return lambda record: record.gui_optics[index]
+    return lambda cell: cell.item.gui_optics[index]
 
 
 class CorrectorWidget(QtGui.QWidget):
@@ -251,7 +251,7 @@ class CorrectorWidget(QtGui.QWidget):
     fit_columns = [
         ColumnInfo("Param", 'name'),
         ColumnInfo("Value", 'value', convert='name'),
-        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+        ColumnInfo("Unit", lambda c: ui_units.label(c.item.name),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
@@ -259,7 +259,7 @@ class CorrectorWidget(QtGui.QWidget):
         ColumnInfo("Steerer", 'name'),
         ColumnInfo("Optimal", 'value', convert='name'),
         ColumnInfo("Current", 'current', convert='name'),
-        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+        ColumnInfo("Unit", lambda c: ui_units.label(c.item.name),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 

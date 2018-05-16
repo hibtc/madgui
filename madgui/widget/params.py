@@ -6,7 +6,7 @@ from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units
 import madgui.util.yaml as yaml
 
-import madgui.widget.tableview as tableview
+from madgui.widget.tableview import TableView, ColumnInfo
 
 
 __all__ = [
@@ -30,11 +30,13 @@ class ParamInfo:
         self.unit = ui_units.label(name, value)
 
 
-def get_unit(param):
+def get_unit(cell):
+    param = cell.item
     return ui_units.label(param.name, param.value)
 
 
-def set_value(tab, item, index, value):
+def set_value(cell, value):
+    tab, item = cell.model.context, cell.item
     tab.store({item.name: value}, **tab.fetch_args)
 
 
@@ -46,7 +48,7 @@ def cell_textcolor(cell):
     return QtGui.QColor(Qt.black if cell.mutable else Qt.darkGray)
 
 
-class ParamTable(tableview.TableView):
+class ParamTable(TableView):
 
     """
     Input controls to show and edit key-value pairs.
@@ -77,14 +79,13 @@ class ParamTable(tableview.TableView):
     @property
     def columns(self):
         columns = [
-            tableview.ColumnInfo("Parameter", 'name'),
-            tableview.ExtColumnInfo(
-                "Value", 'value', set_value, padding=50,
-                convert=self.units and 'name',
-                mutable=cell_is_mutable,
-                foreground=cell_textcolor),
-            tableview.ColumnInfo(
-                "Unit", 'unit', resize=QtGui.QHeaderView.ResizeToContents),
+            ColumnInfo("Parameter", 'name'),
+            ColumnInfo("Value", 'value', set_value, padding=50,
+                       convert=self.units and 'name',
+                       mutable=cell_is_mutable,
+                       foreground=cell_textcolor),
+            ColumnInfo("Unit", 'unit',
+                       resize=QtGui.QHeaderView.ResizeToContents),
         ]
         return columns if self.units else columns[:2]
 
@@ -171,7 +172,8 @@ def cmd_font(cell):
         return font
 
 
-def set_expr(tab, item, index, value):
+def set_expr(cell, value):
+    tab, item = cell.model.context, cell.item
     # Replace deferred expressions by their value if `not value`:
     tab.store({item.name: value or item.value}, **tab.fetch_args)
 
@@ -182,8 +184,8 @@ def is_expr_mutable(cell):
                                    _dtypes.PARAM_TYPE_STRING_ARRAY)
 
 
-def get_name(item):
-    return item.name.title()
+def get_name(cell):
+    return cell.item.name.title()
 
 
 class CommandEdit(ParamTable):
@@ -200,14 +202,14 @@ class CommandEdit(ParamTable):
     _col_style = dict(font=cmd_font)
 
     columns = [
-        tableview.ColumnInfo("Parameter", get_name, **_col_style),
-        tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
-                                mutable=True, convert='name'),
-        tableview.ColumnInfo("Unit", get_unit,
-                             resize=QtGui.QHeaderView.ResizeToContents),
-        tableview.ExtColumnInfo("Expression", 'expr', set_expr, padding=50,
-                                mutable=is_expr_mutable,
-                                resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Parameter", get_name, **_col_style),
+        ColumnInfo("Value", 'value', set_value, padding=50,
+                   mutable=True, convert='name'),
+        ColumnInfo("Unit", get_unit,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Expression", 'expr', set_expr, padding=50,
+                   mutable=is_expr_mutable,
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
 
@@ -219,12 +221,12 @@ def is_var_mutable(cell):
 class GlobalsEdit(ParamTable):
 
     columns = [
-        tableview.ColumnInfo("Name", 'name'),
-        tableview.ExtColumnInfo("Value", 'value', set_value, padding=50,
-                                mutable=is_var_mutable),
-        tableview.ExtColumnInfo("Expression", 'expr', set_expr, padding=50,
-                                mutable=True,
-                                resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Name", 'name'),
+        ColumnInfo("Value", 'value', set_value, padding=50,
+                   mutable=is_var_mutable),
+        ColumnInfo("Expression", 'expr', set_expr, padding=50,
+                   mutable=True,
+                   resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
     def __init__(self, model):

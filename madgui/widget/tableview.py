@@ -81,7 +81,7 @@ class ColumnInfo:
         self.resize = resize
         self.padding = padding
         # value accessors
-        self.getter = getter or (lambda x: x)
+        self.getter = getter or (lambda c: c.item)
         self.setter = setter
         self.convert = convert
         kwargs.setdefault('mutable', setter is not None)
@@ -135,7 +135,7 @@ class ColumnInfo:
         if isinstance(self.getter, str):
             value = getattr(cell.item, self.getter)
         else:
-            value = self.getter(*self.getter_args(cell))
+            value = self.getter(cell)
         return to_ui(cell.name, value)
 
     def checked(self, cell):
@@ -156,30 +156,11 @@ class ColumnInfo:
     # edit requests:
 
     def setValue(self, cell, value):
-        self.setter(*self.setter_args(
-            cell, from_ui(cell.name, value)))
+        self.setter(cell, from_ui(cell.name, value))
 
     def setChecked(self, cell, value):
         """Implement setting BoolDelegate via checkbox."""
-        self.setter(*self.setter_args(
-            cell, value))
-
-    # internal
-
-    def getter_args(self, cell):
-        return (cell.item,)
-
-    def setter_args(self, cell, value):
-        return (cell.model.rows, cell.row, value)
-
-
-class ExtColumnInfo(ColumnInfo):
-
-    def getter_args(self, cell):
-        return (cell.model.context, cell.item, cell.row)
-
-    def setter_args(self, cell, value):
-        return (cell.model.context, cell.item, cell.row, value)
+        self.setter(cell, value)
 
 
 class TableCell:
@@ -192,7 +173,6 @@ class TableCell:
 
     def __init__(self, model, index):
         self.model = model
-        self.index = index
         self.row = row = index.row()
         self.col = col = index.column()
         self.info = model.columns[col]
@@ -265,10 +245,10 @@ class TableModel(QtCore.QAbstractTableModel):
             self.endRemoveRows()
         elif simple and num_old == num_new:
             start = slice.start or 0
-            stop = start + num_old
+            stop = start + num_old - 1
             self.dataChanged.emit(
-                self.createIndex(start, 0),
-                self.createIndex(stop, self.columnCount()-1))
+                self.index(start, 0),
+                self.index(stop, self.columnCount()-1))
         else:
             self.endResetModel()
 
@@ -282,6 +262,9 @@ class TableModel(QtCore.QAbstractTableModel):
     def rows(self, rows):
         self._rows[:] = rows
 
+    def cell(self, index):
+        return TableCell(self, index)
+
     # QAbstractTableModel overrides
 
     def columnCount(self, parent=None):
@@ -292,12 +275,12 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if index.isValid() and role in ROLES:
-            return getattr(TableCell(self, index), ROLES[role], None)
+            return getattr(self.cell(index), ROLES[role], None)
         return super().data(index, role)
 
     def flags(self, index):
         if index.isValid():
-            return TableCell(self, index).flags
+            return self.cell(index).flags
         return super().flags(index)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -307,7 +290,7 @@ class TableModel(QtCore.QAbstractTableModel):
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
             return False
-        changed = TableCell(self, index).setData(value, role)
+        changed = self.cell(index).setData(value, role)
         if changed:
             # NOTE: This takes care to update cells after edits that don't
             # trigger an update of the self.rows collection for some reason
@@ -315,8 +298,8 @@ class TableModel(QtCore.QAbstractTableModel):
             # we should trigger the update by re-querying self.rows, but right
             # now this is not guaranteed in all places...
             self.dataChanged.emit(
-                self.createIndex(index.row(), 0),
-                self.createIndex(index.row(), self.columnCount()-1))
+                self.index(index.row(), 0),
+                self.index(index.row(), self.columnCount()-1))
         return changed
 
 
@@ -426,7 +409,7 @@ class TableView(QtGui.QTableView):
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
-        cell = TableCell(index.model(), index)
+        cell = index.model().cell(index)
         return cell.delegate if cell.editable else ReadOnlyDelegate()
 
     def createEditor(self, parent, option, index):
