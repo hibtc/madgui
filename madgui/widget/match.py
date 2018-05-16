@@ -21,7 +21,8 @@ def set_constraint_elem(cell, name):
             Constraint(el, el.position+el.length, c.axis, c.value)
 
 def get_constraint_axis(cell):
-    return widget.lcon_enum(cell.item.axis)
+    widget, c = cell.model.context, cell.item
+    return widget.lcon_enum(c.axis)
 
 def set_constraint_axis(cell, axis):
     widget, c, i = cell.model.context, cell.item, cell.row
