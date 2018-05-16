@@ -253,8 +253,11 @@ class CorrectorWidget(QtGui.QWidget):
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.execute_corrections.setEnabled(True)
         # update table view
-        self.corrector.variables[:] = [
-            variable_update(self.corrector, v) for v in self.corrector.variables]
+        with self.corrector.model.rollback("Knobs for corrected orbit"):
+            self.corrector.model.write_params(self.steerer_corrections.items())
+            self.corrector.variables[:] = [
+                variable_update(self.corrector, v)
+                for v in self.corrector.variables]
         self.var_tab.resizeColumnToContents(0)
 
     def on_change_config(self, index):
