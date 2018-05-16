@@ -281,6 +281,9 @@ class TableModel(QtCore.QAbstractTableModel):
     def rows(self, rows):
         self._rows[:] = rows
 
+    def cell(self, index):
+        return TableCell(self, index)
+
     # QAbstractTableModel overrides
 
     def columnCount(self, parent=None):
@@ -291,12 +294,12 @@ class TableModel(QtCore.QAbstractTableModel):
 
     def data(self, index, role=Qt.DisplayRole):
         if index.isValid() and role in ROLES:
-            return getattr(TableCell(self, index), ROLES[role], None)
+            return getattr(self.cell(index), ROLES[role], None)
         return super().data(index, role)
 
     def flags(self, index):
         if index.isValid():
-            return TableCell(self, index).flags
+            return self.cell(index).flags
         return super().flags(index)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
@@ -306,7 +309,7 @@ class TableModel(QtCore.QAbstractTableModel):
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
             return False
-        changed = TableCell(self, index).setData(value, role)
+        changed = self.cell(index).setData(value, role)
         if changed:
             # NOTE: This takes care to update cells after edits that don't
             # trigger an update of the self.rows collection for some reason
@@ -425,7 +428,7 @@ class TableView(QtGui.QTableView):
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
-        cell = TableCell(index.model(), index)
+        cell = index.model().cell(index)
         return cell.delegate if cell.editable else ReadOnlyDelegate()
 
     def createEditor(self, parent, option, index):
