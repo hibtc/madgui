@@ -227,9 +227,10 @@ class TableModel(QtGui.QStandardItemModel):
         item = QtGui.QStandardItem()
         item.setFlags(cell.flags)
         for role, name in ROLES.items():
-            value = getattr(cell, name, None)
-            if value is not None:
-                item.setData(value, role)
+            if role != Qt.EditRole:
+                value = getattr(cell, name, None)
+                if value is not None:
+                    item.setData(value, role)
         return item
 
     def _update_finalize(self, slice, old_values, new_values):
@@ -500,7 +501,7 @@ class IntDelegate(ItemDelegate):
         return editor
 
     def setEditorData(self, editor, index):
-        value = index.data(Qt.EditRole)
+        value = index.model().cell(index).edit
         editor.setValue(value)
 
     def setModelData(self, editor, model, index):
@@ -540,7 +541,7 @@ class QuantityDelegate(FloatValue):
         return QuantitySpinBox(parent, unit=self.unit)
 
     def setEditorData(self, editor, index):
-        editor.set_quantity_checked(index.data(Qt.EditRole))
+        editor.set_quantity_checked(index.model().cell(index).edit)
         editor.selectAll()
 
     def setModelData(self, editor, model, index):
@@ -591,19 +592,19 @@ class EnumDelegate(StringDelegate):
     # QStyledItemDelegate
 
     def createEditor(self, parent, option, index):
-        enum = type(index.data(Qt.EditRole))
+        enum = type(index.model().cell(index).edit)
         editor = QtGui.QComboBox(parent)
         editor.setEditable(not enum._strict)
         return editor
 
     def setEditorData(self, editor, index):
-        enum = type(index.data(Qt.EditRole))
+        enum = type(index.model().cell(index).edit)
         editor.clear()
         editor.addItems(enum._values)
         editor.setCurrentIndex(editor.findText(str(index.data())))
 
     def setModelData(self, editor, model, index):
-        enum = type(index.data(Qt.EditRole))
+        enum = type(index.model().cell(index).edit)
         value = editor.currentText()
         model.setData(index, enum(value))
 
