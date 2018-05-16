@@ -808,11 +808,13 @@ class Model(Object):
                     flag='interpolate', range=name, at=x)
 
         # create constraints list to be passed to Madx.match
+        cons = {}
+        for elem, pos, axis, val in constraints:
+            key = (elem.node_name, elem_positions[elem.node_name].index(pos))
+            cons.setdefault(key, {})[axis] = val
         madx_constraints = [
-            {'range': elem.node_name,
-             'iindex': elem_positions[elem.node_name].index(pos),
-             axis: val}
-            for elem, pos, axis, val in constraints]
+            dict(range=name, iindex=pos, **c)
+            for (name, pos), c in cons.items()]
 
         # FIXME TODO: use position-dependent emittances…
         ex = self.ex()
@@ -822,6 +824,8 @@ class Model(Object):
             'sig33': 1/ey, 'sig34': 1/ey, 'sig43': 1/ey, 'sig44': 1/ey,
         }
         weights.update(kwargs.pop('weight', {}))
+        used_cols = {axis.lower() for elem, pos, axis, val in constraints}
+        weights = {k: v for k, v in weights.items() if k in used_cols}
         twiss_args = self.twiss_args.copy()
         twiss_args.update(kwargs)
 
