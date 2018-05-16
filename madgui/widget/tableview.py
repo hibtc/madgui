@@ -266,8 +266,8 @@ class TableModel(QtCore.QAbstractTableModel):
             start = slice.start or 0
             stop = start + num_old - 1
             self.dataChanged.emit(
-                self.createIndex(start, 0),
-                self.createIndex(stop, self.columnCount()-1))
+                self.index(start, 0),
+                self.index(stop, self.columnCount()-1))
         else:
             self.endResetModel()
 
@@ -314,8 +314,8 @@ class TableModel(QtCore.QAbstractTableModel):
             # we should trigger the update by re-querying self.rows, but right
             # now this is not guaranteed in all places...
             self.dataChanged.emit(
-                self.createIndex(index.row(), 0),
-                self.createIndex(index.row(), self.columnCount()-1))
+                self.index(index.row(), 0),
+                self.index(index.row(), self.columnCount()-1))
         return changed
 
 
