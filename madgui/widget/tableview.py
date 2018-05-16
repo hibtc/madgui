@@ -266,18 +266,7 @@ class TableModel(QtGui.QStandardItemModel):
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
             return False
-        changed = self.cell(index).setData(value, role)
-        if changed:
-            # NOTE: This takes care to update cells after edits that don't
-            # trigger an update of the self.rows collection for some reason
-            # (and hence self._update_finalize is never called). In fact, we
-            # we should trigger the update by re-querying self.rows, but right
-            # now this is not guaranteed in all places...
-            row = index.row()
-            item = self.rows[row]
-            for col in range(self.columnCount()):
-                self.setItem(row, col, self._create_item(row, col, item))
-        return changed
+        return self.cell(index).setData(value, role)
 
 
 class TableView(QtGui.QTreeView):
