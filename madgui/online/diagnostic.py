@@ -11,7 +11,7 @@ from madgui.core.unit import ui_units
 from madgui.util import yaml
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
-from madgui.widget.tableview import ColumnInfo, ExtColumnInfo
+from madgui.widget.tableview import ColumnInfo
 
 
 class MonitorWidget(QtGui.QDialog):
@@ -43,8 +43,8 @@ class MonitorItem:
 ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
 
 
-def get_monitor_name(mgr, monitor, i):
-    return monitor.name
+def get_monitor_name(cell):
+    return cell.item.name
 
 def get_monitor_show(cell):
     monitor, mgr = cell.item, cell.model.context
@@ -198,9 +198,9 @@ class PlotMonitorWidget(MonitorWidgetBase):
     ui_file = 'monitorwidget.ui'
 
     monitor_columns = [
-        ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
-                      foreground=get_monitor_textcolor,
-                      checked=get_monitor_show, setChecked=set_monitor_show),
+        ColumnInfo("Monitor", get_monitor_name, checkable=True,
+                   foreground=get_monitor_textcolor,
+                   checked=get_monitor_show, setChecked=set_monitor_show),
         ColumnInfo("x", 'posx', convert=True, foreground=get_monitor_textcolor),
         ColumnInfo("y", 'posy', convert=True, foreground=get_monitor_textcolor),
         ColumnInfo("Δx", 'envx', convert=True, foreground=get_monitor_textcolor),
@@ -262,7 +262,7 @@ class _FitWidget(MonitorWidgetBase):
         ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Model", 'model', convert='name'),
         ColumnInfo("Fit", 'fit', convert='name'),
-        ColumnInfo("Unit", lambda item: ui_units.label(item.name),
+        ColumnInfo("Unit", lambda cell: ui_units.label(cell.item.name),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
@@ -281,9 +281,9 @@ class _FitWidget(MonitorWidgetBase):
 class OrbitWidget(_FitWidget):
 
     monitor_columns = [
-        ExtColumnInfo("Monitor", get_monitor_name, checkable=True,
-                      foreground=get_monitor_textcolor,
-                      checked=get_monitor_show, setChecked=set_monitor_show),
+        ColumnInfo("Monitor", get_monitor_name, checkable=True,
+                   foreground=get_monitor_textcolor,
+                   checked=get_monitor_show, setChecked=set_monitor_show),
         ColumnInfo("x", 'posx', convert=True, foreground=get_monitor_textcolor),
         ColumnInfo("y", 'posy', convert=True, foreground=get_monitor_textcolor),
     ]

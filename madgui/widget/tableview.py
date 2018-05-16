@@ -81,7 +81,7 @@ class ColumnInfo:
         self.resize = resize
         self.padding = padding
         # value accessors
-        self.getter = getter or (lambda x: x)
+        self.getter = getter or (lambda c: c.item)
         self.setter = setter
         self.convert = convert
         kwargs.setdefault('mutable', setter is not None)
@@ -135,7 +135,7 @@ class ColumnInfo:
         if isinstance(self.getter, str):
             value = getattr(cell.item, self.getter)
         else:
-            value = self.getter(*self.getter_args(cell))
+            value = self.getter(cell)
         return to_ui(cell.name, value)
 
     def checked(self, cell):
@@ -156,30 +156,11 @@ class ColumnInfo:
     # edit requests:
 
     def setValue(self, cell, value):
-        self.setter(*self.setter_args(
-            cell, from_ui(cell.name, value)))
+        self.setter(cell, from_ui(cell.name, value))
 
     def setChecked(self, cell, value):
         """Implement setting BoolDelegate via checkbox."""
-        self.setter(*self.setter_args(
-            cell, value))
-
-    # internal
-
-    def getter_args(self, cell):
-        return (cell.item,)
-
-    def setter_args(self, cell, value):
-        return (cell.model.rows, cell.row, value)
-
-
-class ExtColumnInfo(ColumnInfo):
-
-    def getter_args(self, cell):
-        return (cell.model.context, cell.item, cell.row)
-
-    def setter_args(self, cell, value):
-        return (cell.model.context, cell.item, cell.row, value)
+        self.setter(cell, value)
 
 
 class TableCell:
