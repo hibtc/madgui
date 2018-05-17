@@ -36,12 +36,12 @@ def get_unit(cell):
 
 
 def set_value(cell, value):
-    tab, param = cell.model.context, cell.data
+    tab, param = cell.context, cell.data
     tab.store({param.name: value}, **tab.fetch_args)
 
 
 def cell_is_mutable(cell):
-    return cell.data.mutable and not cell.model.context.readonly
+    return cell.data.mutable and not cell.context.readonly
 
 
 def cell_textcolor(cell):
@@ -168,7 +168,7 @@ def cmd_font(cell):
 
 
 def set_expr(cell, value):
-    tab, param = cell.model.context, cell.data
+    tab, param = cell.context, cell.data
     # Replace deferred expressions by their value if `not value`:
     tab.store({param.name: value or param.value}, **tab.fetch_args)
 

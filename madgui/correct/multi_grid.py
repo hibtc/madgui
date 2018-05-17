@@ -162,7 +162,7 @@ def format_unit(cell):
     return get_raw_label(cell.data.info.ui_unit)
 
 def set_constraint_value(cell, value):
-    widget, c, i = cell.model.context, cell.data, cell.row
+    widget, c, i = cell.context, cell.data, cell.row
     widget.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
 class CorrectorWidget(QtGui.QWidget):

@@ -153,6 +153,9 @@ class ColumnInfo:
                 # NOTE: incompatible with custom getters/setters
                 return self.getter
 
+    def context(self, cell):
+        return cell.model.context
+
     # edit requests:
 
     def setValue(self, cell, value):

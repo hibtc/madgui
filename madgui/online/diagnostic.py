@@ -47,11 +47,11 @@ def get_monitor_name(cell):
     return cell.data.name
 
 def get_monitor_show(cell):
-    monitor, mgr = cell.data, cell.model.context
+    monitor, mgr = cell.data, cell.context
     return mgr.selected(monitor)
 
 def set_monitor_show(cell, show):
-    i, monitor, mgr = cell.row, cell.data, cell.model.context
+    i, monitor, mgr = cell.row, cell.data, cell.context
     shown = mgr.selected(monitor)
     if show and not shown:
         mgr.select(i)

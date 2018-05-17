@@ -15,16 +15,16 @@ def get_curve_name(cell):
     return name
 
 def set_curve_name(cell, name):
-    i, mgr = cell.row, cell.model.context
+    i, mgr = cell.row, cell.context
     _, data, style = cell.data
     mgr.available[i] = (name, data, style)
 
 def get_curve_show(cell):
-    i, mgr = cell.row, cell.model.context
+    i, mgr = cell.row, cell.context
     return i in mgr.selected
 
 def set_curve_show(cell, show):
-    i, mgr = cell.row, cell.model.context
+    i, mgr = cell.row, cell.context
     shown = i in mgr.selected
     if show and not shown:
         mgr.selected.append(i)
