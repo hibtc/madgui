@@ -214,14 +214,14 @@ class CommandEdit(ParamTable):
 
 
 def is_var_mutable(cell):
-    return cell.item.inform > 0
+    return cell.item.var_type > 0
 
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
     columns = [
-        ColumnInfo("Name", 'name'),
+        ColumnInfo("Name", lambda c: c.item.name.upper()),
         ColumnInfo("Value", 'value', set_value, padding=50,
                    mutable=is_var_mutable),
         ColumnInfo("Expression", 'expr', set_expr, padding=50,
@@ -235,11 +235,7 @@ class GlobalsEdit(ParamTable):
 
     def _fetch(self):
         globals = self._model.globals
-        return [
-            ParamInfo(k.upper(), p.value, p.expr, inform=p.inform)
-            for k, p in globals.cmdpar.items()
-            if p.inform > 0
-        ]
+        return [p for k, p in globals.cmdpar.items() if p.inform]
 
 
 
