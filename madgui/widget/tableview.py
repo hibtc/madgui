@@ -154,7 +154,12 @@ class ColumnInfo:
                 return self.getter
 
     def context(self, cell):
-        return cell.model.context
+        return cell.parent.context
+
+    def items(self, cell):
+        return create_items(cell)
+
+    rows = columns = ()
 
     # edit requests:
 
@@ -166,6 +171,12 @@ class ColumnInfo:
         self.setter(cell, value)
 
 
+def create_items(parent):
+    return [[TableCell(parent, row, col)
+             for col in range(len(parent.columns))]
+            for row in range(len(parent.rows))]
+
+
 class TableCell:
 
     """
@@ -174,12 +185,12 @@ class TableCell:
     as attribute.
     """
 
-    def __init__(self, model, row, col):
-        self.model = model
+    def __init__(self, parent, row, col):
+        self.parent = parent
         self.row = row
         self.col = col
-        self.info = model.columns[col]
-        self.data = model.rows[row]
+        self.info = parent.columns[col]
+        self.data = parent.rows[row]
 
     # Fetch properties by invoking associated ColumnInfo methods, cache
     # results automatically as attributes, e.g.: value/delegate/name
@@ -211,31 +222,22 @@ class TableModel(QtCore.QAbstractItemModel):
     data can be accessed and changed via the list-like :attribute:`rows`.
     """
 
-    baseFlags = Qt.ItemNeverHasChildren
-
     def __init__(self, columns, data=None, context=None):
         super().__init__()
         self.columns = columns
         self.context = context if context is not None else self
         self._rows = List() if data is None else data
-        self._items = [self._create_row(row) for row in range(self.rowCount())]
-        self._rows.update_after.connect(self._update_finalize)
+        self._rows.update_after.connect(self._refresh)
+        self.parent = None
+        self.root = self
+        self._refresh()
 
-    def _update_finalize(self, slice, old_values, new_values):
-        num_new = len(new_values)
-        start = (slice.start or 0) % len(self.rows)
+    def _refresh(self, *_):
         self.beginResetModel()
         try:
-            self._items[slice] = [
-                self._create_row(start+row)
-                for row in range(num_new)
-            ]
+            self.items = create_items(self)
         finally:
             self.endResetModel()
-
-    def _create_row(self, row):
-        return [TableCell(self, row, col)
-                for col in range(self.columnCount())]
 
     # data accessors
 
@@ -248,21 +250,25 @@ class TableModel(QtCore.QAbstractItemModel):
         self._rows[:] = rows
 
     def cell(self, index):
-        return self._items[index.row()][index.column()]
+        row = index.internalPointer()
+        return row[index.column()] if row else self.root
 
     # QAbstractItemModel overrides
 
-    def index(self, row, col, parent=None):
-        return self.createIndex(row, col)
+    def index(self, row, col, parent=QtCore.QModelIndex()):
+        return self.createIndex(row, col, self.cell(parent).items[row])
 
     def parent(self, index):
-        return QtCore.QModelIndex()
+        parent = self.cell(index).parent
+        if parent is None or parent.parent is None:
+            return QtCore.QModelIndex()
+        return self.index(parent.row, parent.col, parent)
 
-    def columnCount(self, parent=None):
-        return len(self.columns)
+    def columnCount(self, parent=QtCore.QModelIndex()):
+        return len(self.columns or ())
 
-    def rowCount(self, parent=None):
-        return 0 if parent and parent.isValid() else len(self.rows)
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self.cell(parent).rows or ())
 
     def data(self, index, role=Qt.DisplayRole):
         if index.isValid() and role in ROLES:
@@ -281,18 +287,22 @@ class TableModel(QtCore.QAbstractItemModel):
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
             return False
-        changed = self.cell(index).setData(value, role)
+        cell = self.cell(index)
+        changed = cell.setData(value, role)
         if changed:
             # NOTE: This takes care to update cells after edits that don't
             # trigger an update of the self.rows collection for some reason
-            # (and hence self._update_finalize is never called). In fact, we
+            # (and hence self._refresh is never called). In fact, we
             # we should trigger the update by re-querying self.rows, but right
             # now this is not guaranteed in all places...
             row = index.row()
-            self._items[row] = self._create_row(row)
+            par = index.parent()
+            parent = cell.parent
+            parent.items[row][:] = [TableCell(parent, row, col)
+                                    for col in range(len(parent.columns))]
             self.dataChanged.emit(
-                self.index(row, 0),
-                self.index(row, self.columnCount()-1))
+                self.index(row, 0, par),
+                self.index(row, self.columnCount()-1, par))
         return changed
 
 
