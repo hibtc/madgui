@@ -8,7 +8,7 @@ from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Signal
 from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
-from madgui.util.misc import rw_property
+from madgui.util.misc import rw_property, ranges
 from madgui.util.collections import List
 from madgui.util.enum import Enum
 from madgui.widget.spinbox import QuantitySpinBox
@@ -354,10 +354,9 @@ class TableView(QtGui.QTableView):
 
     def removeSelectedRows(self):
         rows = {idx.row() for idx in self.selectedIndexes()}
-        # TODO: delete all in one operation
-        for row in sorted(rows, reverse=True):
+        for a, b in ranges(rows)[::-1]:
             # TODO: these should be called from the model…
-            del self.model().rows[row]
+            del self.model().rows[a:b]
             #self.model().beginRemoveRows(self.rootIndex(), row, row)
             #self.model().endRemoveRows()
 

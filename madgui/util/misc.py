@@ -202,6 +202,14 @@ def make_index(values):
     return {k: i for i, k in enumerate(values)}
 
 
+def ranges(nums):
+    """Identify groups of consecutive numbers in a list."""
+    nums = sorted(set(nums))
+    gaps = [[s, e] for s, e in zip(nums, nums[1:]) if s+1 < e]
+    edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
+    return [(s, e+1) for s, e in zip(edges, edges)]
+
+
 # Returns a filename rather than a `NamedTemporaryFile` to gain more
 # control over the encoding on python2:
 def logfile_name(path, base, ext):
