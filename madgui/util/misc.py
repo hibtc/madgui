@@ -57,7 +57,13 @@ def memoize(func):
 
 def cachedproperty(func):
     """A memoize decorator for class properties."""
-    return property(memoize(func))
+    key = '_' + func.__name__
+    get_ = memoize(func)
+    def set_(self, val):
+        setattr(self, key, val)
+    def del_(self):
+        delattr(self, key)
+    return property(get_, set_, del_)
 
 
 def rw_property(func, name=None):
