@@ -44,14 +44,14 @@ ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
 
 
 def get_monitor_name(cell):
-    return cell.item.name
+    return cell.data.name
 
 def get_monitor_show(cell):
-    monitor, mgr = cell.item, cell.model.context
+    monitor, mgr = cell.data, cell.model.context
     return mgr.selected(monitor)
 
 def set_monitor_show(cell, show):
-    i, monitor, mgr = cell.row, cell.item, cell.model.context
+    i, monitor, mgr = cell.row, cell.data, cell.model.context
     shown = mgr.selected(monitor)
     if show and not shown:
         mgr.select(i)
@@ -60,11 +60,11 @@ def set_monitor_show(cell, show):
 
 
 def get_monitor_valid(cell):
-    return cell.item.valid
+    return cell.data.valid
 
 
 def get_monitor_textcolor(cell):
-    return QtGui.QColor(Qt.black if cell.item.valid else Qt.darkGray)
+    return QtGui.QColor(Qt.black if cell.data.valid else Qt.darkGray)
 
 
 class MonitorWidgetBase(QtGui.QWidget):
@@ -262,7 +262,7 @@ class _FitWidget(MonitorWidgetBase):
         ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Model", 'model', convert='name'),
         ColumnInfo("Fit", 'fit', convert='name'),
-        ColumnInfo("Unit", lambda cell: ui_units.label(cell.item.name),
+        ColumnInfo("Unit", lambda cell: ui_units.label(cell.data.name),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 

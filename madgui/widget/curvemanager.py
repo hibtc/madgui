@@ -11,12 +11,12 @@ from madgui.widget.filedialog import getOpenFileName
 
 
 def get_curve_name(cell):
-    name, data, style = cell.item
+    name, data, style = cell.data
     return name
 
 def set_curve_name(cell, name):
     i, mgr = cell.row, cell.model.context
-    _, data, style = cell.item
+    _, data, style = cell.data
     mgr.available[i] = (name, data, style)
 
 def get_curve_show(cell):

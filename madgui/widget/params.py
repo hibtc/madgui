@@ -31,17 +31,17 @@ class ParamInfo:
 
 
 def get_unit(cell):
-    param = cell.item
+    param = cell.data
     return ui_units.label(param.name, param.value)
 
 
 def set_value(cell, value):
-    tab, item = cell.model.context, cell.item
-    tab.store({item.name: value}, **tab.fetch_args)
+    tab, param = cell.model.context, cell.data
+    tab.store({param.name: value}, **tab.fetch_args)
 
 
 def cell_is_mutable(cell):
-    return cell.item.mutable and not cell.model.context.readonly
+    return cell.data.mutable and not cell.model.context.readonly
 
 
 def cell_textcolor(cell):
@@ -161,26 +161,26 @@ class ParamTable(TableView):
 
 
 def cmd_font(cell):
-    if cell.item.inform:
+    if cell.data.inform:
         font = QtGui.QFont()
         font.setBold(True)
         return font
 
 
 def set_expr(cell, value):
-    tab, item = cell.model.context, cell.item
+    tab, param = cell.model.context, cell.data
     # Replace deferred expressions by their value if `not value`:
-    tab.store({item.name: value or item.value}, **tab.fetch_args)
+    tab.store({param.name: value or param.value}, **tab.fetch_args)
 
 
 import cpymad.util as _dtypes
 def is_expr_mutable(cell):
-    return cell.item.dtype not in (_dtypes.PARAM_TYPE_STRING,
+    return cell.data.dtype not in (_dtypes.PARAM_TYPE_STRING,
                                    _dtypes.PARAM_TYPE_STRING_ARRAY)
 
 
 def get_name(cell):
-    return cell.item.name.title()
+    return cell.data.name.title()
 
 
 class CommandEdit(ParamTable):
@@ -209,7 +209,7 @@ class CommandEdit(ParamTable):
 
 
 def is_var_mutable(cell):
-    return cell.item.inform > 0
+    return cell.data.inform > 0
 
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)

@@ -81,7 +81,7 @@ class ColumnInfo:
         self.resize = resize
         self.padding = padding
         # value accessors
-        self.getter = getter or (lambda c: c.item)
+        self.getter = getter or (lambda c: c.data)
         self.setter = setter
         self.convert = convert
         kwargs.setdefault('mutable', setter is not None)
@@ -133,7 +133,7 @@ class ColumnInfo:
 
     def value(self, cell):
         if isinstance(self.getter, str):
-            value = getattr(cell.item, self.getter)
+            value = getattr(cell.data, self.getter)
         else:
             value = self.getter(cell)
         return to_ui(cell.name, value)
@@ -146,9 +146,9 @@ class ColumnInfo:
         convert = self.convert
         if convert:
             if isinstance(convert, str):
-                return getattr(cell.item, convert)
+                return getattr(cell.data, convert)
             elif callable(convert):
-                return convert(cell.item)
+                return convert(cell.data)
             else:
                 # NOTE: incompatible with custom getters/setters
                 return self.getter
@@ -176,7 +176,7 @@ class TableCell:
         self.row = row
         self.col = col
         self.info = model.columns[col]
-        self.item = model.rows[row]
+        self.data = model.rows[row]
 
     # Fetch properties by invoking associated ColumnInfo methods, cache
     # results automatically as attributes, e.g.: value/delegate/name

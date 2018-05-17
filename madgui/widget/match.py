@@ -10,43 +10,43 @@ from madgui.util.enum import make_enum
 
 
 def get_constraint_elem(cell):
-    widget, c = cell.model.context, cell.item
+    widget, c = cell.model.context, cell.data
     return widget.elem_enum(c.elem.node_name if c.elem else "(global)")
 
 def set_constraint_elem(cell, name):
-    widget, c, i = cell.model.context, cell.item, cell.row
+    widget, c, i = cell.model.context, cell.data, cell.row
     if name is not None:
         el = widget.model.elements[str(name)]
         widget.matcher.constraints[i] = \
             Constraint(el, el.position+el.length, c.axis, c.value)
 
 def get_constraint_axis(cell):
-    widget, c = cell.model.context, cell.item
+    widget, c = cell.model.context, cell.data
     return widget.lcon_enum(c.axis)
 
 def set_constraint_axis(cell, axis):
-    widget, c, i = cell.model.context, cell.item, cell.row
+    widget, c, i = cell.model.context, cell.data, cell.row
     if axis is not None:
         value = widget.model.get_twiss(c.elem.node_name, str(axis), c.pos)
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, str(axis), value)
 
 def get_constraint_unit(cell):
-    c = cell.item
+    c = cell.data
     return ui_units.label(c.axis, c.value)
 
 def set_constraint_value(cell, value):
-    widget, c, i = cell.model.context, cell.item, cell.row
+    widget, c, i = cell.model.context, cell.data, cell.row
     if value is not None:
         widget.matcher.constraints[i] = \
             Constraint(c.elem, c.pos, c.axis, value)
 
 def get_knob_display(cell):
-    widget, v = cell.model.context, cell.item
+    widget, v = cell.model.context, cell.data
     return widget.knob_enum(v.knob)
 
 def set_knob_display(cell, text):
-    widget, v, i = cell.model.context, cell.item, cell.row
+    widget, v, i = cell.model.context, cell.data, cell.row
     if text is not None:
         knob = parse_knob(widget.model, str(text))
         if knob:
