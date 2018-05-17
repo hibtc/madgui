@@ -213,6 +213,10 @@ class CommandEdit(ParamTable):
     ]
 
 
+def get_var_name(cell):
+    parts = cell.item.name.split('_')
+    return "_".join(parts[:1] + list(map(str.upper, parts[1:])))
+
 def is_var_mutable(cell):
     return cell.item.var_type > 0
 
@@ -221,7 +225,7 @@ def is_var_mutable(cell):
 class GlobalsEdit(ParamTable):
 
     columns = [
-        ColumnInfo("Name", lambda c: c.item.name.upper()),
+        ColumnInfo("Name", get_var_name),
         ColumnInfo("Value", 'value', set_value, padding=50,
                    mutable=is_var_mutable),
         ColumnInfo("Expression", 'expr', set_expr, padding=50,
