@@ -13,7 +13,6 @@ from madgui.util.misc import rw_property
 from madgui.util.collections import List
 from madgui.util.enum import Enum
 from madgui.widget.spinbox import QuantitySpinBox
-from madgui.widget.quantity import DoubleValidator as _DoubleValidator
 
 import madgui.core.unit as unit
 import madgui.core.config as config
@@ -515,42 +514,6 @@ class StringDelegate(ItemDelegate):
     pass
 
 
-class FloatValue(ItemDelegate):
-
-    """Float value."""
-
-    default = 0.0
-    textAlignment = Qt.AlignRight | Qt.AlignVCenter
-
-    @rw_property
-    def fmtspec(self):
-        return config.number.fmtspec
-
-    # QStyledItemDelegate
-
-    # TODO: *infer* number of decimals from the value in a sensible manner
-    # TODO: use same inference for ordinary FloatValue's as well
-
-    def createEditor(self, parent, option, index):
-        editor = QtGui.QLineEdit(parent)
-        editor.setFrame(False)
-        editor.setValidator(DoubleValidator())
-        editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
-        return editor
-
-    def setEditorData(self, editor, index):
-        value = index.data(Qt.DisplayRole)
-        editor.setText(value)
-
-    def setModelData(self, editor, model, index):
-        value = editor.text()
-        try:
-            parsed = float(value)
-        except ValueError:
-            parsed = None
-        model.setData(index, parsed)
-
-
 class IntDelegate(ItemDelegate):
 
     """Integer value."""
@@ -590,7 +553,14 @@ class BoolDelegate(ItemDelegate):
 
 
 # TODO: use UI units
-class QuantityDelegate(FloatValue):
+class QuantityDelegate(ItemDelegate):
+
+    default = 0.0
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
+
+    @rw_property
+    def fmtspec(self):
+        return config.number.fmtspec
 
     def __init__(self, unit=None):
         super().__init__()
@@ -679,12 +649,3 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         pass
-
-
-class DoubleValidator(_DoubleValidator):
-
-    def validate(self, text, pos):
-        # Allow to delete values
-        if not text:
-            return (QtGui.QValidator.Acceptable, text, pos)
-        return super().validate(text, pos)
