@@ -302,7 +302,7 @@ class TableModel(QtCore.QAbstractItemModel):
         return self.createIndex(parent.row, parent.col, parent)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self.columns or ())
+        return len(self.columns)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.cell(parent).rows or ())
@@ -358,7 +358,10 @@ class TableView(QtGui.QTreeView):
         super().__init__(parent, **kwargs)
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
+        # Prevent the user from folding since this makes it easier to show
+        # the same image after refreshing the model:
         self.setRootIsDecorated(False)
+        self.setItemsExpandable(False)
         if columns is not None:
             self.set_columns(columns, data, context)
         config.number.changed.connect(self.format_changed)
@@ -376,6 +379,9 @@ class TableView(QtGui.QTreeView):
                       if column.resize is None
                       else column.resize)
             self.header().setSectionResizeMode(index, resize)
+        self.model().rowsInserted.connect(lambda *_: self.expandAll())
+        self.model().modelReset.connect(lambda *_: self.expandAll())
+        self.expandAll()
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)

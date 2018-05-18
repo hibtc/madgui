@@ -2,11 +2,13 @@
 Parameter input dialog.
 """
 
+from itertools import repeat
+
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units
 import madgui.util.yaml as yaml
 
-from madgui.widget.tableview import TableView, ColumnInfo
+from madgui.widget.tableview import TableView, ColumnInfo, NodeMeta
 
 
 __all__ = [
@@ -21,13 +23,15 @@ class ParamInfo:
     """Row info for the TableView [internal]."""
     # TODO: merge this with madgui.online.api.ParamInfo
 
-    def __init__(self, name, value, expr=None, inform=0, mutable=True):
+    def __init__(self, name, value, expr=None, inform=0, mutable=True,
+                 dtype=None):
         self.name = name
         self.value = value
         self.expr = expr
         self.inform = inform
         self.mutable = mutable
         self.unit = ui_units.label(name, value)
+        self.dtype = dtype
 
 
 def get_unit(cell):
@@ -175,12 +179,43 @@ def set_expr(cell, value):
 
 import cpymad.util as _dtypes
 def is_expr_mutable(cell):
-    return cell.data.dtype not in (_dtypes.PARAM_TYPE_STRING,
-                                   _dtypes.PARAM_TYPE_STRING_ARRAY)
+    return (not isinstance(cell.data.expr, list) and
+            cell.data.dtype not in (_dtypes.PARAM_TYPE_STRING,
+                                    _dtypes.PARAM_TYPE_STRING_ARRAY))
 
 
 def get_name(cell):
     return cell.data.name.title()
+
+def get_rows(cell):
+    par = cell.data
+    if isinstance(par.value, list):
+        return [
+            ParamInfo('[{}]'.format(idx), val, expr, par.inform,
+                      dtype=par.dtype)
+            for idx, (val, expr) in enumerate(zip(par.value, par.expr))
+        ]
+    return ()
+
+def set_component_value(cell, value):
+    tab, par = cell.context, cell.granny.data
+    vec = list(par.definition)
+    vec[cell.row] = value
+    tab.store({par.name: vec}, **tab.fetch_args)
+
+def set_component_expr(cell, value):
+    set_component_value(cell, value or cell.data.value)
+
+def get_value(cell):
+    if not isinstance(cell.data.value, list):
+        return cell.data.value
+
+def get_expr(cell):
+    if not isinstance(cell.data.expr, list):
+        return cell.data.expr
+
+def is_par_mutable(cell):
+    return not isinstance(cell.data.value, list)
 
 
 class CommandEdit(ParamTable):
@@ -196,13 +231,26 @@ class CommandEdit(ParamTable):
 
     _col_style = dict(font=cmd_font)
 
-    columns = [
-        ColumnInfo("Parameter", get_name, **_col_style),
-        ColumnInfo("Value", 'value', set_value, padding=50,
+    vector_columns = [
+        ColumnInfo(None, get_name, **_col_style),
+        # TODO: fix conversion and get_unit
+        ColumnInfo(None, 'value', set_component_value, padding=50,
                    mutable=True, convert='name'),
+        ColumnInfo(None, get_unit,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo(None, 'expr', set_component_expr, padding=50,
+                   mutable=is_expr_mutable,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+    columns = [
+        ColumnInfo("Parameter", get_name,
+                   rows=get_rows, columns=vector_columns, **_col_style),
+        ColumnInfo("Value", get_value, set_value, padding=50,
+                   mutable=is_par_mutable, convert='name'),
         ColumnInfo("Unit", get_unit,
                    resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Expression", 'expr', set_expr, padding=50,
+        ColumnInfo("Expression", get_expr, set_expr, padding=50,
                    mutable=is_expr_mutable,
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
