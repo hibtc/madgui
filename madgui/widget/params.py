@@ -260,17 +260,35 @@ def is_var_mutable(cell):
     return cell.data.inform > 0
 
 
+def par_rows(cell):
+    expr = cell.data.expr
+    if expr:
+        model = cell.context._model
+        globals = model.globals
+        return [
+            ParamInfo(k.upper(), p.value, p.expr, inform=p.inform)
+            for k in model.madx.expr_vars(expr)
+            for p in [globals.cmdpar[k]]
+            if p.inform > 0
+        ]
+    return ()
+
+
+var_columns = []
+var_columns.extend([
+    ColumnInfo("Name", 'name', rows=par_rows, columns=var_columns),
+    ColumnInfo("Value", 'value', set_value, padding=50,
+               mutable=is_var_mutable),
+    ColumnInfo("Expression", 'expr', set_expr, padding=50,
+               mutable=True,
+               resize=QtGui.QHeaderView.ResizeToContents),
+])
+
+
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    columns = [
-        ColumnInfo("Name", 'name'),
-        ColumnInfo("Value", 'value', set_value, padding=50,
-                   mutable=is_var_mutable),
-        ColumnInfo("Expression", 'expr', set_expr, padding=50,
-                   mutable=True,
-                   resize=QtGui.QHeaderView.ResizeToContents),
-    ]
+    columns = var_columns
 
     def __init__(self, model):
         self._model = model
