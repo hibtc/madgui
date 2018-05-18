@@ -3,6 +3,7 @@ Table widget specified by column behaviour.
 """
 
 from inspect import getmro
+from itertools import repeat
 
 from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Signal
@@ -57,7 +58,33 @@ def lift(value):
     return value if callable(value) else lambda cell: value
 
 
-class ColumnInfo:
+class NodeMeta:
+
+    """Descriptor/type information for a TreeNode."""
+
+    def __init__(self, **kwargs):
+        # method/property definitions:
+        for k, v in kwargs.items():
+            setattr(self, k, lift(v))
+
+    def children(self, node):
+        """List of child rows (for expandable data)."""
+        return [
+            meta(data, node)
+            for data, meta in zip(node.rows, node.row_meta)
+        ]
+
+    def row_meta(self, node):
+        return repeat(NodeMeta(
+            row_meta=node.columns,
+            rows=lambda node: repeat(node.data),
+        ))
+
+    def __call__(self, data, parent):
+        return TreeNode(data, self, parent)
+
+
+class ColumnInfo(NodeMeta):
 
     """Column specification for a table widget."""
 
@@ -86,9 +113,9 @@ class ColumnInfo:
         self.convert = convert
         kwargs.setdefault('mutable', setter is not None)
         if convert is True: self.title += '/' + ui_units.label(getter)
-        # method/property overrides
-        for k, v in kwargs.items():
-            setattr(self, k, lift(v))
+        super().__init__(**kwargs)
+
+    rows = columns = ()         # no children by default
 
     # QAbstractItemModel queries
 
@@ -154,12 +181,7 @@ class ColumnInfo:
                 return self.getter
 
     def context(self, cell):
-        return cell.parent.context
-
-    def items(self, cell):
-        return create_items(cell)
-
-    rows = columns = ()
+        return cell.granny.context
 
     # edit requests:
 
@@ -171,44 +193,57 @@ class ColumnInfo:
         self.setter(cell, value)
 
 
-def create_items(parent):
-    return [[TableCell(parent, row, col)
-             for col in range(len(parent.columns))]
-            for row in range(len(parent.rows))]
-
-
-class TableCell:
+class TreeNode:
 
     """
-    Proxy class for accessing contents/properties of a table cell. Queries
-    properties from the associated :class`ColumnInfo` and caches the result
-    as attribute.
+    Proxy class for accessing contents/properties of a table cell. Delegates
+    property queries to method calls of the associated :class`NodeMeta` and
+    caches the result as attribute.
     """
 
-    def __init__(self, parent, row, col):
+    def __init__(self, data, meta, parent=None):
+        self.data = data
+        self.meta = meta
         self.parent = parent
-        self.row = row
-        self.col = col
-        self.info = parent.columns[col]
-        self.data = parent.rows[row]
+        self.granny = parent and parent.parent
+        self.root = parent.root if parent else self
+        self._cached = []
+
+    # These attributes are defined on the level of the Node to prevent caching
+    # (their values can change even if the node itself doesn't change):
+    index = lambda self: self.parent.children.index(self)
+
+    # row/col should only be used for "cells", i.e. those nodes that describe
+    # the visible contents of the treeview:
+    row = property(lambda self: self.parent.index())
+    col = property(index)
+
+    def invalidate(self):
+        """Clear cached properties."""
+        for k in self._cached:
+            delattr(self, k)
+        self._cached.clear()
 
     # Fetch properties by invoking associated ColumnInfo methods, cache
     # results automatically as attributes, e.g.: value/delegate/name
     def __getattr__(self, key):
-        fn = getattr(self.info, key, None)
+        fn = getattr(self.meta, key, None)
         try:
             val = fn and fn(self)
         except AttributeError as e:     # unshadow AttributeError!
             raise Exception() from e
         setattr(self, key, val)
+        self._cached.append(key)
         return val
+
+    # convenience method
 
     def setData(self, value, role):
         if role == Qt.EditRole and self.editable:
-            self.info.setValue(self, value)
+            self.meta.setValue(self, value)
             return True
         if role == Qt.CheckStateRole and self.checkable:
-            self.info.setChecked(self, value == Qt.Checked)
+            self.meta.setChecked(self, value == Qt.Checked)
             return True
         return False
 
@@ -225,17 +260,17 @@ class TableModel(QtCore.QAbstractItemModel):
     def __init__(self, columns, data=None, context=None):
         super().__init__()
         self.columns = columns
-        self.context = context if context is not None else self
-        self._rows = List() if data is None else data
+        self.context = context = context if context is not None else self
+        self._rows = rows = List() if data is None else data
         self._rows.update_after.connect(self._refresh)
         self.parent = None
-        self.root = self
-        self._refresh()
+        self.root = TreeNode(None, NodeMeta(
+            rows=rows, columns=columns, context=context))
 
     def _refresh(self, *_):
         self.beginResetModel()
         try:
-            self.items = create_items(self)
+            self.root.invalidate()
         finally:
             self.endResetModel()
 
@@ -250,19 +285,21 @@ class TableModel(QtCore.QAbstractItemModel):
         self._rows[:] = rows
 
     def cell(self, index):
-        row = index.internalPointer()
-        return row[index.column()] if row else self.root
+        return index.internalPointer() or self.root
 
     # QAbstractItemModel overrides
 
     def index(self, row, col, parent=QtCore.QModelIndex()):
-        return self.createIndex(row, col, self.cell(parent).items[row])
+        return self.createIndex(
+            row, col, self.cell(parent).children[row].children[col])
 
     def parent(self, index):
-        parent = self.cell(index).parent
-        if parent is None or parent.parent is None:
+        # The parent `Node` of a table cell is the containing row. To get to
+        # the parent *cell*, we need in fact its grandparent:
+        parent = self.cell(index).granny
+        if parent is None or parent.granny is None:
             return QtCore.QModelIndex()
-        return self.index(parent.row, parent.col, parent)
+        return self.createIndex(parent.row, parent.col, parent)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
         return len(self.columns or ())
@@ -295,11 +332,10 @@ class TableModel(QtCore.QAbstractItemModel):
             # (and hence self._refresh is never called). In fact, we
             # we should trigger the update by re-querying self.rows, but right
             # now this is not guaranteed in all places...
+            for c in cell.parent.children:
+                c.invalidate()
             row = index.row()
             par = index.parent()
-            parent = cell.parent
-            parent.items[row][:] = [TableCell(parent, row, col)
-                                    for col in range(len(parent.columns))]
             self.dataChanged.emit(
                 self.index(row, 0, par),
                 self.index(row, self.columnCount()-1, par))
