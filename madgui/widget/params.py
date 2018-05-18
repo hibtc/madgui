@@ -4,6 +4,8 @@ Parameter input dialog.
 
 from itertools import repeat
 
+import cpymad.util as _dtypes
+
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units
 import madgui.util.yaml as yaml
@@ -172,12 +174,10 @@ def cmd_font(cell):
 
 
 def set_expr(cell, value):
-    tab, param = cell.context, cell.data
     # Replace deferred expressions by their value if `not value`:
-    tab.store({param.name: value or param.value}, **tab.fetch_args)
+    set_value(cell, value or cell.data.value)
 
 
-import cpymad.util as _dtypes
 def is_expr_mutable(cell):
     return (not isinstance(cell.data.expr, list) and
             cell.data.dtype not in (_dtypes.PARAM_TYPE_STRING,
