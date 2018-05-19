@@ -335,9 +335,13 @@ class TableModel(QtCore.QAbstractItemModel):
                 c.invalidate()
             row = index.row()
             par = index.parent()
-            self.dataChanged.emit(
-                self.index(row, 0, par),
-                self.index(row, self.columnCount()-1, par))
+            if self.rowCount(index) > 0:
+                self.beginResetModel()
+                self.endResetModel()
+            else:
+                self.dataChanged.emit(
+                    self.index(row, 0, par),
+                    self.index(row, self.columnCount()-1, par))
         return changed
 
 
