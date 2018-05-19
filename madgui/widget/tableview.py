@@ -83,6 +83,9 @@ class NodeMeta:
         return TreeNode(data, self, parent)
 
 
+# TODO: separate section info (title/resize/padding) from cell data
+# TODO: add `deleter`
+# TODO: simplify "meta <-> node" logic -> subclassing?
 class ColumnInfo(NodeMeta):
 
     """Column specification for a table widget."""
