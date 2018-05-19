@@ -62,12 +62,14 @@ class ParamTable(TableView):
     The parameters are displayed in 3 columns: name / value / unit.
     """
 
-    def __init__(self, fetch, store=None, units=True, data_key=None, **kwargs):
+    def __init__(self, fetch, store=None, units=True, model=None,
+                 data_key=None, **kwargs):
         """Initialize data."""
 
         self.fetch = fetch
         self.store = store
         self.units = units
+        self._model = model
         self.readonly = store is None
         self.data_key = data_key
         self.fetch_args = {}
@@ -195,7 +197,7 @@ def get_rows(cell):
                       dtype=par.dtype)
             for idx, (val, expr) in enumerate(zip(par.value, par.expr))
         ]
-    return ()
+    return par_rows(cell)
 
 def set_component_value(cell, value):
     tab, par = cell.context, cell.granny.data
@@ -218,42 +220,10 @@ def is_par_mutable(cell):
     return not isinstance(cell.data.value, list)
 
 
-class CommandEdit(ParamTable):
-
-    """
-    TableView based editor window for MAD-X commands. Used for
-    viewing/editing elements.
-
-    In addition to the ParamTables features, this class is capable of
-    indicating which parameters were explicitly specified by the user and
-    showing the expression!
-    """
-
-    _col_style = dict(font=cmd_font)
-
-    vector_columns = [
-        ColumnInfo(None, get_name, **_col_style),
-        # TODO: fix conversion and get_unit
-        ColumnInfo(None, 'value', set_component_value, padding=50,
-                   mutable=True, convert='name'),
-        ColumnInfo(None, get_unit,
-                   resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo(None, 'expr', set_component_expr, padding=50,
-                   mutable=is_expr_mutable,
-                   resize=QtGui.QHeaderView.ResizeToContents),
-    ]
-
-    columns = [
-        ColumnInfo("Parameter", get_name,
-                   rows=get_rows, columns=vector_columns, **_col_style),
-        ColumnInfo("Value", get_value, set_value, padding=50,
-                   mutable=is_par_mutable, convert='name'),
-        ColumnInfo("Unit", get_unit,
-                   resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Expression", get_expr, set_expr, padding=50,
-                   mutable=is_expr_mutable,
-                   resize=QtGui.QHeaderView.ResizeToContents),
-    ]
+def get_par_columns(cell):
+    return (CommandEdit.vector_columns
+            if isinstance(cell.data.value, list) else
+            par_columns)
 
 
 def is_var_mutable(cell):
@@ -274,6 +244,66 @@ def par_rows(cell):
     return ()
 
 
+def set_par_value(cell, value):
+    tab, param = cell.context, cell.data
+    tab._model.update_globals({param.name: value})
+
+
+def set_par_expr(cell, value):
+    # Replace deferred expressions by their value if `not value`:
+    set_par_value(cell, value or cell.data.value)
+
+par_columns = []
+par_columns.extend([
+    ColumnInfo("Name", 'name', rows=par_rows, columns=par_columns),
+    ColumnInfo("Value", 'value', set_par_value, padding=50,
+               mutable=is_var_mutable),
+    ColumnInfo("Unit", lambda c: None, mutable=False),
+    ColumnInfo("Expression", 'expr', set_par_expr, padding=50,
+               mutable=True,
+               resize=QtGui.QHeaderView.ResizeToContents),
+])
+
+
+class CommandEdit(ParamTable):
+
+    """
+    TableView based editor window for MAD-X commands. Used for
+    viewing/editing elements.
+
+    In addition to the ParamTables features, this class is capable of
+    indicating which parameters were explicitly specified by the user and
+    showing the expression!
+    """
+
+    _col_style = dict(font=cmd_font)
+
+    vector_columns = [
+        ColumnInfo(None, get_name, rows=par_rows, columns=par_columns, **_col_style),
+        # TODO: fix conversion and get_unit
+        ColumnInfo(None, 'value', set_component_value, padding=50,
+                   mutable=True, convert='name'),
+        ColumnInfo(None, get_unit,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo(None, 'expr', set_component_expr, padding=50,
+                   mutable=is_expr_mutable,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+    columns = [
+        ColumnInfo("Parameter", get_name,
+                   rows=get_rows, columns=get_par_columns, **_col_style),
+        ColumnInfo("Value", get_value, set_value, padding=50,
+                   mutable=is_par_mutable, convert='name'),
+        ColumnInfo("Unit", get_unit,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Expression", get_expr, set_expr, padding=50,
+                   mutable=is_expr_mutable,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+
+
 var_columns = []
 var_columns.extend([
     ColumnInfo("Name", 'name', rows=par_rows, columns=var_columns),
@@ -291,8 +321,7 @@ class GlobalsEdit(ParamTable):
     columns = var_columns
 
     def __init__(self, model):
-        self._model = model
-        super().__init__(self._fetch, self._model.update_globals)
+        super().__init__(self._fetch, model.update_globals, model=model)
 
     def _fetch(self):
         globals = self._model.globals
