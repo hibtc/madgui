@@ -295,22 +295,18 @@ class CommandEdit(ParamTable):
 
     knob_columns = []
     knob_columns.extend([
-        ColumnInfo("Name", get_var_name, rows=par_rows, columns=knob_columns),
-        ColumnInfo("Value", 'value', set_par_value, padding=50,
-                   mutable=is_var_mutable),
-        ColumnInfo("Unit", lambda c: None, mutable=False),
-        ColumnInfo("Expression", 'expr', set_par_expr, padding=50,
-                   mutable=True),
+        ColumnInfo(None, get_var_name, rows=par_rows, columns=knob_columns),
+        ColumnInfo(None, 'value', set_par_value, mutable=is_var_mutable),
+        ColumnInfo(None, lambda c: None, mutable=False),
+        ColumnInfo(None, 'expr', set_par_expr, mutable=True),
     ])
 
     vector_columns = [
         ColumnInfo(None, get_name, rows=par_rows, columns=knob_columns, **_col_style),
         # TODO: fix conversion and get_unit
-        ColumnInfo(None, 'value', set_comp_value, padding=50,
-                   mutable=True, convert='name'),
+        ColumnInfo(None, 'value', set_comp_value, mutable=True, convert='name'),
         ColumnInfo(None, get_comp_unit),
-        ColumnInfo(None, 'expr', set_comp_expr, padding=50,
-                   mutable=is_expr_mutable),
+        ColumnInfo(None, 'expr', set_comp_expr, mutable=is_expr_mutable),
     ]
 
     columns = [
