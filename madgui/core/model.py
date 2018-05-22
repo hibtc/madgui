@@ -541,6 +541,8 @@ class Model(Object):
             elif v == '':
                 v = self.madx.globals[k]
             self.madx.globals[k] = v
+        self.elements.invalidate()  # TODO: invalidate only elements that
+                                    # depend on any of the updated variables?
         self.twiss.invalidate()
 
     def _update_beam(self, beam):

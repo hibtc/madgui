@@ -2,11 +2,15 @@
 Parameter input dialog.
 """
 
+from itertools import repeat
+
+import cpymad.util as _dtypes
+
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units
 import madgui.util.yaml as yaml
 
-from madgui.widget.tableview import TableView, ColumnInfo
+from madgui.widget.tableview import TableView, ColumnInfo, NodeMeta
 
 
 __all__ = [
@@ -21,27 +25,30 @@ class ParamInfo:
     """Row info for the TableView [internal]."""
     # TODO: merge this with madgui.online.api.ParamInfo
 
-    def __init__(self, name, value, expr=None, inform=0, mutable=True):
+    def __init__(self, name, value, expr=None, inform=0, mutable=True,
+                 dtype=None, var_type=1):
         self.name = name
         self.value = value
         self.expr = expr
         self.inform = inform
         self.mutable = mutable
         self.unit = ui_units.label(name, value)
+        self.dtype = dtype
+        self.var_type = var_type
 
 
 def get_unit(cell):
-    param = cell.item
+    param = cell.data
     return ui_units.label(param.name, param.value)
 
 
 def set_value(cell, value):
-    tab, item = cell.model.context, cell.item
-    tab.store({item.name: value}, **tab.fetch_args)
+    tab, param = cell.context, cell.data
+    tab.store({param.name: value}, **tab.fetch_args)
 
 
 def cell_is_mutable(cell):
-    return cell.item.mutable and not cell.model.context.readonly
+    return cell.data.mutable and not cell.context.readonly
 
 
 def cell_textcolor(cell):
@@ -56,20 +63,22 @@ class ParamTable(TableView):
     The parameters are displayed in 3 columns: name / value / unit.
     """
 
-    def __init__(self, fetch, store=None, units=True, data_key=None, **kwargs):
+    def __init__(self, fetch, store=None, units=True, model=None,
+                 data_key=None, **kwargs):
         """Initialize data."""
 
         self.fetch = fetch
         self.store = store
         self.units = units
+        self._model = model
         self.readonly = store is None
         self.data_key = data_key
         self.fetch_args = {}
 
         super().__init__(columns=self.columns, context=self, **kwargs)
-        # in case anyone turns the horizontalHeader back on:
-        self.horizontalHeader().setHighlightSections(False)
-        self.horizontalHeader().hide()
+        # in case anyone turns the header back on:
+        self.header().setHighlightSections(False)
+        self.header().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
@@ -93,16 +102,11 @@ class ParamTable(TableView):
         """Update dialog from the datastore."""
         self.fetch_args.update(kw)
         # TODO: get along without resetting all the rows?
-        rows = self.fetch(**self.fetch_args)
-        if len(rows) == len(self.rows):
-            for i, row in enumerate(rows):
-                self.rows[i] = row
-        else:
-            self.rows = rows
+        self.rows = self.fetch(**self.fetch_args)
 
         # Set initial size:
         if not self.isVisible():
-            self.selectRow(0)
+            #self.selectRow(0)
             self.resizeColumnsToContents()
             self.updateGeometries()
 
@@ -166,26 +170,103 @@ class ParamTable(TableView):
 
 
 def cmd_font(cell):
-    if cell.item.inform:
+    if cell.data.inform:
         font = QtGui.QFont()
         font.setBold(True)
         return font
 
 
 def set_expr(cell, value):
-    tab, item = cell.model.context, cell.item
     # Replace deferred expressions by their value if `not value`:
-    tab.store({item.name: value or item.value}, **tab.fetch_args)
+    set_value(cell, value or cell.data.value)
 
 
-import cpymad.util as _dtypes
 def is_expr_mutable(cell):
-    return cell.item.dtype not in (_dtypes.PARAM_TYPE_STRING,
-                                   _dtypes.PARAM_TYPE_STRING_ARRAY)
+    return (not isinstance(cell.data.expr, list) and
+            cell.data.dtype not in (_dtypes.PARAM_TYPE_STRING,
+                                    _dtypes.PARAM_TYPE_STRING_ARRAY))
 
 
 def get_name(cell):
-    return cell.item.name.title()
+    return cell.data.name.title()
+
+def get_rows(cell):
+    par = cell.data
+    if isinstance(par.value, list):
+        return [
+            ParamInfo('[{}]'.format(idx), val, expr, par.inform,
+                      dtype=par.dtype, var_type=par.var_type)
+            for idx, (val, expr) in enumerate(zip(par.value, par.expr))
+        ]
+    return par_rows(cell)
+
+def set_component_value(cell, value):
+    tab, par = cell.context, cell.granny.data
+    vec = list(par.definition)
+    vec[cell.row] = value
+    tab.store({par.name: vec}, **tab.fetch_args)
+
+def set_component_expr(cell, value):
+    set_component_value(cell, value or cell.data.value)
+
+def get_value(cell):
+    if not isinstance(cell.data.value, list):
+        return cell.data.value
+
+def get_expr(cell):
+    if not isinstance(cell.data.expr, list):
+        return cell.data.expr
+
+def is_par_mutable(cell):
+    return not isinstance(cell.data.value, list)
+
+
+def get_par_columns(cell):
+    return (CommandEdit.vector_columns
+            if isinstance(cell.data.value, list) else
+            par_columns)
+
+
+def get_var_name(cell):
+    parts = cell.data.name.split('_')
+    return "_".join(parts[:1] + list(map(str.upper, parts[1:])))
+
+def is_var_mutable(cell):
+    return cell.data.var_type > 0
+
+
+def par_rows(cell):
+    expr = cell.data.expr
+    if expr:
+        model = cell.context._model
+        globals = model.globals
+        return [
+            p for k in model.madx.expr_vars(expr)
+            for p in [globals.cmdpar[k]]
+            if p.inform > 0
+        ]
+    return ()
+
+
+def set_par_value(cell, value):
+    tab, param = cell.context, cell.data
+    tab._model.update_globals({param.name: value})
+
+
+def set_par_expr(cell, value):
+    # Replace deferred expressions by their value if `not value`:
+    set_par_value(cell, value or cell.data.value)
+
+par_columns = []
+par_columns.extend([
+    ColumnInfo("Name", get_var_name, rows=par_rows, columns=par_columns),
+    ColumnInfo("Value", 'value', set_par_value, padding=50,
+               mutable=is_var_mutable),
+    ColumnInfo("Unit", lambda c: None, mutable=False),
+    ColumnInfo("Expression", 'expr', set_par_expr, padding=50,
+               mutable=True,
+               resize=QtGui.QHeaderView.ResizeToContents),
+])
 
 
 class CommandEdit(ParamTable):
@@ -201,41 +282,49 @@ class CommandEdit(ParamTable):
 
     _col_style = dict(font=cmd_font)
 
-    columns = [
-        ColumnInfo("Parameter", get_name, **_col_style),
-        ColumnInfo("Value", 'value', set_value, padding=50,
+    vector_columns = [
+        ColumnInfo(None, get_name, rows=par_rows, columns=par_columns, **_col_style),
+        # TODO: fix conversion and get_unit
+        ColumnInfo(None, 'value', set_component_value, padding=50,
                    mutable=True, convert='name'),
+        ColumnInfo(None, get_unit,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo(None, 'expr', set_component_expr, padding=50,
+                   mutable=is_expr_mutable,
+                   resize=QtGui.QHeaderView.ResizeToContents),
+    ]
+
+    columns = [
+        ColumnInfo("Parameter", get_name,
+                   rows=get_rows, columns=get_par_columns, **_col_style),
+        ColumnInfo("Value", get_value, set_value, padding=50,
+                   mutable=is_par_mutable, convert='name'),
         ColumnInfo("Unit", get_unit,
                    resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Expression", 'expr', set_expr, padding=50,
+        ColumnInfo("Expression", get_expr, set_expr, padding=50,
                    mutable=is_expr_mutable,
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
 
-def get_var_name(cell):
-    parts = cell.item.name.split('_')
-    return "_".join(parts[:1] + list(map(str.upper, parts[1:])))
-
-def is_var_mutable(cell):
-    return cell.item.var_type > 0
+var_columns = []
+var_columns.extend([
+    ColumnInfo("Name", get_var_name, rows=par_rows, columns=var_columns),
+    ColumnInfo("Value", 'value', set_value, padding=50,
+               mutable=is_var_mutable),
+    ColumnInfo("Expression", 'expr', set_expr, padding=50,
+               mutable=True,
+               resize=QtGui.QHeaderView.ResizeToContents),
+])
 
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    columns = [
-        ColumnInfo("Name", get_var_name),
-        ColumnInfo("Value", 'value', set_value, padding=50,
-                   mutable=is_var_mutable),
-        ColumnInfo("Expression", 'expr', set_expr, padding=50,
-                   mutable=True,
-                   resize=QtGui.QHeaderView.ResizeToContents),
-    ]
+    columns = var_columns
 
     def __init__(self, model):
-        self._model = model
-        super().__init__(self._fetch, self._model.update_globals)
+        super().__init__(self._fetch, model.update_globals, model=model)
 
     def _fetch(self):
         globals = self._model.globals

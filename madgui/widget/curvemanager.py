@@ -11,20 +11,20 @@ from madgui.widget.filedialog import getOpenFileName
 
 
 def get_curve_name(cell):
-    name, data, style = cell.item
+    name, data, style = cell.data
     return name
 
 def set_curve_name(cell, name):
-    i, mgr = cell.row, cell.model.context
-    _, data, style = cell.item
+    i, mgr = cell.row, cell.context
+    _, data, style = cell.data
     mgr.available[i] = (name, data, style)
 
 def get_curve_show(cell):
-    i, mgr = cell.row, cell.model.context
+    i, mgr = cell.row, cell.context
     return i in mgr.selected
 
 def set_curve_show(cell, show):
-    i, mgr = cell.row, cell.model.context
+    i, mgr = cell.row, cell.context
     shown = i in mgr.selected
     if show and not shown:
         mgr.selected.append(i)
@@ -54,7 +54,7 @@ class CurveManager(QtGui.QWidget):
         self.connect_signals()
 
     def init_controls(self):
-        self.tab.horizontalHeader().setHighlightSections(False)
+        self.tab.header().setHighlightSections(False)
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.tab.set_columns(self.columns, self.available, self)

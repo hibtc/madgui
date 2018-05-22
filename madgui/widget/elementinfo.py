@@ -34,8 +34,10 @@ class ElementInfoBox(QtGui.QWidget):
         super().__init__()
 
         self.notebook = TabParamTables([
-            ('Summary', ParamTable(self._fetch_summary, self._update_element)),
-            ('Params', CommandEdit(self._fetch_cmdpar, self._update_element)),
+            ('Summary', ParamTable(self._fetch_summary, self._update_element,
+                                   model=model)),
+            ('Params', CommandEdit(self._fetch_cmdpar, self._update_element,
+                                   model=model)),
             ('Twiss', ParamTable(self._fetch_twiss)),
             ('Sigma', ParamTable(self._fetch_sigma)),
             ('Ellipse', EllipseWidget(model)),

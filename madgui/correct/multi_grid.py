@@ -148,21 +148,21 @@ class Corrector(Matcher):
 
 
 def format_knob(cell):
-    return cell.item.knob
+    return cell.data.knob
 
 def format_final(cell):
-    var = cell.item
+    var = cell.data
     return change_unit(var.value, var.info.unit, var.info.ui_unit)
 
 def format_initial(cell):
-    var = cell.item
+    var = cell.data
     return change_unit(var.design, var.info.unit, var.info.ui_unit)
 
 def format_unit(cell):
-    return get_raw_label(cell.item.info.ui_unit)
+    return get_raw_label(cell.data.info.ui_unit)
 
 def set_constraint_value(cell, value):
-    widget, c, i = cell.model.context, cell.item, cell.row
+    widget, c, i = cell.context, cell.data, cell.row
     widget.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
 class CorrectorWidget(QtGui.QWidget):
@@ -178,13 +178,13 @@ class CorrectorWidget(QtGui.QWidget):
     ]
 
     constraint_columns = [
-        ColumnInfo("Element", lambda c: c.item.elem.node_name,
+        ColumnInfo("Element", lambda c: c.data.elem.node_name,
                    resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Param", 'axis', resize=QtGui.QHeaderView.ResizeToContents),
         ColumnInfo("Value", 'value', set_constraint_value,
                    convert='axis',
                    resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Unit", lambda c: ui_units.label(c.item.axis),
+        ColumnInfo("Unit", lambda c: ui_units.label(c.data.axis),
                    resize=QtGui.QHeaderView.ResizeToContents),
     ]
 
@@ -216,7 +216,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def init_controls(self):
         for tab in (self.mon_tab, self.con_tab, self.var_tab):
-            tab.horizontalHeader().setHighlightSections(False)
+            tab.header().setHighlightSections(False)
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
