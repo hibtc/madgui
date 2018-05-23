@@ -12,6 +12,7 @@ from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property, ranges
 from madgui.util.collections import List
 from madgui.util.enum import Enum
+from madgui.widget.quantity import DoubleValidator as _DoubleValidator
 from madgui.widget.spinbox import QuantitySpinBox
 
 import madgui.core.unit as unit
@@ -592,6 +593,45 @@ class QuantityDelegate(ItemDelegate):
         model.setData(index, editor.quantity)
 
 
+class ListDelegate(ItemDelegate):
+
+    """List value."""
+
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter
+
+    def display(self, value):
+        return '[{}]'.format(
+            ", ".join(map(self.formatValue, value)))
+
+    def formatValue(self, value):
+        return lookupDelegate(value).display(value)
+
+    # QStyledItemDelegate
+
+    # TODO: select sections individually, cycle through with <Tab>
+    # TODO: adjust increase editor size while typing? (so prefix/suffix will
+    # always be directly after the edit text)
+    # TODO: use QDoubleSpinBox for current section? Show other parts as
+    # prefix/suffix
+    # TODO: intercept and handle <Enter>
+
+    def createEditor(self, parent, option, index):
+        editor = AffixLineEdit(parent)
+        editor.prefix.setText('[')
+        editor.suffix.setText(']')
+        return editor
+
+    def setEditorData(self, editor, index):
+        text = index.data().lstrip('[').rstrip(']')
+        editor.edit.setText(text)
+        editor.edit.selectAll()
+
+    def setModelData(self, editor, model, index):
+        value = editor.edit.text()
+        items = [unit.from_config(item) for item in value.split(',')]
+        model.setData(index, items)
+
+
 class EnumDelegate(StringDelegate):
 
     # QStyledItemDelegate
@@ -621,6 +661,7 @@ TYPES = {                   # default {type: value proxy} mapping
     bool: BoolDelegate(),
     str: StringDelegate(),
     bytes: StringDelegate(),
+    list: ListDelegate(),                       # TODO: VECTOR vs MATRIX…
     unit.units.Quantity: QuantityDelegate(),
     Enum: EnumDelegate(),
 }
@@ -655,3 +696,36 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         pass
+
+
+class DoubleValidator(_DoubleValidator):
+
+    def validate(self, text, pos):
+        # Allow to delete values
+        if not text:
+            return (QtGui.QValidator.Acceptable, text, pos)
+        return super().validate(text, pos)
+
+
+class AffixLineEdit(QtGui.QWidget):
+
+    """Single-line edit control with prefix/suffix text."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.prefix = QtGui.QLabel()
+        self.suffix = QtGui.QLabel()
+        self.edit = QtGui.QLineEdit()
+        self.edit.setFrame(False)
+        layout = HBoxLayout([
+            self.prefix,
+            self.edit,
+            self.suffix,
+        ])
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+        self.setAutoFillBackground(True)
+
+    def focusInEvent(self, event):
+        self.edit.setFocus()
+        event.accept()
