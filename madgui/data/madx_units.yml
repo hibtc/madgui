@@ -76,6 +76,7 @@ mass:     GeV/c^2
 # TODO: use general formula m^-N ?
 knl:      [rad, m^-1, m^-2, m^-3, m^-4]
 ksl:      [rad, m^-1, m^-2, m^-3, m^-4]
+k0:       rad*m
 
 # used in online database:
 kl:       m^-1
