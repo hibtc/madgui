@@ -77,6 +77,7 @@ mass:     u
 # TODO: write out vector components as scalars
 knl:      [rad, m^-1, m^-2, m^-3, m^-4]
 ksl:      [rad, m^-1, m^-2, m^-3, m^-4]
+k0:       rad*m
 
 # used in online database:
 kl:       m^-1
