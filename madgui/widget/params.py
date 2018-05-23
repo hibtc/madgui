@@ -7,7 +7,7 @@ from itertools import repeat
 import cpymad.util as _dtypes
 
 from madgui.qt import QtGui, Qt
-from madgui.core.unit import ui_units
+from madgui.core.unit import ui_units, get_raw_label
 import madgui.util.yaml as yaml
 
 from madgui.widget.tableview import TableView, ColumnInfo, NodeMeta
@@ -39,7 +39,8 @@ class ParamInfo:
 
 def get_unit(cell):
     param = cell.data
-    return ui_units.label(param.name, param.value)
+    if not isinstance(param.value, list):
+        return ui_units.label(param.name, param.value)
 
 
 def set_value(cell, value):
@@ -209,6 +210,12 @@ def set_component_value(cell, value):
 def set_component_expr(cell, value):
     set_component_value(cell, value or cell.data.value)
 
+def get_component_unit(cell):
+    units = ui_units.get(cell.granny.data.name)
+    row = cell.row
+    if isinstance(units, list) and row < len(units):
+        return get_raw_label(units[row])
+
 def get_value(cell):
     if not isinstance(cell.data.value, list):
         return cell.data.value
@@ -287,7 +294,7 @@ class CommandEdit(ParamTable):
         # TODO: fix conversion and get_unit
         ColumnInfo(None, 'value', set_component_value, padding=50,
                    mutable=True, convert='name'),
-        ColumnInfo(None, get_unit,
+        ColumnInfo(None, get_component_unit,
                    resize=QtGui.QHeaderView.ResizeToContents),
         ColumnInfo(None, 'expr', set_component_expr, padding=50,
                    mutable=is_expr_mutable,
