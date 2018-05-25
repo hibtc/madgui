@@ -124,7 +124,7 @@ class Control(Object):
             dialog.setWidget(widget, tight=True)
         # dialog.setWindowTitle()
         if apply is not None:
-            dialog.applied.connect(apply)
+            dialog.accepted.connect(apply)
         dialog.show()
         return dialog
 

@@ -6,7 +6,6 @@ import os
 
 from madgui.qt import Qt, QtGui
 
-from madgui.core.base import Signal
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch, Spacing
 
 
@@ -83,13 +82,11 @@ class SerializeButtons(QtGui.QDialogButtonBox):
 
 class Dialog(QtGui.QDialog):
 
-    applied = Signal()
     # TODO: reset button
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizeGripEnabled(True)
-        self.accepted.connect(self.apply)
         self.finished.connect(self.close)
 
     def setWidget(self, widget, tight=False):
@@ -109,9 +106,6 @@ class Dialog(QtGui.QDialog):
     def widget(self):
         return self._widget
 
-    def apply(self):
-        self.applied.emit()
-
     # TODO: update enabled-state of apply-button?
 
     def closeEvent(self, event):
@@ -123,9 +117,9 @@ class Dialog(QtGui.QDialog):
     def standardButtons(self, widget, *args, **kwargs):
         buttons = QtGui.QDialogButtonBox(*args, **kwargs)
         buttons.addButton(Button.Ok).clicked.connect(self.accept)
-        buttons.addButton(Button.Apply).clicked.connect(self.apply)
+        buttons.addButton(Button.Apply).clicked.connect(self.accepted.emit)
         buttons.addButton(Button.Cancel).clicked.connect(self.reject)
-        if hasattr(widget, 'accept'): self.applied.connect(widget.accept)
+        if hasattr(widget, 'accept'): self.accepted.connect(widget.accept)
         if hasattr(widget, 'reject'): self.rejected.connect(widget.reject)
         return buttons
 
