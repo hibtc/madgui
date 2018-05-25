@@ -120,15 +120,17 @@ class Dialog(QtGui.QDialog):
             self.widget().close()
         super().close()
 
-    def standardButtons(self, *args, **kwargs):
+    def standardButtons(self, widget, *args, **kwargs):
         buttons = QtGui.QDialogButtonBox(*args, **kwargs)
         buttons.addButton(Button.Ok).clicked.connect(self.accept)
         buttons.addButton(Button.Apply).clicked.connect(self.apply)
         buttons.addButton(Button.Cancel).clicked.connect(self.reject)
+        if hasattr(widget, 'accept'): self.applied.connect(widget.accept)
+        if hasattr(widget, 'reject'): self.rejected.connect(widget.reject)
         return buttons
 
     def setButtonWidget(self, widget):
-        self.setWidget([widget, self.standardButtons()])
+        self.setWidget([widget, self.standardButtons(widget)])
 
     def setExportWidget(self, widget, folder):
         self.serious = SerializeButtons(widget, folder, Qt.Vertical)
@@ -136,5 +138,5 @@ class Dialog(QtGui.QDialog):
             self.serious,
             Stretch(),
             Spacing(20),
-            self.standardButtons(Qt.Vertical),
+            self.standardButtons(widget, Qt.Vertical),
         ]]))
