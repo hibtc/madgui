@@ -137,7 +137,7 @@ class Corrector(Matcher):
             (c.elem, None, c.axis, c.value+offset(c))
             for c in self.constraints
         ]
-        with self.model.rollback("Orbit correction"):
+        with self.model.undo_stack.rollback("Orbit correction"):
             self.model.update_globals(self.selected.get('assign', {}))
             self.model.update_twiss_args(init_orbit)
             return self.model.match(
@@ -253,7 +253,7 @@ class CorrectorWidget(QtGui.QWidget):
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.execute_corrections.setEnabled(True)
         # update table view
-        with self.corrector.model.rollback("Knobs for corrected orbit"):
+        with self.corrector.model.undo_stack.rollback("Knobs for corrected orbit"):
             self.corrector.model.write_params(self.steerer_corrections.items())
             self.corrector.variables[:] = [
                 variable_update(self.corrector, v)

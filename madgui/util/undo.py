@@ -1,4 +1,5 @@
 from collections import Mapping
+from contextlib import contextmanager
 
 from madgui.qt import QtGui
 
@@ -33,3 +34,23 @@ class UpdateCommand(QtGui.QUndoCommand):
 
     def __bool__(self):
         return bool(self._new)
+
+
+class UndoStack(QtGui.QUndoStack):
+
+    @contextmanager
+    def macro(self, text):
+        self.beginMacro(text)
+        try:
+            yield None
+        finally:
+            self.endMacro()
+
+    @contextmanager
+    def rollback(self, text="temporary change"):
+        self.beginMacro(text)
+        try:
+            yield None
+        finally:
+            self.endMacro()
+            self.undo()

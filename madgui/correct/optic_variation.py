@@ -91,7 +91,7 @@ class Corrector:
 
         # update initial conditions to compute sectormaps accounting for the
         # given initial conditions:
-        with self.model.rollback("Orbit correction"):
+        with self.model.undo_stack.rollback("Orbit correction"):
             self.model.update_twiss_args(init_orbit or {})
             return self.model.get_transfer_maps([
                 self.model.start if orig is None else orig,
@@ -195,7 +195,7 @@ class Corrector:
             for elem in [self.model.elements[target]]
             for axis, value in orbit.items()
         ]
-        with self.model.rollback("Orbit correction"):
+        with self.model.undo_stack.rollback("Orbit correction"):
             self.model.update_twiss_args(init_orbit)
             return self.model.match(
                 vary=match_names,

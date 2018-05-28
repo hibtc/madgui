@@ -13,6 +13,7 @@ from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
 from madgui.util.qt import notifyCloseEvent, notifyEvent
+from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord
 
@@ -273,7 +274,7 @@ class MainWindow(QtGui.QMainWindow):
             partial(self.log_window.enable, 'MADX'))
 
         style = self.style()
-        self.undo_stack = undo_stack = QtGui.QUndoStack()
+        self.undo_stack = undo_stack = UndoStack()
         self.undo_action = undo_stack.createUndoAction(self)
         self.redo_action = undo_stack.createRedoAction(self)
         self.undo_action.setShortcut(QtGui.QKeySequence.Undo)
