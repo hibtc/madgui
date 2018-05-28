@@ -46,7 +46,7 @@ def get_knob_display(cell):
     return widget.knob_enum(v.knob)
 
 def set_knob_display(cell, text):
-    widget, v, i = cell.context, cell.data, cell.row
+    widget, i = cell.context, cell.row
     if text is not None:
         knob = parse_knob(widget.model, str(text))
         if knob:

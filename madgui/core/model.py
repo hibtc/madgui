@@ -795,8 +795,6 @@ class Model(Object):
 
     def match(self, vary, constraints, **kwargs):
 
-        globals = dict(self.globals)
-
         # list intermediate positions
         # NOTE: need list instead of set, because quantity is unhashable:
         elem_positions = defaultdict(list)
