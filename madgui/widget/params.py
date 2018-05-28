@@ -2,15 +2,13 @@
 Parameter input dialog.
 """
 
-from itertools import repeat
-
 import cpymad.util as _dtypes
 
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units, get_raw_label
 import madgui.util.yaml as yaml
 
-from madgui.widget.tableview import TableView, ColumnInfo, NodeMeta
+from madgui.widget.tableview import TableView, ColumnInfo
 
 
 __all__ = [
