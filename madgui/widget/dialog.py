@@ -51,9 +51,9 @@ class SerializeButtons(QtGui.QDialogButtonBox):
 
     def updateButtons(self):
         self.button(Button.Save).setEnabled(
-            hasattr(self.exporter, 'importFrom'))
+            hasattr(self.exporter, 'exportTo'))
         self.button(Button.Open).setEnabled(
-            hasattr(self.exporter, 'exportFrom') and
+            hasattr(self.exporter, 'importFrom') and
             not getattr(self.exporter, 'readonly', None))
 
     @property
