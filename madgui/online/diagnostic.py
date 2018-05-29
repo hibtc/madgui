@@ -9,7 +9,6 @@ import numpy as np
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.unit import ui_units
 from madgui.util import yaml
-from madgui.util.undo import RestorePoint
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo
@@ -85,7 +84,6 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.control = control
         self.model = model
         self.frame = frame
-        self.restore = RestorePoint(model.undo_stack)
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
         self._shown = frame.config['online_control']['monitors']
@@ -98,19 +96,12 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
         Buttons = QtGui.QDialogButtonBox
-        self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
-        self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
+        self.std_buttons.button(Buttons.Close).clicked.connect(self.close)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
-        self.std_buttons.button(Buttons.Reset).clicked.connect(self.restore)
         self.btn_update.clicked.connect(self.update)
 
-    def accept(self):
-        self.window().accept()
-
-    def reject(self):
-        self.restore()
-        self.remove()
-        self.window().reject()
+    def close(self):
+        self.window().close()
 
     def selected(self, monitor):
         return self._selected.setdefault(monitor.name, monitor.valid)

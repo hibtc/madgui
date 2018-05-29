@@ -130,8 +130,6 @@ class MatchWidget(QtGui.QWidget):
         self.button_add_variable.clicked.connect(self.add_variable)
         self.matcher.constraints.update_after.connect(self.on_update_constraints)
         self.matcher.variables.update_after.connect(self.on_update_variables)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
         self.buttonBox.clicked.connect(self.clicked)
         self.button_match.clicked.connect(self.matcher.match)
         self.check_mirror.clicked.connect(self.on_change_mirror)
@@ -150,14 +148,6 @@ class MatchWidget(QtGui.QWidget):
 
     def hideEvent(self, event):
         self.matcher.stop()
-
-    def accept(self):
-        self.matcher.accept()
-        self.window().accept()
-
-    def reject(self):
-        self.matcher.reject()
-        self.window().reject()
 
     def clicked(self, button):
         role = self.buttonBox.buttonRole(button)

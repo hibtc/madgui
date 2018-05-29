@@ -46,7 +46,6 @@ class Corrector(Matcher):
         self.control = control
         self.configs = configs
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
-        self.backup()
         # save elements
         self.design_values = {}
         self.monitors = List()
@@ -287,9 +286,7 @@ class EditConfigDialog(QtGui.QDialog):
         self.textbox.setFont(monospace())
         self.linenos = LineNumberBar(self.textbox)
         buttons = QtGui.QDialogButtonBox()
-        buttons.addButton(buttons.Ok).clicked.connect(self.accept)
-        buttons.addButton(buttons.Apply).clicked.connect(self.apply)
-        buttons.addButton(buttons.Cancel).clicked.connect(self.reject)
+        buttons.addButton(buttons.Close).clicked.connect(self.accept)
         self.setLayout(VBoxLayout([
             HBoxLayout([self.linenos, self.textbox], tight=True),
             buttons,

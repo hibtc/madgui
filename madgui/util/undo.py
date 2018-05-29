@@ -52,21 +52,5 @@ class UndoStack(QtGui.QUndoStack):
         try:
             yield None
         finally:
-            self.endMacro<>
+            self.endMacro()
             self.undo()
-
-
-class RestorePoint:
-
-    def __init__(self, stack):
-        self.stack = stack
-        self.reset()
-
-    def reset(self):
-        self.clean_index = self.stack.index()
-
-    def __call__(self):
-        """Undo all commands that belong to us."""
-        # TODO: don't undo commands issued by other parties (?)
-        if self.stack.index() > self.clean_index:
-            self.stack.setIndex(self.clean_index)
