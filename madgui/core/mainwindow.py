@@ -673,7 +673,7 @@ class InfoBoxGroup:
 
     def _delete(self, index):
         if self.boxes[index].isVisible():
-            self.boxes[index].parent().close()
+            self.boxes[index].window().close()
         del self.boxes[index]
 
     def _modify(self, index, el_id):
