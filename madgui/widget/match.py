@@ -118,6 +118,7 @@ class MatchWidget(QtGui.QWidget):
 
     def set_initial_values(self):
         self.check_mirror.setChecked(self.matcher.mirror_mode)
+        self.update_buttons()
 
     def connect_signals(self):
         self.ctab.connectButtons(
@@ -138,10 +139,22 @@ class MatchWidget(QtGui.QWidget):
     def on_update_constraints(self, *args):
         self.ctab.resizeColumnToContents(1)
         self.ctab.resizeColumnToContents(2)
+        self.update_buttons()
 
     def on_update_variables(self, *args):
         self.vtab.resizeColumnToContents(1)
         self.vtab.resizeColumnToContents(2)
+        self.update_buttons()
+
+    def update_buttons(self):
+        num_vars = len(self.matcher.variables)
+        num_cons = len(self.matcher.constraints)
+        # TODO: the last condition should be relaxed when we support methods
+        # other than LMDIF:
+        self.button_match.setEnabled(
+            num_vars > 0 and
+            num_cons > 0 and
+            num_vars == num_cons)
 
     def showEvent(self, event):
         self.matcher.start()

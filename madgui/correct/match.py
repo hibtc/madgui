@@ -2,6 +2,7 @@
 Implementation of the matching system.
 """
 
+import logging
 from collections import namedtuple
 
 from madgui.core.base import Object, Signal
@@ -54,6 +55,14 @@ class Matcher(Object):
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
         variables = {v.knob for v in self.variables
                      if v.knob.lower() not in blacklist}
+        num_vars = len(variables)
+        num_cons = len(constraints)
+        logging.info("Attempting to match {} constraints via {} variables."
+                     .format(num_cons, num_vars))
+        if num_vars == 0 or num_vars != num_cons:
+            logging.warn(
+                "Aborted due to invalid number of constraints or variables.")
+            return
         self.model.match(variables, constraints)
         self.variables[:] = [variable_update(self, v) for v in self.variables]
 
