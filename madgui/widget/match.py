@@ -164,8 +164,8 @@ class MatchWidget(QtGui.QWidget):
 
     def clicked(self, button):
         role = self.buttonBox.buttonRole(button)
-        if role == QtGui.QDialogButtonBox.ApplyRole:
-            self.matcher.apply()
+        if role == QtGui.QDialogButtonBox.RejectRole:   # "Close" button
+            self.window().close()
         elif role == QtGui.QDialogButtonBox.ResetRole:
             self.matcher.reset()
 
