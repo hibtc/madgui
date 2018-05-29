@@ -6,6 +6,7 @@ from collections import namedtuple
 
 from madgui.core.base import Object, Signal
 from madgui.util.collections import List
+from madgui.util.undo import RestorePoint
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
@@ -41,6 +42,7 @@ class Matcher(Object):
         self.variables = List()
         self.design_values = {}
         self.mirror_mode = model.config['matching'].get('mirror', True)
+        self.restore = RestorePoint(model.undo_stack)
 
     def match(self):
         """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""
@@ -81,11 +83,7 @@ class Matcher(Object):
         self.stop()
 
     def backup(self):
-        self.clean_index = self.model.undo_stack.index()
-
-    def restore(self):
-        # TODO: don't undo commands issued by other parties!
-        self.model.undo_stack.setIndex(self.clean_index)
+        self.restore.reset()
 
     def apply(self):
         for v in self.variables:

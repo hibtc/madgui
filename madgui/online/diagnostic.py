@@ -9,6 +9,7 @@ import numpy as np
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.unit import ui_units
 from madgui.util import yaml
+from madgui.util.undo import RestorePoint
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo
@@ -84,6 +85,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.control = control
         self.model = model
         self.frame = frame
+        self.restore = RestorePoint(model.undo_stack)
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
         self._shown = frame.config['online_control']['monitors']
@@ -101,8 +103,6 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.std_buttons.button(Buttons.Reset).clicked.connect(self.restore)
         self.btn_update.clicked.connect(self.update)
-
-        self.backup()
 
     def accept(self):
         self.window().accept()
@@ -133,13 +133,6 @@ class MonitorWidgetBase(QtGui.QWidget):
             or el.base_name.lower() == 'instrument']
         self.on_update()
         self.draw()
-
-    def backup(self):
-        self.clean_index = self.model.undo_stack.index()
-
-    def restore(self):
-        # TODO: don't undo commands issued by other parties!
-        self.model.undo_stack.setIndex(self.clean_index)
 
     def remove(self):
         for scene in self.frame.views:
