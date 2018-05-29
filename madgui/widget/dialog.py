@@ -46,6 +46,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         self.folder = folder
         self.addButton(Button.Open).clicked.connect(self.onImport)
         self.addButton(Button.Save).clicked.connect(self.onExport)
+        self.addButton(Button.Ok).clicked.connect(self.onAccept)
         expand(self, perpendicular(self.orientation()))
 
     def updateButtons(self):
@@ -78,6 +79,9 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         if filename:
             self.exporter.exportTo(filename)
             self.folder, _ = os.path.split(filename)
+
+    def onAccept(self):
+        self.window().accept()
 
 
 class Dialog(QtGui.QDialog):
@@ -114,23 +118,14 @@ class Dialog(QtGui.QDialog):
             self.widget().close()
         super().close()
 
-    def standardButtons(self, widget, *args, **kwargs):
-        buttons = QtGui.QDialogButtonBox(*args, **kwargs)
-        buttons.addButton(Button.Ok).clicked.connect(self.accept)
-        buttons.addButton(Button.Apply).clicked.connect(self.accepted.emit)
-        buttons.addButton(Button.Cancel).clicked.connect(self.reject)
-        if hasattr(widget, 'accept'): self.accepted.connect(widget.accept)
-        if hasattr(widget, 'reject'): self.rejected.connect(widget.reject)
-        return buttons
-
-    def setButtonWidget(self, widget):
-        self.setWidget([widget, self.standardButtons(widget)])
-
     def setExportWidget(self, widget, folder):
         self.serious = SerializeButtons(widget, folder, Qt.Vertical)
+        self.serious.addButton(Button.Cancel).clicked.connect(self.reject)
         self.setWidget(HBoxLayout([widget, [
-            self.serious,
             Stretch(),
-            Spacing(20),
-            self.standardButtons(widget, Qt.Vertical),
+            self.serious,
         ]]))
+
+    def setSimpleExportWidget(self, widget, folder):
+        self.serious = SerializeButtons(widget, folder, Qt.Horizontal)
+        self.setWidget(VBoxLayout([widget, self.serious]))

@@ -360,7 +360,7 @@ class MainWindow(QtGui.QMainWindow):
         self.model.twiss.updated.connect(widget.update)
 
         dialog = Dialog(self)
-        dialog.setExportWidget(widget, self.folder)
+        dialog.setSimpleExportWidget(widget, self.folder)
         dialog.setWindowTitle("Initial conditions")
         dialog.show()
         return widget
@@ -700,7 +700,7 @@ class InfoBoxGroup:
         from madgui.widget.elementinfo import ElementInfoBox
         info = ElementInfoBox(self.model, el_id)
         dock = Dialog(self.mainwindow)
-        dock.setExportWidget(info, None)
+        dock.setSimpleExportWidget(info, None)
         dock.setWindowTitle("Element details: " + self.model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
