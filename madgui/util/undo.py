@@ -45,12 +45,19 @@ class UndoStack(QtGui.QUndoStack):
             yield None
         finally:
             self.endMacro()
+            macro = self.command(self.count()-1)
+            if macro.childCount() == 0:
+                macro.setObsolete(True)
+                self.undo()
 
     @contextmanager
-    def rollback(self, text="temporary change"):
+    def rollback(self, text="temporary change", hidden=False):
         self.beginMacro(text)
         try:
             yield None
         finally:
             self.endMacro()
+            macro = self.command(self.count()-1)
+            if macro.childCount() == 0 or hidden:
+                macro.setObsolete(True)
             self.undo()
