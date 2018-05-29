@@ -6,7 +6,6 @@ import os
 
 from madgui.qt import Qt, QtGui
 
-from madgui.core.base import Signal
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch, Spacing
 
 
@@ -47,6 +46,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         self.folder = folder
         self.addButton(Button.Open).clicked.connect(self.onImport)
         self.addButton(Button.Save).clicked.connect(self.onExport)
+        self.addButton(Button.Ok).clicked.connect(self.onAccept)
         expand(self, perpendicular(self.orientation()))
 
     def updateButtons(self):
@@ -80,16 +80,17 @@ class SerializeButtons(QtGui.QDialogButtonBox):
             self.exporter.exportTo(filename)
             self.folder, _ = os.path.split(filename)
 
+    def onAccept(self):
+        self.window().accept()
+
 
 class Dialog(QtGui.QDialog):
 
-    applied = Signal()
     # TODO: reset button
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setSizeGripEnabled(True)
-        self.accepted.connect(self.apply)
         self.finished.connect(self.close)
 
     def setWidget(self, widget, tight=False):
@@ -109,9 +110,6 @@ class Dialog(QtGui.QDialog):
     def widget(self):
         return self._widget
 
-    def apply(self):
-        self.applied.emit()
-
     # TODO: update enabled-state of apply-button?
 
     def closeEvent(self, event):
@@ -120,21 +118,14 @@ class Dialog(QtGui.QDialog):
             self.widget().close()
         super().close()
 
-    def standardButtons(self, *args, **kwargs):
-        buttons = QtGui.QDialogButtonBox(*args, **kwargs)
-        buttons.addButton(Button.Ok).clicked.connect(self.accept)
-        buttons.addButton(Button.Apply).clicked.connect(self.apply)
-        buttons.addButton(Button.Cancel).clicked.connect(self.reject)
-        return buttons
-
-    def setButtonWidget(self, widget):
-        self.setWidget([widget, self.standardButtons()])
-
     def setExportWidget(self, widget, folder):
         self.serious = SerializeButtons(widget, folder, Qt.Vertical)
+        self.serious.addButton(Button.Cancel).clicked.connect(self.reject)
         self.setWidget(HBoxLayout([widget, [
-            self.serious,
             Stretch(),
-            Spacing(20),
-            self.standardButtons(Qt.Vertical),
+            self.serious,
         ]]))
+
+    def setSimpleExportWidget(self, widget, folder):
+        self.serious = SerializeButtons(widget, folder, Qt.Horizontal)
+        self.setWidget(VBoxLayout([widget, self.serious]))

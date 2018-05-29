@@ -46,7 +46,6 @@ class Corrector(Matcher):
         self.control = control
         self.configs = configs
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
-        self.backup()
         # save elements
         self.design_values = {}
         self.monitors = List()
@@ -137,7 +136,7 @@ class Corrector(Matcher):
             (c.elem, None, c.axis, c.value+offset(c))
             for c in self.constraints
         ]
-        with self.model.rollback("Orbit correction"):
+        with self.model.undo_stack.rollback("Orbit correction"):
             self.model.update_globals(self.selected.get('assign', {}))
             self.model.update_twiss_args(init_orbit)
             return self.model.match(
@@ -253,7 +252,7 @@ class CorrectorWidget(QtGui.QWidget):
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.execute_corrections.setEnabled(True)
         # update table view
-        with self.corrector.model.rollback("Knobs for corrected orbit"):
+        with self.corrector.model.undo_stack.rollback("Knobs for corrected orbit"):
             self.corrector.model.write_params(self.steerer_corrections.items())
             self.corrector.variables[:] = [
                 variable_update(self.corrector, v)
@@ -287,9 +286,7 @@ class EditConfigDialog(QtGui.QDialog):
         self.textbox.setFont(monospace())
         self.linenos = LineNumberBar(self.textbox)
         buttons = QtGui.QDialogButtonBox()
-        buttons.addButton(buttons.Ok).clicked.connect(self.accept)
-        buttons.addButton(buttons.Apply).clicked.connect(self.apply)
-        buttons.addButton(buttons.Cancel).clicked.connect(self.reject)
+        buttons.addButton(buttons.Close).clicked.connect(self.accept)
         self.setLayout(VBoxLayout([
             HBoxLayout([self.linenos, self.textbox], tight=True),
             buttons,

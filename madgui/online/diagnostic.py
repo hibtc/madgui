@@ -96,21 +96,12 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
         Buttons = QtGui.QDialogButtonBox
-        self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
-        self.std_buttons.button(Buttons.Cancel).clicked.connect(self.reject)
+        self.std_buttons.button(Buttons.Close).clicked.connect(self.close)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
-        self.std_buttons.button(Buttons.Reset).clicked.connect(self.restore)
         self.btn_update.clicked.connect(self.update)
 
-        self.backup()
-
-    def accept(self):
-        self.window().accept()
-
-    def reject(self):
-        self.restore()
-        self.remove()
-        self.window().reject()
+    def close(self):
+        self.window().close()
 
     def selected(self, monitor):
         return self._selected.setdefault(monitor.name, monitor.valid)
@@ -133,13 +124,6 @@ class MonitorWidgetBase(QtGui.QWidget):
             or el.base_name.lower() == 'instrument']
         self.on_update()
         self.draw()
-
-    def backup(self):
-        self.clean_index = self.model.undo_stack.index()
-
-    def restore(self):
-        # TODO: don't undo commands issued by other parties!
-        self.model.undo_stack.setIndex(self.clean_index)
 
     def remove(self):
         for scene in self.frame.views:

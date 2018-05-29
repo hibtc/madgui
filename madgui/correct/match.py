@@ -64,39 +64,23 @@ class Matcher(Object):
     def start(self):
         if not self.started:
             self.started = True
-            self.backup()
 
     def stop(self):
         if self.started:
+            self.reset()
             self.started = False
-            self.restore()
             self.finished.emit()
-
-    def accept(self):
-        self.apply()
-        self.stop()
-
-    def reject(self):
-        self.reset()
-        self.stop()
-
-    def backup(self):
-        self.clean_index = self.model.undo_stack.index()
-
-    def restore(self):
-        # TODO: don't undo commands issued by other parties!
-        self.model.undo_stack.setIndex(self.clean_index)
 
     def apply(self):
         for v in self.variables:
             self.design_values[v.knob] = v.value
         self.variables[:] = [variable_update(self, v) for v in self.variables]
-        self.backup()
 
     def reset(self):
         self.variables.clear()
         self.constraints.clear()
-        self.restore()
+        with self.model.undo_stack.macro("Reset matching"):
+            self.model.update_globals(self.design_values)
 
     def _get_tw_row(self, elem, pos):
         return self.model.get_elem_twiss(elem)

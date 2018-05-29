@@ -13,6 +13,7 @@ from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
 from madgui.util.misc import SingleWindow, logfile_name, try_import
 from madgui.util.qt import notifyCloseEvent, notifyEvent
+from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord
 
@@ -273,7 +274,7 @@ class MainWindow(QtGui.QMainWindow):
             partial(self.log_window.enable, 'MADX'))
 
         style = self.style()
-        self.undo_stack = undo_stack = QtGui.QUndoStack()
+        self.undo_stack = undo_stack = UndoStack()
         self.undo_action = undo_stack.createUndoAction(self)
         self.redo_action = undo_stack.createRedoAction(self)
         self.undo_action.setShortcut(QtGui.QKeySequence.Undo)
@@ -359,7 +360,7 @@ class MainWindow(QtGui.QMainWindow):
         self.model.twiss.updated.connect(widget.update)
 
         dialog = Dialog(self)
-        dialog.setExportWidget(widget, self.folder)
+        dialog.setSimpleExportWidget(widget, self.folder)
         dialog.setWindowTitle("Initial conditions")
         dialog.show()
         return widget
@@ -699,7 +700,7 @@ class InfoBoxGroup:
         from madgui.widget.elementinfo import ElementInfoBox
         info = ElementInfoBox(self.model, el_id)
         dock = Dialog(self.mainwindow)
-        dock.setExportWidget(info, None)
+        dock.setSimpleExportWidget(info, None)
         dock.setWindowTitle("Element details: " + self.model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
