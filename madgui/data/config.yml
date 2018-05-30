@@ -49,10 +49,10 @@ line_view:
     neg-sbend:    {color: "#552288", alpha: 0.3, ymin: 0.1, ymax: 0.6}
     solenoid:     {color: "#555555", alpha: 0.3, ymin: 0.1, ymax: 0.9}
     multipole:    {color: "#00ff00", alpha: 0.6, ymin: 0.1, ymax: 0.9}
-    pos-hkicker:  {color: "#00aaaa", alpha: 0.6, ymin: 0.1, ymax: 0.7}
-    neg-hkicker:  {color: "#00aaaa", alpha: 0.6, ymin: 0.3, ymax: 0.9}
-    pos-vkicker:  {color: "#aaaa00", alpha: 0.6, ymin: 0.3, ymax: 0.9}
-    neg-vkicker:  {color: "#aaaa00", alpha: 0.6, ymin: 0.1, ymax: 0.7}
+    pos-hkicker:  {color: "#aa0000", alpha: 0.7, ymin: 0.1, ymax: 0.7}
+    neg-hkicker:  {color: "#aa0000", alpha: 0.7, ymin: 0.3, ymax: 0.9}
+    pos-vkicker:  {color: "#0000aa", alpha: 0.7, ymin: 0.3, ymax: 0.9}
+    neg-vkicker:  {color: "#0000aa", alpha: 0.7, ymin: 0.1, ymax: 0.7}
     monitor:      {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,
                    linestyle: dashed, linewidth: 1}
     hmonitor:     {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,

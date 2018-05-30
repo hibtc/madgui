@@ -383,7 +383,8 @@ class ElementIndicators(SimpleArtist):
             positive = float(elem.kick) > 0
             type_name = ('neg-', 'pos-')[positive] + type_name
             if axis not in axes_dirs:
-                return None
+                style = self.style.get(type_name)
+                return dict(style, alpha=0.2)
         return self.style.get(type_name)
 
 
