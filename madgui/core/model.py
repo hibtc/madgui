@@ -412,20 +412,6 @@ class Model(Object):
         }
         return (first, last), twiss
 
-    _columns = [
-        'name', 'l', 'angle', 'k1l',
-        's',
-        'x', 'y',
-        'betx','bety',
-        'alfx', 'alfy',
-        'sig11', 'sig12', 'sig13', 'sig14', 'sig15', 'sig16',
-        'sig21', 'sig22', 'sig23', 'sig24', 'sig25', 'sig26',
-        'sig31', 'sig32', 'sig33', 'sig34', 'sig35', 'sig36',
-        'sig41', 'sig42', 'sig43', 'sig44', 'sig45', 'sig46',
-        'sig51', 'sig52', 'sig53', 'sig54', 'sig55', 'sig56',
-        'sig61', 'sig62', 'sig63', 'sig64', 'sig65', 'sig66',
-    ]
-
     def _init_segment(self, sequence, range, beam, twiss_args):
         """
         :param str sequence:
@@ -746,6 +732,17 @@ class Model(Object):
         """Get a list of graph names."""
         return {name: info['title']
                 for name, info in self.config['graphs'].items()}
+
+    def get_graph_columns(self):
+        """Get a set of all columns used in any graph."""
+        cols = {
+            name
+            for info in self.config['graphs'].values()
+            for name, _ in info['curves']
+        }
+        cols.add('s')
+        cols.update(self.cache.keys())
+        return cols
 
     def _retrack(self):
         """Recalculate TWISS parameters."""
