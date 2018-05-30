@@ -372,6 +372,8 @@ class ElementIndicators(SimpleArtist):
         focussing = None
         if type_name == 'quadrupole':
             focussing = float(elem.k1) > 0
+            if self.axes.y_name[0].endswith('y'):
+                focussing = not focussing
         elif type_name == 'sbend':
             focussing = float(elem.angle) > 0
         if focussing is not None:
