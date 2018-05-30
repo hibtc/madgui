@@ -186,7 +186,7 @@ class TwissFigure(Object):
         parts = [coord_fmt(x, get_raw_label(ax.x_unit)),
                  coord_fmt(y, get_raw_label(ax.y_unit))]
         elem = self.model.get_element_by_mouse_position(ax, x)
-        if elem and 'name' in elem:
+        if elem:
             name = strip_suffix(elem.node_name, '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
