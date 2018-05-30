@@ -3,6 +3,7 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
+import logging
 from functools import partial
 
 from importlib_resources import path
@@ -260,16 +261,24 @@ class Curve(SimpleArtist):
         self.lines = ()
         self.info = info
 
-    def draw(self):
-        """Make one subplot."""
+    def _get_data(self):
         xdata = self.get_xdata()
         ydata = self.get_ydata()
-        self.axes.set_xlim(xdata[0], xdata[-1])
+        if xdata is None or ydata is None:
+            return (), ()
+        return xdata, ydata
+
+    def draw(self):
+        """Make one subplot."""
+        xdata, ydata = self._get_data()
+        if len(xdata) > 0:
+            self.axes.set_xlim(xdata[0], xdata[-1])
         self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
         self.line, = self.lines
 
     def update(self):
         """Update the y values for one subplot."""
+        xdata, ydata = self._get_data()
         self.line.set_xdata(self.get_xdata())
         self.line.set_ydata(self.get_ydata())
         self.invalidate()
@@ -687,7 +696,11 @@ def make_user_curve(scene, idx):
 
 
 def _get_curve_data(data, name):
-    return to_ui(name, data[name])
+    try:
+        return to_ui(name, data[name])
+    except KeyError:
+        logging.debug("Missing curve data {!r}, we only know: {}"
+                      .format(name, ','.join(data)))
 
 
 def ax_label(label, unit):
