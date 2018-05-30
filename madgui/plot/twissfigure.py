@@ -676,13 +676,18 @@ def make_user_curve(scene, idx):
     name, data, style = scene.loaded_curves[idx]
     return SceneGraph([
         Curve(
-            curve.axes,
-            partial(lambda c: to_ui(c.x_name, data[c.x_name]), c=curve),
-            partial(lambda c: to_ui(c.y_name, data[c.y_name]), c=curve),
+            ax,
+            partial(_get_curve_data, data, x_name),
+            partial(_get_curve_data, data, y_name),
             style, label=name,
         )
-        for curve in scene.twiss_curves.items
+        for ax in scene.axes
+        for x_name, y_name in zip(ax.x_name, ax.y_name)
     ])
+
+
+def _get_curve_data(data, name):
+    return to_ui(name, data[name])
 
 
 def ax_label(label, unit):
