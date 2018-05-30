@@ -3,7 +3,7 @@ MAD-X backend for madgui.
 """
 
 import os
-from collections import namedtuple, Sequence, OrderedDict, defaultdict
+from collections import namedtuple, Sequence, OrderedDict, defaultdict, Mapping
 from functools import partial, reduce
 import itertools
 from bisect import bisect_right
@@ -18,7 +18,7 @@ from cpymad.util import normalize_range_name, is_identifier
 
 from madgui.core.base import Object, Signal, Cache
 from madgui.util.stream import StreamReader
-from madgui.util.undo import UpdateCommand
+from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 
 
@@ -287,8 +287,7 @@ class Model(Object):
             self.undo_stack.clear()
         else:
             text = "CALL {!r}".format(name)
-            self._exec(UpdateCommand(
-                old, new, self._update_globals, text))
+            self._update(old, new, self._update_globals, text)
         self.elements.invalidate()
         self.twiss.invalidate()
 
@@ -500,29 +499,41 @@ class Model(Object):
         blacklist = self.config['parameter_sets']['element']['readonly']
         return k.lower() not in blacklist
 
+    def _update(self, old, new, write, text):
+        old = {k.lower(): v for k, v in items(old)}
+        new = {k.lower(): v for k, v in items(new)}
+        # NOTE: This trims not only expressions (as intended) but also regular
+        # string arguments (which is incorrect). However, this should be a
+        # sufficiently rare use case, so we don't care for now…
+        _new = {k: v for k, v in items(new) if trim(old.get(k)) != trim(v)}
+        _old = {k: v for k, v in items(old) if k in _new}
+        _old.update({k: None for k in _new.keys() - _old.keys()})
+        if _new:
+            self._exec(UndoCommand(
+                new, old, write, text.format(", ".join(_new))))
+
     def _exec(self, action):
-        if action:
-            self.undo_stack.push(action)
-            return action
+        self.undo_stack.push(action)
+        return action
 
     def update_globals(self, globals, text="Change knobs: {}"):
-        return self._exec(UpdateCommand(
-            self.globals.defs, globals, self._update_globals, text))
+        return self._update(
+            self.globals.defs, globals, self._update_globals, text)
 
     def update_beam(self, beam, text="Change beam: {}"):
-        return self._exec(UpdateCommand(
-            self.beam, beam, self._update_beam, text))
+        return self._update(
+            self.beam, beam, self._update_beam, text)
 
     def update_twiss_args(self, twiss, text="Change twiss args: {}"):
-        return self._exec(UpdateCommand(
-            self.twiss_args, twiss, self._update_twiss_args, text))
+        return self._update(
+            self.twiss_args, twiss, self._update_twiss_args, text)
 
     def update_element(self, data, elem_index, text=None):
         elem = self.elements[elem_index]
-        return self._exec(UpdateCommand(
+        return self._update(
             elem.defs, data,
             partial(self._update_element, elem_index=elem_index),
-            text or "Change element {}: {{}}".format(elem.name)))
+            text or "Change element {}: {{}}".format(elem.name))
 
     def _update_globals(self, globals):
         for k, v in globals.items():
@@ -826,9 +837,7 @@ class Model(Object):
                         weight=weights,
                         **twiss_args)
         new_values = {v: self.read_param(v) for v in vary}
-        self._exec(UpdateCommand(
-            old_values, new_values, self._update_globals,
-            "Match: {}"))
+        self._update(old_values, new_values, self._update_globals, "Match: {}")
 
         # return corrections
         return new_values
@@ -1055,3 +1064,10 @@ def parse_line(line):
         return k, float(v)
     except ValueError:
         return k, v
+
+
+def items(d):
+    return d.items() if isinstance(d, Mapping) else d
+
+def trim(s):
+    return s.replace(' ', '') if isinstance(s, str) else s
