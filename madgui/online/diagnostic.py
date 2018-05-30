@@ -96,12 +96,12 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
         Buttons = QtGui.QDialogButtonBox
-        self.std_buttons.button(Buttons.Close).clicked.connect(self.close)
+        self.std_buttons.button(Buttons.Ok).clicked.connect(self.close)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.btn_update.clicked.connect(self.update)
 
-    def close(self):
-        self.window().close()
+    def accept(self):
+        self.window().accept()
 
     def selected(self, monitor):
         return self._selected.setdefault(monitor.name, monitor.valid)

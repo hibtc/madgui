@@ -286,7 +286,7 @@ class EditConfigDialog(QtGui.QDialog):
         self.textbox.setFont(monospace())
         self.linenos = LineNumberBar(self.textbox)
         buttons = QtGui.QDialogButtonBox()
-        buttons.addButton(buttons.Close).clicked.connect(self.accept)
+        buttons.addButton(buttons.Ok).clicked.connect(self.accept)
         self.setLayout(VBoxLayout([
             HBoxLayout([self.linenos, self.textbox], tight=True),
             buttons,

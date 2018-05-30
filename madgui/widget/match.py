@@ -9,6 +9,9 @@ from madgui.correct.match import variable_from_knob, Constraint
 from madgui.util.enum import make_enum
 
 
+Button = QtGui.QDialogButtonBox
+
+
 def get_constraint_elem(cell):
     widget, c = cell.context, cell.data
     return widget.elem_enum(c.elem.node_name if c.elem else "(global)")
@@ -131,7 +134,8 @@ class MatchWidget(QtGui.QWidget):
         self.button_add_variable.clicked.connect(self.add_variable)
         self.matcher.constraints.update_after.connect(self.on_update_constraints)
         self.matcher.variables.update_after.connect(self.on_update_variables)
-        self.buttonBox.clicked.connect(self.clicked)
+        self.buttonBox.button(Button.Ok).clicked.connect(self.accept)
+        self.buttonBox.button(Button.Reset).clicked.connect(self.matcher.reset)
         self.button_match.clicked.connect(self.matcher.match)
         self.check_mirror.clicked.connect(self.on_change_mirror)
         # TODO: connect self.matcher.finished?
@@ -162,12 +166,9 @@ class MatchWidget(QtGui.QWidget):
     def hideEvent(self, event):
         self.matcher.stop()
 
-    def clicked(self, button):
-        role = self.buttonBox.buttonRole(button)
-        if role == QtGui.QDialogButtonBox.RejectRole:   # "Close" button
-            self.window().close()
-        elif role == QtGui.QDialogButtonBox.ResetRole:
-            self.matcher.reset()
+    def accept(self):
+        self.matcher.apply()
+        self.window().accept()
 
     def add_constraint(self):
         el   = self.elem_enum._values[0]
