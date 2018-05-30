@@ -368,6 +368,7 @@ class ElementIndicators(SimpleArtist):
 
     def get_element_style(self, elem):
         """Return the element type name used for properties like coloring."""
+        axes_dirs = {n[-1] for n in self.axes.y_name} & set("xy")
         type_name = elem.base_name.lower()
         focussing = None
         if type_name == 'quadrupole':
@@ -381,6 +382,8 @@ class ElementIndicators(SimpleArtist):
             axis = "xy"[type_name.startswith('v')]
             positive = float(elem.kick) > 0
             type_name = ('neg-', 'pos-')[positive] + type_name
+            if axis not in axes_dirs:
+                return None
         return self.style.get(type_name)
 
 
