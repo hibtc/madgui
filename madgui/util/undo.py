@@ -21,6 +21,11 @@ class UndoCommand(QtGui.QUndoCommand):
 
 class UndoStack(QtGui.QUndoStack):
 
+    # FIXME: `macro` and `rollback` are not reentrant because `command(...)`
+    # won't with nested macros. In order to fix this, we would need to
+    # implement our own macro mechanism or add appropriate guards in these
+    # methods.
+
     @contextmanager
     def macro(self, text):
         self.beginMacro(text)
