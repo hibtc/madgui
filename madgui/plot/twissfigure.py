@@ -17,7 +17,7 @@ from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
 from madgui.core.unit import (
     to_ui, get_raw_label, ui_units)
-from madgui.plot.base import SimpleArtist, SceneGraph
+from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
 
