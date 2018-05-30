@@ -377,6 +377,10 @@ class ElementIndicators(SimpleArtist):
         elif type_name == 'sbend':
             positive = float(elem.angle) > 0
             type_name = ('neg-', 'pos-')[positive] + type_name
+        elif type_name in ('hkicker', 'vkicker'):
+            axis = "xy"[type_name.startswith('v')]
+            positive = float(elem.kick) > 0
+            type_name = ('neg-', 'pos-')[positive] + type_name
         return self.style.get(type_name)
 
 
