@@ -195,6 +195,7 @@ class TwissFigure(Object):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
         self.twiss_curves.update()
+        self.indicators.update()
 
     def update_graph_data(self):
         self.graph_info, graph_data = \
@@ -322,12 +323,22 @@ class IndicatorManager(SceneGraph):
     _fetch = None
 
     def create(self, axes, scene, style):
+        self.scene = scene
+        self.axes = axes
+        self.style = style
         self.clear()
-        callback = lambda elements: self.extend([
-            ElementIndicators(ax, scene, style, elements)
-            for ax in axes
+        self.update()
+
+    def callback(self, elements):
+        # TODO: update indicators rather than recreate all of them anew:
+        self.clear([
+            ElementIndicators(ax, self.scene, self.style, elements)
+            for ax in self.axes
         ])
-        self._fetch = fetch_all(scene.model.elements, callback, block=0.5)
+
+    def update(self):
+        self._fetch = fetch_all(
+            self.scene.model.elements, self.callback, block=0.5)
 
     def remove(self):
         if self._fetch:
