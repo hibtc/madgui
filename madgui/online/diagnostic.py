@@ -12,6 +12,7 @@ from madgui.util import yaml
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo
+from madgui.plot.twissfigure import TwissFigure
 
 
 class MonitorWidget(QtGui.QDialog):
@@ -126,10 +127,9 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def remove(self):
-        for scene in self.frame.views:
-            for i, (n, d, s) in enumerate(scene.loaded_curves):
-                if n == "monitors":
-                    del scene.loaded_curves[i]
+        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
+            if n == "monitors":
+                del TwissFigure.loaded_curves[i]
 
     def draw(self):
 
@@ -156,16 +156,16 @@ class MonitorWidgetBase(QtGui.QWidget):
         }
         style = self.frame.config['line_view']['monitor_style']
 
-        for scene in self.frame.views:
-            for i, (n, d, s) in enumerate(scene.loaded_curves):
-                if n == name:
-                    scene.loaded_curves[i][1].update(data)
+        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
+            if n == name:
+                TwissFigure.loaded_curves[i][1].update(data)
+                for scene in self.frame.views:
                     if i in scene.shown_curves:
                         j = scene.shown_curves.index(i)
                         scene.user_curves.items[j].update()
-                    break
-            else:
-                scene.loaded_curves.append((name, data, style))
+                break
+        else:
+            TwissFigure.loaded_curves.append((name, data, style))
 
     def export(self):
         from madgui.widget.filedialog import getSaveFileName

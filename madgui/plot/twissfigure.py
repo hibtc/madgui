@@ -60,6 +60,7 @@ class TwissFigure(Object):
     xlim = None
     snapshot_num = 0
     axes = ()
+    loaded_curves = List()
 
     graph_changed = Signal()
 
@@ -71,7 +72,6 @@ class TwissFigure(Object):
         self.matcher = self.model.get_matcher()
         # scene
         self.shown_curves = List()
-        self.loaded_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
         self.twiss_curves = SceneGraph()
         self.user_curves = ListView(

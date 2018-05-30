@@ -234,3 +234,4 @@ def maintain_selection(sel, avail):
                 sel[i] -= 1
     avail.insert_notify.connect(insert)
     avail.delete_notify.connect(delete)
+    sel[:] = range(len(avail))
