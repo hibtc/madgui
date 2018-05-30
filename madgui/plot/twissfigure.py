@@ -3,6 +3,7 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
+import logging
 from functools import partial
 
 from importlib_resources import path
@@ -128,6 +129,12 @@ class TwissFigure(Object):
             for ax in axes
         ])
         self.twiss_curves.destroy()
+        for ax, info in zip(axes, self.graph_info.curves):
+            ax.x_name.append(self.x_name)
+            ax.y_name.append(info.short)
+            # assuming all curves have the same y units (as they should!!):
+            ax.x_unit = self.x_unit
+            ax.y_unit = ui_units.get(info.short)
         self.twiss_curves.clear([
             Curve(
                 ax,
@@ -151,12 +158,8 @@ class TwissFigure(Object):
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
             # set axes properties for convenient access:
-            curve.x_unit = self.x_unit
             curve.x_name = self.x_name
-            curve.y_unit = ui_units.get(curve.info.name)
             curve.y_name = curve.info.short
-            ax.x_name = curve.x_name
-            ax.y_name = curve.y_name
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
         self.figure.autoscale()
@@ -177,16 +180,11 @@ class TwissFigure(Object):
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
-        # Avoid StopIteration while hovering the graph and loading another
-        # model/curve:
-        if not self.twiss_curves.items:
-            return ''
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0:.6f}{1}".format
-        curve = next(c for c in self.twiss_curves.items if c.axes is ax)
-        parts = [coord_fmt(x, get_raw_label(curve.x_unit)),
-                 coord_fmt(y, get_raw_label(curve.y_unit))]
+        parts = [coord_fmt(x, get_raw_label(ax.x_unit)),
+                 coord_fmt(y, get_raw_label(ax.y_unit))]
         elem = self.model.get_element_by_mouse_position(ax, x)
         if elem and 'name' in elem:
             name = strip_suffix(elem.node_name, '[0]')
@@ -263,16 +261,24 @@ class Curve(SimpleArtist):
         self.lines = ()
         self.info = info
 
-    def draw(self):
-        """Make one subplot."""
+    def _get_data(self):
         xdata = self.get_xdata()
         ydata = self.get_ydata()
-        self.axes.set_xlim(xdata[0], xdata[-1])
+        if xdata is None or ydata is None:
+            return (), ()
+        return xdata, ydata
+
+    def draw(self):
+        """Make one subplot."""
+        xdata, ydata = self._get_data()
+        if len(xdata) > 0:
+            self.axes.set_xlim(xdata[0], xdata[-1])
         self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
         self.line, = self.lines
 
     def update(self):
         """Update the y values for one subplot."""
+        xdata, ydata = self._get_data()
         self.line.set_xdata(self.get_xdata())
         self.line.set_ydata(self.get_ydata())
         self.invalidate()
@@ -679,13 +685,22 @@ def make_user_curve(scene, idx):
     name, data, style = scene.loaded_curves[idx]
     return SceneGraph([
         Curve(
-            curve.axes,
-            partial(lambda c: to_ui(c.x_name, data[c.x_name]), c=curve),
-            partial(lambda c: to_ui(c.y_name, data[c.y_name]), c=curve),
+            ax,
+            partial(_get_curve_data, data, x_name),
+            partial(_get_curve_data, data, y_name),
             style, label=name,
         )
-        for curve in scene.twiss_curves.items
+        for ax in scene.axes
+        for x_name, y_name in zip(ax.x_name, ax.y_name)
     ])
+
+
+def _get_curve_data(data, name):
+    try:
+        return to_ui(name, data[name])
+    except KeyError:
+        logging.debug("Missing curve data {!r}, we only know: {}"
+                      .format(name, ','.join(data)))
 
 
 def ax_label(label, unit):

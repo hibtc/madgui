@@ -5,7 +5,6 @@ Dialog for managing shown curves.
 import os
 
 from madgui.qt import QtGui, load_ui
-from madgui.core.unit import from_ui
 from madgui.widget.tableview import ColumnInfo
 from madgui.widget.filedialog import getOpenFileName
 
@@ -69,13 +68,9 @@ class CurveManager(QtGui.QWidget):
         return self.tab.rows
 
     def on_btn_save(self):
-        data = {
-            curve.y_name: curve.get_ydata()
-            for curve in self.scene.twiss_curves.items
-        }
-        curve = next(iter(self.scene.twiss_curves.items))
-        data[curve.x_name] = curve.get_xdata()
-        data = from_ui(data)
+        model = self.scene.model
+        data = {name: model.get_twiss_column(name)
+                for name in model.get_graph_columns()}
         style = self.scene.config['reference_style']
         self.scene.snapshot_num += 1
         name = "snapshot {}".format(self.scene.snapshot_num)

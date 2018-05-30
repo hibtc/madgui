@@ -130,8 +130,8 @@ class PlotWidget(QtGui.QWidget):
         if mpl_event.inaxes is None:
             return
         axes = mpl_event.inaxes
-        xpos = from_ui(axes.x_name, mpl_event.xdata)
-        ypos = from_ui(axes.y_name, mpl_event.ydata)
+        xpos = from_ui(axes.x_name[0], mpl_event.xdata)
+        ypos = from_ui(axes.y_name[0], mpl_event.ydata)
         elem = self.scene.model.get_element_by_mouse_position(axes, xpos)
         event = MouseEvent(mpl_event.button, xpos, ypos,
                            axes, elem, mpl_event.guiEvent)
@@ -175,6 +175,8 @@ class MultiFigure:
                 axes.append(figure.add_subplot(num_axes, 1, i+1, sharex=axes[0]))
         for ax in axes:
             ax.grid(True)
+            ax.x_name = []
+            ax.y_name = []
         return axes
 
     @property
