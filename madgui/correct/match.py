@@ -76,7 +76,7 @@ class Matcher(Object):
 
     def stop(self):
         if self.started:
-            self.reset()
+            self.clear()
             self.started = False
             self.finished.emit()
 
@@ -85,11 +85,15 @@ class Matcher(Object):
             self.design_values[v.knob] = v.value
         self.variables[:] = [variable_update(self, v) for v in self.variables]
 
-    def reset(self):
+    def clear(self):
         self.variables.clear()
         self.constraints.clear()
+        self.design_values.clear()
+
+    def reset(self):
         with self.model.undo_stack.macro("Reset matching"):
             self.model.update_globals(self.design_values)
+        self.clear()
 
     def _get_tw_row(self, elem, pos):
         return self.model.get_elem_twiss(elem)

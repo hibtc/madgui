@@ -466,7 +466,6 @@ class MatchTool(CaptureTool):
 
     def deactivate(self):
         """Stop matching mode."""
-        self.matcher.stop()
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
