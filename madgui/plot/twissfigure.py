@@ -371,16 +371,12 @@ class ElementIndicators(SimpleArtist):
         type_name = elem.base_name.lower()
         focussing = None
         if type_name == 'quadrupole':
+            invert = self.axes.y_name[0].endswith('y')
             focussing = float(elem.k1) > 0
-            if self.axes.y_name[0].endswith('y'):
-                focussing = not focussing
+            type_name = ('d-', 'f-')[focussing ^ invert] + type_name
         elif type_name == 'sbend':
-            focussing = float(elem.angle) > 0
-        if focussing is not None:
-            if focussing:
-                type_name = 'f-' + type_name
-            else:
-                type_name = 'd-' + type_name
+            positive = float(elem.angle) > 0
+            type_name = ('neg-', 'pos-')[positive] + type_name
         return self.style.get(type_name)
 
 
