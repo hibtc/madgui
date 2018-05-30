@@ -629,6 +629,25 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self.showTwiss(name)
 
+    def add_curve(self, name, data, style):
+        from madgui.plot.twissfigure import TwissFigure
+        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
+            if n == name:
+                TwissFigure.loaded_curves[i][1].update(data)
+                for scene in self.views:
+                    if i in scene.shown_curves:
+                        j = scene.shown_curves.index(i)
+                        scene.user_curves.items[j].update()
+                break
+        else:
+            TwissFigure.loaded_curves.append((name, data, style))
+
+    def del_curve(self, name):
+        from madgui.plot.twissfigure import TwissFigure
+        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
+            if n == name:
+                del TwissFigure.loaded_curves[i]
+
     def _createShell(self):
         """Create a python shell widget."""
         import madgui.core.pyshell as pyshell

@@ -17,7 +17,7 @@ from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
 from madgui.core.unit import (
     to_ui, get_raw_label, ui_units)
-from madgui.plot.base import SimpleArtist, SceneGraph
+from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
 
@@ -60,6 +60,7 @@ class TwissFigure(Object):
     xlim = None
     snapshot_num = 0
     axes = ()
+    loaded_curves = List()
 
     graph_changed = Signal()
 
@@ -71,7 +72,6 @@ class TwissFigure(Object):
         self.matcher = self.model.get_matcher()
         # scene
         self.shown_curves = List()
-        self.loaded_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
         self.twiss_curves = SceneGraph()
         self.user_curves = ListView(
@@ -466,7 +466,6 @@ class MatchTool(CaptureTool):
 
     def deactivate(self):
         """Stop matching mode."""
-        self.matcher.stop()
         self.plot.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 

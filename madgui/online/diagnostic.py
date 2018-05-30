@@ -126,10 +126,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def remove(self):
-        for scene in self.frame.views:
-            for i, (n, d, s) in enumerate(scene.loaded_curves):
-                if n == "monitors":
-                    del scene.loaded_curves[i]
+        self.frame.del_curve("monitors")
 
     def draw(self):
 
@@ -156,16 +153,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         }
         style = self.frame.config['line_view']['monitor_style']
 
-        for scene in self.frame.views:
-            for i, (n, d, s) in enumerate(scene.loaded_curves):
-                if n == name:
-                    scene.loaded_curves[i][1].update(data)
-                    if i in scene.shown_curves:
-                        j = scene.shown_curves.index(i)
-                        scene.user_curves.items[j].update()
-                    break
-            else:
-                scene.loaded_curves.append((name, data, style))
+        self.frame.add_curve(name, data, style)
 
     def export(self):
         from madgui.widget.filedialog import getSaveFileName
