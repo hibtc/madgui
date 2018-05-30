@@ -131,6 +131,9 @@ class TwissFigure(Object):
         for ax, info in zip(axes, self.graph_info.curves):
             ax.x_name.append(self.x_name)
             ax.y_name.append(info.short)
+            # assuming all curves have the same y units (as they should!!):
+            ax.x_unit = self.x_unit
+            ax.y_unit = ui_units.get(info.short)
         self.twiss_curves.clear([
             Curve(
                 ax,
@@ -154,9 +157,7 @@ class TwissFigure(Object):
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
             # set axes properties for convenient access:
-            curve.x_unit = self.x_unit
             curve.x_name = self.x_name
-            curve.y_unit = ui_units.get(curve.info.name)
             curve.y_name = curve.info.short
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
@@ -178,16 +179,11 @@ class TwissFigure(Object):
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
-        # Avoid StopIteration while hovering the graph and loading another
-        # model/curve:
-        if not self.twiss_curves.items:
-            return ''
         # TODO: in some cases, it might be necessary to adjust the
         # precision to the displayed xlim/ylim.
         coord_fmt = "{0:.6f}{1}".format
-        curve = next(c for c in self.twiss_curves.items if c.axes is ax)
-        parts = [coord_fmt(x, get_raw_label(curve.x_unit)),
-                 coord_fmt(y, get_raw_label(curve.y_unit))]
+        parts = [coord_fmt(x, get_raw_label(ax.x_unit)),
+                 coord_fmt(y, get_raw_label(ax.y_unit))]
         elem = self.model.get_element_by_mouse_position(ax, x)
         if elem and 'name' in elem:
             name = strip_suffix(elem.node_name, '[0]')
