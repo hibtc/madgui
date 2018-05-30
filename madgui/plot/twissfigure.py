@@ -128,6 +128,9 @@ class TwissFigure(Object):
             for ax in axes
         ])
         self.twiss_curves.destroy()
+        for ax, info in zip(axes, self.graph_info.curves):
+            ax.x_name.append(self.x_name)
+            ax.y_name.append(info.short)
         self.twiss_curves.clear([
             Curve(
                 ax,
@@ -155,8 +158,6 @@ class TwissFigure(Object):
             curve.x_name = self.x_name
             curve.y_unit = ui_units.get(curve.info.name)
             curve.y_name = curve.info.short
-            ax.x_name = curve.x_name
-            ax.y_name = curve.y_name
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
         self.figure.autoscale()
