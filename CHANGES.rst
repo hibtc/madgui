@@ -1,6 +1,60 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.11.0
+~~~~~~
+Date: 31.05.2018
+
+Miscellaneous:
+    - require cpymad 1.0.0rc3
+    - fix multi grid view not being updated
+    - add units for K0
+    - update floor plan survey after twiss
+
+Matching:
+    - group multiple matching constraints at the same element and position
+      into one statement
+    - specify weights only for the used quantities
+    - disable matching if the number of constraints is incorrect
+    - don't reset matching when deactivating the match mode
+
+Element/param dialogs:
+    - fix condition for when globals are editable
+    - display element attribute names in title case again
+    - show leading part of variable names in lowercase
+    - make use of cpymad's ``inform`` and ``var_type``
+
+TreeView:
+    - improve/refactor internal tableview API
+    - use tree view
+    - expand vectors in tree view
+    - expand variables occuring in expressions in GlobalsEdit/CommandEdit
+
+Undo:
+    - support undoing simple .str files
+    - remove flawed accept/reject logic, i.e. "Cancel" buttons, leaving only
+      "Ok" buttons for now (the logic required to properly implement "Cancel"
+      is nontrivial, and the behaviour might still be confusing)
+    - move undo utils to their own module
+    - subclass QUndoStack
+    - never show empty macros (QUndoCommand.setObsolete)
+
+Plotting:
+    - share loaded curves between all windows
+    - handle add_curve/del_curve in mainwindow
+    - "snapshot" now saves all available twiss data so that when changing
+      graphs, the snapshot for the other curves will be shown
+    - gracefully deal with missing data in user curves (showed exception very
+      loudly previously, showing debug message now)
+    - invert quadrupole focussing color codes in Y plot
+    - distinguish SBEND/KICKER sign by shifting the indicator position up/down
+    - smaller but more distinct indicators
+    - fade out "off-axis" kickers (e.g. HKICKER in Y plot)
+    - remove grid lines in Y direction
+    - fix missing element name in status bar
+    - update element markers on each draw
+
+
 1.10.1
 ------
 Date: 15.05.2018
