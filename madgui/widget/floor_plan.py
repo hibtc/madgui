@@ -4,7 +4,6 @@ Components to draw a 2D floor plan of a given MAD-X lattice.
 
 # TODO: improve display of vertically oriented elements
 # TODO: adjust display for custom entry/exit pole faces
-# TODO: show scale indicator
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
@@ -111,6 +110,21 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         if self.replay is not None:
             self.scene().clear()
             self.setElements(*self.replay)
+
+    model = None
+    def setModel(self, model):
+        # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
+        if self.model:
+            self.model.twiss.updated.disconnect(self._updateSurvey)
+        self.model = model
+        if model:
+            self.model.twiss.updated.connect(self._updateSurvey)
+            self._updateSurvey()
+
+    def _updateSurvey(self):
+        self.setElements(self.model.elements,
+                         self.model.survey(),
+                         self.model.selection)
 
     replay = None
     def setElements(self, elements, survey, selection):
