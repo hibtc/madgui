@@ -186,7 +186,7 @@ class TwissFigure(Object):
         parts = [coord_fmt(x, get_raw_label(ax.x_unit)),
                  coord_fmt(y, get_raw_label(ax.y_unit))]
         elem = self.model.get_element_by_mouse_position(ax, x)
-        if elem and 'name' in elem:
+        if elem:
             name = strip_suffix(elem.node_name, '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
@@ -195,6 +195,7 @@ class TwissFigure(Object):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
         self.twiss_curves.update()
+        self.indicators.update()
 
     def update_graph_data(self):
         self.graph_info, graph_data = \
@@ -322,12 +323,22 @@ class IndicatorManager(SceneGraph):
     _fetch = None
 
     def create(self, axes, scene, style):
+        self.scene = scene
+        self.axes = axes
+        self.style = style
         self.clear()
-        callback = lambda elements: self.extend([
-            ElementIndicators(ax, scene, style, elements)
-            for ax in axes
+        self.update()
+
+    def callback(self, elements):
+        # TODO: update indicators rather than recreate all of them anew:
+        self.clear([
+            ElementIndicators(ax, self.scene, self.style, elements)
+            for ax in self.axes
         ])
-        self._fetch = fetch_all(scene.model.elements, callback, block=0.5)
+
+    def update(self):
+        self._fetch = fetch_all(
+            self.scene.model.elements, self.callback, block=0.5)
 
     def remove(self):
         if self._fetch:
@@ -368,17 +379,23 @@ class ElementIndicators(SimpleArtist):
 
     def get_element_style(self, elem):
         """Return the element type name used for properties like coloring."""
+        axes_dirs = {n[-1] for n in self.axes.y_name} & set("xy")
         type_name = elem.base_name.lower()
         focussing = None
         if type_name == 'quadrupole':
+            invert = self.axes.y_name[0].endswith('y')
             focussing = float(elem.k1) > 0
+            type_name = ('d-', 'f-')[focussing ^ invert] + type_name
         elif type_name == 'sbend':
-            focussing = float(elem.angle) > 0
-        if focussing is not None:
-            if focussing:
-                type_name = 'f-' + type_name
-            else:
-                type_name = 'd-' + type_name
+            positive = float(elem.angle) > 0
+            type_name = ('neg-', 'pos-')[positive] + type_name
+        elif type_name in ('hkicker', 'vkicker'):
+            axis = "xy"[type_name.startswith('v')]
+            positive = float(elem.kick) > 0
+            type_name = ('neg-', 'pos-')[positive] + type_name
+            if axis not in axes_dirs:
+                style = self.style.get(type_name)
+                return dict(style, alpha=0.2)
         return self.style.get(type_name)
 
 
