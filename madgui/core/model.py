@@ -17,7 +17,7 @@ from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element
 from cpymad.util import normalize_range_name, is_identifier
 
 from madgui.core.base import Object, Signal, Cache
-from madgui.util.stream import StreamReader
+from madgui.util.stream import AsyncReader
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 
@@ -49,7 +49,7 @@ class Madx(Madx):
 
     def __init__(self, *args, stdout_log, **kwargs):
         super().__init__(*args, **kwargs)
-        self.reader = StreamReader(self._process.stdout, stdout_log)
+        self.reader = AsyncReader(self._process.stdout, stdout_log)
         self.reader.flush()
 
     def input(self, text):
