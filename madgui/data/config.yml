@@ -43,8 +43,7 @@ line_view:
   # Plot style for the element indicators. Supports common keyword arguments
   # for ``matplotlib.axes.Axes.axvspan`` and ``matplotlib.axes.Axes.axvline``:
   element_style:
-    f-quadrupole: {color: "#ff0000", alpha: 0.4, ymin: 0.3, ymax: 0.7}
-    d-quadrupole: {color: "#0000ff", alpha: 0.4, ymin: 0.3, ymax: 0.7}
+    quadrupole:   {                  alpha: 0.4, ymin: 0.3, ymax: 0.7}
     sbend:        {color: "#552288", alpha: 0.1, ymin: 0.25, ymax: 0.75}
     solenoid:     {color: "#555555", alpha: 0.3, ymin: 0.1, ymax: 0.9}
     multipole:    {color: "#00ff00", alpha: 0.5, ymin: 0.1, ymax: 0.9}

@@ -384,12 +384,15 @@ class ElementIndicators(SimpleArtist):
         type_name = elem.base_name.lower()
         # sigmoid flavor with convenient output domain [-1,+1]:
         sigmoid = math.tanh
+        style = self.style.get(type_name)
+
         if type_name == 'quadrupole':
             invert = self.axes.y_name[0].endswith('y')
-            focussing = float(elem.k1) > 0
-            type_name = ('d-', 'f-')[focussing ^ invert] + type_name
-        style = self.style.get(type_name)
-        if type_name == 'sbend':
+            k1 = float(elem.k1) * 100               # scale = 0.1/m²
+            scale = sigmoid(k1) * (1-2*invert)
+            rgb = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
+            style = dict(style, color=rgb)
+        elif type_name == 'sbend':
             angle = float(elem.angle) * 180/math.pi # scale = 1 degree
             ydis = sigmoid(angle) * (-0.15)
             style = dict(style,
