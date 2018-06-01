@@ -2,6 +2,8 @@
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
 
+import logging
+
 from madgui.qt import QtGui
 from madgui.core.base import Object
 from madgui.util.misc import SingleWindow
@@ -37,6 +39,7 @@ class Control(Object):
     # menu handlers
 
     def connect(self, name, loader):
+        logging.info('Connecting online control: {}'.format(name))
         self._plugin = loader.load(self._frame)
         self._plugin.connect()
         self._frame.context['csys'] = self._plugin
