@@ -3,6 +3,7 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
+import math
 import logging
 from functools import partial
 
@@ -381,22 +382,29 @@ class ElementIndicators(SimpleArtist):
         """Return the element type name used for properties like coloring."""
         axes_dirs = {n[-1] for n in self.axes.y_name} & set("xy")
         type_name = elem.base_name.lower()
-        focussing = None
+        # sigmoid flavor with convenient output domain [-1,+1]:
+        sigmoid = math.tanh
         if type_name == 'quadrupole':
             invert = self.axes.y_name[0].endswith('y')
             focussing = float(elem.k1) > 0
             type_name = ('d-', 'f-')[focussing ^ invert] + type_name
-        elif type_name == 'sbend':
-            positive = float(elem.angle) > 0
-            type_name = ('neg-', 'pos-')[positive] + type_name
+        style = self.style.get(type_name)
+        if type_name == 'sbend':
+            angle = float(elem.angle) * 180/math.pi # scale = 1 degree
+            ydis = sigmoid(angle) * (-0.15)
+            style = dict(style,
+                         ymin=style['ymin']+ydis,
+                         ymax=style['ymax']+ydis)
         elif type_name in ('hkicker', 'vkicker'):
             axis = "xy"[type_name.startswith('v')]
-            positive = float(elem.kick) > 0
-            type_name = ('neg-', 'pos-')[positive] + type_name
+            kick = float(elem.kick) * 10000         # scale = 0.1 mrad
+            ydis = sigmoid(kick) * 0.1
+            style = dict(style,
+                         ymin=style['ymin']+ydis,
+                         ymax=style['ymax']+ydis)
             if axis not in axes_dirs:
-                style = self.style.get(type_name)
-                return dict(style, alpha=0.2)
-        return self.style.get(type_name)
+                style['alpha'] = 0.2
+        return style
 
 
 class ButtonTool:

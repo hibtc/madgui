@@ -45,14 +45,11 @@ line_view:
   element_style:
     f-quadrupole: {color: "#ff0000", alpha: 0.4, ymin: 0.3, ymax: 0.7}
     d-quadrupole: {color: "#0000ff", alpha: 0.4, ymin: 0.3, ymax: 0.7}
-    pos-sbend:    {color: "#552288", alpha: 0.1, ymin: 0.1, ymax: 0.6}
-    neg-sbend:    {color: "#552288", alpha: 0.1, ymin: 0.4, ymax: 0.9}
+    sbend:        {color: "#552288", alpha: 0.1, ymin: 0.25, ymax: 0.75}
     solenoid:     {color: "#555555", alpha: 0.3, ymin: 0.1, ymax: 0.9}
     multipole:    {color: "#00ff00", alpha: 0.5, ymin: 0.1, ymax: 0.9}
-    pos-hkicker:  {color: "#aa0000", alpha: 0.5, ymin: 0.3, ymax: 0.9}
-    neg-hkicker:  {color: "#aa0000", alpha: 0.5, ymin: 0.1, ymax: 0.7}
-    pos-vkicker:  {color: "#0000aa", alpha: 0.5, ymin: 0.1, ymax: 0.7}
-    neg-vkicker:  {color: "#0000aa", alpha: 0.5, ymin: 0.3, ymax: 0.9}
+    hkicker:      {color: "#aa0000", alpha: 0.5, ymin: 0.2, ymax: 0.8}
+    vkicker:      {color: "#0000aa", alpha: 0.5, ymin: 0.2, ymax: 0.8}
     monitor:      {color: "#008800", alpha: 0.5, ymin: 0.0, ymax: 1.0,
                    linestyle: dashed, linewidth: 1}
     hmonitor:     {color: "#008800", alpha: 0.5, ymin: 0.0, ymax: 1.0,
