@@ -43,21 +43,17 @@ line_view:
   # Plot style for the element indicators. Supports common keyword arguments
   # for ``matplotlib.axes.Axes.axvspan`` and ``matplotlib.axes.Axes.axvline``:
   element_style:
-    f-quadrupole: {color: "#ff0000", alpha: 0.6, ymin: 0.3, ymax: 0.7}
-    d-quadrupole: {color: "#0000ff", alpha: 0.6, ymin: 0.3, ymax: 0.7}
-    pos-sbend:    {color: "#552288", alpha: 0.3, ymin: 0.4, ymax: 0.9}
-    neg-sbend:    {color: "#552288", alpha: 0.3, ymin: 0.1, ymax: 0.6}
-    solenoid:     {color: "#555555", alpha: 0.3, ymin: 0.1, ymax: 0.9}
-    multipole:    {color: "#00ff00", alpha: 0.6, ymin: 0.1, ymax: 0.9}
-    pos-hkicker:  {color: "#aa0000", alpha: 0.7, ymin: 0.1, ymax: 0.7}
-    neg-hkicker:  {color: "#aa0000", alpha: 0.7, ymin: 0.3, ymax: 0.9}
-    pos-vkicker:  {color: "#0000aa", alpha: 0.7, ymin: 0.3, ymax: 0.9}
-    neg-vkicker:  {color: "#0000aa", alpha: 0.7, ymin: 0.1, ymax: 0.7}
-    monitor:      {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,
+    quadrupole:   {                  ymin: 0.3, ymax: 0.7}
+    sbend:        {color: "#ccccaa", ymin: 0.25, ymax: 0.75}
+    solenoid:     {color: "#555555", ymin: 0.1, ymax: 0.9}
+    multipole:    {color: "#00ff00", ymin: 0.1, ymax: 0.9}
+    hkicker:      {color: "#bb0088", ymin: 0.2, ymax: 0.8}
+    vkicker:      {color: "#8800bb", ymin: 0.2, ymax: 0.8}
+    monitor:      {color: "#00bb00", ymin: 0.0, ymax: 1.0,
                    linestyle: dashed, linewidth: 1}
-    hmonitor:     {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,
+    hmonitor:     {color: "#00bb00", ymin: 0.0, ymax: 1.0,
                    linestyle: dashed, linewidth: 1}
-    vmonitor:     {color: "#55ee00", alpha: 0.5, ymin: 0.0, ymax: 1.0,
+    vmonitor:     {color: "#00bb00", ymin: 0.0, ymax: 1.0,
                    linestyle: dashed, linewidth: 1}
 
   # Style for the constraint markers. Can contain any keyword arguments to

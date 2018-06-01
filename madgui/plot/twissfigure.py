@@ -3,6 +3,7 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
+import math
 import logging
 from functools import partial
 
@@ -21,6 +22,7 @@ from madgui.core.unit import (
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
+import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
 
 __all__ = [
     'PlotSelector',
@@ -140,7 +142,7 @@ class TwissFigure(Object):
                 ax,
                 partial(self.get_float_data, curve_info.name, 0),
                 partial(self.get_float_data, curve_info.name, 1),
-                curve_info.style,
+                extend_curve_style(curve_info.style),
                 label=ax_label(curve_info.label, ui_units.get(curve_info.name)),
                 info=curve_info,
             )
@@ -363,16 +365,16 @@ class ElementIndicators(SimpleArtist):
     def _draw(self):
         """Draw the elements into the canvas."""
         return [
-            self.make_element_indicator(elem, style)
+            self.make_element_indicator(pos, l, style)
             for elem in self.elements
-            for style in [self.get_element_style(elem)]
+            for style, pos, l in self.get_element_style(elem)
             if style is not None
         ]
 
-    def make_element_indicator(self, elem, style):
-        at = to_ui('s', elem.position)
-        if elem.length != 0:
-            patch_w = to_ui('l', elem.length)
+    def make_element_indicator(self, position, length, style):
+        at = to_ui('s', position)
+        if length != 0:
+            patch_w = to_ui('l', length)
             return self.axes.axvspan(at, at + patch_w, **style)
         else:
             return self.axes.axvline(at, **style)
@@ -381,22 +383,45 @@ class ElementIndicators(SimpleArtist):
         """Return the element type name used for properties like coloring."""
         axes_dirs = {n[-1] for n in self.axes.y_name} & set("xy")
         type_name = elem.base_name.lower()
-        focussing = None
+        # sigmoid flavor with convenient output domain [-1,+1]:
+        sigmoid = math.tanh
+        style = self.style.get(type_name)
+        if style is None:
+            return []
+
+        style = dict(style, zorder=0)
+        styles = [(style, elem.position, elem.length)]
+
         if type_name == 'quadrupole':
             invert = self.axes.y_name[0].endswith('y')
-            focussing = float(elem.k1) > 0
-            type_name = ('d-', 'f-')[focussing ^ invert] + type_name
+            k1 = float(elem.k1) * 100               # scale = 0.1/m²
+            scale = sigmoid(k1) * (1-2*invert)
+            style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
         elif type_name == 'sbend':
-            positive = float(elem.angle) > 0
-            type_name = ('neg-', 'pos-')[positive] + type_name
-        elif type_name in ('hkicker', 'vkicker'):
+            angle = float(elem.angle) * 180/math.pi # scale = 1 degree
+            ydis = sigmoid(angle) * (-0.15)
+            style['ymin'] += ydis
+            style['ymax'] += ydis
+            # MAD-X uses the condition k0=0 to check whether the attribute
+            # should be used (against my recommendations, and even though that
+            # means you can never have a kick that exactlycounteracts the
+            # bending angle):
+            if elem.k0 != 0:
+                style = dict(self.style.get('hkicker'),
+                             ymin=style['ymin'], ymax=style['ymax'])
+                styles.append((style, elem.position+elem.length/2, 0))
+                type_name = 'hkicker'
+
+        if type_name in ('hkicker', 'vkicker'):
             axis = "xy"[type_name.startswith('v')]
-            positive = float(elem.kick) > 0
-            type_name = ('neg-', 'pos-')[positive] + type_name
+            kick = float(elem.kick) * 10000         # scale = 0.1 mrad
+            ydis = sigmoid(kick) * 0.1
+            style['ymin'] += ydis
+            style['ymax'] += ydis
             if axis not in axes_dirs:
-                style = self.style.get(type_name)
-                return dict(style, alpha=0.2)
-        return self.style.get(type_name)
+                style['alpha'] = 0.2
+
+        return styles
 
 
 class ButtonTool:
@@ -724,3 +749,9 @@ def ax_label(label, unit):
     if unit in (1, None):
         return label
     return "{} [{}]".format(label, get_raw_label(unit))
+
+
+def extend_curve_style(style):
+    return dict(style, path_effects=[
+        pe.withStroke(linewidth=4, foreground='w', alpha=0.7),
+    ])
