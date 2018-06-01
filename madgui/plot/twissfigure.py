@@ -22,6 +22,7 @@ from madgui.core.unit import (
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
+import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
 
 __all__ = [
     'PlotSelector',
@@ -141,7 +142,7 @@ class TwissFigure(Object):
                 ax,
                 partial(self.get_float_data, curve_info.name, 0),
                 partial(self.get_float_data, curve_info.name, 1),
-                curve_info.style,
+                extend_curve_style(curve_info.style),
                 label=ax_label(curve_info.label, ui_units.get(curve_info.name)),
                 info=curve_info,
             )
@@ -737,3 +738,9 @@ def ax_label(label, unit):
     if unit in (1, None):
         return label
     return "{} [{}]".format(label, get_raw_label(unit))
+
+
+def extend_curve_style(style):
+    return dict(style, path_effects=[
+        pe.withStroke(linewidth=4, foreground='w', alpha=0.7),
+    ])
