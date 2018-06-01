@@ -529,6 +529,10 @@ class MainWindow(QtGui.QMainWindow):
         model = self.model
         config = self.config.line_view
 
+        # update twiss *before* creating the figure to avoid immediate
+        # unnecessary redraws:
+        model.twiss()
+
         # NOTE: using the plot_windows list as a stack with its top at 0:
         settings = (self.config.plot_windows and
                     self.config.plot_windows.pop(0) or {})
