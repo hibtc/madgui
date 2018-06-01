@@ -6,7 +6,7 @@ import os
 
 from madgui.qt import Qt, QtGui
 
-from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch, Spacing
+from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch
 
 
 __all__ = [
