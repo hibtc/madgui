@@ -385,6 +385,8 @@ class ElementIndicators(SimpleArtist):
         # sigmoid flavor with convenient output domain [-1,+1]:
         sigmoid = math.tanh
         style = self.style.get(type_name)
+        if style is not None:
+            style = dict(style, zorder=0)
 
         if type_name == 'quadrupole':
             invert = self.axes.y_name[0].endswith('y')
