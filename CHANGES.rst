@@ -1,6 +1,18 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.11.1
+~~~~~~
+Date: 01.06.2018
+
+- fix deadlock appearing mainly on windows during MAD-X commands with long
+  output (the fix will cause minor performance degradation for now)
+- avoid some unnecessary updates/redraws on startup
+- remember *which* online plugin to connect to
+- some more info log statements
+- change ``onload`` again to be executed before loading the model
+
+
 1.11.0
 ~~~~~~
 Date: 31.05.2018
