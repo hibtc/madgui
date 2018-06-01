@@ -393,21 +393,18 @@ class ElementIndicators(SimpleArtist):
             invert = self.axes.y_name[0].endswith('y')
             k1 = float(elem.k1) * 100               # scale = 0.1/m²
             scale = sigmoid(k1) * (1-2*invert)
-            rgb = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
-            style = dict(style, color=rgb)
+            style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
         elif type_name == 'sbend':
             angle = float(elem.angle) * 180/math.pi # scale = 1 degree
             ydis = sigmoid(angle) * (-0.15)
-            style = dict(style,
-                         ymin=style['ymin']+ydis,
-                         ymax=style['ymax']+ydis)
+            style['ymin'] += ydis
+            style['ymax'] += ydis
         elif type_name in ('hkicker', 'vkicker'):
             axis = "xy"[type_name.startswith('v')]
             kick = float(elem.kick) * 10000         # scale = 0.1 mrad
             ydis = sigmoid(kick) * 0.1
-            style = dict(style,
-                         ymin=style['ymin']+ydis,
-                         ymax=style['ymax']+ydis)
+            style['ymin'] += ydis
+            style['ymax'] += ydis
             if axis not in axes_dirs:
                 style['alpha'] = 0.2
         return style
