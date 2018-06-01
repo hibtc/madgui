@@ -64,6 +64,9 @@ class MainWindow(QtGui.QMainWindow):
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
         QtCore.QTimer.singleShot(0, self.loadDefault)
+        # This is required to make the thread exit (and hence allow the
+        # application to close) by calling app.quit() on Ctrl-C:
+        QtGui.qApp.aboutToQuit.connect(self.destroyModel)
 
     def configure(self):
         runtime = self.config.get('runtime_path', [])
@@ -496,9 +499,6 @@ class MainWindow(QtGui.QMainWindow):
         model.selection = Selection()
         model.box_group = InfoBoxGroup(self, model.selection)
 
-        # This is required to make the thread exit (and hence allow the
-        # application to close) by calling app.quit() on Ctrl-C:
-        QtGui.qApp.aboutToQuit.connect(self.destroyModel)
         self.has_model.set(True)
         self.model_changed.emit()
         self.setWindowTitle(model.name)
