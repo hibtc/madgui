@@ -365,16 +365,16 @@ class ElementIndicators(SimpleArtist):
     def _draw(self):
         """Draw the elements into the canvas."""
         return [
-            self.make_element_indicator(elem, style)
+            self.make_element_indicator(pos, l, style)
             for elem in self.elements
-            for style in [self.get_element_style(elem)]
+            for style, pos, l in self.get_element_style(elem)
             if style is not None
         ]
 
-    def make_element_indicator(self, elem, style):
-        at = to_ui('s', elem.position)
-        if elem.length != 0:
-            patch_w = to_ui('l', elem.length)
+    def make_element_indicator(self, position, length, style):
+        at = to_ui('s', position)
+        if length != 0:
+            patch_w = to_ui('l', length)
             return self.axes.axvspan(at, at + patch_w, **style)
         else:
             return self.axes.axvline(at, **style)
@@ -386,8 +386,11 @@ class ElementIndicators(SimpleArtist):
         # sigmoid flavor with convenient output domain [-1,+1]:
         sigmoid = math.tanh
         style = self.style.get(type_name)
-        if style is not None:
-            style = dict(style, zorder=0)
+        if style is None:
+            return []
+
+        style = dict(style, zorder=0)
+        styles = [(style, elem.position, elem.length)]
 
         if type_name == 'quadrupole':
             invert = self.axes.y_name[0].endswith('y')
@@ -399,7 +402,17 @@ class ElementIndicators(SimpleArtist):
             ydis = sigmoid(angle) * (-0.15)
             style['ymin'] += ydis
             style['ymax'] += ydis
-        elif type_name in ('hkicker', 'vkicker'):
+            # MAD-X uses the condition k0=0 to check whether the attribute
+            # should be used (against my recommendations, and even though that
+            # means you can never have a kick that exactlycounteracts the
+            # bending angle):
+            if elem.k0 != 0:
+                style = dict(self.style.get('hkicker'),
+                             ymin=style['ymin'], ymax=style['ymax'])
+                styles.append((style, elem.position+elem.length/2, 0))
+                type_name = 'hkicker'
+
+        if type_name in ('hkicker', 'vkicker'):
             axis = "xy"[type_name.startswith('v')]
             kick = float(elem.kick) * 10000         # scale = 0.1 mrad
             ydis = sigmoid(kick) * 0.1
@@ -407,7 +420,8 @@ class ElementIndicators(SimpleArtist):
             style['ymax'] += ydis
             if axis not in axes_dirs:
                 style['alpha'] = 0.2
-        return style
+
+        return styles
 
 
 class ButtonTool:
