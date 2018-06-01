@@ -79,11 +79,12 @@ Example file:
 .. code-block:: yaml
 
     model_path: ../hit_models
-    load_default: hht3
+    session_file: madgui.session.yml
 
     onload: |
-      from hit_csys.plugin import Loader
-      frame.add_online_plugin(Loader)
+      from hit_csys.plugin import DllLoader, StubLoader
+      frame.add_online_plugin(DllLoader)
+      frame.add_online_plugin(StubLoader)
 
 Note that the onload handler can be used to execute user-defined code, import
 modules and e.g. add loaders for online control plugins. The API is defined in
