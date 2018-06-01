@@ -36,17 +36,19 @@ class Control(Object):
 
     # menu handlers
 
-    def connect(self, loader):
+    def connect(self, name, loader):
         self._plugin = loader.load(self._frame)
         self._plugin.connect()
         self._frame.context['csys'] = self._plugin
         self.is_connected.set(True)
+        self.loader_name = name
 
     def disconnect(self):
         self._frame.context.pop('csys', None)
         self._plugin.disconnect()
         self._plugin = None
         self.is_connected.set(False)
+        self.loader_name = None
 
     def toggle_jitter(self):
         # I know…

@@ -84,7 +84,7 @@ class MainWindow(QtGui.QMainWindow):
                 'init_pos': [self.pos().x(), self.pos().y()],
             },
             'online_control': {
-                'connect': self.control.is_connected(),
+                'connect': self.control.loader_name,
                 'monitors': self.config.online_control['monitors'],
                 'offsets': self.config.online_control['offsets'],
             },
@@ -229,16 +229,17 @@ class MainWindow(QtGui.QMainWindow):
         self.csys_menu = items[3]
         self.dc_action = self.csys_menu.actions()[0]
 
-    def add_online_plugin(self, loader):
+    def add_online_plugin(self, loader, name=None):
+        name = name or getattr(loader, 'name', loader.__name__)
         if loader.check_avail():
             self.csys_menu.insertAction(self.dc_action, menu.Item(
                 'Connect ' + loader.title, loader.hotkey,
                 'Connect ' + loader.descr,
-                partial(self.control.connect, loader),
+                partial(self.control.connect, name, loader),
                 enabled=self.control.can_connect).action(self.menuBar()))
-            if self.config.online_control.connect and \
+            if self.config.online_control.connect == name and \
                     not self.control.is_connected():
-                self.control.connect(loader)
+                self.control.connect(name, loader)
 
     dataReceived = Signal(object)
 
