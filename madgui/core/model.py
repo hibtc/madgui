@@ -445,7 +445,10 @@ class Model(Object):
         current sequence."""
         elem = self.sequence.expanded_elements[index]
         if elem.base_name == 'sbend':
-            elem._attr['kick'] = elem.k0 * elem.length - elem.angle
+            # MAD-X uses the condition k0=0 to check whether the attribute
+            # should be used (even though that means you can never have a kick
+            # that exactly counteracts the bending angle):
+            elem._attr['kick'] = elem.k0 and elem.k0 * elem.length - elem.angle
         return elem
 
     def parse_range(self, range):
