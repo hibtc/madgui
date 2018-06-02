@@ -27,7 +27,6 @@ import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
 __all__ = [
     'PlotSelector',
     'TwissFigure',
-    'ElementIndicators',
 ]
 
 
@@ -333,8 +332,13 @@ class IndicatorManager(SceneGraph):
 
     def callback(self, elements):
         # TODO: update indicators rather than recreate all of them anew:
+        scene, style = self.scene, self.style
         self.clear([
-            ElementIndicators(ax, self.scene, self.style, elements)
+            SceneGraph([
+                ElementIndicator(ax, scene, style, elem)
+                for elem in elements
+                if elem.base_name.lower() in style
+            ])
             for ax in self.axes
         ])
 
@@ -351,20 +355,6 @@ class IndicatorManager(SceneGraph):
     def remove(self):
         self._stop_fetch()
         super().remove()
-
-
-class ElementIndicators(SceneGraph):
-
-    """
-    Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
-    """
-
-    def __init__(self, axes, scene, style, elements):
-        super().__init__([
-            ElementIndicator(axes, scene, style, elem)
-            for elem in elements
-            if elem.base_name.lower() in style
-        ])
 
 
 class ElementIndicator(SimpleArtist):
