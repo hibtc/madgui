@@ -339,13 +339,17 @@ class IndicatorManager(SceneGraph):
         ])
 
     def update(self):
+        self._stop_fetch()
         self._fetch = fetch_all(
             self.scene.model.elements, self.callback, block=0.5)
 
-    def remove(self):
+    def _stop_fetch(self):
         if self._fetch:
             self._fetch.stop()
             self._fetch = None
+
+    def remove(self):
+        self._stop_fetch()
         super().remove()
 
 
