@@ -353,29 +353,30 @@ class IndicatorManager(SceneGraph):
         super().remove()
 
 
-class ElementIndicators(SimpleArtist):
+class ElementIndicators(SceneGraph):
 
     """
     Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
     """
 
     def __init__(self, axes, scene, style, elements):
+        super().__init__([
+            ElementIndicator(axes, scene, style, elem)
+            for elem in elements
+            if elem.base_name.lower() in style
+        ])
+
+
+class ElementIndicator(SimpleArtist):
+
+    def __init__(self, axes, scene, style, elem):
         super().__init__(self._draw)
         self.axes = axes
         self.scene = scene
         self.style = style
-        self.elements = elements
+        self.elem = elem
 
-    def _draw(self):
-        """Draw the elements into the canvas."""
-        return [
-            self.make_element_indicator(pos, l, style)
-            for elem in self.elements
-            for style, pos, l in self.get_element_style(elem)
-            if style is not None
-        ]
-
-    def make_element_indicator(self, position, length, style):
+    def draw_patch(self, position, length, style):
         at = to_ui('s', position)
         if length != 0:
             patch_w = to_ui('l', length)
@@ -383,8 +384,9 @@ class ElementIndicators(SimpleArtist):
         else:
             return self.axes.axvline(at, **style)
 
-    def get_element_style(self, elem):
+    def _draw(self):
         """Return the element type name used for properties like coloring."""
+        elem = self.elem
         axes_dirs = {n[-1] for n in self.axes.y_name} & set("xy")
         type_name = elem.base_name.lower()
         # sigmoid flavor with convenient output domain [-1,+1]:
@@ -425,7 +427,10 @@ class ElementIndicators(SimpleArtist):
             if axis not in axes_dirs:
                 style['alpha'] = 0.2
 
-        return styles
+        return [
+            self.draw_patch(position, length, style)
+            for style, position, length in styles
+        ]
 
 
 class ButtonTool:
