@@ -142,7 +142,7 @@ class TwissFigure(Object):
                 ax,
                 partial(self.get_float_data, curve_info.name, 0),
                 partial(self.get_float_data, curve_info.name, 1),
-                extend_curve_style(curve_info.style),
+                with_outline(curve_info.style),
                 label=ax_label(curve_info.label, ui_units.get(curve_info.name)),
                 info=curve_info,
             )
@@ -751,7 +751,7 @@ def ax_label(label, unit):
     return "{} [{}]".format(label, get_raw_label(unit))
 
 
-def extend_curve_style(style):
+def with_outline(style):
     return dict(style, path_effects=[
-        pe.withStroke(linewidth=4, foreground='w', alpha=0.7),
+        pe.withStroke(linewidth=6, foreground='w', alpha=0.7),
     ])
