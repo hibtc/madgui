@@ -23,6 +23,7 @@ from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
+import matplotlib.colors as mpl_colors
 
 __all__ = [
     'PlotSelector',
@@ -125,7 +126,7 @@ class TwissFigure(Object):
         self.indicators.create(axes, self, self.element_style)
         self.select_markers.destroy()
         self.select_markers.clear([
-            ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
+            ListView(partial(draw_selection_marker, ax, self),
                      self.model.selection.elements)
             for ax in axes
         ])
@@ -359,12 +360,14 @@ class IndicatorManager(SceneGraph):
 
 class ElementIndicator(SimpleArtist):
 
-    def __init__(self, axes, scene, style, elem):
+    def __init__(self, axes, scene, style, elem, default=None, effects=None):
         super().__init__(self._draw)
         self.axes = axes
         self.scene = scene
         self.style = style
         self.elem = elem
+        self.default = default
+        self.effects = effects or (lambda x: x)
 
     def draw_patch(self, position, length, style):
         at = to_ui('s', position)
@@ -381,7 +384,7 @@ class ElementIndicator(SimpleArtist):
         type_name = elem.base_name.lower()
         # sigmoid flavor with convenient output domain [-1,+1]:
         sigmoid = math.tanh
-        style = self.style.get(type_name)
+        style = self.style.get(type_name, self.default)
         if style is None:
             return []
 
@@ -418,7 +421,7 @@ class ElementIndicator(SimpleArtist):
                 style['alpha'] = 0.2
 
         return [
-            self.draw_patch(position, length, style)
+            self.draw_patch(position, length, self.effects(style))
             for style, position, length in styles
         ]
 
@@ -684,10 +687,24 @@ class InfoTool(CaptureTool):
 
 def draw_selection_marker(axes, scene, el_idx):
     """In-figure markers for active/selected elements."""
-    style = scene.config['select_style']
-    element = scene.model.elements[el_idx]
-    at = to_ui('s', element.position + element.length)
-    return [axes.axvline(at, **style)]
+    style = scene.config['element_style']
+    elem = scene.model.elements[el_idx]
+    default = dict(ymin=0, ymax=1, color='#eeeeee')
+    return ElementIndicator(
+        axes, scene, style, elem, default, _selection_effects)
+
+def _selection_effects(style):
+    r, g, b = mpl_colors.to_rgba(style['color'])[:3]
+    h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
+    s = (s + 0) / 2
+    v = (v + 1) / 2
+    return dict(
+        style,
+        color=mpl_colors.hsv_to_rgb((h, s, v)),
+        path_effects=[
+            pe.withStroke(linewidth=2, foreground='#000000', alpha=1.0),
+        ],
+    )
 
 
 #----------------------------------------
@@ -750,7 +767,7 @@ def ax_label(label, unit):
     return "{} [{}]".format(label, get_raw_label(unit))
 
 
-def with_outline(style):
+def with_outline(style, linewidth=6, foreground='w', alpha=0.7):
     return dict(style, path_effects=[
-        pe.withStroke(linewidth=6, foreground='w', alpha=0.7),
+        pe.withStroke(linewidth=linewidth, foreground=foreground, alpha=alpha),
     ])
