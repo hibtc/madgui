@@ -86,12 +86,14 @@ class TwissFigure(Object):
         self.constr_markers = ListView(
             partial(SimpleArtist, draw_constraint, self),
             self.matcher.constraints)
+        self.hover_marker = SceneGraph()
         self.scene_graph = SceneGraph([
             self.indicators,
             self.select_markers,
             self.constr_markers,
             self.twiss_curves,
             self.user_curves,
+            self.hover_marker,
         ])
         self.scene_graph.parent = self.figure   # for invalidation
         # style
@@ -632,14 +634,17 @@ class InfoTool(CaptureTool):
         """Start select mode."""
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
+        self.plot.mouseMotion.connect(self.onMotion)
         self.plot.keyPress.connect(self.onKey)
         self.plot.canvas.setFocus()
 
     def deactivate(self):
         """Stop select mode."""
         self.plot.buttonPress.disconnect(self.onClick)
+        self.plot.mouseMotion.disconnect(self.onMotion)
         self.plot.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
+        self.plot.scene.hover_marker.clear()
 
     def onClick(self, event):
         """Display a popup window with info about the selected element."""
@@ -666,6 +671,14 @@ class InfoTool(CaptureTool):
         # used immediately.
         self.plot.canvas.setFocus()
 
+    def onMotion(self, event):
+        scene = self.plot.scene
+        el_idx = event.elem.index
+        scene.hover_marker.clear([
+            draw_selection_marker(ax, scene, el_idx, _hover_effects, '#ffffff')
+            for ax in scene.axes
+        ])
+
     def onKey(self, event):
         if 'left' in event.key:
             self.advance_selection(-1)
@@ -685,13 +698,14 @@ class InfoTool(CaptureTool):
         selected[top] = new_el_id
 
 
-def draw_selection_marker(axes, scene, el_idx):
+def draw_selection_marker(axes, scene, el_idx, _effects=None,
+                          drift_color='#eeeeee'):
     """In-figure markers for active/selected elements."""
     style = scene.config['element_style']
     elem = scene.model.elements[el_idx]
-    default = dict(ymin=0, ymax=1, color='#eeeeee')
+    default = dict(ymin=0, ymax=1, color=drift_color)
     return ElementIndicator(
-        axes, scene, style, elem, default, _selection_effects)
+        axes, scene, style, elem, default, _effects or _selection_effects)
 
 def _selection_effects(style):
     r, g, b = mpl_colors.to_rgba(style['color'])[:3]
@@ -703,6 +717,19 @@ def _selection_effects(style):
         color=mpl_colors.hsv_to_rgb((h, s, v)),
         path_effects=[
             pe.withStroke(linewidth=2, foreground='#000000', alpha=1.0),
+        ],
+    )
+
+def _hover_effects(style):
+    r, g, b = mpl_colors.to_rgba(style['color'])[:3]
+    h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
+    s = (s + 0) / 1.5
+    v = (v + 0) / 1.025
+    return dict(
+        style,
+        color=mpl_colors.hsv_to_rgb((h, s, v)),
+        path_effects=[
+            pe.withStroke(linewidth=1, foreground='#000000', alpha=1.0),
         ],
     )
 

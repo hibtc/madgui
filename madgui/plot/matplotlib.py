@@ -51,6 +51,7 @@ class PlotWidget(QtGui.QWidget):
     """
 
     buttonPress = Signal(MouseEvent)
+    mouseMotion = Signal(MouseEvent)
     keyPress = Signal(KeyboardEvent)
     _updateCapture = Signal()
 
@@ -78,6 +79,8 @@ class PlotWidget(QtGui.QWidget):
 
         self._cid_mouse = canvas.mpl_connect(
             'button_press_event', self.onButtonPress)
+        self._cid_motion = canvas.mpl_connect(
+            'motion_notify_event', self.onMotion)
         self._cid_key = canvas.mpl_connect(
             'key_press_event', self.onKeyPress)
 
@@ -127,6 +130,12 @@ class PlotWidget(QtGui.QWidget):
 
     def onButtonPress(self, mpl_event):
         # translate event to matplotlib-oblivious API
+        self._mouse_event(self.buttonPress, mpl_event)
+
+    def onMotion(self, mpl_event):
+        self._mouse_event(self.mouseMotion, mpl_event)
+
+    def _mouse_event(self, signal, mpl_event):
         if mpl_event.inaxes is None:
             return
         axes = mpl_event.inaxes
@@ -135,11 +144,12 @@ class PlotWidget(QtGui.QWidget):
         elem = self.scene.model.get_element_by_mouse_position(axes, xpos)
         event = MouseEvent(mpl_event.button, xpos, ypos,
                            axes, elem, mpl_event.guiEvent)
-        self.buttonPress.emit(event)
+        signal.emit(event)
 
     def onKeyPress(self, mpl_event):
         event = KeyboardEvent(mpl_event.key, mpl_event.guiEvent)
         self.keyPress.emit(event)
+
 
 
 class MultiFigure:
