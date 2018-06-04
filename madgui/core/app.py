@@ -44,6 +44,7 @@ __all__ = [
 
 def main(argv=None):
     """Run madgui mainloop and exit process when finished."""
+    set_app_id('hit.madgui')
     # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
     # Note that sys.stdout can be ``None`` if starting as console_script:
     if sys.stdout and sys.stdout.encoding != 'UTF-8':
@@ -97,3 +98,19 @@ def safe_timer(timeout, func, *args, **kwargs):
         finally:
             QtCore.QTimer.singleShot(timeout, timer_event)
     QtCore.QTimer.singleShot(timeout, timer_event)
+
+
+def set_app_id(appid):
+    """
+    Set application ID on windows.
+
+    This is needed so that madgui windows will have their own taskbar group
+    and not be counted as generic "python" applications.
+
+    See: https://stackoverflow.com/a/1552105/650222
+    """
+    try:
+        from ctypes import windll
+    except ImportError:
+        return
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
