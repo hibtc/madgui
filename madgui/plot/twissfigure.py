@@ -23,11 +23,11 @@ from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
+import matplotlib.colors as mpl_colors
 
 __all__ = [
     'PlotSelector',
     'TwissFigure',
-    'ElementIndicators',
 ]
 
 
@@ -86,12 +86,14 @@ class TwissFigure(Object):
         self.constr_markers = ListView(
             partial(SimpleArtist, draw_constraint, self),
             self.matcher.constraints)
+        self.hover_marker = SceneGraph()
         self.scene_graph = SceneGraph([
             self.indicators,
             self.select_markers,
             self.constr_markers,
             self.twiss_curves,
             self.user_curves,
+            self.hover_marker,
         ])
         self.scene_graph.parent = self.figure   # for invalidation
         # style
@@ -126,7 +128,7 @@ class TwissFigure(Object):
         self.indicators.create(axes, self, self.element_style)
         self.select_markers.destroy()
         self.select_markers.clear([
-            ListView(partial(SimpleArtist, draw_selection_marker, ax, self),
+            ListView(partial(draw_selection_marker, ax, self),
                      self.model.selection.elements)
             for ax in axes
         ])
@@ -142,7 +144,7 @@ class TwissFigure(Object):
                 ax,
                 partial(self.get_float_data, curve_info.name, 0),
                 partial(self.get_float_data, curve_info.name, 1),
-                extend_curve_style(curve_info.style),
+                with_outline(curve_info.style),
                 label=ax_label(curve_info.label, ui_units.get(curve_info.name)),
                 info=curve_info,
             )
@@ -165,7 +167,6 @@ class TwissFigure(Object):
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
         self.figure.autoscale()
-        self.figure.connect('xlim_changed', self.xlim_changed)
         if self.figure.share_axes:
             ax = self.figure.axes[0]
             # TODO: move legend on the outside
@@ -216,20 +217,6 @@ class TwissFigure(Object):
     def get_curve_by_name(self, name):
         return next((c for c in self.twiss_curves.items if c.y_name == name), None)
 
-    def xlim_changed(self, ax):
-        xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
-        xend = xstart + xdelta
-        self.xlim = self.model.elements.bound_range((xstart, xend))
-        if not np.allclose(self.xlim, self.data_lim()):
-            ax.set_autoscale_on(False)
-            self.update()
-            ax.set_autoscale_on(True)
-
-    def data_lim(self):
-        curve = next(iter(self.graph_data))
-        xdata = self.graph_data[curve][:,0]
-        return (xdata[0], xdata[-1])
-
     @property
     def show_indicators(self):
         return self.indicators.enabled
@@ -274,8 +261,6 @@ class Curve(SimpleArtist):
     def draw(self):
         """Make one subplot."""
         xdata, ydata = self._get_data()
-        if len(xdata) > 0:
-            self.axes.set_xlim(xdata[0], xdata[-1])
         self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
         self.line, = self.lines
 
@@ -333,45 +318,43 @@ class IndicatorManager(SceneGraph):
 
     def callback(self, elements):
         # TODO: update indicators rather than recreate all of them anew:
+        scene, style = self.scene, self.style
         self.clear([
-            ElementIndicators(ax, self.scene, self.style, elements)
+            SceneGraph([
+                ElementIndicator(ax, scene, style, elem)
+                for elem in elements
+                if elem.base_name.lower() in style
+            ])
             for ax in self.axes
         ])
 
     def update(self):
+        self._stop_fetch()
         self._fetch = fetch_all(
             self.scene.model.elements, self.callback, block=0.5)
 
-    def remove(self):
+    def _stop_fetch(self):
         if self._fetch:
             self._fetch.stop()
             self._fetch = None
+
+    def remove(self):
+        self._stop_fetch()
         super().remove()
 
 
-class ElementIndicators(SimpleArtist):
+class ElementIndicator(SimpleArtist):
 
-    """
-    Draw beam line elements (magnets etc) into a :class:`TwissFigure`.
-    """
-
-    def __init__(self, axes, scene, style, elements):
+    def __init__(self, axes, scene, style, elem, default=None, effects=None):
         super().__init__(self._draw)
         self.axes = axes
         self.scene = scene
         self.style = style
-        self.elements = elements
+        self.elem = elem
+        self.default = default
+        self.effects = effects or (lambda x: x)
 
-    def _draw(self):
-        """Draw the elements into the canvas."""
-        return [
-            self.make_element_indicator(pos, l, style)
-            for elem in self.elements
-            for style, pos, l in self.get_element_style(elem)
-            if style is not None
-        ]
-
-    def make_element_indicator(self, position, length, style):
+    def draw_patch(self, position, length, style):
         at = to_ui('s', position)
         if length != 0:
             patch_w = to_ui('l', length)
@@ -379,13 +362,14 @@ class ElementIndicators(SimpleArtist):
         else:
             return self.axes.axvline(at, **style)
 
-    def get_element_style(self, elem):
+    def _draw(self):
         """Return the element type name used for properties like coloring."""
+        elem = self.elem
         axes_dirs = {n[-1] for n in self.axes.y_name} & set("xy")
         type_name = elem.base_name.lower()
         # sigmoid flavor with convenient output domain [-1,+1]:
         sigmoid = math.tanh
-        style = self.style.get(type_name)
+        style = self.style.get(type_name, self.default)
         if style is None:
             return []
 
@@ -421,7 +405,10 @@ class ElementIndicators(SimpleArtist):
             if axis not in axes_dirs:
                 style['alpha'] = 0.2
 
-        return styles
+        return [
+            self.draw_patch(position, length, self.effects(style))
+            for style, position, length in styles
+        ]
 
 
 class ButtonTool:
@@ -630,14 +617,17 @@ class InfoTool(CaptureTool):
         """Start select mode."""
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
+        self.plot.mouseMotion.connect(self.onMotion)
         self.plot.keyPress.connect(self.onKey)
         self.plot.canvas.setFocus()
 
     def deactivate(self):
         """Stop select mode."""
         self.plot.buttonPress.disconnect(self.onClick)
+        self.plot.mouseMotion.disconnect(self.onMotion)
         self.plot.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
+        self.plot.scene.hover_marker.clear()
 
     def onClick(self, event):
         """Display a popup window with info about the selected element."""
@@ -664,6 +654,14 @@ class InfoTool(CaptureTool):
         # used immediately.
         self.plot.canvas.setFocus()
 
+    def onMotion(self, event):
+        scene = self.plot.scene
+        el_idx = event.elem.index
+        scene.hover_marker.clear([
+            draw_selection_marker(ax, scene, el_idx, _hover_effects, '#ffffff')
+            for ax in scene.axes
+        ])
+
     def onKey(self, event):
         if 'left' in event.key:
             self.advance_selection(-1)
@@ -683,12 +681,40 @@ class InfoTool(CaptureTool):
         selected[top] = new_el_id
 
 
-def draw_selection_marker(axes, scene, el_idx):
+def draw_selection_marker(axes, scene, el_idx, _effects=None,
+                          drift_color='#eeeeee'):
     """In-figure markers for active/selected elements."""
-    style = scene.config['select_style']
-    element = scene.model.elements[el_idx]
-    at = to_ui('s', element.position + element.length)
-    return [axes.axvline(at, **style)]
+    style = scene.config['element_style']
+    elem = scene.model.elements[el_idx]
+    default = dict(ymin=0, ymax=1, color=drift_color)
+    return ElementIndicator(
+        axes, scene, style, elem, default, _effects or _selection_effects)
+
+def _selection_effects(style):
+    r, g, b = mpl_colors.to_rgba(style['color'])[:3]
+    h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
+    s = (s + 0) / 2
+    v = (v + 1) / 2
+    return dict(
+        style,
+        color=mpl_colors.hsv_to_rgb((h, s, v)),
+        path_effects=[
+            pe.withStroke(linewidth=2, foreground='#000000', alpha=1.0),
+        ],
+    )
+
+def _hover_effects(style):
+    r, g, b = mpl_colors.to_rgba(style['color'])[:3]
+    h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
+    s = (s + 0) / 1.5
+    v = (v + 0) / 1.025
+    return dict(
+        style,
+        color=mpl_colors.hsv_to_rgb((h, s, v)),
+        path_effects=[
+            pe.withStroke(linewidth=1, foreground='#000000', alpha=1.0),
+        ],
+    )
 
 
 #----------------------------------------
@@ -751,7 +777,7 @@ def ax_label(label, unit):
     return "{} [{}]".format(label, get_raw_label(unit))
 
 
-def extend_curve_style(style):
+def with_outline(style, linewidth=6, foreground='w', alpha=0.7):
     return dict(style, path_effects=[
-        pe.withStroke(linewidth=4, foreground='w', alpha=0.7),
+        pe.withStroke(linewidth=linewidth, foreground=foreground, alpha=alpha),
     ])

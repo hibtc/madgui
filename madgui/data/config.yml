@@ -46,7 +46,7 @@ line_view:
     quadrupole:   {                  ymin: 0.3, ymax: 0.7}
     sbend:        {color: "#ccccaa", ymin: 0.25, ymax: 0.75}
     solenoid:     {color: "#555555", ymin: 0.1, ymax: 0.9}
-    multipole:    {color: "#00ff00", ymin: 0.1, ymax: 0.9}
+    multipole:    {color: "#00aa00", ymin: 0.1, ymax: 0.9}
     hkicker:      {color: "#bb0088", ymin: 0.2, ymax: 0.8}
     vkicker:      {color: "#8800bb", ymin: 0.2, ymax: 0.8}
     monitor:      {color: "#00bb00", ymin: 0.0, ymax: 1.0,
