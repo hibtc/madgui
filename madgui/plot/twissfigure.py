@@ -691,7 +691,7 @@ def draw_selection_marker(axes, scene, el_idx, _effects=None,
         axes, scene, style, elem, default, _effects or _selection_effects)
 
 def _selection_effects(style):
-    r, g, b = mpl_colors.to_rgba(style['color'])[:3]
+    r, g, b = mpl_colors.colorConverter.to_rgb(style['color'])
     h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
     s = (s + 0) / 2
     v = (v + 1) / 2
@@ -704,7 +704,7 @@ def _selection_effects(style):
     )
 
 def _hover_effects(style):
-    r, g, b = mpl_colors.to_rgba(style['color'])[:3]
+    r, g, b = mpl_colors.colorConverter.to_rgb(style['color'])
     h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
     s = (s + 0) / 1.5
     v = (v + 0) / 1.025
