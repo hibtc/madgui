@@ -921,12 +921,6 @@ class ElementList(Sequence):
             index = self.index(elem)
             self._elems[index].invalidate()
 
-    def bound_x(self, x_value):
-        return min(self.max_x, max(self.min_x, x_value))
-
-    def bound_range(self, xlim):
-        return tuple(map(self.bound_x, xlim))
-
     def __contains__(self, element):
         """
         Check if sequence contains element with specified name.

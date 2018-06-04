@@ -167,7 +167,6 @@ class TwissFigure(Object):
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
         self.figure.autoscale()
-        self.figure.connect('xlim_changed', self.xlim_changed)
         if self.figure.share_axes:
             ax = self.figure.axes[0]
             # TODO: move legend on the outside
@@ -217,18 +216,6 @@ class TwissFigure(Object):
 
     def get_curve_by_name(self, name):
         return next((c for c in self.twiss_curves.items if c.y_name == name), None)
-
-    def xlim_changed(self, ax):
-        xstart, ystart, xdelta, ydelta = ax.viewLim.bounds
-        xend = xstart + xdelta
-        self.xlim = self.model.elements.bound_range((xstart, xend))
-        if not np.allclose(self.xlim, self.data_lim()):
-            self.update()
-
-    def data_lim(self):
-        curve = next(iter(self.graph_data))
-        xdata = self.graph_data[curve][:,0]
-        return (xdata[0], xdata[-1])
 
     @property
     def show_indicators(self):
