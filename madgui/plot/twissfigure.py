@@ -223,9 +223,7 @@ class TwissFigure(Object):
         xend = xstart + xdelta
         self.xlim = self.model.elements.bound_range((xstart, xend))
         if not np.allclose(self.xlim, self.data_lim()):
-            ax.set_autoscale_on(False)
             self.update()
-            ax.set_autoscale_on(True)
 
     def data_lim(self):
         curve = next(iter(self.graph_data))
@@ -276,8 +274,6 @@ class Curve(SimpleArtist):
     def draw(self):
         """Make one subplot."""
         xdata, ydata = self._get_data()
-        if len(xdata) > 0:
-            self.axes.set_xlim(xdata[0], xdata[-1])
         self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
         self.line, = self.lines
 

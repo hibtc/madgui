@@ -233,3 +233,4 @@ def _autoscale_axes(axes):
     """Autoscale a :class:`matplotlib.axes.Axes` to its contents."""
     axes.relim()
     axes.autoscale()
+    axes.set_autoscale_on(False)
