@@ -229,3 +229,10 @@ def logfile_name(path, base, ext):
 
 def strip_suffix(s, suffix):
     return s[:-len(suffix)] if s.endswith(suffix) else s
+
+
+def relpath(path, start):
+    try:
+        return os.path.relpath(path, start)
+    except ValueError:  # e.g. different drive on windows
+        return path

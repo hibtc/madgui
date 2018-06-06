@@ -11,7 +11,7 @@ from functools import partial
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
-from madgui.util.misc import SingleWindow, logfile_name, try_import
+from madgui.util.misc import SingleWindow, logfile_name, try_import, relpath
 from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
@@ -80,7 +80,7 @@ class MainWindow(QtGui.QMainWindow):
     def session_data(self):
         open_plot_windows = list(map(self._save_plot_window, self.views))
         folder = self.config.model_path or self.folder
-        default = self.model and os.path.relpath(self.model.filename, folder)
+        default = self.model and relpath(self.model.filename, folder)
         return {
             'mainwindow': {
                 'init_size': [self.size().width(), self.size().height()],
