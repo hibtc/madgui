@@ -35,6 +35,7 @@ class Control(Object):
         self.is_connected = Bool(False)
         self.can_connect = ~self.is_connected
         self.has_sequence = self.is_connected & frame.has_model
+        self.loader_name = None
 
     # menu handlers
 
