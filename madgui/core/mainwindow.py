@@ -79,6 +79,8 @@ class MainWindow(QtGui.QMainWindow):
 
     def session_data(self):
         open_plot_windows = list(map(self._save_plot_window, self.views))
+        folder = self.config.model_path or self.folder
+        default = self.model and os.path.relpath(self.model.filename, folder)
         return {
             'mainwindow': {
                 'init_size': [self.size().width(), self.size().height()],
@@ -97,8 +99,8 @@ class MainWindow(QtGui.QMainWindow):
                     'out': self.log_window.enabled('MADX'),
                 }
             },
-            'model_path': self.folder,
-            'load_default': self.model and self.model.filename,
+            'model_path': folder,
+            'load_default': default,
             'number': self.config['number'],
             'plot_windows': open_plot_windows + self.config.plot_windows,
         }
