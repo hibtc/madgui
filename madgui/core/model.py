@@ -1,6 +1,7 @@
 """
 MAD-X backend for madgui.
 """
+from __future__ import absolute_import
 
 import os
 from collections import namedtuple, Sequence, OrderedDict, defaultdict, Mapping

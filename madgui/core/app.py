@@ -21,6 +21,7 @@ Website:
 
     https://github.com/hibtc/madgui
 """
+from __future__ import absolute_import
 
 import traceback
 import signal

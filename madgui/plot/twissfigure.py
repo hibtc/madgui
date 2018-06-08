@@ -2,6 +2,7 @@
 Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
+from __future__ import absolute_import
 
 import math
 import logging

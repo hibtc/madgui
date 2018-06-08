@@ -1,6 +1,7 @@
 """
 Utility functions to load numpy tables from files.
 """
+from __future__ import absolute_import
 
 from collections import OrderedDict
 from os.path import abspath

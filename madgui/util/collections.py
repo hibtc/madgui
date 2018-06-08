@@ -2,6 +2,8 @@
 Observable collection classes.
 """
 
+from __future__ import absolute_import
+
 from collections import MutableSequence
 from contextlib import contextmanager
 from functools import wraps

@@ -21,6 +21,7 @@ The interface contract is currently designed as follows:
         - :class:`ElementBackendConverter` performs parameter conversions
           between internal and standard representation
 """
+from __future__ import absolute_import
 
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple

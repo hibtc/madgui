@@ -2,6 +2,7 @@
 Utilities for the optic variation method (Optikvarianzmethode) for beam
 alignment.
 """
+from __future__ import absolute_import
 
 import numpy as np
 

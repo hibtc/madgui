@@ -1,6 +1,7 @@
 """
 Parameter input dialog.
 """
+from __future__ import absolute_import
 
 import cpymad.util as _dtypes
 

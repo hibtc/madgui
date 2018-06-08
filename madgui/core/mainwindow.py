@@ -1,6 +1,7 @@
 """
 Main window component for madgui.
 """
+from __future__ import absolute_import
 
 import glob
 import os

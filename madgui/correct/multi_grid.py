@@ -1,6 +1,7 @@
 """
 Multi grid correction method.
 """
+from __future__ import absolute_import
 
 # TODO:
 # - use CORRECT command from MAD-X rather than custom numpy method?

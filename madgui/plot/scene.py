@@ -1,6 +1,7 @@
 """
 Plot base classes.
 """
+from __future__ import absolute_import
 
 # NOTE: There are 2 possible invalidations:
 #   a) canvas.draw          currently done automatically

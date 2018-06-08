@@ -3,6 +3,7 @@ Core classes for madgui.
 
 Every object that emits signals has to derive from :class:`Object`.
 """
+from __future__ import absolute_import
 
 from madgui.qt import QtCore
 

@@ -1,6 +1,7 @@
 """
 Implementation of the matching system.
 """
+from __future__ import absolute_import
 
 import logging
 from collections import namedtuple

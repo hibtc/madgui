@@ -1,6 +1,7 @@
 """
 Table widget specified by column behaviour.
 """
+from __future__ import absolute_import
 
 from inspect import getmro
 from itertools import repeat

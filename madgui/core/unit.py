@@ -1,6 +1,7 @@
 """
 Provides unit conversion.
 """
+from __future__ import absolute_import
 
 from importlib_resources import read_binary
 

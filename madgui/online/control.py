@@ -1,6 +1,7 @@
 """
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
+from __future__ import absolute_import
 
 import logging
 

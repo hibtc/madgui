@@ -1,6 +1,7 @@
 """
 Qt utilities.
 """
+from __future__ import absolute_import
 
 from madgui.qt import Qt, QtGui
 

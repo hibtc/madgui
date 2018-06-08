@@ -1,6 +1,7 @@
 """
 Utility functions to deal with layouts.
 """
+from __future__ import absolute_import
 
 from madgui.qt import QtGui
 

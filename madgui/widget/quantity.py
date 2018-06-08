@@ -1,6 +1,7 @@
 """
 Utility classes for creating widgets holding physical quantities.
 """
+from __future__ import absolute_import
 
 from abc import abstractmethod
 import string

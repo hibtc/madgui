@@ -1,6 +1,7 @@
 """
 Config serialization utilities.
 """
+from __future__ import absolute_import
 
 import os
 from importlib_resources import read_binary

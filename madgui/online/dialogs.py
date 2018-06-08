@@ -1,6 +1,7 @@
 """
 Dialog for selecting DVM parameters to be synchronized.
 """
+from __future__ import absolute_import
 
 from madgui.qt import QtGui
 from madgui.core.unit import change_unit, get_raw_label

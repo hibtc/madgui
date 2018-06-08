@@ -1,6 +1,7 @@
 """
 Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
+from __future__ import absolute_import
 
 from collections import namedtuple
 

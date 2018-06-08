@@ -1,6 +1,7 @@
 """
 Open an ipython shell in a widget
 """
+from __future__ import absolute_import
 
 from madgui.qt import QtGui
 

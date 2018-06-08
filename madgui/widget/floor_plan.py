@@ -1,6 +1,7 @@
 """
 Components to draw a 2D floor plan of a given MAD-X lattice.
 """
+from __future__ import absolute_import
 
 # TODO: improve display of vertically oriented elements
 # TODO: adjust display for custom entry/exit pole faces

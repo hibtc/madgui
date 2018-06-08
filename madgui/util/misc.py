@@ -2,6 +2,8 @@
 Misc programming toolbox.
 """
 
+from __future__ import absolute_import
+
 import os
 import functools
 import collections

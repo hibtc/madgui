@@ -1,6 +1,7 @@
 """
 Logging utils.
 """
+from __future__ import absolute_import
 
 # TODO:
 # - filter log according to log message type

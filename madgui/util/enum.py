@@ -1,6 +1,7 @@
 """
 Simple enum type.
 """
+from __future__ import absolute_import
 
 
 # Metaclass for creating enum classes:

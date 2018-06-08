@@ -5,6 +5,7 @@ It was kept after the removal of PyQt4 compatibility - in order to spare me
 the necessity to replace most of the ``QtGui`` occurences inside the existing
 code with ``QtWidgets``.
 """
+from __future__ import absolute_import
 
 import types
 

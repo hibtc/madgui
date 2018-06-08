@@ -1,6 +1,7 @@
 """
 UI for matching.
 """
+from __future__ import absolute_import
 
 from madgui.qt import QtGui, load_ui
 from madgui.core.unit import ui_units
