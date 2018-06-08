@@ -8,6 +8,9 @@ Usage:
 
 from setuptools import setup
 from distutils.util import convert_path
+from setuptools.extension import Extension
+from Cython.Build import cythonize
+from Cython.Distutils import build_ext
 
 
 def read_file(path):
@@ -49,16 +52,15 @@ def main():
         url=meta['__uri__'],
         license=meta['__license__'],
         classifiers=meta['__classifiers__'],
-        packages=[
-            'madgui',
-            'madgui.core',
-            'madgui.correct',
-            'madgui.data',
-            'madgui.online',
-            'madgui.plot',
-            'madgui.util',
-            'madgui.widget',
-        ],
+        cmdclass={'build_ext': build_ext},
+        ext_modules=cythonize([
+            Extension(
+                'madgui.*', ['madgui/**/*.py'],
+                compiler_directives=dict(
+                    language_level=3,
+                ),
+            ),
+        ]),
         install_requires=[
             'cpymad>=1.0.0rc3',
             'docopt',           # command line parsing
