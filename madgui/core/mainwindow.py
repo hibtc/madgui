@@ -215,11 +215,11 @@ class MainWindow(QtGui.QMainWindow):
                 ]),
             ]),
             Menu('&Help', [
-                Item('About Mad&Qt', None,
+                Item('About &madgui', None,
                      'About the madgui GUI application.',
                      self.helpAboutMadGUI.create),
                 try_import('cpymad') and
-                Item('About &CPyMAD', None,
+                Item('About &cpymad', None,
                      'About the cpymad python binding to MAD-X.',
                      self.helpAboutCPyMAD.create),
                 try_import('cpymad') and
