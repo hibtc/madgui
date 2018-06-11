@@ -2,6 +2,8 @@
 Parameter input dialog.
 """
 
+import os
+
 import cpymad.util as _dtypes
 
 from madgui.qt import QtGui, Qt
@@ -137,11 +139,11 @@ class ParamTable(TableView):
 
     exportFilters = [
         ("YAML file", "*.yml", "*.yaml"),
-        ("JSON file", "*.json"),
     ]
 
     importFilters = [
         ("YAML file", "*.yml", "*.yaml"),
+        ("JSON file", "*.json"),
     ]
 
     @property
@@ -162,10 +164,26 @@ class ParamTable(TableView):
         """Export parameters to YAML file."""
         data = {par.name: par.value
                 for par in self.fetch(**self.fetch_args)}
-        if self.data_key:
-            data = {self.data_key: data}
-        with open(filename, 'wt') as f:
-            yaml.safe_dump(data, f, default_flow_style=False)
+        export_params(filename, data, data_key=self.data_key)
+
+
+def export_params(filename, data, data_key=None):
+    """Export parameters to .YAML/.STR file."""
+    if data_key:
+        data = {data_key: data}
+    _, ext = os.path.splitext(filename.lower())
+    if ext in ('.yml', '.yaml'):
+        text = yaml.safe_dump(data, default_flow_style=False)
+    elif ext == '.str':
+        text = ''.join([
+            '{} = {!r};\n'.format(k, v)
+            for k, v in data.items()
+        ])
+    else:
+        raise ValueError("Unknown file format for export: {!r}"
+                            .format(filename))
+    with open(filename, 'wt') as f:
+        f.write(text)
 
 
 def cmd_font(cell):
@@ -328,12 +346,17 @@ class GlobalsEdit(ParamTable):
 
     columns = var_columns
 
+    exportFilters = [
+        ("Strength file", "*.str"),
+        ("YAML file", "*.yml", "*.yaml"),
+    ]
+
     def __init__(self, model):
         super().__init__(self._fetch, model.update_globals, model=model)
 
     def _fetch(self):
         globals = self._model.globals
-        return [p for k, p in globals.cmdpar.items() if p.inform]
+        return [p for k, p in globals.cmdpar.items() if p.var_type > 0]
 
 
 
