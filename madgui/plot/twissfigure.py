@@ -7,14 +7,13 @@ import math
 import logging
 from functools import partial
 
-from importlib_resources import path
-
 import numpy as np
 
 from madgui.qt import QtGui, Qt
 from madgui.core.worker import fetch_all
 from madgui.core.base import Object, Signal
 
+from madgui.util.qt import load_icon_resource
 from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
 from madgui.core.unit import (
@@ -481,9 +480,7 @@ class MatchTool(CaptureTool):
     mode = 'MATCH'
     short = 'match constraints'
     text = 'Match for desired target value'
-
-    with path('madgui.data', 'target.xpm') as xpm:
-        icon = QtGui.QIcon(QtGui.QPixmap(str(xpm), 'XPM'))
+    icon = load_icon_resource('madgui.data', 'target.xpm')
 
     def __init__(self, plot):
         """Add toolbar tool to panel and subscribe to capture events."""

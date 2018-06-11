@@ -1,0 +1,9 @@
+<svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="0"   cy="64" rx="32" ry="48" style="fill:red"  />
+  <ellipse cx="128" cy="64" rx="32" ry="48" style="fill:red"  />
+  <ellipse cy="0"   cx="64" ry="32" rx="48" style="fill:blue" />
+  <ellipse cy="128" cx="64" ry="32" rx="48" style="fill:blue" />
+
+  <line x1="40" y1="40" x2="88" y2="88" style="stroke:black;stroke-width:8" />
+  <line x1="88" y1="40" x2="40" y2="88" style="stroke:black;stroke-width:8" />
+</svg>

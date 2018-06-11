@@ -35,6 +35,7 @@ from madgui.qt import QtCore, QtGui
 from madgui import __version__
 from madgui.core.mainwindow import MainWindow
 from madgui.core.worker import QueuedDispatcher
+from madgui.util.qt import load_icon_resource
 
 
 __all__ = [
@@ -44,6 +45,7 @@ __all__ = [
 
 def main(argv=None):
     """Run madgui mainloop and exit process when finished."""
+    set_app_id('hit.madgui')
     # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
     # Note that sys.stdout can be ``None`` if starting as console_script:
     if sys.stdout and sys.stdout.encoding != 'UTF-8':
@@ -53,6 +55,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
     app = QtGui.qApp = QtGui.QApplication(argv)
+    app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
     setup_interrupt_handling(app)
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
     # where an uncaught exception would usually cause the program to abort.
@@ -97,3 +100,19 @@ def safe_timer(timeout, func, *args, **kwargs):
         finally:
             QtCore.QTimer.singleShot(timeout, timer_event)
     QtCore.QTimer.singleShot(timeout, timer_event)
+
+
+def set_app_id(appid):
+    """
+    Set application ID on windows.
+
+    This is needed so that madgui windows will have their own taskbar group
+    and not be counted as generic "python" applications.
+
+    See: https://stackoverflow.com/a/1552105/650222
+    """
+    try:
+        from ctypes import windll
+    except ImportError:
+        return
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
