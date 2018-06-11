@@ -8,6 +8,8 @@ import logging
 import time
 from functools import partial
 
+import numpy as np
+
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.base import Signal
 from madgui.util.collections import Selection, Bool
@@ -75,6 +77,7 @@ class MainWindow(QtGui.QMainWindow):
             os.environ['PATH'] += os.pathsep + os.path.abspath(path)
         self.folder = self.config.model_path
         config.number = self.config.number
+        np.set_printoptions(**self.config['printoptions'])
         exec(self.config.onload, self.context)
 
     def session_data(self):

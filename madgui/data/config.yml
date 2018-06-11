@@ -10,6 +10,11 @@ number:
   fmtspec: .4g
   spinbox: true
 
+printoptions:           # numpy.set_printoptions in python shell
+  precision: 5
+  suppress: True        # no scientific notation
+  linewidth: 120
+
 mainwindow:
   init_size: [1000, 300]
   init_pos:  [   0,   0]
