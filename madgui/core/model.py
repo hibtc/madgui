@@ -654,17 +654,29 @@ class Model(Object):
                 return np.eye(7)
         return self.get_transfer_maps([elem_from, elem_to])[0]
 
-    def get_transfer_maps(self, elems):
+    def get_transfer_maps(self, elems, interval=(1, 1)):
         """
         Get the transfer matrices R(i,j) between the given elements.
 
-        For example, ``get_transfer_maps([e0, e1, e2])`` will return the
-        transfer maps in the half-open ranges ``(e0,e1]`` and ``(e1,e2]``.
+        The ``interval`` parameter can be used to select open/closedness of
+        the individual intervals between the elements by adding offsets to the
+        first and second element in every interval, counted from the entry
+        end of the element.
+
+        For example, by setting the ``interval`` parameter, the call
+        ``get_transfer_maps([e0, e1, e2], interval)`` will retrieve the
+        transfer maps in the following intervals:
+
+        - ``interval=(0, 0)``  retrieves ``[e0, e1)`` and ``[e1, e2)``
+        - ``interval=(0, 1)``  retrieves ``[e0, e1]`` and ``[e1, e2]``
+        - ``interval=(1, 0)``  retrieves ``(e0, e1)`` and ``(e1, e2)``
+        - ``interval=(1, 1)``  retrieves ``(e0, e1]`` and ``(e1, e2]``
         """
-        maps = self.sector()
+        maps = self.sector()[::-1,:]
         indices = [self.get_element_info(el).index for el in elems]
+        x0, x1 = interval
         return [
-            reduce(np.dot, maps[j:i:-1,:,:], np.eye(7))
+            reduce(np.dot, maps[max(0, i+x0):max(0, j+x1)], np.eye(7))
             for i, j in zip(indices, indices[1:])
         ]
 
