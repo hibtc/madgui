@@ -137,11 +137,11 @@ class ParamTable(TableView):
 
     exportFilters = [
         ("YAML file", "*.yml", "*.yaml"),
-        ("JSON file", "*.json"),
     ]
 
     importFilters = [
         ("YAML file", "*.yml", "*.yaml"),
+        ("JSON file", "*.json"),
     ]
 
     @property
