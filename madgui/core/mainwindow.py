@@ -140,9 +140,13 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Initial conditions', 'Ctrl+I',
                      'Modify the initial conditions, beam, and parameters.',
                      self.editInitialConditions.create),
+                Separator,
                 Item('&Load strengths', 'Ctrl+L',
                      'Execute MAD-X file in current context.',
                      self.execFile),
+                Item('&Save strengths', 'Ctrl+S',
+                     'Save MAD-X file with current strengths.',
+                     self.saveStrengths),
                 Separator,
                 Item('&Quit', 'Ctrl+Q',
                      'Close window.',
@@ -343,8 +347,22 @@ class MainWindow(QtGui.QMainWindow):
         if filename:
             self.model.call(filename)
 
-    def fileSave(self):
-        pass
+    def saveStrengths(self):
+        from madgui.widget.filedialog import getSaveFileName
+        filters = [
+            ("Strength files", "*.str"),
+            ("YAML files", "*.yml", "*.yaml"),
+            ("All files", "*"),
+        ]
+        filename = getSaveFileName(
+            self, 'Save MAD-X strengths file', self.folder, filters)
+        if filename:
+            from madgui.widget.params import export_params
+            export_params(filename, {
+                k: p.value
+                for k, p in self.model.globals.cmdpar.items()
+                if p.var_type > 0
+            })
 
     @SingleWindow.factory
     def editInitialConditions(self):
