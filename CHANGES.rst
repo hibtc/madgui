@@ -1,6 +1,31 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.11.2
+~~~~~~
+Date: 11.06.2018
+
+- fix losing zoom/view on every curve redraw due to autoscaling
+- fix AttributeError when trying to save session data. This appeared only if
+  online control was not connected and prevented saving the current model,
+  folder etc
+- fix ValueError when computing relative path for a model on different volume
+- let madgui have its own taskbar group on windows
+- add preliminary window icon
+- more consistent behaviour for model.get_transfer_maps
+- prettify default output format for numpy arrays in python shell
+
+element indicators:
+- more distinctive lines for monitors
+- flip displacement for pos/neg dipole strengths
+- scale displacements/quadrupole colors according to magnet strength
+- draw element indicators in background
+- distinguish twiss curve by adding outlines
+- set alpha=1 for element indicators
+- add KICK marker within SBEND
+- highlight selected and hovered elements
+
+
 1.11.1
 ~~~~~~
 Date: 01.06.2018
