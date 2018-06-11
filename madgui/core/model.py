@@ -641,7 +641,7 @@ class Model(Object):
 
     def sectormap(self, elem_from, elem_to=None):
         """
-        Return SECTORMAP|KICKS in the closed range [from,to] as 7x7 matrix.
+        Return SECTORMAP|KICKS in the half-open range (from,to] as 7x7 matrix.
 
         If only one parameter is given, return its transfer map.
 
