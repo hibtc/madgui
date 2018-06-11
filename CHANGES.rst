@@ -1,6 +1,15 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.11.3
+~~~~~~
+Date: 11.06.2018
+
+- add 'export strengths' menu item
+- add export as .str file in globals edit
+- fix JSON incorrectly being listed as export format
+- show globals according to var_type (predefinedness)
+
 1.11.2
 ~~~~~~
 Date: 11.06.2018
