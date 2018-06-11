@@ -302,7 +302,7 @@ class OrbitWidget(_FitWidget):
         from madgui.correct.orbit import fit_initial_orbit
 
         records = [m for m in self.monitors if self.selected(m)]
-        secmaps = self.model.get_transfer_maps([r.name for r in records])
+        secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
         secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
             (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
@@ -377,7 +377,7 @@ class EmittanceDialog(_FitWidget):
         monitors = [m for m in self.monitors if self.selected(m)]
         monitors = sorted(monitors, key=lambda m: model.elements.index(m.name))
 
-        tms = model.get_transfer_maps([m.name for m in monitors])
+        tms = model.get_transfer_maps([0] + [m.name for m in monitors])
         if not long_transfer:
             tms[0] = np.eye(7)
         tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))

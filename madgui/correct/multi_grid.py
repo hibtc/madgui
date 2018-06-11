@@ -106,7 +106,7 @@ class Corrector(Matcher):
 
     def fit_particle_orbit(self):
         records = self.readouts
-        secmaps = self.model.get_transfer_maps([r.monitor for r in records])
+        secmaps = self.model.get_transfer_maps([0] + [r.monitor for r in records])
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
 
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[

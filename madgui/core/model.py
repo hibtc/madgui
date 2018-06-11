@@ -652,18 +652,17 @@ class Model(Object):
             elem_from = self.get_element_info(elem_from).index - 1
             if elem_from == -1:
                 return np.eye(7)
-        return self.get_transfer_maps([elem_from, elem_to])[1]
+        return self.get_transfer_maps([elem_from, elem_to])[0]
 
     def get_transfer_maps(self, elems):
         """
         Get the transfer matrices R(i,j) between the given elements.
 
-        This requires a full twiss call, so don't do it too often.
+        For example, ``get_transfer_maps([e0, e1, e2])`` will return the
+        transfer maps in the half-open ranges ``(e0,e1]`` and ``(e1,e2]``.
         """
         maps = self.sector()
         indices = [self.get_element_info(el).index for el in elems]
-        if indices[0] != 0:
-            indices.insert(0, 0)
         return [
             reduce(np.dot, maps[j:i:-1,:,:], np.eye(7))
             for i, j in zip(indices, indices[1:])

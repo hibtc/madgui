@@ -93,9 +93,9 @@ class Corrector:
         # given initial conditions:
         with self.model.undo_stack.rollback("Orbit correction"):
             self.model.update_twiss_args(init_orbit or {})
-            return self.model.get_transfer_maps([
+            return self.model.sectormap(
                 self.model.start if orig is None else orig,
-                self.model.get_element_info(dest)])[1]
+                self.model.get_element_info(dest))
 
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
