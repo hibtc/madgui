@@ -35,6 +35,7 @@ from madgui.qt import QtCore, QtGui
 from madgui import __version__
 from madgui.core.mainwindow import MainWindow
 from madgui.core.worker import QueuedDispatcher
+from madgui.util.qt import load_icon_resource
 
 
 __all__ = [
@@ -54,6 +55,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
     app = QtGui.qApp = QtGui.QApplication(argv)
+    app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
     setup_interrupt_handling(app)
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
     # where an uncaught exception would usually cause the program to abort.

@@ -2,6 +2,8 @@
 Qt utilities.
 """
 
+from importlib_resources import path as resource_filename
+
 from madgui.qt import Qt, QtGui
 
 
@@ -47,3 +49,8 @@ def fit_button(button):
 
 def monospace():
     return QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
+
+
+def load_icon_resource(module, name, format='XPM'):
+    with resource_filename(module, name) as filename:
+        return QtGui.QIcon(QtGui.QPixmap(str(filename), format))
