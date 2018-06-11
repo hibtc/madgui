@@ -356,7 +356,7 @@ class GlobalsEdit(ParamTable):
 
     def _fetch(self):
         globals = self._model.globals
-        return [p for k, p in globals.cmdpar.items() if p.inform]
+        return [p for k, p in globals.cmdpar.items() if p.var_type > 0]
 
 
 
