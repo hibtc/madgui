@@ -216,16 +216,16 @@ def get_rows(cell):
         ]
     return par_rows(cell)
 
-def set_component_value(cell, value):
+def set_comp_value(cell, value):
     tab, par = cell.context, cell.granny.data
     vec = list(par.definition)
     vec[cell.row] = value
     tab.store({par.name: vec}, **tab.fetch_args)
 
-def set_component_expr(cell, value):
-    set_component_value(cell, value or cell.data.value)
+def set_comp_expr(cell, value):
+    set_comp_value(cell, value or cell.data.value)
 
-def get_component_unit(cell):
+def get_comp_unit(cell):
     units = ui_units.get(cell.granny.data.name)
     row = cell.row
     if isinstance(units, list) and row < len(units):
@@ -306,10 +306,10 @@ class CommandEdit(ParamTable):
     vector_columns = [
         ColumnInfo(None, get_name, rows=par_rows, columns=knob_columns, **_col_style),
         # TODO: fix conversion and get_unit
-        ColumnInfo(None, 'value', set_component_value, padding=50,
+        ColumnInfo(None, 'value', set_comp_value, padding=50,
                    mutable=True, convert='name'),
-        ColumnInfo(None, get_component_unit),
-        ColumnInfo(None, 'expr', set_component_expr, padding=50,
+        ColumnInfo(None, get_comp_unit),
+        ColumnInfo(None, 'expr', set_comp_expr, padding=50,
                    mutable=is_expr_mutable),
     ]
 
