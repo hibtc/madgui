@@ -196,8 +196,7 @@ class TwissFigure(Object):
     def update(self):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()
-        self.twiss_curves.update()
-        self.indicators.update()
+        self.scene_graph.update()
 
     def update_graph_data(self):
         self.graph_info, graph_data = \
