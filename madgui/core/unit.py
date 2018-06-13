@@ -2,8 +2,10 @@
 Provides unit conversion.
 """
 
+from numbers import Number
 from importlib_resources import read_binary
 
+import numpy as np
 import pint
 import yaml
 
@@ -193,8 +195,10 @@ class UnitConverter:
             return [self._add_unit(v, u) for v, u in zip(value, unit)]
         elif isinstance(value, units.Quantity):
             return tounit(value, unit)
-        else:
+        elif isinstance(value, (Number, np.ndarray)):
             return unit * value
+        else:
+            return value
 
     def strip_unit(self, name, value):
         """Convert to MAD-X units."""
