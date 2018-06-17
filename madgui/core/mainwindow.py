@@ -230,6 +230,10 @@ class MainWindow(QtGui.QMainWindow):
                 Item('About MAD-&X', None,
                      'About the included MAD-X backend.',
                      self.helpAboutMadX.create),
+                Separator,
+                Item('About &Python', None,
+                     'About the currently running python interpreter.',
+                     self.helpAboutPython.create),
                 Item('About Q&t', None,
                      'About Qt.',
                      self.helpAboutQt),
@@ -452,6 +456,21 @@ class MainWindow(QtGui.QMainWindow):
         """Show about dialog."""
         import cpymad.madx
         return self._showAboutDialog(cpymad.madx.metadata)
+
+    @SingleWindow.factory
+    def helpAboutPython(self):
+        """Show about dialog."""
+        import sys
+        import site     # adds builtins.license/copyright/credits
+        import builtins
+        class About:
+            __title__   = 'python'
+            __version__ = ".".join(map(str, sys.version_info))
+            __summary__ = sys.version + "\n\nPath: " + sys.executable
+            __uri__     = "https::/www.python.org"
+            __credits__ = str(builtins.credits)
+            get_copyright_notice = lambda: sys.copyright
+        return self._showAboutDialog(About)
 
     def helpAboutQt(self):
         QtGui.QMessageBox.aboutQt(self)
