@@ -672,11 +672,12 @@ class Model(Object):
         - ``interval=(1, 0)``  retrieves ``(e0, e1)`` and ``(e1, e2)``
         - ``interval=(1, 1)``  retrieves ``(e0, e1]`` and ``(e1, e2]``
         """
-        maps = self.sector()[::-1,:]
+        maps = self.sector()
         indices = [self.get_element_info(el).index for el in elems]
         x0, x1 = interval
         return [
-            reduce(np.dot, maps[max(0, i+x0):max(0, j+x1)], np.eye(7))
+            reduce(lambda a, b: np.dot(b, a),
+                   maps[max(0, i+x0):max(0, j+x1)], np.eye(7))
             for i, j in zip(indices, indices[1:])
         ]
 
