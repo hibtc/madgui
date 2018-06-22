@@ -494,12 +494,19 @@ class Model(Object):
     def fetch_twiss(self):
         return self._par_list(self.twiss_args, 'twiss_args')
 
-    def _par_list(self, data, name, title_transform=str.title, **kw):
+    def _par_list(self, data, name, title_transform=str.title, elem_index=None):
         from madgui.widget.params import ParamInfo
         conf = self.config['parameter_sets'][name]
         data = process_spec(conf['params'], data)
         readonly = conf.get('readonly', ())
-        return [ParamInfo(title_transform(key), val,
+        if elem_index is not None:
+            elem = self.model.sequence.expanded_elements[self.el_id]
+            def paramInfo(k, v, mutable):
+                return (elem.cmdpar[k] if k in elem.cmdpar else
+                        ParamInfo(k, v, mutable=mutable))
+        else:
+            paramInfo = ParamInfo
+        return [paramInfo(title_transform(key), val,
                           mutable=key not in readonly)
                 for key, val in data.items()]
 

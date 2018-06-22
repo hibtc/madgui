@@ -118,7 +118,7 @@ class ElementInfoBox(QtGui.QWidget):
             (k, getattr(elem, k))
             for k in show['common'] + show.get(elem.base_name, [])
         ])
-        return self.model._par_list(data, 'element')
+        return self.model._par_list(data, 'element', elem_index=elem_index)
 
     def _fetch_twiss(self, elem_index=0):
         data = self.model.get_elem_twiss(elem_index)
