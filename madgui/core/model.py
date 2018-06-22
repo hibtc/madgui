@@ -10,6 +10,7 @@ from bisect import bisect_right
 import subprocess
 from threading import RLock
 import re
+from contextlib import contextmanager
 
 import numpy as np
 
@@ -52,9 +53,28 @@ class Madx(Madx):
         self.reader = AsyncReader(self._process.stdout, stdout_log)
         self.reader.flush()
 
+    _enter_count = 0
+    _collected_cmds = None
     def input(self, text):
+        if self._enter_count > 0:
+            self._collected_cmds.append(text)
+            return
         with self.reader:
             super().input(text)
+
+    @contextmanager
+    def transaction(self):
+        self._enter_count += 1
+        if self._enter_count == 1:
+            self._collected_cmds = []
+        try:
+            yield None
+        finally:
+            self._enter_count -= 1
+            if self._enter_count == 0:
+                self.input(" ".join(self._collected_cmds))
+                self._collected_cmds = None
+
 
 
 class Model(Object):
@@ -525,12 +545,13 @@ class Model(Object):
             text or "Change element {}: {{}}".format(elem.name))
 
     def _update_globals(self, globals):
-        for k, v in globals.items():
-            if v is None:
-                v = 0
-            elif v == '':
-                v = self.madx.globals[k]
-            self.madx.globals[k] = v
+        with self.madx.transaction():
+            for k, v in globals.items():
+                if v is None:
+                    v = 0
+                elif v == '':
+                    v = self.madx.globals[k]
+                self.madx.globals[k] = v
         self.elements.invalidate()  # TODO: invalidate only elements that
                                     # depend on any of the updated variables?
         self.twiss.invalidate()
