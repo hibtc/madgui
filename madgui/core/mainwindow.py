@@ -762,7 +762,6 @@ class InfoBoxGroup:
 
         dock.show()
         dock.raise_()
-        self.model.changed_singleshot(dock.close)
 
         info.changed_element.connect(partial(self._changed_box_element, info))
         return info
