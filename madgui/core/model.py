@@ -629,7 +629,7 @@ class Model(Object):
 
     twiss_columns = [
         'alfx', 'alfy', 'betx', 'bety', 'gamx', 'gamy', 'ex', 'ey',
-        'x', 'y', 'px', 'py',
+        'x', 'y', 'px', 'py', 'envx', 'envy',
     ]
 
     def get_elem_twiss(self, elem):
