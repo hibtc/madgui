@@ -42,7 +42,7 @@ class Corrector(Matcher):
     mode = 'xy'
 
     def __init__(self, control, configs):
-        super().__init__(control._model, None)
+        super().__init__(control.model(), None)
         self.control = control
         self.configs = configs
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
@@ -136,10 +136,11 @@ class Corrector(Matcher):
             (c.elem, None, c.axis, c.value+offset(c))
             for c in self.constraints
         ]
-        with self.model.undo_stack.rollback("Orbit correction"):
-            self.model.update_globals(self.selected.get('assign', {}))
-            self.model.update_twiss_args(init_orbit)
-            return self.model.match(
+        model = self.model
+        with model.undo_stack.rollback("Orbit correction"):
+            model.update_globals(self.selected.get('assign', {}))
+            model.update_twiss_args(init_orbit)
+            return model.match(
                 vary=self.match_names,
                 method=('jacobian', {}),
                 weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},

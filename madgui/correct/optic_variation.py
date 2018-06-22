@@ -64,7 +64,7 @@ class Corrector:
         monitors = [target]
         self.target = target
         self.control = control
-        self.model = control._model
+        self.model = control.model()
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
         # save elements
         self.targets = targets
@@ -91,11 +91,12 @@ class Corrector:
 
         # update initial conditions to compute sectormaps accounting for the
         # given initial conditions:
-        with self.model.undo_stack.rollback("Orbit correction"):
-            self.model.update_twiss_args(init_orbit or {})
-            return self.model.sectormap(
-                self.model.start if orig is None else orig,
-                self.model.get_element_info(dest))
+        model = self.model
+        with model.undo_stack.rollback("Orbit correction"):
+            model.update_twiss_args(init_orbit or {})
+            return model.sectormap(
+                model.start if orig is None else orig,
+                model.get_element_info(dest))
 
     def sync_csys_to_mad(self):
         """Update element settings in MAD-X from control system."""
@@ -188,16 +189,17 @@ class Corrector:
             return 0
 
         # match final conditions
+        model = self.model
         match_names = steerer_names
         constraints = [
             (elem, None, axis, value+offset(elem, axis))
             for target, orbit in zip(self.targets, design_orbit)
-            for elem in [self.model.elements[target]]
+            for elem in [model.elements[target]]
             for axis, value in orbit.items()
         ]
-        with self.model.undo_stack.rollback("Orbit correction"):
-            self.model.update_twiss_args(init_orbit)
-            return self.model.match(
+        with model.undo_stack.rollback("Orbit correction"):
+            model.update_twiss_args(init_orbit)
+            return model.match(
                 vary=match_names,
                 weight={'x': 1e3, 'y':1e3, 'px':1e3, 'py':1e3},
                 constraints=constraints)

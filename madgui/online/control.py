@@ -31,10 +31,11 @@ class Control(Object):
         super().__init__()
         self._frame = frame
         self._plugin = None
+        self.model = frame.model
         # menu conditions
         self.is_connected = Bool(False)
         self.can_connect = ~self.is_connected
-        self.has_sequence = self.is_connected & frame.has_model
+        self.has_sequence = self.is_connected & self.model
         self.loader_name = None
 
     # menu handlers
@@ -60,10 +61,10 @@ class Control(Object):
 
     def get_knobs(self):
         """Get list of :class:`ParamInfo`."""
-        if not self._model:
+        if not self.model():
             return []
         return list(filter(
-            None, map(self._plugin.param_info, self._model.globals)))
+            None, map(self._plugin.param_info, self.model().globals)))
 
     # TODO: unify export/import dialog -> "show knobs"
     # TODO: can we drop the read-all button in favor of automatic reads?
@@ -80,7 +81,7 @@ class Control(Object):
 
     def _show_sync_dialog(self, widget, apply):
         from madgui.online.dialogs import SyncParamItem
-        model, live = self._model, self._plugin
+        model, live = self.model(), self._plugin
         widget.data = [
             SyncParamItem(
                 knob, live.read_param(knob.name), model.read_param(knob.name))
@@ -91,13 +92,13 @@ class Control(Object):
 
     def read_all(self, knobs=None):
         live = self._plugin
-        self._model.write_params([
+        self.model().write_params([
             (knob.name, live.read_param(knob.name))
             for knob in knobs or self.get_knobs()
         ], "Read params from online control")
 
     def write_all(self, knobs=None):
-        model = self._model
+        model = self.model()
         self.write_params([
             (knob.name, model.read_param(knob.name))
             for knob in knobs or self.get_knobs()
@@ -108,7 +109,7 @@ class Control(Object):
         self.read_beam()
 
     def read_beam(self):
-        self._model.set_beam(self._plugin.get_beam())
+        self.model().set_beam(self._plugin.get_beam())
 
     def read_monitor(self, name):
         return self._plugin.read_monitor(name)
@@ -117,7 +118,7 @@ class Control(Object):
     def monitor_widget(self):
         """Read out SD values (beam position/envelope)."""
         from madgui.online.diagnostic import MonitorWidget
-        widget = MonitorWidget(self, self._model, self._frame)
+        widget = MonitorWidget(self, self.model(), self._frame)
         widget.show()
         return widget
 
@@ -138,7 +139,7 @@ class Control(Object):
         import madgui.correct.multi_grid as module
         from madgui.widget.dialog import Dialog
 
-        varyconf = self._model.data.get('multi_grid', {})
+        varyconf = self.model().data.get('multi_grid', {})
         selected = next(iter(varyconf))
 
         self.read_all()
@@ -154,13 +155,12 @@ class Control(Object):
     def on_correct_optic_variation_method(self):
         import madgui.correct.optic_variation as module
         from madgui.widget.dialog import Dialog
-        varyconf = self._model.data.get('optic_variation', {})
+        varyconf = self.model().data.get('optic_variation', {})
 
         self.read_all()
         self._frame.open_graph('orbit')
 
-        model = self._model
-        elements = model.elements
+        elements = self.model().elements
 
         select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
@@ -176,11 +176,6 @@ class Control(Object):
         dialog.show()
 
     # helper functions
-
-    @property
-    def _model(self):
-        """Return the online control."""
-        return self._frame.model
 
     def write_params(self, params):
         write = self._plugin.write_param

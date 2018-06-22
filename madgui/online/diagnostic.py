@@ -372,7 +372,7 @@ class EmittanceDialog(_FitWidget):
             self.results[:] = []
             return
 
-        model = self.control._model
+        model = self.control.model()
 
         monitors = [m for m in self.monitors if self.selected(m)]
         monitors = sorted(monitors, key=lambda m: model.elements.index(m.name))

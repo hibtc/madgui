@@ -12,7 +12,7 @@ import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.base import Signal
-from madgui.util.collections import Selection, Bool
+from madgui.util.collections import Selection, Boxed
 from madgui.util.misc import SingleWindow, logfile_name, try_import, relpath
 from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.util.undo import UndoStack
@@ -39,7 +39,6 @@ def expand_ext(path, *exts):
 
 class MainWindow(QtGui.QMainWindow):
 
-    model_changed = Signal()
     ui_file = 'mainwindow.ui'
 
     #----------------------------------------
@@ -49,14 +48,14 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
         load_ui(self, __package__, self.ui_file)
-        self.has_model = Bool(False)
         self.context = {
             'frame': self,
         }
         self.options = options
         self.config = config.load(options['--config'])
         self.session_file = self.config.session_file
-        self.model = None
+        self.model = Boxed(None)
+        self.model.changed.connect(self._on_model_changed)
         self.control = control.Control(self)
         self.initUI()
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
@@ -83,7 +82,7 @@ class MainWindow(QtGui.QMainWindow):
     def session_data(self):
         open_plot_windows = list(map(self._save_plot_window, self.views))
         folder = self.config.model_path or self.folder
-        default = self.model and relpath(self.model.filename, folder)
+        default = self.model() and relpath(self.model().filename, folder)
         return {
             'mainwindow': {
                 'init_size': [self.size().width(), self.size().height()],
@@ -349,7 +348,7 @@ class MainWindow(QtGui.QMainWindow):
         filename = getOpenFileName(
             self, 'Open MAD-X strengths file', self.folder, filters)
         if filename:
-            self.model.call(filename)
+            self.model().call(filename)
 
     def saveStrengths(self):
         from madgui.widget.filedialog import getSaveFileName
@@ -364,7 +363,7 @@ class MainWindow(QtGui.QMainWindow):
             from madgui.widget.params import export_params
             export_params(filename, {
                 k: p.value
-                for k, p in self.model.globals.cmdpar.items()
+                for k, p in self.model().globals.cmdpar.items()
                 if p.var_type > 0
             })
 
@@ -376,19 +375,19 @@ class MainWindow(QtGui.QMainWindow):
         class InitEllipseWidget(EllipseWidget):
             def update(self): super().update(0)
 
-        model = self.model
+        model = self.model()
         widget = TabParamTables([
             ('Twiss', ParamTable(model.fetch_twiss, model.update_twiss_args)),
             ('Beam', ParamTable(model.fetch_beam, model.update_beam)),
             ('Globals', GlobalsEdit(model)),
-            ('Ellipse', InitEllipseWidget(self.model)),
+            ('Ellipse', InitEllipseWidget(model)),
         ])
         widget.update()
         # NOTE: Ideally, we'd like to update after changing initial conditions
         # (rather than after twiss), but changing initial conditions usually
         # implies also updating twiss, so this is a good enough approximation
         # for now:
-        self.model.twiss.updated.connect(widget.update)
+        model.twiss.updated.connect(widget.update)
 
         dialog = Dialog(self)
         dialog.setSimpleExportWidget(widget, self.folder)
@@ -404,7 +403,7 @@ class MainWindow(QtGui.QMainWindow):
     def viewFloorPlan(self):
         from madgui.widget.floor_plan import LatticeFloorPlan, Selector
         latview = LatticeFloorPlan()
-        latview.setModel(self.model)
+        latview.setModel(self.model())
         selector = Selector(latview)
         dock = Dialog(self)
         dock.setWidget([latview, selector], tight=True)
@@ -415,7 +414,7 @@ class MainWindow(QtGui.QMainWindow):
     @SingleWindow.factory
     def viewMatchDialog(self):
         from madgui.widget.match import MatchWidget
-        widget = MatchWidget(self.model.get_matcher())
+        widget = MatchWidget(self.model().get_matcher())
         dialog = Dialog(self)
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Matching constraints.")
@@ -515,21 +514,17 @@ class MainWindow(QtGui.QMainWindow):
         self.logfile = open(logfile, 'wt')
         logging.info('Loading {}'.format(filename))
         logging.info('Logging commands to: {}'.format(logfile))
-        self.setModel(Model(filename, self.config,
-                            command_log=self.log_command,
-                            stdout_log=self.dataReceived.emit,
-                            undo_stack=self.undo_stack))
+        self.model.set(Model(filename, self.config,
+                             command_log=self.log_command,
+                             stdout_log=self.dataReceived.emit,
+                             undo_stack=self.undo_stack))
         self.showTwiss()
 
-    def setModel(self, model):
-        if model is self.model:
-            return
+    def _on_model_changed(self, model):
         self.destroyModel()
-        self.model = model
         self.context['model'] = model
 
         if model is None:
-            self.model_changed.emit()
             self.setWindowTitle("madgui")
             return
 
@@ -542,34 +537,31 @@ class MainWindow(QtGui.QMainWindow):
         model.selection = Selection()
         model.box_group = InfoBoxGroup(self, model.selection)
 
-        self.has_model.set(True)
-        self.model_changed.emit()
         self.setWindowTitle(model.name)
 
     def destroyModel(self):
-        if self.model is None:
+        model = self.context.get('model')
+        if model is None:
             return
-        self.model.twiss.updated.disconnect(self.update_twiss)
-        self.has_model.set(False)
-        del self.model.selection.elements[:]
+        model.twiss.updated.disconnect(self.update_twiss)
+        del model.selection.elements[:]
         try:
-            self.model.destroy()
+            model.destroy()
         except IOError:
             # The connection may already be terminated in case MAD-X crashed.
             pass
-        self.model = None
         self.context['model'] = None
         self.context['twiss'] = None
         self.logfile.close()
 
     def update_twiss(self):
-        self.context['twiss'] = self.model.twiss.data
+        self.context['twiss'] = self.model().twiss.data
 
     def showTwiss(self, name=None):
         import madgui.plot.matplotlib as plt
         import madgui.plot.twissfigure as twissfigure
 
-        model = self.model
+        model = self.model()
         config = self.config.line_view
 
         # update twiss *before* creating the figure to avoid immediate
@@ -613,11 +605,11 @@ class MainWindow(QtGui.QMainWindow):
         widget.show()
         def update_window_title():
             widget.setWindowTitle("{1} ({0})".format(
-                self.model.name, scene.graph_name))
+                self.model().name, scene.graph_name))
         scene.graph_changed.connect(update_window_title)
         update_window_title()
 
-        self.model.destroyed.connect(widget.close)
+        model.destroyed.connect(widget.close)
 
         def destroyed():
             if scene in self.views:
@@ -724,6 +716,7 @@ class InfoBoxGroup:
         """Add toolbar tool to panel and subscribe to capture events."""
         super().__init__()
         self.mainwindow = mainwindow
+        self.model = mainwindow.model
         self.selection = selection
         self.boxes = [self.create_info_box(elem)
                       for elem in selection.elements]
@@ -743,13 +736,10 @@ class InfoBoxGroup:
 
     def _modify(self, index, el_id):
         self.boxes[index].el_id = el_id
-        self.boxes[index].setWindowTitle(self.model.elements[el_id].node_name)
+        self.boxes[index].setWindowTitle(
+            self.model().elements[el_id].node_name)
 
     # utility methods
-
-    @property
-    def model(self):
-        return self.mainwindow.model
 
     def _on_close_box(self, box):
         el_id = box.el_id
@@ -762,16 +752,17 @@ class InfoBoxGroup:
 
     def create_info_box(self, el_id):
         from madgui.widget.elementinfo import ElementInfoBox
-        info = ElementInfoBox(self.model, el_id)
+        model = self.model()
+        info = ElementInfoBox(model, el_id)
         dock = Dialog(self.mainwindow)
         dock.setSimpleExportWidget(info, None)
-        dock.setWindowTitle("Element details: " + self.model.elements[el_id].node_name)
+        dock.setWindowTitle("Element details: " + model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
 
         dock.show()
         dock.raise_()
-        self.model.destroyed.connect(dock.close)
+        model.destroyed.connect(dock.close)
 
         info.changed_element.connect(partial(self._changed_box_element, info))
         return info
@@ -782,4 +773,5 @@ class InfoBoxGroup:
         old_el_id = self.selection.elements[box_index]
         if new_el_id != old_el_id:
             self.selection.elements[box_index] = new_el_id
-        box.window().setWindowTitle("Element details: " + self.model.elements[new_el_id].node_name)
+        box.window().setWindowTitle(
+            "Element details: " + self.model().elements[new_el_id].node_name)
