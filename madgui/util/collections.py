@@ -53,6 +53,12 @@ class Boxed(Object):
     def _dtype(self, value):
         return value
 
+    def changed_singleshot(self, callback):
+        def on_change(value):
+            self.changed.disconnect(on_change)
+            callback()
+        self.changed.connect(on_change)
+
     __eq__  = _operator(operator.__eq__)
     __ne__  = _operator(operator.__ne__)
 

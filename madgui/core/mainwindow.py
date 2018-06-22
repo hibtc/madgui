@@ -609,7 +609,7 @@ class MainWindow(QtGui.QMainWindow):
         scene.graph_changed.connect(update_window_title)
         update_window_title()
 
-        model.destroyed.connect(widget.close)
+        self.model.changed_singleshot(widget.close)
 
         def destroyed():
             if scene in self.views:
@@ -762,7 +762,7 @@ class InfoBoxGroup:
 
         dock.show()
         dock.raise_()
-        model.destroyed.connect(dock.close)
+        self.model.changed_singleshot(dock.close)
 
         info.changed_element.connect(partial(self._changed_box_element, info))
         return info

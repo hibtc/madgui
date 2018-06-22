@@ -17,7 +17,7 @@ import numpy as np
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element
 from cpymad.util import normalize_range_name, is_identifier
 
-from madgui.core.base import Object, Signal, Cache
+from madgui.core.base import Cache
 from madgui.util.stream import AsyncReader
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
@@ -77,7 +77,7 @@ class Madx(Madx):
 
 
 
-class Model(Object):
+class Model:
 
     """
     Contains the whole global state of a MAD-X instance and (possibly) loaded
@@ -88,7 +88,6 @@ class Model(Object):
     :ivar str path: base folder
     """
 
-    destroyed = Signal()
     matcher = None
 
     def __init__(self, filename, config, command_log, stdout_log, undo_stack):
@@ -138,7 +137,6 @@ class Model(Object):
         if self.rpc_client:
             self.rpc_client.close()
         self.madx = None
-        self.destroyed.emit()
 
     @property
     def rpc_client(self):
