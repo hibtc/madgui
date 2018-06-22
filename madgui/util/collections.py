@@ -17,12 +17,13 @@ __all__ = [
 ]
 
 
-def _operator(get, rtype=None):
+def _operator(get):
     @wraps(get)
     def operation(*operands):
-        rtype_ = operands[0].__class__ if rtype is None else rtype
-        values = lambda: [operand() for operand in operands]
-        result = rtype_(get(*values()))
+        rtype = operands[0].__class__
+        dtype = operands[0]._dtype
+        values = lambda: [dtype(operand()) for operand in operands]
+        result = rtype(get(*values()))
         update = lambda *args: result.set(get(*values()))
         for operand in operands:
             operand.changed.connect(update)
@@ -30,27 +31,35 @@ def _operator(get, rtype=None):
     return operation
 
 
-class Bool(Object):
+class Boxed(Object):
 
-    """A bool-like value that can be observed for changes."""
+    """A box for a single value that can be observed for changes."""
 
-    changed = Signal(bool)
+    changed = Signal(object)
 
     def __init__(self, value):
         super().__init__()
-        self._value = bool(value)
+        self._value = self._dtype(value)
 
     def __call__(self, *value):
         return self._value
 
     def set(self, value):
-        value = bool(value)
+        value = self._dtype(value)
         if value != self._value:
             self._value = value
             self.changed.emit(value)
 
+    def _dtype(self, value):
+        return value
+
     __eq__  = _operator(operator.__eq__)
     __ne__  = _operator(operator.__ne__)
+
+
+class Bool(Boxed):
+
+    _dtype = bool
     __and__ = _operator(operator.__and__)
     __or__  = _operator(operator.__or__)
     __xor__ = _operator(operator.__xor__)
