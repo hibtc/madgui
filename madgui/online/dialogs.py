@@ -6,6 +6,7 @@ from madgui.qt import QtGui
 from madgui.core.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
 from madgui.widget.tableview import TableView, ColumnInfo
+from madgui.widget.params import export_params
 
 
 class ListSelectWidget(QtGui.QWidget):
@@ -62,6 +63,18 @@ class SyncParamWidget(ListSelectWidget):
     def __init__(self, title, headline):
         super().__init__(self.columns, headline)
         self.title = title
+
+    @property
+    def exporter(self):
+        return self
+
+    def exportTo(self, filename):
+        export_params(filename, self.data, data_key='globals')
+
+    exportFilters = [
+        ("YAML file", "*.yml", "*.yaml"),
+        ("STR file", "*.str"),
+    ]
 
 
 def ImportParamWidget():

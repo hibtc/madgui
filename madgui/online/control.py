@@ -127,6 +127,7 @@ class Control(Object):
         dialog = Dialog(self._frame)
         if export:
             dialog.setExportWidget(widget, self._frame.folder)
+            dialog.serious.updateButtons()
         else:
             dialog.setWidget(widget, tight=True)
         # dialog.setWindowTitle()
@@ -165,6 +166,7 @@ class Control(Object):
         select = module.SelectWidget(elements, varyconf)
         dialog = Dialog(self._frame)
         dialog.setExportWidget(select, self._frame.folder)
+        dialog.serious.updateButtons()
         dialog.exec_()
         if dialog.result() != QtGui.QDialog.Accepted:
             return
