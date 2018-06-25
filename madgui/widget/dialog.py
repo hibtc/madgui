@@ -47,6 +47,9 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         self.addButton(Button.Open).clicked.connect(self.onImport)
         self.addButton(Button.Save).clicked.connect(self.onExport)
         self.addButton(Button.Ok).clicked.connect(self.onAccept)
+        self.button(Button.Open).setAutoDefault(False)
+        self.button(Button.Save).setAutoDefault(False)
+        self.button(Button.Ok).setDefault(True)
         expand(self, perpendicular(self.orientation()))
 
     def updateButtons(self):
