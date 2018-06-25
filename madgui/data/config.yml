@@ -39,6 +39,9 @@ logging:
 onload: ""
 model_path: ""
 load_default: ""
+exec_folder: ""
+str_folder: ""
+
 monitors: {}
 
 # Settings for beam line and TWISS function display (component.TwissView and
