@@ -140,9 +140,13 @@ class MainWindow(QtGui.QMainWindow):
                      'Modify the initial conditions, beam, and parameters.',
                      self.editInitialConditions.create),
                 Separator,
-                Item('&Load strengths', 'Ctrl+L',
+                Item('&Execute MAD-X file', 'Ctrl+E',
                      'Execute MAD-X file in current context.',
                      self.execFile),
+                Separator,
+                Item('&Load strengths', 'Ctrl+L',
+                     'Load .str file (simplified syntax).',
+                     self.loadStrengths),
                 Item('&Save strengths', 'Ctrl+S',
                      'Save MAD-X file with current strengths.',
                      self.saveStrengths),
@@ -341,6 +345,18 @@ class MainWindow(QtGui.QMainWindow):
     def execFile(self):
         from madgui.widget.filedialog import getOpenFileName
         filters = [
+            ("All MAD-X files", "*.madx", "*.str", "*.seq"),
+            ("Strength files", "*.str"),
+            ("All files", "*"),
+        ]
+        filename = getOpenFileName(
+            self, 'Open MAD-X file', self.folder, filters)
+        if filename:
+            self.model().call(filename)
+
+    def loadStrengths(self):
+        from madgui.widget.filedialog import getOpenFileName
+        filters = [
             ("Strength files", "*.str"),
             ("All MAD-X files", "*.madx", "*.str", "*.seq"),
             ("All files", "*"),
@@ -348,7 +364,7 @@ class MainWindow(QtGui.QMainWindow):
         filename = getOpenFileName(
             self, 'Open MAD-X strengths file', self.folder, filters)
         if filename:
-            self.model().call(filename)
+            self.model().load_strengths(filename)
 
     def saveStrengths(self):
         from madgui.widget.filedialog import getSaveFileName

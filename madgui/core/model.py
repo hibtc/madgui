@@ -309,6 +309,14 @@ class Model:
         self.elements.invalidate()
         self.twiss.invalidate()
 
+    def load_strengths(self, name):
+        new = read_strengths(name)
+        if new is None:
+            raise ValueError(
+                "SyntaxError in {!r}. Not the simplest of .str files?"
+                .format(name))
+        self.update_globals(new)
+
     def _call(self, name):
         """Load a MAD-X file into the current workspace."""
         name = os.path.join(self.path, name)
