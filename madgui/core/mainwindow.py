@@ -381,8 +381,9 @@ class MainWindow(QtGui.QMainWindow):
             ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
         ]
+        folder = self.str_folder or self.folder
         filename = getSaveFileName(
-            self, 'Save MAD-X strengths file', self.folder, filters)
+            self, 'Save MAD-X strengths file', folder, filters)
         if filename:
             from madgui.widget.params import export_params
             export_params(filename, {
@@ -390,6 +391,7 @@ class MainWindow(QtGui.QMainWindow):
                 for k, p in self.model().globals.cmdpar.items()
                 if p.var_type > 0
             })
+            self.str_folder = os.path.dirname(filename)
 
     @SingleWindow.factory
     def editInitialConditions(self):
