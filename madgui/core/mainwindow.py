@@ -75,6 +75,8 @@ class MainWindow(QtGui.QMainWindow):
         for path in runtime:
             os.environ['PATH'] += os.pathsep + os.path.abspath(path)
         self.folder = self.config.model_path
+        self.exec_folder = self.config.exec_folder
+        self.str_folder = self.config.str_folder
         config.number = self.config.number
         np.set_printoptions(**self.config['printoptions'])
         exec(self.config.onload, self.context)
@@ -103,6 +105,8 @@ class MainWindow(QtGui.QMainWindow):
             },
             'model_path': folder,
             'load_default': default,
+            'exec_folder': self.exec_folder,
+            'str_folder': self.str_folder,
             'number': self.config['number'],
             'plot_windows': open_plot_windows + self.config.plot_windows,
         }
@@ -140,9 +144,13 @@ class MainWindow(QtGui.QMainWindow):
                      'Modify the initial conditions, beam, and parameters.',
                      self.editInitialConditions.create),
                 Separator,
-                Item('&Load strengths', 'Ctrl+L',
+                Item('&Execute MAD-X file', 'Ctrl+E',
                      'Execute MAD-X file in current context.',
                      self.execFile),
+                Separator,
+                Item('&Load strengths', 'Ctrl+L',
+                     'Load .str file (simplified syntax).',
+                     self.loadStrengths),
                 Item('&Save strengths', 'Ctrl+S',
                      'Save MAD-X file with current strengths.',
                      self.saveStrengths),
@@ -341,14 +349,30 @@ class MainWindow(QtGui.QMainWindow):
     def execFile(self):
         from madgui.widget.filedialog import getOpenFileName
         filters = [
+            ("All MAD-X files", "*.madx", "*.str", "*.seq"),
+            ("Strength files", "*.str"),
+            ("All files", "*"),
+        ]
+        folder = self.exec_folder or self.folder
+        filename = getOpenFileName(
+            self, 'Open MAD-X file', folder, filters)
+        if filename:
+            self.model().call(filename)
+            self.exec_folder = os.path.dirname(filename)
+
+    def loadStrengths(self):
+        from madgui.widget.filedialog import getOpenFileName
+        filters = [
             ("Strength files", "*.str"),
             ("All MAD-X files", "*.madx", "*.str", "*.seq"),
             ("All files", "*"),
         ]
+        folder = self.str_folder or self.folder
         filename = getOpenFileName(
-            self, 'Open MAD-X strengths file', self.folder, filters)
+            self, 'Open MAD-X strengths file', folder, filters)
         if filename:
-            self.model().call(filename)
+            self.model().load_strengths(filename)
+            self.str_folder = os.path.dirname(filename)
 
     def saveStrengths(self):
         from madgui.widget.filedialog import getSaveFileName
@@ -357,8 +381,9 @@ class MainWindow(QtGui.QMainWindow):
             ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
         ]
+        folder = self.str_folder or self.folder
         filename = getSaveFileName(
-            self, 'Save MAD-X strengths file', self.folder, filters)
+            self, 'Save MAD-X strengths file', folder, filters)
         if filename:
             from madgui.widget.params import export_params
             export_params(filename, {
@@ -366,6 +391,7 @@ class MainWindow(QtGui.QMainWindow):
                 for k, p in self.model().globals.cmdpar.items()
                 if p.var_type > 0
             })
+            self.str_folder = os.path.dirname(filename)
 
     @SingleWindow.factory
     def editInitialConditions(self):
