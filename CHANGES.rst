@@ -1,6 +1,24 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.12.0
+~~~~~~
+Date: 26.06.2018
+
+- add "About python" menuitem
+- fix bugs in ``Model.get_transfer_maps`` / ``Model.sectormap``
+- collect multiple variable update commands into one RPC call
+- add class for boxing generic values
+- make ``Mainwindow.model`` a ``Boxed`` object!!
+- remove ``Model.destroyed`` signal in favor of the more general
+  ``Boxed.changed`` signal
+- add ``envx``/``envy`` columns to ``get_elem_twiss``
+- fix data export in "Read strengths"/"Write strengths" dialogs
+- set "Ok" as default button in export widgets
+- add menuitem for executing MAD-X files (i.e. CALL)
+- remember folders separately for "load strengths" and "execute file" items
+
+
 1.11.4
 ~~~~~~
 Date: 11.06.2018
