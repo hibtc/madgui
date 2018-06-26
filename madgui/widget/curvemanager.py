@@ -59,9 +59,14 @@ class CurveManager(QtGui.QWidget):
         self.tab.set_columns(self.columns, self.available, self)
 
     def connect_signals(self):
+        Button = QtGui.QDialogButtonBox
         self.btn_save.clicked.connect(self.on_btn_save)
         self.btn_load.clicked.connect(self.on_btn_load)
+        self.btn_box.button(Button.Ok).clicked.connect(self.accept)
         self.tab.connectButtons(self.btn_remove)
+
+    def accept(self):
+        self.window().accept()
 
     @property
     def data(self):
