@@ -96,7 +96,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
         Buttons = QtGui.QDialogButtonBox
-        self.std_buttons.button(Buttons.Ok).clicked.connect(self.close)
+        self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.btn_update.clicked.connect(self.update)
 
