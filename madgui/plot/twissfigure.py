@@ -108,7 +108,7 @@ class TwissFigure(Object):
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot))
-        plot.addTool(CompareTool(plot, self.shown_curves))
+        plot.addTool(CompareTool(plot))
 
     graph_name = None
     def set_graph(self, graph_name):
@@ -717,7 +717,7 @@ def _hover_effects(style):
 # Compare tool
 #----------------------------------------
 
-class CompareTool(CheckTool):
+class CompareTool(ButtonTool):
 
     """
     Display a precomputed reference curve for comparison.
@@ -729,20 +729,12 @@ class CompareTool(CheckTool):
     icon = QtGui.QStyle.SP_DirLinkIcon
     text = 'Load data file for comparison.'
 
-    def __init__(self, plot, selection):
-        super().__init__(plot)
-        self.selection = selection
-        self.plot.scene._curveManager.holds_value.changed.connect(self._update)
-
-    def _update(self, *args):
-        self.setChecked(len(self.selection) > 0 or
-                        self.plot.scene._curveManager.holds_value())
+    def __init__(self, plot):
+        super().__init__()
+        self.plot = plot
 
     def activate(self):
         self.plot.scene._curveManager.create()
-
-    def deactivate(self):
-        self.selection.clear()
 
 
 def make_user_curve(scene, idx):
