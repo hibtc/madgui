@@ -62,8 +62,10 @@ def parse_knob(model, text):
         elem, attr = text.split(':')
     elif '->' in text:
         elem, attr = text.split('->')
+    elif text in model.globals:
+        return text
     else:
-        return None     # TODO
+        return None     # TODO: logging
     elem = elem.strip()
     attr = attr.strip()
     return model.get_knob(model.elements[elem], attr)
