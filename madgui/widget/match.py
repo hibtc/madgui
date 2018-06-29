@@ -68,7 +68,13 @@ def parse_knob(model, text):
         return None     # TODO: logging
     elem = elem.strip()
     attr = attr.strip()
-    return model.get_knob(model.elements[elem], attr)
+    try:
+        knobs = model._get_knobs(model.elements[elem], attr)
+    except KeyError:    # missing attribute
+        return None     # TODO: logging
+    if knobs:
+        return knobs[0]
+    return None         # TODO: logging
 
 
 class MatchWidget(QtGui.QWidget):
