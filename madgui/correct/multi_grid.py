@@ -107,18 +107,49 @@ class Corrector(Matcher):
     # computations
 
     def fit_particle_orbit(self):
+
         records = self.readouts
         secmaps = self.model.get_transfer_maps([0] + [r.monitor for r in records])
+        secmaps[0] = np.eye(7)
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
-
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
             (secmap[:,:6], secmap[:,6], (record.x+dx, record.y+dy))
             for record, secmap in zip(records, secmaps)
             for dx, dy in [self._monitor_offs.get(record.monitor.lower(), (0, 0))]
         ])
+
+        first = records[0].monitor
+
+        self.model.madx.command.select(flag="interpolate", clear=True)
+
+        tw = self.model.madx.twiss(
+            range=first+'/#e',
+            x=x, y=y, px=px, py=py,
+            betx=1, bety=1, table="forward")
+        tw = self.model.madx.table.forward
+        self.model.twiss.invalidate()
+
+        tw = tw[-1]
+        x, y, px, py = tw.x, tw.y, tw.px, tw.py
+
+        backtw = self.model.backtrack(
+            #range=first+'_reflected'+'/#e',
+            x=-x, y=y, px=px, py=-py,
+            # We care only about the orbit:
+            betx=1, bety=1, table="backtrack")
+
+        style = {'linestyle': '-', 'marker': 'o'}
+        data = {'s': backtw.s[-1] - backtw.s,
+                'x': -backtw.x,
+                'y': backtw.y}
+        self.control._frame.add_curve("backtrack", data, style)
+
+        tw0 = backtw[-1]
+        x, y, px, py = tw0.x, tw0.y, tw0.px, tw0.py
+
         return {
-            'x': x, 'px': px,
-            'y': y, 'py': py,
+            'x': -x, 'px': px,
+            'y': y, 'py': -py,
         }, chi_squared, singular
 
     def compute_steerer_corrections(self, init_orbit):
