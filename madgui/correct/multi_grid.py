@@ -42,7 +42,7 @@ class Corrector(Matcher):
         self.design_values = {}
         self.monitors = List()
         self.readouts = List()
-        self._monitor_offs = control._frame.config['online_control']['offsets']
+        self._offsets = control._frame.config['online_control']['offsets']
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None):
@@ -107,7 +107,7 @@ class Corrector(Matcher):
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
             (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
             for record, secmap in zip(records, secmaps)
-            for dx, dy in [self._monitor_offs.get(record.name.lower(), (0, 0))]
+            for dx, dy in [self._offsets.get(record.name.lower(), (0, 0))]
         ])
 
         first = records[0].name
@@ -153,7 +153,7 @@ class Corrector(Matcher):
         """
 
         def offset(c):
-            dx, dy = self._monitor_offs.get(c.elem.name.lower(), (0, 0))
+            dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
             if c.axis in ('x', 'posx'): return dx
             if c.axis in ('y', 'posy'): return dy
             return 0

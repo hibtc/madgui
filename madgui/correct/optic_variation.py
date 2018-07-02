@@ -183,7 +183,7 @@ class Corrector:
         if correct_y: steerer_names.extend(self.y_steerers)
 
         def offset(elem, axis):
-            dx, dy = self._monitor_offs.get(elem.name.lower(), (0, 0))
+            dx, dy = self._offsets.get(elem.name.lower(), (0, 0))
             if axis in ('x', 'posx'): return dx
             if axis in ('y', 'posy'): return dy
             return 0
