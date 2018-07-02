@@ -106,6 +106,8 @@ line_view:
   backtrack_style:
     linestyle: "-"
     marker: o
+    zorder: 1
+    markersize: 3
 
   default_graph: envelope
 
