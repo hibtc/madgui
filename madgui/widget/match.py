@@ -62,11 +62,19 @@ def parse_knob(model, text):
         elem, attr = text.split(':')
     elif '->' in text:
         elem, attr = text.split('->')
+    elif text in model.globals:
+        return text
     else:
-        return None     # TODO
+        return None     # TODO: logging
     elem = elem.strip()
     attr = attr.strip()
-    return model.get_knob(model.elements[elem], attr)
+    try:
+        knobs = model._get_knobs(model.elements[elem], attr)
+    except KeyError:    # missing attribute
+        return None     # TODO: logging
+    if knobs:
+        return knobs[0]
+    return None         # TODO: logging
 
 
 class MatchWidget(QtGui.QWidget):
@@ -77,7 +85,7 @@ class MatchWidget(QtGui.QWidget):
         ColumnInfo("Element", get_constraint_elem, set_constraint_elem,
                    resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Name", get_constraint_axis, set_constraint_axis,
-                   resize=QtGui.QHeaderView.ResizeToContents),
+                   resize=QtGui.QHeaderView.ResizeToContents, padding=50),
         ColumnInfo("Target", 'value', set_constraint_value, convert='axis',
                    resize=QtGui.QHeaderView.ResizeToContents),
         ColumnInfo("Unit", get_constraint_unit,
