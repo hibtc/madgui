@@ -20,17 +20,9 @@ from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import fit_button, monospace
 from madgui.widget.tableview import ColumnInfo
 from madgui.widget.edit import LineNumberBar
-from madgui.correct.orbit import fit_initial_orbit
 
+from .orbit import fit_initial_orbit, MonitorReadout
 from .match import Matcher, Constraint, variable_from_knob, Variable
-
-
-class MonitorReadout:
-
-    def __init__(self, monitor, orbit):
-        self.monitor = monitor
-        self.x = orbit['posx']
-        self.y = orbit['posy']
 
 
 class Corrector(Matcher):
@@ -109,16 +101,16 @@ class Corrector(Matcher):
     def fit_particle_orbit(self):
 
         records = self.readouts
-        secmaps = self.model.get_transfer_maps([0] + [r.monitor for r in records])
+        secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
         secmaps[0] = np.eye(7)
         secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
         (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (record.x+dx, record.y+dy))
+            (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
             for record, secmap in zip(records, secmaps)
-            for dx, dy in [self._monitor_offs.get(record.monitor.lower(), (0, 0))]
+            for dx, dy in [self._monitor_offs.get(record.name.lower(), (0, 0))]
         ])
 
-        first = records[0].monitor
+        first = records[0].name
 
         self.model.madx.command.select(flag="interpolate", clear=True)
 
@@ -210,9 +202,9 @@ class CorrectorWidget(QtGui.QWidget):
     ui_file = 'mgm_dialog.ui'
 
     readout_columns = [
-        ColumnInfo("Monitor", 'monitor', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("X", 'x', convert=True),
-        ColumnInfo("Y", 'y', convert=True),
+        ColumnInfo("Monitor", 'name', resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("X", 'posx', convert=True),
+        ColumnInfo("Y", 'posy', convert=True),
     ]
 
     constraint_columns = [

@@ -13,6 +13,8 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo
 
+from madgui.correct.orbit import MonitorReadout, fit_initial_orbit
+
 
 class MonitorWidget(QtGui.QDialog):
 
@@ -25,20 +27,6 @@ class MonitorWidget(QtGui.QDialog):
         self.tabs.addTab(OffsetsWidget(control, model, frame), "Offsets")
         self.setLayout(VBoxLayout([self.tabs], tight=True))
         self.setSizeGripEnabled(True)
-
-
-class MonitorItem:
-
-    def __init__(self, el_name, values):
-        self.name = el_name
-        self.posx = values.get('posx')
-        self.posy = values.get('posy')
-        self.envx = values.get('envx')
-        self.envy = values.get('envy')
-        self.valid = (self.envx is not None and self.envx > 0 and
-                      self.envy is not None and self.envy > 0 and
-                      not np.isclose(self.posx, -9.999) and
-                      not np.isclose(self.posy, -9.999))
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
@@ -119,7 +107,7 @@ class MonitorWidgetBase(QtGui.QWidget):
 
     def update(self):
         self.mtab.rows = self.monitors = [
-            MonitorItem(el.node_name, self.control.read_monitor(el.node_name))
+            MonitorReadout(el.node_name, self.control.read_monitor(el.node_name))
             for el in self.model.elements
             if el.base_name.lower().endswith('monitor')
             or el.base_name.lower() == 'instrument']
@@ -377,8 +365,6 @@ class OrbitWidget(_FitWidget):
             ]
 
     def fit_particle_orbit(self):
-        from madgui.correct.orbit import fit_initial_orbit
-
         records = [m for m in self.monitors if self.selected(m)]
         secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
         secmaps[0] = np.eye(7)

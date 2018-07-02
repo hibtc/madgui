@@ -1,6 +1,20 @@
 import numpy as np
 
 
+class MonitorReadout:
+
+    def __init__(self, el_name, values):
+        self.name = el_name
+        self.posx = values.get('posx')
+        self.posy = values.get('posy')
+        self.envx = values.get('envx')
+        self.envy = values.get('envy')
+        self.valid = (self.envx is not None and self.envx > 0 and
+                      self.envy is not None and self.envy > 0 and
+                      not np.isclose(self.posx, -9.999) and
+                      not np.isclose(self.posy, -9.999))
+
+
 def fit_initial_orbit(*records):
     """
     Compute initial beam position/momentum from multiple recorded monitor
