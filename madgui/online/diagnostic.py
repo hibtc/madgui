@@ -13,7 +13,8 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo
 
-from madgui.correct.orbit import MonitorReadout, fit_initial_orbit
+from madgui.correct.orbit import (
+    MonitorReadout, fit_particle_orbit, show_backtrack_curve)
 
 
 class MonitorWidget(QtGui.QDialog):
@@ -366,48 +367,9 @@ class OrbitWidget(_FitWidget):
 
     def fit_particle_orbit(self):
         records = [m for m in self.monitors if self.selected(m)]
-        secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
-        secmaps[0] = np.eye(7)
-        secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
-        (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
-            for record, secmap in zip(records, secmaps)
-            for dx, dy in [self._offsets.get(record.name.lower(), (0, 0))]
-        ])
-
-        first = records[0].name
-
-        self.model.madx.command.select(flag="interpolate", clear=True)
-
-        tw = self.model.madx.twiss(
-            range=first+'/#e',
-            x=x, y=y, px=px, py=py,
-            betx=1, bety=1, table="forward")
-        tw = self.model.madx.table.forward
-        self.model.twiss.invalidate()
-
-        tw = tw[-1]
-        x, y, px, py = tw.x, tw.y, tw.px, tw.py
-
-        backtw = self.model.backtrack(
-            #range=first+'_reflected'+'/#e',
-            x=-x, y=y, px=px, py=-py,
-            # We care only about the orbit:
-            betx=1, bety=1, table="backtrack")
-
-        style = {'linestyle': '-', 'marker': 'o'}
-        data = {'s': backtw.s[-1] - backtw.s,
-                'x': -backtw.x,
-                'y': backtw.y}
-        self.frame.add_curve("backtrack", data, style)
-
-        tw0 = backtw[-1]
-        x, y, px, py = tw0.x, tw0.y, tw0.px, tw0.py
-
-        return {
-            'x': -x, 'px': px,
-            'y': y, 'py': -py,
-        }, chi_squared, singular
+        ret, curve = fit_particle_orbit(self.model, self._offsets, records)
+        show_backtrack_curve(self.frame, curve)
+        return ret
 
 
 class EmittanceDialog(_FitWidget):
