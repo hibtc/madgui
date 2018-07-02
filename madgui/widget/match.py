@@ -85,7 +85,7 @@ class MatchWidget(QtGui.QWidget):
         ColumnInfo("Element", get_constraint_elem, set_constraint_elem,
                    resize=QtGui.QHeaderView.Stretch),
         ColumnInfo("Name", get_constraint_axis, set_constraint_axis,
-                   resize=QtGui.QHeaderView.ResizeToContents),
+                   resize=QtGui.QHeaderView.ResizeToContents, padding=50),
         ColumnInfo("Target", 'value', set_constraint_value, convert='axis',
                    resize=QtGui.QHeaderView.ResizeToContents),
         ColumnInfo("Unit", get_constraint_unit,
