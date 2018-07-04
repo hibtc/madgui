@@ -22,7 +22,7 @@ from madgui.widget.tableview import ColumnInfo
 from madgui.widget.edit import LineNumberBar
 from madgui.correct.orbit import fit_initial_orbit
 
-from .match import Matcher, Constraint, variable_from_knob, variable_update
+from .match import Matcher, Constraint, variable_from_knob, Variable
 
 
 class MonitorReadout:
@@ -63,7 +63,9 @@ class Corrector(Matcher):
 
         self.active = name
         self.mode = dirs
-        self.match_names = steerers
+        self.match_names = [s for s in steerers if isinstance(s, str)]
+        self.assign = {k: v for s in steerers if isinstance(s, dict)
+                       for k, v in s.items()}
 
         self.monitors[:] = monitors
         elements = self.model.elements
@@ -75,7 +77,7 @@ class Corrector(Matcher):
         ], key=lambda c: c.pos)
         self.variables[:] = [
             variable_from_knob(self, knob, self._knobs[knob.lower()])
-            for knob in steerers + list(selected.get('assign', ()))
+            for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
 
@@ -138,13 +140,18 @@ class Corrector(Matcher):
         ]
         model = self.model
         with model.undo_stack.rollback("Orbit correction"):
-            model.update_globals(self.selected.get('assign', {}))
+            model.update_globals(self.assign)
             model.update_twiss_args(init_orbit)
-            return model.match(
+            model.match(
                 vary=self.match_names,
                 method=('jacobian', {}),
                 weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
                 constraints=constraints)
+            return {
+                knob: model.read_param(knob)
+                for knob in self.match_names + list(self.assign)
+                if knob.lower() in self._knobs
+            }
 
 
 def format_knob(cell):
@@ -256,8 +263,11 @@ class CorrectorWidget(QtGui.QWidget):
         with self.corrector.model.undo_stack.rollback("Knobs for corrected orbit"):
             self.corrector.model.write_params(self.steerer_corrections.items())
             self.corrector.variables[:] = [
-                variable_update(self.corrector, v)
-                for v in self.corrector.variables]
+                Variable(v.knob, v.info, val,
+                         self.corrector.design_values.setdefault(v.knob, val))
+                for v in self.corrector.variables
+                for val in [self.steerer_corrections.get(v.knob)]
+            ]
         self.var_tab.resizeColumnToContents(0)
 
     def on_change_config(self, index):
