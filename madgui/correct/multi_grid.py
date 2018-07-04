@@ -219,7 +219,6 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.model.write_params(self.steerer_corrections.items())
         self.corrector.control.write_params(self.steerer_corrections.items())
         self.corrector.apply()
-        self.corrector.control._plugin.execute()
 
     def init_controls(self):
         for tab in (self.mon_tab, self.con_tab, self.var_tab):
