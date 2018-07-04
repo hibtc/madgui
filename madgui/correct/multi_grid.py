@@ -51,6 +51,7 @@ class Corrector(Matcher):
         steerers = sum([selected['steerers'][d] for d in dirs], [])
         targets  = selected['targets']
 
+        self.method = selected.get('method', ('jacobian', {}))
         self.active = name
         self.mode = dirs
         self.match_names = [s for s in steerers if isinstance(s, str)]
@@ -124,7 +125,7 @@ class Corrector(Matcher):
             model.update_twiss_args(init_orbit)
             model.match(
                 vary=self.match_names,
-                method=('jacobian', {}),
+                method=self.method,
                 weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
                 constraints=constraints)
             return {
