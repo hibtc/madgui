@@ -19,7 +19,7 @@ from madgui.util.qt import fit_button, monospace
 from madgui.widget.tableview import ColumnInfo
 from madgui.widget.edit import LineNumberBar
 
-from .orbit import fit_particle_orbit, MonitorReadout, show_backtrack_curve
+from .orbit import fit_particle_orbit, MonitorReadout
 from .match import Matcher, Constraint, variable_from_knob, Variable
 
 
@@ -98,9 +98,7 @@ class Corrector(Matcher):
     # computations
 
     def fit_particle_orbit(self):
-        ret, curve = fit_particle_orbit(self.model, self._offsets, self.readouts)
-        show_backtrack_curve(self.control._frame, curve)
-        return ret
+        return fit_particle_orbit(self.model, self._offsets, self.readouts)[0]
 
     def compute_steerer_corrections(self, init_orbit):
 
