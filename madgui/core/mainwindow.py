@@ -98,6 +98,10 @@ class MainWindow(QtGui.QMainWindow):
             'logging': {
                 'enable': self.log_window.logging_enabled,
                 'level': self.log_window.loglevel,
+                'times': {
+                    'enable': self.log_window.infobar.show_time,
+                    'format': self.log_window.infobar.time_format,
+                },
                 'madx': {
                     'in': self.log_window.enabled('SEND'),
                     'out': self.log_window.enabled('MADX'),
@@ -274,20 +278,26 @@ class MainWindow(QtGui.QMainWindow):
         self.log_window.highlight('ERROR',    QColor(Qt.red))
         self.log_window.highlight('CRITICAL', QColor(Qt.red))
 
+        log_conf = self.config.logging
         self.log_window.setup_logging(logging.DEBUG)
-        self.log_window.enable_logging(self.config.logging.enable)
-        self.log_window.set_loglevel(self.config.logging.level)
-        self.log_window.enable('SEND', self.config.logging.madx['in'])
-        self.log_window.enable('MADX', self.config.logging.madx['out'])
+        self.log_window.infobar.enable_timestamps(log_conf.times.enable)
+        self.log_window.infobar.set_timeformat(log_conf.times.format)
+        self.log_window.enable_logging(log_conf.enable)
+        self.log_window.set_loglevel(log_conf.level)
+        self.log_window.enable('SEND', log_conf.madx['in'])
+        self.log_window.enable('MADX', log_conf.madx['out'])
 
         self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
 
+        self.checkbox_time.setChecked(self.log_window.infobar.show_time)
         self.checkbox_logging.setChecked(self.log_window.logging_enabled)
         self.combobox_loglevel.setEnabled(self.log_window.logging_enabled)
         self.combobox_loglevel.setCurrentText(self.log_window.loglevel)
         self.checkbox_madx_input.setChecked(self.log_window.enabled('SEND'))
         self.checkbox_madx_output.setChecked(self.log_window.enabled('MADX'))
 
+        self.checkbox_time.clicked.connect(
+            self.log_window.infobar.enable_timestamps)
         self.checkbox_logging.clicked.connect(
             self.log_window.enable_logging)
         self.combobox_loglevel.currentTextChanged.connect(

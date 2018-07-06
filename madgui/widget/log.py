@@ -28,13 +28,24 @@ LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text'])
 
 class RecordInfoBar(LineNumberBar):
 
-    def __init__(self, edit, records, domains):
+    def __init__(self, edit, records, domains,
+                 time_format='%H:%M:%S', show_time=True):
         self.records = records
         self.domains = domains
+        self.show_time = show_time
+        self.time_format = time_format
         super().__init__(edit)
         font = self.font()
         font.setBold(True)
         self.setFont(font)
+        self.adjustWidth(1)
+
+    def enable_timestamps(self, enable):
+        self.show_time = enable
+        self.adjustWidth(1)
+
+    def set_timeformat(self, format):
+        self.time_format = format
         self.adjustWidth(1)
 
     def draw_block(self, painter, rect, block, first):
@@ -46,15 +57,20 @@ class RecordInfoBar(LineNumberBar):
             count = max([c for c in self.records if c <= count], default=None)
         if count in self.records:
             record = self.records[count]
-            text = "{} {}:".format(
-                time.strftime('%H:%M:%S', time.localtime(record.time)),
-                record.domain)
-            painter.drawText(rect, Qt.AlignLeft, text)
+            parts = [record.domain]
+            if self.show_time:
+                record_time = time.localtime(record.time)
+                parts.insert(0, time.strftime(self.time_format, record_time))
+            if parts:
+                text = ' '.join(parts) + ':' or ''
+                painter.drawText(rect, Qt.AlignLeft, text)
 
     def calc_width(self, count):
-        width_time = self.fontMetrics().width("23:59:59: ")
-        width_kind = max(map(self.fontMetrics().width, self.domains), default=0)
-        return width_time + width_kind
+        fm = self.fontMetrics()
+        width_time = fm.width("23:59:59")
+        width_kind = max(map(fm.width, self.domains), default=0)
+        width_base = fm.width(": ")
+        return width_time * bool(self.show_time) + width_kind + width_base
 
 
 class LogWindow(QtGui.QFrame):

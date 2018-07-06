@@ -32,6 +32,9 @@ online_control:
 logging:
   enable: true
   level: info
+  times:
+    enable: true
+    format: "%H:%M:%S"
   madx:
     in: true
     out: false
