@@ -33,7 +33,7 @@ logging:
   enable: true
   level: info
   times:
-    enable: true
+    enable: false
     format: "%H:%M:%S"
   madx:
     in: true
