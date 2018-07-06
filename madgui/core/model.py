@@ -825,6 +825,19 @@ class Model:
         # inconsistent table lengths (interpolate vs no-interpolate!).
         return self.madx.sectormap((), table='sectortwiss', **self._get_twiss_args())
 
+    backseq = None
+    def backtrack(self, **twiss_init):
+        """Backtrack final orbit through the reversed sequence."""
+        if self.backseq is None:
+            with self.madx.transaction():
+                self.backseq = self.seq_name + '_backseq'
+                reflect_sequence(self.madx, self.backseq, self.elements)
+        self.madx.command.select(flag='interpolate', clear=True)
+        tw = self.madx.twiss(sequence=self.backseq, **twiss_init)
+        tw = self.madx.table.backtrack
+        self.twiss.invalidate()
+        return tw
+
     def match(self, vary, constraints, **kwargs):
 
         # list intermediate positions
@@ -1104,3 +1117,42 @@ def items(d):
 
 def trim(s):
     return s.replace(' ', '') if isinstance(s, str) else s
+
+
+
+def reflect_sequence(madx, name, elements):
+    """
+    Create a direction reversed copy of the sequence.
+
+    :param Madx madx:
+    :param str name: name of the reversed sequence
+    :param list elements: list of elements
+    """
+    last = elements[-1]
+    length = last.position + last.length
+
+    madx.command.sequence.clone(name, l=length, refer='exit')
+    for elem in reversed(elements):
+        if elem.occ_cnt == 0 or '$' in elem.name:
+            continue
+        pos = elem.position
+        invert = {
+            'sbend':        ['angle', 'k0'],
+            'hkicker':      ['kick'],
+            'kicker':       ['hkick'],
+        }
+        overrides = {'at': length-pos}
+        overrides.update({
+            attr: "-{}->{}".format(elem.name, attr)
+            for attr in invert.get(elem.base_name, ())
+        })
+        if elem.base_name == 'sbend':
+            overrides['e1'] = '-{}->e2'.format(elem.name)
+            overrides['e2'] = '-{}->e1'.format(elem.name)
+
+        elem.clone(elem.name + '_reflected', **overrides)
+
+    madx.command.endsequence()
+
+    madx.command.beam(sequence=name)
+    madx.use(name)

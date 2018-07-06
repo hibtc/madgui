@@ -13,6 +13,9 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import ColumnInfo
 
+from madgui.correct.orbit import (
+    MonitorReadout, fit_particle_orbit, show_backtrack_curve)
+
 
 class MonitorWidget(QtGui.QDialog):
 
@@ -22,22 +25,9 @@ class MonitorWidget(QtGui.QDialog):
         self.tabs.addTab(PlotMonitorWidget(control, model, frame), "Plot")
         self.tabs.addTab(OrbitWidget(control, model, frame), "Orbit")
         self.tabs.addTab(EmittanceDialog(control, model, frame), "Optics")
+        self.tabs.addTab(OffsetsWidget(control, model, frame), "Offsets")
         self.setLayout(VBoxLayout([self.tabs], tight=True))
         self.setSizeGripEnabled(True)
-
-
-class MonitorItem:
-
-    def __init__(self, el_name, values):
-        self.name = el_name
-        self.posx = values.get('posx')
-        self.posy = values.get('posy')
-        self.envx = values.get('envx')
-        self.envy = values.get('envy')
-        self.valid = (self.envx is not None and self.envx > 0 and
-                      self.envy is not None and self.envy > 0 and
-                      not np.isclose(self.posx, -9.999) and
-                      not np.isclose(self.posy, -9.999))
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
@@ -104,7 +94,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.window().accept()
 
     def selected(self, monitor):
-        return self._selected.setdefault(monitor.name, monitor.valid)
+        return self._selected.setdefault(monitor.name, False)
 
     def select(self, index):
         self._selected[self.monitors[index].name] = True
@@ -118,7 +108,7 @@ class MonitorWidgetBase(QtGui.QWidget):
 
     def update(self):
         self.mtab.rows = self.monitors = [
-            MonitorItem(el.node_name, self.control.read_monitor(el.node_name))
+            MonitorReadout(el.node_name, self.control.read_monitor(el.node_name))
             for el in self.model.elements
             if el.base_name.lower().endswith('monitor')
             or el.base_name.lower() == 'instrument']
@@ -155,6 +145,10 @@ class MonitorWidgetBase(QtGui.QWidget):
 
         self.frame.add_curve(name, data, style)
 
+    exportFilters = [
+        ("YAML file", "*.yml"),
+    ]
+
     def export(self):
         from madgui.widget.filedialog import getSaveFileName
         filename = getSaveFileName(
@@ -189,8 +183,8 @@ class PlotMonitorWidget(MonitorWidgetBase):
         self.update()
 
     exportFilters = [
-        ("YAML file", ".yml"),
-        ("TEXT file (numpy compatible)", ".txt"),
+        ("YAML file", "*.yml"),
+        ("TEXT file (numpy compatible)", "*.txt"),
     ]
 
     def on_update(self):
@@ -226,6 +220,93 @@ class PlotMonitorWidget(MonitorWidgetBase):
             .format(ext))
 
 
+def get_offset_x(cell):
+    mon, mgr = cell.data, cell.context
+    return mgr._offsets.get(mon.name.lower(), (0, 0))[0]
+
+def get_offset_y(cell):
+    mon, mgr = cell.data, cell.context
+    return mgr._offsets.get(mon.name.lower(), (0, 0))[1]
+
+
+class OffsetsWidget(MonitorWidgetBase):
+
+    ui_file = 'offsetswidget.ui'
+
+    monitor_columns = [
+        ColumnInfo("Monitor", get_monitor_name, checkable=True,
+                   foreground=get_monitor_textcolor,
+                   checked=get_monitor_show, setChecked=set_monitor_show),
+        ColumnInfo("Δx", get_offset_x, name=lambda c: 'x',
+                   foreground=get_monitor_textcolor),
+        ColumnInfo("Δy", get_offset_y, name=lambda c: 'y',
+                   foreground=get_monitor_textcolor),
+    ]
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.btn_offsets.clicked.connect(self.save_offsets)
+        self.btn_calibrate.clicked.connect(self.calibrate_offsets)
+        Buttons = QtGui.QDialogButtonBox
+        self.std_buttons.button(Buttons.Open).clicked.connect(self.load)
+        self.std_buttons.button(Buttons.Discard).clicked.connect(self.discard)
+
+    def showEvent(self, event):
+        self.frame.open_graph('orbit')
+        self.update()
+
+    def on_update(self):
+        pass
+
+    def discard(self):
+        self._offsets.clear()
+        self.update()
+
+    def load(self):
+        from madgui.widget.filedialog import getOpenFileName
+        filename = getOpenFileName(
+            self.window(), 'Load offsets', self.folder,
+            self.exportFilters)
+        if filename:
+            self.load_from(filename)
+
+    def load_from(self, filename):
+        with open(filename) as f:
+            data = f.read()
+        offsets = yaml.safe_load(data)['offsets']
+        self._offsets.clear()
+        self._offsets.update(offsets)
+        self.update()
+
+    def export_to(self, filename):
+        data = yaml.safe_dump({
+            'offsets': self._offsets,
+        }, default_flow_style=False)
+        with open(filename, 'wt') as f:
+            f.write(data)
+
+    def save_offsets(self):
+        self.model.twiss()
+        for m in self.monitors:
+            tw = self.model.get_elem_twiss(m.name)
+            if self.selected(m):
+                self._offsets[m.name.lower()] = (
+                    tw.x - m.posx,
+                    tw.y - m.posy)
+        self.update()
+
+    def calibrate_offsets(self):
+        from .offcal import OffsetCalibrationWidget
+        from madgui.widget.dialog import Dialog
+        widget = OffsetCalibrationWidget(self, [
+            m.name for m in self.monitors if self.selected(m)])
+        dialog = Dialog(self)
+        dialog.setWidget(widget)
+        dialog.setWindowTitle("Offset calibration")
+        dialog.show()
+
+
+
 class _FitWidget(MonitorWidgetBase):
 
     ui_file = 'emittance.ui'
@@ -241,7 +322,6 @@ class _FitWidget(MonitorWidgetBase):
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
         self.btn_apply.clicked.connect(self.apply)
-        #self.btn_offsets.clicked.connect(self.save_offsets)
         self.results = List()
 
         self.rtab.header().setHighlightSections(False)
@@ -268,19 +348,6 @@ class OrbitWidget(_FitWidget):
         self.frame.open_graph('orbit')
         self.update()
 
-    def save_offsets(self):
-        self.model.twiss()
-        for m in self.monitors:
-            tw = self.model.get_elem_twiss(m.name)
-            if self.selected(m):
-                self._offsets[m.name.lower()] = (
-                    tw.x - m.posx,
-                    tw.y - m.posy)
-
-    exportFilters = [
-        ("YAML file", ".yml"),
-    ]
-
     def export_to(self, filename):
         pass
 
@@ -299,20 +366,10 @@ class OrbitWidget(_FitWidget):
             ]
 
     def fit_particle_orbit(self):
-        from madgui.correct.orbit import fit_initial_orbit
-
         records = [m for m in self.monitors if self.selected(m)]
-        secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
-        secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
-        (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
-            for record, secmap in zip(records, secmaps)
-            for dx, dy in [self._offsets.get(record.name.lower(), (0, 0))]
-        ])
-        return {
-            'x': x, 'px': px,
-            'y': y, 'py': py,
-        }, chi_squared, singular
+        ret, curve = fit_particle_orbit(self.model, self._offsets, records)
+        show_backtrack_curve(self.frame, curve)
+        return ret
 
 
 class EmittanceDialog(_FitWidget):
@@ -350,10 +407,6 @@ class EmittanceDialog(_FitWidget):
                 'ey': results.pop('ey', model.ey()),
             })
             model.update_twiss_args(results)
-
-    exportFilters = [
-        ("YAML file", ".yml"),
-    ]
 
     def export_to(self, filename):
         pass

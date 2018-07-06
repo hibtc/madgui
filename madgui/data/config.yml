@@ -103,6 +103,12 @@ line_view:
     - <<: *base_style
       color: "#005000"
 
+  backtrack_style:
+    linestyle: "-"
+    marker: o
+    zorder: 1
+    markersize: 3
+
   default_graph: envelope
 
 

@@ -7,9 +7,7 @@ Multi grid correction method.
 # - combine with optic variation method
 
 from functools import partial
-import itertools
 
-import numpy as np
 import yaml
 
 from madgui.qt import QtCore, QtGui, load_ui
@@ -20,17 +18,9 @@ from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import fit_button, monospace
 from madgui.widget.tableview import ColumnInfo
 from madgui.widget.edit import LineNumberBar
-from madgui.correct.orbit import fit_initial_orbit
 
-from .match import Matcher, Constraint, variable_from_knob, variable_update
-
-
-class MonitorReadout:
-
-    def __init__(self, monitor, orbit):
-        self.monitor = monitor
-        self.x = orbit['posx']
-        self.y = orbit['posy']
+from .orbit import fit_particle_orbit, MonitorReadout
+from .match import Matcher, Constraint, variable_from_knob, Variable
 
 
 class Corrector(Matcher):
@@ -50,7 +40,7 @@ class Corrector(Matcher):
         self.design_values = {}
         self.monitors = List()
         self.readouts = List()
-        self._monitor_offs = control._frame.config['online_control']['offsets']
+        self._offsets = control._frame.config['online_control']['offsets']
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None):
@@ -61,9 +51,12 @@ class Corrector(Matcher):
         steerers = sum([selected['steerers'][d] for d in dirs], [])
         targets  = selected['targets']
 
+        self.method = selected.get('method', ('jacobian', {}))
         self.active = name
         self.mode = dirs
-        self.match_names = steerers
+        self.match_names = [s for s in steerers if isinstance(s, str)]
+        self.assign = {k: v for s in steerers if isinstance(s, dict)
+                       for k, v in s.items()}
 
         self.monitors[:] = monitors
         elements = self.model.elements
@@ -75,7 +68,7 @@ class Corrector(Matcher):
         ], key=lambda c: c.pos)
         self.variables[:] = [
             variable_from_knob(self, knob, self._knobs[knob.lower()])
-            for knob in steerers + list(selected.get('assign', ()))
+            for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
 
@@ -105,19 +98,7 @@ class Corrector(Matcher):
     # computations
 
     def fit_particle_orbit(self):
-        records = self.readouts
-        secmaps = self.model.get_transfer_maps([0] + [r.monitor for r in records])
-        secmaps = list(itertools.accumulate(secmaps, lambda a, b: np.dot(b, a)))
-
-        (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
-            (secmap[:,:6], secmap[:,6], (record.x+dx, record.y+dy))
-            for record, secmap in zip(records, secmaps)
-            for dx, dy in [self._monitor_offs.get(record.monitor.lower(), (0, 0))]
-        ])
-        return {
-            'x': x, 'px': px,
-            'y': y, 'py': py,
-        }, chi_squared, singular
+        return fit_particle_orbit(self.model, self._offsets, self.readouts)[0]
 
     def compute_steerer_corrections(self, init_orbit):
 
@@ -128,7 +109,7 @@ class Corrector(Matcher):
         """
 
         def offset(c):
-            dx, dy = self._monitor_offs.get(c.elem.name.lower(), (0, 0))
+            dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
             if c.axis in ('x', 'posx'): return dx
             if c.axis in ('y', 'posy'): return dy
             return 0
@@ -138,13 +119,18 @@ class Corrector(Matcher):
         ]
         model = self.model
         with model.undo_stack.rollback("Orbit correction"):
-            model.update_globals(self.selected.get('assign', {}))
+            model.update_globals(self.assign)
             model.update_twiss_args(init_orbit)
-            return model.match(
+            model.match(
                 vary=self.match_names,
-                method=('jacobian', {}),
+                method=self.method,
                 weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
                 constraints=constraints)
+            return {
+                knob: model.read_param(knob)
+                for knob in self.match_names + list(self.assign)
+                if knob.lower() in self._knobs
+            }
 
 
 def format_knob(cell):
@@ -172,9 +158,9 @@ class CorrectorWidget(QtGui.QWidget):
     ui_file = 'mgm_dialog.ui'
 
     readout_columns = [
-        ColumnInfo("Monitor", 'monitor', resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("X", 'x', convert=True),
-        ColumnInfo("Y", 'y', convert=True),
+        ColumnInfo("Monitor", 'name', resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("X", 'posx', convert=True),
+        ColumnInfo("Y", 'posy', convert=True),
     ]
 
     constraint_columns = [
@@ -212,7 +198,6 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.model.write_params(self.steerer_corrections.items())
         self.corrector.control.write_params(self.steerer_corrections.items())
         self.corrector.apply()
-        self.corrector.control._plugin.execute()
 
     def init_controls(self):
         for tab in (self.mon_tab, self.con_tab, self.var_tab):
@@ -256,8 +241,11 @@ class CorrectorWidget(QtGui.QWidget):
         with self.corrector.model.undo_stack.rollback("Knobs for corrected orbit"):
             self.corrector.model.write_params(self.steerer_corrections.items())
             self.corrector.variables[:] = [
-                variable_update(self.corrector, v)
-                for v in self.corrector.variables]
+                Variable(v.knob, v.info, val,
+                         self.corrector.design_values.setdefault(v.knob, val))
+                for v in self.corrector.variables
+                for val in [self.steerer_corrections.get(v.knob)]
+            ]
         self.var_tab.resizeColumnToContents(0)
 
     def on_change_config(self, index):
