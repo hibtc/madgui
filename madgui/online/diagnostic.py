@@ -312,11 +312,11 @@ class _FitWidget(MonitorWidgetBase):
     ui_file = 'emittance.ui'
 
     result_columns = [
-        ColumnInfo("Name", 'name', resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("Name", 'name', stretch=1),
         ColumnInfo("Model", 'model', convert='name'),
         ColumnInfo("Fit", 'fit', convert='name'),
         ColumnInfo("Unit", lambda cell: ui_units.label(cell.data.name),
-                   resize=QtGui.QHeaderView.ResizeToContents),
+                   stretch=0),
     ]
 
     def __init__(self, control, model, frame):
@@ -379,7 +379,7 @@ class EmittanceDialog(_FitWidget):
                    foreground=get_monitor_textcolor,
                    checked=get_monitor_show,
                    setChecked=set_monitor_show,
-                   resize=QtGui.QHeaderView.Stretch),
+                   stretch=1),
         ColumnInfo("Δx", 'envx', convert=True, foreground=get_monitor_textcolor),
         ColumnInfo("Δy", 'envy', convert=True, foreground=get_monitor_textcolor),
     ]

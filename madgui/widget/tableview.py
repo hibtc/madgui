@@ -84,20 +84,20 @@ class NodeMeta:
         return TreeNode(data, self, parent)
 
 
-# TODO: separate section info (title/resize/padding) from cell data
+# TODO: separate section info (title/stretch/padding) from cell data
 # TODO: add `deleter`
 # TODO: simplify "meta <-> node" logic -> subclassing?
 class ColumnInfo(NodeMeta):
 
     """Column specification for a table widget."""
 
-    def __init__(self, title, getter, setter=None, resize=None,
+    def __init__(self, title, getter, setter=None, stretch=None,
                  *, convert=False, padding=0, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> value
         :param callable setter: (rows,idx,value) -> ()
-        :param QtGui.QHeaderView.ResizeMode resize: column resize mode
+        :param float stretch: column stretch proportion
         :param bool convert: automatic unit conversion, can be string to base
                              quanitity name on an attribute of the item
         :param int padding: column padding for size hint
@@ -108,7 +108,7 @@ class ColumnInfo(NodeMeta):
         """
         # column globals:
         self.title = title
-        self.resize = resize
+        self.stretch = stretch
         self.padding = padding
         # value accessors
         self.getter = getter or (lambda c: c.data)
@@ -353,9 +353,6 @@ class TableView(QtGui.QTreeView):
 
     """A table widget using a :class:`TableModel` to handle the data."""
 
-    _default_resize_modes = [QtGui.QHeaderView.ResizeToContents,
-                             QtGui.QHeaderView.Stretch]
-
     selectionChangedSignal = Signal()
 
     allow_delete = False
@@ -385,20 +382,34 @@ class TableView(QtGui.QTreeView):
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
 
+    def _columnStretch(self, index):
+        column = self.model().columns[index]
+        return (index > 0
+                if column.stretch is None
+                else column.stretch)
+
     def resizeEvent(self, event):
         """ Resize all sections to content and user interactive """
         super().resizeEvent(event)
         header = self.header()
-        for index, column in enumerate(self.model().columns):
-            resize = (self._default_resize_modes[index > 0]
-                      if column.resize is None
-                      else column.resize)
-            header.setSectionResizeMode(index, resize)
+        columns = range(header.count())
+        stretch = list(map(self._columnStretch, columns))
+        widths = list(map(self._columnContentWidth, columns))
+        total = sum(widths)
+        avail = event.size().width() - total
 
-        widths = list(map(header.sectionSize, range(header.count())))
+        if not any(stretch):
+            stretch = [1 for _ in columns]
 
-        for index in range(header.count()):
-            header.setSectionResizeMode(index, QtGui.QHeaderView.Interactive)
+        part = avail / sum(stretch)
+
+        for i, s in enumerate(stretch):
+            widths[i] += round(part * s)
+            avail -= round(part * s)
+
+        if avail != 0:
+            widths[-1] += avail
+
         for index, width in enumerate(widths):
             header.resizeSection(index, width)
 

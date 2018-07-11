@@ -158,27 +158,24 @@ class CorrectorWidget(QtGui.QWidget):
     ui_file = 'mgm_dialog.ui'
 
     readout_columns = [
-        ColumnInfo("Monitor", 'name', resize=QtGui.QHeaderView.Stretch),
+        ColumnInfo("Monitor", 'name', stretch=1),
         ColumnInfo("X", 'posx', convert=True),
         ColumnInfo("Y", 'posy', convert=True),
     ]
 
     constraint_columns = [
-        ColumnInfo("Element", lambda c: c.data.elem.node_name,
-                   resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Param", 'axis', resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Element", lambda c: c.data.elem.node_name, stretch=1),
+        ColumnInfo("Param", 'axis', stretch=0),
         ColumnInfo("Value", 'value', set_constraint_value,
-                   convert='axis',
-                   resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Unit", lambda c: ui_units.label(c.data.axis),
-                   resize=QtGui.QHeaderView.ResizeToContents),
+                   convert='axis', stretch=0),
+        ColumnInfo("Unit", lambda c: ui_units.label(c.data.axis), stretch=0),
     ]
 
     steerer_columns = [
-        ColumnInfo("Steerer", format_knob, resize=QtGui.QHeaderView.Stretch),
-        ColumnInfo("Initial", format_initial, resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Final", format_final, resize=QtGui.QHeaderView.ResizeToContents),
-        ColumnInfo("Unit", format_unit, resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Steerer", format_knob, stretch=1),
+        ColumnInfo("Initial", format_initial, stretch=0),
+        ColumnInfo("Final", format_final, stretch=0),
+        ColumnInfo("Unit", format_unit, stretch=0),
     ]
 
     def __init__(self, corrector):

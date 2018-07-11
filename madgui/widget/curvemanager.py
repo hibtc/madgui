@@ -38,8 +38,7 @@ class CurveManager(QtGui.QWidget):
     columns = [
         ColumnInfo("curves", get_curve_name, set_curve_name,
                    checked=get_curve_show, setChecked=set_curve_show,
-                   checkable=True,
-                   resize=QtGui.QHeaderView.Stretch),
+                   checkable=True, stretch=1),
     ]
 
     def __init__(self, scene):
