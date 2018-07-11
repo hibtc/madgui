@@ -381,14 +381,26 @@ class TableView(QtGui.QTreeView):
 
     def set_columns(self, columns, data=None, context=None):
         self.setModel(TableModel(columns, data, context))
-        for index, column in enumerate(columns):
-            resize = (self._default_resize_modes[index > 0]
-                      if column.resize is None
-                      else column.resize)
-            self.header().setSectionResizeMode(index, resize)
         self.model().rowsInserted.connect(lambda *_: self.expandAll())
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
+
+    def resizeEvent(self, event):
+        """ Resize all sections to content and user interactive """
+        super().resizeEvent(event)
+        header = self.header()
+        for index, column in enumerate(self.model().columns):
+            resize = (self._default_resize_modes[index > 0]
+                      if column.resize is None
+                      else column.resize)
+            header.setSectionResizeMode(index, resize)
+
+        widths = list(map(header.sectionSize, range(header.count())))
+
+        for index in range(header.count()):
+            header.setSectionResizeMode(index, QtGui.QHeaderView.Interactive)
+        for index, width in enumerate(widths):
+            header.resizeSection(index, width)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)
