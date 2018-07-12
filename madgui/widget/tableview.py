@@ -84,20 +84,19 @@ class NodeMeta:
         return TreeNode(data, self, parent)
 
 
-# TODO: separate section info (title/resize/padding) from cell data
+# TODO: separate section info (title/padding) from cell data
 # TODO: add `deleter`
 # TODO: simplify "meta <-> node" logic -> subclassing?
 class ColumnInfo(NodeMeta):
 
     """Column specification for a table widget."""
 
-    def __init__(self, title, getter, setter=None, resize=None,
+    def __init__(self, title, getter, setter=None,
                  *, convert=False, padding=0, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> value
         :param callable setter: (rows,idx,value) -> ()
-        :param QtGui.QHeaderView.ResizeMode resize: column resize mode
         :param bool convert: automatic unit conversion, can be string to base
                              quanitity name on an attribute of the item
         :param int padding: column padding for size hint
@@ -108,7 +107,6 @@ class ColumnInfo(NodeMeta):
         """
         # column globals:
         self.title = title
-        self.resize = resize
         self.padding = padding
         # value accessors
         self.getter = getter or (lambda c: c.data)
@@ -353,9 +351,6 @@ class TableView(QtGui.QTreeView):
 
     """A table widget using a :class:`TableModel` to handle the data."""
 
-    _default_resize_modes = [QtGui.QHeaderView.ResizeToContents,
-                             QtGui.QHeaderView.Stretch]
-
     selectionChangedSignal = Signal()
 
     allow_delete = False
@@ -381,14 +376,29 @@ class TableView(QtGui.QTreeView):
 
     def set_columns(self, columns, data=None, context=None):
         self.setModel(TableModel(columns, data, context))
-        for index, column in enumerate(columns):
-            resize = (self._default_resize_modes[index > 0]
-                      if column.resize is None
-                      else column.resize)
-            self.header().setSectionResizeMode(index, resize)
         self.model().rowsInserted.connect(lambda *_: self.expandAll())
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
+
+    def resizeEvent(self, event):
+        """ Resize all sections to content and user interactive """
+        super().resizeEvent(event)
+        header = self.header()
+        columns = range(header.count())
+        widths = list(map(self._columnContentWidth, columns))
+        total = sum(widths)
+        avail = event.size().width() - total
+
+        part = avail // len(columns)
+        avail -= part * len(columns)
+
+        for i in columns:
+            widths[i] += part
+        if avail != 0:
+            widths[-1] += avail
+
+        for index, width in enumerate(widths):
+            header.resizeSection(index, width)
 
     def selectionChanged(self, selected, deselected):
         super().selectionChanged(selected, deselected)

@@ -94,8 +94,7 @@ class ParamTable(TableView):
                        convert=self.units and 'name',
                        mutable=cell_is_mutable,
                        foreground=cell_textcolor),
-            ColumnInfo("Unit", 'unit',
-                       resize=QtGui.QHeaderView.ResizeToContents),
+            ColumnInfo("Unit", 'unit'),
         ]
         return columns if self.units else columns[:2]
 
@@ -287,8 +286,7 @@ par_columns.extend([
                mutable=is_var_mutable),
     ColumnInfo("Unit", lambda c: None, mutable=False),
     ColumnInfo("Expression", 'expr', set_par_expr, padding=50,
-               mutable=True,
-               resize=QtGui.QHeaderView.ResizeToContents),
+               mutable=True),
 ])
 
 
@@ -310,11 +308,9 @@ class CommandEdit(ParamTable):
         # TODO: fix conversion and get_unit
         ColumnInfo(None, 'value', set_component_value, padding=50,
                    mutable=True, convert='name'),
-        ColumnInfo(None, get_component_unit,
-                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo(None, get_component_unit),
         ColumnInfo(None, 'expr', set_component_expr, padding=50,
-                   mutable=is_expr_mutable,
-                   resize=QtGui.QHeaderView.ResizeToContents),
+                   mutable=is_expr_mutable),
     ]
 
     columns = [
@@ -322,11 +318,9 @@ class CommandEdit(ParamTable):
                    rows=get_rows, columns=get_par_columns, **_col_style),
         ColumnInfo("Value", get_value, set_value, padding=50,
                    mutable=is_par_mutable, convert='name'),
-        ColumnInfo("Unit", get_unit,
-                   resize=QtGui.QHeaderView.ResizeToContents),
+        ColumnInfo("Unit", get_unit),
         ColumnInfo("Expression", get_expr, set_expr, padding=50,
-                   mutable=is_expr_mutable,
-                   resize=QtGui.QHeaderView.ResizeToContents),
+                   mutable=is_expr_mutable),
     ]
 
 
@@ -336,8 +330,7 @@ var_columns.extend([
     ColumnInfo("Value", 'value', set_value, padding=50,
                mutable=is_var_mutable),
     ColumnInfo("Expression", 'expr', set_expr, padding=50,
-               mutable=True,
-               resize=QtGui.QHeaderView.ResizeToContents),
+               mutable=True),
 ])
 
 
