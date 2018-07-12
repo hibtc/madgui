@@ -243,7 +243,7 @@ class CorrectorWidget(QtGui.QWidget):
     ui_file = 'ovm_dialog.ui'
 
     records_columns = [
-        ColumnInfo("QP1", get_kL(0), stretch=1),
+        ColumnInfo("QP1", get_kL(0)),
         ColumnInfo("QP2", get_kL(1)),
         ColumnInfo("x", 'x', convert=True),
         ColumnInfo("y", 'y', convert=True),
@@ -253,14 +253,14 @@ class CorrectorWidget(QtGui.QWidget):
     fit_columns = [
         ColumnInfo("Param", 'name'),
         ColumnInfo("Value", 'value', convert='name'),
-        ColumnInfo("Unit", lambda c: ui_units.label(c.data.name), stretch=0),
+        ColumnInfo("Unit", lambda c: ui_units.label(c.data.name)),
     ]
 
     steerer_columns = [
         ColumnInfo("Steerer", 'name'),
         ColumnInfo("Optimal", 'value', convert='name'),
         ColumnInfo("Current", 'current', convert='name'),
-        ColumnInfo("Unit", lambda c: ui_units.label(c.data.name), stretch=0),
+        ColumnInfo("Unit", lambda c: ui_units.label(c.data.name)),
     ]
 
     def __init__(self, corrector):

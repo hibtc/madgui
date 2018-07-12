@@ -84,20 +84,19 @@ class NodeMeta:
         return TreeNode(data, self, parent)
 
 
-# TODO: separate section info (title/stretch/padding) from cell data
+# TODO: separate section info (title/padding) from cell data
 # TODO: add `deleter`
 # TODO: simplify "meta <-> node" logic -> subclassing?
 class ColumnInfo(NodeMeta):
 
     """Column specification for a table widget."""
 
-    def __init__(self, title, getter, setter=None, stretch=None,
+    def __init__(self, title, getter, setter=None,
                  *, convert=False, padding=0, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> value
         :param callable setter: (rows,idx,value) -> ()
-        :param float stretch: column stretch proportion
         :param bool convert: automatic unit conversion, can be string to base
                              quanitity name on an attribute of the item
         :param int padding: column padding for size hint
@@ -108,7 +107,6 @@ class ColumnInfo(NodeMeta):
         """
         # column globals:
         self.title = title
-        self.stretch = stretch
         self.padding = padding
         # value accessors
         self.getter = getter or (lambda c: c.data)
@@ -382,31 +380,20 @@ class TableView(QtGui.QTreeView):
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
 
-    def _columnStretch(self, index):
-        column = self.model().columns[index]
-        return (index > 0
-                if column.stretch is None
-                else column.stretch)
-
     def resizeEvent(self, event):
         """ Resize all sections to content and user interactive """
         super().resizeEvent(event)
         header = self.header()
         columns = range(header.count())
-        stretch = list(map(self._columnStretch, columns))
         widths = list(map(self._columnContentWidth, columns))
         total = sum(widths)
         avail = event.size().width() - total
 
-        if not any(stretch):
-            stretch = [1 for _ in columns]
+        part = avail // len(columns)
+        avail -= part * len(columns)
 
-        part = avail / sum(stretch)
-
-        for i, s in enumerate(stretch):
-            widths[i] += round(part * s)
-            avail -= round(part * s)
-
+        for i in columns:
+            widths[i] += part
         if avail != 0:
             widths[-1] += avail
 

@@ -56,7 +56,7 @@ class SyncParamWidget(ListSelectWidget):
         ColumnInfo("Param", 'name'),
         ColumnInfo("DVM value", 'dvm_value'),
         ColumnInfo("MAD-X value", 'mad_value'),
-        ColumnInfo("Unit", 'unit', stretch=0),
+        ColumnInfo("Unit", 'unit'),
     ]
 
     def __init__(self, title, headline):
