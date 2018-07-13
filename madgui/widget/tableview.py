@@ -353,7 +353,7 @@ class TableView(QtGui.QTreeView):
 
     allow_delete = False
 
-    def __init__(self, parent=None, columns=None, data=None, context=None, **kwargs):
+    def __init__(self, parent=None, **kwargs):
         """Initialize with list of :class:`ColumnInfo`."""
         super().__init__(parent, **kwargs)
         self.setItemDelegate(TableViewDelegate())
@@ -363,8 +363,6 @@ class TableView(QtGui.QTreeView):
         self.setRootIsDecorated(False)
         self.setItemsExpandable(False)
         self.padding = {}
-        if columns is not None:
-            self.set_columns(columns, data, context)
         config.number.changed.connect(self.format_changed)
 
     def format_changed(self):

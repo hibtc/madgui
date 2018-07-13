@@ -76,7 +76,8 @@ class ParamTable(TableView):
         self.data_key = data_key
         self.fetch_args = {}
 
-        super().__init__(columns=self.columns, context=self, **kwargs)
+        super().__init__(**kwargs)
+        self.set_columns(self.columns, context=self)
         # in case anyone turns the header back on:
         self.header().setHighlightSections(False)
         self.header().hide()
