@@ -90,7 +90,7 @@ class ParamTable(TableView):
     def columns(self):
         columns = [
             ColumnInfo("Parameter", 'name'),
-            ColumnInfo("Value", 'value', set_value, padding=50,
+            ColumnInfo("Value", 'value', set_value,
                        convert=self.units and 'name',
                        mutable=cell_is_mutable,
                        foreground=cell_textcolor),
@@ -312,11 +312,10 @@ class CommandEdit(ParamTable):
     columns = [
         ColumnInfo("Parameter", get_name,
                    rows=get_rows, columns=get_par_columns, **_col_style),
-        ColumnInfo("Value", get_value, set_value, padding=50,
+        ColumnInfo("Value", get_value, set_value,
                    mutable=is_par_mutable, convert='name'),
         ColumnInfo("Unit", get_unit),
-        ColumnInfo("Expression", get_expr, set_expr, padding=50,
-                   mutable=is_expr_mutable),
+        ColumnInfo("Expression", get_expr, set_expr, mutable=is_expr_mutable),
     ]
 
 
@@ -326,10 +325,8 @@ class GlobalsEdit(ParamTable):
     columns = []
     columns.extend([
         ColumnInfo("Name", get_var_name, rows=par_rows, columns=columns),
-        ColumnInfo("Value", 'value', set_value, padding=50,
-                   mutable=is_var_mutable),
-        ColumnInfo("Expression", 'expr', set_expr, padding=50,
-                   mutable=True),
+        ColumnInfo("Value", 'value', set_value, mutable=is_var_mutable),
+        ColumnInfo("Expression", 'expr', set_expr, mutable=True),
     ])
 
     exportFilters = [

@@ -84,7 +84,7 @@ class NodeMeta:
         return TreeNode(data, self, parent)
 
 
-# TODO: separate section info (title/padding) from cell data
+# TODO: separate section info (title) from cell data
 # TODO: add `deleter`
 # TODO: simplify "meta <-> node" logic -> subclassing?
 class ColumnInfo(NodeMeta):
@@ -92,14 +92,13 @@ class ColumnInfo(NodeMeta):
     """Column specification for a table widget."""
 
     def __init__(self, title, getter, setter=None,
-                 *, convert=False, padding=0, **kwargs):
+                 *, convert=False, **kwargs):
         """
         :param str title: column title
         :param callable getter: item -> value
         :param callable setter: (rows,idx,value) -> ()
         :param bool convert: automatic unit conversion, can be string to base
                              quanitity name on an attribute of the item
-        :param int padding: column padding for size hint
         :param kwargs: any parameter in ``ROLES`` or a method override, in
                        particular ``mutable``, ``delegate``, ``checkable``,
                        ``checked``, ``setChecked``. Can be given as static
@@ -107,7 +106,6 @@ class ColumnInfo(NodeMeta):
         """
         # column globals:
         self.title = title
-        self.padding = padding
         # value accessors
         self.getter = getter or (lambda c: c.data)
         self.setter = setter
@@ -364,6 +362,7 @@ class TableView(QtGui.QTreeView):
         # the same image after refreshing the model:
         self.setRootIsDecorated(False)
         self.setItemsExpandable(False)
+        self.padding = {}
         if columns is not None:
             self.set_columns(columns, data, context)
         config.number.changed.connect(self.format_changed)
@@ -467,8 +466,8 @@ class TableView(QtGui.QTreeView):
         return QtCore.QSize(total_width, height)
 
     def sizeHintForColumn(self, column):
-        return (super().sizeHintForColumn(column)
-                + self.model().columns[column].padding)
+        return (super().sizeHintForColumn(column) +
+                self.padding.get(column, 40))
 
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
