@@ -84,17 +84,15 @@ class NodeMeta:
         return TreeNode(data, self, parent)
 
 
-# TODO: separate section info (title) from cell data
 # TODO: add `deleter`
 # TODO: simplify "meta <-> node" logic -> subclassing?
 class ColumnInfo(NodeMeta):
 
     """Column specification for a table widget."""
 
-    def __init__(self, title, getter, setter=None,
+    def __init__(self, getter, setter=None,
                  *, convert=False, **kwargs):
         """
-        :param str title: column title
         :param callable getter: item -> value
         :param callable setter: (rows,idx,value) -> ()
         :param bool convert: automatic unit conversion, can be string to base
@@ -104,14 +102,10 @@ class ColumnInfo(NodeMeta):
                        ``checked``, ``setChecked``. Can be given as static
                        value or as function: cell->value
         """
-        # column globals:
-        self.title = title
-        # value accessors
         self.getter = getter or (lambda c: c.data)
         self.setter = setter
         self.convert = convert
         kwargs.setdefault('mutable', setter is not None)
-        if convert is True: self.title += '/' + ui_units.label(getter)
         super().__init__(**kwargs)
 
     rows = columns = ()         # no children by default
@@ -256,8 +250,9 @@ class TableModel(QtCore.QAbstractItemModel):
     data can be accessed and changed via the list-like :attribute:`rows`.
     """
 
-    def __init__(self, columns, data=None, context=None):
+    def __init__(self, titles, columns, data=None, context=None):
         super().__init__()
+        self.titles = titles
         self.columns = columns
         self.context = context = context if context is not None else self
         self._rows = rows = List() if data is None else data
@@ -318,7 +313,7 @@ class TableModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.columns[section].title
+            return self.titles[section]
 
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
@@ -371,8 +366,12 @@ class TableView(QtGui.QTreeView):
         self.model().layoutAboutToBeChanged.emit()
         self.model().layoutChanged.emit()
 
-    def set_columns(self, columns, data=None, context=None):
-        self.setModel(TableModel(columns, data, context))
+    def set_columns(self, col_defs, data=None, context=None):
+        titles, columns = col_defs
+        titles = [t + '/' + ui_units.label(c.getter)
+                  if c.convert is True else t
+                  for t, c in zip(titles, columns)]
+        self.setModel(TableModel(titles, columns, data, context))
         self.model().rowsInserted.connect(lambda *_: self.expandAll())
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()

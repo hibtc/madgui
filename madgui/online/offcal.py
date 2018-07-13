@@ -23,10 +23,10 @@ class OffsetCalibrationWidget(QtGui.QWidget):
     progress = 0
     extension = '.calibration.yml'
 
-    result_columns = [
-        ColumnInfo('Monitor', 'name'),
-        ColumnInfo('Δx', 'x', convert=True),
-        ColumnInfo('Δy', 'y', convert=True),
+    result_columns = ("Monitor", "Δx", "Δy"), [
+        ColumnInfo('name'),
+        ColumnInfo('x', convert=True),
+        ColumnInfo('y', convert=True),
     ]
 
     def __init__(self, parent, monitors):

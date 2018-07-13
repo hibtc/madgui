@@ -35,8 +35,8 @@ class CurveManager(QtGui.QWidget):
 
     ui_file = 'curvemanager.ui'
 
-    columns = [
-        ColumnInfo("curves", get_curve_name, set_curve_name,
+    columns = ["curves"], [
+        ColumnInfo(get_curve_name, set_curve_name,
                    checked=get_curve_show, setChecked=set_curve_show,
                    checkable=True),
     ]

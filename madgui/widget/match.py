@@ -81,17 +81,17 @@ class MatchWidget(QtGui.QWidget):
 
     ui_file = 'match.ui'
 
-    constraints_columns = [
-        ColumnInfo("Element", get_constraint_elem, set_constraint_elem),
-        ColumnInfo("Name", get_constraint_axis, set_constraint_axis),
-        ColumnInfo("Target", 'value', set_constraint_value, convert='axis'),
-        ColumnInfo("Unit", get_constraint_unit),
+    constraints_columns = ("Element", "Name", "Target", "Unit"), [
+        ColumnInfo(get_constraint_elem, set_constraint_elem),
+        ColumnInfo(get_constraint_axis, set_constraint_axis),
+        ColumnInfo('value', set_constraint_value, convert='axis'),
+        ColumnInfo(get_constraint_unit),
     ]
 
-    variables_columns = [
-        ColumnInfo("Knob", get_knob_display, set_knob_display),
-        ColumnInfo("Initial", 'design'),
-        ColumnInfo("Final", 'value'),
+    variables_columns = ("Knob", "Initial", "Final"), [
+        ColumnInfo(get_knob_display, set_knob_display),
+        ColumnInfo('design'),
+        ColumnInfo('value'),
     ]
 
     def __init__(self, matcher):

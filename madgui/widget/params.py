@@ -89,15 +89,13 @@ class ParamTable(TableView):
 
     @property
     def columns(self):
-        columns = [
-            ColumnInfo("Parameter", 'name'),
-            ColumnInfo("Value", 'value', set_value,
-                       convert=self.units and 'name',
-                       mutable=cell_is_mutable,
-                       foreground=cell_textcolor),
-            ColumnInfo("Unit", 'unit'),
+        columns = ("Parameter", "Value", "Unit"), [
+            ColumnInfo('name'),
+            ColumnInfo('value', set_value, convert=self.units and 'name',
+                       mutable=cell_is_mutable, foreground=cell_textcolor),
+            ColumnInfo('unit'),
         ]
-        return columns if self.units else columns[:2]
+        return columns if self.units else (columns[0][:2], columns[1][:2])
 
     def update(self, **kw):
         """Update dialog from the datastore."""
@@ -296,38 +294,36 @@ class CommandEdit(ParamTable):
 
     knob_columns = []
     knob_columns.extend([
-        ColumnInfo(None, get_var_name, rows=par_rows, columns=knob_columns),
-        ColumnInfo(None, 'value', set_par_value, mutable=is_var_mutable),
-        ColumnInfo(None, lambda c: None, mutable=False),
-        ColumnInfo(None, 'expr', set_par_expr, mutable=True),
+        ColumnInfo(get_var_name, rows=par_rows, columns=knob_columns),
+        ColumnInfo('value', set_par_value, mutable=is_var_mutable),
+        ColumnInfo(lambda c: None, mutable=False),
+        ColumnInfo('expr', set_par_expr, mutable=True),
     ])
 
     vector_columns = [
-        ColumnInfo(None, get_name, rows=par_rows, columns=knob_columns, **_col_style),
+        ColumnInfo(get_name, rows=par_rows, columns=knob_columns, **_col_style),
         # TODO: fix conversion and get_unit
-        ColumnInfo(None, 'value', set_comp_value, mutable=True, convert='name'),
-        ColumnInfo(None, get_comp_unit),
-        ColumnInfo(None, 'expr', set_comp_expr, mutable=is_expr_mutable),
+        ColumnInfo('value', set_comp_value, mutable=True, convert='name'),
+        ColumnInfo(get_comp_unit),
+        ColumnInfo('expr', set_comp_expr, mutable=is_expr_mutable),
     ]
 
-    columns = [
-        ColumnInfo("Parameter", get_name,
-                   rows=get_rows, columns=get_par_columns, **_col_style),
-        ColumnInfo("Value", get_value, set_value,
-                   mutable=is_par_mutable, convert='name'),
-        ColumnInfo("Unit", get_unit),
-        ColumnInfo("Expression", get_expr, set_expr, mutable=is_expr_mutable),
+    columns = ("Parameter", "Value", "Unit", "Expression"), [
+        ColumnInfo(get_name, rows=get_rows, columns=get_par_columns, **_col_style),
+        ColumnInfo(get_value, set_value, mutable=is_par_mutable, convert='name'),
+        ColumnInfo(get_unit),
+        ColumnInfo(get_expr, set_expr, mutable=is_expr_mutable),
     ]
 
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    columns = []
-    columns.extend([
-        ColumnInfo("Name", get_var_name, rows=par_rows, columns=columns),
-        ColumnInfo("Value", 'value', set_value, mutable=is_var_mutable),
-        ColumnInfo("Expression", 'expr', set_expr, mutable=True),
+    columns = ("Name", "Value", "Expression"), []
+    columns[1].extend([
+        ColumnInfo(get_var_name, rows=par_rows, columns=columns[1]),
+        ColumnInfo('value', set_value, mutable=is_var_mutable),
+        ColumnInfo('expr', set_expr, mutable=True),
     ])
 
     exportFilters = [

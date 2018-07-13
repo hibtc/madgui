@@ -53,11 +53,11 @@ class SyncParamWidget(ListSelectWidget):
     Dialog for selecting DVM parameters to be synchronized.
     """
 
-    columns = [
-        ColumnInfo("Param", 'name'),
-        ColumnInfo("DVM value", 'dvm_value'),
-        ColumnInfo("MAD-X value", 'mad_value'),
-        ColumnInfo("Unit", 'unit'),
+    columns = ("Param", "DVM value", "MAD-X value", "Unit"), [
+        ColumnInfo('name'),
+        ColumnInfo('dvm_value'),
+        ColumnInfo('mad_value'),
+        ColumnInfo('unit'),
     ]
 
     def __init__(self, title, headline):
