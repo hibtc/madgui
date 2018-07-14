@@ -253,11 +253,20 @@ class TreeNode:
 
     def invalidate(self):
         if hasattr(self, '_children'):
-            del self._children
+            nodes = self._children
+            items = self.item.get_children()
+            for node, item in zip(nodes, items):
+                node.item = item
+                item.node = node
+                node.invalidate()
+            del nodes[len(items):]
+            nodes[len(nodes):] = [
+                TreeNode(item, self)
+                for item in items[len(nodes):]
+            ]
 
     @cachedproperty
     def children(self):
-        # TODO: reuse existing children if possible
         return [
             TreeNode(item, self)
             for item in self.item.get_children()
