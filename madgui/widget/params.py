@@ -216,16 +216,16 @@ def get_rows(cell):
         ]
     return par_rows(cell)
 
-def set_component_value(cell, value):
+def set_comp_value(cell, value):
     tab, par = cell.context, cell.granny.data
     vec = list(par.definition)
     vec[cell.row] = value
     tab.store({par.name: vec}, **tab.fetch_args)
 
-def set_component_expr(cell, value):
-    set_component_value(cell, value or cell.data.value)
+def set_comp_expr(cell, value):
+    set_comp_value(cell, value or cell.data.value)
 
-def get_component_unit(cell):
+def get_comp_unit(cell):
     units = ui_units.get(cell.granny.data.name)
     row = cell.row
     if isinstance(units, list) and row < len(units):
@@ -246,7 +246,7 @@ def is_par_mutable(cell):
 def get_par_columns(cell):
     return (CommandEdit.vector_columns
             if isinstance(cell.data.value, list) else
-            par_columns)
+            CommandEdit.knob_columns)
 
 
 def get_var_name(cell):
@@ -279,16 +279,6 @@ def set_par_expr(cell, value):
     # Replace deferred expressions by their value if `not value`:
     set_par_value(cell, value or cell.data.value)
 
-par_columns = []
-par_columns.extend([
-    ColumnInfo("Name", get_var_name, rows=par_rows, columns=par_columns),
-    ColumnInfo("Value", 'value', set_par_value, padding=50,
-               mutable=is_var_mutable),
-    ColumnInfo("Unit", lambda c: None, mutable=False),
-    ColumnInfo("Expression", 'expr', set_par_expr, padding=50,
-               mutable=True),
-])
-
 
 class CommandEdit(ParamTable):
 
@@ -303,14 +293,20 @@ class CommandEdit(ParamTable):
 
     _col_style = dict(font=cmd_font)
 
+    knob_columns = []
+    knob_columns.extend([
+        ColumnInfo(None, get_var_name, rows=par_rows, columns=knob_columns),
+        ColumnInfo(None, 'value', set_par_value, mutable=is_var_mutable),
+        ColumnInfo(None, lambda c: None, mutable=False),
+        ColumnInfo(None, 'expr', set_par_expr, mutable=True),
+    ])
+
     vector_columns = [
-        ColumnInfo(None, get_name, rows=par_rows, columns=par_columns, **_col_style),
+        ColumnInfo(None, get_name, rows=par_rows, columns=knob_columns, **_col_style),
         # TODO: fix conversion and get_unit
-        ColumnInfo(None, 'value', set_component_value, padding=50,
-                   mutable=True, convert='name'),
-        ColumnInfo(None, get_component_unit),
-        ColumnInfo(None, 'expr', set_component_expr, padding=50,
-                   mutable=is_expr_mutable),
+        ColumnInfo(None, 'value', set_comp_value, mutable=True, convert='name'),
+        ColumnInfo(None, get_comp_unit),
+        ColumnInfo(None, 'expr', set_comp_expr, mutable=is_expr_mutable),
     ]
 
     columns = [
@@ -324,20 +320,17 @@ class CommandEdit(ParamTable):
     ]
 
 
-var_columns = []
-var_columns.extend([
-    ColumnInfo("Name", get_var_name, rows=par_rows, columns=var_columns),
-    ColumnInfo("Value", 'value', set_value, padding=50,
-               mutable=is_var_mutable),
-    ColumnInfo("Expression", 'expr', set_expr, padding=50,
-               mutable=True),
-])
-
-
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    columns = var_columns
+    columns = []
+    columns.extend([
+        ColumnInfo("Name", get_var_name, rows=par_rows, columns=columns),
+        ColumnInfo("Value", 'value', set_value, padding=50,
+                   mutable=is_var_mutable),
+        ColumnInfo("Expression", 'expr', set_expr, padding=50,
+                   mutable=True),
+    ])
 
     exportFilters = [
         ("Strength file", "*.str"),
@@ -350,7 +343,6 @@ class GlobalsEdit(ParamTable):
     def _fetch(self):
         globals = self._model.globals
         return [p for k, p in globals.cmdpar.items() if p.var_type > 0]
-
 
 
 class TabParamTables(QtGui.QTabWidget):
