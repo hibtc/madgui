@@ -1,6 +1,31 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.13.0
+~~~~~~
+Date: 15.07.2018
+
+- simplify the activate logic of the curvemanager tool (was a toggle item with
+  complex behaviour, is now simply a button that will create the widget)
+- add "Ok" button for curvemanager widget
+- fix beam diagnostic dialog staying open with blank tab when pressing Ok
+- remove explicit dependency on minrpc version from setup.py (possibly fixes
+  problem where cpymad's requirement on the minrpc version is then ignored)
+- improve knob selection/input in match dialog
+- change how "assign" expressions must be defined in the multigrid config, can
+  now be bound to only x or y specifically
+- add widget for optics-based offset calibration
+- use backtracking as method for calculating initial coordinates (instead of
+  inverting sectormaps)
+- some code deduplication between diagnostic dialog and multigrid
+- allow to specify matching 'method' (lmdif/jacobian/…) in multigrid config
+- can show/hide timestamps in the log window
+- make treeview columns user resizable (will be reset whenever the view
+  changes size)
+- simplify stretch logic and remove custom column stretch factors
+- minor cleanup for some ColumnInfo definitions
+
+
 1.12.0
 ~~~~~~
 Date: 26.06.2018
