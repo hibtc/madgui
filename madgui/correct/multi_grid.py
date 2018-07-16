@@ -123,6 +123,7 @@ class Corrector(Matcher):
             model.update_twiss_args(init_orbit)
             model.match(
                 vary=self.match_names,
+                limits=self.selected.get('limits'),
                 method=self.method,
                 weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
                 constraints=constraints)
