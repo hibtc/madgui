@@ -3,13 +3,13 @@ Table widget specified by column behaviour.
 """
 
 from inspect import getmro
-from itertools import repeat
+from functools import partial
 
 from madgui.qt import QtCore, QtGui, Qt
 from madgui.core.base import Signal
 from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
-from madgui.util.misc import rw_property, ranges
+from madgui.util.misc import rw_property, ranges, cachedproperty
 from madgui.util.collections import List
 from madgui.util.enum import Enum
 from madgui.widget.quantity import DoubleValidator as _DoubleValidator
@@ -21,6 +21,7 @@ import madgui.core.config as config
 
 __all__ = [
     'ColumnInfo',
+    'TableItem',
     'TableModel',
     'TableView',
 ]
@@ -54,164 +55,195 @@ ROLES = {
 }
 
 
-def lift(value):
-    return value if callable(value) else lambda cell: value
-
-
-class NodeMeta:
+class NodeItem:
 
     """Descriptor/type information for a TreeNode."""
 
-    def __init__(self, **kwargs):
-        # method/property definitions:
-        for k, v in kwargs.items():
-            setattr(self, k, lift(v))
-
-    def children(self, node):
-        """List of child rows (for expandable data)."""
-        return [
-            meta(data, node)
-            for data, meta in zip(node.rows, node.row_meta)
-        ]
-
-    def row_meta(self, node):
-        return repeat(NodeMeta(
-            row_meta=node.columns,
-            rows=lambda node: repeat(node.data),
-        ))
-
-    def __call__(self, data, parent):
-        return TreeNode(data, self, parent)
-
-
-# TODO: separate section info (title/padding) from cell data
-# TODO: add `deleter`
-# TODO: simplify "meta <-> node" logic -> subclassing?
-class ColumnInfo(NodeMeta):
-
-    """Column specification for a table widget."""
-
-    def __init__(self, title, getter, setter=None,
-                 *, convert=False, padding=0, **kwargs):
+    def __init__(self, data=None, **kwargs):
         """
-        :param str title: column title
-        :param callable getter: item -> value
-        :param callable setter: (rows,idx,value) -> ()
-        :param bool convert: automatic unit conversion, can be string to base
-                             quanitity name on an attribute of the item
-        :param int padding: column padding for size hint
+        :param value: item -> value
         :param kwargs: any parameter in ``ROLES`` or a method override, in
                        particular ``mutable``, ``delegate``, ``checkable``,
-                       ``checked``, ``setChecked``. Can be given as static
+                       ``checked``, ``set_checked``. Can be given as static
                        value or as function: cell->value
         """
-        # column globals:
-        self.title = title
-        self.padding = padding
-        # value accessors
-        self.getter = getter or (lambda c: c.data)
-        self.setter = setter
-        self.convert = convert
-        kwargs.setdefault('mutable', setter is not None)
-        if convert is True: self.title += '/' + ui_units.label(getter)
-        super().__init__(**kwargs)
+        self.data = data
+        for k, v in kwargs.items():
+            if k[:4] in ('get_', 'set_'):
+                v = partial(v, self)
+            setattr(self, k, v)
 
-    rows = columns = ()         # no children by default
+    # Resolve missing properties by invoking associated methods, cache
+    # results automatically as attributes, e.g.: value/delegate/name
+    def __getattr__(self, key):
+        try:
+            fn = object.__getattribute__(self, 'get_' + key)
+        except AttributeError:
+            fn = None
+        try:
+            val = fn and fn()
+        except AttributeError as e:     # unshadow AttributeError!
+            raise Exception() from e
+        setattr(self, key, val)
+        return val
+
+    def rowitems(self, item):
+        return [cls(item.data) for cls in self.columns]
+
+    def get_children(self):
+        """List of child rows (for expandable data)."""
+        return [
+            NodeItem(row, get_children=self.rowitems)
+            for row in self.rows
+        ]
+
+    def get_context(self):
+        return self.node.granny.item.context
+
+    def get_granny(self):
+        return self.node.granny.item
+
+    def get_index(self):
+        return self.node.index()
+
+
+def ColumnInfo(getter, setter=None, *, convert=False, **kwargs):
+    """
+    Column specification for a table widget.
+
+    :param callable getter: item -> value
+    :param callable setter: (rows,idx,value) -> ()
+    :param bool convert: automatic unit conversion, can be string to base
+                         quanitity name on an attribute of the item
+    :param kwargs: any parameter in ``ROLES`` or a method override, in
+                   particular ``mutable``, ``delegate``, ``checkable``,
+                   ``checked``, ``setChecked``. Can be given as static
+                   value or as function: cell->value
+    """
+    if isinstance(getter, str):
+        def get_value(self):
+            return getattr(self.data, self.attr)
+    else:
+        def get_value(self):
+            return self.attr
+    if 'setChecked' in kwargs:
+        kwargs['set_checked'] = kwargs.pop('setChecked')
+    kwargs['attr'] = getter
+    getters = [k for k, v in kwargs.items()
+               if callable(v) and not k.startswith('set')]
+    members = {k: v for k, v in kwargs.items() if k not in getters}
+    members.update({
+        'get_' + k: v
+        for k, v in kwargs.items()
+        if k in getters
+    })
+    members['set_value'] = setter
+    members['get_value'] = get_value
+    members['convert'] = convert
+    return type(str(getter), (TableItem,), members)
+
+
+# TODO: add `deleter`
+class TableItem(NodeItem):
+
+    """Cell item data for a tree widget."""
 
     # QAbstractItemModel queries
 
-    def flags(self, cell):
+    def get_flags(self):
         # Always editable with ReadOnlyDelegate:
         flags = Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsEditable
-        if cell.checkable:
+        if self.checkable:
             flags |= Qt.ItemIsUserCheckable
         return flags
 
-    # role queries
+    # role queries (ROLES)
 
-    def display(self, cell):
+    def get_display(self):
         """Render the value as string."""
-        return cell.delegate.display(cell.value)
+        return self.delegate.display(self.ui_value)
 
-    def edit(self, cell):
+    def get_edit(self):
         """Obtain value for the editor."""
-        return cell.delegate.edit(cell)
+        return self.delegate.edit(self)
 
-    def checkState(self, cell):
-        checked = cell.checked
+    def get_checkState(self):
+        checked = self.checked
         if checked is None:
             return None
         return Qt.Checked if checked else Qt.Unchecked
 
-    def textAlignment(self, cell):
-        return cell.delegate.textAlignment
+    def get_textAlignment(self):
+        return self.delegate.textAlignment
 
-    # value type
+    # intermediate/helper properties
 
-    def editable(self, cell):
-        return cell.mutable and not isinstance(cell.delegate, BoolDelegate)
+    def get_editable(self):
+        return self.mutable and not isinstance(self.delegate, BoolDelegate)
 
-    def checkable(self, cell):
-        return cell.mutable and isinstance(cell.delegate, BoolDelegate)
+    def get_checkable(self):
+        return self.mutable and isinstance(self.delegate, BoolDelegate)
 
-    def delegate(self, cell):
-        return lookupDelegate(cell.value)
+    def get_delegate(self):
+        return lookupDelegate(self.ui_value)
 
-    # value queries
+    def get_mutable(self):
+        return bool(self.set_value)
 
-    def value(self, cell):
-        if isinstance(self.getter, str):
-            value = getattr(cell.data, self.getter)
-        else:
-            value = self.getter(cell)
-        return to_ui(cell.name, value)
+    def get_value(self):
+        return self.data
 
-    def checked(self, cell):
-        if isinstance(cell.delegate, BoolDelegate):
-            return bool(cell.value)
+    def get_ui_value(self):
+        return to_ui(self.name, self.value)
 
-    def name(self, cell):
+    def get_name(self):
         convert = self.convert
         if convert:
             if isinstance(convert, str):
-                return getattr(cell.data, convert)
+                return getattr(self.data, convert)
             elif callable(convert):
-                return convert(cell.data)
+                return convert(self.data)
             else:
                 # NOTE: incompatible with custom getters/setters
-                return self.getter
+                return self.attr
 
-    def context(self, cell):
-        return cell.granny.context
+    def get_checked(self):
+        if isinstance(self.delegate, BoolDelegate):
+            return bool(self.value)
 
-    # edit requests:
+    def set_ui_value(self, value):
+        self.set_value(from_ui(self.name, value))
 
-    def setValue(self, cell, value):
-        self.setter(cell, from_ui(cell.name, value))
-
-    def setChecked(self, cell, value):
+    def set_checked(self, value):
         """Implement setting BoolDelegate via checkbox."""
-        self.setter(cell, value)
+        self.set_value(value)
+
+    # misc
+
+    def get_row(self):
+        return self.node.row
+
+    def get_rows(self):     # no children by default
+        return ()
+
+    def get_columns(self):
+        return ()
 
 
 class TreeNode:
 
     """
     Proxy class for accessing contents/properties of a table cell. Delegates
-    property queries to method calls of the associated :class`NodeMeta` and
-    caches the result as attribute.
+    data queries to attributes of the associated :class`NodeItem`.
     """
 
-    def __init__(self, data, meta, parent=None):
-        self.data = data
-        self.meta = meta
+    def __init__(self, item, parent=None):
+        self.item = item
+        self.item.node = self
         self.parent = parent
         self.granny = parent and parent.parent
         self.root = parent.root if parent else self
-        self._cached = []
 
-    # These attributes are defined on the level of the Node to prevent caching
-    # (their values can change even if the node itself doesn't change):
     index = lambda self: self.parent.children.index(self)
 
     # row/col should only be used for "cells", i.e. those nodes that describe
@@ -220,31 +252,35 @@ class TreeNode:
     col = property(index)
 
     def invalidate(self):
-        """Clear cached properties."""
-        for k in self._cached:
-            delattr(self, k)
-        self._cached.clear()
+        if hasattr(self, '_children'):
+            nodes = self._children
+            items = self.item.get_children()
+            for node, item in zip(nodes, items):
+                node.item = item
+                item.node = node
+                node.invalidate()
+            del nodes[len(items):]
+            nodes[len(nodes):] = [
+                TreeNode(item, self)
+                for item in items[len(nodes):]
+            ]
 
-    # Fetch properties by invoking associated ColumnInfo methods, cache
-    # results automatically as attributes, e.g.: value/delegate/name
-    def __getattr__(self, key):
-        fn = getattr(self.meta, key, None)
-        try:
-            val = fn and fn(self)
-        except AttributeError as e:     # unshadow AttributeError!
-            raise Exception() from e
-        setattr(self, key, val)
-        self._cached.append(key)
-        return val
+    @cachedproperty
+    def children(self):
+        return [
+            TreeNode(item, self)
+            for item in self.item.get_children()
+        ]
 
-    # convenience method
+    def data(self, role):
+        return getattr(self.item, ROLES[role])
 
     def setData(self, value, role):
-        if role == Qt.EditRole and self.editable:
-            self.meta.setValue(self, value)
+        if role == Qt.EditRole and self.item.editable:
+            self.item.set_ui_value(value)
             return True
-        if role == Qt.CheckStateRole and self.checkable:
-            self.meta.setChecked(self, value == Qt.Checked)
+        if role == Qt.CheckStateRole and self.item.checkable:
+            self.item.set_checked(value == Qt.Checked)
             return True
         return False
 
@@ -254,18 +290,19 @@ class TableModel(QtCore.QAbstractItemModel):
     """
     Table data model.
 
-    Column specifications are provided as :class:`ColumnInfo` instances. The
+    Column specifications are provided as :class:`TableItem` instances. The
     data can be accessed and changed via the list-like :attribute:`rows`.
     """
 
-    def __init__(self, columns, data=None, context=None):
+    def __init__(self, titles, columns, data=None, context=None):
         super().__init__()
+        self.titles = titles
         self.columns = columns
         self.context = context = context if context is not None else self
         self._rows = rows = List() if data is None else data
         self._rows.update_after.connect(self._refresh)
         self.parent = None
-        self.root = TreeNode(None, NodeMeta(
+        self.root = TreeNode(NodeItem(
             rows=rows, columns=columns, context=context))
 
     def _refresh(self, *_):
@@ -290,6 +327,7 @@ class TableModel(QtCore.QAbstractItemModel):
 
     # QAbstractItemModel overrides
 
+    # TODO: add/implement TreeNode.children
     def index(self, row, col, parent=QtCore.QModelIndex()):
         return self.createIndex(
             row, col, self.cell(parent).children[row].children[col])
@@ -306,21 +344,21 @@ class TableModel(QtCore.QAbstractItemModel):
         return len(self.columns)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
-        return len(self.cell(parent).rows or ())
+        return len(self.cell(parent).children or ())
 
     def data(self, index, role=Qt.DisplayRole):
         if index.isValid() and role in ROLES:
-            return getattr(self.cell(index), ROLES[role], None)
+            return self.cell(index).data(role)
         return super().data(index, role)
 
     def flags(self, index):
         if index.isValid():
-            return self.cell(index).flags
+            return self.cell(index).item.flags
         return super().flags(index)
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.columns[section].title
+            return self.titles[section]
 
     def setData(self, index, value, role=Qt.EditRole):
         if not index.isValid():
@@ -333,10 +371,9 @@ class TableModel(QtCore.QAbstractItemModel):
             # (and hence self._refresh is never called). In fact, we
             # we should trigger the update by re-querying self.rows, but right
             # now this is not guaranteed in all places...
-            for c in cell.parent.children:
-                c.invalidate()
             row = index.row()
             par = index.parent()
+            cell.parent.invalidate()
             if self.rowCount(index) > 0:
                 self.beginResetModel()
                 self.endResetModel()
@@ -355,8 +392,8 @@ class TableView(QtGui.QTreeView):
 
     allow_delete = False
 
-    def __init__(self, parent=None, columns=None, data=None, context=None, **kwargs):
-        """Initialize with list of :class:`ColumnInfo`."""
+    def __init__(self, parent=None, **kwargs):
+        """Initialize with list of :class:`TableItem`."""
         super().__init__(parent, **kwargs)
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
@@ -364,8 +401,7 @@ class TableView(QtGui.QTreeView):
         # the same image after refreshing the model:
         self.setRootIsDecorated(False)
         self.setItemsExpandable(False)
-        if columns is not None:
-            self.set_columns(columns, data, context)
+        self.padding = {}
         config.number.changed.connect(self.format_changed)
 
     def format_changed(self):
@@ -374,8 +410,12 @@ class TableView(QtGui.QTreeView):
         self.model().layoutAboutToBeChanged.emit()
         self.model().layoutChanged.emit()
 
-    def set_columns(self, columns, data=None, context=None):
-        self.setModel(TableModel(columns, data, context))
+    def set_columns(self, col_defs, data=None, context=None):
+        titles, columns = col_defs
+        titles = [t + '/' + ui_units.label(c.attr)
+                  if getattr(c, 'convert', False) is True else t
+                  for t, c in zip(titles, columns)]
+        self.setModel(TableModel(titles, columns, data, context))
         self.model().rowsInserted.connect(lambda *_: self.expandAll())
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
@@ -467,14 +507,14 @@ class TableView(QtGui.QTreeView):
         return QtCore.QSize(total_width, height)
 
     def sizeHintForColumn(self, column):
-        return (super().sizeHintForColumn(column)
-                + self.model().columns[column].padding)
+        return (super().sizeHintForColumn(column) +
+                self.padding.get(column, 40))
 
 
 class TableViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
-        cell = index.model().cell(index)
+        cell = index.model().cell(index).item
         return cell.delegate if cell.editable else ReadOnlyDelegate()
 
     def sizeHint(self, option, index):
@@ -521,7 +561,7 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
         return format(value, self.fmtspec)
 
     def edit(self, cell):
-        return self.default if cell.value is None else cell.value
+        return self.default if cell.ui_value is None else cell.ui_value
 
 
 class StringDelegate(ItemDelegate):

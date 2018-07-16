@@ -5,41 +5,41 @@ Dialog for managing shown curves.
 import os
 
 from madgui.qt import QtGui, load_ui
-from madgui.widget.tableview import ColumnInfo
+from madgui.widget.tableview import TableItem
 from madgui.widget.filedialog import getOpenFileName
 
 
-def get_curve_name(cell):
-    name, data, style = cell.data
-    return name
+class Curves(TableItem):
 
-def set_curve_name(cell, name):
-    i, mgr = cell.row, cell.context
-    _, data, style = cell.data
-    mgr.available[i] = (name, data, style)
+    checkable = True
 
-def get_curve_show(cell):
-    i, mgr = cell.row, cell.context
-    return i in mgr.selected
+    def get_value(self):
+        name, data, style = self.data
+        return name
 
-def set_curve_show(cell, show):
-    i, mgr = cell.row, cell.context
-    shown = i in mgr.selected
-    if show and not shown:
-        mgr.selected.append(i)
-    elif not show and shown:
-        mgr.selected.remove(i)
+    def set_value(self, name):
+        i, mgr = self.row, self.context
+        _, data, style = self.data
+        mgr.available[i] = (name, data, style)
+
+    def get_checked(self):
+        i, mgr = self.row, self.context
+        return i in mgr.selected
+
+    def set_checked(self, show):
+        i, mgr = self.row, self.context
+        shown = i in mgr.selected
+        if show and not shown:
+            mgr.selected.append(i)
+        elif not show and shown:
+            mgr.selected.remove(i)
 
 
 class CurveManager(QtGui.QWidget):
 
     ui_file = 'curvemanager.ui'
 
-    columns = [
-        ColumnInfo("curves", get_curve_name, set_curve_name,
-                   checked=get_curve_show, setChecked=set_curve_show,
-                   checkable=True),
-    ]
+    columns = ["curves"], [Curves]
 
     def __init__(self, scene):
         super().__init__()

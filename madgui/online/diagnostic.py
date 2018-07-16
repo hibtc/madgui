@@ -163,14 +163,14 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
     ui_file = 'monitorwidget.ui'
 
-    monitor_columns = [
-        ColumnInfo("Monitor", get_monitor_name, checkable=True,
+    monitor_columns = ("Monitor", "x", "y", "Δx", "Δy"), [
+        ColumnInfo(get_monitor_name, checkable=True,
                    foreground=get_monitor_textcolor,
                    checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo("x", 'posx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo("y", 'posy', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo("Δx", 'envx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo("Δy", 'envy', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('posx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('posy', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('envx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('envy', convert=True, foreground=get_monitor_textcolor),
     ]
 
     def __init__(self, control, model, frame):
@@ -233,13 +233,13 @@ class OffsetsWidget(MonitorWidgetBase):
 
     ui_file = 'offsetswidget.ui'
 
-    monitor_columns = [
-        ColumnInfo("Monitor", get_monitor_name, checkable=True,
+    monitor_columns = ("Monitor", "Δx", "Δy"), [
+        ColumnInfo(get_monitor_name, checkable=True,
                    foreground=get_monitor_textcolor,
                    checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo("Δx", get_offset_x, name=lambda c: 'x',
+        ColumnInfo(get_offset_x, name=lambda c: 'x',
                    foreground=get_monitor_textcolor),
-        ColumnInfo("Δy", get_offset_y, name=lambda c: 'y',
+        ColumnInfo(get_offset_y, name=lambda c: 'y',
                    foreground=get_monitor_textcolor),
     ]
 
@@ -311,11 +311,11 @@ class _FitWidget(MonitorWidgetBase):
 
     ui_file = 'emittance.ui'
 
-    result_columns = [
-        ColumnInfo("Name", 'name'),
-        ColumnInfo("Model", 'model', convert='name'),
-        ColumnInfo("Fit", 'fit', convert='name'),
-        ColumnInfo("Unit", lambda cell: ui_units.label(cell.data.name)),
+    result_columns = ("Name", "Model", "Fit", "Unit"), [
+        ColumnInfo('name'),
+        ColumnInfo('model', convert='name'),
+        ColumnInfo('fit', convert='name'),
+        ColumnInfo(lambda cell: ui_units.label(cell.data.name)),
     ]
 
     def __init__(self, control, model, frame):
@@ -331,12 +331,12 @@ class _FitWidget(MonitorWidgetBase):
 
 class OrbitWidget(_FitWidget):
 
-    monitor_columns = [
-        ColumnInfo("Monitor", get_monitor_name, checkable=True,
+    monitor_columns = ("Monitor", "x", "y"), [
+        ColumnInfo(get_monitor_name, checkable=True,
                    foreground=get_monitor_textcolor,
                    checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo("x", 'posx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo("y", 'posy', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('posx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('posy', convert=True, foreground=get_monitor_textcolor),
     ]
 
     def __init__(self, control, model, frame):
@@ -373,13 +373,13 @@ class OrbitWidget(_FitWidget):
 
 class EmittanceDialog(_FitWidget):
 
-    monitor_columns = [
-        ColumnInfo("Monitor", 'name', checkable=get_monitor_valid,
+    monitor_columns = ("Monitor", "Δx", "Δy"), [
+        ColumnInfo('name', checkable=get_monitor_valid,
                    foreground=get_monitor_textcolor,
                    checked=get_monitor_show,
                    setChecked=set_monitor_show),
-        ColumnInfo("Δx", 'envx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo("Δy", 'envy', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('envx', convert=True, foreground=get_monitor_textcolor),
+        ColumnInfo('envy', convert=True, foreground=get_monitor_textcolor),
     ]
 
     # The three steps of UI initialization

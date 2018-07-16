@@ -4,7 +4,7 @@ UI for matching.
 
 from madgui.qt import QtGui, load_ui
 from madgui.core.unit import ui_units
-from madgui.widget.tableview import ColumnInfo
+from madgui.widget.tableview import TableItem
 from madgui.correct.match import variable_from_knob, Constraint
 from madgui.util.enum import make_enum
 
@@ -12,49 +12,86 @@ from madgui.util.enum import make_enum
 Button = QtGui.QDialogButtonBox
 
 
-def get_constraint_elem(cell):
-    widget, c = cell.context, cell.data
-    return widget.elem_enum(c.elem.node_name if c.elem else "(global)")
+class Constraints:
 
-def set_constraint_elem(cell, name):
-    widget, c, i = cell.context, cell.data, cell.row
-    if name is not None:
-        el = widget.model.elements[str(name)]
-        widget.matcher.constraints[i] = \
-            Constraint(el, el.position+el.length, c.axis, c.value)
+    class Element(TableItem):
 
-def get_constraint_axis(cell):
-    widget, c = cell.context, cell.data
-    return widget.lcon_enum(c.axis)
+        def get_value(self):
+            widget, c = self.context, self.data
+            return widget.elem_enum(c.elem.node_name if c.elem else "(global)")
 
-def set_constraint_axis(cell, axis):
-    widget, c, i = cell.context, cell.data, cell.row
-    if axis is not None:
-        value = widget.model.get_twiss(c.elem.node_name, str(axis), c.pos)
-        widget.matcher.constraints[i] = \
-            Constraint(c.elem, c.pos, str(axis), value)
+        def set_value(self, name):
+            widget, c, i = self.context, self.data, self.row
+            if name is not None:
+                el = widget.model.elements[str(name)]
+                widget.matcher.constraints[i] = \
+                    Constraint(el, el.position+el.length, c.axis, c.value)
 
-def get_constraint_unit(cell):
-    c = cell.data
-    return ui_units.label(c.axis, c.value)
+    class Name(TableItem):
 
-def set_constraint_value(cell, value):
-    widget, c, i = cell.context, cell.data, cell.row
-    if value is not None:
-        widget.matcher.constraints[i] = \
-            Constraint(c.elem, c.pos, c.axis, value)
+        def get_value(self):
+            widget, c = self.context, self.data
+            return widget.lcon_enum(c.axis)
 
-def get_knob_display(cell):
-    widget, v = cell.context, cell.data
-    return widget.knob_enum(v.knob)
+        def set_value(self, axis):
+            widget, c, i = self.context, self.data, self.row
+            if axis is not None:
+                value = widget.model.get_twiss(c.elem.node_name, str(axis), c.pos)
+                widget.matcher.constraints[i] = \
+                    Constraint(c.elem, c.pos, str(axis), value)
 
-def set_knob_display(cell, text):
-    widget, i = cell.context, cell.row
-    if text is not None:
-        knob = parse_knob(widget.model, str(text))
-        if knob:
-            widget.matcher.variables[i] = \
-                variable_from_knob(widget.matcher, knob)
+    class Target(TableItem):
+
+        def get_value(self):
+            return self.data.value
+
+        def set_value(self, value):
+            widget, c, i = self.context, self.data, self.row
+            if value is not None:
+                widget.matcher.constraints[i] = \
+                    Constraint(c.elem, c.pos, c.axis, value)
+
+        def get_name(self):
+            return self.data.axis
+
+    class Unit(TableItem):
+
+        def get_value(self):
+            c = self.data
+            return ui_units.label(c.axis, c.value)
+
+    sections = ("Element", "Name", "Target", "Unit")
+    columns = (Element, Name, Target, Unit)
+
+
+class Variables:
+
+    class Knob(TableItem):
+
+        def get_value(self):
+            widget, v = self.context, self.data
+            return widget.knob_enum(v.knob)
+
+        def set_value(self, text):
+            widget, i = self.context, self.row
+            if text is not None:
+                knob = parse_knob(widget.model, str(text))
+                if knob:
+                    widget.matcher.variables[i] = \
+                        variable_from_knob(widget.matcher, knob)
+
+    class Initial(TableItem):
+
+        def get_value(self):
+            return self.data.design
+
+    class Final(TableItem):
+
+        def get_value(self):
+            return self.data.value
+
+    sections = ("Knob", "Initial", "Final")
+    columns = (Knob, Initial, Final)
 
 
 def parse_knob(model, text):
@@ -81,19 +118,8 @@ class MatchWidget(QtGui.QWidget):
 
     ui_file = 'match.ui'
 
-    constraints_columns = [
-        ColumnInfo("Element", get_constraint_elem, set_constraint_elem),
-        ColumnInfo("Name", get_constraint_axis, set_constraint_axis,
-                   padding=50),
-        ColumnInfo("Target", 'value', set_constraint_value, convert='axis'),
-        ColumnInfo("Unit", get_constraint_unit),
-    ]
-
-    variables_columns = [
-        ColumnInfo("Knob", get_knob_display, set_knob_display),
-        ColumnInfo("Initial", 'design'),
-        ColumnInfo("Final", 'value'),
-    ]
+    constraints_columns = Constraints.sections, Constraints.columns
+    variables_columns = Variables.sections, Variables.columns
 
     def __init__(self, matcher):
         super().__init__()

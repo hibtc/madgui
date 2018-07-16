@@ -157,25 +157,24 @@ class CorrectorWidget(QtGui.QWidget):
 
     ui_file = 'mgm_dialog.ui'
 
-    readout_columns = [
-        ColumnInfo("Monitor", 'name'),
-        ColumnInfo("X", 'posx', convert=True),
-        ColumnInfo("Y", 'posy', convert=True),
+    readout_columns = ("Monitor", "X", "Y"), [
+        ColumnInfo('name'),
+        ColumnInfo('posx', convert=True),
+        ColumnInfo('posy', convert=True),
     ]
 
-    constraint_columns = [
-        ColumnInfo("Element", lambda c: c.data.elem.node_name),
-        ColumnInfo("Param", 'axis'),
-        ColumnInfo("Value", 'value', set_constraint_value,
-                   convert='axis'),
-        ColumnInfo("Unit", lambda c: ui_units.label(c.data.axis)),
+    constraint_columns = ("Element", "Param", "Value", "Unit"), [
+        ColumnInfo(lambda c: c.data.elem.node_name),
+        ColumnInfo('axis'),
+        ColumnInfo('value', set_constraint_value, convert='axis'),
+        ColumnInfo(lambda c: ui_units.label(c.data.axis)),
     ]
 
-    steerer_columns = [
-        ColumnInfo("Steerer", format_knob),
-        ColumnInfo("Initial", format_initial),
-        ColumnInfo("Final", format_final),
-        ColumnInfo("Unit", format_unit),
+    steerer_columns = ("Steerer", "Initial", "Final", "Unit"), [
+        ColumnInfo(format_knob),
+        ColumnInfo(format_initial),
+        ColumnInfo(format_final),
+        ColumnInfo(format_unit),
     ]
 
     def __init__(self, corrector):
