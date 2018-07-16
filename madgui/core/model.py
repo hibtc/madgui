@@ -9,7 +9,6 @@ import itertools
 from bisect import bisect_right
 import subprocess
 from threading import RLock
-import re
 from contextlib import contextmanager
 
 import numpy as np
@@ -21,6 +20,7 @@ from madgui.core.base import Cache
 from madgui.util.stream import AsyncReader
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
+from madgui.util.export import read_str_file
 
 
 __all__ = [
@@ -314,7 +314,7 @@ class Model:
             with open(name, 'rb') as f:
                 new = yaml.safe_load(f)['globals']
         else:
-            new = read_strengths(name)
+            new = read_str_file(name)
         if new is None:
             raise ValueError(
                 "SyntaxError in {!r}. Not the simplest of .str files?"
@@ -324,7 +324,7 @@ class Model:
     def _call(self, name):
         """Load a MAD-X file into the current workspace."""
         name = os.path.join(self.path, name)
-        vals = read_strengths(name)
+        vals = read_str_file(name)
         self.madx.call(name, True)
         self.init_files.append(name)
         return vals
@@ -1086,34 +1086,6 @@ def _eval_expr(value):
     if isinstance(value, ArrayAttribute):
         return list(value)
     return value
-
-
-def read_strengths(filename):
-    """Read .str file, return as dict."""
-    with open(filename) as f:
-        try:
-            return parse_strengths(f)
-        except (ValueError, AttributeError):
-            return None
-
-def parse_strengths(lines):
-    return dict(
-        parse_line(line)
-        for line in map(str.strip, lines)
-        if line and not line.startswith('#')
-    )
-
-RE_ASSIGN = re.compile(r'^([a-z_][a-z0-9_]*)\s*:?=\s*(.*);$', re.IGNORECASE)
-
-def parse_line(line):
-    m = RE_ASSIGN.match(line)
-    if not m:
-        raise ValueError("not an assignment: {!r}".format(line))
-    k, v = m.groups()
-    try:
-        return k, float(v)
-    except ValueError:
-        return k, v
 
 
 def items(d):
