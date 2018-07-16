@@ -37,23 +37,30 @@ class Control(Object):
         self.can_connect = ~self.is_connected
         self.has_sequence = self.is_connected & self.model
         self.loader_name = None
+        self._settings = frame.config.online_control.settings
 
     # menu handlers
 
     def connect(self, name, loader):
         logging.info('Connecting online control: {}'.format(name))
-        self._plugin = loader.load(self._frame)
+        self._plugin = loader.load(self._frame, self._settings)
         self._plugin.connect()
         self._frame.context['csys'] = self._plugin
         self.is_connected.set(True)
         self.loader_name = name
 
     def disconnect(self):
+        self._settings = self.export_settings()
         self._frame.context.pop('csys', None)
         self._plugin.disconnect()
         self._plugin = None
         self.is_connected.set(False)
         self.loader_name = None
+
+    def export_settings(self):
+        if hasattr(self._plugin, 'export_settings'):
+            return self._plugin.export_settings()
+        return self._settings
 
     def toggle_jitter(self):
         # I know…

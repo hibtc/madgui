@@ -94,6 +94,7 @@ class MainWindow(QtGui.QMainWindow):
                 'connect': self.control.loader_name,
                 'monitors': self.config.online_control['monitors'],
                 'offsets': self.config.online_control['offsets'],
+                'settings': self.control.export_settings() or {},
             },
             'logging': {
                 'enable': self.log_window.logging_enabled,
