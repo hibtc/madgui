@@ -298,8 +298,8 @@ class GlobalsEdit(ParamTable):
         ("YAML file", "*.yml", "*.yaml"),
     ]
 
-    def __init__(self, model):
-        super().__init__(self._fetch, model.update_globals, model=model)
+    def __init__(self, model, **kwargs):
+        super().__init__(self._fetch, model.update_globals, model=model, **kwargs)
 
     def _fetch(self):
         globals = self._model.globals

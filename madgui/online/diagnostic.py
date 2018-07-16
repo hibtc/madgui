@@ -76,6 +76,9 @@ class MonitorWidgetBase(QtGui.QWidget):
     def selected(self, monitor):
         return self._selected.setdefault(monitor.name, False)
 
+    def num_selected(self):
+        return sum(map(self.selected, self.monitors))
+
     def select(self, index):
         self._selected[self.monitors[index].name] = True
         self.on_update()
@@ -332,7 +335,11 @@ class OrbitWidget(_FitWidget):
         self.update()
 
     def export_to(self, filename):
-        pass
+        data = yaml.safe_dump({
+            'twiss': self.init_orbit,
+        }, default_flow_style=False)
+        with open(filename, 'wt') as f:
+            f.write(data)
 
     def apply(self):
         if not self.singular:
@@ -349,6 +356,8 @@ class OrbitWidget(_FitWidget):
             ]
 
     def fit_particle_orbit(self):
+        if self.num_selected() < 2:
+            return {}, 0, False
         records = [m for m in self.monitors if self.selected(m)]
         ret, curve = fit_particle_orbit(self.model, self._offsets, records)
         show_backtrack_curve(self.frame, curve)
@@ -392,7 +401,16 @@ class EmittanceDialog(_FitWidget):
             model.update_twiss_args(results)
 
     def export_to(self, filename):
-        pass
+        beam_params = ('ex', 'ey', 'et')
+        results = [(r.name.lower(), r.fit)
+                   for r in self.results
+                   if not isnan(r.fit)]
+        data = yaml.safe_dump({
+            'twiss': {k: v for k, v in results if k not in beam_params},
+            'beam': {k: v for k, v in results if k in beam_params},
+        }, default_flow_style=False)
+        with open(filename, 'wt') as f:
+            f.write(data)
 
     def on_update(self):
         self.match_values()
@@ -404,7 +422,7 @@ class EmittanceDialog(_FitWidget):
         respect_coupling = self.respect_coupling.isChecked()
 
         min_monitors = 6 if use_dispersion else 3
-        if len(self._selected) < min_monitors:
+        if self.num_selected() < min_monitors:
             self.results[:] = []
             return
 
