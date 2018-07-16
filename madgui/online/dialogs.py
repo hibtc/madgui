@@ -5,6 +5,7 @@ Dialog for selecting DVM parameters to be synchronized.
 from madgui.qt import QtGui
 from madgui.core.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
+from madgui.util.qt import bold
 from madgui.widget.tableview import TableView, TableItem
 from madgui.widget.params import export_params
 
@@ -29,11 +30,17 @@ class SyncParamWidget(QtGui.QWidget):
     # import/export.
 
     def get_row(self, i, p) -> ("Param", "DVM value", "MAD-X value", "Unit"):
+        style = {
+            'font': bold(),
+            # apparently `backgroundColor` doesn't work with TreeView if also
+            # using style sheets:
+            # 'backgroundColor': QtGui.QColor(Qt.red),
+        } if p.dvm_value != p.mad_value else {}
         return [
-            TableItem(p.name),
-            TableItem(p.dvm_value),
-            TableItem(p.mad_value),
-            TableItem(p.unit),
+            TableItem(p.name, **style),
+            TableItem(p.dvm_value, **style),
+            TableItem(p.mad_value, **style),
+            TableItem(p.unit, **style),
         ]
 
     def __init__(self, title, headline):
