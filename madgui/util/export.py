@@ -5,12 +5,21 @@ import madgui.util.yaml as yaml
 
 
 def import_params(filename, data_key=None):
-    with open(filename, 'rt') as f:
-        # Since JSON is a subset of YAML there is no need to invoke a
-        # different parser (unless we want to validate the file):
-        data = yaml.safe_load(f)
-    if data_key:
-        data = data[data_key]
+    _, ext = os.path.splitext(filename.lower())
+    if ext in ('.yml', '.yaml'):
+        with open(filename, 'rt') as f:
+            data = yaml.safe_load(f)
+        if data_key:
+            data = data[data_key]
+    elif ext == '.str':
+        data = read_str_file(filename)
+        if data is None:
+            raise ValueError(
+                "SyntaxError in {!r}. Not the simplest of .str files?"
+                .format(filename))
+    else:
+        raise ValueError(
+            "Unknown file format for import: {!r}".format(filename))
     return data
 
 

@@ -10,6 +10,7 @@ from bisect import bisect_right
 import subprocess
 from threading import RLock
 from contextlib import contextmanager
+import logging
 
 import numpy as np
 
@@ -20,7 +21,7 @@ from madgui.core.base import Cache
 from madgui.util.stream import AsyncReader
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
-from madgui.util.export import read_str_file
+from madgui.util.export import read_str_file, import_params
 
 
 __all__ = [
@@ -309,17 +310,13 @@ class Model:
         self.elements.invalidate()
         self.twiss.invalidate()
 
-    def load_strengths(self, name):
-        if os.path.splitext(name)[1].lower() in ('.yml', '.yaml'):
-            with open(name, 'rb') as f:
-                new = yaml.safe_load(f)['globals']
+    def load_strengths(self, filename):
+        try:
+            data = import_params(filename, data_key='globals')
+        except ValueError as e:
+            logging.error("Parser error in {!r}:\n{}".format(filename, e))
         else:
-            new = read_str_file(name)
-        if new is None:
-            raise ValueError(
-                "SyntaxError in {!r}. Not the simplest of .str files?"
-                .format(name))
-        self.update_globals(new)
+            self.update_globals(data)
 
     def _call(self, name):
         """Load a MAD-X file into the current workspace."""
