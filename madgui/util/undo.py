@@ -18,6 +18,10 @@ class UndoCommand(QtGui.QUndoCommand):
     def redo(self):
         self._set(self._new)
 
+    if not hasattr(QtGui.QUndoCommand, 'setObsolete'):  # requires Qt 5.9
+        def setObsolete(self, obsolete):
+            pass
+
 
 class UndoStack(QtGui.QUndoStack):
 
