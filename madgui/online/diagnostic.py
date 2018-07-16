@@ -335,7 +335,11 @@ class OrbitWidget(_FitWidget):
         self.update()
 
     def export_to(self, filename):
-        pass
+        data = yaml.safe_dump({
+            'twiss': self.init_orbit,
+        }, default_flow_style=False)
+        with open(filename, 'wt') as f:
+            f.write(data)
 
     def apply(self):
         if not self.singular:
@@ -397,7 +401,16 @@ class EmittanceDialog(_FitWidget):
             model.update_twiss_args(results)
 
     def export_to(self, filename):
-        pass
+        beam_params = ('ex', 'ey', 'et')
+        results = [(r.name.lower(), r.fit)
+                   for r in self.results
+                   if not isnan(r.fit)]
+        data = yaml.safe_dump({
+            'twiss': {k: v for k, v in results if k not in beam_params},
+            'beam': {k: v for k, v in results if k in beam_params},
+        }, default_flow_style=False)
+        with open(filename, 'wt') as f:
+            f.write(data)
 
     def on_update(self):
         self.match_values()
