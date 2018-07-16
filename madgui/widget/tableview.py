@@ -11,6 +11,7 @@ from madgui.core.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property, ranges, cachedproperty
 from madgui.util.collections import List
+from madgui.util.qt import monospace
 from madgui.util.enum import Enum
 from madgui.widget.quantity import DoubleValidator as _DoubleValidator
 from madgui.widget.spinbox import QuantitySpinBox
@@ -395,6 +396,7 @@ class TableView(QtGui.QTreeView):
     def __init__(self, parent=None, **kwargs):
         """Initialize with list of :class:`TableItem`."""
         super().__init__(parent, **kwargs)
+        self.setFont(monospace())
         self.setItemDelegate(TableViewDelegate())
         self.setAlternatingRowColors(True)
         # Prevent the user from folding since this makes it easier to show
