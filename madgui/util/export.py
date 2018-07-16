@@ -64,7 +64,4 @@ def _parse_str_line(line):
     if not m:
         raise ValueError("not an assignment: {!r}".format(line))
     k, v = m.groups()
-    try:
-        return k, float(v)
-    except ValueError:
-        return k, v
+    return k, float(v)
