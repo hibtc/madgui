@@ -377,9 +377,9 @@ class MainWindow(QtGui.QMainWindow):
     def loadStrengths(self):
         from madgui.widget.filedialog import getOpenFileName
         filters = [
+            ("YAML files", "*.yml", "*.yaml"),
             ("Strength files", "*.str"),
             ("All MAD-X files", "*.madx", "*.str", "*.seq"),
-            ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
         ]
         folder = self.str_folder or self.folder
@@ -392,8 +392,8 @@ class MainWindow(QtGui.QMainWindow):
     def saveStrengths(self):
         from madgui.widget.filedialog import getSaveFileName
         filters = [
-            ("Strength files", "*.str"),
             ("YAML files", "*.yml", "*.yaml"),
+            ("Strength files", "*.str"),
             ("All files", "*"),
         ]
         folder = self.str_folder or self.folder
