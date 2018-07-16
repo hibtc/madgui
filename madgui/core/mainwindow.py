@@ -153,13 +153,6 @@ class MainWindow(QtGui.QMainWindow):
                      'Execute MAD-X file in current context.',
                      self.execFile),
                 Separator,
-                Item('&Load strengths', 'Ctrl+L',
-                     'Load .str file (simplified syntax).',
-                     self.loadStrengths),
-                Item('&Save strengths', 'Ctrl+S',
-                     'Save MAD-X file with current strengths.',
-                     self.saveStrengths),
-                Separator,
                 Item('&Quit', 'Ctrl+Q',
                      'Close window.',
                      self.close,
@@ -177,6 +170,16 @@ class MainWindow(QtGui.QMainWindow):
                      'Show a 2D floor plan of the lattice.',
                      self.viewFloorPlan.toggle,
                      checked=self.viewFloorPlan.holds_value),
+            ]),
+            Menu('&Export', [
+                Item('&Strengths', 'Ctrl+S',
+                     'Save MAD-X file with current strengths.',
+                     self.saveStrengths),
+            ]),
+            Menu('&Import', [
+                Item('&Strengths', 'Ctrl+L',
+                     'Load .str file (simplified syntax).',
+                     self.loadStrengths),
             ]),
             Menu('&Settings', [
                 Item('&Number format', None,
@@ -251,7 +254,7 @@ class MainWindow(QtGui.QMainWindow):
                      self.helpAboutQt),
             ]),
         ])
-        self.csys_menu = items[3]
+        self.csys_menu = items[-2]
         self.dc_action = self.csys_menu.actions()[0]
 
     def add_online_plugin(self, loader, name=None):
