@@ -76,6 +76,9 @@ class MonitorWidgetBase(QtGui.QWidget):
     def selected(self, monitor):
         return self._selected.setdefault(monitor.name, False)
 
+    def num_selected(self):
+        return sum(map(self.selected, self.monitors))
+
     def select(self, index):
         self._selected[self.monitors[index].name] = True
         self.on_update()
@@ -349,6 +352,8 @@ class OrbitWidget(_FitWidget):
             ]
 
     def fit_particle_orbit(self):
+        if self.num_selected() < 2:
+            return {}, 0, False
         records = [m for m in self.monitors if self.selected(m)]
         ret, curve = fit_particle_orbit(self.model, self._offsets, records)
         show_backtrack_curve(self.frame, curve)
@@ -404,7 +409,7 @@ class EmittanceDialog(_FitWidget):
         respect_coupling = self.respect_coupling.isChecked()
 
         min_monitors = 6 if use_dispersion else 3
-        if len(self._selected) < min_monitors:
+        if self.num_selected() < min_monitors:
             self.results[:] = []
             return
 
