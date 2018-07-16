@@ -25,10 +25,10 @@ def import_params(filename, data_key=None):
 
 def export_params(filename, data, data_key=None):
     """Export parameters to .YAML/.STR file."""
-    if data_key:
-        data = {data_key: data}
     _, ext = os.path.splitext(filename.lower())
     if ext in ('.yml', '.yaml'):
+        if data_key:
+            data = {data_key: data}
         text = yaml.safe_dump(data, default_flow_style=False)
     elif ext == '.str':
         text = ''.join([
