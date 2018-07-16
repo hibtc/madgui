@@ -310,7 +310,11 @@ class Model:
         self.twiss.invalidate()
 
     def load_strengths(self, name):
-        new = read_strengths(name)
+        if os.path.splitext(name)[1].lower() in ('.yml', '.yaml'):
+            with open(name, 'rb') as f:
+                new = yaml.safe_load(f)['globals']
+        else:
+            new = read_strengths(name)
         if new is None:
             raise ValueError(
                 "SyntaxError in {!r}. Not the simplest of .str files?"

@@ -379,6 +379,7 @@ class MainWindow(QtGui.QMainWindow):
         filters = [
             ("Strength files", "*.str"),
             ("All MAD-X files", "*.madx", "*.str", "*.seq"),
+            ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
         ]
         folder = self.str_folder or self.folder
