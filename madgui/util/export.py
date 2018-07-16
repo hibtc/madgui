@@ -52,9 +52,12 @@ def read_str_file(filename):
 
 
 def _parse_str_lines(lines):
-    return dict(_parse_str_line(line)
-                for line in map(str.strip, lines)
-                if line and not line.startswith('#'))
+    return dict(
+        _parse_str_line(line)
+        for line in map(str.strip, lines)
+        if line and
+        not line.startswith('#') and
+        not line.startswith('!'))
 
 RE_ASSIGN = re.compile(r'^([a-z_][a-z0-9_]*)\s*:?=\s*(.*);$', re.IGNORECASE)
 
