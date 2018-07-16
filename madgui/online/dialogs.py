@@ -9,34 +9,6 @@ from madgui.widget.tableview import TableView, TableItem
 from madgui.widget.params import export_params
 
 
-class ListSelectWidget(QtGui.QWidget):
-
-    """
-    Widget for selecting from an immutable list of items.
-    """
-
-    # TODO: use CheckedStringValue to let user select which items to
-    # import/export.
-
-    _headline = 'Select desired items:'
-
-    def __init__(self, sections, get_rowitem, headline):
-        """Create sizer with content area, i.e. input fields."""
-        super().__init__()
-        self.grid = TableView()
-        self.grid.set_rowgetter(sections, get_rowitem)
-        label = QtGui.QLabel(headline)
-        self.setLayout(VBoxLayout([label, self.grid]))
-
-    @property
-    def data(self):
-        return list(self.grid.rows)
-
-    @data.setter
-    def data(self, data):
-        self.grid.rows = data
-
-
 class SyncParamItem:
 
     def __init__(self, param, dvm_value, mad_value):
@@ -47,11 +19,14 @@ class SyncParamItem:
         self.mad_value = change_unit(mad_value, param.unit, param.ui_unit)
 
 
-class SyncParamWidget(ListSelectWidget):
+class SyncParamWidget(QtGui.QWidget):
 
     """
     Dialog for selecting DVM parameters to be synchronized.
     """
+
+    # TODO: use CheckedStringValue to let user select which items to
+    # import/export.
 
     sections = ("Param", "DVM value", "MAD-X value", "Unit")
 
@@ -65,8 +40,21 @@ class SyncParamWidget(ListSelectWidget):
         ]
 
     def __init__(self, title, headline):
-        super().__init__(self.sections, self.get_row, headline)
+        """Create sizer with content area, i.e. input fields."""
+        super().__init__()
+        self.grid = TableView()
+        self.grid.set_rowgetter(self.sections, self.get_row)
         self.title = title
+        label = QtGui.QLabel(headline)
+        self.setLayout(VBoxLayout([label, self.grid]))
+
+    @property
+    def data(self):
+        return list(self.grid.rows)
+
+    @data.setter
+    def data(self, data):
+        self.grid.rows = data
 
     @property
     def exporter(self):
