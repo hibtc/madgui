@@ -2,7 +2,6 @@
 Parameter input dialog.
 """
 
-import os
 from functools import partial
 
 import cpymad.util as _dtypes
@@ -10,7 +9,7 @@ import cpymad.util as _dtypes
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units, get_raw_label
 from madgui.util.qt import bold
-import madgui.util.yaml as yaml
+from madgui.util.export import export_params, import_params
 
 from madgui.widget.tableview import TableView, TableItem
 
@@ -159,12 +158,7 @@ class ParamTable(TableView):
 
     def importFrom(self, filename):
         """Import data from JSON/YAML file."""
-        with open(filename, 'rt') as f:
-            # Since JSON is a subset of YAML there is no need to invoke a
-            # different parser (unless we want to validate the file):
-            data = yaml.safe_load(f)
-        if self.data_key:
-            data = data[self.data_key]
+        data = import_params(filename, data_key=self.data_key)
         self.store(data, **self.fetch_args)
 
     def exportTo(self, filename):
@@ -172,25 +166,6 @@ class ParamTable(TableView):
         data = {par.name: par.value
                 for par in self.fetch(**self.fetch_args)}
         export_params(filename, data, data_key=self.data_key)
-
-
-def export_params(filename, data, data_key=None):
-    """Export parameters to .YAML/.STR file."""
-    if data_key:
-        data = {data_key: data}
-    _, ext = os.path.splitext(filename.lower())
-    if ext in ('.yml', '.yaml'):
-        text = yaml.safe_dump(data, default_flow_style=False)
-    elif ext == '.str':
-        text = ''.join([
-            '{} = {!r};\n'.format(k, v)
-            for k, v in data.items()
-        ])
-    else:
-        raise ValueError("Unknown file format for export: {!r}"
-                            .format(filename))
-    with open(filename, 'wt') as f:
-        f.write(text)
 
 
 def is_expr_mutable(par):

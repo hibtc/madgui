@@ -9,8 +9,8 @@ import itertools
 from bisect import bisect_right
 import subprocess
 from threading import RLock
-import re
 from contextlib import contextmanager
+import logging
 
 import numpy as np
 
@@ -21,6 +21,7 @@ from madgui.core.base import Cache
 from madgui.util.stream import AsyncReader
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
+from madgui.util.export import read_str_file, import_params
 
 
 __all__ = [
@@ -309,18 +310,18 @@ class Model:
         self.elements.invalidate()
         self.twiss.invalidate()
 
-    def load_strengths(self, name):
-        new = read_strengths(name)
-        if new is None:
-            raise ValueError(
-                "SyntaxError in {!r}. Not the simplest of .str files?"
-                .format(name))
-        self.update_globals(new)
+    def load_strengths(self, filename):
+        try:
+            data = import_params(filename, data_key='globals')
+        except ValueError as e:
+            logging.error("Parser error in {!r}:\n{}".format(filename, e))
+        else:
+            self.update_globals(data)
 
     def _call(self, name):
         """Load a MAD-X file into the current workspace."""
         name = os.path.join(self.path, name)
-        vals = read_strengths(name)
+        vals = read_str_file(name)
         self.madx.call(name, True)
         self.init_files.append(name)
         return vals
@@ -484,6 +485,19 @@ class Model:
         start_name, stop_name = range
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
+
+    def export_globals(self):
+        return {
+            k: p.value
+            for k, p in self.globals.cmdpar.items()
+            if p.var_type > 0
+        }
+
+    def export_beam(self):
+        return dict(self.beam)
+
+    def export_twiss(self):
+        return dict(self.twiss_args)
 
     def fetch_globals(self):
         return self._par_list(self.globals, 'globals', str.upper)
@@ -1082,34 +1096,6 @@ def _eval_expr(value):
     if isinstance(value, ArrayAttribute):
         return list(value)
     return value
-
-
-def read_strengths(filename):
-    """Read .str file, return as dict."""
-    with open(filename) as f:
-        try:
-            return parse_strengths(f)
-        except (ValueError, AttributeError):
-            return None
-
-def parse_strengths(lines):
-    return dict(
-        parse_line(line)
-        for line in map(str.strip, lines)
-        if line and not line.startswith('#')
-    )
-
-RE_ASSIGN = re.compile(r'^([a-z_][a-z0-9_]*)\s*:?=\s*(.*);$', re.IGNORECASE)
-
-def parse_line(line):
-    m = RE_ASSIGN.match(line)
-    if not m:
-        raise ValueError("not an assignment: {!r}".format(line))
-    k, v = m.groups()
-    try:
-        return k, float(v)
-    except ValueError:
-        return k, v
 
 
 def items(d):
