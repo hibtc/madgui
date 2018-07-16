@@ -36,6 +36,9 @@ class AbstractSpinBox(ValueControlBase, QtGui.QAbstractSpinBox):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.editingFinished.connect(self.updateEdit)
+        self.setSizePolicy(
+            QtGui.QSizePolicy.Preferred,
+            QtGui.QSizePolicy.Preferred)
 
     # QWidget overrides
 
