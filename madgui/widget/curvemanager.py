@@ -13,9 +13,7 @@ class CurveManager(QtGui.QWidget):
 
     ui_file = 'curvemanager.ui'
 
-    sections = ["curves"]
-
-    def show_curve(self, row):
+    def show_curve(self, row) -> ("curves",):
         name, data, style = row.data
         def set_name(cell, name):
             self.available[cell.row] = (name, data, style)
@@ -45,7 +43,7 @@ class CurveManager(QtGui.QWidget):
         self.tab.header().setHighlightSections(False)
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.tab.set_rowgetter(self.sections, self.show_curve, self.available)
+        self.tab.set_rowgetter(self.show_curve, self.available)
 
     def connect_signals(self):
         Button = QtGui.QDialogButtonBox

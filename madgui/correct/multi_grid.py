@@ -139,10 +139,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     ui_file = 'mgm_dialog.ui'
 
-    readout_sections = ("Monitor", "X", "Y")
-    readout_units = (None, 'posx', 'posy')
-
-    def get_readout_row(self, item):
+    def get_readout_row(self, item) -> ("Monitor", "X", "Y"):
         r = item.data
         return [
             TableItem(r.name),
@@ -150,9 +147,7 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(r.posy, name='posy'),
         ]
 
-    cons_sections = ("Element", "Param", "Value", "Unit")
-
-    def get_cons_row(self, item):
+    def get_cons_row(self, item) -> ("Element", "Param", "Value", "Unit"):
         c = item.data
         return [
             TableItem(c.elem.node_name),
@@ -161,9 +156,7 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(ui_units.label(c.axis)),
         ]
 
-    steerer_sections = ("Steerer", "Initial", "Final", "Unit")
-
-    def get_steerer_row(self, item):
+    def get_steerer_row(self, item) -> ("Steerer", "Initial", "Final", "Unit"):
         v = item.data
         return [
             TableItem(v.knob),
@@ -200,9 +193,9 @@ class CorrectorWidget(QtGui.QWidget):
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.mon_tab.set_rowgetter(self.readout_sections, self.get_readout_row, corr.readouts, self.readout_units)
-        self.var_tab.set_rowgetter(self.steerer_sections, self.get_steerer_row, corr.variables)
-        self.con_tab.set_rowgetter(self.cons_sections, self.get_cons_row, corr.constraints)
+        self.mon_tab.set_rowgetter(self.get_readout_row, corr.readouts, unit=True)
+        self.var_tab.set_rowgetter(self.get_steerer_row, corr.variables)
+        self.con_tab.set_rowgetter(self.get_cons_row, corr.constraints)
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
         fit_button(self.btn_edit_conf)

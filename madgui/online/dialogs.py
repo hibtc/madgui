@@ -28,9 +28,7 @@ class SyncParamWidget(QtGui.QWidget):
     # TODO: use CheckedStringValue to let user select which items to
     # import/export.
 
-    sections = ("Param", "DVM value", "MAD-X value", "Unit")
-
-    def get_row(self, item):
+    def get_row(self, item) -> ("Param", "DVM value", "MAD-X value", "Unit"):
         p = item.data
         return [
             TableItem(p.name),
@@ -43,7 +41,7 @@ class SyncParamWidget(QtGui.QWidget):
         """Create sizer with content area, i.e. input fields."""
         super().__init__()
         self.grid = TableView()
-        self.grid.set_rowgetter(self.sections, self.get_row)
+        self.grid.set_rowgetter(self.get_row)
         self.title = title
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, self.grid]))

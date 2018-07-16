@@ -23,10 +23,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
     progress = 0
     extension = '.calibration.yml'
 
-    result_sections = ("Monitor", "Δx", "Δy")
-    result_units = (None, 'x', 'y')
-
-    def get_result_row(self, item):
+    def get_result_row(self, item) -> ("Monitor", "Δx", "Δy"):
         r = item.data
         return [
             TableItem(r.name),
@@ -77,8 +74,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.ctrl_optics.textChanged.connect(self.update_ui)
         self.ctrl_quads.itemSelectionChanged.connect(self.update_ui)
         self.ctrl_results.set_rowgetter(
-            self.result_sections, self.get_result_row, self.fit_results,
-            self.result_units)
+            self.get_result_row, self.fit_results, unit=True)
         self.update_filename()
         self.btn_file.clicked.connect(self.change_output_file)
         self.update_ui()

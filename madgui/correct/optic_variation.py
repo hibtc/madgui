@@ -239,7 +239,6 @@ class CorrectorWidget(QtGui.QWidget):
     ui_file = 'ovm_dialog.ui'
 
     records_sections = ("QP1", "QP2", "x", "y")
-    records_units = (None, None, "x", "y")
 
     def records_row(self, item):
         r = item.data
@@ -250,10 +249,8 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(r.y, name='y'),
         ]
 
-    fit_sections = ("Param", "Value", "Unit")
-
     # FIXME: units are broken in these two tabs:
-    def fit_row(self, item):
+    def fit_row(self, item) -> ("Param", "Value", "Unit"):
         c = item.data
         return [
             TableItem(c.name),
@@ -261,9 +258,7 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(ui_units.label(c.name)),
         ]
 
-    steerer_sections = ("Steerer", "Optimal", "Current", "Unit")
-
-    def steerer_row(self, item):
+    def steerer_row(self, item) -> ("Steerer", "Optimal", "Current", "Unit"):
         c = item.data
         return [
             TableItem(c.name),
@@ -379,8 +374,7 @@ class CorrectorWidget(QtGui.QWidget):
                                  .format(display_name(self.corrector.target)))
         records_sections = (par1.name, par2.name) + self.records_sections[2:]
         # TODO: also set target name in records_columns?
-        self.records_table.set_rowgetter(records_sections, self.records_row,
-                                         unit=self.records_units)
+        self.records_table.set_rowgetter(self.records_row, unit=True, titles=records_sections)
         self.fit_table.set_rowgetter(self.fit_sections, self.fit_row)
         self.corrections_table.set_rowgetter(self.steerer_sections, self.steerer_row)
         self.records_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)

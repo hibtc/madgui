@@ -60,8 +60,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self._offsets = frame.config['online_control']['offsets']
         self._selected = self._shown.copy()
 
-        self.mtab.set_rowgetter(self.monitor_sections, self.get_monitor_row,
-                                unit=self.monitor_units)
+        self.mtab.set_rowgetter(self.get_monitor_row, unit=True)
         self.mtab.header().setHighlightSections(False)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -152,10 +151,7 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
     ui_file = 'monitorwidget.ui'
 
-    monitor_sections = ("Monitor", "x", "y", "Δx", "Δy")
-    monitor_units = (None, 'posx', 'posy', 'envx', 'envy')
-
-    def get_monitor_row(self, item):
+    def get_monitor_row(self, item) -> ("Monitor", "x", "y", "Δx", "Δy"):
         m = item.data
         fg = get_monitor_textcolor(m)
         return [
@@ -219,10 +215,7 @@ class OffsetsWidget(MonitorWidgetBase):
 
     ui_file = 'offsetswidget.ui'
 
-    monitor_sections = ("Monitor", "Δx", "Δy")
-    monitor_units = (None, 'envx', 'envy')
-
-    def get_monitor_row(self, item):
+    def get_monitor_row(self, item) -> ("Monitor", "Δx", "Δy"):
         m = item.data
         fg = get_monitor_textcolor(m)
         dx, dy = self._offsets.get(m.name.lower(), (0, 0))
@@ -302,9 +295,7 @@ class _FitWidget(MonitorWidgetBase):
 
     ui_file = 'emittance.ui'
 
-    result_sections = ("Name", "Model", "Fit", "Unit")
-
-    def get_result_row(self, item):
+    def get_result_row(self, item) -> ("Name", "Model", "Fit", "Unit"):
         r = item.data
         return [
             TableItem(r.name),
@@ -321,16 +312,12 @@ class _FitWidget(MonitorWidgetBase):
         self.rtab.header().setHighlightSections(False)
         self.rtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.rtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.rtab.set_rowgetter(self.result_sections, self.get_result_row,
-                                self.results)
+        self.rtab.set_rowgetter(self.get_result_row, self.results)
 
 
 class OrbitWidget(_FitWidget):
 
-    monitor_sections = ("Monitor", "x", "y")
-    monitor_units = (None, 'posx', 'posy')
-
-    def get_monitor_row(self, item):
+    def get_monitor_row(self, item) -> ("Monitor", "x", "y"):
         m = item.data
         fg = get_monitor_textcolor(m)
         return [
@@ -375,10 +362,7 @@ class OrbitWidget(_FitWidget):
 
 class EmittanceDialog(_FitWidget):
 
-    monitor_sections = ("Monitor", "Δx", "Δy")
-    monitor_units = (None, 'envx', 'envy')
-
-    def get_monitor_row(self, item):
+    def get_monitor_row(self, item) -> ("Monitor", "Δx", "Δy"):
         m = item.data
         fg = get_monitor_textcolor(m)
         return [

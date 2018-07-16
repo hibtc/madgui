@@ -52,7 +52,7 @@ class MatchWidget(QtGui.QWidget):
 
     # columns
 
-    def cons_items(self, item):
+    def cons_items(self, item) -> ("Element", "Name", "Target", "Unit"):
         c = item.data
         elem = self.elem_enum(c.elem.node_name if c.elem else "(global)")
         name = self.lcon_enum(c.axis)
@@ -78,9 +78,7 @@ class MatchWidget(QtGui.QWidget):
             TableItem(unit),
         ]
 
-    cons_sections = ("Element", "Name", "Target", "Unit")
-
-    def var_items(self, item):
+    def var_items(self, item) -> ("Knob", "Initial", "Final"):
         v = item.data
         def set_knob(cell, text):
             if text is not None:
@@ -94,8 +92,6 @@ class MatchWidget(QtGui.QWidget):
             TableItem(v.value),
         ]
 
-    var_sections = ("Knob", "Initial", "Final")
-
     # The three steps of UI initialization
 
     def init_controls(self):
@@ -105,10 +101,8 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.ctab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.vtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.ctab.set_rowgetter(
-            self.cons_sections, self.cons_items, self.matcher.constraints)
-        self.vtab.set_rowgetter(
-            self.var_sections, self.var_items, self.matcher.variables)
+        self.ctab.set_rowgetter(self.cons_items, self.matcher.constraints)
+        self.vtab.set_rowgetter(self.var_items, self.matcher.variables)
 
     def set_initial_values(self):
         self.check_mirror.setChecked(self.matcher.mirror_mode)

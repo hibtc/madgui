@@ -359,10 +359,12 @@ class TableView(QtGui.QTreeView):
         self.model().layoutAboutToBeChanged.emit()
         self.model().layoutChanged.emit()
 
-    def set_rowgetter(self, titles, rowitems, data=None, unit=()):
-        titles = list(titles)
+    def set_rowgetter(self, rowitems, data=None, unit=(), titles=None):
+        titles = list(titles or rowitems.__annotations__['return'])
+        if unit is True:
+            unit = list(titles)
         for i, u in enumerate(unit):
-            if u:
+            if u and ui_units.get(u):
                 titles[i] += '/' + ui_units.label(u)
         self.setModel(TableModel(titles, rowitems, data))
         self.model().rowsInserted.connect(lambda *_: self.expandAll())

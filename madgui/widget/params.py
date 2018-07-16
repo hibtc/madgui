@@ -59,7 +59,7 @@ class ParamTable(TableView):
         self.fetch_args = {}
 
         super().__init__(**kwargs)
-        self.set_rowgetter(self.sections, self.get_param_row)
+        self.set_rowgetter(self.get_param_row, titles=self.sections)
         # in case anyone turns the header back on:
         self.header().setHighlightSections(False)
         self.header().hide()
@@ -71,9 +71,10 @@ class ParamTable(TableView):
 
     @property
     def sections(self):
-        return ("Parameter", "Value", "Unit")[:2+bool(self.units)]
+        titles = self.get_param_row.__annotations__['return']
+        return titles if self.units else titles[:-1]
 
-    def get_param_row(self, item):
+    def get_param_row(self, item) -> ("Parameter", "Value", "Unit"):
         p = item.data
         mutable = p.mutable and not self.readonly
         textcolor = QtGui.QColor(Qt.black if mutable else Qt.darkGray)
@@ -216,9 +217,7 @@ class CommandEdit(ParamTable):
     showing the expression!
     """
 
-    sections = ("Parameter", "Value", "Unit", "Expression")
-
-    def get_param_row(self, item):
+    def get_param_row(self, item) -> ("Parameter", "Value", "Unit", "Expression"):
         p = item.data
         is_vector = isinstance(p.value, list)
         name = p.name.title()
@@ -294,9 +293,7 @@ class CommandEdit(ParamTable):
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    sections = ("Name", "Value", "Expression")
-
-    def get_param_row(self, item):
+    def get_param_row(self, item) -> ("Name", "Value", "Expression"):
         p = item.data
         return [
             TableItem(get_var_name(p.name),
