@@ -173,13 +173,25 @@ class MainWindow(QtGui.QMainWindow):
             ]),
             Menu('&Export', [
                 Item('&Strengths', None,
-                     'Save MAD-X file with current strengths.',
+                     'Export magnet strengths.',
                      self.saveStrengths),
+                Item('&Beam', None,
+                     'Export beam settings.',
+                     self.saveBeam),
+                Item('&Twiss && orbit', None,
+                     'Export initial twiss parameters.',
+                     self.saveTwiss),
             ]),
             Menu('&Import', [
                 Item('&Strengths', None,
                      'Load .str file (simplified syntax).',
                      self.loadStrengths),
+                Item('&Beam', None,
+                     'Import beam settings.',
+                     self.loadBeam),
+                Item('&Twiss && orbit', None,
+                     'Import initial twiss parameters.',
+                     self.loadTwiss),
             ]),
             Menu('&Settings', [
                 Item('&Number format', None,
@@ -375,37 +387,64 @@ class MainWindow(QtGui.QMainWindow):
             self.exec_folder = os.path.dirname(filename)
 
     def loadStrengths(self):
-        from madgui.widget.filedialog import getOpenFileName
-        filters = [
+        self._import("Import magnet strengths", [
             ("YAML files", "*.yml", "*.yaml"),
             ("Strength files", "*.str"),
             ("All MAD-X files", "*.madx", "*.str", "*.seq"),
             ("All files", "*"),
-        ]
+        ], self.model().update_globals, data_key='globals')
+
+    def loadBeam(self):
+        self._import("Import beam parameters", [
+            ("YAML files", "*.yml", "*.yaml"),
+            ("All files", "*"),
+        ], self.model().update_beam, data_key='beam')
+
+    def loadTwiss(self):
+        self._import("Import initial twiss parameters", [
+            ("YAML files", "*.yml", "*.yaml"),
+            ("All files", "*"),
+        ], self.model().update_twiss, data_key='twiss')
+
+    def _import(self, title, filters, callback, data_key):
+        from madgui.widget.filedialog import getOpenFileName
         folder = self.str_folder or self.folder
-        filename = getOpenFileName(
-            self, 'Open MAD-X strengths file', folder, filters)
+        filename = getOpenFileName(self, title, folder, filters)
         if filename:
-            self.model().load_strengths(filename)
+            from madgui.widget.params import import_params
+            data = import_params(filename)
+            callback(import_params)
             self.str_folder = os.path.dirname(filename)
 
     def saveStrengths(self):
-        from madgui.widget.filedialog import getSaveFileName
-        filters = [
+        self._export("Save MAD-X strengths file", [
             ("YAML files", "*.yml", "*.yaml"),
             ("Strength files", "*.str"),
             ("All files", "*"),
-        ]
+        ], self.model().export_globals, data_key='globals')
+
+    def saveBeam(self):
+        # TODO: import/export MAD-X file (with only BEAM command)
+        self._export("Save MAD-X strengths file", [
+            ("YAML files", "*.yml", "*.yaml"),
+            ("All files", "*"),
+        ], self.model().export_beam, data_key='beam')
+
+    def saveTwiss(self):
+        # TODO: import/export MAD-X file (with only TWISS command)
+        self._export("Save MAD-X strengths file", [
+            ("YAML files", "*.yml", "*.yaml"),
+            ("All files", "*"),
+        ], self.model().export_twiss, data_key='twiss')
+
+    def _export(self, title, filters, fetch_data, data_key):
+        from madgui.widget.filedialog import getSaveFileName
         folder = self.str_folder or self.folder
-        filename = getSaveFileName(
-            self, 'Save MAD-X strengths file', folder, filters)
+        filename = getSaveFileName(self, title, folder, filters)
         if filename:
             from madgui.widget.params import export_params
-            export_params(filename, {
-                k: p.value
-                for k, p in self.model().globals.cmdpar.items()
-                if p.var_type > 0
-            }, data_key='globals')
+            data = fetch_data()
+            export_params(filename, data, data_key=data_key)
             self.str_folder = os.path.dirname(filename)
 
     @SingleWindow.factory

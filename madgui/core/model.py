@@ -486,6 +486,19 @@ class Model:
         return (self.get_element_info(start_name),
                 self.get_element_info(stop_name))
 
+    def export_globals(self):
+        return {
+            k: p.value
+            for k, p in self.globals.cmdpar.items()
+            if p.var_type > 0
+        }
+
+    def export_beam(self):
+        return dict(self.beam)
+
+    def export_twiss(self):
+        return dict(self.twiss_args)
+
     def fetch_globals(self):
         return self._par_list(self.globals, 'globals', str.upper)
 
