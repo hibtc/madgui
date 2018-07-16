@@ -8,7 +8,7 @@ from madgui.qt import QtCore, QtGui, load_ui
 from madgui.util import yaml
 from madgui.util.qt import monospace
 from madgui.util.collections import List
-from madgui.widget.tableview import ColumnInfo
+from madgui.widget.tableview import TableItem
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'x', 'y'])
@@ -23,11 +23,16 @@ class OffsetCalibrationWidget(QtGui.QWidget):
     progress = 0
     extension = '.calibration.yml'
 
-    result_columns = ("Monitor", "Δx", "Δy"), [
-        ColumnInfo('name'),
-        ColumnInfo('x', convert=True),
-        ColumnInfo('y', convert=True),
-    ]
+    result_sections = ("Monitor", "Δx", "Δy")
+    result_units = (None, 'x', 'y')
+
+    def get_result_row(self, item):
+        r = item.data
+        return [
+            TableItem(r.name),
+            TableItem(r.x, name='x'),
+            TableItem(r.y, name='y'),
+        ]
 
     def __init__(self, parent, monitors):
         super().__init__()
@@ -71,7 +76,9 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_focus.clicked.connect(self.read_focus)
         self.ctrl_optics.textChanged.connect(self.update_ui)
         self.ctrl_quads.itemSelectionChanged.connect(self.update_ui)
-        self.ctrl_results.set_columns(self.result_columns, self.fit_results)
+        self.ctrl_results.set_rowgetter(
+            self.result_sections, self.get_result_row, self.fit_results,
+            self.result_units)
         self.update_filename()
         self.btn_file.clicked.connect(self.change_output_file)
         self.update_ui()

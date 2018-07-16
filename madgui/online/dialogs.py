@@ -5,7 +5,7 @@ Dialog for selecting DVM parameters to be synchronized.
 from madgui.qt import QtGui
 from madgui.core.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
-from madgui.widget.tableview import TableView, ColumnInfo
+from madgui.widget.tableview import TableView, TableItem
 from madgui.widget.params import export_params
 
 
@@ -20,11 +20,11 @@ class ListSelectWidget(QtGui.QWidget):
 
     _headline = 'Select desired items:'
 
-    def __init__(self, columns, headline):
+    def __init__(self, sections, get_rowitem, headline):
         """Create sizer with content area, i.e. input fields."""
         super().__init__()
         self.grid = TableView()
-        self.grid.set_columns(columns, context=self)
+        self.grid.set_rowgetter(sections, get_rowitem)
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, self.grid]))
 
@@ -53,15 +53,19 @@ class SyncParamWidget(ListSelectWidget):
     Dialog for selecting DVM parameters to be synchronized.
     """
 
-    columns = ("Param", "DVM value", "MAD-X value", "Unit"), [
-        ColumnInfo('name'),
-        ColumnInfo('dvm_value'),
-        ColumnInfo('mad_value'),
-        ColumnInfo('unit'),
-    ]
+    sections = ("Param", "DVM value", "MAD-X value", "Unit")
+
+    def get_row(self, item):
+        p = item.data
+        return [
+            TableItem(p.name),
+            TableItem(p.dvm_value),
+            TableItem(p.mad_value),
+            TableItem(p.unit),
+        ]
 
     def __init__(self, title, headline):
-        super().__init__(self.columns, headline)
+        super().__init__(self.sections, self.get_row, headline)
         self.title = title
 
     @property

@@ -11,7 +11,7 @@ from madgui.core.unit import ui_units
 from madgui.util import yaml
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
-from madgui.widget.tableview import ColumnInfo
+from madgui.widget.tableview import TableItem
 
 from madgui.correct.orbit import (
     MonitorReadout, fit_particle_orbit, show_backtrack_curve)
@@ -33,28 +33,8 @@ class MonitorWidget(QtGui.QDialog):
 ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
 
 
-def get_monitor_name(cell):
-    return cell.data.name
-
-def get_monitor_show(cell):
-    monitor, mgr = cell.data, cell.context
-    return mgr.selected(monitor)
-
-def set_monitor_show(cell, show):
-    i, monitor, mgr = cell.row, cell.data, cell.context
-    shown = mgr.selected(monitor)
-    if show and not shown:
-        mgr.select(i)
-    elif not show and shown:
-        mgr.deselect(i)
-
-
-def get_monitor_valid(cell):
-    return cell.data.valid
-
-
-def get_monitor_textcolor(cell):
-    return QtGui.QColor(Qt.black if cell.data.valid else Qt.darkGray)
+def get_monitor_textcolor(mon):
+    return QtGui.QColor(Qt.black if mon.valid else Qt.darkGray)
 
 
 class MonitorWidgetBase(QtGui.QWidget):
@@ -80,7 +60,8 @@ class MonitorWidgetBase(QtGui.QWidget):
         self._offsets = frame.config['online_control']['offsets']
         self._selected = self._shown.copy()
 
-        self.mtab.set_columns(self.monitor_columns, context=self)
+        self.mtab.set_rowgetter(self.monitor_sections, self.get_monitor_row,
+                                unit=self.monitor_units)
         self.mtab.header().setHighlightSections(False)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -158,20 +139,34 @@ class MonitorWidgetBase(QtGui.QWidget):
             self.export_to(filename)
             self.folder, _ = os.path.split(filename)
 
+    def set_monitor_show(self, item, show):
+        i, mon = item.row, item.parent.data
+        shown = self.selected(mon)
+        if show and not shown:
+            self.select(i)
+        elif not show and shown:
+            self.deselect(i)
+
 
 class PlotMonitorWidget(MonitorWidgetBase):
 
     ui_file = 'monitorwidget.ui'
 
-    monitor_columns = ("Monitor", "x", "y", "Δx", "Δy"), [
-        ColumnInfo(get_monitor_name, checkable=True,
-                   foreground=get_monitor_textcolor,
-                   checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo('posx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo('posy', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo('envx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo('envy', convert=True, foreground=get_monitor_textcolor),
-    ]
+    monitor_sections = ("Monitor", "x", "y", "Δx", "Δy")
+    monitor_units = (None, 'posx', 'posy', 'envx', 'envy')
+
+    def get_monitor_row(self, item):
+        m = item.data
+        fg = get_monitor_textcolor(m)
+        return [
+            TableItem(m.name, checkable=True, foreground=fg,
+                      checked=self.selected(m),
+                      set_checked=self.set_monitor_show),
+            TableItem(m.posx, name='posx', foreground=fg),
+            TableItem(m.posy, name='posy', foreground=fg),
+            TableItem(m.envx, name='envx', foreground=fg),
+            TableItem(m.envy, name='envy', foreground=fg),
+        ]
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
@@ -220,28 +215,24 @@ class PlotMonitorWidget(MonitorWidgetBase):
             .format(ext))
 
 
-def get_offset_x(cell):
-    mon, mgr = cell.data, cell.context
-    return mgr._offsets.get(mon.name.lower(), (0, 0))[0]
-
-def get_offset_y(cell):
-    mon, mgr = cell.data, cell.context
-    return mgr._offsets.get(mon.name.lower(), (0, 0))[1]
-
-
 class OffsetsWidget(MonitorWidgetBase):
 
     ui_file = 'offsetswidget.ui'
 
-    monitor_columns = ("Monitor", "Δx", "Δy"), [
-        ColumnInfo(get_monitor_name, checkable=True,
-                   foreground=get_monitor_textcolor,
-                   checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo(get_offset_x, name=lambda c: 'x',
-                   foreground=get_monitor_textcolor),
-        ColumnInfo(get_offset_y, name=lambda c: 'y',
-                   foreground=get_monitor_textcolor),
-    ]
+    monitor_sections = ("Monitor", "Δx", "Δy")
+    monitor_units = (None, 'envx', 'envy')
+
+    def get_monitor_row(self, item):
+        m = item.data
+        fg = get_monitor_textcolor(m)
+        dx, dy = self._offsets.get(m.name.lower(), (0, 0))
+        return [
+            TableItem(m.name, checkable=True, foreground=fg,
+                      checked=self.selected(m),
+                      set_checked=self.set_monitor_show),
+            TableItem(dx, name='posx', foreground=fg),
+            TableItem(dy, name='posy', foreground=fg),
+        ]
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -311,12 +302,16 @@ class _FitWidget(MonitorWidgetBase):
 
     ui_file = 'emittance.ui'
 
-    result_columns = ("Name", "Model", "Fit", "Unit"), [
-        ColumnInfo('name'),
-        ColumnInfo('model', convert='name'),
-        ColumnInfo('fit', convert='name'),
-        ColumnInfo(lambda cell: ui_units.label(cell.data.name)),
-    ]
+    result_sections = ("Name", "Model", "Fit", "Unit")
+
+    def get_result_row(self, item):
+        r = item.data
+        return [
+            TableItem(r.name),
+            TableItem(r.model, name=r.name),
+            TableItem(r.fit, name=r.name),
+            TableItem(ui_units.label(r.name)),
+        ]
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
@@ -326,18 +321,25 @@ class _FitWidget(MonitorWidgetBase):
         self.rtab.header().setHighlightSections(False)
         self.rtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.rtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.rtab.set_columns(self.result_columns, self.results, self)
+        self.rtab.set_rowgetter(self.result_sections, self.get_result_row,
+                                self.results)
 
 
 class OrbitWidget(_FitWidget):
 
-    monitor_columns = ("Monitor", "x", "y"), [
-        ColumnInfo(get_monitor_name, checkable=True,
-                   foreground=get_monitor_textcolor,
-                   checked=get_monitor_show, setChecked=set_monitor_show),
-        ColumnInfo('posx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo('posy', convert=True, foreground=get_monitor_textcolor),
-    ]
+    monitor_sections = ("Monitor", "x", "y")
+    monitor_units = (None, 'posx', 'posy')
+
+    def get_monitor_row(self, item):
+        m = item.data
+        fg = get_monitor_textcolor(m)
+        return [
+            TableItem(m.name, checkable=True, foreground=fg,
+                      checked=self.selected(m),
+                      set_checked=self.set_monitor_show),
+            TableItem(m.posx, name='posx', foreground=fg),
+            TableItem(m.posy, name='posy', foreground=fg),
+        ]
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
@@ -373,14 +375,19 @@ class OrbitWidget(_FitWidget):
 
 class EmittanceDialog(_FitWidget):
 
-    monitor_columns = ("Monitor", "Δx", "Δy"), [
-        ColumnInfo('name', checkable=get_monitor_valid,
-                   foreground=get_monitor_textcolor,
-                   checked=get_monitor_show,
-                   setChecked=set_monitor_show),
-        ColumnInfo('envx', convert=True, foreground=get_monitor_textcolor),
-        ColumnInfo('envy', convert=True, foreground=get_monitor_textcolor),
-    ]
+    monitor_sections = ("Monitor", "Δx", "Δy")
+    monitor_units = (None, 'envx', 'envy')
+
+    def get_monitor_row(self, item):
+        m = item.data
+        fg = get_monitor_textcolor(m)
+        return [
+            TableItem(m.name, checkable=m.valid, foreground=fg,
+                      checked=self.selected(m),
+                      set_checked=self.set_monitor_show),
+            TableItem(m.envx, name='envx', foreground=fg),
+            TableItem(m.envy, name='envy', foreground=fg),
+        ]
 
     # The three steps of UI initialization
 

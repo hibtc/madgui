@@ -20,7 +20,6 @@ import madgui.core.config as config
 
 
 __all__ = [
-    'ColumnInfo',
     'TableItem',
     'TableModel',
     'TableView',
@@ -97,50 +96,14 @@ class NodeItem:
             for row in self.rows
         ]
 
-    def get_context(self):
-        return self.node.granny.item.context
-
     def get_granny(self):
         return self.node.granny.item
 
+    def get_parent(self):
+        return self.node.parent.item
+
     def get_index(self):
         return self.node.index()
-
-
-def ColumnInfo(getter, setter=None, *, convert=False, **kwargs):
-    """
-    Column specification for a table widget.
-
-    :param callable getter: item -> value
-    :param callable setter: (rows,idx,value) -> ()
-    :param bool convert: automatic unit conversion, can be string to base
-                         quanitity name on an attribute of the item
-    :param kwargs: any parameter in ``ROLES`` or a method override, in
-                   particular ``mutable``, ``delegate``, ``checkable``,
-                   ``checked``, ``setChecked``. Can be given as static
-                   value or as function: cell->value
-    """
-    if isinstance(getter, str):
-        def get_value(self):
-            return getattr(self.data, self.attr)
-    else:
-        def get_value(self):
-            return self.attr
-    if 'setChecked' in kwargs:
-        kwargs['set_checked'] = kwargs.pop('setChecked')
-    kwargs['attr'] = getter
-    getters = [k for k, v in kwargs.items()
-               if callable(v) and not k.startswith('set')]
-    members = {k: v for k, v in kwargs.items() if k not in getters}
-    members.update({
-        'get_' + k: v
-        for k, v in kwargs.items()
-        if k in getters
-    })
-    members['set_value'] = setter
-    members['get_value'] = get_value
-    members['convert'] = convert
-    return type(str(getter), (TableItem,), members)
 
 
 # TODO: add `deleter`
@@ -195,17 +158,6 @@ class TableItem(NodeItem):
 
     def get_ui_value(self):
         return to_ui(self.name, self.value)
-
-    def get_name(self):
-        convert = self.convert
-        if convert:
-            if isinstance(convert, str):
-                return getattr(self.data, convert)
-            elif callable(convert):
-                return convert(self.data)
-            else:
-                # NOTE: incompatible with custom getters/setters
-                return self.attr
 
     def get_checked(self):
         if isinstance(self.delegate, BoolDelegate):
@@ -294,16 +246,13 @@ class TableModel(QtCore.QAbstractItemModel):
     data can be accessed and changed via the list-like :attribute:`rows`.
     """
 
-    def __init__(self, titles, columns, data=None, context=None):
+    def __init__(self, titles, rowitems, data=None):
         super().__init__()
         self.titles = titles
-        self.columns = columns
-        self.context = context = context if context is not None else self
         self._rows = rows = List() if data is None else data
         self._rows.update_after.connect(self._refresh)
         self.parent = None
-        self.root = TreeNode(NodeItem(
-            rows=rows, columns=columns, context=context))
+        self.root = TreeNode(NodeItem(rows=rows, rowitems=rowitems))
 
     def _refresh(self, *_):
         self.beginResetModel()
@@ -341,7 +290,7 @@ class TableModel(QtCore.QAbstractItemModel):
         return self.createIndex(parent.row, parent.col, parent)
 
     def columnCount(self, parent=QtCore.QModelIndex()):
-        return len(self.columns)
+        return len(self.titles)
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.cell(parent).children or ())
@@ -410,12 +359,12 @@ class TableView(QtGui.QTreeView):
         self.model().layoutAboutToBeChanged.emit()
         self.model().layoutChanged.emit()
 
-    def set_columns(self, col_defs, data=None, context=None):
-        titles, columns = col_defs
-        titles = [t + '/' + ui_units.label(c.attr)
-                  if getattr(c, 'convert', False) is True else t
-                  for t, c in zip(titles, columns)]
-        self.setModel(TableModel(titles, columns, data, context))
+    def set_rowgetter(self, titles, rowitems, data=None, unit=()):
+        titles = list(titles)
+        for i, u in enumerate(unit):
+            if u:
+                titles[i] += '/' + ui_units.label(u)
+        self.setModel(TableModel(titles, rowitems, data))
         self.model().rowsInserted.connect(lambda *_: self.expandAll())
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
@@ -496,7 +445,7 @@ class TableView(QtGui.QTreeView):
 
     def sizeHint(self):
         content_width = sum(map(self._columnContentWidth,
-                                range(len(self.model().columns))))
+                                range(len(self.model().titles))))
         margins_width = (self.contentsMargins().left() +
                          self.contentsMargins().right())
         scrollbar_width = self.verticalScrollBar().width()

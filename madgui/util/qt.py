@@ -51,6 +51,12 @@ def monospace():
     return QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
 
 
+def bold():
+    font = QtGui.QFont()
+    font.setBold(True)
+    return font
+
+
 def load_icon_resource(module, name, format='XPM'):
     with resource_filename(module, name) as filename:
         return QtGui.QIcon(QtGui.QPixmap(str(filename), format))

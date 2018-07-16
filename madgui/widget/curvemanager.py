@@ -9,37 +9,27 @@ from madgui.widget.tableview import TableItem
 from madgui.widget.filedialog import getOpenFileName
 
 
-class Curves(TableItem):
-
-    checkable = True
-
-    def get_value(self):
-        name, data, style = self.data
-        return name
-
-    def set_value(self, name):
-        i, mgr = self.row, self.context
-        _, data, style = self.data
-        mgr.available[i] = (name, data, style)
-
-    def get_checked(self):
-        i, mgr = self.row, self.context
-        return i in mgr.selected
-
-    def set_checked(self, show):
-        i, mgr = self.row, self.context
-        shown = i in mgr.selected
-        if show and not shown:
-            mgr.selected.append(i)
-        elif not show and shown:
-            mgr.selected.remove(i)
-
-
 class CurveManager(QtGui.QWidget):
 
     ui_file = 'curvemanager.ui'
 
-    columns = ["curves"], [Curves]
+    sections = ["curves"]
+
+    def show_curve(self, row):
+        name, data, style = row.data
+        def set_name(cell, name):
+            self.available[cell.row] = (name, data, style)
+        def set_checked(cell, show):
+            shown = cell.row in self.selected
+            if show and not shown:
+                self.selected.append(cell.row)
+            elif not show and shown:
+                self.selected.remove(cell.row)
+        return [
+            TableItem(value=name, checked=row.index in self.selected,
+                      checkable=True,
+                      set_value=set_name, set_checked=set_checked),
+        ]
 
     def __init__(self, scene):
         super().__init__()
@@ -55,7 +45,7 @@ class CurveManager(QtGui.QWidget):
         self.tab.header().setHighlightSections(False)
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.tab.set_columns(self.columns, self.available, self)
+        self.tab.set_rowgetter(self.sections, self.show_curve, self.available)
 
     def connect_signals(self):
         Button = QtGui.QDialogButtonBox
