@@ -172,12 +172,12 @@ class MainWindow(QtGui.QMainWindow):
                      checked=self.viewFloorPlan.holds_value),
             ]),
             Menu('&Export', [
-                Item('&Strengths', 'Ctrl+S',
+                Item('&Strengths', None,
                      'Save MAD-X file with current strengths.',
                      self.saveStrengths),
             ]),
             Menu('&Import', [
-                Item('&Strengths', 'Ctrl+L',
+                Item('&Strengths', None,
                      'Load .str file (simplified syntax).',
                      self.loadStrengths),
             ]),
