@@ -3,14 +3,16 @@ Parameter input dialog.
 """
 
 import os
+from functools import partial
 
 import cpymad.util as _dtypes
 
 from madgui.qt import QtGui, Qt
 from madgui.core.unit import ui_units, get_raw_label
+from madgui.util.qt import bold
 import madgui.util.yaml as yaml
 
-from madgui.widget.tableview import TableView, ColumnInfo
+from madgui.widget.tableview import TableView, TableItem
 
 
 __all__ = [
@@ -37,25 +39,6 @@ class ParamInfo:
         self.var_type = var_type
 
 
-def get_unit(cell):
-    param = cell.data
-    if not isinstance(param.value, list):
-        return ui_units.label(param.name, param.value)
-
-
-def set_value(cell, value):
-    tab, param = cell.context, cell.data
-    tab.store({param.name: value}, **tab.fetch_args)
-
-
-def cell_is_mutable(cell):
-    return cell.data.mutable and not cell.context.readonly
-
-
-def cell_textcolor(cell):
-    return QtGui.QColor(Qt.black if cell.mutable else Qt.darkGray)
-
-
 class ParamTable(TableView):
 
     """
@@ -77,7 +60,7 @@ class ParamTable(TableView):
         self.fetch_args = {}
 
         super().__init__(**kwargs)
-        self.set_columns(self.columns, context=self)
+        self.set_rowgetter(self.get_param_row, titles=self.sections)
         # in case anyone turns the header back on:
         self.header().setHighlightSections(False)
         self.header().hide()
@@ -88,14 +71,40 @@ class ParamTable(TableView):
                            QtGui.QSizePolicy.Preferred)
 
     @property
-    def columns(self):
-        columns = ("Parameter", "Value", "Unit"), [
-            ColumnInfo('name'),
-            ColumnInfo('value', set_value, convert=self.units and 'name',
-                       mutable=cell_is_mutable, foreground=cell_textcolor),
-            ColumnInfo('unit'),
+    def sections(self):
+        titles = self.get_param_row.__annotations__['return']
+        return titles if self.units else titles[:-1]
+
+    def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit"):
+        mutable = p.mutable and not self.readonly
+        textcolor = QtGui.QColor(Qt.black if mutable else Qt.darkGray)
+        return [
+            TableItem(p.name),
+            TableItem(p.value, set_value=self.set_value,
+                      name=self.units and p.name,
+                      mutable=mutable,
+                      foreground=textcolor),
+            TableItem(ui_units.label(p.name, p.value)),
         ]
-        return columns if self.units else (columns[0][:2], columns[1][:2])
+
+    def set_value(self, i, par, value):
+        self.store({par.name: value}, **self.fetch_args)
+
+    def set_expr(self, i, par, value):
+        # Replace deferred expressions by their value if `not value`:
+        self.set_value(i, par, value or par.value)
+
+    def par_rows(self, par):
+        expr = par.expr
+        if expr:
+            model = self._model
+            globals = model.globals
+            return [
+                p for k in model.madx.expr_vars(expr)
+                for p in [globals.cmdpar[k]]
+                if p.inform > 0
+            ]
+        return ()
 
     def update(self, **kw):
         """Update dialog from the datastore."""
@@ -184,99 +193,15 @@ def export_params(filename, data, data_key=None):
         f.write(text)
 
 
-def cmd_font(cell):
-    if cell.data.inform:
-        font = QtGui.QFont()
-        font.setBold(True)
-        return font
+def is_expr_mutable(par):
+    return (not isinstance(par.expr, list) and
+            par.dtype not in (_dtypes.PARAM_TYPE_STRING,
+                              _dtypes.PARAM_TYPE_STRING_ARRAY))
 
 
-def set_expr(cell, value):
-    # Replace deferred expressions by their value if `not value`:
-    set_value(cell, value or cell.data.value)
-
-
-def is_expr_mutable(cell):
-    return (not isinstance(cell.data.expr, list) and
-            cell.data.dtype not in (_dtypes.PARAM_TYPE_STRING,
-                                    _dtypes.PARAM_TYPE_STRING_ARRAY))
-
-
-def get_name(cell):
-    return cell.data.name.title()
-
-def get_rows(cell):
-    par = cell.data
-    if isinstance(par.value, list):
-        return [
-            ParamInfo('[{}]'.format(idx), val, expr, par.inform,
-                      dtype=par.dtype, var_type=par.var_type)
-            for idx, (val, expr) in enumerate(zip(par.value, par.expr))
-        ]
-    return par_rows(cell)
-
-def set_comp_value(cell, value):
-    tab, par = cell.context, cell.granny.data
-    vec = list(par.definition)
-    vec[cell.row] = value
-    tab.store({par.name: vec}, **tab.fetch_args)
-
-def set_comp_expr(cell, value):
-    set_comp_value(cell, value or cell.data.value)
-
-def get_comp_unit(cell):
-    units = ui_units.get(cell.granny.data.name)
-    row = cell.row
-    if isinstance(units, list) and row < len(units):
-        return get_raw_label(units[row])
-
-def get_value(cell):
-    if not isinstance(cell.data.value, list):
-        return cell.data.value
-
-def get_expr(cell):
-    if not isinstance(cell.data.expr, list):
-        return cell.data.expr
-
-def is_par_mutable(cell):
-    return not isinstance(cell.data.value, list)
-
-
-def get_par_columns(cell):
-    return (CommandEdit.vector_columns
-            if isinstance(cell.data.value, list) else
-            CommandEdit.knob_columns)
-
-
-def get_var_name(cell):
-    parts = cell.data.name.split('_')
+def get_var_name(name):
+    parts = name.split('_')
     return "_".join(parts[:1] + list(map(str.upper, parts[1:])))
-
-def is_var_mutable(cell):
-    return cell.data.var_type > 0
-
-
-def par_rows(cell):
-    expr = cell.data.expr
-    if expr:
-        model = cell.context._model
-        globals = model.globals
-        return [
-            p for k in model.madx.expr_vars(expr)
-            for p in [globals.cmdpar[k]]
-            if p.inform > 0
-        ]
-    return ()
-
-
-def set_par_value(cell, value):
-    tab, param = cell.context, cell.data
-    tab._model.update_globals({param.name: value})
-
-
-def set_par_expr(cell, value):
-    # Replace deferred expressions by their value if `not value`:
-    set_par_value(cell, value or cell.data.value)
 
 
 class CommandEdit(ParamTable):
@@ -290,41 +215,83 @@ class CommandEdit(ParamTable):
     showing the expression!
     """
 
-    _col_style = dict(font=cmd_font)
+    def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit", "Expression"):
+        is_vector = isinstance(p.value, list)
+        name = p.name.title()
+        font = bold() if p.inform else None
+        value = None if is_vector else p.value
+        expr = None if is_vector else p.expr
+        unit = None if is_vector else ui_units.label(p.name)
+        mutable = not is_vector
+        rows = self.vec_rows(p) if is_vector else self.par_rows(p)
+        rowitems = (partial(self.get_vector_row, p) if is_vector
+                    else self.get_knob_row)
+        return [
+            TableItem(name, rows=rows, rowitems=rowitems, font=font),
+            TableItem(value, set_value=self.set_value, mutable=mutable, name=p.name),
+            TableItem(unit),
+            TableItem(expr, set_value=self.set_expr, mutable=is_expr_mutable(p)),
+        ]
 
-    knob_columns = []
-    knob_columns.extend([
-        ColumnInfo(get_var_name, rows=par_rows, columns=knob_columns),
-        ColumnInfo('value', set_par_value, mutable=is_var_mutable),
-        ColumnInfo(lambda c: None, mutable=False),
-        ColumnInfo('expr', set_par_expr, mutable=True),
-    ])
+    def get_knob_row(self, i, p):
+        return [
+            TableItem(get_var_name(p.name), rows=self.par_rows(p),
+                      rowitems=self.get_knob_row),
+            TableItem(p.value, set_value=self.set_par_value, mutable=p.var_type > 0),
+            TableItem(None, mutable=False),
+            TableItem(p.expr, set_value=self.set_par_expr, mutable=True),
+        ]
 
-    vector_columns = [
-        ColumnInfo(get_name, rows=par_rows, columns=knob_columns, **_col_style),
-        # TODO: fix conversion and get_unit
-        ColumnInfo('value', set_comp_value, mutable=True, convert='name'),
-        ColumnInfo(get_comp_unit),
-        ColumnInfo('expr', set_comp_expr, mutable=is_expr_mutable),
-    ]
+    def get_vector_row(self, parent, i, p):
+        font = bold() if p.inform else None
+        set_value = partial(self.set_comp_value, parent)
+        set_expr = partial(self.set_comp_expr, parent)
+        return [
+            TableItem(p.name.title(), rows=self.par_rows(p),
+                      rowitems=self.get_knob_row, font=font),
+            TableItem(p.value, set_value=set_value, mutable=True, name=p.name),
+            TableItem(self.get_comp_unit(parent, i)),
+            TableItem(p.expr, set_value=set_expr, mutable=is_expr_mutable(p)),
+        ]
 
-    columns = ("Parameter", "Value", "Unit", "Expression"), [
-        ColumnInfo(get_name, rows=get_rows, columns=get_par_columns, **_col_style),
-        ColumnInfo(get_value, set_value, mutable=is_par_mutable, convert='name'),
-        ColumnInfo(get_unit),
-        ColumnInfo(get_expr, set_expr, mutable=is_expr_mutable),
-    ]
+    def set_par_value(self, i, par, value):
+        self._model.update_globals({par.name: value})
+
+    def set_par_expr(self, i, par, value):
+        # Replace deferred expressions by their value if `not value`:
+        self.set_par_value(i, par, value or par.value)
+
+    def vec_rows(self, par):
+        return [
+            ParamInfo('[{}]'.format(idx), val, expr, par.inform,
+                    dtype=par.dtype, var_type=par.var_type)
+            for idx, (val, expr) in enumerate(zip(par.value, par.expr))
+        ]
+
+    def set_comp_value(self, par, i, _, value):
+        vec = list(par.definition)
+        vec[i] = value
+        self.store({par.name: vec}, **self.fetch_args)
+
+    def set_comp_expr(self, par, i, _, value):
+        self.set_comp_value(par, i, _, value or par.value)
+
+    def get_comp_unit(self, par, i):
+        units = ui_units.get(par.name)
+        if isinstance(units, list) and i < len(units):
+            return get_raw_label(units[i])
 
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    columns = ("Name", "Value", "Expression"), []
-    columns[1].extend([
-        ColumnInfo(get_var_name, rows=par_rows, columns=columns[1]),
-        ColumnInfo('value', set_value, mutable=is_var_mutable),
-        ColumnInfo('expr', set_expr, mutable=True),
-    ])
+    def get_param_row(self, i, p) -> ("Name", "Value", "Expression"):
+        return [
+            TableItem(get_var_name(p.name),
+                      rows=self.par_rows(p), rowitems=self.get_param_row),
+            TableItem(p.value, set_value=self.set_value, mutable=p.var_type > 0),
+            TableItem(p.expr, set_value=self.set_expr, mutable=True),
+        ]
 
     exportFilters = [
         ("Strength file", "*.str"),

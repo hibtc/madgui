@@ -16,7 +16,7 @@ from madgui.core.unit import ui_units, change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import fit_button, monospace
-from madgui.widget.tableview import ColumnInfo
+from madgui.widget.tableview import TableItem
 from madgui.widget.edit import LineNumberBar
 
 from .orbit import fit_particle_orbit, MonitorReadout
@@ -133,49 +133,37 @@ class Corrector(Matcher):
             }
 
 
-def format_knob(cell):
-    return cell.data.knob
-
-def format_final(cell):
-    var = cell.data
-    return change_unit(var.value, var.info.unit, var.info.ui_unit)
-
-def format_initial(cell):
-    var = cell.data
-    return change_unit(var.design, var.info.unit, var.info.ui_unit)
-
-def format_unit(cell):
-    return get_raw_label(cell.data.info.ui_unit)
-
-def set_constraint_value(cell, value):
-    widget, c, i = cell.context, cell.data, cell.row
-    widget.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
-
 class CorrectorWidget(QtGui.QWidget):
 
     steerer_corrections = None
 
     ui_file = 'mgm_dialog.ui'
 
-    readout_columns = ("Monitor", "X", "Y"), [
-        ColumnInfo('name'),
-        ColumnInfo('posx', convert=True),
-        ColumnInfo('posy', convert=True),
-    ]
+    def get_readout_row(self, i, r) -> ("Monitor", "X", "Y"):
+        return [
+            TableItem(r.name),
+            TableItem(r.posx, name='posx'),
+            TableItem(r.posy, name='posy'),
+        ]
 
-    constraint_columns = ("Element", "Param", "Value", "Unit"), [
-        ColumnInfo(lambda c: c.data.elem.node_name),
-        ColumnInfo('axis'),
-        ColumnInfo('value', set_constraint_value, convert='axis'),
-        ColumnInfo(lambda c: ui_units.label(c.data.axis)),
-    ]
+    def get_cons_row(self, i, c) -> ("Element", "Param", "Value", "Unit"):
+        return [
+            TableItem(c.elem.node_name),
+            TableItem(c.axis),
+            TableItem(c.value, set_value=self.set_cons_value, name=c.axis),
+            TableItem(ui_units.label(c.axis)),
+        ]
 
-    steerer_columns = ("Steerer", "Initial", "Final", "Unit"), [
-        ColumnInfo(format_knob),
-        ColumnInfo(format_initial),
-        ColumnInfo(format_final),
-        ColumnInfo(format_unit),
-    ]
+    def get_steerer_row(self, i, v) -> ("Steerer", "Initial", "Final", "Unit"):
+        return [
+            TableItem(v.knob),
+            TableItem(change_unit(v.design, v.info.unit, v.info.ui_unit)),
+            TableItem(change_unit(v.value, v.info.unit, v.info.ui_unit)),
+            TableItem(get_raw_label(v.info.ui_unit)),
+        ]
+
+    def set_cons_value(self, i, c, value):
+        self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
     def __init__(self, corrector):
         super().__init__()
@@ -201,9 +189,9 @@ class CorrectorWidget(QtGui.QWidget):
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.mon_tab.set_columns(self.readout_columns, corr.readouts, self)
-        self.var_tab.set_columns(self.steerer_columns, corr.variables, self)
-        self.con_tab.set_columns(self.constraint_columns, corr.constraints, self)
+        self.mon_tab.set_rowgetter(self.get_readout_row, corr.readouts, unit=True)
+        self.var_tab.set_rowgetter(self.get_steerer_row, corr.variables)
+        self.con_tab.set_rowgetter(self.get_cons_row, corr.constraints)
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
         fit_button(self.btn_edit_conf)

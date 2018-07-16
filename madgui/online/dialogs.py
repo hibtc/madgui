@@ -5,36 +5,8 @@ Dialog for selecting DVM parameters to be synchronized.
 from madgui.qt import QtGui
 from madgui.core.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
-from madgui.widget.tableview import TableView, ColumnInfo
+from madgui.widget.tableview import TableView, TableItem
 from madgui.widget.params import export_params
-
-
-class ListSelectWidget(QtGui.QWidget):
-
-    """
-    Widget for selecting from an immutable list of items.
-    """
-
-    # TODO: use CheckedStringValue to let user select which items to
-    # import/export.
-
-    _headline = 'Select desired items:'
-
-    def __init__(self, columns, headline):
-        """Create sizer with content area, i.e. input fields."""
-        super().__init__()
-        self.grid = TableView()
-        self.grid.set_columns(columns, context=self)
-        label = QtGui.QLabel(headline)
-        self.setLayout(VBoxLayout([label, self.grid]))
-
-    @property
-    def data(self):
-        return list(self.grid.rows)
-
-    @data.setter
-    def data(self, data):
-        self.grid.rows = data
 
 
 class SyncParamItem:
@@ -47,22 +19,39 @@ class SyncParamItem:
         self.mad_value = change_unit(mad_value, param.unit, param.ui_unit)
 
 
-class SyncParamWidget(ListSelectWidget):
+class SyncParamWidget(QtGui.QWidget):
 
     """
     Dialog for selecting DVM parameters to be synchronized.
     """
 
-    columns = ("Param", "DVM value", "MAD-X value", "Unit"), [
-        ColumnInfo('name'),
-        ColumnInfo('dvm_value'),
-        ColumnInfo('mad_value'),
-        ColumnInfo('unit'),
-    ]
+    # TODO: use CheckedStringValue to let user select which items to
+    # import/export.
+
+    def get_row(self, i, p) -> ("Param", "DVM value", "MAD-X value", "Unit"):
+        return [
+            TableItem(p.name),
+            TableItem(p.dvm_value),
+            TableItem(p.mad_value),
+            TableItem(p.unit),
+        ]
 
     def __init__(self, title, headline):
-        super().__init__(self.columns, headline)
+        """Create sizer with content area, i.e. input fields."""
+        super().__init__()
+        self.grid = TableView()
+        self.grid.set_rowgetter(self.get_row)
         self.title = title
+        label = QtGui.QLabel(headline)
+        self.setLayout(VBoxLayout([label, self.grid]))
+
+    @property
+    def data(self):
+        return list(self.grid.rows)
+
+    @data.setter
+    def data(self, data):
+        self.grid.rows = data
 
     @property
     def exporter(self):

@@ -7,7 +7,7 @@ import numpy as np
 
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.unit import get_unit, tounit, ui_units
-from madgui.widget.tableview import ColumnInfo
+from madgui.widget.tableview import TableItem
 from madgui.util.collections import List
 from madgui.util.qt import notifyEvent
 from madgui.correct.orbit import fit_initial_orbit
@@ -231,10 +231,6 @@ def set_text(ctrl, text):
         ctrl.setText(text)
 
 
-def get_kL(index):
-    return lambda cell: cell.data.gui_optics[index]
-
-
 class CorrectorWidget(QtGui.QWidget):
 
     initial_particle_orbit = None
@@ -242,26 +238,31 @@ class CorrectorWidget(QtGui.QWidget):
 
     ui_file = 'ovm_dialog.ui'
 
-    records_columns = ("QP1", "QP2", "x", "y"), [
-        ColumnInfo(get_kL(0)),
-        ColumnInfo(get_kL(1)),
-        ColumnInfo('x', convert=True),
-        ColumnInfo('y', convert=True),
-    ]
+    records_sections = ("QP1", "QP2", "x", "y")
+
+    def records_row(self, i, r):
+        return [
+            TableItem(r.gui_optics[0]),
+            TableItem(r.gui_optics[1]),
+            TableItem(r.x, name='x'),
+            TableItem(r.y, name='y'),
+        ]
 
     # FIXME: units are broken in these two tabs:
-    fit_columns = ("Param", "Value", "Unit"), [
-        ColumnInfo('name'),
-        ColumnInfo('value', convert='name'),
-        ColumnInfo(lambda c: ui_units.label(c.data.name)),
-    ]
+    def fit_row(self, i, c) -> ("Param", "Value", "Unit"):
+        return [
+            TableItem(c.name),
+            TableItem(c.value, name=c.name),
+            TableItem(ui_units.label(c.name)),
+        ]
 
-    steerer_columns = ("Steerer", "Optimal", "Current", "Unit"), [
-        ColumnInfo('name'),
-        ColumnInfo('value', convert='name'),
-        ColumnInfo('current', convert='name'),
-        ColumnInfo(lambda c: ui_units.label(c.data.name)),
-    ]
+    def steerer_row(self, i, c) -> ("Steerer", "Optimal", "Current", "Unit"):
+        return [
+            TableItem(c.name),
+            TableItem(c.value, convert=c.name),
+            TableItem(c.current, convert=c.name),
+            TableItem(lambda c: ui_units.label(c.data.name)),
+        ]
 
     def __init__(self, corrector):
         super().__init__()
@@ -368,12 +369,11 @@ class CorrectorWidget(QtGui.QWidget):
         # result groups
         self.group_beam.setTitle("Beam at target {}"
                                  .format(display_name(self.corrector.target)))
-        self.records_columns[0].title = par1.name
-        self.records_columns[1].title = par2.name
+        records_sections = (par1.name, par2.name) + self.records_sections[2:]
         # TODO: also set target name in records_columns?
-        self.records_table.set_columns(self.records_columns)
-        self.fit_table.set_columns(self.fit_columns)
-        self.corrections_table.set_columns(self.steerer_columns)
+        self.records_table.set_rowgetter(self.records_row, unit=True, titles=records_sections)
+        self.fit_table.set_rowgetter(self.fit_sections, self.fit_row)
+        self.corrections_table.set_rowgetter(self.steerer_sections, self.steerer_row)
         self.records_table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.records_table.header().setHighlightSections(False)
         self.fit_table.header().hide()

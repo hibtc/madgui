@@ -9,37 +9,26 @@ from madgui.widget.tableview import TableItem
 from madgui.widget.filedialog import getOpenFileName
 
 
-class Curves(TableItem):
-
-    checkable = True
-
-    def get_value(self):
-        name, data, style = self.data
-        return name
-
-    def set_value(self, name):
-        i, mgr = self.row, self.context
-        _, data, style = self.data
-        mgr.available[i] = (name, data, style)
-
-    def get_checked(self):
-        i, mgr = self.row, self.context
-        return i in mgr.selected
-
-    def set_checked(self, show):
-        i, mgr = self.row, self.context
-        shown = i in mgr.selected
-        if show and not shown:
-            mgr.selected.append(i)
-        elif not show and shown:
-            mgr.selected.remove(i)
-
-
 class CurveManager(QtGui.QWidget):
 
     ui_file = 'curvemanager.ui'
 
-    columns = ["curves"], [Curves]
+    def show_curve(self, i, c) -> ("curves",):
+        name, data, style = c
+        def set_name(i, c, name):
+            self.available[i] = (name, data, style)
+        def set_checked(i, c, show):
+            shown = i in self.selected
+            if show and not shown:
+                self.selected.append(i)
+            elif not show and shown:
+                self.selected.remove(i)
+        return [
+            TableItem(name, checked=i in self.selected,
+                      checkable=True,
+                      set_value=self.set_name, set_checked=self.set_checked),
+        ]
+
 
     def __init__(self, scene):
         super().__init__()
@@ -55,7 +44,7 @@ class CurveManager(QtGui.QWidget):
         self.tab.header().setHighlightSections(False)
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.tab.set_columns(self.columns, self.available, self)
+        self.tab.set_rowgetter(self.show_curve, self.available)
 
     def connect_signals(self):
         Button = QtGui.QDialogButtonBox
