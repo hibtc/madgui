@@ -52,24 +52,23 @@ class MatchWidget(QtGui.QWidget):
 
     # columns
 
-    def cons_items(self, item) -> ("Element", "Name", "Target", "Unit"):
-        c = item.data
+    def cons_items(self, i, c) -> ("Element", "Name", "Target", "Unit"):
         elem = self.elem_enum(c.elem.node_name if c.elem else "(global)")
         name = self.lcon_enum(c.axis)
         unit = ui_units.label(c.axis, c.value)
-        def set_elem(cell, name):
+        def set_elem(i, c, name):
             if name is not None:
                 el = self.model.elements[str(name)]
-                self.matcher.constraints[cell.row] = \
+                self.matcher.constraints[i] = \
                     Constraint(el, el.position+el.length, c.axis, c.value)
-        def set_name(cell, axis):
+        def set_name(i, c, axis):
             if axis is not None:
                 value = self.model.get_twiss(c.elem.node_name, str(axis), c.pos)
-                self.matcher.constraints[cell.row] = \
+                self.matcher.constraints[i] = \
                     Constraint(c.elem, c.pos, str(axis), value)
-        def set_value(cell, value):
+        def set_value(i, c, value):
             if value is not None:
-                self.matcher.constraints[cell.row] = \
+                self.matcher.constraints[i] = \
                     Constraint(c.elem, c.pos, c.axis, value)
         return [
             TableItem(elem, set_value=set_elem),
@@ -78,13 +77,12 @@ class MatchWidget(QtGui.QWidget):
             TableItem(unit),
         ]
 
-    def var_items(self, item) -> ("Knob", "Initial", "Final"):
-        v = item.data
-        def set_knob(cell, text):
+    def var_items(self, i, v) -> ("Knob", "Initial", "Final"):
+        def set_knob(i, v, text):
             if text is not None:
                 knob = parse_knob(self.model, str(text))
                 if knob:
-                    self.matcher.variables[cell.row] = \
+                    self.matcher.variables[i] = \
                         variable_from_knob(self.matcher, knob)
         return [
             TableItem(self.knob_enum(v.knob), set_value=set_knob),

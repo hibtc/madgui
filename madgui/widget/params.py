@@ -3,6 +3,7 @@ Parameter input dialog.
 """
 
 import os
+from functools import partial
 
 import cpymad.util as _dtypes
 
@@ -74,8 +75,7 @@ class ParamTable(TableView):
         titles = self.get_param_row.__annotations__['return']
         return titles if self.units else titles[:-1]
 
-    def get_param_row(self, item) -> ("Parameter", "Value", "Unit"):
-        p = item.data
+    def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit"):
         mutable = p.mutable and not self.readonly
         textcolor = QtGui.QColor(Qt.black if mutable else Qt.darkGray)
         return [
@@ -87,14 +87,12 @@ class ParamTable(TableView):
             TableItem(ui_units.label(p.name, p.value)),
         ]
 
-    def set_value(self, item, value):
-        par = item.parent.data
+    def set_value(self, i, par, value):
         self.store({par.name: value}, **self.fetch_args)
 
-    def set_expr(self, item, value):
+    def set_expr(self, i, par, value):
         # Replace deferred expressions by their value if `not value`:
-        par = item.parent.data
-        self.set_value(item, value or par.value)
+        self.set_value(i, par, value or par.value)
 
     def par_rows(self, par):
         expr = par.expr
@@ -217,8 +215,7 @@ class CommandEdit(ParamTable):
     showing the expression!
     """
 
-    def get_param_row(self, item) -> ("Parameter", "Value", "Unit", "Expression"):
-        p = item.data
+    def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit", "Expression"):
         is_vector = isinstance(p.value, list)
         name = p.name.title()
         font = bold() if p.inform else None
@@ -227,7 +224,8 @@ class CommandEdit(ParamTable):
         unit = None if is_vector else ui_units.label(p.name)
         mutable = not is_vector
         rows = self.vec_rows(p) if is_vector else self.par_rows(p)
-        rowitems = self.get_vector_row if is_vector else self.get_knob_row
+        rowitems = (partial(self.get_vector_row, p) if is_vector
+                    else self.get_knob_row)
         return [
             TableItem(name, rows=rows, rowitems=rowitems, font=font),
             TableItem(value, set_value=self.set_value, mutable=mutable, name=p.name),
@@ -235,8 +233,7 @@ class CommandEdit(ParamTable):
             TableItem(expr, set_value=self.set_expr, mutable=is_expr_mutable(p)),
         ]
 
-    def get_knob_row(self, item):
-        p = item.data
+    def get_knob_row(self, i, p):
         return [
             TableItem(get_var_name(p.name), rows=self.par_rows(p),
                       rowitems=self.get_knob_row),
@@ -245,25 +242,24 @@ class CommandEdit(ParamTable):
             TableItem(p.expr, set_value=self.set_par_expr, mutable=True),
         ]
 
-    def get_vector_row(self, item):
-        p = item.data
+    def get_vector_row(self, parent, i, p):
         font = bold() if p.inform else None
+        set_value = partial(self.set_comp_value, parent)
+        set_expr = partial(self.set_comp_expr, parent)
         return [
             TableItem(p.name.title(), rows=self.par_rows(p),
                       rowitems=self.get_knob_row, font=font),
-            TableItem(p.value, set_value=self.set_comp_value, mutable=True, name=p.name),
-            TableItem(self.get_comp_unit(item)),
-            TableItem(p.expr, set_value=self.set_comp_expr, mutable=is_expr_mutable(p)),
+            TableItem(p.value, set_value=set_value, mutable=True, name=p.name),
+            TableItem(self.get_comp_unit(parent, i)),
+            TableItem(p.expr, set_value=set_expr, mutable=is_expr_mutable(p)),
         ]
 
-    def set_par_value(self, item, value):
-        par = item.parent.data
+    def set_par_value(self, i, par, value):
         self._model.update_globals({par.name: value})
 
-    def set_par_expr(self, item, value):
-        par = item.parent.data
+    def set_par_expr(self, i, par, value):
         # Replace deferred expressions by their value if `not value`:
-        self.set_par_value(item, value or par.value)
+        self.set_par_value(i, par, value or par.value)
 
     def vec_rows(self, par):
         return [
@@ -272,29 +268,24 @@ class CommandEdit(ParamTable):
             for idx, (val, expr) in enumerate(zip(par.value, par.expr))
         ]
 
-    def set_comp_value(self, item, value):
-        par = item.granny.data
+    def set_comp_value(self, par, i, _, value):
         vec = list(par.definition)
-        vec[item.parent.index] = value
+        vec[i] = value
         self.store({par.name: vec}, **self.fetch_args)
 
-    def set_comp_expr(self, item, value):
-        par = item.granny.parent.data
-        self.set_comp_value(item, value or par.value)
+    def set_comp_expr(self, par, i, _, value):
+        self.set_comp_value(par, i, _, value or par.value)
 
-    def get_comp_unit(self, item):
-        par = item.granny.data
+    def get_comp_unit(self, par, i):
         units = ui_units.get(par.name)
-        row = item.index
-        if isinstance(units, list) and row < len(units):
-            return get_raw_label(units[row])
+        if isinstance(units, list) and i < len(units):
+            return get_raw_label(units[i])
 
 
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    def get_param_row(self, item) -> ("Name", "Value", "Expression"):
-        p = item.data
+    def get_param_row(self, i, p) -> ("Name", "Value", "Expression"):
         return [
             TableItem(get_var_name(p.name),
                       rows=self.par_rows(p), rowitems=self.get_param_row),

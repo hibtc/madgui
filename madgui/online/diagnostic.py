@@ -138,8 +138,7 @@ class MonitorWidgetBase(QtGui.QWidget):
             self.export_to(filename)
             self.folder, _ = os.path.split(filename)
 
-    def set_monitor_show(self, item, show):
-        i, mon = item.row, item.parent.data
+    def set_monitor_show(self, i, mon, show):
         shown = self.selected(mon)
         if show and not shown:
             self.select(i)
@@ -151,8 +150,7 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
     ui_file = 'monitorwidget.ui'
 
-    def get_monitor_row(self, item) -> ("Monitor", "x", "y", "Δx", "Δy"):
-        m = item.data
+    def get_monitor_row(self, i, m) -> ("Monitor", "x", "y", "Δx", "Δy"):
         fg = get_monitor_textcolor(m)
         return [
             TableItem(m.name, checkable=True, foreground=fg,
@@ -215,8 +213,7 @@ class OffsetsWidget(MonitorWidgetBase):
 
     ui_file = 'offsetswidget.ui'
 
-    def get_monitor_row(self, item) -> ("Monitor", "Δx", "Δy"):
-        m = item.data
+    def get_monitor_row(self, i, m) -> ("Monitor", "Δx", "Δy"):
         fg = get_monitor_textcolor(m)
         dx, dy = self._offsets.get(m.name.lower(), (0, 0))
         return [
@@ -295,8 +292,7 @@ class _FitWidget(MonitorWidgetBase):
 
     ui_file = 'emittance.ui'
 
-    def get_result_row(self, item) -> ("Name", "Model", "Fit", "Unit"):
-        r = item.data
+    def get_result_row(self, i, r) -> ("Name", "Model", "Fit", "Unit"):
         return [
             TableItem(r.name),
             TableItem(r.model, name=r.name),
@@ -317,8 +313,7 @@ class _FitWidget(MonitorWidgetBase):
 
 class OrbitWidget(_FitWidget):
 
-    def get_monitor_row(self, item) -> ("Monitor", "x", "y"):
-        m = item.data
+    def get_monitor_row(self, i, m) -> ("Monitor", "x", "y"):
         fg = get_monitor_textcolor(m)
         return [
             TableItem(m.name, checkable=True, foreground=fg,
@@ -362,8 +357,7 @@ class OrbitWidget(_FitWidget):
 
 class EmittanceDialog(_FitWidget):
 
-    def get_monitor_row(self, item) -> ("Monitor", "Δx", "Δy"):
-        m = item.data
+    def get_monitor_row(self, i, m) -> ("Monitor", "Δx", "Δy"):
         fg = get_monitor_textcolor(m)
         return [
             TableItem(m.name, checkable=m.valid, foreground=fg,

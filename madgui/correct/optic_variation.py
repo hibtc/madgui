@@ -240,8 +240,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     records_sections = ("QP1", "QP2", "x", "y")
 
-    def records_row(self, item):
-        r = item.data
+    def records_row(self, i, r):
         return [
             TableItem(r.gui_optics[0]),
             TableItem(r.gui_optics[1]),
@@ -250,16 +249,14 @@ class CorrectorWidget(QtGui.QWidget):
         ]
 
     # FIXME: units are broken in these two tabs:
-    def fit_row(self, item) -> ("Param", "Value", "Unit"):
-        c = item.data
+    def fit_row(self, i, c) -> ("Param", "Value", "Unit"):
         return [
             TableItem(c.name),
             TableItem(c.value, name=c.name),
             TableItem(ui_units.label(c.name)),
         ]
 
-    def steerer_row(self, item) -> ("Steerer", "Optimal", "Current", "Unit"):
-        c = item.data
+    def steerer_row(self, i, c) -> ("Steerer", "Optimal", "Current", "Unit"):
         return [
             TableItem(c.name),
             TableItem(c.value, convert=c.name),

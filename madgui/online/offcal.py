@@ -23,8 +23,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
     progress = 0
     extension = '.calibration.yml'
 
-    def get_result_row(self, item) -> ("Monitor", "Δx", "Δy"):
-        r = item.data
+    def get_result_row(self, i, r) -> ("Monitor", "Δx", "Δy"):
         return [
             TableItem(r.name),
             TableItem(r.x, name='x'),

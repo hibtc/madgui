@@ -13,21 +13,22 @@ class CurveManager(QtGui.QWidget):
 
     ui_file = 'curvemanager.ui'
 
-    def show_curve(self, row) -> ("curves",):
-        name, data, style = row.data
-        def set_name(cell, name):
-            self.available[cell.row] = (name, data, style)
-        def set_checked(cell, show):
-            shown = cell.row in self.selected
+    def show_curve(self, i, c) -> ("curves",):
+        name, data, style = c
+        def set_name(i, c, name):
+            self.available[i] = (name, data, style)
+        def set_checked(i, c, show):
+            shown = i in self.selected
             if show and not shown:
-                self.selected.append(cell.row)
+                self.selected.append(i)
             elif not show and shown:
-                self.selected.remove(cell.row)
+                self.selected.remove(i)
         return [
-            TableItem(value=name, checked=row.index in self.selected,
+            TableItem(name, checked=i in self.selected,
                       checkable=True,
-                      set_value=set_name, set_checked=set_checked),
+                      set_value=self.set_name, set_checked=self.set_checked),
         ]
+
 
     def __init__(self, scene):
         super().__init__()

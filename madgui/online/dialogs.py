@@ -28,8 +28,7 @@ class SyncParamWidget(QtGui.QWidget):
     # TODO: use CheckedStringValue to let user select which items to
     # import/export.
 
-    def get_row(self, item) -> ("Param", "DVM value", "MAD-X value", "Unit"):
-        p = item.data
+    def get_row(self, i, p) -> ("Param", "DVM value", "MAD-X value", "Unit"):
         return [
             TableItem(p.name),
             TableItem(p.dvm_value),

@@ -69,8 +69,11 @@ class NodeItem:
         self.data = data
         for k, v in kwargs.items():
             if k[:4] in ('get_', 'set_'):
-                v = partial(v, self)
+                v = partial(self._call, v)
             setattr(self, k, v)
+
+    def _call(self, fn, *args):
+        return fn(self.row.node.index(), self.row.data, *args)
 
     # Resolve missing properties by invoking associated methods, cache
     # results automatically as attributes, e.g.: value/delegate/name
@@ -86,8 +89,8 @@ class NodeItem:
         setattr(self, key, val)
         return val
 
-    def rowitems(self, item):
-        return [cls(item.data) for cls in self.columns]
+    def rowitems(self, idx, data):
+        return [cls(data) for cls in self.columns]
 
     def get_children(self):
         """List of child rows (for expandable data)."""
@@ -96,14 +99,11 @@ class NodeItem:
             for row in self.rows
         ]
 
-    def get_granny(self):
-        return self.node.granny.item
-
     def get_parent(self):
         return self.node.parent.item
 
-    def get_index(self):
-        return self.node.index()
+    def get_row(self):
+        return self
 
 
 # TODO: add `deleter`
@@ -173,7 +173,7 @@ class TableItem(NodeItem):
     # misc
 
     def get_row(self):
-        return self.node.row
+        return self.parent
 
     def get_rows(self):     # no children by default
         return ()

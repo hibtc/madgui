@@ -139,16 +139,14 @@ class CorrectorWidget(QtGui.QWidget):
 
     ui_file = 'mgm_dialog.ui'
 
-    def get_readout_row(self, item) -> ("Monitor", "X", "Y"):
-        r = item.data
+    def get_readout_row(self, i, r) -> ("Monitor", "X", "Y"):
         return [
             TableItem(r.name),
             TableItem(r.posx, name='posx'),
             TableItem(r.posy, name='posy'),
         ]
 
-    def get_cons_row(self, item) -> ("Element", "Param", "Value", "Unit"):
-        c = item.data
+    def get_cons_row(self, i, c) -> ("Element", "Param", "Value", "Unit"):
         return [
             TableItem(c.elem.node_name),
             TableItem(c.axis),
@@ -156,8 +154,7 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(ui_units.label(c.axis)),
         ]
 
-    def get_steerer_row(self, item) -> ("Steerer", "Initial", "Final", "Unit"):
-        v = item.data
+    def get_steerer_row(self, i, v) -> ("Steerer", "Initial", "Final", "Unit"):
         return [
             TableItem(v.knob),
             TableItem(change_unit(v.design, v.info.unit, v.info.ui_unit)),
@@ -165,8 +162,7 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(get_raw_label(v.info.ui_unit)),
         ]
 
-    def set_cons_value(self, item, value):
-        c, i = item.parent.data, item.row
+    def set_cons_value(self, i, c, value):
         self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
     def __init__(self, corrector):
