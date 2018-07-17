@@ -148,11 +148,6 @@ class MonitorWidgetBase(QtGui.QWidget):
         elif not show and shown:
             self.deselect(i)
 
-
-class PlotMonitorWidget(MonitorWidgetBase):
-
-    ui_file = 'monitorwidget.ui'
-
     def get_monitor_row(self, i, m) -> ("Monitor", "x", "y", "Δx", "Δy"):
         fg = get_monitor_textcolor(m)
         return [
@@ -164,6 +159,11 @@ class PlotMonitorWidget(MonitorWidgetBase):
             TableItem(m.envx, name='envx', foreground=fg),
             TableItem(m.envy, name='envy', foreground=fg),
         ]
+
+
+class PlotMonitorWidget(MonitorWidgetBase):
+
+    ui_file = 'monitorwidget.ui'
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
@@ -316,19 +316,11 @@ class _FitWidget(MonitorWidgetBase):
 
 class OrbitWidget(_FitWidget):
 
-    def get_monitor_row(self, i, m) -> ("Monitor", "x", "y"):
-        fg = get_monitor_textcolor(m)
-        return [
-            TableItem(m.name, checkable=True, foreground=fg,
-                      checked=self.selected(m),
-                      set_checked=self.set_monitor_show),
-            TableItem(m.posx, name='posx', foreground=fg),
-            TableItem(m.posy, name='posy', foreground=fg),
-        ]
-
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
         self.options_box.hide()
+        self.mtab.hideColumn(3)
+        self.mtab.hideColumn(4)
 
     def showEvent(self, event):
         self.frame.open_graph('orbit')
@@ -366,16 +358,6 @@ class OrbitWidget(_FitWidget):
 
 class EmittanceDialog(_FitWidget):
 
-    def get_monitor_row(self, i, m) -> ("Monitor", "Δx", "Δy"):
-        fg = get_monitor_textcolor(m)
-        return [
-            TableItem(m.name, checkable=m.valid, foreground=fg,
-                      checked=self.selected(m),
-                      set_checked=self.set_monitor_show),
-            TableItem(m.envx, name='envx', foreground=fg),
-            TableItem(m.envy, name='envy', foreground=fg),
-        ]
-
     # The three steps of UI initialization
 
     def __init__(self, control, model, frame):
@@ -383,6 +365,8 @@ class EmittanceDialog(_FitWidget):
         self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)
+        self.mtab.hideColumn(1)
+        self.mtab.hideColumn(2)
 
     def showEvent(self, event):
         self.frame.open_graph('envelope')

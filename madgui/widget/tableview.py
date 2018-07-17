@@ -377,7 +377,8 @@ class TableView(QtGui.QTreeView):
         """ Resize all sections to content and user interactive """
         super().resizeEvent(event)
         header = self.header()
-        columns = range(header.count())
+        columns = [c for c in range(header.count())
+                   if not self.isColumnHidden(c)]
         widths = list(map(self._columnContentWidth, columns))
         total = sum(widths)
         avail = event.size().width() - total
@@ -385,12 +386,12 @@ class TableView(QtGui.QTreeView):
         part = avail // len(columns)
         avail -= part * len(columns)
 
-        for i in columns:
+        for i in range(len(columns)):
             widths[i] += part
         if avail != 0:
             widths[-1] += avail
 
-        for index, width in enumerate(widths):
+        for index, width in zip(columns, widths):
             header.resizeSection(index, width)
 
     def selectionChanged(self, selected, deselected):
