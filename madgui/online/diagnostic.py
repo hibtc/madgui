@@ -56,9 +56,8 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.frame = frame
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
-        self._shown = frame.config['online_control']['monitors']
+        self._monconf = frame.config['online_control']['monitors']
         self._offsets = frame.config['online_control']['offsets']
-        self._selected = self._shown.copy()
 
         self.mtab.set_rowgetter(self.get_monitor_row, unit=True)
         self.mtab.header().setHighlightSections(False)
@@ -117,11 +116,12 @@ class MonitorWidgetBase(QtGui.QWidget):
 
         name = "monitors"
 
+        shown = self._monconf['show']
         data = {
             name: np.array([getattr(mon, name)
                             for mon in self.monitors
                             if self.selected(mon)
-                            or self._shown.get(mon.name, mon.valid)])
+                            or shown.get(mon.name)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
         style = self.frame.config['line_view']['monitor_style']
@@ -167,7 +167,7 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
-        self._selected = self._shown
+        self._selected = self._monconf.setdefault('show', {})
 
     def showEvent(self, event):
         if not self.frame.graphs('envelope'):
@@ -234,6 +234,7 @@ class OffsetsWidget(MonitorWidgetBase):
         Buttons = QtGui.QDialogButtonBox
         self.std_buttons.button(Buttons.Open).clicked.connect(self.load)
         self.std_buttons.button(Buttons.Discard).clicked.connect(self.discard)
+        self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
         self.frame.open_graph('orbit')
@@ -321,6 +322,7 @@ class OrbitWidget(_FitWidget):
         self.options_box.hide()
         self.mtab.hideColumn(3)
         self.mtab.hideColumn(4)
+        self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
         self.frame.open_graph('orbit')
@@ -367,6 +369,7 @@ class EmittanceDialog(_FitWidget):
         self.respect_coupling.clicked.connect(self.match_values)
         self.mtab.hideColumn(1)
         self.mtab.hideColumn(2)
+        self._selected = self._monconf.setdefault('optics', {})
 
     def showEvent(self, event):
         self.frame.open_graph('envelope')
