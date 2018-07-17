@@ -509,10 +509,16 @@ class Model:
         ekin = (beam['energy'] - beam['mass']) / beam['mass']
         idx = next(i for i, p in enumerate(pars) if p.name.lower() == 'energy')
         pars.insert(idx, ParamInfo('E_kin', ekin))
+        for p in pars:
+            p.inform = p.name.lower() in beam
         return pars
 
     def fetch_twiss(self):
-        return self._par_list(self.twiss_args, 'twiss_args')
+        twiss_args = self.twiss_args
+        pars = self._par_list(twiss_args, 'twiss_args')
+        for p in pars:
+            p.inform = p.name.lower() in twiss_args
+        return pars
 
     def _par_list(self, data, name, title_transform=str.title, **kw):
         from madgui.widget.params import ParamInfo

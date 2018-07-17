@@ -75,10 +75,11 @@ class ParamTable(TableView):
         return titles if self.units else titles[:-1]
 
     def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit"):
+        font = bold() if p.inform else None
         mutable = p.mutable and not self.readonly
         textcolor = QtGui.QColor(Qt.black if mutable else Qt.darkGray)
         return [
-            TableItem(p.name),
+            TableItem(p.name, font=font),
             TableItem(p.value, set_value=self.set_value,
                       name=self.units and p.name,
                       mutable=mutable,
