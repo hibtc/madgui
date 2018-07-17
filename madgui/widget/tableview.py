@@ -44,6 +44,7 @@ ROLES = {
     Qt.FontRole:                    'font',
     Qt.TextAlignmentRole:           'textAlignment',
     Qt.BackgroundRole:              'background',
+    # NOTE: BackgroundColorRole is obsolete according to Qt5 docs:
     Qt.BackgroundColorRole:         'backgroundColor',
     Qt.ForegroundRole:              'foreground',
     #Qt.TextColorRole:               'textColor',   # = ForegroundRole
