@@ -6,6 +6,7 @@ from abc import abstractmethod
 import string
 import re
 
+from cpymad.util import check_expression
 from madgui.qt import Qt, QtGui
 
 from madgui.util.unit import units, get_raw_label, get_unit, tounit
@@ -262,6 +263,26 @@ class DoubleValidator(QtGui.QValidator):
         return Invalid, text, pos
 
 
+class ExpressionValidator(QtGui.QValidator):
+
+    _ALLOWED_CHARS = set("+-/*^()->._ " + string.ascii_letters + string.digits)
+
+    def validate(self, text, pos):
+        return self._validate(text), text, pos
+
+    def _validate(self, text):
+        if not self._ALLOWED_CHARS.issuperset(text):
+            return Invalid
+        try:
+            check_expression(text)
+            return Acceptable
+        except ValueError:
+            return Intermediate
+
+    def parse(self, text):
+        return text
+
+
 class ValueControlBase(AffixControlBase):
 
     """
@@ -287,8 +308,8 @@ class ValueControlBase(AffixControlBase):
         self.setAlignment(Qt.AlignRight)
 
     def sanitize(self, value):
-        if value is None:
-            return None
+        if not isinstance(value, (float, int)):
+            return value
         minimum, maximum = self.minimum, self.maximum
         if minimum is not None and value < minimum:
             value = minimum

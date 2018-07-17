@@ -18,7 +18,7 @@ from madgui.util.unit import ui_units, get_raw_label
 from madgui.util.qt import bold
 from madgui.util.export import export_params, import_params
 
-from madgui.widget.tableview import TreeView, TableItem
+from madgui.widget.tableview import TreeView, TableItem, ExpressionDelegate
 
 
 class ParamInfo:
@@ -166,12 +166,6 @@ class ParamTable(TreeView):
         export_params(filename, data, data_key=self.data_key)
 
 
-def is_expr_mutable(par):
-    return (not isinstance(par.expr, list) and
-            par.dtype not in (_dtypes.PARAM_TYPE_STRING,
-                              _dtypes.PARAM_TYPE_STRING_ARRAY))
-
-
 def get_var_name(name):
     parts = name.split('_')
     return "_".join(parts[:1] + list(map(str.upper, parts[1:])))
@@ -188,7 +182,7 @@ class CommandEdit(ParamTable):
     showing the expression!
     """
 
-    def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit", "Expression"):
+    def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit"):
         is_vector = isinstance(p.value, list)
         name = p.name.title()
         font = bold() if p.inform else None
@@ -199,12 +193,16 @@ class CommandEdit(ParamTable):
         rows = self.vec_rows(p) if is_vector else self.par_rows(p)
         rowitems = (partial(self.get_vector_row, p) if is_vector
                     else self.get_knob_row)
+        delegate = {}
+        if p.dtype in (_dtypes.PARAM_TYPE_LOGICAL,
+                       _dtypes.PARAM_TYPE_INTEGER,
+                       _dtypes.PARAM_TYPE_DOUBLE):
+            delegate = {'delegate': ExpressionDelegate()}
         return [
             TableItem(name, rows=rows, rowitems=rowitems, font=font),
-            TableItem(value, set_value=self.set_value,
-                      mutable=mutable, name=p.name),
+            TableItem(value, set_value=self.set_value, mutable=mutable,
+                      name=p.name, toolTip=expr, expr=expr, **delegate),
             TableItem(unit),
-            TableItem(expr, set_value=self.set_expr, mutable=is_expr_mutable(p)),
         ]
 
     def get_knob_row(self, i, p):
@@ -214,27 +212,20 @@ class CommandEdit(ParamTable):
                       rowitems=self.get_knob_row),
             TableItem(p.value, set_value=self.set_par_value, mutable=mutable),
             TableItem(None, mutable=False),
-            TableItem(p.expr, set_value=self.set_par_expr, mutable=True),
         ]
 
     def get_vector_row(self, parent, i, p):
         font = bold() if p.inform else None
         set_value = partial(self.set_comp_value, parent)
-        set_expr = partial(self.set_comp_expr, parent)
         return [
             TableItem(p.name.title(), rows=self.par_rows(p),
                       rowitems=self.get_knob_row, font=font),
             TableItem(p.value, set_value=set_value, mutable=True, name=p.name),
             TableItem(self.get_comp_unit(parent, i)),
-            TableItem(p.expr, set_value=set_expr, mutable=is_expr_mutable(p)),
         ]
 
     def set_par_value(self, i, par, value):
         self._model.update_globals({par.name: value})
-
-    def set_par_expr(self, i, par, value):
-        # Replace deferred expressions by their value if `not value`:
-        self.set_par_value(i, par, value or par.value)
 
     def vec_rows(self, par):
         return [
@@ -247,9 +238,6 @@ class CommandEdit(ParamTable):
         vec = list(par.definition)
         vec[i] = value
         self.store({par.name: vec}, **self.fetch_args)
-
-    def set_comp_expr(self, par, i, _, value):
-        self.set_comp_value(par, i, _, value or par.value)
 
     def get_comp_unit(self, par, i):
         units = ui_units.get(par.name)
