@@ -77,19 +77,33 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="use_dispersion">
+          <widget class="QRadioButton" name="radio_x">
            <property name="text">
-            <string>Dispersion</string>
+            <string>x</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="respect_coupling">
+          <widget class="QRadioButton" name="radio_y">
            <property name="text">
-            <string>4D</string>
+            <string>y</string>
            </property>
-           <property name="checked">
-            <bool>true</bool>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radio_xy">
+           <property name="text">
+            <string>coupled</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="use_dispersion">
+           <property name="text">
+            <string>Dispersion</string>
            </property>
           </widget>
          </item>

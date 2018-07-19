@@ -1,5 +1,6 @@
 import os
 from math import sqrt, isnan
+from functools import partial
 from collections import namedtuple
 from itertools import accumulate
 import logging
@@ -364,6 +365,10 @@ class EmittanceDialog(_FitWidget):
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
+        self.mode = 'xy'
+        self.radio_x.clicked.connect(partial(self.on_change_mode, 'x'))
+        self.radio_y.clicked.connect(partial(self.on_change_mode, 'y'))
+        self.radio_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)
         self.mtab.hideColumn(1)
@@ -373,6 +378,11 @@ class EmittanceDialog(_FitWidget):
     def showEvent(self, event):
         self.frame.open_graph('envelope')
         self.update()
+
+    def on_change_mode(self, mode):
+        if mode != self.mode:
+            self.mode = mode
+            self.match_values()
 
     def apply(self):
         results = {r.name: r.fit
@@ -402,15 +412,24 @@ class EmittanceDialog(_FitWidget):
     def on_update(self):
         self.match_values()
 
+    def num_variables(self):
+        d = (2 * ('x' in self.mode) +
+             2 * ('y' in self.mode) +
+             self.use_dispersion.isChecked())
+        return d**2 - d*(d-1)//2
+
     def match_values(self):
 
         use_dispersion = self.use_dispersion.isChecked()
-        respect_coupling = self.respect_coupling.isChecked()
+        mode = self.mode
 
-        min_monitors = 6 if use_dispersion else 3
-        if self.num_selected() < min_monitors:
+        if self.num_selected() < self.num_variables():
             self.results[:] = []
             return
+
+        if mode == 'x':    s, e = 0, 2
+        elif mode == 'y':  s, e = 2, 4
+        elif mode == 'xy': s, e = 0, 4
 
         model = self.control.model()
 
@@ -513,20 +532,11 @@ class EmittanceDialog(_FitWidget):
 
 def solve_emit_sys(Ms, XCs):
     """
-    Solve for S the linear system of equations:
+    Given some M, x and C, solve the linear system of equations:
 
         (M S Mᵀ)ₓₓ = C
 
-    For some M, x and C.
-
-    M can be coupled, but S is assumed to be block diagonal, i.e. decoupled in
-    X/Y:
-
-        S = (X 0 A
-             0 Y B
-             0 0 T)
-
-    Returns S as numpy array.
+    for symmetric matrices S. Returns S as numpy array.
     """
     d = Ms[0].shape[0]
 
@@ -538,8 +548,7 @@ def solve_emit_sys(Ms, XCs):
 
     sq_matrix_basis = np.eye(d*d,d*d).reshape((d*d,d,d))
     is_upper_triang = [i for i, m in enumerate(sq_matrix_basis)
-                       if np.allclose(np.triu(m), m)
-                       and (d < 4 or np.allclose(m[0:2,2:4], 0))]
+                       if np.allclose(np.triu(m), m)]
 
     lhs = np.vstack([
         con_func(2*u-np.tril(u))
