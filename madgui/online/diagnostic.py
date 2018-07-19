@@ -364,7 +364,6 @@ class EmittanceDialog(_FitWidget):
 
     def __init__(self, control, model, frame):
         super().__init__(control, model, frame)
-        self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)
         self.mtab.hideColumn(1)
@@ -405,7 +404,6 @@ class EmittanceDialog(_FitWidget):
 
     def match_values(self):
 
-        long_transfer = self.long_transfer.isChecked()
         use_dispersion = self.use_dispersion.isChecked()
         respect_coupling = self.respect_coupling.isChecked()
 
@@ -420,8 +418,6 @@ class EmittanceDialog(_FitWidget):
         monitors = sorted(monitors, key=lambda m: model.elements.index(m.name))
 
         tms = model.get_transfer_maps([0] + [m.name for m in monitors])
-        if not long_transfer:
-            tms[0] = np.eye(7)
         tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
         # keep X,PX,Y,PY,PT:
         tms = np.array(tms)[:,[0,1,2,3,5],:][:,:,[0,1,2,3,5]]
@@ -502,15 +498,15 @@ class EmittanceDialog(_FitWidget):
             ResultItem('bety', bety, twiss_args.get('bety')),
             ResultItem('alfx', alfx, twiss_args.get('alfx')),
             ResultItem('alfy', alfy, twiss_args.get('alfy')),
-        ] if long_transfer else []
+        ]
         results += [
             ResultItem('dx',   dx,   twiss_args.get('dx')),
             ResultItem('dpx',  dpx,  twiss_args.get('dpx')),
-        ] if use_dispersion and long_transfer and use_dispersion_x else []
+        ] if use_dispersion and use_dispersion_x else []
         results += [
             ResultItem('dy',   dy,   twiss_args.get('dy')),
             ResultItem('dpy',  dpy,  twiss_args.get('dpy')),
-        ] if use_dispersion and long_transfer and use_dispersion_y else []
+        ] if use_dispersion and use_dispersion_y else []
 
         self.results[:] = results
 

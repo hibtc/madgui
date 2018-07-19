@@ -70,12 +70,9 @@
        <widget class="QWidget" name="options_box" native="true">
         <layout class="QHBoxLayout">
          <item>
-          <widget class="QCheckBox" name="long_transfer">
+          <widget class="QLabel">
            <property name="text">
-            <string>Match from start</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
+            <string>Mode:</string>
            </property>
           </widget>
          </item>
