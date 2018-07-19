@@ -3,6 +3,7 @@ from math import sqrt, isnan
 from functools import partial
 from collections import namedtuple
 from itertools import accumulate
+from types import SimpleNamespace
 import logging
 
 import numpy as np
@@ -448,8 +449,8 @@ class EmittanceDialog(_FitWidget):
 
         coup_xy = not np.allclose(tms[:,0:2,2:4], 0)
         coup_yx = not np.allclose(tms[:,2:4,0:2], 0)
-        coup_xt = not np.allclose(tms[:,0:2,4:5], 0)
-        coup_yt = not np.allclose(tms[:,2:4,4:5], 0)
+        coup_xt = not np.allclose(tms[:,0:2,5:6], 0)
+        coup_yt = not np.allclose(tms[:,2:4,5:6], 0)
 
         coupled = coup_xy or coup_yx
         dispersive = coup_xt or coup_yt
@@ -469,37 +470,39 @@ class EmittanceDialog(_FitWidget):
             sigma, residuals, singular = solve_emit_sys(tms, xcs)
             return sigma
 
-        # TODO: assert no dispersion / or use 6 monitors...
-        if not respect_coupling:
-            if coupled:
-                logging.warn("Coupled lattice!")
-            tmx = np.delete(np.delete(tms, [2,3], axis=1), [2,3], axis=2)
-            tmy = np.delete(np.delete(tms, [0,1], axis=1), [0,1], axis=2)
-            xcx = [[(0, cx[1])] for cx, cy in xcs]
-            xcy = [[(0, cy[1])] for cx, cy in xcs]
-            sigmax = calc_sigma(tmx, xcx, coup_xt)
-            sigmay = calc_sigma(tmy, xcy, coup_yt)
-            ex, betx, alfx = twiss_from_sigma(sigmax[0:2,0:2])
-            ey, bety, alfy = twiss_from_sigma(sigmay[0:2,0:2])
-            use_dispersion_x = use_dispersion and coup_xt
-            use_dispersion_y = use_dispersion and coup_xt
-            if use_dispersion_x: dx, dpx = sigmax[[0,1],2]
-            if use_dispersion_x: dy, dpy = sigmay[[0,1],2]
-            if use_dispersion and dispersive:
-                et = (coup_xt * sigmax[-1,-1] +
-                      coup_yt * sigmay[-1,-1]) / (coup_xt + coup_yt)
+        mode = self.mode
+        if coupled and mode in 'xy':
+            logging.warn("Coupled lattice!")
 
-        else:
+        r = SimpleNamespace()
+
+        if mode == 'x':
+            tms = np.array(tms)[:,[0,1,5],:][:,:,[0,1,5]]
+            xcx = [[(0, cx[1])] for cx, cy in xcs]
+            sigmax = calc_sigma(tmx, xcx, coup_xt)
+            r.ex, r.betx, r.alfx = twiss_from_sigma(sigmax[0:2,0:2])
+            if use_dispersion and coup_xt:
+                r.dx, r.dpx, r.et = sigmax[:,2]
+
+        elif mode == 'y':
+            tms = np.array(tms)[:,[2,3,5],:][:,:,[2,3,5]]
+            xcy = [[(0, cy[1])] for cx, cy in xcs]
+            sigmay = calc_sigma(tmy, xcy, coup_yt)
+            r.ey, r.bety, r.alfy = twiss_from_sigma(sigmay[0:2,0:2])
+            if use_dispersion and coup_xt:
+                r.dy, r.dpy, r.et = sigmay[:,2]
+
+        elif mode == 'xy':
+            tms = np.array(tms)[:,[0,1,2,3,5],:][:,:,[0,1,2,3,5]]
             sigma = calc_sigma(tms, xcs, dispersive)
-            ex, betx, alfx = twiss_from_sigma(sigma[0:2,0:2])
-            ey, bety, alfy = twiss_from_sigma(sigma[2:4,2:4])
-            et = sigma[-1,-1]
-            use_dispersion_x = use_dispersion and dispersive
-            use_dispersion_y = use_dispersion and dispersive
-            if use_dispersion_x: dx, dpx = sigma[[0,1],4]
-            if use_dispersion_x: dy, dpy = sigma[[2,3],4]
+            r.ex, r.betx, r.alfx = twiss_from_sigma(sigma[0:2,0:2])
+            r.ey, r.bety, r.alfy = twiss_from_sigma(sigma[2:4,2:4])
+            if use_dispersion and dispersive:
+                r.dx, r.dpx, r.dy, r.dpy, r.et = sigma[:,4]
+
             # TODO: from this case, we should also return the coupling matrix
             # r11, r12, r21, r22
+
 
         beam = model.sequence.beam
         twiss_args = model.twiss_args
