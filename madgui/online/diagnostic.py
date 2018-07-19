@@ -384,6 +384,7 @@ class EmittanceDialog(_FitWidget):
             model.update_beam({
                 'ex': results.pop('ex', model.ex()),
                 'ey': results.pop('ey', model.ey()),
+                'et': results.pop('et', model.ey()),
             })
             model.update_twiss_args(results)
 
@@ -448,7 +449,7 @@ class EmittanceDialog(_FitWidget):
         def calc_sigma(tms, xcs, dispersive):
             if dispersive and not use_dispersion:
                 logging.warn("Dispersive lattice!")
-            if not use_dispersion:
+            if not use_dispersion or not dispersive:
                 tms = tms[:,:-1,:-1]
             sigma, residuals, singular = solve_emit_sys(tms, xcs)
             return sigma
@@ -465,13 +466,25 @@ class EmittanceDialog(_FitWidget):
             sigmay = calc_sigma(tmy, xcy, coup_yt)
             ex, betx, alfx = twiss_from_sigma(sigmax[0:2,0:2])
             ey, bety, alfy = twiss_from_sigma(sigmay[0:2,0:2])
-            pt = sigmax[-1,-1]
+            use_dispersion_x = use_dispersion and coup_xt
+            use_dispersion_y = use_dispersion and coup_xt
+            if use_dispersion_x: dx, dpx = sigmax[[0,1],2]
+            if use_dispersion_x: dy, dpy = sigmay[[0,1],2]
+            if use_dispersion and dispersive:
+                et = (coup_xt * sigmax[-1,-1] +
+                      coup_yt * sigmay[-1,-1]) / (coup_xt + coup_yt)
 
         else:
             sigma = calc_sigma(tms, xcs, dispersive)
             ex, betx, alfx = twiss_from_sigma(sigma[0:2,0:2])
             ey, bety, alfy = twiss_from_sigma(sigma[2:4,2:4])
-            pt = sigma[-1,-1]
+            et = sigma[-1,-1]
+            use_dispersion_x = use_dispersion and dispersive
+            use_dispersion_y = use_dispersion and dispersive
+            if use_dispersion_x: dx, dpx = sigma[[0,1],4]
+            if use_dispersion_x: dy, dpy = sigma[[2,3],4]
+            # TODO: from this case, we should also return the coupling matrix
+            # r11, r12, r21, r22
 
         beam = model.sequence.beam
         twiss_args = model.twiss_args
@@ -482,7 +495,7 @@ class EmittanceDialog(_FitWidget):
             ResultItem('ey',   ey,   beam.ey),
         ]
         results += [
-            ResultItem('pt',   pt,   beam.et),
+            ResultItem('et',   et,   beam.et),
         ] if use_dispersion else []
         results += [
             ResultItem('betx', betx, twiss_args.get('betx')),
@@ -490,6 +503,14 @@ class EmittanceDialog(_FitWidget):
             ResultItem('alfx', alfx, twiss_args.get('alfx')),
             ResultItem('alfy', alfy, twiss_args.get('alfy')),
         ] if long_transfer else []
+        results += [
+            ResultItem('dx',   dx,   twiss_args.get('dx')),
+            ResultItem('dpx',  dpx,  twiss_args.get('dpx')),
+        ] if use_dispersion and long_transfer and use_dispersion_x else []
+        results += [
+            ResultItem('dy',   dy,   twiss_args.get('dy')),
+            ResultItem('dpy',  dpy,  twiss_args.get('dpy')),
+        ] if use_dispersion and long_transfer and use_dispersion_y else []
 
         self.results[:] = results
 
@@ -502,10 +523,11 @@ def solve_emit_sys(Ms, XCs):
 
     For some M, x and C.
 
-    M can be coupled, but S is assumed to be block diagonal, i.e. decoupled:
+    M can be coupled, but S is assumed to be block diagonal, i.e. decoupled in
+    X/Y:
 
-        S = (X 0 0
-             0 Y 0
+        S = (X 0 A
+             0 Y B
              0 0 T)
 
     Returns S as numpy array.
