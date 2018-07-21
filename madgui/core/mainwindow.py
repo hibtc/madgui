@@ -412,7 +412,6 @@ class MainWindow(QtGui.QMainWindow):
         filename = getOpenFileName(self, title, folder, filters)
         if filename:
             from madgui.widget.params import import_params
-            data = import_params(filename)
             callback(import_params)
             self.str_folder = os.path.dirname(filename)
 
