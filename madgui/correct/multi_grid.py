@@ -8,6 +8,7 @@ Multi grid correction method.
 
 from functools import partial
 
+import numpy as np
 import yaml
 
 from madgui.qt import QtCore, QtGui, load_ui
@@ -15,7 +16,7 @@ from madgui.qt import QtCore, QtGui, load_ui
 from madgui.core.unit import ui_units, change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.util.qt import fit_button, monospace
+from madgui.util.qt import fit_button, monospace, bold
 from madgui.widget.tableview import TableItem
 from madgui.widget.edit import LineNumberBar
 
@@ -156,10 +157,15 @@ class CorrectorWidget(QtGui.QWidget):
         ]
 
     def get_steerer_row(self, i, v) -> ("Steerer", "Initial", "Final", "Unit"):
+        changed = not np.isclose(v.design, v.value)
+        style = {
+            #'foreground': QtGui.QColor(Qt.red),
+            'font': bold(),
+        } if changed else {}
         return [
             TableItem(v.knob),
             TableItem(change_unit(v.design, v.info.unit, v.info.ui_unit)),
-            TableItem(change_unit(v.value, v.info.unit, v.info.ui_unit)),
+            TableItem(change_unit(v.value, v.info.unit, v.info.ui_unit), **style),
             TableItem(get_raw_label(v.info.ui_unit)),
         ]
 
