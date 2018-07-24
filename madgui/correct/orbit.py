@@ -22,7 +22,7 @@ def fit_particle_orbit(model, offsets, records):
     secmaps = model.get_transfer_maps([0] + [r.name for r in records])
     secmaps[0] = np.eye(7)
     secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
-    (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
+    (x, px, y, py), chi_squared, singular = fit_initial_orbit([
         (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
         for record, secmap in zip(records, secmaps)
         for dx, dy in [offsets.get(record.name.lower(), (0, 0))]
@@ -68,14 +68,14 @@ def show_backtrack_curve(frame, curve):
     frame.add_curve("backtrack", curve, style)
 
 
-def fit_initial_orbit(*records):
+def fit_initial_orbit(records):
     """
     Compute initial beam position/momentum from multiple recorded monitor
     readouts + associated transfer maps.
 
     Call as follows:
 
-        >>> fit_initial_orbit((T1, K1, Y1), (T2, K2, Y2), …)
+        >>> fit_initial_orbit([(T1, K1, Y1), (T2, K2, Y2), …])
 
     where
 
