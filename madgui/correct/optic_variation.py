@@ -16,7 +16,7 @@ from madgui.util.collections import List
 
 from .multi_grid import Corrector as _Corrector
 from ._common import EditConfigDialog
-from .match import Constraint, Variable
+from .match import Constraint
 
 
 
@@ -64,7 +64,6 @@ class Corrector(_Corrector):
 class CorrectorWidget(QtGui.QWidget):
 
     initial_particle_orbit = None
-    steerer_corrections = None
 
     ui_file = 'ovm_dialog.ui'
 
@@ -114,17 +113,20 @@ class CorrectorWidget(QtGui.QWidget):
     def set_cons_value(self, i, c, value):
         self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
-    def get_steerer_row(self, i, v) -> ("Steerer", "Now", "Next", "Unit"):
-        changed = not np.isclose(v.design, v.value)
+    def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
+        initial = self.corrector.cur_results.get(v.lower())
+        matched = self.corrector.top_results.get(v.lower())
+        changed = matched is not None and not np.isclose(initial, matched)
         style = {
             #'foreground': QtGui.QColor(Qt.red),
             'font': bold(),
         } if changed else {}
+        info = self.corrector._knobs[v.lower()]
         return [
-            TableItem(v.knob),
-            TableItem(change_unit(v.design, v.info.unit, v.info.ui_unit)),
-            TableItem(change_unit(v.value, v.info.unit, v.info.ui_unit), **style),
-            TableItem(get_raw_label(v.info.ui_unit)),
+            TableItem(v),
+            TableItem(change_unit(initial, info.unit, info.ui_unit)),
+            TableItem(change_unit(matched, info.unit, info.ui_unit), **style),
+            TableItem(get_raw_label(info.ui_unit)),
         ]
 
     def __init__(self, corrector):
@@ -215,30 +217,16 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        self.corrector.model.write_params(self.steerer_corrections.items())
-        self.corrector.control.write_params(self.steerer_corrections.items())
+        self.corrector.model.write_params(self.top_results.items())
+        self.corrector.control.write_params(self.top_results.items())
         self.corrector.apply()
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
         self.corrector.update()
-
-        if not self.corrector.fit_results or not self.corrector.variables:
-            self.steerer_corrections = None
-            self.btn_apply.setEnabled(False)
-            return
-        self.steerer_corrections = \
+        if self.corrector.fit_results and self.corrector.variables:
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
-        self.btn_apply.setEnabled(True)
-        # update table view
-        with self.corrector.model.undo_stack.rollback("Knobs for corrected orbit"):
-            self.corrector.model.write_params(self.steerer_corrections.items())
-            self.corrector.variables[:] = [
-                Variable(v.knob, v.info, val,
-                         self.corrector.design_values.setdefault(v.knob, val))
-                for v in self.corrector.variables
-                for val in [self.steerer_corrections.get(v.knob)]
-            ]
+        self.update_ui()
 
     def read_focus(self):
         """Update focus level and automatically load QP values."""
@@ -302,6 +290,14 @@ class CorrectorWidget(QtGui.QWidget):
 
         return True
 
+    def prev_vals(self):
+        self.corrector.hist_idx -= 1
+        self.update_ui()
+
+    def next_vals(self):
+        self.corrector.hist_idx += 1
+        self.update_ui()
+
     def update_ui(self):
         running = self.bot.running
         has_fit = self.corrector.fit_results is not None
@@ -322,6 +318,14 @@ class CorrectorWidget(QtGui.QWidget):
         self.tab_manual.setEnabled(not running)
         self.ctrl_progress.setRange(0, self.bot.totalops)
         self.ctrl_progress.setValue(self.bot.progress)
+
+        hist_idx = self.corrector.hist_idx
+        hist_len = len(self.corrector.hist_stack)
+        self.btn_prev.setEnabled(hist_idx > 0)
+        self.btn_next.setEnabled(hist_idx+1 < hist_len)
+        self.btn_apply.setEnabled(
+            self.corrector.cur_results != self.corrector.top_results)
+        self.corrector.variables.touch()
 
 
 class ProcBot:

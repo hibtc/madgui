@@ -10,17 +10,6 @@ from madgui.util.collections import List
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
-Variable = namedtuple('Variable', ['knob', 'info', 'value', 'design'])
-
-
-def variable_from_knob(matcher, knob, info=None):
-    value = matcher.model.read_param(knob)
-    design = matcher.design_values.setdefault(knob, value)
-    return Variable(knob, info, value, design)
-
-
-def variable_update(matcher, variable):
-    return variable_from_knob(matcher, variable.knob, variable.info)
 
 
 class Matcher(Object):
@@ -40,6 +29,7 @@ class Matcher(Object):
         self.knobs = model.get_knobs()
         self.constraints = List()
         self.variables = List()
+        self.match_results = {}
         self.design_values = {}
         self.mirror_mode = model.config['matching'].get('mirror', True)
 
@@ -53,8 +43,8 @@ class Matcher(Object):
             for tw in [self._get_tw_row(c.elem, c.pos)]
         ]
         blacklist = [v.lower() for v in self.model.data.get('readonly', ())]
-        variables = {v.knob for v in self.variables
-                     if v.knob.lower() not in blacklist}
+        variables = {v for v in self.variables
+                     if v.lower() not in blacklist}
         num_vars = len(variables)
         num_cons = len(constraints)
         logging.info("Attempting to match {} constraints via {} variables."
@@ -63,8 +53,9 @@ class Matcher(Object):
             logging.warn(
                 "Aborted due to invalid number of constraints or variables.")
             return
-        self.model.match(variables, constraints)
-        self.variables[:] = [variable_update(self, v) for v in self.variables]
+        match_results = self.model.match(variables, constraints)
+        self.match_results = {k.lower(): v for k, v in match_results.items()}
+        self.variables.touch()
 
     # manage 'active' state
 
@@ -73,6 +64,7 @@ class Matcher(Object):
     def start(self):
         if not self.started:
             self.started = True
+            self.design_values = dict(self.model.globals)
 
     def stop(self):
         if self.started:
@@ -82,8 +74,8 @@ class Matcher(Object):
 
     def apply(self):
         for v in self.variables:
-            self.design_values[v.knob] = v.value
-        self.variables[:] = [variable_update(self, v) for v in self.variables]
+            self.design_values = dict(self.model.globals)
+        self.variables.touch()
 
     def clear(self):
         self.variables.clear()
@@ -99,7 +91,7 @@ class Matcher(Object):
         return self.model.get_elem_twiss(elem)
 
     def next_best_variable(self):
-        return variable_from_knob(self, self.knobs[0])
+        return self.knobs[0]
 
     def detect_variables(self):
         """
@@ -124,10 +116,10 @@ class Matcher(Object):
                 break
             try:
                 # TODO: just bisect this…
-                var = next(v for v in reversed(axes[c.axis])
-                           if v.info.position < c.pos and v.knob not in used)
+                var = next(v for elem, v in reversed(axes[c.axis])
+                           if elem.position < c.pos and v not in used)
                 variables.insert(0, var)
-                used.add(var.knob)
+                used.add(var)
             except StopIteration:
                 # No variable in range found! Ok?
                 pass
@@ -140,7 +132,7 @@ class Matcher(Object):
         """
         elem_types = self.rules.get(axis, ())
         return [
-            variable_from_knob(self, knob, elem)
+            (elem, knob)
             for elem in self.model.elements
             if elem.base_name.lower() in elem_types
             for knob in self.model.get_elem_knobs(elem)

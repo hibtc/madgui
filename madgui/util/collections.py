@@ -97,6 +97,9 @@ class List(Object):
         self.delete_notify.connect(other.__delitem__)
         self.modify_notify.connect(other.__setitem__)
 
+    def touch(self):
+        self[:] = self
+
     @contextmanager
     def update_notify(self, slice, new_values):
         """Emit update signals, only when ."""
