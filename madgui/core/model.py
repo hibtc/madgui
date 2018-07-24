@@ -102,6 +102,7 @@ class Model:
         self.command_log = command_log
         self.stdout_log = stdout_log
         self.undo_stack = undo_stack
+        self.undo_stack.model = self
         self.config = config
         self.filename = os.path.abspath(filename)
         path, name = os.path.split(filename)

@@ -233,10 +233,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.steerer_corrections = \
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.btn_apply.setEnabled(True)
-        # update table view
-        with self.corrector.model.undo_stack.rollback("Knobs for corrected orbit"):
-            self.corrector.model.write_params(self.steerer_corrections.items())
-            self.corrector.variables.touch()
+        self.corrector.variables.touch()    # update table view
 
     def read_focus(self):
         """Update focus level and automatically load QP values."""

@@ -43,7 +43,9 @@ class UndoStack(QtGui.QUndoStack):
                 self.undo()
 
     @contextmanager
-    def rollback(self, text="temporary change", hidden=False):
+    def rollback(self, text="temporary change", hidden=False, transient=False):
+        if transient:
+            invalid = self.model.twiss.invalid  # TODO: model member variable…
         self.beginMacro(text)
         try:
             yield None
@@ -53,3 +55,5 @@ class UndoStack(QtGui.QUndoStack):
             if macro.childCount() == 0 or hidden:
                 macro.setObsolete(True)
             self.undo()
+            if transient:
+                self.model.twiss.invalid = invalid
