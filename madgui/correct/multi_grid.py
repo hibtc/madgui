@@ -7,6 +7,7 @@ Multi grid correction method.
 # - combine with optic variation method
 
 from functools import partial
+from itertools import accumulate
 
 import numpy as np
 import yaml
@@ -99,7 +100,13 @@ class Corrector(Matcher):
     # computations
 
     def fit_particle_orbit(self):
-        return fit_particle_orbit(self.model, self._offsets, self.readouts)[0]
+        records = self.readouts
+        secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
+        secmaps[0] = np.eye(7)
+        secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
+        range_start = records[0].name
+        return fit_particle_orbit(
+            self.model, self._offsets, records, secmaps, range_start)[0]
 
     def compute_steerer_corrections(self, init_orbit):
 

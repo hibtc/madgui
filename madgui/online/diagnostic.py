@@ -353,7 +353,11 @@ class OrbitWidget(_FitWidget):
         if self.num_selected() < 2:
             return {}, 0, False
         records = [m for m in self.monitors if self.selected(m)]
-        ret, curve = fit_particle_orbit(self.model, self._offsets, records)
+        secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
+        secmaps[0] = np.eye(7)
+        range_start = records[0].name
+        ret, curve = fit_particle_orbit(
+            self.model, self._offsets, records, secmaps, range_start)
         show_backtrack_curve(self.frame, curve)
         return ret
 
