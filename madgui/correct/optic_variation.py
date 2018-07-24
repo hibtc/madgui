@@ -139,6 +139,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.connect_signals()
 
     def closeEvent(self, event):
+        self.bot.cancel()
         self.corrector.stop()
         self.frame.del_curve("monitors")
 
