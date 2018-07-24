@@ -48,7 +48,6 @@ class Corrector(Matcher):
         self.configs = configs
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
         # save elements
-        self.design_values = {}
         self.monitors = List()
         self.readouts = List()
         self.records = List()
@@ -199,8 +198,8 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(ui_units.label(c.axis)),
         ]
 
-    def get_steerer_row(self, i, v) -> ("Steerer", "Initial", "Final", "Unit"):
-        initial = self.corrector.design_values.get(v.lower())
+    def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
+        initial = self.corrector.model.globals.get(v.lower())
         matched = self.corrector.match_results.get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {

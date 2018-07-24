@@ -114,8 +114,8 @@ class CorrectorWidget(QtGui.QWidget):
     def set_cons_value(self, i, c, value):
         self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
-    def get_steerer_row(self, i, v) -> ("Steerer", "Now", "Next", "Unit"):
-        initial = self.corrector.design_values.get(v.lower())
+    def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
+        initial = self.corrector.model.globals.get(v.lower())
         matched = self.corrector.match_results.get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {
