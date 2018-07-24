@@ -5,7 +5,7 @@ UI for matching.
 from madgui.qt import QtGui, load_ui
 from madgui.core.unit import ui_units
 from madgui.widget.tableview import TableItem
-from madgui.correct.match import variable_from_knob, Constraint
+from madgui.correct.match import Constraint
 from madgui.util.enum import make_enum
 
 
@@ -82,12 +82,11 @@ class MatchWidget(QtGui.QWidget):
             if text is not None:
                 knob = parse_knob(self.model, str(text))
                 if knob:
-                    self.matcher.variables[i] = \
-                        variable_from_knob(self.matcher, knob)
+                    self.matcher.variables[i] = knob
         return [
-            TableItem(self.knob_enum(v.knob), set_value=set_knob),
-            TableItem(v.design),
-            TableItem(v.value),
+            TableItem(self.knob_enum(v), set_value=set_knob),
+            TableItem(self.matcher.design_values.get(v.lower())),
+            TableItem(self.matcher.match_results.get(v.lower())),
         ]
 
     # The three steps of UI initialization

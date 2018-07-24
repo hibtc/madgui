@@ -16,7 +16,7 @@ from madgui.util.collections import List
 
 from .multi_grid import Corrector as _Corrector
 from ._common import EditConfigDialog
-from .match import Constraint, Variable
+from .match import Constraint
 
 
 
@@ -115,16 +115,19 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
     def get_steerer_row(self, i, v) -> ("Steerer", "Now", "Next", "Unit"):
-        changed = not np.isclose(v.design, v.value)
+        initial = self.corrector.design_values.get(v.lower())
+        matched = self.corrector.match_results.get(v.lower())
+        changed = matched is not None and not np.isclose(initial, matched)
         style = {
             #'foreground': QtGui.QColor(Qt.red),
             'font': bold(),
         } if changed else {}
+        info = self.corrector._knobs[v.lower()]
         return [
-            TableItem(v.knob),
-            TableItem(change_unit(v.design, v.info.unit, v.info.ui_unit)),
-            TableItem(change_unit(v.value, v.info.unit, v.info.ui_unit), **style),
-            TableItem(get_raw_label(v.info.ui_unit)),
+            TableItem(v),
+            TableItem(change_unit(initial, info.unit, info.ui_unit)),
+            TableItem(change_unit(matched, info.unit, info.ui_unit), **style),
+            TableItem(get_raw_label(info.ui_unit)),
         ]
 
     def __init__(self, corrector):
@@ -233,12 +236,7 @@ class CorrectorWidget(QtGui.QWidget):
         # update table view
         with self.corrector.model.undo_stack.rollback("Knobs for corrected orbit"):
             self.corrector.model.write_params(self.steerer_corrections.items())
-            self.corrector.variables[:] = [
-                Variable(v.knob, v.info, val,
-                         self.corrector.design_values.setdefault(v.knob, val))
-                for v in self.corrector.variables
-                for val in [self.steerer_corrections.get(v.knob)]
-            ]
+            self.corrector.variables.touch()
 
     def read_focus(self):
         """Update focus level and automatically load QP values."""
