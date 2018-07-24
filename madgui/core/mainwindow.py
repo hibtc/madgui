@@ -542,6 +542,7 @@ class MainWindow(QtGui.QMainWindow):
         """Show about dialog."""
         import sys
         import site     # adds builtins.license/copyright/credits
+        site            # silence pyflakes (suppress unused import warning)
         import builtins
         class About:
             __title__   = 'python'

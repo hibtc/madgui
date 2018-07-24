@@ -131,9 +131,9 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.replay = elements, survey, selection
         self.setScene(QtGui.QGraphicsScene(self))
         survey = [FloorCoords(0,0,0, 0,0,0)] + survey
-        for element, floor in zip(elements, zip(survey, survey[1:])):
+        for element, coords in zip(elements, zip(survey, survey[1:])):
             self.scene().addItem(
-                ElementGraphicsItem(self, element, floor, selection))
+                ElementGraphicsItem(self, element, coords, selection))
         self.coordinate_axes = CoordinateAxes(self)
         self.scale_indicator = ScaleIndicator(self)
         self.scene().addItem(self.coordinate_axes)
@@ -222,12 +222,12 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
                   'color': 'green',
                   'width': 4}
 
-    def __init__(self, plan, element, floor, selection):
+    def __init__(self, plan, element, coords, selection):
         super().__init__()
         self.plan = plan
-        self.floor = floor
-        self.rotate = (Rotation3(floor[0].theta, floor[0].phi, floor[0].psi),
-                       Rotation3(floor[1].theta, floor[1].phi, floor[1].psi))
+        self.coords = coords
+        self.rotate = (Rotation3(coords[0].theta, coords[0].phi, coords[0].psi),
+                       Rotation3(coords[1].theta, coords[1].phi, coords[1].psi))
         self.element = element
         self.length = element.length
         self.angle = float(element.get('angle', 0.0))
@@ -283,7 +283,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
 
     def endpoints(self):
         proj2D = self.plan.projection.dot
-        p0, p1 = self.floor
+        p0, p1 = self.coords
         return (proj2D([p0.x, p0.y, p0.z]),
                 proj2D([p1.x, p1.y, p1.z]))
 
