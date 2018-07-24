@@ -30,20 +30,8 @@ def fit_particle_orbit(model, offsets, records):
 
     first = records[0].name
 
-    model.madx.command.select(flag="interpolate", clear=True)
-
-    tw = model.madx.twiss(
-        range=first+'/#e',
-        x=x, y=y, px=px, py=py,
-        betx=1, bety=1, table="forward")
-    tw = model.madx.table.forward
-    model.twiss.invalidate()
-
-    tw = tw[-1]
-    x, y, px, py = tw.x, tw.y, tw.px, tw.py
-
     backtw = model.backtrack(
-        #range=first+'_reflected'+'/#e',
+        range=first+'_reflected'+'/#e',
         x=-x, y=y, px=px, py=-py,
         # We care only about the orbit:
         betx=1, bety=1, table="backtrack")
