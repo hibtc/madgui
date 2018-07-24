@@ -1,6 +1,42 @@
 CHANGELOG
 ~~~~~~~~~
 
+1.14.0
+~~~~~~
+Date: 24.07.2018
+
+- refactor and simplify treeview data model, more cohesive table definitions
+- monospace in tables
+- autosave and restore online settings (MEFI)
+- fix missing QUndoCommand.setObsolete on Qt<5.9
+- allow defining a ``limits`` parameter in multigrid config
+- fix IndexError if too few monitors are selected
+- implement missing export functionality in orbit/emit dialogs
+- use ``data_key`` for initial conditions im-/exports
+- add import/export menus as in mirko
+- implement strength import from YAML
+- refactor import/export logic
+- set YAML as the default filter in strengths export
+- recognize '!' comment character in .str files
+- fix treeview edit spin boxes to fit into their column
+- highlight changed items in SyncParamWidgets (read/write strengths)
+- highlight explicitly specified beam/twiss parameters in bold (initial
+  conditions dialogs)
+- code deduplication among diagnostic dialogs: share same rowgetter method
+- save selected monitors for orbit/optics in different lists
+- support QTableView again in parallel to QTreeView, this has some advantages
+  such as supporting background colors
+- highlight changed steerers in bold in multigrid dialog)
+- rework the optic variation dialog, based on tableview, added automation UI
+- disable section highlighting in TableView
+- refactor how variables are stored in orbit correction dialogs
+- always show the current value versus the "to-be-applied" value in the
+  "steerer corrections" table
+- add back/forward button in orbit correction dialogs
+- nicer arrow buttons (QToolButton) in element info dialog
+- show monitors during orbit correction
+
+
 1.13.0
 ~~~~~~
 Date: 15.07.2018
