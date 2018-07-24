@@ -60,8 +60,6 @@ class ParamTable(TreeView):
 
         super().__init__(**kwargs)
         self.set_rowgetter(self.get_param_row, titles=self.sections)
-        # in case anyone turns the header back on:
-        self.header().setHighlightSections(False)
         self.header().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)

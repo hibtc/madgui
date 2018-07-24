@@ -60,7 +60,6 @@ class MonitorWidgetBase(QtGui.QWidget):
         self._offsets = frame.config['online_control']['offsets']
 
         self.mtab.set_rowgetter(self.get_monitor_row, unit=True)
-        self.mtab.header().setHighlightSections(False)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
@@ -309,7 +308,6 @@ class _FitWidget(MonitorWidgetBase):
         self.btn_apply.clicked.connect(self.apply)
         self.results = List()
 
-        self.rtab.header().setHighlightSections(False)
         self.rtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.rtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.rtab.set_rowgetter(self.get_result_row, self.results)

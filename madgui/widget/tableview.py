@@ -472,6 +472,11 @@ class TableView(ItemView, QtGui.QTableView):
       QTableView)
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.horizontalHeader().setHighlightSections(False)
+        self.verticalHeader().setHighlightSections(False)
+
     def header(self):
         return self.horizontalHeader()
 
