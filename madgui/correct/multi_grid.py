@@ -16,13 +16,21 @@ from madgui.qt import QtCore, QtGui, load_ui
 
 from madgui.core.unit import ui_units, change_unit, get_raw_label
 from madgui.util.collections import List
-from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.util.qt import fit_button, monospace, bold
+from madgui.util.qt import fit_button, bold
 from madgui.widget.tableview import TableItem
-from madgui.widget.edit import LineNumberBar
 
 from .orbit import fit_particle_orbit, MonitorReadout
 from .match import Matcher, Constraint, variable_from_knob, Variable
+from ._common import EditConfigDialog
+
+
+class OrbitRecord:
+
+    def __init__(self, monitor, readout, optics, tm):
+        self.monitor = monitor
+        self.readout = readout
+        self.optics = optics
+        self.tm = tm
 
 
 class Corrector(Matcher):
@@ -35,6 +43,7 @@ class Corrector(Matcher):
 
     def __init__(self, control, configs):
         super().__init__(control.model(), None)
+        self.fit_results = None
         self.control = control
         self.configs = configs
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
@@ -42,6 +51,8 @@ class Corrector(Matcher):
         self.design_values = {}
         self.monitors = List()
         self.readouts = List()
+        self.records = List()
+        self.fit_range = None
         self._offsets = control._frame.config['online_control']['offsets']
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
@@ -60,8 +71,11 @@ class Corrector(Matcher):
         self.assign = {k: v for s in steerers if isinstance(s, dict)
                        for k, v in s.items()}
 
-        self.monitors[:] = monitors
         elements = self.model.elements
+        self.targets = sorted(targets, key=elements.index)
+        self.monitors[:] = sorted(monitors, key=elements.index)
+        self.fit_range = (min(self._fit_elements(), key=elements.index),
+                          max(self._fit_elements(), key=elements.index))
         self.constraints[:] = sorted([
             Constraint(elements[target], elements[target].position, key, float(value))
             for target, values in targets.items()
@@ -74,8 +88,15 @@ class Corrector(Matcher):
             if knob.lower() in self._knobs
         ]
 
+    def _fit_elements(self):
+        return list(self.targets) + list(self.monitors)
+
+    #def _involved_elements(self):      # with steerers!
+
     def update(self):
+        self.control.read_all()
         self.update_readouts()
+        self.update_records()
         self.update_fit()
 
     def update_readouts(self):
@@ -85,13 +106,15 @@ class Corrector(Matcher):
             for monitor in self.monitors
         ]
 
+    def update_records(self):
+        self.records[:] = self.current_orbit_records()
+
     def update_fit(self):
         self.fit_results = None
-        if len(self.readouts) < 2:
+        if len(self.records) < 2:
             return
-        self.control.read_all()
         init_orbit, chi_squared, singular = \
-            self.fit_particle_orbit()
+            self.fit_particle_orbit(self.records)
         if singular:
             return
         self.fit_results = init_orbit
@@ -99,14 +122,23 @@ class Corrector(Matcher):
 
     # computations
 
-    def fit_particle_orbit(self):
-        records = self.readouts
-        secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
-        secmaps[0] = np.eye(7)
-        secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
-        range_start = records[0].name
+    def fit_particle_orbit(self, records):
+        readouts = [r.readout for r in records]
+        secmaps = [r.tm for r in records]
         return fit_particle_orbit(
-            self.model, self._offsets, records, secmaps, range_start)[0]
+            self.model, self._offsets, readouts, secmaps, self.fit_range[0])[0]
+
+    def current_orbit_records(self):
+        model = self.model
+        start = self.fit_range[0]
+        secmaps = model.get_transfer_maps([start] + list(self.monitors))
+        secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
+        optics = {k: model.globals[k] for k in self._knobs}
+        return [
+            OrbitRecord(monitor, readout, optics, secmap)
+            for monitor, readout, secmap in zip(
+                    self.monitors, self.readouts, secmaps)
+        ]
 
     def compute_steerer_corrections(self, init_orbit):
 
@@ -244,7 +276,7 @@ class CorrectorWidget(QtGui.QWidget):
                 for v in self.corrector.variables
                 for val in [self.steerer_corrections.get(v.knob)]
             ]
-        self.var_tab.resizeColumnToContents(0)
+        #self.var_tab.resizeColumnToContents(0)
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
@@ -259,39 +291,10 @@ class CorrectorWidget(QtGui.QWidget):
         #       self.execute_corrections.setEnabled according to its values
 
     def edit_config(self):
-        dialog = EditConfigDialog(self.corrector.model, self.corrector)
+        dialog = EditConfigDialog(self.corrector.model, self.apply_config)
         dialog.exec_()
 
-
-class EditConfigDialog(QtGui.QDialog):
-
-    def __init__(self, model, matcher):
-        super().__init__()
-        self.model = model
-        self.matcher = matcher
-        self.textbox = QtGui.QPlainTextEdit()
-        self.textbox.setFont(monospace())
-        self.linenos = LineNumberBar(self.textbox)
-        buttons = QtGui.QDialogButtonBox()
-        buttons.addButton(buttons.Ok).clicked.connect(self.accept)
-        self.setLayout(VBoxLayout([
-            HBoxLayout([self.linenos, self.textbox], tight=True),
-            buttons,
-        ]))
-        self.setSizeGripEnabled(True)
-        self.resize(QtCore.QSize(600,400))
-        self.setWindowTitle(self.model.filename)
-
-        with open(model.filename) as f:
-            text = f.read()
-        self.textbox.appendPlainText(text)
-
-    def accept(self):
-        if self.apply():
-            super().accept()
-
-    def apply(self):
-        text = self.textbox.toPlainText()
+    def apply_config(self, text):
         try:
             data = yaml.safe_load(text)
         except yaml.error.YAMLError:
@@ -309,14 +312,15 @@ class EditConfigDialog(QtGui.QDialog):
                 'No multi grid configuration defined.')
             return False
 
-        with open(self.model.filename, 'w') as f:
+        model = self.corrector.model
+        with open(model.filename, 'w') as f:
             f.write(text)
 
-        self.matcher.configs = configs
-        self.model.data['multi_grid'] = configs
+        self.corrector.configs = configs
+        self.data['multi_grid'] = configs
 
-        conf = self.matcher.active if self.matcher.active in configs else next(iter(configs))
-        self.matcher.setup(conf)
-        self.matcher.update()
+        conf = self.corrector.active if self.corrector.active in configs else next(iter(configs))
+        self.corrector.setup(conf)
+        self.corrector.update()
 
         return True
