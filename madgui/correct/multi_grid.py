@@ -251,6 +251,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def closeEvent(self, event):
         self.corrector.stop()
+        self.frame.del_curve("monitors")
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
@@ -291,6 +292,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.update_readouts()
         self.corrector.update_records()
         self.update_ui()
+        QtCore.QTimer.singleShot(0, self.draw)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
@@ -298,6 +300,7 @@ class CorrectorWidget(QtGui.QWidget):
         if self.corrector.fit_results and self.corrector.variables:
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.update_ui()
+        self.draw()
         #self.var_tab.resizeColumnToContents(0)
 
     def on_change_config(self, index):
@@ -363,3 +366,24 @@ class CorrectorWidget(QtGui.QWidget):
         self.update_status()
 
         return True
+
+    def draw(self):
+        corr = self.corrector
+        elements = corr.model.elements
+        monitor_data = [
+            {'s': elements[r.name].position,
+             'x': r.posx + dx,
+             'y': r.posy + dy}
+            for r in self.corrector.readouts
+            for dx, dy in [self.corrector._offsets.get(r.name.lower(), (0, 0))]
+        ]
+        curve_data = {
+            name: np.array([d[name] for d in monitor_data])
+            for name in ['s', 'x', 'y']
+        }
+        style = self.frame.config['line_view']['monitor_style']
+        self.frame.add_curve("monitors", curve_data, style)
+
+    @property
+    def frame(self):
+        return self.window().parent()

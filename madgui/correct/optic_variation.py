@@ -140,6 +140,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def closeEvent(self, event):
         self.corrector.stop()
+        self.frame.del_curve("monitors")
 
     num_focus_levels = 6
 
@@ -325,6 +326,29 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_apply.setEnabled(
             self.corrector.cur_results != self.corrector.top_results)
         self.corrector.variables.touch()
+        # TODO: do this only after updating readouts…
+        QtCore.QTimer.singleShot(0, self.draw)
+
+    def draw(self):
+        corr = self.corrector
+        elements = corr.model.elements
+        monitor_data = [
+            {'s': elements[r.name].position,
+             'x': r.posx + dx,
+             'y': r.posy + dy}
+            for r in self.corrector.readouts
+            for dx, dy in [self.corrector._offsets.get(r.name.lower(), (0, 0))]
+        ]
+        curve_data = {
+            name: np.array([d[name] for d in monitor_data])
+            for name in ['s', 'x', 'y']
+        }
+        style = self.frame.config['line_view']['monitor_style']
+        self.frame.add_curve("monitors", curve_data, style)
+
+    @property
+    def frame(self):
+        return self.window().parent()
 
 
 class ProcBot:
