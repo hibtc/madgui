@@ -1,5 +1,3 @@
-from itertools import accumulate
-
 import numpy as np
 
 
@@ -17,33 +15,21 @@ class MonitorReadout:
                       not np.isclose(self.posy, -9.999))
 
 
-def fit_particle_orbit(model, offsets, records):
+def fit_particle_orbit(model, offsets, records, secmaps, range_start=None):
 
-    secmaps = model.get_transfer_maps([0] + [r.name for r in records])
-    secmaps[0] = np.eye(7)
-    secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
-    (x, px, y, py), chi_squared, singular = fit_initial_orbit(*[
+    (x, px, y, py), chi_squared, singular = fit_initial_orbit([
         (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
         for record, secmap in zip(records, secmaps)
         for dx, dy in [offsets.get(record.name.lower(), (0, 0))]
     ])
 
-    first = records[0].name
-
-    model.madx.command.select(flag="interpolate", clear=True)
-
-    tw = model.madx.twiss(
-        range=first+'/#e',
-        x=x, y=y, px=px, py=py,
-        betx=1, bety=1, table="forward")
-    tw = model.madx.table.forward
-    model.twiss.invalidate()
-
-    tw = tw[-1]
-    x, y, px, py = tw.x, tw.y, tw.px, tw.py
+    if range_start is None:
+        range_start = records[0].name
+    else:
+        range_start = model.elements[range_start].name
 
     backtw = model.backtrack(
-        #range=first+'_reflected'+'/#e',
+        range=range_start+'_reflected'+'/#e',
         x=-x, y=y, px=px, py=-py,
         # We care only about the orbit:
         betx=1, bety=1, table="backtrack")
@@ -68,14 +54,14 @@ def show_backtrack_curve(frame, curve):
     frame.add_curve("backtrack", curve, style)
 
 
-def fit_initial_orbit(*records):
+def fit_initial_orbit(records):
     """
     Compute initial beam position/momentum from multiple recorded monitor
     readouts + associated transfer maps.
 
     Call as follows:
 
-        >>> fit_initial_orbit((T1, K1, Y1), (T2, K2, Y2), …)
+        >>> fit_initial_orbit([(T1, K1, Y1), (T2, K2, Y2), …])
 
     where
 

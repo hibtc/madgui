@@ -4,7 +4,6 @@ Plugin that integrates a beamoptikdll UI into MadGUI.
 
 import logging
 
-from madgui.qt import QtGui
 from madgui.core.base import Object
 from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool
@@ -163,25 +162,18 @@ class Control(Object):
     def on_correct_optic_variation_method(self):
         import madgui.correct.optic_variation as module
         from madgui.widget.dialog import Dialog
+
         varyconf = self.model().data.get('optic_variation', {})
+        selected = next(iter(varyconf))
 
         self.read_all()
-        self._frame.open_graph('orbit')
 
-        elements = self.model().elements
+        method = module.Corrector(self, varyconf)
+        method.setup(selected)
 
-        select = module.SelectWidget(elements, varyconf)
-        dialog = Dialog(self._frame)
-        dialog.setExportWidget(select, self._frame.folder)
-        dialog.serious.updateButtons()
-        dialog.exec_()
-        if dialog.result() != QtGui.QDialog.Accepted:
-            return
-
-        method = module.Corrector(self, *select.get_data())
         widget = module.CorrectorWidget(method)
         dialog = Dialog(self._frame)
-        dialog.setWidget(widget)
+        dialog.setWidget(widget, tight=True)
         dialog.show()
 
     # helper functions
@@ -191,3 +183,6 @@ class Control(Object):
         for param, value in params:
             write(param, value)
         self._plugin.execute()
+
+    def read_param(self, name):
+        return self._plugin.read_param(name)
