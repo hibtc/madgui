@@ -93,8 +93,11 @@ class Corrector(Matcher):
 
     #def _involved_elements(self):      # with steerers!
 
-    def update(self):
+    def update_vars(self):
         self.control.read_all()
+
+    def update(self):
+        self.update_vars()
         self.update_readouts()
         self.update_records()
         self.update_fit()
@@ -232,6 +235,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.model.write_params(self.steerer_corrections.items())
         self.corrector.control.write_params(self.steerer_corrections.items())
         self.corrector.apply()
+        self.update_status()
 
     def init_controls(self):
         for tab in (self.mon_tab, self.con_tab, self.var_tab):
@@ -248,7 +252,7 @@ class CorrectorWidget(QtGui.QWidget):
     def set_initial_values(self):
         self.update_fit_button.setFocus()
         self.radio_mode_xy.setChecked(True)
-        self.corrector.update()
+        self.update_status()
 
     def connect_signals(self):
         self.update_fit_button.clicked.connect(self.update_fit)
@@ -259,31 +263,39 @@ class CorrectorWidget(QtGui.QWidget):
         self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
         self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
 
+    def update_status(self):
+        self.corrector.update_vars()
+        self.corrector.update_readouts()
+        self.corrector.update_records()
+        self.update_ui()
+
     def update_fit(self):
         """Calculate initial positions / corrections."""
         self.corrector.update()
-
         if not self.corrector.fit_results or not self.corrector.variables:
             self.steerer_corrections = None
-            self.execute_corrections.setEnabled(False)
+            self.update_ui()
             return
         self.steerer_corrections = \
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
-        self.execute_corrections.setEnabled(True)
-        self.corrector.variables.touch()    # update table view
+        self.update_ui()
         #self.var_tab.resizeColumnToContents(0)
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
         self.corrector.setup(name, self.corrector.mode)
-        self.corrector.update()
+        self.update_status()
 
     def on_change_mode(self, dirs):
         self.corrector.setup(self.corrector.active, dirs)
-        self.corrector.update()
+        self.update_status()
 
         # TODO: make 'optimal'-column in var_tab editable and update
         #       self.execute_corrections.setEnabled according to its values
+
+    def update_ui(self):
+        self.execute_corrections.setEnabled(bool(self.steerer_corrections))
+        self.corrector.variables.touch()
 
     def edit_config(self):
         dialog = EditConfigDialog(self.corrector.model, self.apply_config)
@@ -316,6 +328,6 @@ class CorrectorWidget(QtGui.QWidget):
 
         conf = self.corrector.active if self.corrector.active in configs else next(iter(configs))
         self.corrector.setup(conf)
-        self.corrector.update()
+        self.update_status()
 
         return True
