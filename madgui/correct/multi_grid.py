@@ -58,6 +58,8 @@ class Corrector(Matcher):
     def setup(self, name, dirs=None):
         dirs = dirs or self.mode
 
+        self._clr_history()
+
         selected = self.selected = self.configs[name]
         monitors = selected['monitors']
         steerers = sum([selected['steerers'][d] for d in dirs], [])
@@ -92,8 +94,35 @@ class Corrector(Matcher):
 
     #def _involved_elements(self):      # with steerers!
 
+    def _read_vars(self):
+        model = self.model
+        return {
+            knob.lower(): model.read_param(knob)
+            for knob in self.match_names + list(self.assign)
+            if knob.lower() in self._knobs
+        }
+
+    def _clr_history(self):
+        self.hist_stack = []
+        self.hist_idx = -1
+        self.cur_results = {}
+        self.top_results = {}
+
+    def _push_history(self):
+        results = self._read_vars()
+        if results != self.top_results:
+            self.top_results = results
+            self.hist_idx += 1
+            self.hist_stack[self.hist_idx:] = [results]
+        return results
+
+    def history_move(self, move):
+        self.hist_idx += move
+        self.top_results = self.hist_stack[self.hist_idx]
+
     def update_vars(self):
         self.control.read_all()
+        self.cur_results = self._push_history()
 
     def update(self):
         self.update_vars()
@@ -169,17 +198,11 @@ class Corrector(Matcher):
                 method=self.method,
                 weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
                 constraints=constraints)
-            self.match_results = {
-                knob.lower(): model.read_param(knob)
-                for knob in self.match_names + list(self.assign)
-                if knob.lower() in self._knobs
-            }
+            self.match_results = self._push_history()
             return self.match_results
 
 
 class CorrectorWidget(QtGui.QWidget):
-
-    steerer_corrections = None
 
     ui_file = 'mgm_dialog.ui'
 
@@ -199,8 +222,8 @@ class CorrectorWidget(QtGui.QWidget):
         ]
 
     def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
-        initial = self.corrector.model.globals.get(v.lower())
-        matched = self.corrector.match_results.get(v.lower())
+        initial = self.corrector.cur_results.get(v.lower())
+        matched = self.corrector.top_results.get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {
             #'foreground': QtGui.QColor(Qt.red),
@@ -231,8 +254,8 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        self.corrector.model.write_params(self.steerer_corrections.items())
-        self.corrector.control.write_params(self.steerer_corrections.items())
+        self.corrector.model.write_params(self.corrector.top_results.items())
+        self.corrector.control.write_params(self.corrector.top_results.items())
         self.corrector.apply()
         self.update_status()
 
@@ -261,6 +284,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
         self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
         self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
+        self.btn_prev.clicked.connect(self.prev_vals)
+        self.btn_next.clicked.connect(self.next_vals)
 
     def update_status(self):
         self.corrector.update_vars()
@@ -271,11 +296,7 @@ class CorrectorWidget(QtGui.QWidget):
     def update_fit(self):
         """Calculate initial positions / corrections."""
         self.corrector.update()
-        if not self.corrector.fit_results or not self.corrector.variables:
-            self.steerer_corrections = None
-            self.update_ui()
-            return
-        self.steerer_corrections = \
+        if self.corrector.fit_results and self.corrector.variables:
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.update_ui()
         #self.var_tab.resizeColumnToContents(0)
@@ -292,8 +313,21 @@ class CorrectorWidget(QtGui.QWidget):
         # TODO: make 'optimal'-column in var_tab editable and update
         #       self.execute_corrections.setEnabled according to its values
 
+    def prev_vals(self):
+        self.corrector.history_move(-1)
+        self.update_ui()
+
+    def next_vals(self):
+        self.corrector.history_move(+1)
+        self.update_ui()
+
     def update_ui(self):
-        self.execute_corrections.setEnabled(bool(self.steerer_corrections))
+        hist_idx = self.corrector.hist_idx
+        hist_len = len(self.corrector.hist_stack)
+        self.btn_prev.setEnabled(hist_idx > 0)
+        self.btn_next.setEnabled(hist_idx+1 < hist_len)
+        self.execute_corrections.setEnabled(
+            self.corrector.cur_results != self.corrector.top_results)
         self.corrector.variables.touch()
 
     def edit_config(self):
