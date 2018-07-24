@@ -11,7 +11,7 @@ from madgui.qt import QtCore, QtGui, load_ui
 from madgui.core.unit import ui_units, change_unit, get_raw_label
 from madgui.widget.tableview import TableItem
 from madgui.util import yaml
-from madgui.util.qt import fit_button, bold
+from madgui.util.qt import bold
 from madgui.util.collections import List
 
 from .multi_grid import Corrector as _Corrector
@@ -161,7 +161,6 @@ class CorrectorWidget(QtGui.QWidget):
 
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
-        fit_button(self.btn_edit_conf)
 
     def set_initial_values(self):
         self.bot = ProcBot(self, self.corrector)

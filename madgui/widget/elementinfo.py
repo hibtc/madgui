@@ -12,10 +12,9 @@ mpl.use('Qt5Agg')                       # select before mpl.backends import!
 import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.patches import Ellipse
 
-from madgui.qt import QtCore, QtGui
+from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.base import Signal
 from madgui.core.unit import ui_units, to_ui
-from madgui.util.qt import fit_button
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
 
@@ -53,13 +52,13 @@ class ElementInfoBox(QtGui.QWidget):
         self.el_id = el_id
         self.model.twiss.updated.connect(self.notebook.update)
 
-        button_left = QtGui.QPushButton("<")
-        button_right = QtGui.QPushButton(">")
+        button_left = QtGui.QToolButton()
+        button_right = QtGui.QToolButton()
         button_left.clicked.connect(lambda: self.advance(-1))
         button_right.clicked.connect(lambda: self.advance(+1))
 
-        fit_button(button_left)
-        fit_button(button_right)
+        button_left.setArrowType(Qt.LeftArrow)
+        button_right.setArrowType(Qt.RightArrow)
 
         self.setLayout(VBoxLayout([
             HBoxLayout([button_left, self.select, button_right]),

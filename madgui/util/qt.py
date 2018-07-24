@@ -4,7 +4,7 @@ Qt utilities.
 
 from importlib_resources import path as resource_filename
 
-from madgui.qt import Qt, QtGui
+from madgui.qt import QtGui
 
 
 def notifyCloseEvent(widget, handler):
@@ -33,18 +33,6 @@ def present(window, raise_=False):
     window.activateWindow()
     if raise_:
         window.raise_()
-
-
-def fit_button(button):
-    text = ' ' + button.text() + ' '
-    text_size = button.fontMetrics().size(Qt.TextShowMnemonic, text)
-    opt = QtGui.QStyleOptionButton()
-    opt.initFrom(button)
-    opt.rect.setSize(text_size)
-    full_size = button.style().sizeFromContents(
-        QtGui.QStyle.CT_PushButton, opt, text_size, button)
-    button.setMinimumWidth(full_size.width())
-    button.setMaximumWidth(full_size.width())
 
 
 def monospace():
