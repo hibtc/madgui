@@ -43,8 +43,11 @@ ROLES = {
     # appearance and meta data
     Qt.FontRole:                    'font',
     Qt.TextAlignmentRole:           'textAlignment',
+    # NOTE: Background colors don't seem to work with css styling. For this
+    # reason they show only in our TableView, not in our TreeView (for which
+    # we need styling to make it look acceptable, see `madgui/data/style.css`).
     Qt.BackgroundRole:              'background',
-    # NOTE: BackgroundColorRole is obsolete according to Qt5 docs:
+    # NOTE: BackgroundColorRole is obsolete in favor of BackgroundRole:
     Qt.BackgroundColorRole:         'backgroundColor',
     Qt.ForegroundRole:              'foreground',
     #Qt.TextColorRole:               'textColor',   # = ForegroundRole
@@ -335,9 +338,12 @@ class TableModel(QtCore.QAbstractItemModel):
         return changed
 
 
-class TableView(QtGui.QTreeView):
+class ItemView:
 
-    """A table widget using a :class:`TableModel` to handle the data."""
+    """
+    Mixin class for shared code of :class:`TableView` and :class:`TreeView`.
+    Do not use directly.
+    """
 
     selectionChangedSignal = Signal()
 
@@ -346,14 +352,10 @@ class TableView(QtGui.QTreeView):
     def __init__(self, parent=None, **kwargs):
         """Initialize with list of :class:`TableItem`."""
         super().__init__(parent, **kwargs)
-        self.setFont(monospace())
-        self.setItemDelegate(TableViewDelegate())
-        self.setAlternatingRowColors(True)
-        # Prevent the user from folding since this makes it easier to show
-        # the same image after refreshing the model:
-        self.setRootIsDecorated(False)
-        self.setItemsExpandable(False)
         self.padding = {}
+        self.setFont(monospace())
+        self.setItemDelegate(ItemViewDelegate())
+        self.setAlternatingRowColors(True)
         config.number.changed.connect(self.format_changed)
 
     def format_changed(self):
@@ -370,9 +372,6 @@ class TableView(QtGui.QTreeView):
             if u and ui_units.get(u):
                 titles[i] += '/' + ui_units.label(u)
         self.setModel(TableModel(titles, rowitems, data))
-        self.model().rowsInserted.connect(lambda *_: self.expandAll())
-        self.model().modelReset.connect(lambda *_: self.expandAll())
-        self.expandAll()
 
     def resizeEvent(self, event):
         """ Resize all sections to content and user interactive """
@@ -416,10 +415,6 @@ class TableView(QtGui.QTreeView):
             del self.model().rows[a:b]
             #self.model().beginRemoveRows(self.rootIndex(), row, row)
             #self.model().endRemoveRows()
-
-    def resizeColumnsToContents(self):
-        for i in range(self.model().columnCount()):
-            self.resizeColumnToContents(i)
 
     def keyPressEvent(self, event):
         if self.state() == QtGui.QAbstractItemView.NoState:
@@ -466,7 +461,49 @@ class TableView(QtGui.QTreeView):
                 self.padding.get(column, 40))
 
 
-class TableViewDelegate(QtGui.QStyledItemDelegate):
+class TableView(ItemView, QtGui.QTableView):
+
+    """
+    A table widget based on Qt's QTableView for our :class:`TableModel`.
+
+    - does not support expandable items
+    - supports vertical header
+    - currently supports background colors (since we don't use css for
+      QTableView)
+    """
+
+    def header(self):
+        return self.horizontalHeader()
+
+
+class TreeView(ItemView, QtGui.QTreeView):
+
+    """
+    A tree widget based on Qt's QTableView for our :class:`TableModel`.
+
+    - supports expandable items
+    - does not show item background color (apparently due to an
+      incompatibility with css styling).
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Prevent the user from folding since this makes it easier to show
+        # the same image after refreshing the model:
+        self.setRootIsDecorated(False)
+        self.setItemsExpandable(False)
+
+    def resizeColumnsToContents(self):
+        for i in range(self.model().columnCount()):
+            self.resizeColumnToContents(i)
+
+    def set_rowgetter(self, rowitems, data=None, unit=(), titles=None):
+        super().set_rowgetter(rowitems, data, unit, titles)
+        self.model().rowsInserted.connect(lambda *_: self.expandAll())
+        self.model().modelReset.connect(lambda *_: self.expandAll())
+        self.expandAll()
+
+class ItemViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
         cell = index.model().cell(index).item

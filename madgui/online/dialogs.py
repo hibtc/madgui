@@ -2,7 +2,7 @@
 Dialog for selecting DVM parameters to be synchronized.
 """
 
-from madgui.qt import QtGui
+from madgui.qt import QtGui, Qt
 from madgui.core.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
 from madgui.util.qt import bold
@@ -30,24 +30,23 @@ class SyncParamWidget(QtGui.QWidget):
     # import/export.
 
     def get_row(self, i, p) -> ("Param", "DVM value", "MAD-X value", "Unit"):
-        style = {
+        style = [{}, {
             'font': bold(),
-            # apparently `backgroundColor` doesn't work with TreeView if also
-            # using style sheets:
-            # 'backgroundColor': QtGui.QColor(Qt.red),
-        } if p.dvm_value != p.mad_value else {}
+            'backgroundColor': QtGui.QColor(Qt.gray),
+        } if p.dvm_value != p.mad_value else {}]
         return [
-            TableItem(p.name, **style),
-            TableItem(p.dvm_value, **style),
-            TableItem(p.mad_value, **style),
-            TableItem(p.unit, **style),
+            TableItem(p.name),
+            TableItem(p.dvm_value, **style['dvm' in self.highlight]),
+            TableItem(p.mad_value, **style['mad' in self.highlight]),
+            TableItem(p.unit),
         ]
 
-    def __init__(self, title, headline):
+    def __init__(self, title, headline, highlight=''):
         """Create sizer with content area, i.e. input fields."""
         super().__init__()
         self.grid = TableView()
         self.grid.set_rowgetter(self.get_row)
+        self.highlight = highlight
         self.title = title
         label = QtGui.QLabel(headline)
         self.setLayout(VBoxLayout([label, self.grid]))
@@ -76,10 +75,10 @@ class SyncParamWidget(QtGui.QWidget):
 def ImportParamWidget():
     return SyncParamWidget(
         'Import parameters from DVM',
-        'Import selected DVM parameters.')
+        'Import selected DVM parameters.', 'dvm')
 
 
 def ExportParamWidget():
     return SyncParamWidget(
         'Set values in DVM from current sequence',
-        'Overwrite selected DVM parameters.')
+        'Overwrite selected DVM parameters.', 'mad')

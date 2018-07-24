@@ -11,7 +11,7 @@ from madgui.core.unit import ui_units, get_raw_label
 from madgui.util.qt import bold
 from madgui.util.export import export_params, import_params
 
-from madgui.widget.tableview import TableView, TableItem
+from madgui.widget.tableview import TreeView, TableItem
 
 
 __all__ = [
@@ -38,7 +38,7 @@ class ParamInfo:
         self.var_type = var_type
 
 
-class ParamTable(TableView):
+class ParamTable(TreeView):
 
     """
     Input controls to show and edit key-value pairs.
