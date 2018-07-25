@@ -210,6 +210,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_apply.clicked.connect(self.on_execute_corrections)
         self.btn_proc_start.clicked.connect(self.bot.start)
         self.btn_proc_abort.clicked.connect(self.bot.cancel)
+        self.btn_prev.clicked.connect(self.prev_vals)
+        self.btn_next.clicked.connect(self.next_vals)
 
     def on_change_mode(self, dirs):
         self.corrector.setup(self.corrector.active, dirs)
@@ -302,11 +304,11 @@ class CorrectorWidget(QtGui.QWidget):
         return True
 
     def prev_vals(self):
-        self.corrector.hist_idx -= 1
+        self.corrector.history_move(-1)
         self.update_ui()
 
     def next_vals(self):
-        self.corrector.hist_idx += 1
+        self.corrector.history_move(+1)
         self.update_ui()
 
     def update_ui(self):
