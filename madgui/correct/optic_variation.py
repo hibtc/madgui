@@ -113,6 +113,15 @@ class CorrectorWidget(QtGui.QWidget):
     def set_cons_value(self, i, c, value):
         self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
 
+    def set_steerer_value(self, i, v, value):
+        info = self.corrector._knobs[v.lower()]
+        value = change_unit(value, info.ui_unit, info.unit)
+        results = self.corrector.top_results.copy()
+        if results[v.lower()] != value:
+            results[v.lower()] = value
+            self.corrector._push_history(results)
+            self.update_ui()
+
     def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
         initial = self.corrector.cur_results.get(v.lower())
         matched = self.corrector.top_results.get(v.lower())
@@ -125,7 +134,8 @@ class CorrectorWidget(QtGui.QWidget):
         return [
             TableItem(v),
             TableItem(change_unit(initial, info.unit, info.ui_unit)),
-            TableItem(change_unit(matched, info.unit, info.ui_unit), **style),
+            TableItem(change_unit(matched, info.unit, info.ui_unit),
+                      set_value=self.set_steerer_value, **style),
             TableItem(get_raw_label(info.ui_unit)),
         ]
 
