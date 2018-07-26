@@ -45,7 +45,7 @@ class SyncParamWidget(QtGui.QWidget):
         """Create sizer with content area, i.e. input fields."""
         super().__init__()
         self.grid = TableView()
-        self.grid.set_rowgetter(self.get_row)
+        self.grid.set_viewmodel(self.get_row)
         self.highlight = highlight
         self.title = title
         label = QtGui.QLabel(headline)

@@ -59,7 +59,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self._monconf = frame.config['online_control']['monitors']
         self._offsets = frame.config['online_control']['offsets']
 
-        self.mtab.set_rowgetter(self.get_monitor_row, unit=True)
+        self.mtab.set_viewmodel(self.get_monitor_row, unit=True)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
@@ -310,7 +310,7 @@ class _FitWidget(MonitorWidgetBase):
 
         self.rtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.rtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.rtab.set_rowgetter(self.get_result_row, self.results)
+        self.rtab.set_viewmodel(self.get_result_row, self.results)
 
 
 class OrbitWidget(_FitWidget):

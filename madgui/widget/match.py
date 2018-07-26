@@ -96,8 +96,8 @@ class MatchWidget(QtGui.QWidget):
         self.vtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.ctab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.vtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.ctab.set_rowgetter(self.cons_items, self.matcher.constraints)
-        self.vtab.set_rowgetter(self.var_items, self.matcher.variables)
+        self.ctab.set_viewmodel(self.cons_items, self.matcher.constraints)
+        self.vtab.set_viewmodel(self.var_items, self.matcher.variables)
 
     def set_initial_values(self):
         self.check_mirror.setChecked(self.matcher.mirror_mode)

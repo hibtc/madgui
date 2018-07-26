@@ -155,11 +155,11 @@ class CorrectorWidget(QtGui.QWidget):
 
         corr = self.corrector
 
-        self.tab_optics.set_rowgetter(self.get_optic_row, corr.optics)
-        self.tab_targets.set_rowgetter(self.get_cons_row, corr.constraints)
-        self.tab_readouts.set_rowgetter(self.get_readout_row, corr.readouts, unit=True)
-        self.tab_records.set_rowgetter(self.get_record_row, corr.records, unit=True)
-        self.tab_corrections.set_rowgetter(self.get_steerer_row, corr.variables)
+        self.tab_optics.set_viewmodel(self.get_optic_row, corr.optics)
+        self.tab_targets.set_viewmodel(self.get_cons_row, corr.constraints)
+        self.tab_readouts.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
+        self.tab_records.set_viewmodel(self.get_record_row, corr.records, unit=True)
+        self.tab_corrections.set_viewmodel(self.get_steerer_row, corr.variables)
 
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)

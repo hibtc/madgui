@@ -43,7 +43,7 @@ class CurveManager(QtGui.QWidget):
     def init_controls(self):
         self.tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.tab.set_rowgetter(self.show_curve, self.available)
+        self.tab.set_viewmodel(self.show_curve, self.available)
 
     def connect_signals(self):
         Button = QtGui.QDialogButtonBox

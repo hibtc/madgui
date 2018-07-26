@@ -72,7 +72,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.btn_focus.clicked.connect(self.read_focus)
         self.ctrl_optics.textChanged.connect(self.update_ui)
         self.ctrl_quads.itemSelectionChanged.connect(self.update_ui)
-        self.ctrl_results.set_rowgetter(
+        self.ctrl_results.set_viewmodel(
             self.get_result_row, self.fit_results, unit=True)
         self.update_filename()
         self.btn_file.clicked.connect(self.change_output_file)

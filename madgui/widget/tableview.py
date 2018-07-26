@@ -364,7 +364,7 @@ class ItemView:
         self.model().layoutAboutToBeChanged.emit()
         self.model().layoutChanged.emit()
 
-    def set_rowgetter(self, rowitems, data=None, unit=(), titles=None):
+    def set_viewmodel(self, rowitems, data=None, unit=(), titles=None):
         titles = list(titles or rowitems.__annotations__['return'])
         if unit is True:
             unit = list(titles)
@@ -502,8 +502,8 @@ class TreeView(ItemView, QtGui.QTreeView):
         for i in range(self.model().columnCount()):
             self.resizeColumnToContents(i)
 
-    def set_rowgetter(self, rowitems, data=None, unit=(), titles=None):
-        super().set_rowgetter(rowitems, data, unit, titles)
+    def set_viewmodel(self, rowitems, data=None, unit=(), titles=None):
+        super().set_viewmodel(rowitems, data, unit, titles)
         self.model().rowsInserted.connect(lambda *_: self.expandAll())
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()

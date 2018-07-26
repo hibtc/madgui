@@ -265,9 +265,9 @@ class CorrectorWidget(QtGui.QWidget):
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.mon_tab.set_rowgetter(self.get_readout_row, corr.readouts, unit=True)
-        self.var_tab.set_rowgetter(self.get_steerer_row, corr.variables)
-        self.con_tab.set_rowgetter(self.get_cons_row, corr.constraints)
+        self.mon_tab.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
+        self.var_tab.set_viewmodel(self.get_steerer_row, corr.variables)
+        self.con_tab.set_viewmodel(self.get_cons_row, corr.constraints)
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
 

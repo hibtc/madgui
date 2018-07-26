@@ -59,7 +59,7 @@ class ParamTable(TreeView):
         self.fetch_args = {}
 
         super().__init__(**kwargs)
-        self.set_rowgetter(self.get_param_row, titles=self.sections)
+        self.set_viewmodel(self.get_param_row, titles=self.sections)
         self.header().hide()
         self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
