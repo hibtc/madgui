@@ -151,6 +151,11 @@ class Corrector(Matcher):
         self.fit_results = init_orbit
         self.model.update_twiss_args(init_orbit)
 
+    def apply(self):
+        self.model.write_params(self.top_results.items())
+        self.control.write_params(self.top_results.items())
+        super().apply()
+
     # computations
 
     def fit_particle_orbit(self, records):
@@ -265,8 +270,6 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        self.corrector.model.write_params(self.corrector.top_results.items())
-        self.corrector.control.write_params(self.corrector.top_results.items())
         self.corrector.apply()
         self.update_status()
 

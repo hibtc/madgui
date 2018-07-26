@@ -230,8 +230,6 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        self.corrector.model.write_params(self.corrector.top_results.items())
-        self.corrector.control.write_params(self.corrector.top_results.items())
         self.corrector.apply()
 
     def update_fit(self):
