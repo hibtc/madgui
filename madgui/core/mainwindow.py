@@ -168,8 +168,7 @@ class MainWindow(QtGui.QMainWindow):
                      checked=self.viewShell.holds_value),
                 Item('&Floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
-                     self.viewFloorPlan.toggle,
-                     checked=self.viewFloorPlan.holds_value),
+                     self.viewFloorPlan),
             ]),
             Menu('&Export', [
                 Item('&Strengths', None,
@@ -480,7 +479,6 @@ class MainWindow(QtGui.QMainWindow):
     def viewShell(self):
         return self._createShell()
 
-    @SingleWindow.factory
     def viewFloorPlan(self):
         from madgui.widget.floor_plan import LatticeFloorPlan, Selector
         latview = LatticeFloorPlan()
