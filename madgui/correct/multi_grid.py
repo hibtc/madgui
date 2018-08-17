@@ -108,8 +108,8 @@ class Corrector(Matcher):
         self.cur_results = {}
         self.top_results = {}
 
-    def _push_history(self):
-        results = self._read_vars()
+    def _push_history(self, results=None):
+        results = self._read_vars() if results is None else results
         if results != self.top_results:
             self.top_results = results
             self.hist_idx += 1
@@ -150,6 +150,11 @@ class Corrector(Matcher):
             return
         self.fit_results = init_orbit
         self.model.update_twiss_args(init_orbit)
+
+    def apply(self):
+        self.model.write_params(self.top_results.items())
+        self.control.write_params(self.top_results.items())
+        super().apply()
 
     # computations
 
@@ -233,12 +238,22 @@ class CorrectorWidget(QtGui.QWidget):
         return [
             TableItem(v),
             TableItem(change_unit(initial, info.unit, info.ui_unit)),
-            TableItem(change_unit(matched, info.unit, info.ui_unit), **style),
+            TableItem(change_unit(matched, info.unit, info.ui_unit),
+                      set_value=self.set_steerer_value, **style),
             TableItem(get_raw_label(info.ui_unit)),
         ]
 
     def set_cons_value(self, i, c, value):
         self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
+
+    def set_steerer_value(self, i, v, value):
+        info = self.corrector._knobs[v.lower()]
+        value = change_unit(value, info.ui_unit, info.unit)
+        results = self.corrector.top_results.copy()
+        if results[v.lower()] != value:
+            results[v.lower()] = value
+            self.corrector._push_history(results)
+            self.update_ui()
 
     def __init__(self, corrector):
         super().__init__()
@@ -255,8 +270,6 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
-        self.corrector.model.write_params(self.corrector.top_results.items())
-        self.corrector.control.write_params(self.corrector.top_results.items())
         self.corrector.apply()
         self.update_status()
 
