@@ -40,6 +40,7 @@ class Corrector(Matcher):
     """
 
     mode = 'xy'
+    direct = True
 
     def __init__(self, control, configs):
         super().__init__(control.model(), None)
@@ -53,6 +54,7 @@ class Corrector(Matcher):
         self.records = List()
         self.fit_range = None
         self._offsets = control._frame.config['online_control']['offsets']
+        self.optics = List()
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None):
@@ -65,6 +67,15 @@ class Corrector(Matcher):
         steerers = sum([selected['steerers'][d] for d in dirs], [])
         targets  = selected['targets']
 
+        params = [k.lower() for k in selected.get('optics', ())]
+        self.optic_params = [self._knobs[k] for k in params]
+        self.quads = params and [
+            elem.name
+            for elem in self.model.elements
+            for knobs in [self.model.get_elem_knobs(elem)]
+            if any(k.lower() in params for k in knobs)
+        ]
+
         self.method = selected.get('method', ('jacobian', {}))
         self.active = name
         self.mode = dirs
@@ -75,8 +86,9 @@ class Corrector(Matcher):
         elements = self.model.elements
         self.targets = sorted(targets, key=elements.index)
         self.monitors[:] = sorted(monitors, key=elements.index)
-        self.fit_range = (min(self._fit_elements(), key=elements.index),
-                          max(self._fit_elements(), key=elements.index))
+        fit_elements = list(self.targets) + list(self.monitors) + list(self.quads)
+        self.fit_range = (min(fit_elements, key=elements.index),
+                          max(fit_elements, key=elements.index))
         self.constraints[:] = sorted([
             Constraint(elements[target], elements[target].position, key, float(value))
             for target, values in targets.items()
@@ -88,9 +100,6 @@ class Corrector(Matcher):
             for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
-
-    def _fit_elements(self):
-        return list(self.targets) + list(self.monitors)
 
     #def _involved_elements(self):      # with steerers!
 
@@ -138,7 +147,8 @@ class Corrector(Matcher):
         ]
 
     def update_records(self):
-        self.records[:] = self.current_orbit_records()
+        if self.direct:
+            self.records[:] = self.current_orbit_records()
 
     def update_fit(self):
         self.fit_results = None
@@ -155,6 +165,12 @@ class Corrector(Matcher):
         self.model.write_params(self.top_results.items())
         self.control.write_params(self.top_results.items())
         super().apply()
+
+    def set_optic(self, i):
+        # only for optic variation method
+        optic = self.optics[i]
+        self.control.write_params(optic.items())
+        self.model.write_params(optic.items())
 
     # computations
 

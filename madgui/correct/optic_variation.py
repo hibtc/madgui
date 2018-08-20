@@ -12,7 +12,6 @@ from madgui.core.unit import ui_units, change_unit, get_raw_label
 from madgui.widget.tableview import TableItem
 from madgui.util import yaml
 from madgui.util.qt import bold
-from madgui.util.collections import List
 
 from .multi_grid import Corrector as _Corrector
 from ._common import EditConfigDialog
@@ -27,38 +26,8 @@ __all__ = [
 
 
 class Corrector(_Corrector):
+    direct = False
 
-    """
-    Single target orbit correction via optic variation.
-    """
-
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.optics = List()
-
-    def setup(self, name, dirs=None):
-        dirs = dirs or self.mode
-        selected = self.configs[name]
-        params = [k.lower() for k in selected['optics']]
-        self.optic_params = [self._knobs[k] for k in params]
-        self.quads = [
-            elem.name
-            for elem in self.model.elements
-            for knobs in [self.model.get_elem_knobs(elem)]
-            if any(k.lower() in params for k in knobs)
-        ]
-        super().setup(name, dirs)
-
-    def update_records(self):
-        pass
-
-    def _fit_elements(self):
-        return super()._fit_elements() + self.quads
-
-    def set_optic(self, i):
-        optic = self.optics[i]
-        self.control.write_params(optic.items())
-        self.model.write_params(optic.items())
 
 
 class CorrectorWidget(QtGui.QWidget):
