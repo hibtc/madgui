@@ -7,16 +7,11 @@ from functools import partial
 
 import numpy as np
 
-from madgui.qt import QtCore, QtGui, load_ui
-from madgui.core.unit import ui_units, change_unit, get_raw_label
+from madgui.qt import QtCore
+from madgui.core.unit import change_unit, get_raw_label
 from madgui.widget.tableview import TableItem
-from madgui.util import yaml
-from madgui.util.qt import bold
 
-from .multi_grid import Corrector as _Corrector
-from ._common import EditConfigDialog
-from .match import Constraint
-
+from .multi_grid import Corrector as _Corrector, CorrectorWidget as _Widget
 
 
 __all__ = [
@@ -29,10 +24,7 @@ class Corrector(_Corrector):
     direct = False
 
 
-
-class CorrectorWidget(QtGui.QWidget):
-
-    initial_particle_orbit = None
+class CorrectorWidget(_Widget):
 
     ui_file = 'ovm_dialog.ui'
 
@@ -46,27 +38,12 @@ class CorrectorWidget(QtGui.QWidget):
             for info in [self.corrector.optic_params[i]]
         ]
 
-    def get_readout_row(self, i, r) -> ("Monitor", "X", "Y"):
-        return [
-            TableItem(r.name),
-            TableItem(r.posx, name='posx'),
-            TableItem(r.posy, name='posy'),
-        ]
-
     def get_record_row(self, i, r) -> ("Optic", "Monitor", "X", "Y"):
         return [
             TableItem(self.get_optic_name(r)),
             TableItem(r.monitor),
             TableItem(r.readout.posx, name='posx'),
             TableItem(r.readout.posy, name='posx'),
-        ]
-
-    def get_cons_row(self, i, c) -> ("Element", "Param", "Value", "Unit"):
-        return [
-            TableItem(c.elem.node_name),
-            TableItem(c.axis),
-            TableItem(c.value, set_value=self.set_cons_value, name=c.axis),
-            TableItem(ui_units.label(c.axis)),
         ]
 
     def get_optic_name(self, record):
@@ -79,48 +56,9 @@ class CorrectorWidget(QtGui.QWidget):
     def set_optic_value(self, par, i, o, value):
         o[par.lower()] = value
 
-    def set_cons_value(self, i, c, value):
-        self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
-
-    def set_steerer_value(self, i, v, value):
-        info = self.corrector._knobs[v.lower()]
-        value = change_unit(value, info.ui_unit, info.unit)
-        results = self.corrector.top_results.copy()
-        if results[v.lower()] != value:
-            results[v.lower()] = value
-            self.corrector._push_history(results)
-            self.update_ui()
-
-    def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
-        initial = self.corrector.cur_results.get(v.lower())
-        matched = self.corrector.top_results.get(v.lower())
-        changed = matched is not None and not np.isclose(initial, matched)
-        style = {
-            #'foreground': QtGui.QColor(Qt.red),
-            'font': bold(),
-        } if changed else {}
-        info = self.corrector._knobs[v.lower()]
-        return [
-            TableItem(v),
-            TableItem(change_unit(initial, info.unit, info.ui_unit)),
-            TableItem(change_unit(matched, info.unit, info.ui_unit),
-                      set_value=self.set_steerer_value, **style),
-            TableItem(get_raw_label(info.ui_unit)),
-        ]
-
-    def __init__(self, corrector):
-        super().__init__()
-        load_ui(self, __package__, self.ui_file)
-        self.corrector = corrector
-        self.corrector.start()
-        self.init_controls()
-        self.set_initial_values()
-        self.connect_signals()
-
     def closeEvent(self, event):
         self.bot.cancel()
-        self.corrector.stop()
-        self.frame.del_curve("monitors")
+        super().closeEvent(event)
 
     num_focus_levels = 6
 
@@ -133,20 +71,15 @@ class CorrectorWidget(QtGui.QWidget):
         self.read_focus2.setCurrentText("F4")
 
         corr = self.corrector
-
         self.tab_optics.set_viewmodel(self.get_optic_row, corr.optics)
-        self.tab_targets.set_viewmodel(self.get_cons_row, corr.constraints)
-        self.tab_readouts.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
         self.tab_records.set_viewmodel(self.get_record_row, corr.records, unit=True)
-        self.tab_corrections.set_viewmodel(self.get_steerer_row, corr.variables)
-
-        self.combo_config.addItems(list(self.corrector.configs))
-        self.combo_config.setCurrentText(self.corrector.active)
+        super().init_controls()
 
     def set_initial_values(self):
         self.bot = ProcBot(self, self.corrector)
-        self.update_setup()
-        self.update_ui()
+        self.read_focus()
+        self.radio_mode_xy.setChecked(True)
+        self.update_status()
 
     def update_setup(self):
         self.tab_optics.model().titles[1:] = [
@@ -154,8 +87,6 @@ class CorrectorWidget(QtGui.QWidget):
             for info in self.corrector.optic_params
         ]
         self._on_update_optics()
-        self.read_focus()
-        self.corrector.update_readouts()
 
     def _on_update_optics(self):
         self.combo_set_optic.clear()
@@ -166,31 +97,14 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_set_optic.setEnabled(len(self.corrector.optics) > 0)
 
     def connect_signals(self):
-        self.btn_edit_conf.clicked.connect(self.edit_config)
+        super().connect_signals()
         self.btn_read_focus.clicked.connect(self.read_focus)
-        self.combo_config.currentIndexChanged.connect(self.on_change_config)
-        self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
-        self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
-        self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
         self.btn_update.clicked.connect(self.corrector.update_readouts)
         self.btn_record.clicked.connect(self.add_record)
         self.btn_set_optic.clicked.connect(self.set_optic)
         self.tab_records.connectButtons(self.btn_rec_remove, self.btn_rec_clear)
-        self.btn_fit.clicked.connect(self.update_fit)
-        self.btn_apply.clicked.connect(self.on_execute_corrections)
         self.btn_proc_start.clicked.connect(self.bot.start)
         self.btn_proc_abort.clicked.connect(self.bot.cancel)
-        self.btn_prev.clicked.connect(self.prev_vals)
-        self.btn_next.clicked.connect(self.next_vals)
-
-    def on_change_config(self, index):
-        name = self.combo_config.itemText(index)
-        self.corrector.setup(name, self.corrector.mode)
-        self.update_status()
-
-    def on_change_mode(self, dirs):
-        self.corrector.setup(self.corrector.active, dirs)
-        self.corrector.update()
 
     def add_record(self):
         # TODO: disable "record" button until monitor readouts updated
@@ -204,17 +118,6 @@ class CorrectorWidget(QtGui.QWidget):
         # TODO: disable "write" button until another optic has been selected
         # or the optic has changed in the DVM
         self.corrector.set_optic(self.combo_set_optic.currentIndex())
-
-    def on_execute_corrections(self):
-        """Apply calculated corrections."""
-        self.corrector.apply()
-
-    def update_fit(self):
-        """Calculate initial positions / corrections."""
-        self.corrector.update()
-        if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(self.corrector.fit_results)
-        self.update_ui()
 
     def read_focus(self):
         """Update focus level and automatically load QP values."""
@@ -241,52 +144,11 @@ class CorrectorWidget(QtGui.QWidget):
         finally:
             dvm.SelectMEFI(vacc, *channels)
 
-    def edit_config(self):
-        dialog = EditConfigDialog(self.corrector.model, self.apply_config)
-        dialog.exec_()
-
-    def apply_config(self, text):
-        try:
-            data = yaml.safe_load(text)
-        except yaml.error.YAMLError:
-            QtGui.QMessageBox.critical(
-                self,
-                'Syntax error in YAML document',
-                'There is a syntax error in the YAML document, please edit.')
-            return False
-
-        configs = data.get('optic_variation')
-        if not configs:
-            QtGui.QMessageBox.critical(
-                self,
-                'No config defined',
-                'No optic variation configuration defined.')
-            return False
-
-        model = self.corrector.model
-        with open(model.filename, 'w') as f:
-            f.write(text)
-
-        self.corrector.configs = configs
-        model.data['optic_variation'] = configs
-
-        conf = self.corrector.active if self.corrector.active in configs else next(iter(configs))
-        self.corrector.setup(conf)
-        self.corrector.update()
-
-        self.update_setup()
-
-        return True
-
-    def prev_vals(self):
-        self.corrector.history_move(-1)
-        self.update_ui()
-
-    def next_vals(self):
-        self.corrector.history_move(+1)
-        self.update_ui()
+    data_key = 'optic_variation'
 
     def update_ui(self):
+        super().update_ui()
+
         running = self.bot.running
         has_fit = self.corrector.fit_results is not None
         self.btn_proc_start.setEnabled(not running)
@@ -306,37 +168,6 @@ class CorrectorWidget(QtGui.QWidget):
         self.tab_manual.setEnabled(not running)
         self.ctrl_progress.setRange(0, self.bot.totalops)
         self.ctrl_progress.setValue(self.bot.progress)
-
-        hist_idx = self.corrector.hist_idx
-        hist_len = len(self.corrector.hist_stack)
-        self.btn_prev.setEnabled(hist_idx > 0)
-        self.btn_next.setEnabled(hist_idx+1 < hist_len)
-        self.btn_apply.setEnabled(
-            self.corrector.cur_results != self.corrector.top_results)
-        self.corrector.variables.touch()
-        # TODO: do this only after updating readouts…
-        QtCore.QTimer.singleShot(0, self.draw)
-
-    def draw(self):
-        corr = self.corrector
-        elements = corr.model.elements
-        monitor_data = [
-            {'s': elements[r.name].position,
-             'x': r.posx + dx,
-             'y': r.posy + dy}
-            for r in self.corrector.readouts
-            for dx, dy in [self.corrector._offsets.get(r.name.lower(), (0, 0))]
-        ]
-        curve_data = {
-            name: np.array([d[name] for d in monitor_data])
-            for name in ['s', 'x', 'y']
-        }
-        style = self.frame.config['line_view']['monitor_style']
-        self.frame.add_curve("monitors", curve_data, style)
-
-    @property
-    def frame(self):
-        return self.window().parent()
 
 
 class ProcBot:
