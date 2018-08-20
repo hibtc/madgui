@@ -40,6 +40,7 @@ class Corrector(Matcher):
     """
 
     mode = 'xy'
+    direct = True
 
     def __init__(self, control, configs):
         super().__init__(control.model(), None)
@@ -53,6 +54,7 @@ class Corrector(Matcher):
         self.records = List()
         self.fit_range = None
         self._offsets = control._frame.config['online_control']['offsets']
+        self.optics = List()
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None):
@@ -65,6 +67,15 @@ class Corrector(Matcher):
         steerers = sum([selected['steerers'][d] for d in dirs], [])
         targets  = selected['targets']
 
+        params = [k.lower() for k in selected.get('optics', ())]
+        self.optic_params = [self._knobs[k] for k in params]
+        self.quads = params and [
+            elem.name
+            for elem in self.model.elements
+            for knobs in [self.model.get_elem_knobs(elem)]
+            if any(k.lower() in params for k in knobs)
+        ]
+
         self.method = selected.get('method', ('jacobian', {}))
         self.active = name
         self.mode = dirs
@@ -75,8 +86,9 @@ class Corrector(Matcher):
         elements = self.model.elements
         self.targets = sorted(targets, key=elements.index)
         self.monitors[:] = sorted(monitors, key=elements.index)
-        self.fit_range = (min(self._fit_elements(), key=elements.index),
-                          max(self._fit_elements(), key=elements.index))
+        fit_elements = list(self.targets) + list(self.monitors) + list(self.quads)
+        self.fit_range = (min(fit_elements, key=elements.index),
+                          max(fit_elements, key=elements.index))
         self.constraints[:] = sorted([
             Constraint(elements[target], elements[target].position, key, float(value))
             for target, values in targets.items()
@@ -88,9 +100,6 @@ class Corrector(Matcher):
             for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
-
-    def _fit_elements(self):
-        return list(self.targets) + list(self.monitors)
 
     #def _involved_elements(self):      # with steerers!
 
@@ -138,7 +147,8 @@ class Corrector(Matcher):
         ]
 
     def update_records(self):
-        self.records[:] = self.current_orbit_records()
+        if self.direct:
+            self.records[:] = self.current_orbit_records()
 
     def update_fit(self):
         self.fit_results = None
@@ -155,6 +165,12 @@ class Corrector(Matcher):
         self.model.write_params(self.top_results.items())
         self.control.write_params(self.top_results.items())
         super().apply()
+
+    def set_optic(self, i):
+        # only for optic variation method
+        optic = self.optics[i]
+        self.control.write_params(optic.items())
+        self.model.write_params(optic.items())
 
     # computations
 
@@ -274,24 +290,24 @@ class CorrectorWidget(QtGui.QWidget):
         self.update_status()
 
     def init_controls(self):
-        for tab in (self.mon_tab, self.con_tab, self.var_tab):
+        for tab in (self.tab_readouts, self.tab_targets, self.tab_corrections):
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.mon_tab.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
-        self.var_tab.set_viewmodel(self.get_steerer_row, corr.variables)
-        self.con_tab.set_viewmodel(self.get_cons_row, corr.constraints)
+        self.tab_readouts.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
+        self.tab_corrections.set_viewmodel(self.get_steerer_row, corr.variables)
+        self.tab_targets.set_viewmodel(self.get_cons_row, corr.constraints)
         self.combo_config.addItems(list(self.corrector.configs))
         self.combo_config.setCurrentText(self.corrector.active)
 
     def set_initial_values(self):
-        self.update_fit_button.setFocus()
+        self.btn_fit.setFocus()
         self.radio_mode_xy.setChecked(True)
         self.update_status()
 
     def connect_signals(self):
-        self.update_fit_button.clicked.connect(self.update_fit)
-        self.execute_corrections.clicked.connect(self.on_execute_corrections)
+        self.btn_fit.clicked.connect(self.update_fit)
+        self.btn_apply.clicked.connect(self.on_execute_corrections)
         self.combo_config.currentIndexChanged.connect(self.on_change_config)
         self.btn_edit_conf.clicked.connect(self.edit_config)
         self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
@@ -304,8 +320,12 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.update_vars()
         self.corrector.update_readouts()
         self.corrector.update_records()
+        self.update_setup()
         self.update_ui()
         QtCore.QTimer.singleShot(0, self.draw)
+
+    def update_setup(self):
+        pass
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
@@ -314,7 +334,7 @@ class CorrectorWidget(QtGui.QWidget):
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.update_ui()
         self.draw()
-        #self.var_tab.resizeColumnToContents(0)
+        #self.tab_corrections.resizeColumnToContents(0)
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
@@ -325,8 +345,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.setup(self.corrector.active, dirs)
         self.update_status()
 
-        # TODO: make 'optimal'-column in var_tab editable and update
-        #       self.execute_corrections.setEnabled according to its values
+        # TODO: make 'optimal'-column in tab_corrections editable and update
+        #       self.btn_apply.setEnabled according to its values
 
     def prev_vals(self):
         self.corrector.history_move(-1)
@@ -341,13 +361,18 @@ class CorrectorWidget(QtGui.QWidget):
         hist_len = len(self.corrector.hist_stack)
         self.btn_prev.setEnabled(hist_idx > 0)
         self.btn_next.setEnabled(hist_idx+1 < hist_len)
-        self.execute_corrections.setEnabled(
+        self.btn_apply.setEnabled(
             self.corrector.cur_results != self.corrector.top_results)
         self.corrector.variables.touch()
+
+        # TODO: do this only after updating readouts…
+        QtCore.QTimer.singleShot(0, self.draw)
 
     def edit_config(self):
         dialog = EditConfigDialog(self.corrector.model, self.apply_config)
         dialog.exec_()
+
+    data_key = 'multi_grid'
 
     def apply_config(self, text):
         try:
@@ -359,12 +384,12 @@ class CorrectorWidget(QtGui.QWidget):
                 'There is a syntax error in the YAML document, please edit.')
             return False
 
-        configs = data.get('multi_grid')
+        configs = data.get(self.data_key)
         if not configs:
             QtGui.QMessageBox.critical(
                 self,
                 'No config defined',
-                'No multi grid configuration defined.')
+                'No configuration for this method defined.')
             return False
 
         model = self.corrector.model
@@ -372,7 +397,7 @@ class CorrectorWidget(QtGui.QWidget):
             f.write(text)
 
         self.corrector.configs = configs
-        self.data['multi_grid'] = configs
+        model.data[self.data_key] = configs
 
         conf = self.corrector.active if self.corrector.active in configs else next(iter(configs))
         self.corrector.setup(conf)

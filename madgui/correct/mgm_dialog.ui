@@ -90,7 +90,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="mon_tab"/>
+       <widget class="TableView" name="tab_readouts"/>
       </item>
      </layout>
     </widget>
@@ -102,7 +102,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="con_tab"/>
+       <widget class="TableView" name="tab_targets"/>
       </item>
      </layout>
     </widget>
@@ -114,7 +114,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="var_tab">
+       <widget class="TableView" name="tab_corrections">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>
@@ -123,14 +123,14 @@
       <item>
        <layout class="QHBoxLayout">
         <item>
-         <widget class="QPushButton" name="update_fit_button">
+         <widget class="QPushButton" name="btn_fit">
           <property name="text">
            <string>Update</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="execute_corrections">
+         <widget class="QPushButton" name="btn_apply">
           <property name="text">
            <string>Execute</string>
           </property>

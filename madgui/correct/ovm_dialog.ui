@@ -389,7 +389,7 @@
  <customwidgets>
   <customwidget>
    <class>TableView</class>
-   <extends>QTreeView</extends>
+   <extends>QTableView</extends>
    <header>madgui/widget/tableview.h</header>
   </customwidget>
  </customwidgets>
