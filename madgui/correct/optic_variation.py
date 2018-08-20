@@ -199,6 +199,7 @@ class CorrectorWidget(QtGui.QWidget):
     def connect_signals(self):
         self.btn_edit_conf.clicked.connect(self.edit_config)
         self.btn_read_focus.clicked.connect(self.read_focus)
+        self.combo_config.currentIndexChanged.connect(self.on_change_config)
         self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
         self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
         self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
@@ -213,6 +214,11 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_prev.clicked.connect(self.prev_vals)
         self.btn_next.clicked.connect(self.next_vals)
 
+    def on_change_config(self, index):
+        name = self.combo_config.itemText(index)
+        self.corrector.setup(name, self.corrector.mode)
+        self.update_status()
+
     def on_change_mode(self, dirs):
         self.corrector.setup(self.corrector.active, dirs)
         self.corrector.update()
@@ -220,6 +226,8 @@ class CorrectorWidget(QtGui.QWidget):
     def add_record(self):
         # TODO: disable "record" button until monitor readouts updated
         # (or maybe until "update" clicked as simpler alternative)
+        self.corrector.update_vars()
+        self.corrector.update_readouts()
         self.corrector.records.extend(
             self.corrector.current_orbit_records())
 

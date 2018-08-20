@@ -140,7 +140,7 @@
      </property>
      <widget class="QWidget" name="tab_2">
       <attribute name="title">
-       <string>Procedure</string>
+       <string>Automatic</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="1" column="0">
@@ -214,7 +214,7 @@
      </widget>
      <widget class="QWidget" name="tab_manual">
       <attribute name="title">
-       <string>Records</string>
+       <string>Manual</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
