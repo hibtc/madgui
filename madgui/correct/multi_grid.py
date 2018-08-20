@@ -388,7 +388,7 @@ class CorrectorWidget(QtGui.QWidget):
             f.write(text)
 
         self.corrector.configs = configs
-        self.data['multi_grid'] = configs
+        model.data['multi_grid'] = configs
 
         conf = self.corrector.active if self.corrector.active in configs else next(iter(configs))
         self.corrector.setup(conf)
