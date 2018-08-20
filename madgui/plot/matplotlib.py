@@ -76,6 +76,9 @@ class PlotWidget(QtGui.QWidget):
         # Needed on PyQt5 with tight_layout=True to prevent crash due to
         # singular matrix if size=0:
         canvas.setMinimumSize(QtCore.QSize(100, 100))
+        # Prevent annoying busy cursor due to MPL redraws, see:
+        # https://github.com/matplotlib/matplotlib/issues/9546
+        canvas.set_cursor = lambda cursor: None
 
         self._cid_mouse = canvas.mpl_connect(
             'button_press_event', self.onButtonPress)
