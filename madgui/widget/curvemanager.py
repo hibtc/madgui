@@ -26,7 +26,7 @@ class CurveManager(QtGui.QWidget):
         return [
             TableItem(name, checked=i in self.selected,
                       checkable=True,
-                      set_value=self.set_name, set_checked=self.set_checked),
+                      set_value=set_name, set_checked=set_checked),
         ]
 
 
