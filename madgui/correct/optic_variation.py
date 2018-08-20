@@ -226,6 +226,8 @@ class CorrectorWidget(QtGui.QWidget):
     def add_record(self):
         # TODO: disable "record" button until monitor readouts updated
         # (or maybe until "update" clicked as simpler alternative)
+        self.corrector.update_vars()
+        self.corrector.update_readouts()
         self.corrector.records.extend(
             self.corrector.current_orbit_records())
 
