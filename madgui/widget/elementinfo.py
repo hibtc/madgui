@@ -72,7 +72,7 @@ class ElementInfoBox(QtGui.QWidget):
 
     def advance(self, step):
         elements  = self.model.elements
-        old_index = self.model.get_element_index(self.el_id)
+        old_index = elements.index(self.el_id)
         new_index = old_index + step
         new_el_id = elements[new_index % len(elements)].index
         self.el_id = new_el_id
@@ -88,7 +88,7 @@ class ElementInfoBox(QtGui.QWidget):
     def set_element(self, name):
         if name != self._el_id:
             self._el_id = name
-            self.select.setCurrentIndex(self.model.get_element_index(self.el_id))
+            self.select.setCurrentIndex(self.model.elements.index(self.el_id))
             self.notebook.kw['elem_index'] = self.el_id
             self.notebook.update()
             self.changed_element.emit()
