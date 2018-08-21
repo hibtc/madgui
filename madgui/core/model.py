@@ -157,10 +157,6 @@ class Model:
             if len(data[name]) == 1 and name in data[name]:
                 data[name] = data[name][name]
 
-    def get_element(self, element):
-        """Get :class:`Element` from element name or index."""
-        return self.elements[element]
-
     def get_beam(self):
         """Get the beam parameter dictionary."""
         return self._beam
@@ -210,9 +206,6 @@ class Model:
                     and x2pix(self.elements[index+1].length) <= 3:
                 return self.elements[index+1]
         return elem
-
-    def get_element_by_name(self, name):
-        return self.elements[self.get_element_index(name)]
 
     def el_pos(self, el):
         """Position for matching / output."""
@@ -474,8 +467,8 @@ class Model:
         if isinstance(range, str):
             range = range.split('/')
         start_name, stop_name = range
-        return (self.get_element(start_name),
-                self.get_element(stop_name))
+        return (self.elements[start_name],
+                self.elements[stop_name])
 
     def export_globals(self):
         return {
@@ -614,13 +607,9 @@ class Model:
         beam = dict(beam, sequence=self.sequence.name)
         self.madx.command.beam(**beam)
 
-    def get_element_index(self, elem):
-        """Get element index by it name."""
-        return self.elements.index(elem)
-
     def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
-        ix = self.get_element_index(elem)
+        ix = self.elements.index(elem)
 
         s = self.get_twiss_column('s')
         y = self.get_twiss_column(name)
@@ -650,13 +639,13 @@ class Model:
     ]
 
     def get_elem_twiss(self, elem):
-        ix = self.get_element_index(elem)
+        ix = self.elements.index(elem)
         i0 = self.indices[ix].stop
         return AttrDict({col: self.get_twiss_column(col)[i0]
                          for col in self.twiss_columns})
 
     def get_elem_sigma(self, elem):
-        ix = self.get_element_index(elem)
+        ix = self.elements.index(elem)
         i0 = self.indices[ix].stop
         return {
             sig_ij: self.get_twiss_column(sig_ij)[i0]
@@ -711,7 +700,7 @@ class Model:
         - ``interval=(1, 1)``  retrieves ``(e0, e1]`` and ``(e1, e2]``
         """
         maps = self.sector()
-        indices = [self.get_element_index(el) for el in elems]
+        indices = [self.elements.index(el) for el in elems]
         x0, x1 = interval
         return [
             reduce(lambda a, b: np.dot(b, a),
@@ -908,7 +897,7 @@ class Model:
     def read_monitor(self, name):
         """Mitigates read access to a monitor."""
         # TODO: handle split h-/v-monitor
-        index = self.get_element_index(name)
+        index = self.elements.index(name)
         return {
             'envx': self.get_twiss_column('envx')[index],
             'envy': self.get_twiss_column('envy')[index],

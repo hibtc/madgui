@@ -671,7 +671,7 @@ class InfoTool(CaptureTool):
         top = self.selection.top
         elements = self.model.elements
         old_el_id = selected[top]
-        old_index = self.model.get_element_index(old_el_id)
+        old_index = self.model.elements.index(old_el_id)
         new_index = old_index + move_step
         new_el_id = self.model.elements[new_index % len(elements)].index
         selected[top] = new_el_id
