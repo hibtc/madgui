@@ -13,8 +13,7 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import TableItem
 
-from madgui.correct.orbit import (
-    MonitorReadout, fit_particle_orbit, show_backtrack_curve)
+from madgui.correct.orbit import fit_particle_orbit, show_backtrack_curve
 
 
 class MonitorWidget(QtGui.QDialog):
@@ -54,12 +53,13 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.control = control
         self.model = model
         self.frame = frame
+        self.monitors = control.monitors.as_list()
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
         self._monconf = frame.config['online_control']['monitors']
         self._offsets = frame.config['online_control']['offsets']
 
-        self.mtab.set_viewmodel(self.get_monitor_row, unit=True)
+        self.mtab.set_viewmodel(self.get_monitor_row, self.monitors, unit=True)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
@@ -88,11 +88,6 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def update(self):
-        self.mtab.rows = self.monitors = [
-            MonitorReadout(el.node_name, self.control.read_monitor(el.node_name))
-            for el in self.model.elements
-            if el.base_name.lower().endswith('monitor')
-            or el.base_name.lower() == 'instrument']
         self.on_update()
         self.draw()
 
