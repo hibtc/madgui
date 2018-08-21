@@ -25,7 +25,6 @@ from madgui.util.export import read_str_file, import_params
 
 
 __all__ = [
-    'ElementInfo',
     'Model',
 ]
 
@@ -43,7 +42,6 @@ CurveInfo = namedtuple('CurveInfo', [
     'style',    # **kwargs for ax.plot
 ])
 
-ElementInfo = namedtuple('ElementInfo', ['name', 'index', 'at'])
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
@@ -159,17 +157,9 @@ class Model:
             if len(data[name]) == 1 and name in data[name]:
                 data[name] = data[name][name]
 
-    def get_element_info(self, element):
-        """Get :class:`ElementInfo` from element name or index."""
-        if isinstance(element, ElementInfo):
-            return element
-        if isinstance(element, str):
-            element = self.get_element_index(element)
-        if element < 0:
-            element += len(self.elements)
-        name = self.el_names[element]
-        pos = self.positions[element]
-        return ElementInfo(name, element, pos)
+    def get_element(self, element):
+        """Get :class:`Element` from element name or index."""
+        return self.elements[element]
 
     def get_beam(self):
         """Get the beam parameter dictionary."""
@@ -480,12 +470,12 @@ class Model:
         return elem
 
     def parse_range(self, range):
-        """Convert a range str/tuple to a tuple of :class:`ElementInfo`."""
+        """Convert a range str/tuple to a tuple of :class:`Element`."""
         if isinstance(range, str):
             range = range.split('/')
         start_name, stop_name = range
-        return (self.get_element_info(start_name),
-                self.get_element_info(stop_name))
+        return (self.get_element(start_name),
+                self.get_element(stop_name))
 
     def export_globals(self):
         return {
@@ -721,7 +711,7 @@ class Model:
         - ``interval=(1, 1)``  retrieves ``(e0, e1]`` and ``(e1, e2]``
         """
         maps = self.sector()
-        indices = [self.get_element_info(el).index for el in elems]
+        indices = [self.get_element_index(el) for el in elems]
         x0, x1 = interval
         return [
             reduce(lambda a, b: np.dot(b, a),
@@ -784,7 +774,7 @@ class Model:
                 for (name, label), style in zip(conf['curves'], styles)
             ])
 
-        xdata = self.get_twiss_column('s') + self.start.at
+        xdata = self.get_twiss_column('s') + self.start.position
         data = {
             curve.short: (xdata, self.get_twiss_column(curve.name))
             for curve in info.curves
@@ -1023,8 +1013,10 @@ class ElementList(Sequence):
         :raises ValueError: if the element is not found
         """
         if isinstance(element, int):
+            if element < 0:
+                element += len(self)
             return element
-        if isinstance(element, (Element, ElementInfo)):
+        if isinstance(element, Element):
             return element.index
         if isinstance(element, str):
             return self._index_by_name(element)
