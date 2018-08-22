@@ -966,9 +966,6 @@ class ElementList(Sequence):
         if elem is None:
             for elem in self._elems:
                 elem.invalidate()
-            beg, end = self[0], self[-1]
-            self.min_x = beg.position
-            self.max_x = end.position + end.length
         else:
             index = self.index(elem)
             self._elems[index].invalidate()
