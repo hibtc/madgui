@@ -961,8 +961,6 @@ class ElementList(CachedList):
             return element.index
         if isinstance(element, str):
             name = element.lower()
-            # TODO: warning – names do not always uniquely identify elements:
-            #       auto-generated DRIFTs in MAD-X.
             if len(self) != 0:
                 if name in ('#s', 'beginning'):
                     return 0
