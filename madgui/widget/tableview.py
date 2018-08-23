@@ -13,7 +13,6 @@ from madgui.util.misc import rw_property, ranges, cachedproperty
 from madgui.util.collections import List
 from madgui.util.qt import monospace
 from madgui.util.enum import Enum
-from madgui.widget.quantity import DoubleValidator as _DoubleValidator
 from madgui.widget.spinbox import QuantitySpinBox
 
 import madgui.core.unit as unit
@@ -743,15 +742,6 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         pass
-
-
-class DoubleValidator(_DoubleValidator):
-
-    def validate(self, text, pos):
-        # Allow to delete values
-        if not text:
-            return (QtGui.QValidator.Acceptable, text, pos)
-        return super().validate(text, pos)
 
 
 class AffixLineEdit(QtGui.QWidget):
