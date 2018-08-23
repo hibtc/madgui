@@ -18,7 +18,6 @@ from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element
 from cpymad.util import normalize_range_name, is_identifier
 
 from madgui.core.base import Cache
-from madgui.util.stream import AsyncReader
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
@@ -48,19 +47,13 @@ FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 class Madx(Madx):
 
-    def __init__(self, *args, stdout_log, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.reader = AsyncReader(self._process.stdout, stdout_log)
-        self.reader.flush()
-
     _enter_count = 0
     _collected_cmds = None
     def input(self, text):
         if self._enter_count > 0:
             self._collected_cmds.append(text)
             return
-        with self.reader:
-            super().input(text)
+        super().input(text)
 
     @contextmanager
     def transaction(self):
@@ -109,8 +102,7 @@ class Model:
         self.path = path
         self.name = base
         self.madx = Madx(command_log=self.command_log,
-                         stdout_log=self.stdout_log,
-                         stdout=subprocess.PIPE,
+                         stdout=self.stdout_log,
                          stderr=subprocess.STDOUT,
                          lock=RLock())
         if ext.lower() in ('.yml', '.yaml'):

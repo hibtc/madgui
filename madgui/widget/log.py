@@ -153,7 +153,7 @@ class LogWindow(QtGui.QFrame):
     def recv_log(self, domain, text):
         if text:
             self.records.append(LogRecord(
-                time.time(), domain, text))
+                time.time(), domain, text.decode('utf-8', 'replace').rstrip()))
 
     def excepthook(self, *args, **kwargs):
         traceback.print_exception(*args, **kwargs)
