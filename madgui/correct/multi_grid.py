@@ -19,7 +19,7 @@ from madgui.util.collections import List
 from madgui.util.qt import bold
 from madgui.widget.tableview import TableItem
 
-from .orbit import fit_particle_orbit, MonitorReadout
+from .orbit import fit_particle_orbit
 from .match import Matcher, Constraint
 from ._common import EditConfigDialog
 
@@ -86,6 +86,9 @@ class Corrector(Matcher):
         elements = self.model.elements
         self.targets = sorted(targets, key=elements.index)
         self.monitors[:] = sorted(monitors, key=elements.index)
+        self._readouts = self.control.monitors.sublist(
+            map(str.lower, self.monitors))
+        self._readouts.as_list(self.readouts)
         fit_elements = list(self.targets) + list(self.monitors) + list(self.quads)
         self.fit_range = (min(fit_elements, key=elements.index),
                           max(fit_elements, key=elements.index))
@@ -140,11 +143,7 @@ class Corrector(Matcher):
         self.update_fit()
 
     def update_readouts(self):
-        self.readouts[:] = [
-            # NOTE: this triggers model._retrack in stub!
-            MonitorReadout(monitor, self.control.read_monitor(monitor))
-            for monitor in self.monitors
-        ]
+        self._readouts.invalidate()
 
     def update_records(self):
         if self.direct:

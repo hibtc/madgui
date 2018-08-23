@@ -257,8 +257,8 @@ class ProcBot:
             self.finish()
 
     def read_monitors(self):
-        return {mon: self.control.read_monitor(mon)
-                for mon in self.corrector.monitors}
+        self.corrector.update_readouts()
+        return {r.name: r.data for r in self.readouts}
 
     def log(self, text, *args, **kwargs):
         self.widget.status_log.appendPlainText(

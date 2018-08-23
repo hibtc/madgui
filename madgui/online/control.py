@@ -4,9 +4,11 @@ Plugin that integrates a beamoptikdll UI into MadGUI.
 
 import logging
 
+import numpy as np
+
 from madgui.core.base import Object
 from madgui.util.misc import SingleWindow
-from madgui.util.collections import Bool
+from madgui.util.collections import Bool, List, CachedList
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
@@ -31,17 +33,21 @@ class Control(Object):
         self._frame = frame
         self._plugin = None
         self.model = frame.model
+        self.readouts = List()
         # menu conditions
         self.is_connected = Bool(False)
         self.can_connect = ~self.is_connected
         self.has_sequence = self.is_connected & self.model
         self.loader_name = None
         self._settings = frame.config.online_control.settings
+        self._on_model_changed()
 
     # menu handlers
 
     def connect(self, name, loader):
         logging.info('Connecting online control: {}'.format(name))
+        self.model.changed.connect(self._on_model_changed)
+        self._on_model_changed()
         self._plugin = loader.load(self._frame, self._settings)
         self._plugin.connect()
         self._frame.context['csys'] = self._plugin
@@ -55,6 +61,19 @@ class Control(Object):
         self._plugin = None
         self.is_connected.set(False)
         self.loader_name = None
+        self.model.changed.disconnect(self._on_model_changed)
+        self._on_model_changed()
+
+    def _on_model_changed(self):
+        model = self.model()
+        elems = self.is_connected() and model and model.elements or ()
+        read_monitor = lambda i, n: MonitorReadout(n, self.read_monitor(n))
+        self.monitors = CachedList(read_monitor, [
+            elem.name
+            for elem in elems
+            if elem.base_name.lower().endswith('monitor')
+            or elem.base_name.lower() == 'instrument'
+        ])
 
     def export_settings(self):
         if hasattr(self._plugin, 'export_settings'):
@@ -186,3 +205,18 @@ class Control(Object):
 
     def read_param(self, name):
         return self._plugin.read_param(name)
+
+
+class MonitorReadout:
+
+    def __init__(self, name, values):
+        self.name = name
+        self.data = values
+        self.posx = values.get('posx')
+        self.posy = values.get('posy')
+        self.envx = values.get('envx')
+        self.envy = values.get('envy')
+        self.valid = (self.envx is not None and self.envx > 0 and
+                      self.envy is not None and self.envy > 0 and
+                      not np.isclose(self.posx, -9.999) and
+                      not np.isclose(self.posy, -9.999))

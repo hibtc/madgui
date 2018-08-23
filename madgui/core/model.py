@@ -3,7 +3,7 @@ MAD-X backend for madgui.
 """
 
 import os
-from collections import namedtuple, Sequence, OrderedDict, defaultdict, Mapping
+from collections import namedtuple, OrderedDict, defaultdict, Mapping
 from functools import partial, reduce
 import itertools
 from bisect import bisect_right
@@ -22,6 +22,7 @@ from madgui.util.stream import AsyncReader
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
+from madgui.util.collections import CachedList
 
 
 __all__ = [
@@ -440,9 +441,8 @@ class Model:
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
-        make_element = lambda index: Cache(partial(self._get_element, index))
         self.el_names = self.sequence.expanded_element_names()
-        self.elements = ElementList(self.el_names, make_element)
+        self.elements = ElementList(self._get_element, self.el_names)
         self.positions = self.sequence.expanded_element_positions()
 
         self.start, self.stop = self.parse_range(range)
@@ -451,7 +451,7 @@ class Model:
 
         self.cache = {}
 
-    def _get_element(self, index):
+    def _get_element(self, index, name):
         """Fetch the ``cpymad.madx.Element`` at the specified index in the
         current sequence."""
         elem = self.sequence.expanded_elements[index]
@@ -948,7 +948,7 @@ def process_spec(prespec, data):
     return spec
 
 
-class ElementList(Sequence):
+class ElementList(CachedList):
 
     """
     Immutable list of beam line elements.
@@ -956,68 +956,19 @@ class ElementList(Sequence):
     Each element is a dictionary containing its properties.
     """
 
-    def __init__(self, el_names, Element):
-        self._el_names = el_names
-        self._indices = {n.lower(): i for i, n in enumerate(el_names)}
-        self._elems = [Element(i) for i in range(len(el_names))]
-        self.invalidate()
-
-    def invalidate(self, elem=None):
-        if elem is None:
-            for elem in self._elems:
-                elem.invalidate()
-        else:
-            index = self.index(elem)
-            self._elems[index].invalidate()
-
-    def __contains__(self, element):
-        """
-        Check if sequence contains element with specified name.
-
-        Can be invoked with the element index or name or the element itself.
-        """
-        try:
-            self.index(element)
-            return True
-        except (KeyError, ValueError):
-            return False
-
-    def __getitem__(self, index):
-        """Return element with specified index."""
-        return self._elems[self.index(index)]()
-
-    def __len__(self):
-        """Get number of elements."""
-        return len(self._el_names)
-
     def index(self, element):
-        """
-        Find index of element with specified name.
-
-        Can be invoked with the element index or name or the element itself.
-
-        :raises ValueError: if the element is not found
-        """
-        if isinstance(element, int):
-            if element < 0:
-                element += len(self)
-            return element
         if isinstance(element, Element):
             return element.index
         if isinstance(element, str):
-            return self._index_by_name(element)
-        raise ValueError("Unhandled type: {!r}", type(element))
-
-    def _index_by_name(self, name):
-        # TODO: warning – names do not always uniquely identify elements:
-        #       auto-generated DRIFTs in MAD-X.
-        name = name.lower()
-        if len(self) != 0:
-            if name in ('#s', 'beginning'):
-                return 0
-            elif name in ('#e', 'end'):
-                return len(self) - 1
-        return self._indices[name]
+            name = element.lower()
+            # TODO: warning – names do not always uniquely identify elements:
+            #       auto-generated DRIFTs in MAD-X.
+            if len(self) != 0:
+                if name in ('#s', 'beginning'):
+                    return 0
+                elif name in ('#e', 'end'):
+                    return len(self) - 1
+        return super().index(element)
 
 
 # TODO: support expressions
