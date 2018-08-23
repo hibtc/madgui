@@ -45,6 +45,7 @@ class Corrector(Matcher):
     def __init__(self, control, configs):
         super().__init__(control.model(), None)
         self.fit_results = None
+        self.active = None
         self.control = control
         self.configs = configs
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
@@ -58,6 +59,9 @@ class Corrector(Matcher):
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None):
+        if not name or name == self.active:
+            return
+
         dirs = dirs or self.mode
 
         self._clr_history()
@@ -296,18 +300,22 @@ class CorrectorWidget(QtGui.QWidget):
         self.tab_readouts.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
         self.tab_corrections.set_viewmodel(self.get_steerer_row, corr.variables)
         self.tab_targets.set_viewmodel(self.get_cons_row, corr.constraints)
-        self.combo_config.addItems(list(self.corrector.configs))
-        self.combo_config.setCurrentText(self.corrector.active)
 
     def set_initial_values(self):
         self.btn_fit.setFocus()
         self.radio_mode_xy.setChecked(True)
+        self.update_config()
         self.update_status()
+
+    def update_config(self):
+        self.combo_config.clear()
+        self.combo_config.addItems(list(self.corrector.configs))
+        self.combo_config.setCurrentText(self.corrector.active)
 
     def connect_signals(self):
         self.btn_fit.clicked.connect(self.update_fit)
         self.btn_apply.clicked.connect(self.on_execute_corrections)
-        self.combo_config.currentIndexChanged.connect(self.on_change_config)
+        self.combo_config.activated.connect(self.on_change_config)
         self.btn_edit_conf.clicked.connect(self.edit_config)
         self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
         self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
@@ -397,9 +405,12 @@ class CorrectorWidget(QtGui.QWidget):
 
         self.corrector.configs = configs
         model.data[self.data_key] = configs
+        conf = self.corrector.active
+        if conf not in configs:
+            conf = next(iter(configs))
 
-        conf = self.corrector.active if self.corrector.active in configs else next(iter(configs))
         self.corrector.setup(conf)
+        self.update_config()
         self.update_status()
 
         return True
