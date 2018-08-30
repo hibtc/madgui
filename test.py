@@ -18,7 +18,7 @@ def main():
     m = Madx(stdout=False)
     m.call('../../hit_models/hht3/run.madx', True)
     seq = m.sequence.hht3
-    els = seq.elements
+    els = seq.expanded_elements
     d_kick = 0.1e-3
 
     # define elements
