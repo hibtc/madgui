@@ -14,6 +14,13 @@ def ORM_vary(delta_x, delta_theta):
 
 def main():
 
+    np.set_printoptions(**{
+        'precision': 5,
+        'suppress': True,       # no scientific notation
+        'linewidth': 120,
+    })
+
+
     # load gantry model
     m = Madx(stdout=False)
     m.call('../../hit_models/hht3/run.madx', True)
