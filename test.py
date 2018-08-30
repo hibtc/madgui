@@ -1,7 +1,11 @@
 
 from math import sqrt, sin, pi
+from itertools import accumulate
 
 from cpymad.madx import Madx
+
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def ORM_sin(tw, i, j):
@@ -38,9 +42,19 @@ def main():
         and el.base_name == 'monitor'
     ]
 
+    m.select(flag='sectormap', clear=True)
+    m.select(flag='sectormap', range=els[H].name)
+    m.select(flag='sectormap', range=els[V].name)
+    for mon in M:
+        m.select(flag='sectormap', range=els[mon].name)
+
     # run model in design configuration
-    tw = dict(betx=1, bety=1, x=0.0001, y=0.0005)
-    t0 = m.twiss(sequence='hht3', table='t0', **tw)
+    tw = dict(betx=1, bety=1, alfx=-1.0, alfy=3, x=0.001, y=-0.005)
+    t0 = m.twiss(sequence='hht3', table='t0', sectormap=True, **tw)
+
+    sm = m.sectortable()
+    vm = np.array(list(accumulate(sm[2:], lambda a, b: b@a)))
+    hm = np.array([x@sm[1] for x in vm])
 
     # vary horizontal kicker
     els[H].kick += d_kick
@@ -55,27 +69,32 @@ def main():
 
     # analysis
 
-    def orms(m):
+    def orms(i, m):
         return (
             ORM_sin(t0, H, m)[0],
             ORM_sin(t0, V, m)[1],
             ORM_vary(t1.x[m]-t0.x[m], d_kick),
             ORM_vary(t2.y[m]-t0.y[m], d_kick),
+            hm[i,0,1],
+            vm[i,2,3],
         )
 
-    orm_tab = [orms(m) for m in M]
-
-
-    import numpy as np
-    import matplotlib.pyplot as plt
+    orm_tab = [orms(i, m) for i, m in enumerate(M)]
 
     orm_tab = np.array(orm_tab)
     xlabel = [els[m].name for m in M]
 
-    plt.plot(xlabel, orm_tab[:,0], label="sin x")
-    plt.plot(xlabel, orm_tab[:,1], label="sin y")
+    plt.plot(xlabel, orm_tab[:,0], 'o', label="sin x")
     plt.plot(xlabel, orm_tab[:,2], label="var x")
+    plt.plot(xlabel, orm_tab[:,4], label="sec x")
+    plt.legend()
+    plt.setp(plt.xticks()[1], rotation=50)
+    plt.show()
+
+    plt.clf()
+    plt.plot(xlabel, orm_tab[:,1], 'o', label="sin y")
     plt.plot(xlabel, orm_tab[:,3], label="var y")
+    plt.plot(xlabel, orm_tab[:,5], label="sec y")
     plt.legend()
     plt.setp(plt.xticks()[1], rotation=50)
     plt.show()
