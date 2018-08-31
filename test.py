@@ -16,31 +16,9 @@ def ORM_vary(delta_x, delta_theta):
     return delta_x / delta_theta
 
 
-def main():
+def calc_orms(m, H, V, M, d_kick):
 
-    np.set_printoptions(**{
-        'precision': 5,
-        'suppress': True,       # no scientific notation
-        'linewidth': 120,
-    })
-
-
-    # load gantry model
-    m = Madx(stdout=False)
-    m.call('../../hit_models/hht3/run.madx', True)
-    seq = m.sequence.hht3
-    els = seq.expanded_elements
-    d_kick = 0.1e-3
-
-    # define elements
-    H = els.index('h1ms2h')
-    V = els.index('h1ms1v')
-    M = [
-        el.index
-        for el in els
-        if el.index > max(H, V)
-        and el.base_name == 'monitor'
-    ]
+    els = m.sequence.hht3.expanded_elements
 
     m.select(flag='sectormap', clear=True)
     m.select(flag='sectormap', range=els[H].name)
@@ -79,9 +57,35 @@ def main():
             vm[i,2,3],
         )
 
-    orm_tab = [orms(i, m) for i, m in enumerate(M)]
+    return np.array([orms(i, m) for i, m in enumerate(M)])
 
-    orm_tab = np.array(orm_tab)
+
+def main():
+
+    np.set_printoptions(**{
+        'precision': 5,
+        'suppress': True,       # no scientific notation
+        'linewidth': 120,
+    })
+
+    # load gantry model
+    m = Madx(stdout=False)
+    m.call('../../hit_models/hht3/run.madx', True)
+    d_kick = 0.1e-3
+
+    # define elements
+    els = m.sequence.hht3.expanded_elements
+    H = els.index('h1ms2h')
+    V = els.index('h1ms1v')
+    M = [
+        el.index
+        for el in els
+        if el.index > max(H, V)
+        and el.base_name == 'monitor'
+    ]
+
+    orm_tab = calc_orms(m, H, V, M, d_kick)
+
     xlabel = [els[m].name for m in M]
 
     plt.plot(xlabel, orm_tab[:,0], 'o', label="sin x")
