@@ -1,0 +1,16 @@
+language: python
+
+# See: https://docs.travis-ci.com/user/languages/python/
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+# For now, we don't have tests, so do pyflakes sanity checks at least:
+# (Note that I found mypy/pep8 etc much too verbose…)
+
+install:
+  - pip install pyflakes
+
+script:
+  - pyflakes madgui
