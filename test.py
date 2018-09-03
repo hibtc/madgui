@@ -60,6 +60,10 @@ def calc_orms(m, H, V, M, d_kick):
     return np.array([orms(i, m) for i, m in enumerate(M)])
 
 
+def calc_orm_diff(op):
+    pass
+
+
 def main():
 
     np.set_printoptions(**{
@@ -84,7 +88,15 @@ def main():
         and el.base_name == 'monitor'
     ]
 
-    orm_tab = calc_orms(m, H, V, M, d_kick)
+    orm_tab_1 = calc_orms(m, H, V, M, d_kick)
+
+    m.globals.kl_b3qd12 += 1e-7
+    orm_tab_2 = calc_orms(m, H, V, M, d_kick)
+    m.globals.kl_b3qd12 -= 1e-7
+
+    orm_tab = (orm_tab_2 - orm_tab_1) / 1e-7
+    orm_tab = orm_tab_2
+
 
     xlabel = [els[m].name for m in M]
 
