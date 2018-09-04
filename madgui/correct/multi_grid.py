@@ -58,8 +58,8 @@ class Corrector(Matcher):
         self.optics = List()
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
-    def setup(self, name, dirs=None):
-        if not name or name == self.active:
+    def setup(self, name, dirs=None, force=False):
+        if not name or (name == self.active and not force):
             return
 
         dirs = dirs or self.mode
@@ -409,7 +409,7 @@ class CorrectorWidget(QtGui.QWidget):
         if conf not in configs:
             conf = next(iter(configs))
 
-        self.corrector.setup(conf)
+        self.corrector.setup(conf, force=True)
         self.update_config()
         self.update_status()
 
