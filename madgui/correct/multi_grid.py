@@ -272,6 +272,7 @@ class Corrector(Matcher):
         model = self.model
         madx = model.madx
 
+        madx.command.select(flag='interpolate', clear=True)
         tw_args = model._get_twiss_args().copy()
         tw_args.update(init_orbit)
         tw_args['table'] = 'orm_tmp'
@@ -290,7 +291,7 @@ class Corrector(Matcher):
             finally:
                 madx.globals[var] -= step
         return np.vstack([
-            orm_row(v, 1e-2) for v in self.variables
+            orm_row(v, 1e-4) for v in self.variables
         ])
 
 
@@ -397,7 +398,9 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.strategy = strategy
         if self.corrector.fit_results and self.corrector.variables:
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
-        self.update_ui()
+            self.corrector.variables.touch()
+            self.update_ui()
+            self.draw()
 
     def update_status(self):
         self.corrector.update_vars()
