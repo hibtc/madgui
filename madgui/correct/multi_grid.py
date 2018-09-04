@@ -6,7 +6,7 @@ Multi grid correction method.
 # - use CORRECT command from MAD-X rather than custom numpy method?
 # - combine with optic variation method
 
-from functools import partial
+from functools import partial, reduce
 from itertools import accumulate, product
 
 import numpy as np
@@ -200,6 +200,7 @@ class Corrector(Matcher):
         strats = {
             'match': self._compute_steerer_corrections_match,
             'orm': self._compute_steerer_corrections_orm,
+            'tm': self._compute_steerer_corrections_tm,
         }
         return strats[self.strategy](init_orbit)
 
@@ -232,7 +233,10 @@ class Corrector(Matcher):
             self.match_results = self._push_history()
             return self.match_results
 
-    def _compute_steerer_corrections_orm(self, init_orbit):
+    def _compute_steerer_corrections_tm(self, init_orbit):
+        return self._compute_steerer_corrections_orm(init_orbit, 'tm')
+
+    def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
         def offset(c):
             dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
             if c.axis in ('x', 'posx'): return dx
@@ -257,7 +261,11 @@ class Corrector(Matcher):
             for elem, axis in product(self.monitors, 'xy')
         ])
 
-        orm = self.compute_orbit_response_matrix(init_orbit)
+        if calc_orm == 'match':
+            orm = self.compute_orbit_response_matrix(init_orbit)
+        else:
+            orm = self.compute_sectormap(init_orbit)
+
         dvar = np.linalg.lstsq(
             orm.T[S,:], (y_target-y_measured)[S], rcond=1e-10)[0]
 
@@ -267,6 +275,41 @@ class Corrector(Matcher):
             for var, delta in zip(self.variables, dvar)
         })
         return self.match_results
+
+    def compute_sectormap(self, init_orbit):
+        model = self.model
+        elems = model.elements
+        with model.undo_stack.rollback("Orbit correction", transient=True):
+            model.update_twiss_args(dict(
+                init_orbit))
+
+            variables = set(map(str.lower, self.variables))
+            steerers = {
+                knob.lower(): elem.name
+                for elem in self.model.elements
+                for knob in self.model.get_elem_knobs(elem)
+                if knob.lower() in variables
+            }
+
+            tms = model.get_transfer_maps(sorted(
+                list(self.monitors) + list(set(steerers.values())),
+                key=lambda el: elems.index(el)
+            ), interval=(0,0))
+
+            C = [elems.index(steerers[v.lower()]) for v in self.variables]
+            M = [elems.index(el) for el in self.monitors]
+            A = sorted(C+M)
+
+            return np.vstack([
+                np.hstack([
+                    reduce(lambda a, b: np.dot(b, a),
+                           tms[A.index(c):A.index(m)],
+                           np.eye(7))[[0,2],:][:,1+2*is_vkicker].flatten()
+                    for m in M
+                ])
+                for c in C
+                for is_vkicker in [elems[c].base_name == 'vkicker']
+            ])
 
     def compute_orbit_response_matrix(self, init_orbit):
         model = self.model
@@ -393,6 +436,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_next.clicked.connect(self.next_vals)
         self.radio_meth_match.clicked.connect(partial(self.on_change_meth, 'match'))
         self.radio_meth_orm.clicked.connect(partial(self.on_change_meth, 'orm'))
+        self.radio_meth_tm.clicked.connect(partial(self.on_change_meth, 'tm'))
 
     def on_change_meth(self, strategy):
         self.corrector.strategy = strategy

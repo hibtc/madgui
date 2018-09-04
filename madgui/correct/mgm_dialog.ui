@@ -140,6 +140,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QRadioButton" name="radio_meth_tm">
+          <property name="text">
+           <string>sectormap</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
