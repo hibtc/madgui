@@ -243,18 +243,18 @@ class Corrector(Matcher):
             for c in self.constraints
         }
         S = [
-            i for i, (axis, elem) in enumerate(product('xy', self.monitors))
+            i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
             if (elem.lower(), axis) in targets
         ]
 
         y_measured = np.array([
             [r.posx, r.posy]
             for r in self.readouts
-        ]).T.flatten()
+        ]).flatten()
 
         y_target = np.array([
             targets.get((elem.lower(), axis), 0.0)
-            for axis, elem in product('xy', self.monitors)
+            for elem, axis in product(self.monitors, 'xy')
         ])
 
         orm = self.compute_orbit_response_matrix(init_orbit)
@@ -285,8 +285,8 @@ class Corrector(Matcher):
                 madx.globals[var] += step
                 tw1 = madx.twiss(**tw_args)
                 x1, y1 = tw1.x, tw1.y
-                return np.hstack(((x1-x0)[M],
-                                  (y1-y0)[M])) / step
+                return np.vstack(((x1-x0)[M],
+                                  (y1-y0)[M])).T.flatten() / step
             finally:
                 madx.globals[var] -= step
         return np.vstack([
