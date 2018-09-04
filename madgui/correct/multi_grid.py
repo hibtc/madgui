@@ -7,7 +7,7 @@ Multi grid correction method.
 # - combine with optic variation method
 
 from functools import partial
-from itertools import accumulate
+from itertools import accumulate, product
 
 import numpy as np
 import yaml
@@ -56,6 +56,7 @@ class Corrector(Matcher):
         self.fit_range = None
         self._offsets = control._frame.config['online_control']['offsets']
         self.optics = List()
+        self.strategy = 'match'
         QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None, force=False):
@@ -196,7 +197,13 @@ class Corrector(Matcher):
         ]
 
     def compute_steerer_corrections(self, init_orbit):
+        strats = {
+            'match': self._compute_steerer_corrections_match,
+            'orm': self._compute_steerer_corrections_orm,
+        }
+        return strats[self.strategy](init_orbit)
 
+    def _compute_steerer_corrections_match(self, init_orbit):
         """
         Compute corrections for the x_steerers, y_steerers.
 
@@ -224,6 +231,67 @@ class Corrector(Matcher):
                 constraints=constraints)
             self.match_results = self._push_history()
             return self.match_results
+
+    def _compute_steerer_corrections_orm(self, init_orbit):
+        def offset(c):
+            dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
+            if c.axis in ('x', 'posx'): return dx
+            if c.axis in ('y', 'posy'): return dy
+            return 0
+        targets = {
+            (c.elem.name, c.axis): c.value+offset(c)
+            for c in self.constraints
+        }
+        S = [
+            i for i, (axis, elem) in enumerate(product('xy', self.monitors))
+            if (elem.lower(), axis) in targets
+        ]
+
+        y_measured = np.array([
+            [r.posx, r.posy]
+            for r in self.readouts
+        ]).T.flatten()
+
+        y_target = np.array([
+            targets.get((elem.lower(), axis), 0.0)
+            for axis, elem in product('xy', self.monitors)
+        ])
+
+        orm = self.compute_orbit_response_matrix(init_orbit)
+        dvar = np.linalg.lstsq(
+            orm.T[S,:], (y_target-y_measured)[S], rcond=1e-10)[0]
+
+        globals_ = self.model.globals
+        self.match_results = self._push_history({
+            var.lower(): globals_[var] + delta
+            for var, delta in zip(self.variables, dvar)
+        })
+        return self.match_results
+
+    def compute_orbit_response_matrix(self, init_orbit):
+        model = self.model
+        madx = model.madx
+
+        tw_args = model._get_twiss_args().copy()
+        tw_args.update(init_orbit)
+        tw_args['table'] = 'orm_tmp'
+
+        tw0 = madx.twiss(**tw_args)
+        x0, y0 = tw0.x, tw0.y
+        M = [model.elements[m].index for m in self.monitors]
+
+        def orm_row(var, step):
+            try:
+                madx.globals[var] += step
+                tw1 = madx.twiss(**tw_args)
+                x1, y1 = tw1.x, tw1.y
+                return np.hstack(((x1-x0)[M],
+                                  (y1-y0)[M])) / step
+            finally:
+                madx.globals[var] -= step
+        return np.vstack([
+            orm_row(v, 1e-2) for v in self.variables
+        ])
 
 
 class CorrectorWidget(QtGui.QWidget):
@@ -322,6 +390,14 @@ class CorrectorWidget(QtGui.QWidget):
         self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
         self.btn_prev.clicked.connect(self.prev_vals)
         self.btn_next.clicked.connect(self.next_vals)
+        self.radio_meth_match.clicked.connect(partial(self.on_change_meth, 'match'))
+        self.radio_meth_orm.clicked.connect(partial(self.on_change_meth, 'orm'))
+
+    def on_change_meth(self, strategy):
+        self.corrector.strategy = strategy
+        if self.corrector.fit_results and self.corrector.variables:
+            self.corrector.compute_steerer_corrections(self.corrector.fit_results)
+        self.update_ui()
 
     def update_status(self):
         self.corrector.update_vars()

@@ -114,6 +114,47 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
+       <layout class="QHBoxLayout">
+        <item>
+         <widget class="QLabel">
+          <property name="text">
+           <string>Method:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radio_meth_match">
+          <property name="text">
+           <string>MATCH</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QRadioButton" name="radio_meth_orm">
+          <property name="text">
+           <string>ORM</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="TableView" name="tab_corrections">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
