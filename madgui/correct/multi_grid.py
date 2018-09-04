@@ -6,7 +6,7 @@ Multi grid correction method.
 # - use CORRECT command from MAD-X rather than custom numpy method?
 # - combine with optic variation method
 
-from functools import partial, reduce
+from functools import partial
 from itertools import accumulate, product
 
 import numpy as np
@@ -280,34 +280,21 @@ class Corrector(Matcher):
         model = self.model
         elems = model.elements
         with model.undo_stack.rollback("Orbit correction", transient=True):
-            model.update_twiss_args(dict(
-                init_orbit))
+            model.update_twiss_args(init_orbit)
+            model.sector.invalidate()
 
-            variables = set(map(str.lower, self.variables))
-            steerers = {
-                knob.lower(): elem.name
-                for elem in self.model.elements
-                for knob in self.model.get_elem_knobs(elem)
-                if knob.lower() in variables
-            }
-
-            tms = model.get_transfer_maps(sorted(
-                list(self.monitors) + list(set(steerers.values())),
-                key=lambda el: elems.index(el)
-            ), interval=(0,0))
-
-            C = [elems.index(steerers[v.lower()]) for v in self.variables]
-            M = [elems.index(el) for el in self.monitors]
-            A = sorted(C+M)
+            elem_by_knob = {}
+            for elem in elems:
+                for knob in model.get_elem_knobs(elem):
+                    elem_by_knob.setdefault(knob.lower(), elem.index)
 
             return np.vstack([
                 np.hstack([
-                    reduce(lambda a, b: np.dot(b, a),
-                           tms[A.index(c):A.index(m)],
-                           np.eye(7))[[0,2],:][:,1+2*is_vkicker].flatten()
-                    for m in M
+                    model.sectormap(c, m)[[0,2],1+2*is_vkicker].flatten()
+                    for m in self.monitors
                 ])
-                for c in C
+                for v in self.variables
+                for c in [elem_by_knob[v.lower()]]
                 for is_vkicker in [elems[c].base_name == 'vkicker']
             ])
 
