@@ -69,5 +69,5 @@ def fit_initial_orbit(records):
     T = np.vstack([T[[0,2]] for T in T_])[:,:4]
     K = np.hstack([K[[0,2]] for K in K_])
     Y = np.hstack(Y_)
-    x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=-1)
+    x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=1e-6)
     return x, sum(residuals), (rank<len(x))
