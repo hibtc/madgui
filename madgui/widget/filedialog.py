@@ -53,14 +53,15 @@ def _fileDialog(acceptMode, fileMode,
         return None
 
     filename = dialog.selectedFiles()[0]
-    selectedFilter = nameFilters.index(dialog.selectedNameFilter())
+    if fileMode != QtGui.QFileDialog.Directory:
+        selectedFilter = nameFilters.index(dialog.selectedNameFilter())
 
-    _, ext = os.path.splitext(filename)
+        _, ext = os.path.splitext(filename)
 
-    if not ext:
-        ext = filters[selectedFilter][1]    # use first extension
-        if ext.startswith('*.') and ext != '*.*':
-            return filename + ext[1:]       # remove leading '*'
+        if not ext:
+            ext = filters[selectedFilter][1]    # use first extension
+            if ext.startswith('*.') and ext != '*.*':
+                return filename + ext[1:]       # remove leading '*'
     return filename
 
 
@@ -79,6 +80,13 @@ def getSaveFileName(*args, **kwargs):
     return _fileDialog(QtGui.QFileDialog.AcceptSave,
                        QtGui.QFileDialog.AnyFile,
                        *args, **kwargs)
+
+
+def getSaveFolderName(*args, **kwargs):
+    return _fileDialog(QtGui.QFileDialog.AcceptSave,
+                       QtGui.QFileDialog.Directory,
+                       *args, options=QtGui.QFileDialog.ShowDirsOnly,
+                       **kwargs)
 
 
 def getFileName(mode, *args, **kwargs):

@@ -145,6 +145,17 @@ class Control(Object):
         from madgui.online.diagnostic import MonitorWidget
         return MonitorWidget(self, self.model(), self._frame)
 
+    @SingleWindow.factory
+    def orm_measure_widget(self):
+        """Measure ORM for later analysis."""
+        from madgui.widget.dialog import Dialog
+        from madgui.online.orm_analysis import MeasureWidget
+        widget = MeasureWidget(self, self.model(), self._frame)
+        dialog = Dialog(self._frame)
+        dialog.setWidget(widget)
+        dialog.setWindowTitle("ORM scan")
+        return dialog
+
     def _show_dialog(self, widget, apply=None, export=True):
         from madgui.widget.dialog import Dialog
         dialog = Dialog(self._frame)

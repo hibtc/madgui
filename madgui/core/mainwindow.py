@@ -224,6 +224,11 @@ class MainWindow(QtGui.QMainWindow):
                     control.monitor_widget.create,
                     enabled=control.has_sequence),
                 Separator,
+                Item('ORM measurement', None,
+                     'Measure ORM for later analysis',
+                    control.orm_measure_widget.create,
+                    enabled=control.has_sequence),
+                Separator,
                 menu.Menu('&Orbit correction', [
                     Item('Optic &variation', 'Ctrl+V',
                         'Perform orbit correction via 2-optics method',
