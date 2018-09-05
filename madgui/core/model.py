@@ -65,9 +65,8 @@ class Madx(Madx):
         finally:
             self._enter_count -= 1
             if self._enter_count == 0:
-                self.input(" ".join(self._collected_cmds))
+                self.input("\n".join(self._collected_cmds))
                 self._collected_cmds = None
-
 
 
 class Model:
