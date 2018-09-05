@@ -162,6 +162,7 @@ class SingleWindow(Property):
 
     def _new(self):
         window = super()._new()
+        window.show()
         notifyCloseEvent(window, self._closed)
         return window
 

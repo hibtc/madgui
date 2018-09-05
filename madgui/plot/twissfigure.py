@@ -231,7 +231,6 @@ class TwissFigure(Object):
         dialog = Dialog(self.plot.window())
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Curve manager")
-        dialog.show()
         return dialog
 
 

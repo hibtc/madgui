@@ -352,7 +352,6 @@ class MainWindow(QtGui.QMainWindow):
         dialog = Dialog(self)
         dialog.setWidget(widget)
         dialog.setWindowTitle("Change history")
-        dialog.show()
         return widget
 
     #----------------------------------------
@@ -472,7 +471,6 @@ class MainWindow(QtGui.QMainWindow):
         dialog = Dialog(self)
         dialog.setSimpleExportWidget(widget, self.folder)
         dialog.setWindowTitle("Initial conditions")
-        dialog.show()
         return widget
 
     @SingleWindow.factory
@@ -497,7 +495,6 @@ class MainWindow(QtGui.QMainWindow):
         dialog = Dialog(self)
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Matching constraints.")
-        dialog.show()
         return dialog
 
     def setNumberFormat(self):
@@ -557,9 +554,7 @@ class MainWindow(QtGui.QMainWindow):
     def _showAboutDialog(self, module):
         import madgui.core.about as about
         info = about.VersionInfo(module)
-        dialog = about.AboutDialog(info, self)
-        dialog.show()
-        return dialog
+        return about.AboutDialog(info, self)
 
     #----------------------------------------
     # Update state

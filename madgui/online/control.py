@@ -143,9 +143,7 @@ class Control(Object):
     def monitor_widget(self):
         """Read out SD values (beam position/envelope)."""
         from madgui.online.diagnostic import MonitorWidget
-        widget = MonitorWidget(self, self.model(), self._frame)
-        widget.show()
-        return widget
+        return MonitorWidget(self, self.model(), self._frame)
 
     def _show_dialog(self, widget, apply=None, export=True):
         from madgui.widget.dialog import Dialog
