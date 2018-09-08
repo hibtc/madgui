@@ -82,7 +82,7 @@ class Control(Object):
 
     def toggle_jitter(self):
         # I know…
-        self._plugin._dvm._lib.jitter = not self._plugin._dvm._lib.jitter
+        self._plugin._dvm.jitter = not self._plugin._dvm.jitter
 
     def get_knobs(self):
         """Get list of :class:`ParamInfo`."""
