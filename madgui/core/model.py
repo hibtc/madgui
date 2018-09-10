@@ -210,7 +210,7 @@ class Model:
         if not self.continuous_matching:
             return self.el_pos(el)
         at, l = el.position, el.length
-        if pos <= at:   return at
+        if pos <= at: return at
         if pos >= at+l: return at+l
         return pos
 
