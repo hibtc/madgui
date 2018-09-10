@@ -2,6 +2,11 @@
 Observable collection classes.
 """
 
+__all__ = [
+    'List',
+    'Selection'
+]
+
 from collections import MutableSequence, Sequence
 from contextlib import contextmanager
 from functools import wraps, partial
@@ -9,12 +14,6 @@ from threading import Lock
 import operator
 
 from madgui.core.base import Object, Signal, Cache
-
-
-__all__ = [
-    'List',
-    'Selection'
-]
 
 
 def _operator(get):

@@ -2,6 +2,12 @@
 Table widget specified by column behaviour.
 """
 
+__all__ = [
+    'TableItem',
+    'TableModel',
+    'TableView',
+]
+
 from inspect import getmro
 from functools import partial
 
@@ -17,13 +23,6 @@ from madgui.widget.spinbox import QuantitySpinBox
 
 import madgui.core.unit as unit
 import madgui.core.config as config
-
-
-__all__ = [
-    'TableItem',
-    'TableModel',
-    'TableView',
-]
 
 
 # TODO: more consistent behaviour/feel of controls: Quantity vs Bare

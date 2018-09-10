@@ -7,9 +7,9 @@ For more information on the command line parameters, see
 :mod:`madgui.core.app`.
 """
 
-from madgui.core.app import main
-
 __all__ = []
+
+from madgui.core.app import main
 
 
 if __name__ == '__main__':

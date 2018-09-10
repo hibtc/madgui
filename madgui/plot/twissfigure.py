@@ -3,6 +3,11 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
+__all__ = [
+    'PlotSelector',
+    'TwissFigure',
+]
+
 import math
 import logging
 from functools import partial
@@ -23,11 +28,6 @@ from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
 import matplotlib.colors as mpl_colors
-
-__all__ = [
-    'PlotSelector',
-    'TwissFigure',
-]
 
 
 #----------------------------------------

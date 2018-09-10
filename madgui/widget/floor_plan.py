@@ -7,16 +7,16 @@ Components to draw a 2D floor plan of a given MAD-X lattice.
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
+__all__ = [
+    'LatticeFloorPlan',
+]
+
 from math import cos, sin, sqrt, pi, atan2, floor, log10
 
 import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.model import FloorCoords
-
-__all__ = [
-    'LatticeFloorPlan',
-]
 
 
 ELEMENT_COLOR = {

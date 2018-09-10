@@ -3,6 +3,11 @@ Utilities for the optic variation method (Optikvarianzmethode) for beam
 alignment.
 """
 
+__all__ = [
+    'Corrector',
+    'CorrectorWidget',
+]
+
 from functools import partial
 
 import numpy as np
@@ -12,12 +17,6 @@ from madgui.core.unit import change_unit, get_raw_label
 from madgui.widget.tableview import TableItem
 
 from .multi_grid import Corrector as _Corrector, CorrectorWidget as _Widget
-
-
-__all__ = [
-    'Corrector',
-    'CorrectorWidget',
-]
 
 
 class Corrector(_Corrector):

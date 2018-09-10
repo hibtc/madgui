@@ -9,11 +9,6 @@ from madgui.core.base import Object, Signal
 from madgui.util import yaml
 
 
-__all__ = [
-    'load',
-]
-
-
 def get_default_user_config_path():
     """Return the default path of the user config."""
     return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'config.yml')

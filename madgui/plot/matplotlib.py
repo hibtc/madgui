@@ -2,6 +2,11 @@
 Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
 
+__all__ = [
+    'PlotWidget',
+    'MultiFigure',
+]
+
 from collections import namedtuple
 
 from madgui.qt import QtCore, QtGui      # import Qt before matplotlib!
@@ -16,12 +21,6 @@ from matplotlib.ticker import AutoMinorLocator
 from madgui.core.base import Signal, Cache
 from madgui.core.unit import from_ui
 from madgui.util.layout import VBoxLayout
-
-
-__all__ = [
-    'PlotWidget',
-    'MultiFigure',
-]
 
 
 Triple = namedtuple('Triple', ['x', 'y', 's'])

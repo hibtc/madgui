@@ -1,9 +1,6 @@
 """
 """
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 from madgui.qt import Qt, QtGui
 
 import time

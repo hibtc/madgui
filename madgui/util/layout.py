@@ -2,13 +2,12 @@
 Utility functions to deal with layouts.
 """
 
-from madgui.qt import QtGui
-
-
 __all__ = [
     'VBoxLayout',
     'HBoxLayout',
 ]
+
+from madgui.qt import QtGui
 
 
 class Spacing(int): pass

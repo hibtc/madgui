@@ -22,6 +22,10 @@ Website:
     https://github.com/hibtc/madgui
 """
 
+__all__ = [
+    'main',
+]
+
 import traceback
 import signal
 import sys
@@ -36,11 +40,6 @@ from madgui import __version__
 from madgui.core.mainwindow import MainWindow
 from madgui.core.worker import QueuedDispatcher
 from madgui.util.qt import load_icon_resource
-
-
-__all__ = [
-    'main',
-]
 
 
 def main(argv=None):

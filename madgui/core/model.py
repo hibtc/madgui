@@ -2,6 +2,10 @@
 MAD-X backend for madgui.
 """
 
+__all__ = [
+    'Model',
+]
+
 import os
 from collections import namedtuple, OrderedDict, defaultdict, Mapping
 from functools import partial, reduce
@@ -22,11 +26,6 @@ from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
 from madgui.util.collections import CachedList
-
-
-__all__ = [
-    'Model',
-]
 
 
 PlotInfo = namedtuple('PlotInfo', [

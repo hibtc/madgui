@@ -2,16 +2,6 @@
 Provides unit conversion.
 """
 
-from numbers import Number
-from importlib_resources import read_binary
-
-import numpy as np
-import pint
-import yaml
-
-from madgui.util.defaultdict import DefaultDict
-
-
 __all__ = [
     'units',
     'strip_unit',
@@ -21,6 +11,15 @@ __all__ = [
     'from_config',
     'UnitConverter',
 ]
+
+from numbers import Number
+from importlib_resources import read_binary
+
+import numpy as np
+import pint
+import yaml
+
+from madgui.util.defaultdict import DefaultDict
 
 
 units = pint.UnitRegistry(on_redefinition='ignore')

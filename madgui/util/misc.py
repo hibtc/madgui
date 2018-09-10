@@ -2,15 +2,6 @@
 Misc programming toolbox.
 """
 
-import os
-import functools
-import collections
-import tempfile
-import importlib
-
-from madgui.util.collections import Bool
-from madgui.util.qt import notifyCloseEvent, present
-
 __all__ = [
     'suppress',
     'memoize',
@@ -23,6 +14,15 @@ __all__ = [
     'translate_default',
     'make_index',
 ]
+
+import os
+import functools
+import collections
+import tempfile
+import importlib
+
+from madgui.util.collections import Bool
+from madgui.util.qt import notifyCloseEvent, present
 
 
 def try_import(name):

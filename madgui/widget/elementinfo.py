@@ -2,6 +2,10 @@
 Info boxes to display element detail.
 """
 
+__all__ = [
+    'ElementInfoBox',
+]
+
 from collections import OrderedDict
 
 from math import sqrt, pi, atan2
@@ -17,11 +21,6 @@ from madgui.core.base import Signal
 from madgui.core.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
-
-
-__all__ = [
-    'ElementInfoBox',
-]
 
 
 class ElementInfoBox(QtGui.QWidget):

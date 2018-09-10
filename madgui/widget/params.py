@@ -2,6 +2,13 @@
 Parameter input dialog.
 """
 
+# TODO: combobox for unit?
+
+__all__ = [
+    'ParamTable',
+    'TabParamTables',
+]
+
 from functools import partial
 
 import cpymad.util as _dtypes
@@ -13,13 +20,6 @@ from madgui.util.export import export_params, import_params
 
 from madgui.widget.tableview import TreeView, TableItem
 
-
-__all__ = [
-    'ParamTable',
-    'TabParamTables',
-]
-
-# TODO: combobox for unit?
 
 class ParamInfo:
 

@@ -2,16 +2,15 @@
 Utilities to create widgets
 """
 
+__all__ = [
+    'Dialog',
+]
+
 import os
 
 from madgui.qt import Qt, QtGui
 
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch
-
-
-__all__ = [
-    'Dialog',
-]
 
 
 # short-hand for accessing QDialogButtonBox.StandardButtons identifiers:

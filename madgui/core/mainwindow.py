@@ -2,6 +2,10 @@
 Main window component for madgui.
 """
 
+__all__ = [
+    'MainWindow',
+]
+
 import glob
 import os
 import logging
@@ -23,11 +27,6 @@ import madgui.online.control as control
 import madgui.core.config as config
 import madgui.core.menu as menu
 import madgui.util.yaml as yaml
-
-
-__all__ = [
-    'MainWindow',
-]
 
 
 def expand_ext(path, *exts):
