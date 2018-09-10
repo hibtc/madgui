@@ -133,7 +133,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     def setElements(self, elements, survey, selection):
         self.replay = elements, survey, selection
         self.setScene(QtGui.QGraphicsScene(self))
-        survey = [FloorCoords(0,0,0, 0,0,0)] + survey
+        survey = [FloorCoords(0, 0, 0, 0, 0, 0)] + survey
         for element, coords in zip(elements, zip(survey, survey[1:])):
             self.scene().addItem(
                 ElementGraphicsItem(self, element, coords, selection))

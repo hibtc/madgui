@@ -127,11 +127,11 @@ class ElementInfoBox(QtGui.QWidget):
     def _fetch_sector(self, elem_index=0):
         sectormap = self.model.sectormap(elem_index)
         data = {
-            'r{}{}'.format(i+1, j+1): sectormap[i,j]
+            'r{}{}'.format(i+1, j+1): sectormap[i, j]
             for i, j in itertools.product(range(6), range(6))
         }
         data.update({
-            'k{}'.format(i+1): sectormap[6,i]
+            'k{}'.format(i+1): sectormap[6, i]
             for i in range(6)
         })
         return self.model._par_list(data, 'sector')

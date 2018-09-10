@@ -362,7 +362,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
             read = np.array([np.mean([s[i] for s in r], axis=0)
                              for m, r in self.readouts])
 
-            records = [(m[0:6,0:6], m[0:6,6], r)
+            records = [(m[0:6, 0:6], m[0:6, 6], r)
                        for m, r in zip(maps, read)]
 
             x0, res, sing = fit_monitor_offsets(*records)
@@ -386,9 +386,9 @@ def parse_ints(text):
 def _fit_monitor_offsets(*records):
     T_, K_, Y_ = zip(*records)
     E = np.eye(2)
-    B = lambda t: np.hstack((t[:,:4], E))
-    T = np.vstack([B(T[[0,2]]) for T in T_])
-    K = np.hstack([K[[0,2]] for K in K_])
+    B = lambda t: np.hstack((t[:, :4], E))
+    T = np.vstack([B(T[[0, 2]]) for T in T_])
+    K = np.hstack([K[[0, 2]] for K in K_])
     Y = np.hstack(Y_)
     T, K, Y = 1000*T, 1000*K, 1000*Y
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=1e-7)
@@ -404,16 +404,16 @@ def fit_monitor_offsets(*records):
     K_ = np.array([k-K0 for k in K_[1:]])
     Y_ = np.array([y-Y0 for y in Y_[1:]])
 
-    T = np.vstack([T[[0,2]] for T in T_])[:,:4]
-    K = np.hstack([K[[0,2]] for K in K_])
+    T = np.vstack([T[[0, 2]] for T in T_])[:, :4]
+    K = np.hstack([K[[0, 2]] for K in K_])
     Y = np.hstack(Y_)
 
     T, K, Y = 1000*T, 1000*K, 1000*Y
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=-1)
     x /= 1000
 
-    T0 = T0[[0,2]][:,:4]
-    K0 = K0[[0,2]]
+    T0 = T0[[0, 2]][:, :4]
+    K0 = K0[[0, 2]]
     o = Y0 - (np.dot(T0, x) + K0)
 
     return np.hstack((x, o)), sum(residuals), (rank<len(x))

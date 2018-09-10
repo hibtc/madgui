@@ -209,7 +209,7 @@ class TwissFigure(Object):
 
     def get_float_data(self, name, column):
         """Get data for the given parameter from model."""
-        return self.graph_data[name][:,column]
+        return self.graph_data[name][:, column]
 
     def get_curve_by_name(self, name):
         return next((c for c in self.twiss_curves.items if c.y_name == name), None)

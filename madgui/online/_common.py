@@ -21,7 +21,7 @@ class EditConfigDialog(QtGui.QDialog):
             buttons,
         ]))
         self.setSizeGripEnabled(True)
-        self.resize(QtCore.QSize(600,400))
+        self.resize(QtCore.QSize(600, 400))
         self.setWindowTitle(self.model.filename)
 
         with open(model.filename) as f:

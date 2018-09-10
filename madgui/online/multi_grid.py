@@ -238,7 +238,7 @@ class Corrector(Matcher):
                 vary=self.match_names,
                 limits=self.selected.get('limits'),
                 method=self.method,
-                weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
+                weight={'x': 1e3, 'y': 1e3, 'px': 1e2, 'py': 1e2},
                 constraints=constraints)
             self.match_results = self._push_history()
             return self.match_results
@@ -277,7 +277,7 @@ class Corrector(Matcher):
             orm = self.compute_sectormap(init_orbit)
 
         dvar = np.linalg.lstsq(
-            orm.T[S,:], (y_target-y_measured)[S], rcond=1e-10)[0]
+            orm.T[S, :], (y_target-y_measured)[S], rcond=1e-10)[0]
 
         globals_ = self.model.globals
         self.match_results = self._push_history({
@@ -300,7 +300,7 @@ class Corrector(Matcher):
 
             return np.vstack([
                 np.hstack([
-                    model.sectormap(c, m)[[0,2],1+2*is_vkicker].flatten()
+                    model.sectormap(c, m)[[0, 2], 1+2*is_vkicker].flatten()
                     for m in self.monitors
                 ])
                 for v in self.variables
