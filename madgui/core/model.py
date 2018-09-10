@@ -48,6 +48,7 @@ class Madx(Madx):
 
     _enter_count = 0
     _collected_cmds = None
+
     def input(self, text):
         if self._enter_count > 0:
             self._collected_cmds.append(text)
@@ -814,6 +815,7 @@ class Model:
         return self.madx.sectormap((), table='sectortwiss', **self._get_twiss_args())
 
     backseq = None
+
     def backtrack(self, **twiss_init):
         """Backtrack final orbit through the reversed sequence."""
         if self.backseq is None:

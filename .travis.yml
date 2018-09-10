@@ -14,4 +14,4 @@ install:
 
 script:
   - pyflakes madgui
-  - pycodestyle madgui --select E265
+  - pycodestyle madgui --select E265,E301

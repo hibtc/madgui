@@ -109,6 +109,7 @@ class TwissFigure(Object):
         plot.addTool(CompareTool(plot))
 
     graph_name = None
+
     def set_graph(self, graph_name):
         if graph_name == self.graph_name:
             return

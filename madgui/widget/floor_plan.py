@@ -112,6 +112,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             self.setElements(*self.replay)
 
     model = None
+
     def setModel(self, model):
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
         if self.model:
@@ -127,6 +128,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
                          self.model.selection)
 
     replay = None
+
     def setElements(self, elements, survey, selection):
         self.replay = elements, survey, selection
         self.setScene(QtGui.QGraphicsScene(self))
