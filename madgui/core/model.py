@@ -7,7 +7,8 @@ __all__ = [
 ]
 
 import os
-from collections import namedtuple, OrderedDict, defaultdict, Mapping
+from collections import namedtuple, OrderedDict, defaultdict
+from collections.abc import Mapping
 from functools import partial, reduce
 import itertools
 from bisect import bisect_right

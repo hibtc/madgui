@@ -7,7 +7,7 @@ __all__ = [
     'Selection'
 ]
 
-from collections import MutableSequence, Sequence
+from collections.abc import MutableSequence, Sequence
 from contextlib import contextmanager
 from functools import wraps, partial
 from threading import Lock

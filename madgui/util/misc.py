@@ -17,7 +17,7 @@ __all__ = [
 
 import os
 import functools
-import collections
+from collections.abc import Sequence
 import tempfile
 import importlib
 
@@ -177,7 +177,7 @@ class SingleWindow(Property):
         present(self.val.window())
 
 
-class LazyList(collections.Sequence):
+class LazyList(Sequence):
 
     def __init__(self, len, get):
         self._len = len
