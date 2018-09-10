@@ -450,7 +450,8 @@ class MainWindow(QtGui.QMainWindow):
         from madgui.widget.elementinfo import EllipseWidget
 
         class InitEllipseWidget(EllipseWidget):
-            def update(self): super().update(0)
+            def update(self):
+                super().update(0)
 
         model = self.model()
         widget = TabParamTables([
