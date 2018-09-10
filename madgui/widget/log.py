@@ -222,4 +222,3 @@ class RecordHandler(logging.Handler):
             record.levelname,
             self.format(record),
         ))
-

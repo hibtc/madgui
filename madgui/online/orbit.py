@@ -4,7 +4,7 @@ import numpy as np
 def fit_particle_orbit(model, offsets, records, secmaps, range_start=None):
 
     (x, px, y, py), chi_squared, singular = fit_initial_orbit([
-        (secmap[:,:6], secmap[:,6], (record.posx+dx, record.posy+dy))
+        (secmap[:, :6], secmap[:, 6], (record.posx+dx, record.posy+dy))
         for record, secmap in zip(records, secmaps)
         for dx, dy in [offsets.get(record.name.lower(), (0, 0))]
     ])
@@ -66,8 +66,8 @@ def fit_initial_orbit(records):
     Returns:    [x,px,y,py],    chi_squared,    underdetermined
     """
     T_, K_, Y_ = zip(*records)
-    T = np.vstack([T[[0,2]] for T in T_])[:,:4]
-    K = np.hstack([K[[0,2]] for K in K_])
+    T = np.vstack([T[[0, 2]] for T in T_])[:, :4]
+    K = np.hstack([K[[0, 2]] for K in K_])
     Y = np.hstack(Y_)
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=1e-6)
-    return x, sum(residuals), (rank<len(x))
+    return x, sum(residuals), (rank < len(x))

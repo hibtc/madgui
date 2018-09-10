@@ -22,8 +22,10 @@ Invalid = QtGui.QValidator.Invalid
 
 def asb_property(name):
     key = '_' + name
+
     def get(self):
         return getattr(self, key)
+
     def set(self, value):
         if value != get(self):
             setattr(self, key, value)
@@ -114,7 +116,7 @@ class AffixControlBase:
         if new == old:
             return
         edit = self.line_edit()
-        pos = edit.cursorPosition() # TODO: must use selectionStart()?
+        pos = edit.cursorPosition()     # TODO: must use selectionStart()?
         sel = len(edit.selectedText())
         sb = edit.blockSignals(True)
         edit.setText(new)

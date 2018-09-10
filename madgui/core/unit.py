@@ -2,16 +2,6 @@
 Provides unit conversion.
 """
 
-from numbers import Number
-from importlib_resources import read_binary
-
-import numpy as np
-import pint
-import yaml
-
-from madgui.util.defaultdict import DefaultDict
-
-
 __all__ = [
     'units',
     'strip_unit',
@@ -22,13 +12,23 @@ __all__ = [
     'UnitConverter',
 ]
 
+from numbers import Number
+from importlib_resources import read_binary
+
+import numpy as np
+import pint
+import yaml
+
+from madgui.util.defaultdict import DefaultDict
+
 
 units = pint.UnitRegistry(on_redefinition='ignore')
 units.default_format = 'P~'     # make `str(quantity)` slightly nicer
 units.define('ratio = []')
 units.define('percent = 0.01 ratio = %')
 units.define('permille = 0.001 ratio = ‰')
-units.define('degree = pi / 180 * radian = ° = deg = arcdeg = arcdegree = angular_degree')
+units.define('degree = pi / 180 * radian = °'
+             '= deg = arcdeg = arcdegree = angular_degree')
 
 
 number_types = (int, float, units.Quantity)
@@ -230,8 +230,10 @@ def convert(from_, to, *args):
         return to.strip_unit(args[0], from_.add_unit(*args[1:]))
     raise TypeError("convert can only be called with one or two arguments.")
 
+
 def from_ui(*args):
     return convert(ui_units, madx_units, *args)
+
 
 def to_ui(*args):
     return convert(madx_units, ui_units, *args)

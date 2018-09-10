@@ -2,17 +2,16 @@
 Utility functions for use with QFileDialog.
 """
 
-import os
-
-from madgui.qt import Qt, QtGui
-from madgui.core.base import Signal
-
-
 __all__ = [
     'getOpenFileName',
     'getSaveFileName',
     'FileWidget',
 ]
+
+import os
+
+from madgui.qt import Qt, QtGui
+from madgui.core.base import Signal
 
 
 MODE_OPEN = 0
@@ -63,7 +62,6 @@ def _fileDialog(acceptMode, fileMode,
             if ext.startswith('*.') and ext != '*.*':
                 return filename + ext[1:]       # remove leading '*'
     return filename
-
 
 
 def getOpenFileName(*args, **kwargs):

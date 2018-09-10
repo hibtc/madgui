@@ -2,6 +2,13 @@
 Parameter input dialog.
 """
 
+# TODO: combobox for unit?
+
+__all__ = [
+    'ParamTable',
+    'TabParamTables',
+]
+
 from functools import partial
 
 import cpymad.util as _dtypes
@@ -13,13 +20,6 @@ from madgui.util.export import export_params, import_params
 
 from madgui.widget.tableview import TreeView, TableItem
 
-
-__all__ = [
-    'ParamTable',
-    'TabParamTables',
-]
-
-# TODO: combobox for unit?
 
 class ParamInfo:
 
@@ -112,7 +112,6 @@ class ParamTable(TreeView):
 
         # Set initial size:
         if not self.isVisible():
-            #self.selectRow(0)
             self.resizeColumnsToContents()
             self.updateGeometries()
 
@@ -202,16 +201,18 @@ class CommandEdit(ParamTable):
                     else self.get_knob_row)
         return [
             TableItem(name, rows=rows, rowitems=rowitems, font=font),
-            TableItem(value, set_value=self.set_value, mutable=mutable, name=p.name),
+            TableItem(value, set_value=self.set_value,
+                      mutable=mutable, name=p.name),
             TableItem(unit),
             TableItem(expr, set_value=self.set_expr, mutable=is_expr_mutable(p)),
         ]
 
     def get_knob_row(self, i, p):
+        mutable = p.var_type > 0
         return [
             TableItem(get_var_name(p.name), rows=self.par_rows(p),
                       rowitems=self.get_knob_row),
-            TableItem(p.value, set_value=self.set_par_value, mutable=p.var_type > 0),
+            TableItem(p.value, set_value=self.set_par_value, mutable=mutable),
             TableItem(None, mutable=False),
             TableItem(p.expr, set_value=self.set_par_expr, mutable=True),
         ]
@@ -238,7 +239,7 @@ class CommandEdit(ParamTable):
     def vec_rows(self, par):
         return [
             ParamInfo('[{}]'.format(idx), val, expr, par.inform,
-                    dtype=par.dtype, var_type=par.var_type)
+                      dtype=par.dtype, var_type=par.var_type)
             for idx, (val, expr) in enumerate(zip(par.value, par.expr))
         ]
 
@@ -273,7 +274,8 @@ class GlobalsEdit(ParamTable):
     ]
 
     def __init__(self, model, **kwargs):
-        super().__init__(self._fetch, model.update_globals, model=model, **kwargs)
+        super().__init__(
+            self._fetch, model.update_globals, model=model, **kwargs)
 
     def _fetch(self):
         globals = self._model.globals

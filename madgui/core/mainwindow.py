@@ -2,6 +2,10 @@
 Main window component for madgui.
 """
 
+__all__ = [
+    'MainWindow',
+]
+
 import glob
 import os
 import logging
@@ -25,11 +29,6 @@ import madgui.core.menu as menu
 import madgui.util.yaml as yaml
 
 
-__all__ = [
-    'MainWindow',
-]
-
-
 def expand_ext(path, *exts):
     for ext in exts:
         if os.path.isfile(path+ext):
@@ -41,9 +40,7 @@ class MainWindow(QtGui.QMainWindow):
 
     ui_file = 'mainwindow.ui'
 
-    #----------------------------------------
     # Basic setup
-    #----------------------------------------
 
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -202,51 +199,51 @@ class MainWindow(QtGui.QMainWindow):
             ]),
             Menu('&Online control', [
                 Item('Disconnect', None,
-                    'Disconnect online control interface',
-                    control.disconnect,
-                    enabled=control.is_connected),
+                     'Disconnect online control interface',
+                     control.disconnect,
+                     enabled=control.is_connected),
                 Separator,
                 Item('&Read strengths', None,
-                    'Read magnet strengths from the online database',
-                    control.on_read_all,
-                    enabled=control.has_sequence),
+                     'Read magnet strengths from the online database',
+                     control.on_read_all,
+                     enabled=control.has_sequence),
                 Item('&Write strengths', None,
-                    'Write magnet strengths to the online database',
-                    control.on_write_all,
-                    enabled=control.has_sequence),
+                     'Write magnet strengths to the online database',
+                     control.on_write_all,
+                     enabled=control.has_sequence),
                 Item('Read &beam', None,
-                    'Read beam settings from the online database',
-                    control.on_read_beam,
-                    enabled=control.has_sequence),
+                     'Read beam settings from the online database',
+                     control.on_read_beam,
+                     enabled=control.has_sequence),
                 Separator,
                 Item('Beam &diagnostic', None,
-                    'Plot beam position monitors, backtrack initial orbit, calculate emittance',
-                    control.monitor_widget.create,
-                    enabled=control.has_sequence),
+                     'Beam position and emittance diagnostics',
+                     control.monitor_widget.create,
+                     enabled=control.has_sequence),
                 Separator,
                 Item('ORM measurement', None,
                      'Measure ORM for later analysis',
-                    control.orm_measure_widget.create,
-                    enabled=control.has_sequence),
+                     control.orm_measure_widget.create,
+                     enabled=control.has_sequence),
                 Separator,
                 menu.Menu('&Orbit correction', [
                     Item('Optic &variation', 'Ctrl+V',
-                        'Perform orbit correction via 2-optics method',
-                        control.on_correct_optic_variation_method,
-                        enabled=control.has_sequence),
+                         'Perform orbit correction via 2-optics method',
+                         control.on_correct_optic_variation_method,
+                         enabled=control.has_sequence),
                     Item('Multi &grid', 'Ctrl+G',
-                        'Perform orbit correction via 2-grids method',
-                        control.on_correct_multi_grid_method,
-                        enabled=control.has_sequence),
+                         'Perform orbit correction via 2-grids method',
+                         control.on_correct_multi_grid_method,
+                         enabled=control.has_sequence),
                 ]),
                 Separator,
                 menu.Menu('&Settings', [
                     # TODO: dynamically fill by plugin
                     Item('&Jitter', None,
-                        'Random Jitter for test interface',
-                        control.toggle_jitter,
-                        enabled=control.is_connected,
-                        checked=True),
+                         'Random Jitter for test interface',
+                         control.toggle_jitter,
+                         enabled=control.is_connected,
+                         checked=True),
                 ]),
             ]),
             Menu('&Help', [
@@ -359,9 +356,7 @@ class MainWindow(QtGui.QMainWindow):
         dialog.setWindowTitle("Change history")
         return widget
 
-    #----------------------------------------
     # Menu actions
-    #----------------------------------------
 
     def fileOpen(self):
         from madgui.widget.filedialog import getOpenFileName
@@ -451,11 +446,13 @@ class MainWindow(QtGui.QMainWindow):
 
     @SingleWindow.factory
     def editInitialConditions(self):
-        from madgui.widget.params import TabParamTables, ParamTable, GlobalsEdit
+        from madgui.widget.params import (
+            TabParamTables, ParamTable, GlobalsEdit)
         from madgui.widget.elementinfo import EllipseWidget
 
         class InitEllipseWidget(EllipseWidget):
-            def update(self): super().update(0)
+            def update(self):
+                super().update(0)
 
         model = self.model()
         widget = TabParamTables([
@@ -544,11 +541,12 @@ class MainWindow(QtGui.QMainWindow):
         import site     # adds builtins.license/copyright/credits
         site            # silence pyflakes (suppress unused import warning)
         import builtins
+
         class About:
-            __title__   = 'python'
+            __uri__ = "https::/www.python.org"
+            __title__ = 'python'
             __version__ = ".".join(map(str, sys.version_info))
             __summary__ = sys.version + "\n\nPath: " + sys.executable
-            __uri__     = "https::/www.python.org"
             __credits__ = str(builtins.credits)
             get_copyright_notice = lambda: sys.copyright
         return self._showAboutDialog(About)
@@ -561,9 +559,7 @@ class MainWindow(QtGui.QMainWindow):
         info = about.VersionInfo(module)
         return about.AboutDialog(info, self)
 
-    #----------------------------------------
     # Update state
-    #----------------------------------------
 
     known_extensions = ['.cpymad.yml', '.init', '.lat', '.madx']
 
@@ -679,10 +675,13 @@ class MainWindow(QtGui.QMainWindow):
         widget.layout().setMenuBar(menubar)
         size = settings.get('size')
         pos = settings.get('pos')
-        if size: widget.resize(*size)
-        else: widget.resize(self.size().width(), widget.sizeHint().height())
-        if pos: widget.move(*pos)
+        if not size:
+            size = (self.size().width(), widget.sizeHint().height())
+        widget.resize(*size)
+        if pos:
+            widget.move(*pos)
         widget.show()
+
         def update_window_title():
             widget.setWindowTitle("{1} ({0})".format(
                 self.model().name, scene.graph_name))
@@ -712,7 +711,7 @@ class MainWindow(QtGui.QMainWindow):
             Menu('&View', [
                 # TODO: dynamic checked state
                 Item('&Shared plot', 'Ctrl+M',
-                     'Plot all curves into the same plot - more compact format.',
+                     'Plot all curves into the same axes.',
                      toggleShareAxes, checked=False),
                 # TODO: dynamic checked state
                 Item('Element &indicators', None,
@@ -836,9 +835,11 @@ class InfoBoxGroup:
         info = ElementInfoBox(model, el_id)
         dock = Dialog(self.mainwindow)
         dock.setSimpleExportWidget(info, None)
-        dock.setWindowTitle("Element details: " + model.elements[el_id].node_name)
+        dock.setWindowTitle(
+            "Element details: " + model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
-        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
+        notifyEvent(info, 'focusInEvent',
+                    lambda event: self.set_active_box(info))
 
         dock.show()
         dock.raise_()

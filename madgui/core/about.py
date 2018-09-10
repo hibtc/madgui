@@ -2,15 +2,14 @@
 About dialog that provides version and license information for the user.
 """
 
+__all__ = [
+    'AboutDialog',
+]
+
 import docutils.core
 
 from madgui.qt import QtGui
 from madgui.widget.dialog import Dialog
-
-
-__all__ = [
-    'AboutDialog',
-]
 
 
 class VersionInfo:

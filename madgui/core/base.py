@@ -4,13 +4,12 @@ Core classes for madgui.
 Every object that emits signals has to derive from :class:`Object`.
 """
 
-from madgui.qt import QtCore
-
-
 __all__ = [
     'Signal',
     'Cache',
 ]
+
+from madgui.qt import QtCore
 
 
 Object = QtCore.QObject

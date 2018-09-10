@@ -2,15 +2,6 @@
 Misc programming toolbox.
 """
 
-import os
-import functools
-import collections
-import tempfile
-import importlib
-
-from madgui.util.collections import Bool
-from madgui.util.qt import notifyCloseEvent, present
-
 __all__ = [
     'suppress',
     'memoize',
@@ -23,6 +14,15 @@ __all__ = [
     'translate_default',
     'make_index',
 ]
+
+import os
+import functools
+import collections
+import tempfile
+import importlib
+
+from madgui.util.collections import Bool
+from madgui.util.qt import notifyCloseEvent, present
 
 
 def try_import(name):
@@ -44,6 +44,7 @@ def suppress(exc, fun, *args, **kwargs):
 
 def memoize(func):
     key = '_' + func.__name__
+
     @functools.wraps(func)
     def get(self):
         try:
@@ -59,8 +60,10 @@ def cachedproperty(func):
     """A memoize decorator for class properties."""
     key = '_' + func.__name__
     get_ = memoize(func)
+
     def set_(self, val):
         setattr(self, key, val)
+
     def del_(self):
         delattr(self, key)
     return property(get_, set_, del_)
@@ -69,10 +72,13 @@ def cachedproperty(func):
 def rw_property(func, name=None):
     """A property that allows overwriting the value."""
     key = '_' + (name or func.__name__)
+
     def get_(self):
         return getattr(self, key, None) or func(self)
+
     def set_(self, val):
         setattr(self, key, val)
+
     def del_(self):
         setattr(self, key, None)
     return property(get_, set_, del_)
@@ -80,6 +86,7 @@ def rw_property(func, name=None):
 
 def update_property(update, name=None):
     key = '_' + update.__name__
+
     @functools.wraps(update)
     def wrapper(self, *args, **kwargs):
         old = getattr(self, key, None)

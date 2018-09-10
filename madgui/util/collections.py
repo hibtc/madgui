@@ -2,6 +2,11 @@
 Observable collection classes.
 """
 
+__all__ = [
+    'List',
+    'Selection'
+]
+
 from collections import MutableSequence, Sequence
 from contextlib import contextmanager
 from functools import wraps, partial
@@ -9,12 +14,6 @@ from threading import Lock
 import operator
 
 from madgui.core.base import Object, Signal, Cache
-
-
-__all__ = [
-    'List',
-    'Selection'
-]
 
 
 def _operator(get):
@@ -59,16 +58,16 @@ class Boxed(Object):
             callback()
         self.changed.connect(on_change)
 
-    __eq__  = _operator(operator.__eq__)
-    __ne__  = _operator(operator.__ne__)
+    __eq__ = _operator(operator.__eq__)
+    __ne__ = _operator(operator.__ne__)
 
 
 class Bool(Boxed):
 
     _dtype = bool
     __and__ = _operator(operator.__and__)
-    __or__  = _operator(operator.__or__)
-    __xor__ = _operator(operator.__xor__)
+    __or__ = _operator(operator.__or__)
+    __xor_ = _operator(operator.__xor__)
     __invert__ = _operator(operator.__not__)
 
 
@@ -110,7 +109,7 @@ class List(Object):
                 # This scenario is forbidden by `list` as well (even step=-1).
                 # Catch it before emitting the event.
                 raise ValueError(
-                    "attempt to assign sequence of size {} to extended slice of size {}"
+                    "attempt to assign sequence of size {} to slice of size {}"
                     .format(num_ins, num_del))
             self.update_before.emit(slice, old_values, new_values)
             try:
@@ -209,6 +208,7 @@ class List(Object):
 
 MutableSequence.register(List)
 
+
 class Selection:
 
     """
@@ -244,6 +244,7 @@ def maintain_selection(sel, avail):
             if v >= index:
                 sel[i] += 1
         sel.append(index)
+
     def delete(index):
         if index in sel:
             sel.remove(index)
@@ -314,6 +315,7 @@ class CachedList(Sequence):
         if l is None:
             l = List()
         l[:] = list(self)
+
         def update(idx):
             l[idx] = self[idx]
         for idx, item in enumerate(self._items):

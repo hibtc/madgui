@@ -2,14 +2,17 @@
 Info boxes to display element detail.
 """
 
+__all__ = [
+    'ElementInfoBox',
+]
+
 from collections import OrderedDict
 
 from math import sqrt, pi, atan2
 import itertools
 
-import matplotlib as mpl
-mpl.use('Qt5Agg')                       # select before mpl.backends import!
-import matplotlib.backends.backend_qt5agg as mpl_backend
+from madgui.matplotlib import get_backend_module
+from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 
 from madgui.qt import Qt, QtCore, QtGui
@@ -19,9 +22,7 @@ from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
 
 
-__all__ = [
-    'ElementInfoBox',
-]
+mpl_backend = get_backend_module()
 
 
 class ElementInfoBox(QtGui.QWidget):
@@ -65,13 +66,12 @@ class ElementInfoBox(QtGui.QWidget):
             self.notebook,
         ], tight=True))
 
-
     def closeEvent(self, event):
         self.model.twiss.updated.disconnect(self.notebook.update)
         event.accept()
 
     def advance(self, step):
-        elements  = self.model.elements
+        elements = self.model.elements
         old_index = elements.index(self.el_id)
         new_index = old_index + step
         new_el_id = elements[new_index % len(elements)].index
@@ -109,7 +109,6 @@ class ElementInfoBox(QtGui.QWidget):
     def _update_element(self, *args, **kwargs):
         return self.model.update_element(*args, **kwargs)
 
-    #class BasicDataStore(ElementDataStore):
     def _fetch_summary(self, elem_index=0):
         elem = self.model.elements[elem_index]
         show = self.model.config['parameter_sets']['element']['show']
@@ -130,11 +129,11 @@ class ElementInfoBox(QtGui.QWidget):
     def _fetch_sector(self, elem_index=0):
         sectormap = self.model.sectormap(elem_index)
         data = {
-            'r{}{}'.format(i+1, j+1): sectormap[i,j]
+            'r{}{}'.format(i+1, j+1): sectormap[i, j]
             for i, j in itertools.product(range(6), range(6))
         }
         data.update({
-            'k{}'.format(i+1): sectormap[6,i]
+            'k{}'.format(i+1): sectormap[6, i]
             for i in range(6)
         })
         return self.model._par_list(data, 'sector')
@@ -146,7 +145,7 @@ class EllipseWidget(QtGui.QWidget):
         super().__init__()
 
         self.model = model
-        self.figure = mpl.figure.Figure()
+        self.figure = Figure()
         self.canvas = canvas = mpl_backend.FigureCanvas(self.figure)
         self.toolbar = toolbar = mpl_backend.NavigationToolbar2QT(canvas, self)
         layout = VBoxLayout([canvas, toolbar])
@@ -188,7 +187,6 @@ class EllipseWidget(QtGui.QWidget):
             ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180,
                                  fill=False, zorder=5))
             ax.grid(True)
-
 
         # FIXME: gui_units
         twiss = to_ui(self.model.get_elem_twiss(elem_index))

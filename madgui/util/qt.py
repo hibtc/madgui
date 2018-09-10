@@ -21,6 +21,7 @@ def notifyCloseEvent(widget, handler):
 def notifyEvent(widget, name, handler):
     """Connect an event listener."""
     old_handler = getattr(widget, name)
+
     def new_handler(event):
         handler(event)
         old_handler(event)

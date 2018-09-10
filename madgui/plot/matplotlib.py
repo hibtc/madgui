@@ -2,27 +2,24 @@
 Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
 
-from collections import namedtuple
-
-from madgui.qt import QtCore, QtGui      # import Qt before matplotlib!
-
-import matplotlib as mpl
-mpl.use('Qt5Agg')                       # select before mpl.backends import!
-import matplotlib.backends.backend_qt5agg as mpl_backend
-
-from matplotlib.figure import Figure
-from matplotlib.ticker import AutoMinorLocator
-
-from madgui.core.base import Signal, Cache
-from madgui.core.unit import from_ui
-from madgui.util.layout import VBoxLayout
-
-
 __all__ = [
     'PlotWidget',
     'MultiFigure',
 ]
 
+from collections import namedtuple
+
+from madgui.matplotlib import get_backend_module
+from matplotlib.figure import Figure
+from matplotlib.ticker import AutoMinorLocator
+
+from madgui.qt import QtCore, QtGui
+from madgui.core.base import Signal, Cache
+from madgui.core.unit import from_ui
+from madgui.util.layout import VBoxLayout
+
+
+mpl_backend = get_backend_module()
 
 Triple = namedtuple('Triple', ['x', 'y', 's'])
 
@@ -154,7 +151,6 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-
 class MultiFigure:
 
     """
@@ -184,8 +180,10 @@ class MultiFigure:
             axes *= num_axes
         else:
             axes.append(figure.add_subplot(num_axes, 1, 1))
-            for i in range(1, num_axes):
-                axes.append(figure.add_subplot(num_axes, 1, i+1, sharex=axes[0]))
+            axes.extend([
+                figure.add_subplot(num_axes, 1, i+1, sharex=axes[0])
+                for i in range(1, num_axes)
+            ])
         for ax in axes:
             ax.grid(True, axis='y')
             ax.x_name = []

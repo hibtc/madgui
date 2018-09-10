@@ -2,6 +2,12 @@
 Table widget specified by column behaviour.
 """
 
+__all__ = [
+    'TableItem',
+    'TableModel',
+    'TableView',
+]
+
 from inspect import getmro
 from functools import partial
 
@@ -17,13 +23,6 @@ from madgui.widget.spinbox import QuantitySpinBox
 
 import madgui.core.unit as unit
 import madgui.core.config as config
-
-
-__all__ = [
-    'TableItem',
-    'TableModel',
-    'TableView',
-]
 
 
 # TODO: more consistent behaviour/feel of controls: Quantity vs Bare
@@ -49,7 +48,7 @@ ROLES = {
     # NOTE: BackgroundColorRole is obsolete in favor of BackgroundRole:
     Qt.BackgroundColorRole:         'backgroundColor',
     Qt.ForegroundRole:              'foreground',
-    #Qt.TextColorRole:               'textColor',   # = ForegroundRole
+    # Qt.TextColorRole:               'textColor',   # = ForegroundRole
     Qt.CheckStateRole:              'checkState',
     Qt.InitialSortOrderRole:        'initialSortOrder',
     # Accessibility roles
@@ -412,8 +411,6 @@ class ItemView:
         for a, b in ranges(rows)[::-1]:
             # TODO: these should be called from the model…
             del self.model().rows[a:b]
-            #self.model().beginRemoveRows(self.rootIndex(), row, row)
-            #self.model().endRemoveRows()
 
     def keyPressEvent(self, event):
         if self.state() == QtGui.QAbstractItemView.NoState:
@@ -507,6 +504,7 @@ class TreeView(ItemView, QtGui.QTreeView):
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
 
+
 class ItemViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
@@ -547,8 +545,10 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
                  ):
         """Store the value."""
         super().__init__()
-        if default is not None: self.default = default
-        if fmtspec is not None: self.fmtspec = fmtspec
+        if default is not None:
+            self.default = default
+        if fmtspec is not None:
+            self.fmtspec = fmtspec
 
     def display(self, value):
         """Render the value as string."""
@@ -580,7 +580,7 @@ class IntDelegate(ItemDelegate):
 
     def createEditor(self, parent, option, index):
         editor = QtGui.QSpinBox(parent)
-        editor.setRange(-(1<<30), +(1<<30))
+        editor.setRange(-(1 << 30), +(1 << 30))
         editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor
 
@@ -731,7 +731,6 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         editor = QtGui.QLineEdit(parent)
-        #editor.setFrame(False)
         editor.setReadOnly(True)
         editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor

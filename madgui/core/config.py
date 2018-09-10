@@ -9,19 +9,16 @@ from madgui.core.base import Object, Signal
 from madgui.util import yaml
 
 
-__all__ = [
-    'load',
-]
-
-
 def get_default_user_config_path():
     """Return the default path of the user config."""
-    return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'config.yml')
+    return os.path.join(
+        os.path.expanduser('~'), '.config', 'madgui', 'config.yml')
 
 
 def get_default_user_session_path():
     """Return the default path of the user config."""
-    return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'session.yml')
+    return os.path.join(
+        os.path.expanduser('~'), '.config', 'madgui', 'session.yml')
 
 
 def update_recursive(a, b):
@@ -44,8 +41,10 @@ def _read_file(filename):
     except IOError:
         return None
 
+
 def _loads(text):
     return yaml.safe_load(text) if text else None
+
 
 def _load_file(path):
     return yaml.safe_load(path and _read_file(path) or '')

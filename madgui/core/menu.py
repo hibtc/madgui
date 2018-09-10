@@ -2,15 +2,14 @@
 Menu creation utilities.
 """
 
-from madgui.qt import QtGui
-
-
 __all__ = [
     'Item',
     'Menu',
     'Separator',
     'extend',
 ]
+
+from madgui.qt import QtGui
 
 
 class Item:

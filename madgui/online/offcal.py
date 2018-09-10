@@ -262,10 +262,8 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         quad = min(map(self.model.elements.index, self.selected))
 
         progress = self.progress
-        #quad = min(self.selected, key=self.model.elements.index)
         step = progress // self.numshots % self.numsteps
         shot = progress % self.numshots
-        #knob = self.quad_knobs[quad]
 
         def sign(n):
             return -1 if n < 0 else +1
@@ -275,15 +273,14 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         if self.prepare:
             # backup optics
             if step == 0 and shot == 0:
-                #self.log("quad: {}", quad)
                 self.backup = {p: self.base_optics[p.lower()]
                                for q in self.selected
                                for p in [self.quad_knobs[q]]}
 
             if shot == 0:
-                self.log(" " + ", ".join('{}={:.4f}'.format(k, v) for k, v in kL.items()))
+                self.log(" " + ", ".join(
+                    '{}={:.4f}'.format(k, v) for k, v in kL.items()))
 
-            #if shot == 0 and (step != 0 or not self.relative):
             self.control.write_params(kL.items())
             self.model.write_params(kL.items())
 
@@ -336,7 +333,6 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.ctrl_tab.setCurrentIndex(2)
 
     def read_monitors(self):
-        #return {mon: {k: self.round(v) for k, v in self.control.read_monitor(mon).items()}
         return {mon: self.control.read_monitor(mon)
                 for mon in self.monitors}
 
@@ -367,7 +363,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
             read = np.array([np.mean([s[i] for s in r], axis=0)
                              for m, r in self.readouts])
 
-            records = [(m[0:6,0:6], m[0:6,6], r)
+            records = [(m[0:6, 0:6], m[0:6, 6], r)
                        for m, r in zip(maps, read)]
 
             x0, res, sing = fit_monitor_offsets(*records)
@@ -391,14 +387,15 @@ def parse_ints(text):
 def _fit_monitor_offsets(*records):
     T_, K_, Y_ = zip(*records)
     E = np.eye(2)
-    B = lambda t: np.hstack((t[:,:4], E))
-    T = np.vstack([B(T[[0,2]]) for T in T_])
-    K = np.hstack([K[[0,2]] for K in K_])
+    B = lambda t: np.hstack((t[:, :4], E))
+    T = np.vstack([B(T[[0, 2]]) for T in T_])
+    K = np.hstack([K[[0, 2]] for K in K_])
     Y = np.hstack(Y_)
     T, K, Y = 1000*T, 1000*K, 1000*Y
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=1e-7)
     x /= 1000
-    return x, sum(residuals), (rank<len(x))
+    return x, sum(residuals), (rank < len(x))
+
 
 def fit_monitor_offsets(*records):
     T_, K_, Y_ = zip(*records)
@@ -408,16 +405,16 @@ def fit_monitor_offsets(*records):
     K_ = np.array([k-K0 for k in K_[1:]])
     Y_ = np.array([y-Y0 for y in Y_[1:]])
 
-    T = np.vstack([T[[0,2]] for T in T_])[:,:4]
-    K = np.hstack([K[[0,2]] for K in K_])
+    T = np.vstack([T[[0, 2]] for T in T_])[:, :4]
+    K = np.hstack([K[[0, 2]] for K in K_])
     Y = np.hstack(Y_)
 
     T, K, Y = 1000*T, 1000*K, 1000*Y
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=-1)
     x /= 1000
 
-    T0 = T0[[0,2]][:,:4]
-    K0 = K0[[0,2]]
+    T0 = T0[[0, 2]][:, :4]
+    K0 = K0[[0, 2]]
     o = Y0 - (np.dot(T0, x) + K0)
 
-    return np.hstack((x, o)), sum(residuals), (rank<len(x))
+    return np.hstack((x, o)), sum(residuals), (rank < len(x))

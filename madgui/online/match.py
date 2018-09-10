@@ -38,7 +38,7 @@ class Matcher(Object):
         # transform constraints (envx => betx, etc)
         transform = MatchTransform()
         constraints = [
-            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value, tw))
+            Constraint(c.elem, c.pos, *transform(c.axis, c.value, tw))
             for c in self.constraints
             for tw in [self._get_tw_row(c.elem, c.pos)]
         ]
@@ -102,7 +102,7 @@ class Matcher(Object):
         variables = self.variables
         transform = MatchTransform()
         constraints = [
-            Constraint(c.elem, c.pos, *getattr(transform, c.axis)(c.value, tw))
+            Constraint(c.elem, c.pos, *transform(c.axis, c.value, tw))
             for c in self.constraints
             for tw in [self._get_tw_row(c.elem, c.pos)]
         ]
@@ -141,14 +141,20 @@ class Matcher(Object):
 
 class MatchTransform:
 
-    def alfx(self, val, tw): return 'sig12', -val*tw.ex
-    def alfy(self, val, tw): return 'sig34', -val*tw.ey
-    def betx(self, val, tw): return 'sig11',  val*tw.ex
-    def bety(self, val, tw): return 'sig33',  val*tw.ey
-    def gamx(self, val, tw): return 'sig22',  val*tw.ex
-    def gamy(self, val, tw): return 'sig44',  val*tw.ey
-    def envx(self, val, tw): return 'sig11',  val**2
-    def envy(self, val, tw): return 'sig33',  val**2
+    def __init__(self):
+        self._transform = {
+            'alfx': lambda val, tw: ('sig12', -val*tw.ex),
+            'alfy': lambda val, tw: ('sig34', -val*tw.ey),
+            'betx': lambda val, tw: ('sig11',  val*tw.ex),
+            'bety': lambda val, tw: ('sig33',  val*tw.ey),
+            'gamx': lambda val, tw: ('sig22',  val*tw.ex),
+            'gamy': lambda val, tw: ('sig44',  val*tw.ey),
+            'envx': lambda val, tw: ('sig11',  val**2),
+            'envy': lambda val, tw: ('sig33',  val**2),
+        }
 
-    def __getattr__(self, name):
-        return lambda val, tw: (name, val)
+    def __call__(self, name, val, tw):
+        try:
+            return self._transform[name](val, tw)
+        except KeyError:
+            return (name, val)

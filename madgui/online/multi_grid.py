@@ -57,7 +57,8 @@ class Corrector(Matcher):
         self._offsets = control._frame.config['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
-        QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
+        QtCore.QTimer.singleShot(
+            0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None, force=False):
         if not name or (name == self.active and not force):
@@ -70,7 +71,7 @@ class Corrector(Matcher):
         selected = self.selected = self.configs[name]
         monitors = selected['monitors']
         steerers = sum([selected['steerers'][d] for d in dirs], [])
-        targets  = selected['targets']
+        targets = selected['targets']
 
         params = [k.lower() for k in selected.get('optics', ())]
         self.optic_params = [self._knobs[k] for k in params
@@ -100,7 +101,9 @@ class Corrector(Matcher):
         self.fit_range = (min(fit_elements, key=elements.index, default=0),
                           max(fit_elements, key=elements.index, default=0))
         self.constraints[:] = sorted([
-            Constraint(elements[target], elements[target].position, key, float(value))
+            Constraint(elements[target],
+                       elements[target].position,
+                       key, float(value))
             for target, values in targets.items()
             for key, value in values.items()
             if key[-1] in dirs
@@ -110,8 +113,6 @@ class Corrector(Matcher):
             for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
-
-    #def _involved_elements(self):      # with steerers!
 
     def _read_vars(self):
         model = self.model
@@ -225,8 +226,10 @@ class Corrector(Matcher):
 
         def offset(c):
             dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
-            if c.axis in ('x', 'posx'): return dx
-            if c.axis in ('y', 'posy'): return dy
+            if c.axis in ('x', 'posx'):
+                return dx
+            if c.axis in ('y', 'posy'):
+                return dy
             return 0
         constraints = [
             (c.elem, None, c.axis, c.value+offset(c))
@@ -240,7 +243,7 @@ class Corrector(Matcher):
                 vary=self.match_names,
                 limits=self.selected.get('limits'),
                 method=self.method,
-                weight={'x': 1e3, 'y':1e3, 'px':1e2, 'py':1e2},
+                weight={'x': 1e3, 'y': 1e3, 'px': 1e2, 'py': 1e2},
                 constraints=constraints)
             self.match_results = self._push_history()
             return self.match_results
@@ -251,8 +254,10 @@ class Corrector(Matcher):
     def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
         def offset(c):
             dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
-            if c.axis in ('x', 'posx'): return dx
-            if c.axis in ('y', 'posy'): return dy
+            if c.axis in ('x', 'posx'):
+                return dx
+            if c.axis in ('y', 'posy'):
+                return dy
             return 0
         targets = {
             (c.elem.name, c.axis): c.value+offset(c)
@@ -279,7 +284,7 @@ class Corrector(Matcher):
             orm = self.compute_sectormap(init_orbit)
 
         dvar = np.linalg.lstsq(
-            orm.T[S,:], (y_target-y_measured)[S], rcond=1e-10)[0]
+            orm.T[S, :], (y_target-y_measured)[S], rcond=1e-10)[0]
 
         globals_ = self.model.globals
         self.match_results = self._push_history({
@@ -302,7 +307,7 @@ class Corrector(Matcher):
 
             return np.vstack([
                 np.hstack([
-                    model.sectormap(c, m)[[0,2],1+2*is_vkicker].flatten()
+                    model.sectormap(c, m)[[0, 2], 1+2*is_vkicker].flatten()
                     for m in self.monitors
                 ])
                 for v in self.variables
@@ -361,7 +366,7 @@ class CorrectorWidget(QtGui.QWidget):
         matched = self.corrector.top_results.get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {
-            #'foreground': QtGui.QColor(Qt.red),
+            # 'foreground': QtGui.QColor(Qt.red),
             'font': bold(),
         } if changed else {}
         info = self.corrector._knobs[v.lower()]
@@ -408,9 +413,12 @@ class CorrectorWidget(QtGui.QWidget):
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.tab_readouts.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
-        self.tab_corrections.set_viewmodel(self.get_steerer_row, corr.variables)
-        self.tab_targets.set_viewmodel(self.get_cons_row, corr.constraints)
+        self.tab_readouts.set_viewmodel(
+            self.get_readout_row, corr.readouts, unit=True)
+        self.tab_corrections.set_viewmodel(
+            self.get_steerer_row, corr.variables)
+        self.tab_targets.set_viewmodel(
+            self.get_cons_row, corr.constraints)
 
     def set_initial_values(self):
         self.btn_fit.setFocus()
@@ -440,7 +448,8 @@ class CorrectorWidget(QtGui.QWidget):
     def on_change_meth(self, strategy):
         self.corrector.strategy = strategy
         if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(self.corrector.fit_results)
+            self.corrector.compute_steerer_corrections(
+                self.corrector.fit_results)
             self.corrector.variables.touch()
             self.update_ui()
             self.draw()
@@ -460,10 +469,10 @@ class CorrectorWidget(QtGui.QWidget):
         """Calculate initial positions / corrections."""
         self.corrector.update()
         if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(self.corrector.fit_results)
+            self.corrector.compute_steerer_corrections(
+                self.corrector.fit_results)
         self.update_ui()
         self.draw()
-        #self.tab_corrections.resizeColumnToContents(0)
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)

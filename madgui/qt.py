@@ -6,16 +6,16 @@ the necessity to replace most of the ``QtGui`` occurences inside the existing
 code with ``QtWidgets``.
 """
 
-import types
-
-from PyQt5 import QtCore, QtWidgets, QtGui, QtPrintSupport, uic
-
 __all__ = [
     'Qt',
     'QtCore',
     'QtGui',
     'uic',
 ]
+
+import types
+
+from PyQt5 import QtCore, QtWidgets, QtGui, QtPrintSupport, uic
 
 
 QtGuiCompat = types.ModuleType('QtGui')

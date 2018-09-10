@@ -2,18 +2,24 @@
 Utility functions to deal with layouts.
 """
 
-from madgui.qt import QtGui
-
-
 __all__ = [
     'VBoxLayout',
     'HBoxLayout',
 ]
 
+from madgui.qt import QtGui
 
-class Spacing(int): pass
-class Stretch(int): pass
-class Strut(int): pass
+
+class Spacing(int):
+    """Fixed pixel spacing for QLayout."""
+
+
+class Stretch(int):
+    """Stretch spacer for QLayout."""
+
+
+class Strut(int):
+    """Strut for QLayout."""
 
 
 transposed_direction = {

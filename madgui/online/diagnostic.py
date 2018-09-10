@@ -183,7 +183,7 @@ class PlotMonitorWidget(MonitorWidgetBase):
         if ext == '.yml':
             data = {'monitor': {
                 m.name: {'x': m.posx, 'y': m.posy,
-                         'envx': m.envx, 'envy': m.envy }
+                         'envx': m.envx, 'envy': m.envy}
                 for m in self.mtab.rows
                 if self.selected(m)
             }}
@@ -283,7 +283,6 @@ class OffsetsWidget(MonitorWidgetBase):
         dialog.setWidget(widget)
         dialog.setWindowTitle("Offset calibration")
         dialog.show()
-
 
 
 class _FitWidget(MonitorWidgetBase):
@@ -420,17 +419,17 @@ class EmittanceDialog(_FitWidget):
             tms[0] = np.eye(7)
         tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
         # keep X,PX,Y,PY,PT:
-        tms = np.array(tms)[:,[0,1,2,3,5],:][:,:,[0,1,2,3,5]]
+        tms = np.array(tms)[:, [0, 1, 2, 3, 5], :][:, :, [0, 1, 2, 3, 5]]
 
         # TODO: button for "resync model"
 
         # TODO: when 'interpolate' is on -> choose correct element...?
         # -> not important for l=0 monitors
 
-        coup_xy = not np.allclose(tms[:,0:2,2:4], 0)
-        coup_yx = not np.allclose(tms[:,2:4,0:2], 0)
-        coup_xt = not np.allclose(tms[:,0:2,4:5], 0)
-        coup_yt = not np.allclose(tms[:,2:4,4:5], 0)
+        coup_xy = not np.allclose(tms[:, 0:2, 2:4], 0)
+        coup_yx = not np.allclose(tms[:, 2:4, 0:2], 0)
+        coup_xt = not np.allclose(tms[:, 0:2, 4:5], 0)
+        coup_yt = not np.allclose(tms[:, 2:4, 4:5], 0)
 
         coupled = coup_xy or coup_yx
         dispersive = coup_xt or coup_yt
@@ -446,7 +445,7 @@ class EmittanceDialog(_FitWidget):
             if dispersive and not use_dispersion:
                 logging.warn("Dispersive lattice!")
             if not use_dispersion:
-                tms = tms[:,:-1,:-1]
+                tms = tms[:, :-1, :-1]
             sigma, residuals, singular = solve_emit_sys(tms, xcs)
             return sigma
 
@@ -454,21 +453,21 @@ class EmittanceDialog(_FitWidget):
         if not respect_coupling:
             if coupled:
                 logging.warn("Coupled lattice!")
-            tmx = np.delete(np.delete(tms, [2,3], axis=1), [2,3], axis=2)
-            tmy = np.delete(np.delete(tms, [0,1], axis=1), [0,1], axis=2)
+            tmx = np.delete(np.delete(tms, [2, 3], axis=1), [2, 3], axis=2)
+            tmy = np.delete(np.delete(tms, [0, 1], axis=1), [0, 1], axis=2)
             xcx = [[(0, cx[1])] for cx, cy in xcs]
             xcy = [[(0, cy[1])] for cx, cy in xcs]
             sigmax = calc_sigma(tmx, xcx, coup_xt)
             sigmay = calc_sigma(tmy, xcy, coup_yt)
-            ex, betx, alfx = twiss_from_sigma(sigmax[0:2,0:2])
-            ey, bety, alfy = twiss_from_sigma(sigmay[0:2,0:2])
-            pt = sigmax[-1,-1]
+            ex, betx, alfx = twiss_from_sigma(sigmax[0:2, 0:2])
+            ey, bety, alfy = twiss_from_sigma(sigmay[0:2, 0:2])
+            pt = sigmax[-1, -1]
 
         else:
             sigma = calc_sigma(tms, xcs, dispersive)
-            ex, betx, alfx = twiss_from_sigma(sigma[0:2,0:2])
-            ey, bety, alfy = twiss_from_sigma(sigma[2:4,2:4])
-            pt = sigma[-1,-1]
+            ex, betx, alfx = twiss_from_sigma(sigma[0:2, 0:2])
+            ey, bety, alfy = twiss_from_sigma(sigma[2:4, 2:4])
+            pt = sigma[-1, -1]
 
         beam = model.sequence.beam
         twiss_args = model.twiss_args
@@ -515,10 +514,10 @@ def solve_emit_sys(Ms, XCs):
         for x, _ in xc                      # and measured constraint
     ]
 
-    sq_matrix_basis = np.eye(d*d,d*d).reshape((d*d,d,d))
+    sq_matrix_basis = np.eye(d*d, d*d).reshape((d*d, d, d))
     is_upper_triang = [i for i, m in enumerate(sq_matrix_basis)
                        if np.allclose(np.triu(m), m)
-                       and (d < 4 or np.allclose(m[0:2,2:4], 0))]
+                       and (d < 4 or np.allclose(m[0:2, 2:4], 0))]
 
     lhs = np.vstack([
         con_func(2*u-np.tril(u))
@@ -530,14 +529,14 @@ def solve_emit_sys(Ms, XCs):
 
     res = np.tensordot(x0, sq_matrix_basis[is_upper_triang], 1)
     res = res + res.T - np.tril(res)
-    return res, sum(residuals), (rank<len(x0))
+    return res, sum(residuals), (rank < len(x0))
 
 
 def twiss_from_sigma(sigma):
     """Compute 1D twiss parameters from 2x2 sigma matrix."""
-    b = sigma[0,0]
-    a = sigma[0,1]  # = sigma[1,0] !
-    c = sigma[1,1]
+    b = sigma[0, 0]
+    a = sigma[0, 1]  # = sigma[1, 0] !
+    c = sigma[1, 1]
     if b*c <= a*a:
         nan = float("nan")
         return nan, nan, nan

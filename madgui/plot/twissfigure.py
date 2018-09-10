@@ -3,6 +3,11 @@ Utilities to create a plot of some TWISS parameter along the accelerator
 s-axis.
 """
 
+__all__ = [
+    'PlotSelector',
+    'TwissFigure',
+]
+
 import math
 import logging
 from functools import partial
@@ -21,18 +26,11 @@ from madgui.core.unit import (
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
-import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
+import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib
 import matplotlib.colors as mpl_colors
 
-__all__ = [
-    'PlotSelector',
-    'TwissFigure',
-]
 
-
-#----------------------------------------
 # basic twiss figure
-#----------------------------------------
 
 class PlotSelector(QtGui.QComboBox):
 
@@ -111,6 +109,7 @@ class TwissFigure(Object):
         plot.addTool(CompareTool(plot))
 
     graph_name = None
+
     def set_graph(self, graph_name):
         if graph_name == self.graph_name:
             return
@@ -169,7 +168,8 @@ class TwissFigure(Object):
         if self.figure.share_axes:
             ax = self.figure.axes[0]
             # TODO: move legend on the outside
-            legend = ax.legend(loc='upper center', fancybox=True, shadow=True, ncol=4)
+            legend = ax.legend(loc='upper center', fancybox=True,
+                               shadow=True, ncol=4)
             legend.draggable()
 
     def remove(self):
@@ -210,10 +210,11 @@ class TwissFigure(Object):
 
     def get_float_data(self, name, column):
         """Get data for the given parameter from model."""
-        return self.graph_data[name][:,column]
+        return self.graph_data[name][:, column]
 
     def get_curve_by_name(self, name):
-        return next((c for c in self.twiss_curves.items if c.y_name == name), None)
+        return next((c for c in self.twiss_curves.items if c.y_name == name),
+                    None)
 
     @property
     def show_indicators(self):
@@ -238,7 +239,8 @@ class Curve(SimpleArtist):
 
     """Plot a TWISS parameter curve model into a 2D figure."""
 
-    def __init__(self, axes, get_xdata, get_ydata, style, label=None, info=None):
+    def __init__(self, axes, get_xdata, get_ydata, style,
+                 label=None, info=None):
         """Store meta data."""
         self.axes = axes
         self.get_xdata = get_xdata
@@ -258,7 +260,8 @@ class Curve(SimpleArtist):
     def draw(self):
         """Make one subplot."""
         xdata, ydata = self._get_data()
-        self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
+        self.lines = self.axes.plot(
+            xdata, ydata, label=self.label, **self.style)
         self.line, = self.lines
 
     def update(self):
@@ -375,11 +378,11 @@ class ElementIndicator(SimpleArtist):
 
         if type_name == 'quadrupole':
             invert = self.axes.y_name[0].endswith('y')
-            k1 = float(elem.k1) * 100               # scale = 0.1/m²
+            k1 = float(elem.k1) * 100                   # scale = 0.1/m²
             scale = sigmoid(k1) * (1-2*invert)
             style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
         elif type_name == 'sbend':
-            angle = float(elem.angle) * 180/math.pi # scale = 1 degree
+            angle = float(elem.angle) * 180/math.pi     # scale = 1 degree
             ydis = sigmoid(angle) * (-0.15)
             style['ymin'] += ydis
             style['ymax'] += ydis
@@ -461,9 +464,7 @@ class CaptureTool(CheckTool):
         return action
 
 
-#----------------------------------------
 # Toolbar item for matching
-#----------------------------------------
 
 
 class MatchTool(CaptureTool):
@@ -509,13 +510,15 @@ class MatchTool(CaptureTool):
                          len(curves) > 1))
         curve = [c for c in curves if c.axes is event.axes][index]
         name = curve.y_name
-        if event.button == 1: return self.on_left_click(event, curves, name)
-        if event.button == 2: return self.on_middle_click(event, curves, name)
+        if event.button == 1:
+            return self.on_left_click(event, curves, name)
+        if event.button == 2:
+            return self.on_middle_click(event, curves, name)
 
     def on_middle_click(self, event, curves, name):
         """Remove constraint nearest to cursor location."""
         constraints = [c for c in self.matcher.constraints
-                        if c.axis == name]
+                       if c.axis == name]
         if constraints:
             cons = min(constraints, key=lambda c: abs(c.pos-event.x))
             elem = cons.elem
@@ -542,7 +545,7 @@ class MatchTool(CaptureTool):
             # TODO: should do this only once for each yname!
             constraints.extend([
                 Constraint(elem, pos, c.y_name,
-                        self.model.get_twiss(elem.node_name, c.y_name, pos))
+                           self.model.get_twiss(elem.node_name, c.y_name, pos))
                 for c in curves
                 if c.y_name != name
             ])
@@ -587,9 +590,7 @@ def draw_constraint(scene, constraint):
         **style) or ()
 
 
-#----------------------------------------
 # Toolbar item for info boxes
-#----------------------------------------
 
 class InfoTool(CaptureTool):
 
@@ -685,6 +686,7 @@ def draw_selection_marker(axes, scene, el_idx, _effects=None,
     return ElementIndicator(
         axes, scene, style, elem, default, _effects or _selection_effects)
 
+
 def _selection_effects(style):
     r, g, b = mpl_colors.colorConverter.to_rgb(style['color'])
     h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
@@ -697,6 +699,7 @@ def _selection_effects(style):
             pe.withStroke(linewidth=2, foreground='#000000', alpha=1.0),
         ],
     )
+
 
 def _hover_effects(style):
     r, g, b = mpl_colors.colorConverter.to_rgb(style['color'])
@@ -712,9 +715,7 @@ def _hover_effects(style):
     )
 
 
-#----------------------------------------
 # Compare tool
-#----------------------------------------
 
 class CompareTool(ButtonTool):
 

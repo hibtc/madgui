@@ -59,6 +59,7 @@ def _parse_str_lines(lines):
         not line.startswith('#') and
         not line.startswith('!'))
 
+
 RE_ASSIGN = re.compile(r'^([a-z_][a-z0-9_]*)\s*:?=\s*(.*);$', re.IGNORECASE)
 
 

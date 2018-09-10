@@ -4,6 +4,7 @@ from madgui.util.qt import monospace
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.edit import LineNumberBar
 
+
 class EditConfigDialog(QtGui.QDialog):
 
     def __init__(self, model, apply_callback):
@@ -20,7 +21,7 @@ class EditConfigDialog(QtGui.QDialog):
             buttons,
         ]))
         self.setSizeGripEnabled(True)
-        self.resize(QtCore.QSize(600,400))
+        self.resize(QtCore.QSize(600, 400))
         self.setWindowTitle(self.model.filename)
 
         with open(model.filename) as f:

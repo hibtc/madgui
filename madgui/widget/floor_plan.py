@@ -7,16 +7,16 @@ Components to draw a 2D floor plan of a given MAD-X lattice.
 # TODO: load styles from config
 # TODO: rotate/place scene according to space requirements
 
+__all__ = [
+    'LatticeFloorPlan',
+]
+
 from math import cos, sin, sqrt, pi, atan2, floor, log10
 
 import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.model import FloorCoords
-
-__all__ = [
-    'LatticeFloorPlan',
-]
 
 
 ELEMENT_COLOR = {
@@ -40,17 +40,19 @@ ELEMENT_WIDTH = {
     'DRIFT':       0.1,
 }
 
+rot90 = np.array([[0, -1], [1, 0]])
+
 
 def Rotation2(phi):
     c, s = cos(phi), sin(phi)
     return lambda x, y: (c*x - s*y, c*y + s*x)
 
-rot90 = np.array([[0, -1], [1, 0]])
 
 def Rotation3(theta, phi, psi, *, Rotation2=Rotation2):
     ry = Rotation2(theta)
     rx = Rotation2(-phi)
     rz = Rotation2(psi)
+
     def rotate(x, y, z):
         x, y = rz(x, y)
         y, z = rx(y, z)
@@ -112,6 +114,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
             self.setElements(*self.replay)
 
     model = None
+
     def setModel(self, model):
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
         if self.model:
@@ -127,10 +130,11 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
                          self.model.selection)
 
     replay = None
+
     def setElements(self, elements, survey, selection):
         self.replay = elements, survey, selection
         self.setScene(QtGui.QGraphicsScene(self))
-        survey = [FloorCoords(0,0,0, 0,0,0)] + survey
+        survey = [FloorCoords(0, 0, 0, 0, 0, 0)] + survey
         for element, coords in zip(elements, zip(survey, survey[1:])):
             self.scene().addItem(
                 ElementGraphicsItem(self, element, coords, selection))
@@ -195,7 +199,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         if event.buttons() == Qt.RightButton:
             delta = event.pos() - self.last_mouse_position
             theta = self.theta + delta.x()/100
-            phi   = self.phi   + delta.y()/100
+            phi = self.phi + delta.y()/100
             self.setProjection(theta, phi)
             self.last_mouse_position = event.pos()
             event.accept()
@@ -233,7 +237,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self.angle = float(element.get('angle', 0.0))
         self.width = getElementWidth(element)
         self.color = getElementColor(element)
-        self.walls = (0.5*self.width, 0.5*self.width) # inner/outer wall widths
+        self.walls = (0.5*self.width, 0.5*self.width)   # inner/outer wall widths
         self.selection = selection
         self._outline = self.outline()
         self._orbit = self.orbit()

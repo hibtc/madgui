@@ -2,6 +2,10 @@
 MAD-X backend for madgui.
 """
 
+__all__ = [
+    'Model',
+]
+
 import os
 from collections import namedtuple, OrderedDict, defaultdict, Mapping
 from functools import partial, reduce
@@ -24,11 +28,6 @@ from madgui.util.export import read_str_file, import_params
 from madgui.util.collections import CachedList
 
 
-__all__ = [
-    'Model',
-]
-
-
 PlotInfo = namedtuple('PlotInfo', [
     'name',     # internal graph id (e.g. 'beta.g')
     'title',    # long display name ('Beta function')
@@ -49,6 +48,7 @@ class Madx(Madx):
 
     _enter_count = 0
     _collected_cmds = None
+
     def input(self, text):
         if self._enter_count > 0:
             self._collected_cmds.append(text)
@@ -87,6 +87,7 @@ class Model:
         self.twiss = Cache(self._retrack)
         self.sector = Cache(self._sector)
         self.twiss.invalidated.connect(self.sector.invalidate)
+        self._table_transform = TableTransform()
         self.data = {}
         self.path = None
         self.init_files = []
@@ -188,7 +189,8 @@ class Model:
         x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
         len_px = x2pix(L)
         if len_px > 5 or elem.base_name == 'drift':
-            edge_px = max(1, min(2, round(0.2*len_px))) # max 2px cursor distance
+            # max 2px cursor distance:
+            edge_px = max(1, min(2, round(0.2*len_px)))
             if index > 0 \
                     and x2pix(pos-at) < edge_px \
                     and x2pix(self.elements[index-1].length) <= 3:
@@ -209,8 +211,10 @@ class Model:
         if not self.continuous_matching:
             return self.el_pos(el)
         at, l = el.position, el.length
-        if pos <= at:   return at
-        if pos >= at+l: return at+l
+        if pos <= at:
+            return at
+        if pos >= at+l:
+            return at+l
         return pos
 
     def get_best_match_pos(self, pos):
@@ -302,9 +306,7 @@ class Model:
         self.init_files.append(name)
         return vals
 
-    #----------------------------------------
     # Serialization
-    #----------------------------------------
 
     # TODO: save reproducible state of workspace?
     def save(self, filename):
@@ -334,7 +336,8 @@ class Model:
             raise ValueError("No sequences defined!")
         if len(sequences) != 1:
             # TODO: ask user which one to use
-            raise ValueError("Multiple sequences defined, none active. Cannot uniquely determine which to use.")
+            raise ValueError("Multiple sequences defined, none active. "
+                             "Cannot uniquely determine which to use.")
         return next(iter(sequences))
 
     def _get_seq_model(self, sequence_name):
@@ -391,8 +394,10 @@ class Model:
             first, last = table.range
         except ValueError:
             raise RuntimeError("TWISS table inaccessible or nonsensical.")
-        if first not in sequence.expanded_elements or last not in sequence.expanded_elements:
-            raise RuntimeError("The TWISS table appears to belong to a different sequence.")
+        if first not in sequence.expanded_elements or \
+                last not in sequence.expanded_elements:
+            raise RuntimeError(
+                "The TWISS table appears to belong to a different sequence.")
         mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
         optional_fields = {
             'x', 'px', 'mux', 'dx', 'dpx',
@@ -553,8 +558,8 @@ class Model:
                 elif v == '':
                     v = self.madx.globals[k]
                 self.madx.globals[k] = v
-        self.elements.invalidate()  # TODO: invalidate only elements that
-                                    # depend on any of the updated variables?
+        # TODO: invalidate only elements that depend updated variables?
+        self.elements.invalidate()
         self.twiss.invalidate()
 
     def _update_beam(self, beam):
@@ -617,8 +622,10 @@ class Model:
         i1 = i0+1
 
         # never look outside the interpolation domain:
-        if pos <= s[i0]: return y[i0]
-        if pos >= s[i1]: return y[i1]
+        if pos <= s[i0]:
+            return y[i0]
+        if pos >= s[i1]:
+            return y[i1]
 
         dx = pos - s[i0]
 
@@ -668,8 +675,10 @@ class Model:
         For a description of the ``interval`` parameter, see
         :meth:`~Model.get_transfer_maps`.
         """
-        if elem_to is None: elem_to = elem_from
-        if interval is None: interval = (0, 1)
+        if elem_to is None:
+            elem_to = elem_from
+        if interval is None:
+            interval = (0, 1)
         return self.get_transfer_maps([elem_from, elem_to], interval)[0]
 
     def get_transfer_maps(self, elems, interval=(1, 1)):
@@ -713,23 +722,7 @@ class Model:
     # curves
 
     def do_get_twiss_column(self, name):
-        self.twiss()
-        col = self.get_twiss_column
-        if name == 'alfx': return -col('sig12') / col('ex')
-        if name == 'alfy': return -col('sig34') / col('ey')
-        if name == 'betx': return +col('sig11') / col('ex')
-        if name == 'bety': return +col('sig33') / col('ey')
-        if name == 'gamx': return +col('sig22') / col('ex')
-        if name == 'gamy': return +col('sig44') / col('ey')
-        if name == 'envx': return col('sig11')**0.5
-        if name == 'envy': return col('sig33')**0.5
-        if name == 'posx': return col('x')
-        if name == 'posy': return col('y')
-        if name == 'ex': return (col('sig11') * col('sig22') -
-                                 col('sig12') * col('sig21'))**0.5
-        if name == 'ey': return (col('sig33') * col('sig44') -
-                                 col('sig34') * col('sig43'))**0.5
-        return self.twiss.data[name]
+        return self._table_transform(name, self.get_twiss_column, self.twiss())
 
     def get_twiss_column(self, column):
         if column not in self.cache:
@@ -814,9 +807,11 @@ class Model:
         # currently fetches twiss columns only demand. Therefore, using the
         # same twiss table for both TWISS/SECTORMAP routines would lead to
         # inconsistent table lengths (interpolate vs no-interpolate!).
-        return self.madx.sectormap((), table='sectortwiss', **self._get_twiss_args())
+        return self.madx.sectormap((), table='sectortwiss',
+                                   **self._get_twiss_args())
 
     backseq = None
+
     def backtrack(self, **twiss_init):
         """Backtrack final orbit through the reversed sequence."""
         if self.backseq is None:
@@ -972,9 +967,7 @@ def process_spec_item(key, value):
     return [(key, value)]
 
 
-#----------------------------------------
 # stuff for online control
-#----------------------------------------
 
 def _get_property_lval(elem, attr):
     """
@@ -1026,9 +1019,9 @@ def _eval_expr(value):
 def items(d):
     return d.items() if isinstance(d, Mapping) else d
 
+
 def trim(s):
     return s.replace(' ', '') if isinstance(s, str) else s
-
 
 
 def reflect_sequence(madx, name, elements):
@@ -1067,3 +1060,30 @@ def reflect_sequence(madx, name, elements):
 
     madx.command.beam(sequence=name)
     madx.use(name)
+
+
+class TableTransform:
+
+    def __init__(self):
+        self._transform = {
+            'alfx': lambda col: -col('sig12') / col('ex'),
+            'alfy': lambda col: -col('sig34') / col('ey'),
+            'betx': lambda col: +col('sig11') / col('ex'),
+            'bety': lambda col: +col('sig33') / col('ey'),
+            'gamx': lambda col: +col('sig22') / col('ex'),
+            'gamy': lambda col: +col('sig44') / col('ey'),
+            'envx': lambda col: col('sig11')**0.5,
+            'envy': lambda col: col('sig33')**0.5,
+            'posx': lambda col: col('x'),
+            'posy': lambda col: col('y'),
+            'ex': lambda col: (col('sig11') * col('sig22') -
+                               col('sig12') * col('sig21'))**0.5,
+            'ey': lambda col: (col('sig33') * col('sig44') -
+                               col('sig34') * col('sig43'))**0.5,
+        }
+
+    def __call__(self, name, col, table):
+        try:
+            return self._transform[name](col)
+        except KeyError:
+            return table[name]
