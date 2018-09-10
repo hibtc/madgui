@@ -73,12 +73,13 @@ class Corrector(Matcher):
         targets  = selected['targets']
 
         params = [k.lower() for k in selected.get('optics', ())]
-        self.optic_params = [self._knobs[k] for k in params]
-        self.quads = params and [
+        self.optic_params = [self._knobs[k] for k in params
+                             if k in self._knobs]
+        self.optic_elems = params and [
             elem.name
             for elem in self.model.elements
-            for knobs in [self.model.get_elem_knobs(elem)]
-            if any(k.lower() in params for k in knobs)
+            if any(k.lower() in params
+                   for k in self.model.get_elem_knobs(elem))
         ]
 
         self.method = selected.get('method', ('jacobian', {}))
@@ -94,9 +95,10 @@ class Corrector(Matcher):
         self._readouts = self.control.monitors.sublist(
             map(str.lower, self.monitors))
         self._readouts.as_list(self.readouts)
-        fit_elements = list(self.targets) + list(self.monitors) + list(self.quads)
-        self.fit_range = (min(fit_elements, key=elements.index),
-                          max(fit_elements, key=elements.index))
+        fit_elements = (list(self.targets) + list(self.monitors) +
+                        list(self.optic_elems))
+        self.fit_range = (min(fit_elements, key=elements.index, default=0),
+                          max(fit_elements, key=elements.index, default=0))
         self.constraints[:] = sorted([
             Constraint(elements[target], elements[target].position, key, float(value))
             for target, values in targets.items()
@@ -139,6 +141,7 @@ class Corrector(Matcher):
 
     def update_vars(self):
         self.control.read_all()
+        self.base_optics = self._read_vars()
         self.cur_results = self._push_history()
 
     def update(self):
@@ -170,11 +173,20 @@ class Corrector(Matcher):
         self.control.write_params(self.top_results.items())
         super().apply()
 
+    active_optic = None
+
     def set_optic(self, i):
+        optic = {}
+        if self.active_optic is not None:
+            optic.update({
+                k: self.base_optics[k] for k in self.optics[self.active_optic]
+            })
+        if i is not None:
+            optic.update(self.optics[i])
         # only for optic variation method
-        optic = self.optics[i]
         self.control.write_params(optic.items())
         self.model.write_params(optic.items())
+        self.active_optic = i
 
     # computations
 

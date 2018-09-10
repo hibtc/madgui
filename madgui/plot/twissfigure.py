@@ -533,7 +533,7 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        from madgui.correct.match import Constraint
+        from madgui.online.match import Constraint
         elem, pos = self.model.get_best_match_pos(event.x)
         constraints = [Constraint(elem, pos, name, event.y)]
 

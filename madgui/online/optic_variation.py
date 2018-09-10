@@ -109,7 +109,7 @@ class CorrectorWidget(_Widget):
         self.btn_proc_start.clicked.connect(self.bot.start)
         self.btn_proc_abort.clicked.connect(self.bot.cancel)
 
-    def add_record(self):
+    def add_record(self, step, shot):
         # TODO: disable "record" button until monitor readouts updated
         # (or maybe until "update" clicked as simpler alternative)
         self.corrector.update_vars()
@@ -213,7 +213,7 @@ class ProcBot:
 
     def stop(self):
         if self.running:
-            self.corrector.set_optic(0)
+            self.corrector.set_optic(None)
             self.running = False
             self.timer.stop()
             self.widget.update_ui()
@@ -251,14 +251,14 @@ class ProcBot:
             return
 
         self.log('  -> shot {}', shot)
-        self.widget.add_record()
+        self.widget.add_record(step, shot-self.num_ignore-1)
 
         if self.progress == self.totalops:
             self.finish()
 
     def read_monitors(self):
         self.corrector.update_readouts()
-        return {r.name: r.data for r in self.readouts}
+        return {r.name: r.data for r in self.corrector.readouts}
 
     def log(self, text, *args, **kwargs):
         self.widget.status_log.appendPlainText(
