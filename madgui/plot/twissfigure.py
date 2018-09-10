@@ -512,7 +512,7 @@ class MatchTool(CaptureTool):
     def on_middle_click(self, event, curves, name):
         """Remove constraint nearest to cursor location."""
         constraints = [c for c in self.matcher.constraints
-                        if c.axis == name]
+                       if c.axis == name]
         if constraints:
             cons = min(constraints, key=lambda c: abs(c.pos-event.x))
             elem = cons.elem
