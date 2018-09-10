@@ -111,8 +111,6 @@ class Corrector(Matcher):
             if knob.lower() in self._knobs
         ]
 
-    #def _involved_elements(self):      # with steerers!
-
     def _read_vars(self):
         model = self.model
         return {
@@ -361,7 +359,7 @@ class CorrectorWidget(QtGui.QWidget):
         matched = self.corrector.top_results.get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {
-            #'foreground': QtGui.QColor(Qt.red),
+            # 'foreground': QtGui.QColor(Qt.red),
             'font': bold(),
         } if changed else {}
         info = self.corrector._knobs[v.lower()]
@@ -463,7 +461,6 @@ class CorrectorWidget(QtGui.QWidget):
             self.corrector.compute_steerer_corrections(self.corrector.fit_results)
         self.update_ui()
         self.draw()
-        #self.tab_corrections.resizeColumnToContents(0)
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)

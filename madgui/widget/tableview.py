@@ -48,7 +48,7 @@ ROLES = {
     # NOTE: BackgroundColorRole is obsolete in favor of BackgroundRole:
     Qt.BackgroundColorRole:         'backgroundColor',
     Qt.ForegroundRole:              'foreground',
-    #Qt.TextColorRole:               'textColor',   # = ForegroundRole
+    # Qt.TextColorRole:               'textColor',   # = ForegroundRole
     Qt.CheckStateRole:              'checkState',
     Qt.InitialSortOrderRole:        'initialSortOrder',
     # Accessibility roles
@@ -411,8 +411,6 @@ class ItemView:
         for a, b in ranges(rows)[::-1]:
             # TODO: these should be called from the model…
             del self.model().rows[a:b]
-            #self.model().beginRemoveRows(self.rootIndex(), row, row)
-            #self.model().endRemoveRows()
 
     def keyPressEvent(self, event):
         if self.state() == QtGui.QAbstractItemView.NoState:
@@ -730,7 +728,6 @@ class ReadOnlyDelegate(QtGui.QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         editor = QtGui.QLineEdit(parent)
-        #editor.setFrame(False)
         editor.setReadOnly(True)
         editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor

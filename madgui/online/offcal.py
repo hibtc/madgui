@@ -262,10 +262,8 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         quad = min(map(self.model.elements.index, self.selected))
 
         progress = self.progress
-        #quad = min(self.selected, key=self.model.elements.index)
         step = progress // self.numshots % self.numsteps
         shot = progress % self.numshots
-        #knob = self.quad_knobs[quad]
 
         def sign(n):
             return -1 if n < 0 else +1
@@ -275,7 +273,6 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         if self.prepare:
             # backup optics
             if step == 0 and shot == 0:
-                #self.log("quad: {}", quad)
                 self.backup = {p: self.base_optics[p.lower()]
                                for q in self.selected
                                for p in [self.quad_knobs[q]]}
@@ -283,7 +280,6 @@ class OffsetCalibrationWidget(QtGui.QWidget):
             if shot == 0:
                 self.log(" " + ", ".join('{}={:.4f}'.format(k, v) for k, v in kL.items()))
 
-            #if shot == 0 and (step != 0 or not self.relative):
             self.control.write_params(kL.items())
             self.model.write_params(kL.items())
 
@@ -336,7 +332,6 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.ctrl_tab.setCurrentIndex(2)
 
     def read_monitors(self):
-        #return {mon: {k: self.round(v) for k, v in self.control.read_monitor(mon).items()}
         return {mon: self.control.read_monitor(mon)
                 for mon in self.monitors}
 

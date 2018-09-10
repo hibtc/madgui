@@ -301,9 +301,7 @@ class Model:
         self.init_files.append(name)
         return vals
 
-    #----------------------------------------
     # Serialization
-    #----------------------------------------
 
     # TODO: save reproducible state of workspace?
     def save(self, filename):
@@ -971,9 +969,7 @@ def process_spec_item(key, value):
     return [(key, value)]
 
 
-#----------------------------------------
 # stuff for online control
-#----------------------------------------
 
 def _get_property_lval(elem, attr):
     """

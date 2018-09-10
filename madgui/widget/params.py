@@ -112,7 +112,6 @@ class ParamTable(TreeView):
 
         # Set initial size:
         if not self.isVisible():
-            #self.selectRow(0)
             self.resizeColumnsToContents()
             self.updateGeometries()
 

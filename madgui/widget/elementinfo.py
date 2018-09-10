@@ -108,7 +108,6 @@ class ElementInfoBox(QtGui.QWidget):
     def _update_element(self, *args, **kwargs):
         return self.model.update_element(*args, **kwargs)
 
-    #class BasicDataStore(ElementDataStore):
     def _fetch_summary(self, elem_index=0):
         elem = self.model.elements[elem_index]
         show = self.model.config['parameter_sets']['element']['show']

@@ -30,9 +30,7 @@ import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
 import matplotlib.colors as mpl_colors
 
 
-#----------------------------------------
 # basic twiss figure
-#----------------------------------------
 
 class PlotSelector(QtGui.QComboBox):
 
@@ -461,9 +459,7 @@ class CaptureTool(CheckTool):
         return action
 
 
-#----------------------------------------
 # Toolbar item for matching
-#----------------------------------------
 
 
 class MatchTool(CaptureTool):
@@ -587,9 +583,7 @@ def draw_constraint(scene, constraint):
         **style) or ()
 
 
-#----------------------------------------
 # Toolbar item for info boxes
-#----------------------------------------
 
 class InfoTool(CaptureTool):
 
@@ -712,9 +706,7 @@ def _hover_effects(style):
     )
 
 
-#----------------------------------------
 # Compare tool
-#----------------------------------------
 
 class CompareTool(ButtonTool):
 

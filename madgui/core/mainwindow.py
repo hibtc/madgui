@@ -40,9 +40,7 @@ class MainWindow(QtGui.QMainWindow):
 
     ui_file = 'mainwindow.ui'
 
-    #----------------------------------------
     # Basic setup
-    #----------------------------------------
 
     def __init__(self, options, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -358,9 +356,7 @@ class MainWindow(QtGui.QMainWindow):
         dialog.setWindowTitle("Change history")
         return widget
 
-    #----------------------------------------
     # Menu actions
-    #----------------------------------------
 
     def fileOpen(self):
         from madgui.widget.filedialog import getOpenFileName
@@ -560,9 +556,7 @@ class MainWindow(QtGui.QMainWindow):
         info = about.VersionInfo(module)
         return about.AboutDialog(info, self)
 
-    #----------------------------------------
     # Update state
-    #----------------------------------------
 
     known_extensions = ['.cpymad.yml', '.init', '.lat', '.madx']
 

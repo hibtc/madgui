@@ -10,7 +10,8 @@ python:
 # (Note that I found mypy/pep8 etc much too verbose…)
 
 install:
-  - pip install pyflakes
+  - pip install pyflakes pycodestyle
 
 script:
   - pyflakes madgui
+  - pycodestyle madgui --select E265
