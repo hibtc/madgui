@@ -680,6 +680,7 @@ def draw_selection_marker(axes, scene, el_idx, _effects=None,
     return ElementIndicator(
         axes, scene, style, elem, default, _effects or _selection_effects)
 
+
 def _selection_effects(style):
     r, g, b = mpl_colors.colorConverter.to_rgb(style['color'])
     h, s, v = mpl_colors.rgb_to_hsv((r, g, b))
@@ -692,6 +693,7 @@ def _selection_effects(style):
             pe.withStroke(linewidth=2, foreground='#000000', alpha=1.0),
         ],
     )
+
 
 def _hover_effects(style):
     r, g, b = mpl_colors.colorConverter.to_rgb(style['color'])

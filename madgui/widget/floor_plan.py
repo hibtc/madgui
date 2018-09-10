@@ -40,12 +40,13 @@ ELEMENT_WIDTH = {
     'DRIFT':       0.1,
 }
 
+rot90 = np.array([[0, -1], [1, 0]])
+
 
 def Rotation2(phi):
     c, s = cos(phi), sin(phi)
     return lambda x, y: (c*x - s*y, c*y + s*x)
 
-rot90 = np.array([[0, -1], [1, 0]])
 
 def Rotation3(theta, phi, psi, *, Rotation2=Rotation2):
     ry = Rotation2(theta)

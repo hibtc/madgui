@@ -39,8 +39,10 @@ def _read_file(filename):
     except IOError:
         return None
 
+
 def _loads(text):
     return yaml.safe_load(text) if text else None
+
 
 def _load_file(path):
     return yaml.safe_load(path and _read_file(path) or '')

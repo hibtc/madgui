@@ -1023,6 +1023,7 @@ def _eval_expr(value):
 def items(d):
     return d.items() if isinstance(d, Mapping) else d
 
+
 def trim(s):
     return s.replace(' ', '') if isinstance(s, str) else s
 

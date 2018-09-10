@@ -229,8 +229,10 @@ def convert(from_, to, *args):
         return to.strip_unit(args[0], from_.add_unit(*args[1:]))
     raise TypeError("convert can only be called with one or two arguments.")
 
+
 def from_ui(*args):
     return convert(ui_units, madx_units, *args)
+
 
 def to_ui(*args):
     return convert(madx_units, ui_units, *args)

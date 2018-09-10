@@ -395,6 +395,7 @@ def _fit_monitor_offsets(*records):
     x /= 1000
     return x, sum(residuals), (rank<len(x))
 
+
 def fit_monitor_offsets(*records):
     T_, K_, Y_ = zip(*records)
 

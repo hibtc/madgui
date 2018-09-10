@@ -208,6 +208,7 @@ class List(Object):
 
 MutableSequence.register(List)
 
+
 class Selection:
 
     """

@@ -4,6 +4,7 @@ from madgui.util.qt import monospace
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.edit import LineNumberBar
 
+
 class EditConfigDialog(QtGui.QDialog):
 
     def __init__(self, model, apply_callback):

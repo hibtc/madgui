@@ -504,6 +504,7 @@ class TreeView(ItemView, QtGui.QTreeView):
         self.model().modelReset.connect(lambda *_: self.expandAll())
         self.expandAll()
 
+
 class ItemViewDelegate(QtGui.QStyledItemDelegate):
 
     def delegate(self, index):
