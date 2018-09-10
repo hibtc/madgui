@@ -393,7 +393,7 @@ def _fit_monitor_offsets(*records):
     T, K, Y = 1000*T, 1000*K, 1000*Y
     x, residuals, rank, singular = np.linalg.lstsq(T, Y-K, rcond=1e-7)
     x /= 1000
-    return x, sum(residuals), (rank<len(x))
+    return x, sum(residuals), (rank < len(x))
 
 
 def fit_monitor_offsets(*records):
@@ -416,4 +416,4 @@ def fit_monitor_offsets(*records):
     K0 = K0[[0, 2]]
     o = Y0 - (np.dot(T0, x) + K0)
 
-    return np.hstack((x, o)), sum(residuals), (rank<len(x))
+    return np.hstack((x, o)), sum(residuals), (rank < len(x))

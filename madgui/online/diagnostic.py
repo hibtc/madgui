@@ -529,7 +529,7 @@ def solve_emit_sys(Ms, XCs):
 
     res = np.tensordot(x0, sq_matrix_basis[is_upper_triang], 1)
     res = res + res.T - np.tril(res)
-    return res, sum(residuals), (rank<len(x0))
+    return res, sum(residuals), (rank < len(x0))
 
 
 def twiss_from_sigma(sigma):
