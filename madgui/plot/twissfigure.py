@@ -539,7 +539,7 @@ class MatchTool(CaptureTool):
             # TODO: should do this only once for each yname!
             constraints.extend([
                 Constraint(elem, pos, c.y_name,
-                        self.model.get_twiss(elem.node_name, c.y_name, pos))
+                           self.model.get_twiss(elem.node_name, c.y_name, pos))
                 for c in curves
                 if c.y_name != name
             ])

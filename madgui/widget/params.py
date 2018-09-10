@@ -237,7 +237,7 @@ class CommandEdit(ParamTable):
     def vec_rows(self, par):
         return [
             ParamInfo('[{}]'.format(idx), val, expr, par.inform,
-                    dtype=par.dtype, var_type=par.var_type)
+                      dtype=par.dtype, var_type=par.var_type)
             for idx, (val, expr) in enumerate(zip(par.value, par.expr))
         ]
 
