@@ -19,7 +19,7 @@ Button = QtGui.QDialogButtonBox
 
 def perpendicular(orientation):
     """Get perpendicular orientation."""
-    return (Qt.Horizontal|Qt.Vertical) ^ orientation
+    return (Qt.Horizontal | Qt.Vertical) ^ orientation
 
 
 def expand(widget, orientation):

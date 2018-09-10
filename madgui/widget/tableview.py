@@ -578,7 +578,7 @@ class IntDelegate(ItemDelegate):
 
     def createEditor(self, parent, option, index):
         editor = QtGui.QSpinBox(parent)
-        editor.setRange(-(1<<30), +(1<<30))
+        editor.setRange(-(1 << 30), +(1 << 30))
         editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor
 
