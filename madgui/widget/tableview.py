@@ -545,8 +545,10 @@ class ItemDelegate(QtGui.QStyledItemDelegate):
                  ):
         """Store the value."""
         super().__init__()
-        if default is not None: self.default = default
-        if fmtspec is not None: self.fmtspec = fmtspec
+        if default is not None:
+            self.default = default
+        if fmtspec is not None:
+            self.fmtspec = fmtspec
 
     def display(self, value):
         """Render the value as string."""

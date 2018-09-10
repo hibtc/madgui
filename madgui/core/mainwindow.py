@@ -674,9 +674,11 @@ class MainWindow(QtGui.QMainWindow):
         widget.layout().setMenuBar(menubar)
         size = settings.get('size')
         pos = settings.get('pos')
-        if size: widget.resize(*size)
-        else: widget.resize(self.size().width(), widget.sizeHint().height())
-        if pos: widget.move(*pos)
+        if not size:
+            size = (self.size().width(), widget.sizeHint().height())
+        widget.resize(*size)
+        if pos:
+            widget.move(*pos)
         widget.show()
 
         def update_window_title():

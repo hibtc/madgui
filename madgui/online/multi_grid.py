@@ -223,8 +223,10 @@ class Corrector(Matcher):
 
         def offset(c):
             dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
-            if c.axis in ('x', 'posx'): return dx
-            if c.axis in ('y', 'posy'): return dy
+            if c.axis in ('x', 'posx'):
+                return dx
+            if c.axis in ('y', 'posy'):
+                return dy
             return 0
         constraints = [
             (c.elem, None, c.axis, c.value+offset(c))
@@ -249,8 +251,10 @@ class Corrector(Matcher):
     def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
         def offset(c):
             dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
-            if c.axis in ('x', 'posx'): return dx
-            if c.axis in ('y', 'posy'): return dy
+            if c.axis in ('x', 'posx'):
+                return dx
+            if c.axis in ('y', 'posy'):
+                return dy
             return 0
         targets = {
             (c.elem.name, c.axis): c.value+offset(c)

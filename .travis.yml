@@ -14,4 +14,4 @@ install:
 
 script:
   - pyflakes madgui
-  - pycodestyle madgui --select E116,E127,E128,E202,E225,E227,E231,E261,E265,E272,E301,E302,E303,E305,E306,E402,E704,W391
+  - pycodestyle madgui --select E116,E127,E128,E202,E225,E227,E231,E261,E265,E272,E301,E302,E303,E305,E306,E402,E701,E704,W391

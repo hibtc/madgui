@@ -87,6 +87,7 @@ class Model:
         self.twiss = Cache(self._retrack)
         self.sector = Cache(self._sector)
         self.twiss.invalidated.connect(self.sector.invalidate)
+        self._table_transform = TableTransform()
         self.data = {}
         self.path = None
         self.init_files = []
@@ -210,8 +211,10 @@ class Model:
         if not self.continuous_matching:
             return self.el_pos(el)
         at, l = el.position, el.length
-        if pos <= at: return at
-        if pos >= at+l: return at+l
+        if pos <= at:
+            return at
+        if pos >= at+l:
+            return at+l
         return pos
 
     def get_best_match_pos(self, pos):
@@ -616,8 +619,10 @@ class Model:
         i1 = i0+1
 
         # never look outside the interpolation domain:
-        if pos <= s[i0]: return y[i0]
-        if pos >= s[i1]: return y[i1]
+        if pos <= s[i0]:
+            return y[i0]
+        if pos >= s[i1]:
+            return y[i1]
 
         dx = pos - s[i0]
 
@@ -667,8 +672,10 @@ class Model:
         For a description of the ``interval`` parameter, see
         :meth:`~Model.get_transfer_maps`.
         """
-        if elem_to is None: elem_to = elem_from
-        if interval is None: interval = (0, 1)
+        if elem_to is None:
+            elem_to = elem_from
+        if interval is None:
+            interval = (0, 1)
         return self.get_transfer_maps([elem_from, elem_to], interval)[0]
 
     def get_transfer_maps(self, elems, interval=(1, 1)):
@@ -712,23 +719,7 @@ class Model:
     # curves
 
     def do_get_twiss_column(self, name):
-        self.twiss()
-        col = self.get_twiss_column
-        if name == 'alfx': return -col('sig12') / col('ex')
-        if name == 'alfy': return -col('sig34') / col('ey')
-        if name == 'betx': return +col('sig11') / col('ex')
-        if name == 'bety': return +col('sig33') / col('ey')
-        if name == 'gamx': return +col('sig22') / col('ex')
-        if name == 'gamy': return +col('sig44') / col('ey')
-        if name == 'envx': return col('sig11')**0.5
-        if name == 'envy': return col('sig33')**0.5
-        if name == 'posx': return col('x')
-        if name == 'posy': return col('y')
-        if name == 'ex': return (col('sig11') * col('sig22') -
-                                 col('sig12') * col('sig21'))**0.5
-        if name == 'ey': return (col('sig33') * col('sig44') -
-                                 col('sig34') * col('sig43'))**0.5
-        return self.twiss.data[name]
+        return self._table_transform(name, self.get_twiss_column, self.twiss())
 
     def get_twiss_column(self, column):
         if column not in self.cache:
@@ -1065,3 +1056,30 @@ def reflect_sequence(madx, name, elements):
 
     madx.command.beam(sequence=name)
     madx.use(name)
+
+
+class TableTransform:
+
+    def __init__(self):
+        self._transform = {
+            'alfx': lambda col: -col('sig12') / col('ex'),
+            'alfy': lambda col: -col('sig34') / col('ey'),
+            'betx': lambda col: +col('sig11') / col('ex'),
+            'bety': lambda col: +col('sig33') / col('ey'),
+            'gamx': lambda col: +col('sig22') / col('ex'),
+            'gamy': lambda col: +col('sig44') / col('ey'),
+            'envx': lambda col: col('sig11')**0.5,
+            'envy': lambda col: col('sig33')**0.5,
+            'posx': lambda col: col('x'),
+            'posy': lambda col: col('y'),
+            'ex': lambda col: (col('sig11') * col('sig22') -
+                               col('sig12') * col('sig21'))**0.5,
+            'ey': lambda col: (col('sig33') * col('sig44') -
+                               col('sig34') * col('sig43'))**0.5,
+        }
+
+    def __call__(self, name, col, table):
+        try:
+            return self._transform[name](col)
+        except KeyError:
+            return table[name]
