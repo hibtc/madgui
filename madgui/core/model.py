@@ -1028,7 +1028,6 @@ def trim(s):
     return s.replace(' ', '') if isinstance(s, str) else s
 
 
-
 def reflect_sequence(madx, name, elements):
     """
     Create a direction reversed copy of the sequence.

@@ -153,7 +153,6 @@ class PlotWidget(QtGui.QWidget):
         self.keyPress.emit(event)
 
 
-
 class MultiFigure:
 
     """

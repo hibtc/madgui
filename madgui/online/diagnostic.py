@@ -285,7 +285,6 @@ class OffsetsWidget(MonitorWidgetBase):
         dialog.show()
 
 
-
 class _FitWidget(MonitorWidgetBase):
 
     ui_file = 'emittance.ui'

@@ -64,7 +64,6 @@ class ElementInfoBox(QtGui.QWidget):
             self.notebook,
         ], tight=True))
 
-
     def closeEvent(self, event):
         self.model.twiss.updated.disconnect(self.notebook.update)
         event.accept()
@@ -186,7 +185,6 @@ class EllipseWidget(QtGui.QWidget):
             ax.add_patch(Ellipse((0, 0), 2*w, 2*h, phi/pi*180,
                                  fill=False, zorder=5))
             ax.grid(True)
-
 
         # FIXME: gui_units
         twiss = to_ui(self.model.get_elem_twiss(elem_index))

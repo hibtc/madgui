@@ -64,7 +64,6 @@ def _fileDialog(acceptMode, fileMode,
     return filename
 
 
-
 def getOpenFileName(*args, **kwargs):
     """
     Imitates ``QtGui.QFileDialog.getOpenFileName``, except that ``filter``

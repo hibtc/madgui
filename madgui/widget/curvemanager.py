@@ -29,7 +29,6 @@ class CurveManager(QtGui.QWidget):
                       set_value=set_name, set_checked=set_checked),
         ]
 
-
     def __init__(self, scene):
         super().__init__()
         self.scene = scene
