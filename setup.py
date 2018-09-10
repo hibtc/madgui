@@ -70,7 +70,7 @@ def main():
             'ipython',
             'qtconsole',
             # 'PyQt5',
-            'importlib_resources>=0.3', # replace by importlib.resources in 3.7!
+            'importlib_resources>=0.3',     # = importlib.resources in 3.7!
         ],
         entry_points="""
             [console_scripts]
