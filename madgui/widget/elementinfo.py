@@ -11,9 +11,8 @@ from collections import OrderedDict
 from math import sqrt, pi, atan2
 import itertools
 
-import matplotlib as mpl
-mpl.use('Qt5Agg')                       # select before mpl.backends import!
-import matplotlib.backends.backend_qt5agg as mpl_backend
+from madgui.matplotlib import get_backend_module
+from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 
 from madgui.qt import Qt, QtCore, QtGui
@@ -21,6 +20,9 @@ from madgui.core.base import Signal
 from madgui.core.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
+
+
+mpl_backend = get_backend_module()
 
 
 class ElementInfoBox(QtGui.QWidget):
@@ -143,7 +145,7 @@ class EllipseWidget(QtGui.QWidget):
         super().__init__()
 
         self.model = model
-        self.figure = mpl.figure.Figure()
+        self.figure = Figure()
         self.canvas = canvas = mpl_backend.FigureCanvas(self.figure)
         self.toolbar = toolbar = mpl_backend.NavigationToolbar2QT(canvas, self)
         layout = VBoxLayout([canvas, toolbar])

@@ -9,19 +9,17 @@ __all__ = [
 
 from collections import namedtuple
 
-from madgui.qt import QtCore, QtGui      # import Qt before matplotlib!
-
-import matplotlib as mpl
-mpl.use('Qt5Agg')                       # select before mpl.backends import!
-import matplotlib.backends.backend_qt5agg as mpl_backend
-
+from madgui.matplotlib import get_backend_module
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
+from madgui.qt import QtCore, QtGui
 from madgui.core.base import Signal, Cache
 from madgui.core.unit import from_ui
 from madgui.util.layout import VBoxLayout
 
+
+mpl_backend = get_backend_module()
 
 Triple = namedtuple('Triple', ['x', 'y', 's'])
 
