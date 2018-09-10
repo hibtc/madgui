@@ -236,7 +236,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self.angle = float(element.get('angle', 0.0))
         self.width = getElementWidth(element)
         self.color = getElementColor(element)
-        self.walls = (0.5*self.width, 0.5*self.width) # inner/outer wall widths
+        self.walls = (0.5*self.width, 0.5*self.width)   # inner/outer wall widths
         self.selection = selection
         self._outline = self.outline()
         self._orbit = self.orbit()

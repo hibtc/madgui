@@ -26,7 +26,7 @@ from madgui.core.unit import (
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
-import matplotlib.patheffects as pe # import *after* madgui.plot.matplotlib!
+import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib!
 import matplotlib.colors as mpl_colors
 
 
@@ -374,11 +374,11 @@ class ElementIndicator(SimpleArtist):
 
         if type_name == 'quadrupole':
             invert = self.axes.y_name[0].endswith('y')
-            k1 = float(elem.k1) * 100               # scale = 0.1/m²
+            k1 = float(elem.k1) * 100                   # scale = 0.1/m²
             scale = sigmoid(k1) * (1-2*invert)
             style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
         elif type_name == 'sbend':
-            angle = float(elem.angle) * 180/math.pi # scale = 1 degree
+            angle = float(elem.angle) * 180/math.pi     # scale = 1 degree
             ydis = sigmoid(angle) * (-0.15)
             style['ymin'] += ydis
             style['ymax'] += ydis

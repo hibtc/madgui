@@ -114,7 +114,7 @@ class AffixControlBase:
         if new == old:
             return
         edit = self.line_edit()
-        pos = edit.cursorPosition() # TODO: must use selectionStart()?
+        pos = edit.cursorPosition()     # TODO: must use selectionStart()?
         sel = len(edit.selectedText())
         sb = edit.blockSignals(True)
         edit.setText(new)

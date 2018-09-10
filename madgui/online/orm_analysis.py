@@ -53,7 +53,7 @@ class MeasureWidget(QtGui.QWidget):
         self.ctrl_monitors.set_viewmodel(self.get_monitor_row)
 
     def set_initial_values(self):
-        self.set_folder('.') # self.frame.folder
+        self.set_folder('.')    # FIXME
         self.ctrl_file.setText("{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.d_phi = {}
         self.default_dphi = 1e-4

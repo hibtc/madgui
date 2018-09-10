@@ -188,7 +188,8 @@ class Model:
         x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
         len_px = x2pix(L)
         if len_px > 5 or elem.base_name == 'drift':
-            edge_px = max(1, min(2, round(0.2*len_px))) # max 2px cursor distance
+            # max 2px cursor distance:
+            edge_px = max(1, min(2, round(0.2*len_px)))
             if index > 0 \
                     and x2pix(pos-at) < edge_px \
                     and x2pix(self.elements[index-1].length) <= 3:
