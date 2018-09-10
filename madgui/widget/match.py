@@ -56,16 +56,19 @@ class MatchWidget(QtGui.QWidget):
         elem = self.elem_enum(c.elem.node_name if c.elem else "(global)")
         name = self.lcon_enum(c.axis)
         unit = ui_units.label(c.axis, c.value)
+
         def set_elem(i, c, name):
             if name is not None:
                 el = self.model.elements[str(name)]
                 self.matcher.constraints[i] = \
                     Constraint(el, el.position+el.length, c.axis, c.value)
+
         def set_name(i, c, axis):
             if axis is not None:
                 value = self.model.get_twiss(c.elem.node_name, str(axis), c.pos)
                 self.matcher.constraints[i] = \
                     Constraint(c.elem, c.pos, str(axis), value)
+
         def set_value(i, c, value):
             if value is not None:
                 self.matcher.constraints[i] = \

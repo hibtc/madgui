@@ -15,8 +15,10 @@ class CurveManager(QtGui.QWidget):
 
     def show_curve(self, i, c) -> ("curves",):
         name, data, style = c
+
         def set_name(i, c, name):
             self.available[i] = (name, data, style)
+
         def set_checked(i, c, show):
             shown = i in self.selected
             if show and not shown:

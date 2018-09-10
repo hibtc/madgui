@@ -52,6 +52,7 @@ def Rotation3(theta, phi, psi, *, Rotation2=Rotation2):
     ry = Rotation2(theta)
     rx = Rotation2(-phi)
     rz = Rotation2(psi)
+
     def rotate(x, y, z):
         x, y = rz(x, y)
         y, z = rx(y, z)

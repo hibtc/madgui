@@ -31,6 +31,7 @@ else:
     def safe_load(stream, Loader=SafeLoader):
         class OrderedLoader(Loader):
             pass
+
         def construct_mapping(loader, node):
             loader.flatten_mapping(node)
             return OrderedDict(loader.construct_pairs(node))
@@ -43,6 +44,7 @@ else:
 def safe_dump(data, stream=None, Dumper=SafeDumper, **kwds):
     class OrderedDumper(Dumper):
         pass
+
     def _dict_representer(dumper, data):
         return dumper.represent_mapping(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,

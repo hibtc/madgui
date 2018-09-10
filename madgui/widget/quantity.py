@@ -22,8 +22,10 @@ Invalid = QtGui.QValidator.Invalid
 
 def asb_property(name):
     key = '_' + name
+
     def get(self):
         return getattr(self, key)
+
     def set(self, value):
         if value != get(self):
             setattr(self, key, value)

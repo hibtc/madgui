@@ -244,6 +244,7 @@ def maintain_selection(sel, avail):
             if v >= index:
                 sel[i] += 1
         sel.append(index)
+
     def delete(index):
         if index in sel:
             sel.remove(index)
@@ -314,6 +315,7 @@ class CachedList(Sequence):
         if l is None:
             l = List()
         l[:] = list(self)
+
         def update(idx):
             l[idx] = self[idx]
         for idx, item in enumerate(self._items):

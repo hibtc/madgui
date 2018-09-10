@@ -539,6 +539,7 @@ class MainWindow(QtGui.QMainWindow):
         import site     # adds builtins.license/copyright/credits
         site            # silence pyflakes (suppress unused import warning)
         import builtins
+
         class About:
             __title__   = 'python'
             __version__ = ".".join(map(str, sys.version_info))
@@ -676,6 +677,7 @@ class MainWindow(QtGui.QMainWindow):
         else: widget.resize(self.size().width(), widget.sizeHint().height())
         if pos: widget.move(*pos)
         widget.show()
+
         def update_window_title():
             widget.setWindowTitle("{1} ({0})".format(
                 self.model().name, scene.graph_name))
