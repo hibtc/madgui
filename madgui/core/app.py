@@ -26,6 +26,7 @@ __all__ = [
     'main',
 ]
 
+import warnings
 import traceback
 import signal
 import sys
@@ -44,6 +45,8 @@ from madgui.util.qt import load_icon_resource
 
 def main(argv=None):
     """Run madgui mainloop and exit process when finished."""
+    warnings.filterwarnings(
+        "default", module='(madgui|cpymad|minrpc|pydicti).*')
     set_app_id('hit.madgui')
     # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
     # Note that sys.stdout can be ``None`` if starting as console_script:
