@@ -183,7 +183,7 @@ class PlotMonitorWidget(MonitorWidgetBase):
         if ext == '.yml':
             data = {'monitor': {
                 m.name: {'x': m.posx, 'y': m.posy,
-                         'envx': m.envx, 'envy': m.envy }
+                         'envx': m.envx, 'envy': m.envy}
                 for m in self.mtab.rows
                 if self.selected(m)
             }}
