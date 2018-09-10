@@ -71,7 +71,7 @@ class ElementInfoBox(QtGui.QWidget):
         event.accept()
 
     def advance(self, step):
-        elements  = self.model.elements
+        elements = self.model.elements
         old_index = elements.index(self.el_id)
         new_index = old_index + step
         new_el_id = elements[new_index % len(elements)].index

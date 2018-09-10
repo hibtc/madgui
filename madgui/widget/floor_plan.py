@@ -199,7 +199,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         if event.buttons() == Qt.RightButton:
             delta = event.pos() - self.last_mouse_position
             theta = self.theta + delta.x()/100
-            phi   = self.phi   + delta.y()/100
+            phi = self.phi + delta.y()/100
             self.setProjection(theta, phi)
             self.last_mouse_position = event.pos()
             event.accept()

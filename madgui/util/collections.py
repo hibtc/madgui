@@ -58,16 +58,16 @@ class Boxed(Object):
             callback()
         self.changed.connect(on_change)
 
-    __eq__  = _operator(operator.__eq__)
-    __ne__  = _operator(operator.__ne__)
+    __eq__ = _operator(operator.__eq__)
+    __ne__ = _operator(operator.__ne__)
 
 
 class Bool(Boxed):
 
     _dtype = bool
     __and__ = _operator(operator.__and__)
-    __or__  = _operator(operator.__or__)
-    __xor__ = _operator(operator.__xor__)
+    __or__ = _operator(operator.__or__)
+    __xor_ = _operator(operator.__xor__)
     __invert__ = _operator(operator.__not__)
 
 

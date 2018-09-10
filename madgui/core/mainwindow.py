@@ -543,10 +543,10 @@ class MainWindow(QtGui.QMainWindow):
         import builtins
 
         class About:
-            __title__   = 'python'
+            __uri__ = "https::/www.python.org"
+            __title__ = 'python'
             __version__ = ".".join(map(str, sys.version_info))
             __summary__ = sys.version + "\n\nPath: " + sys.executable
-            __uri__     = "https::/www.python.org"
             __credits__ = str(builtins.credits)
             get_copyright_notice = lambda: sys.copyright
         return self._showAboutDialog(About)

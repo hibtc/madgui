@@ -154,10 +154,10 @@ class MatchWidget(QtGui.QWidget):
         self.window().accept()
 
     def add_constraint(self):
-        el   = self.elem_enum._values[0]
+        el = self.elem_enum._values[0]
         elem = self.model.elements[el]
         axis = self.lcon_enum._values[0]  # TODO: -> curve.y_name?
-        pos  = elem.position + elem.length
+        pos = elem.position + elem.length
         value = self.model.get_twiss(el, axis, pos)
         self.matcher.constraints.append(Constraint(
             elem, pos, axis, value))

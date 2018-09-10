@@ -71,7 +71,7 @@ class Corrector(Matcher):
         selected = self.selected = self.configs[name]
         monitors = selected['monitors']
         steerers = sum([selected['steerers'][d] for d in dirs], [])
-        targets  = selected['targets']
+        targets = selected['targets']
 
         params = [k.lower() for k in selected.get('optics', ())]
         self.optic_params = [self._knobs[k] for k in params
