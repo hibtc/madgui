@@ -54,7 +54,8 @@ class MeasureWidget(QtGui.QWidget):
 
     def set_initial_values(self):
         self.set_folder('.')    # FIXME
-        self.ctrl_file.setText("{date}_{time}_{sequence}_{monitor}"+self.extension)
+        self.ctrl_file.setText(
+            "{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.d_phi = {}
         self.default_dphi = 1e-4
         self.ctrl_correctors.rows[:] = []

@@ -201,16 +201,18 @@ class CommandEdit(ParamTable):
                     else self.get_knob_row)
         return [
             TableItem(name, rows=rows, rowitems=rowitems, font=font),
-            TableItem(value, set_value=self.set_value, mutable=mutable, name=p.name),
+            TableItem(value, set_value=self.set_value,
+                      mutable=mutable, name=p.name),
             TableItem(unit),
             TableItem(expr, set_value=self.set_expr, mutable=is_expr_mutable(p)),
         ]
 
     def get_knob_row(self, i, p):
+        mutable = p.var_type > 0
         return [
             TableItem(get_var_name(p.name), rows=self.par_rows(p),
                       rowitems=self.get_knob_row),
-            TableItem(p.value, set_value=self.set_par_value, mutable=p.var_type > 0),
+            TableItem(p.value, set_value=self.set_par_value, mutable=mutable),
             TableItem(None, mutable=False),
             TableItem(p.expr, set_value=self.set_par_expr, mutable=True),
         ]
@@ -272,7 +274,8 @@ class GlobalsEdit(ParamTable):
     ]
 
     def __init__(self, model, **kwargs):
-        super().__init__(self._fetch, model.update_globals, model=model, **kwargs)
+        super().__init__(
+            self._fetch, model.update_globals, model=model, **kwargs)
 
     def _fetch(self):
         globals = self._model.globals

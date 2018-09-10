@@ -27,7 +27,8 @@ units.default_format = 'P~'     # make `str(quantity)` slightly nicer
 units.define('ratio = []')
 units.define('percent = 0.01 ratio = %')
 units.define('permille = 0.001 ratio = ‰')
-units.define('degree = pi / 180 * radian = ° = deg = arcdeg = arcdegree = angular_degree')
+units.define('degree = pi / 180 * radian = °'
+             '= deg = arcdeg = arcdegree = angular_degree')
 
 
 number_types = (int, float, units.Quantity)

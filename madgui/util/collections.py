@@ -109,7 +109,7 @@ class List(Object):
                 # This scenario is forbidden by `list` as well (even step=-1).
                 # Catch it before emitting the event.
                 raise ValueError(
-                    "attempt to assign sequence of size {} to extended slice of size {}"
+                    "attempt to assign sequence of size {} to slice of size {}"
                     .format(num_ins, num_del))
             self.update_before.emit(slice, old_values, new_values)
             try:

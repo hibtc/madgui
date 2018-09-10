@@ -336,7 +336,8 @@ class Model:
             raise ValueError("No sequences defined!")
         if len(sequences) != 1:
             # TODO: ask user which one to use
-            raise ValueError("Multiple sequences defined, none active. Cannot uniquely determine which to use.")
+            raise ValueError("Multiple sequences defined, none active. "
+                             "Cannot uniquely determine which to use.")
         return next(iter(sequences))
 
     def _get_seq_model(self, sequence_name):
@@ -393,8 +394,10 @@ class Model:
             first, last = table.range
         except ValueError:
             raise RuntimeError("TWISS table inaccessible or nonsensical.")
-        if first not in sequence.expanded_elements or last not in sequence.expanded_elements:
-            raise RuntimeError("The TWISS table appears to belong to a different sequence.")
+        if first not in sequence.expanded_elements or \
+                last not in sequence.expanded_elements:
+            raise RuntimeError(
+                "The TWISS table appears to belong to a different sequence.")
         mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
         optional_fields = {
             'x', 'px', 'mux', 'dx', 'dpx',
@@ -804,7 +807,8 @@ class Model:
         # currently fetches twiss columns only demand. Therefore, using the
         # same twiss table for both TWISS/SECTORMAP routines would lead to
         # inconsistent table lengths (interpolate vs no-interpolate!).
-        return self.madx.sectormap((), table='sectortwiss', **self._get_twiss_args())
+        return self.madx.sectormap((), table='sectortwiss',
+                                   **self._get_twiss_args())
 
     backseq = None
 

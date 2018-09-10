@@ -57,7 +57,8 @@ class Corrector(Matcher):
         self._offsets = control._frame.config['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
-        QtCore.QTimer.singleShot(0, partial(control._frame.open_graph, 'orbit'))
+        QtCore.QTimer.singleShot(
+            0, partial(control._frame.open_graph, 'orbit'))
 
     def setup(self, name, dirs=None, force=False):
         if not name or (name == self.active and not force):
@@ -100,7 +101,9 @@ class Corrector(Matcher):
         self.fit_range = (min(fit_elements, key=elements.index, default=0),
                           max(fit_elements, key=elements.index, default=0))
         self.constraints[:] = sorted([
-            Constraint(elements[target], elements[target].position, key, float(value))
+            Constraint(elements[target],
+                       elements[target].position,
+                       key, float(value))
             for target, values in targets.items()
             for key, value in values.items()
             if key[-1] in dirs
@@ -410,9 +413,12 @@ class CorrectorWidget(QtGui.QWidget):
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.tab_readouts.set_viewmodel(self.get_readout_row, corr.readouts, unit=True)
-        self.tab_corrections.set_viewmodel(self.get_steerer_row, corr.variables)
-        self.tab_targets.set_viewmodel(self.get_cons_row, corr.constraints)
+        self.tab_readouts.set_viewmodel(
+            self.get_readout_row, corr.readouts, unit=True)
+        self.tab_corrections.set_viewmodel(
+            self.get_steerer_row, corr.variables)
+        self.tab_targets.set_viewmodel(
+            self.get_cons_row, corr.constraints)
 
     def set_initial_values(self):
         self.btn_fit.setFocus()
@@ -442,7 +448,8 @@ class CorrectorWidget(QtGui.QWidget):
     def on_change_meth(self, strategy):
         self.corrector.strategy = strategy
         if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(self.corrector.fit_results)
+            self.corrector.compute_steerer_corrections(
+                self.corrector.fit_results)
             self.corrector.variables.touch()
             self.update_ui()
             self.draw()
@@ -462,7 +469,8 @@ class CorrectorWidget(QtGui.QWidget):
         """Calculate initial positions / corrections."""
         self.corrector.update()
         if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(self.corrector.fit_results)
+            self.corrector.compute_steerer_corrections(
+                self.corrector.fit_results)
         self.update_ui()
         self.draw()
 

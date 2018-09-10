@@ -278,7 +278,8 @@ class OffsetCalibrationWidget(QtGui.QWidget):
                                for p in [self.quad_knobs[q]]}
 
             if shot == 0:
-                self.log(" " + ", ".join('{}={:.4f}'.format(k, v) for k, v in kL.items()))
+                self.log(" " + ", ".join(
+                    '{}={:.4f}'.format(k, v) for k, v in kL.items()))
 
             self.control.write_params(kL.items())
             self.model.write_params(kL.items())

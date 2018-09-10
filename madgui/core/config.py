@@ -11,12 +11,14 @@ from madgui.util import yaml
 
 def get_default_user_config_path():
     """Return the default path of the user config."""
-    return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'config.yml')
+    return os.path.join(
+        os.path.expanduser('~'), '.config', 'madgui', 'config.yml')
 
 
 def get_default_user_session_path():
     """Return the default path of the user config."""
-    return os.path.join(os.path.expanduser('~'), '.config', 'madgui', 'session.yml')
+    return os.path.join(
+        os.path.expanduser('~'), '.config', 'madgui', 'session.yml')
 
 
 def update_recursive(a, b):

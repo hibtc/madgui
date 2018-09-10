@@ -26,7 +26,7 @@ from madgui.core.unit import (
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
-import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib!
+import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib
 import matplotlib.colors as mpl_colors
 
 
@@ -168,7 +168,8 @@ class TwissFigure(Object):
         if self.figure.share_axes:
             ax = self.figure.axes[0]
             # TODO: move legend on the outside
-            legend = ax.legend(loc='upper center', fancybox=True, shadow=True, ncol=4)
+            legend = ax.legend(loc='upper center', fancybox=True,
+                               shadow=True, ncol=4)
             legend.draggable()
 
     def remove(self):
@@ -212,7 +213,8 @@ class TwissFigure(Object):
         return self.graph_data[name][:, column]
 
     def get_curve_by_name(self, name):
-        return next((c for c in self.twiss_curves.items if c.y_name == name), None)
+        return next((c for c in self.twiss_curves.items if c.y_name == name),
+                    None)
 
     @property
     def show_indicators(self):
@@ -237,7 +239,8 @@ class Curve(SimpleArtist):
 
     """Plot a TWISS parameter curve model into a 2D figure."""
 
-    def __init__(self, axes, get_xdata, get_ydata, style, label=None, info=None):
+    def __init__(self, axes, get_xdata, get_ydata, style,
+                 label=None, info=None):
         """Store meta data."""
         self.axes = axes
         self.get_xdata = get_xdata
@@ -257,7 +260,8 @@ class Curve(SimpleArtist):
     def draw(self):
         """Make one subplot."""
         xdata, ydata = self._get_data()
-        self.lines = self.axes.plot(xdata, ydata, label=self.label, **self.style)
+        self.lines = self.axes.plot(
+            xdata, ydata, label=self.label, **self.style)
         self.line, = self.lines
 
     def update(self):

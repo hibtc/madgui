@@ -217,7 +217,7 @@ class MainWindow(QtGui.QMainWindow):
                      enabled=control.has_sequence),
                 Separator,
                 Item('Beam &diagnostic', None,
-                     'Plot beam position monitors, backtrack initial orbit, calculate emittance',
+                     'Beam position and emittance diagnostics',
                      control.monitor_widget.create,
                      enabled=control.has_sequence),
                 Separator,
@@ -446,7 +446,8 @@ class MainWindow(QtGui.QMainWindow):
 
     @SingleWindow.factory
     def editInitialConditions(self):
-        from madgui.widget.params import TabParamTables, ParamTable, GlobalsEdit
+        from madgui.widget.params import (
+            TabParamTables, ParamTable, GlobalsEdit)
         from madgui.widget.elementinfo import EllipseWidget
 
         class InitEllipseWidget(EllipseWidget):
@@ -710,7 +711,7 @@ class MainWindow(QtGui.QMainWindow):
             Menu('&View', [
                 # TODO: dynamic checked state
                 Item('&Shared plot', 'Ctrl+M',
-                     'Plot all curves into the same plot - more compact format.',
+                     'Plot all curves into the same axes.',
                      toggleShareAxes, checked=False),
                 # TODO: dynamic checked state
                 Item('Element &indicators', None,
@@ -834,9 +835,11 @@ class InfoBoxGroup:
         info = ElementInfoBox(model, el_id)
         dock = Dialog(self.mainwindow)
         dock.setSimpleExportWidget(info, None)
-        dock.setWindowTitle("Element details: " + model.elements[el_id].node_name)
+        dock.setWindowTitle(
+            "Element details: " + model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
-        notifyEvent(info, 'focusInEvent', lambda event: self.set_active_box(info))
+        notifyEvent(info, 'focusInEvent',
+                    lambda event: self.set_active_box(info))
 
         dock.show()
         dock.raise_()
