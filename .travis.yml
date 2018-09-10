@@ -10,8 +10,7 @@ python:
 # (Note that I found mypy/pep8 etc much too verbose…)
 
 install:
-  - pip install pyflakes pycodestyle
+  - pip install flake8
 
 script:
-  - pyflakes madgui
-  - pycodestyle madgui
+  - flake8
