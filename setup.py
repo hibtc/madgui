@@ -52,7 +52,6 @@ def main():
         packages=[
             'madgui',
             'madgui.core',
-            'madgui.correct',
             'madgui.data',
             'madgui.online',
             'madgui.plot',

@@ -13,7 +13,7 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import TableItem
 
-from madgui.correct.orbit import fit_particle_orbit, show_backtrack_curve
+from madgui.online.orbit import fit_particle_orbit, show_backtrack_curve
 
 
 class MonitorWidget(QtGui.QDialog):

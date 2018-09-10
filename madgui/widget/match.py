@@ -5,7 +5,7 @@ UI for matching.
 from madgui.qt import QtGui, load_ui
 from madgui.core.unit import ui_units
 from madgui.widget.tableview import TableItem
-from madgui.correct.match import Constraint
+from madgui.online.match import Constraint
 from madgui.util.enum import make_enum
 
 

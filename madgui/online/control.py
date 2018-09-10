@@ -171,7 +171,7 @@ class Control(Object):
         return dialog
 
     def on_correct_multi_grid_method(self):
-        import madgui.correct.multi_grid as module
+        import madgui.online.multi_grid as module
         from madgui.widget.dialog import Dialog
 
         varyconf = self.model().data.get('multi_grid', {})
@@ -188,7 +188,7 @@ class Control(Object):
         dialog.show()
 
     def on_correct_optic_variation_method(self):
-        import madgui.correct.optic_variation as module
+        import madgui.online.optic_variation as module
         from madgui.widget.dialog import Dialog
 
         varyconf = self.model().data.get('optic_variation', {})

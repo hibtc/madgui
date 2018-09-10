@@ -7,7 +7,7 @@ import madgui.util.yaml as yaml
 from madgui.qt import QtCore, QtGui, load_ui
 from madgui.widget.tableview import TableItem
 
-from madgui.correct.optic_variation import Corrector, ProcBot as _ProcBot
+from madgui.online.optic_variation import Corrector, ProcBot as _ProcBot
 
 
 class MeasureWidget(QtGui.QWidget):
