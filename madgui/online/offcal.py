@@ -265,9 +265,6 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         step = progress // self.numshots % self.numsteps
         shot = progress % self.numshots
 
-        def sign(n):
-            return -1 if n < 0 else +1
-
         kL = self.optics[step]
 
         if self.prepare:

@@ -73,8 +73,7 @@ class Matcher(Object):
             self.finished.emit()
 
     def apply(self):
-        for v in self.variables:
-            self.design_values = dict(self.model.globals)
+        self.design_values = dict(self.model.globals)
         self.variables.touch()
 
     def clear(self):
