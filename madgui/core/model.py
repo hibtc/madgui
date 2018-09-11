@@ -722,12 +722,10 @@ class Model:
 
     # curves
 
-    def do_get_twiss_column(self, name):
-        return self._table_transform(name, self.get_twiss_column, self.twiss())
-
     def get_twiss_column(self, column):
         if column not in self.cache:
-            self.cache[column] = self.do_get_twiss_column(column)
+            self.cache[column] = self._table_transform(
+                column, self.get_twiss_column, self.twiss())
         return self.cache[column]
 
     def get_graph_data(self, name, xlim):
