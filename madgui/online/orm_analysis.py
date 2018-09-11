@@ -137,6 +137,10 @@ class MeasureWidget(QtGui.QWidget):
     def running(self):
         return bool(self.bot) and self.bot.running
 
+    def closeEvent(self, event):
+        self.bot.cancel()
+        super().closeEvent(event)
+
     def update_ui(self):
         running = self.running
         valid = bool(self.corrector.optic_params)
