@@ -443,7 +443,7 @@ class EmittanceDialog(_FitWidget):
 
         def calc_sigma(tms, xcs, dispersive):
             if dispersive and not use_dispersion:
-                logging.warn("Dispersive lattice!")
+                logging.warning("Dispersive lattice!")
             if not use_dispersion:
                 tms = tms[:, :-1, :-1]
             sigma, residuals, singular = solve_emit_sys(tms, xcs)
@@ -452,7 +452,7 @@ class EmittanceDialog(_FitWidget):
         # TODO: assert no dispersion / or use 6 monitors...
         if not respect_coupling:
             if coupled:
-                logging.warn("Coupled lattice!")
+                logging.warning("Coupled lattice!")
             tmx = np.delete(np.delete(tms, [2, 3], axis=1), [2, 3], axis=2)
             tmy = np.delete(np.delete(tms, [0, 1], axis=1), [0, 1], axis=2)
             xcx = [[(0, cx[1])] for cx, cy in xcs]

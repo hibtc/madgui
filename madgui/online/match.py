@@ -50,7 +50,7 @@ class Matcher(Object):
         logging.info("Attempting to match {} constraints via {} variables."
                      .format(num_cons, num_vars))
         if num_vars == 0 or num_vars != num_cons:
-            logging.warn(
+            logging.warning(
                 "Aborted due to invalid number of constraints or variables.")
             return
         match_results = self.model.match(variables, constraints)
