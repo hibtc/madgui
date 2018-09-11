@@ -1065,23 +1065,22 @@ def reflect_sequence(madx, name, elements):
 
 class TableTransform:
 
-    def __init__(self):
-        self._transform = {
-            'alfx': lambda col: -col('sig12') / col('ex'),
-            'alfy': lambda col: -col('sig34') / col('ey'),
-            'betx': lambda col: +col('sig11') / col('ex'),
-            'bety': lambda col: +col('sig33') / col('ey'),
-            'gamx': lambda col: +col('sig22') / col('ex'),
-            'gamy': lambda col: +col('sig44') / col('ey'),
-            'envx': lambda col: col('sig11')**0.5,
-            'envy': lambda col: col('sig33')**0.5,
-            'posx': lambda col: col('x'),
-            'posy': lambda col: col('y'),
-            'ex': lambda col: (col('sig11') * col('sig22') -
-                               col('sig12') * col('sig21'))**0.5,
-            'ey': lambda col: (col('sig33') * col('sig44') -
-                               col('sig34') * col('sig43'))**0.5,
-        }
+    _transform = {
+        'alfx': lambda col: -col('sig12') / col('ex'),
+        'alfy': lambda col: -col('sig34') / col('ey'),
+        'betx': lambda col: +col('sig11') / col('ex'),
+        'bety': lambda col: +col('sig33') / col('ey'),
+        'gamx': lambda col: +col('sig22') / col('ex'),
+        'gamy': lambda col: +col('sig44') / col('ey'),
+        'envx': lambda col: col('sig11')**0.5,
+        'envy': lambda col: col('sig33')**0.5,
+        'posx': lambda col: col('x'),
+        'posy': lambda col: col('y'),
+        'ex': lambda col: (col('sig11') * col('sig22') -
+                           col('sig12') * col('sig21'))**0.5,
+        'ey': lambda col: (col('sig33') * col('sig44') -
+                           col('sig34') * col('sig43'))**0.5,
+    }
 
     def __call__(self, name, col, table):
         try:

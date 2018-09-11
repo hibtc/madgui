@@ -141,17 +141,16 @@ class Matcher(Object):
 
 class MatchTransform:
 
-    def __init__(self):
-        self._transform = {
-            'alfx': lambda val, tw: ('sig12', -val*tw.ex),
-            'alfy': lambda val, tw: ('sig34', -val*tw.ey),
-            'betx': lambda val, tw: ('sig11',  val*tw.ex),
-            'bety': lambda val, tw: ('sig33',  val*tw.ey),
-            'gamx': lambda val, tw: ('sig22',  val*tw.ex),
-            'gamy': lambda val, tw: ('sig44',  val*tw.ey),
-            'envx': lambda val, tw: ('sig11',  val**2),
-            'envy': lambda val, tw: ('sig33',  val**2),
-        }
+    _transform = {
+        'alfx': lambda val, tw: ('sig12', -val*tw.ex),
+        'alfy': lambda val, tw: ('sig34', -val*tw.ey),
+        'betx': lambda val, tw: ('sig11',  val*tw.ex),
+        'bety': lambda val, tw: ('sig33',  val*tw.ey),
+        'gamx': lambda val, tw: ('sig22',  val*tw.ex),
+        'gamy': lambda val, tw: ('sig44',  val*tw.ey),
+        'envx': lambda val, tw: ('sig11',  val**2),
+        'envy': lambda val, tw: ('sig33',  val**2),
+    }
 
     def __call__(self, name, val, tw):
         try:
