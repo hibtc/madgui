@@ -19,7 +19,7 @@ import logging
 
 import numpy as np
 
-from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element
+from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
 from cpymad.util import normalize_range_name, is_identifier
 
 from madgui.core.base import Cache
@@ -88,7 +88,6 @@ class Model:
         self.twiss = Cache(self._retrack)
         self.sector = Cache(self._sector)
         self.twiss.invalidated.connect(self.sector.invalidate)
-        self._table_transform = TableTransform()
         self.data = {}
         self.path = None
         self.init_files = []
@@ -446,8 +445,6 @@ class Model:
         self.range = (normalize_range_name(self.start.name),
                       normalize_range_name(self.stop.name))
 
-        self.cache = {}
-
     def _get_element(self, index, name):
         """Fetch the ``cpymad.madx.Element`` at the specified index in the
         current sequence."""
@@ -608,8 +605,9 @@ class Model:
         """Return beam envelope at element."""
         ix = self.elements.index(elem)
 
-        s = self.get_twiss_column('s')
-        y = self.get_twiss_column(name)
+        twiss = self.twiss()
+        s = twiss.s
+        y = twiss[name]
         x = self.indices[ix]
 
         # shortcut for thin elements:
@@ -638,16 +636,17 @@ class Model:
     ]
 
     def get_elem_twiss(self, elem):
+        tw = self.twiss()
         ix = self.elements.index(elem)
         i0 = self.indices[ix].stop
-        return AttrDict({col: self.get_twiss_column(col)[i0]
-                         for col in self.twiss_columns})
+        return AttrDict({col: tw[col][i0] for col in self.twiss_columns})
 
     def get_elem_sigma(self, elem):
+        tw = self.twiss()
         ix = self.elements.index(elem)
         i0 = self.indices[ix].stop
         return {
-            sig_ij: self.get_twiss_column(sig_ij)[i0]
+            sig_ij: tw[sig_ij][i0]
             for i, j in itertools.product(range(6), range(6))
             for sig_ij in ['sig{}{}'.format(i+1, j+1)]
         }
@@ -722,12 +721,6 @@ class Model:
 
     # curves
 
-    def get_twiss_column(self, column):
-        if column not in self.cache:
-            self.cache[column] = self._table_transform(
-                column, self.get_twiss_column, self.twiss())
-        return self.cache[column]
-
     def get_graph_data(self, name, xlim):
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
@@ -746,9 +739,10 @@ class Model:
                 for (name, label), style in zip(conf['curves'], styles)
             ])
 
-        xdata = self.get_twiss_column('s') + self.start.position
+        twiss = self.twiss()
+        xdata = twiss.s + self.start.position
         data = {
-            curve.short: (xdata, self.get_twiss_column(curve.name))
+            curve.short: (xdata, twiss[curve.name])
             for curve in info.curves
         }
         return info, data
@@ -766,16 +760,16 @@ class Model:
             for name, _ in info['curves']
         }
         cols.add('s')
-        cols.update(self.cache.keys())
+        cols.update(self.twiss.data._cache.keys())
         return cols
 
     def _retrack(self):
         """Recalculate TWISS parameters."""
-        self.cache.clear()
         step = self.sequence.elements[-1].position/400
         self.madx.command.select(flag='interpolate', clear=True)
         self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args())
+        results = TwissTable(results._name, results._libmadx, _check=False)
         self.summary = results.summary
 
         # FIXME: this will fail if subsequent element have the same name.
@@ -883,11 +877,12 @@ class Model:
         """Mitigates read access to a monitor."""
         # TODO: handle split h-/v-monitor
         index = self.elements.index(name)
+        twiss = self.twiss()
         return {
-            'envx': self.get_twiss_column('envx')[index],
-            'envy': self.get_twiss_column('envy')[index],
-            'posx': self.get_twiss_column('x')[index],
-            'posy': self.get_twiss_column('y')[index],
+            'envx': twiss.envx[index],
+            'envy': twiss.envy[index],
+            'posx': twiss.x[index],
+            'posy': twiss.y[index],
         }
 
     def _get_knobs(self, elem, attr):
@@ -1061,27 +1056,29 @@ def reflect_sequence(madx, name, elements):
     madx.use(name)
 
 
-class TableTransform:
+class TwissTable(Table):
 
     _transform = {
-        'alfx': lambda col: -col('sig12') / col('ex'),
-        'alfy': lambda col: -col('sig34') / col('ey'),
-        'betx': lambda col: +col('sig11') / col('ex'),
-        'bety': lambda col: +col('sig33') / col('ey'),
-        'gamx': lambda col: +col('sig22') / col('ex'),
-        'gamy': lambda col: +col('sig44') / col('ey'),
-        'envx': lambda col: col('sig11')**0.5,
-        'envy': lambda col: col('sig33')**0.5,
-        'posx': lambda col: col('x'),
-        'posy': lambda col: col('y'),
-        'ex': lambda col: (col('sig11') * col('sig22') -
-                           col('sig12') * col('sig21'))**0.5,
-        'ey': lambda col: (col('sig33') * col('sig44') -
-                           col('sig34') * col('sig43'))**0.5,
+        'alfx': lambda self: -self.sig12 / self.ex,
+        'alfy': lambda self: -self.sig34 / self.ey,
+        'betx': lambda self: +self.sig11 / self.ex,
+        'bety': lambda self: +self.sig33 / self.ey,
+        'gamx': lambda self: +self.sig22 / self.ex,
+        'gamy': lambda self: +self.sig44 / self.ey,
+        'envx': lambda self: self.sig11**0.5,
+        'envy': lambda self: self.sig33**0.5,
+        'posx': lambda self: self.x,
+        'posy': lambda self: self.y,
+        'ex': lambda self: (self.sig11 * self.sig22 -
+                            self.sig12 * self.sig21)**0.5,
+        'ey': lambda self: (self.sig33 * self.sig44 -
+                            self.sig34 * self.sig43)**0.5,
     }
 
-    def __call__(self, name, col, table):
-        try:
-            return self._transform[name](col)
-        except KeyError:
-            return table[name]
+    def _query(self, column):
+        """Retrieve the column data."""
+        transform = self._transform.get(column)
+        if transform is None:
+            return super()._query(column)
+        else:
+            return transform(self)

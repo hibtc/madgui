@@ -62,8 +62,8 @@ class CurveManager(QtGui.QWidget):
 
     def on_btn_save(self):
         model = self.scene.model
-        data = {name: model.get_twiss_column(name)
-                for name in model.get_graph_columns()}
+        twiss = model.twiss()
+        data = {name: twiss[name] for name in model.get_graph_columns()}
         style = self.scene.config['reference_style']
         self.scene.snapshot_num += 1
         name = "snapshot {}".format(self.scene.snapshot_num)
