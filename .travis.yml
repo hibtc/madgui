@@ -6,9 +6,8 @@ python:
   - "3.5"
   - "3.6"
 
-# For now, we don't have tests, so do pyflakes sanity checks at least:
-# (Note that I found mypy/pep8 etc much too verbose…)
-
+# We don't have real tests for now, so do flake8 (=pyflakes+pycodestyle+mccabe)
+# sanity checks at least (note that I found mypy/pylint much too noisy…):
 install:
   - pip install flake8
 
