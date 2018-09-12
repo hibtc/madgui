@@ -6,6 +6,10 @@ python:
   - "3.5"
   - "3.6"
 
+matrix:
+  include:
+    - {python: "3.7", dist: xenial, sudo: true}
+
 # We don't have real tests for now, so do flake8 (=pyflakes+pycodestyle+mccabe)
 # sanity checks at least (note that I found mypy/pylint much too noisy…):
 install:
