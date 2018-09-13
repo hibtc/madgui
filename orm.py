@@ -6,127 +6,122 @@ import numpy as np
 
 class Param:
 
-    def __init__(self, para, step=1e-4):
-        self.para = para
+    """Variable parameter."""
+
+    def __init__(self, knob, step=1e-4):
+        self.knob = knob
         self.step = step
 
     @contextmanager
     def vary(self, model):
-        para = self.para
+        knob = self.knob
         step = self.step
         madx = model.madx
-        madx.globals[para] += step
+        madx.globals[knob] += step
         try:
             yield step
         except:
             raise
         else:
-            madx.globals[para] -= step
+            madx.globals[knob] -= step
 
 
-class Model:
+class _BaseORM:
 
-    def __init__(self, madx, sequ, calc_orm_coefs, steerers, monitors=None):
+    """Helper for ORM calculations."""
+
+    def __init__(self, madx, sequ, twiss_args, monitors, steerers, knobs):
         self.madx = madx
-        self.calc = calc_orm_coefs
         self.sequ = sequ = madx.sequence[sequ]
         self.elms = elms = sequ.elements
-        self.steerers = [elms[el] for el in steerers]
         self.monitors = [elms[el] for el in monitors]
+        self.steerers = [elms[el] for el in steerers]
+        self.knobs = knobs
+        self.twiss_args = twiss_args
+        self.base_tw = None
         self.base_orm = None
-        self.base_twiss = None
-        self.init_twiss = init_twiss
 
-    def set_base(self):
+    def set_base(self, table='base'):
         """Set the base model, and calculate the model ORM. Must be called
         before other methods."""
-        self.base_twiss = self.twiss('base')
+        self.base_tw = self.twiss(table)
         self.base_orm = self.get_orm()
 
     def twiss(self, table):
-        return self.madx.twiss(table=self.table, **self.init_twiss)
+        """Compute TWISS with the current settings, using a specified table
+        name in MAD-X."""
+        return self.madx.twiss(**dict(self.twiss_args, table=table))
 
-    def get_orm(self):
-        return np.vstack([
-            self.get_orm_row(r)
-            for r in self.steerers
-        ])
-
-    def get_orm_deriv(self, param):
-        return np.vstack([
-            self.get_orm_row_deriv(r)
-            for r in self.steerers
-        ])
-
-    def get_orm_row(self, steerer):
-        return self.calc(self, steerer)
-
-    def get_orm_row_deriv(self, steerer, param):
+    def get_orm_deriv(self, param) -> np.array:
+        """Compute the derivative of the orbit response matrix with respect to
+        the parameter ``p`` as ``ΔR_ij/Δp``."""
+        backup_tw = self.base_tw
+        backup_orm = self.base_orm
         with param.vary(self) as step:
-            base_backup = self.base_twiss
-            self.base_twiss = self.twiss('base2')
+            self.set_base('base_deriv')
             try:
-                return (self.get_orm() - self.base_orm) / step
+                return (self.get_orm() - self.backup_orm) / step
             finally:
-                self.base_twiss = base_backup
+                self.base_tw = backup_tw
+                self.base_orm = backup_orm
 
-    def fit_params(self, lin_fit, params, measured):
-        model = self.base_orm
-        Y = (measured - model)
+    def fit_model(self, measured_orm, params, rcond=1e-8):
+        """
+        Fit model to the measured ORM via the given params
+        (:class:`Param`). Return the best-fit solutions X for the parameters
+        and the squared sum of residuals.
+
+        ``measured_orm`` must be a numpy array with the same
+        layout as returned our ``get_orm``.
+        """
+        Y = measured_orm - self.base_orm
         A = [self.get_orm_deriv(param) for param in params]
-        X = lin_fit(A, Y)
+        X = np.linalg.lstsq(A, Y, rcond=rcond)[0]
         return X, chisq(A, X, Y)
 
 
-def lin_fit_svd(A, Y, eps_cutoff=1e-8):
-    B = np.dot(A.T, A)
-    U, S, V = np.linalg.svd(B)
-    S_pseudo_inverse = np.diag([1/c if c >= eps_cutoff else 0 for c in S])
-    B_pseudo_inverse = V.dot(S_pseudo_inverse).dot(U.T)
-    return B_pseudo_inverse.dot(A).dot(Y)
+class NumericalORM(_BaseORM):
 
-    N = S >= eps_cutoff
-    S = S[N]
-    U = U[...,None]
+    def get_orm(self) -> np.array:
+        """Get the orbit response matrix ``R_ij`` of monitors ``j`` as a
+        function of knob ``i``."""
+        return np.vstack([
+            self.calc(self, knob)
+            for knob in self.knobs
+        ])
 
-    B_pseudo_inverse = V[:,N,:].dot(S[N]).dot(U[:,N,:].T)
-    return B_pseudo_inverse.dot(A).dot(Y)
+    def _get_orm_row(self, knob):
+        """Calculate row ``R_i`` of the orbit response matrix corresponding to
+        the knob ``i`` (specified by name) by performing a second twiss pass
+        with a slightly varied parameter."""
+        tw0 = self.base_tw
+        with Param(knob) as step:
+            tw1 = self.twiss('vary')
+            idx = [mon.index for mon in self.monitors]
+            return np.vstack((
+                (tw1.x-tw0.x),
+                (tw1.y-tw0.y),
+            )).T[idx] / step
 
 
+class AnalyticalORM(_BaseORM):
 
-
-def lin_fit_lsq(A, Y, rcond=1e-8):
-    return np.linalg.lstsq(A, Y, rcond=rcond)[0]
+    def get_orm(self) -> np.array:
+        """Calculate the orbit response matrix ``R_ij`` of monitors ``j`` as a
+        function of knob ``i`` from  the analytical formula. Altough this
+        returns all combinations, only the uncoupled compenents x(hkick),
+        y(vkick) are valid."""
+        I = [elem.index for elem in self.steerers]
+        J = [elem.index for elem in self.monitors]
+        tw = self.base_tw
+        rx = np.sqrt(tw.betx[I,None] * tw.betx[None,J] *
+                     np.sin(2*np.pi*(tw.mux[None,J] - tw.mux[I,None])))
+        ry = np.sqrt(tw.bety[I,None] * tw.bety[None,J] *
+                     np.sin(2*np.pi*(tw.muy[None,J] - tw.muy[I,None])))
+        # FIXME: this packing is inconsistent with the numerical case…
+        return np.hstack((rx, ry))
 
 
 def chisq(A, X, Y):
     residuals = np.dot(A, X) - Y
     return np.dot(residuals, residuals)
-
-
-def calc_orm_numerical(model, elem):
-    """Calculate orbit response matrix from a second twiss pass with varied
-    parameter."""
-    tw0 = model.base_twiss
-    with Param(elem.kick) as step:
-        tw1 = model.twiss('vary')
-        idx = [mon.index for mon in model.monitors]
-        return np.vstack((
-            (tw1.x-tw0.x),
-            (tw1.y-tw0.y),
-        )).T[idx] / step
-
-
-def calc_orm_analytical(model, elem):
-    """Calculate orbit response matrix from the analytical formula. Altough
-    this returns all combinations, only the uncoupled compenents x(hkick),
-    y(vkick) are valid."""
-    # TODO: we could return the full matrix with a single np broadcast
-    # np.sqrt( betx[I] * betx[J] * np.sin(2*pi*(mux[J]-mux[I])) )
-    tw = model.base_twiss
-    return np.array([
-        [sqrt(tw.betx[i]*tw.betx[j]) * sin(2*pi*(tw.mux[j]-tw.mux[i])),
-         sqrt(tw.bety[i]*tw.bety[j]) * sin(2*pi*(tw.muy[j]-tw.muy[i]))]
-        for m in model.monitors
-        for j in [m.index]
-    ])
