@@ -3,7 +3,7 @@ import yaml
 
 from cpymad.madx import Madx
 
-from orm import NumericalORM
+from orm import NumericalORM, Param
 
 
 def load_yaml(filename):
@@ -14,11 +14,14 @@ def load_yaml(filename):
 
 class ResponseMatrix:
 
-    def __init__(self, sequence, strengths, monitors, steerers, responses):
+    def __init__(self, sequence, strengths,
+                 monitors, steerers, knobs,
+                 responses):
         self.sequence = sequence
         self.strengths = strengths
         self.monitors = monitors
         self.steerers = steerers
+        self.knobs = knobs
         self.responses = responses
 
 
@@ -45,6 +48,7 @@ def load_record_file(filename):
     strengths = data['model']
     monitors = data['monitors']
     steerers = data['steeerers']
+    knobs = dict(zip(data['knobs'], steerers))
     records = {
         (monitor, knob): (s, mean_var([
             shot[monitor][:2]
@@ -54,7 +58,7 @@ def load_record_file(filename):
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
-    return ResponseMatrix(sequence, strengths, monitors, steerers, {
+    return ResponseMatrix(sequence, strengths, monitors, steerers, knobs, {
         (monitor, knob): diff_var(orbit, base) / (strength - strengths[knob])
         for (monitor, knob), (strength, orbit) in records.items()
         if knob
@@ -65,51 +69,62 @@ def load_record_file(filename):
 def join_record_files(orbit_responses):
     mats = iter(orbit_responses)
     acc = next(mats)
-    # FIXME: data['steerers'] currently has the wrong format…
     acc.monitors = set(acc.monitors)
     acc.steerers = set(acc.steerers)
+    acc.knobs = acc.knobs.copy()
     for mat in mats:
         assert acc.sequence == mat.sequence
         assert acc.strengths == mat.strengths
         acc.responses.update(mat.responses)
-        acc.monitors.update(acc.monitors)
-        acc.steerers.update(acc.steerers)
+        acc.monitors.update(mat.monitors)
+        acc.steerers.update(mat.steerers)
+        acc.knobs.update(mat.knobs)
     return acc
 
 
-def load_param_defs(filename):
-    pass
+def load_param_spec(filename):
+    # TODO: EALIGN, tilt, FINT, FINTX, L, …
+    spec = load_yaml(filename)
+    return [
+        Param(knob)
+        for knob in spec['knobs']
+    ]
 
 
 def analyze(madx, twiss_args, measured, params):
     madx.globals.update(measured.strengths)
-    elems = madx.sequences[measured.sequence].elements
+    elems    = madx.sequences[measured.sequence].elements
     monitors = sorted(measured.steerers, key=elems.index)
     steerers = sorted(measured.monitors, key=elems.index)
+    knobs    = [measured.knobs[elem] for elem in steerers]
     numerics = NumericalORM(
         madx, measured.sequence, twiss_args,
         monitors=monitors, steerers=steerers,
-        knobs=[measured.knobs[elem] for elem in steerers])
-    # FIXME: steerer should be the knob
-    # FIXME: array layout?
-    measured_orm = np.array([
-        [measured.responses.get((monitor, steerer))
-         for monitor in monitors]
-        for steerer in steerers
+        knobs=knobs)
+    numerics.set_operating_point()
+    measured_orm = np.vstack([
+        np.hstack([
+            measured.responses.get((monitor, knob))[:2]
+            for monitor in monitors
+        ])
+        for knob in knobs
     ])
+    # TODO: divide by the measured variance to account for errors
     results, chisq = numerics.fit_model(measured_orm, params)
     print(results)
     print(chisq)
 
 
-def main(model_file, twiss_file, param_defs, *record_files):
+def main(model_file, twiss_file, spec_file, *record_files):
     """
     Usage:
-        analysis MODEL TWISS RECORDS...
+        analysis MODEL TWISS PARAMS RECORDS...
 
     MODEL must be the path of the model/sequence file to initialize MAD-X.
 
     TWISS is a YAML file that contains the initial twiss parameters.
+
+    PARAMS is a YAML file describing the machine errors to be considered.
 
     RECORDS is a list of record YAML files that were dumped by madgui's ORM
     dialog.
@@ -119,7 +134,7 @@ def main(model_file, twiss_file, param_defs, *record_files):
     return analyze(madx, load_yaml(twiss_file), join_record_files([
         load_record_file(filename)
         for filename in record_files
-    ], load_param_defs(param_defs)))
+    ], load_param_spec(spec_file)))
 
 
 if __name__ == '__main__':

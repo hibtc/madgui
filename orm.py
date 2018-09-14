@@ -41,7 +41,7 @@ class _BaseORM:
         self.base_tw = None
         self.base_orm = None
 
-    def set_base(self, table='base'):
+    def set_operating_point(self, table='base'):
         """Set the base model, and calculate the model ORM. Must be called
         before other methods."""
         self.base_tw = self.twiss(table)
@@ -58,7 +58,7 @@ class _BaseORM:
         backup_tw = self.base_tw
         backup_orm = self.base_orm
         with param.vary(self) as step:
-            self.set_base('base_deriv')
+            self.set_operating_point('base_deriv')
             try:
                 return (self.get_orm() - self.backup_orm) / step
             finally:
@@ -74,6 +74,7 @@ class _BaseORM:
         ``measured_orm`` must be a numpy array with the same
         layout as returned our ``get_orm``.
         """
+        # TODO: add rows for monitor/steerer sensitivity
         Y = measured_orm - self.base_orm
         A = [self.get_orm_deriv(param) for param in params]
         X = np.linalg.lstsq(A, Y, rcond=rcond)[0]
@@ -83,8 +84,15 @@ class _BaseORM:
 class NumericalORM(_BaseORM):
 
     def get_orm(self) -> np.array:
-        """Get the orbit response matrix ``R_ij`` of monitors ``j`` as a
-        function of knob ``i``."""
+        """
+        Get the orbit response matrix ``R_ij`` of monitor measurements ``j``
+        as a function of knob ``i``.
+
+        The matrix columns are arranged as consecutive pairs of x/y values for
+        each monitors, i.e.:
+
+            x_0, y_0, x_1, y_1, …
+        """
         return np.vstack([
             self.calc(self, knob)
             for knob in self.knobs
@@ -93,15 +101,15 @@ class NumericalORM(_BaseORM):
     def _get_orm_row(self, knob):
         """Calculate row ``R_i`` of the orbit response matrix corresponding to
         the knob ``i`` (specified by name) by performing a second twiss pass
-        with a slightly varied parameter."""
+        with a slightly varied knob value."""
         tw0 = self.base_tw
         with Param(knob) as step:
             tw1 = self.twiss('vary')
             idx = [mon.index for mon in self.monitors]
             return np.vstack((
-                (tw1.x-tw0.x),
-                (tw1.y-tw0.y),
-            )).T[idx] / step
+                (tw1.x - tw0.x)[idx],
+                (tw1.y - tw0.y)[idx],
+            )).T.flatten() / step
 
 
 class AnalyticalORM(_BaseORM):
