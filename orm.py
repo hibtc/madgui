@@ -85,22 +85,22 @@ class NumericalORM(_BaseORM):
 
     def get_orm(self) -> np.array:
         """
-        Get the orbit response matrix ``R_ij`` of monitor measurements ``j``
-        as a function of knob ``i``.
+        Get the orbit response matrix ``R_ij`` of monitor measurements ``i``
+        as a function of knob ``j``.
 
-        The matrix columns are arranged as consecutive pairs of x/y values for
+        The matrix rows are arranged as consecutive pairs of x/y values for
         each monitors, i.e.:
 
             x_0, y_0, x_1, y_1, …
         """
         return np.vstack([
-            self.calc(self, knob)
+            self._get_knob_response(self, knob)
             for knob in self.knobs
-        ])
+        ]).T
 
-    def _get_orm_row(self, knob):
-        """Calculate row ``R_i`` of the orbit response matrix corresponding to
-        the knob ``i`` (specified by name) by performing a second twiss pass
+    def _get_knob_response(self, knob):
+        """Calculate column ``R_j`` of the orbit response matrix corresponding
+        to the knob ``j`` (specified by name) by performing a second twiss pass
         with a slightly varied knob value."""
         tw0 = self.base_tw
         with Param(knob) as step:
@@ -115,10 +115,10 @@ class NumericalORM(_BaseORM):
 class AnalyticalORM(_BaseORM):
 
     def get_orm(self) -> np.array:
-        """Calculate the orbit response matrix ``R_ij`` of monitors ``j`` as a
-        function of knob ``i`` from  the analytical formula. Altough this
-        returns all combinations, only the uncoupled compenents x(hkick),
-        y(vkick) are valid."""
+        """Calculate the orbit response matrix ``R_ij`` of monitor
+        measurements ``i`` as a function of knob ``j`` from the analytical
+        formula. Altough this returns all combinations, only the uncoupled
+        compenents x(hkick), y(vkick) are valid."""
         I = [elem.index for elem in self.steerers]
         J = [elem.index for elem in self.monitors]
         tw = self.base_tw
@@ -127,7 +127,7 @@ class AnalyticalORM(_BaseORM):
         ry = np.sqrt(tw.bety[I,None] * tw.bety[None,J] *
                      np.sin(2*np.pi*(tw.muy[None,J] - tw.muy[I,None])))
         # FIXME: this packing is inconsistent with the numerical case…
-        return np.hstack((rx, ry))
+        return np.hstack((rx, ry)).T
 
 
 def chisq(A, X, Y):
