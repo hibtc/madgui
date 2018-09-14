@@ -65,7 +65,10 @@ class _BaseORM:
                 self.base_tw = backup_tw
                 self.base_orm = backup_orm
 
-    def fit_model(self, measured_orm, params, rcond=1e-8):
+    def fit_model(self, measured_orm, params,
+                  steerer_errors=False,
+                  monitor_errors=False,
+                  rcond=1e-8):
         """
         Fit model to the measured ORM via the given params
         (:class:`Param`). Return the best-fit solutions X for the parameters
@@ -73,10 +76,17 @@ class _BaseORM:
 
         ``measured_orm`` must be a numpy array with the same
         layout as returned our ``get_orm``.
+
+        See also:
+        Response Matrix Measurements and Analysis at DESY, Joachim Keil, 2005
         """
         # TODO: add rows for monitor/steerer sensitivity
         Y = measured_orm - self.base_orm
         A = [self.get_orm_deriv(param) for param in params]
+        if steerer_errors:
+            A = np.hstack((A, -self.base_orm))
+        if monitor_errors:
+            A = np.hstack((A, +self.base_orm))
         X = np.linalg.lstsq(A, Y, rcond=rcond)[0]
         return X, chisq(A, X, Y)
 

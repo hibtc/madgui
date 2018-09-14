@@ -25,6 +25,14 @@ class ResponseMatrix:
         self.responses = responses
 
 
+class ParamSpec:
+
+    def __init__(self, monitor_errors, steerer_errors, params):
+        self.monitor_errors = monitor_errors
+        self.steerer_errors = steerer_errors
+        self.params = params
+
+
 def mean_var(x):
     """Return the mean and variance of ``x`` along its 0-axis."""
     return np.hstack((
@@ -85,13 +93,15 @@ def join_record_files(orbit_responses):
 def load_param_spec(filename):
     # TODO: EALIGN, tilt, FINT, FINTX, L, …
     spec = load_yaml(filename)
-    return [
-        Param(knob)
-        for knob in spec['knobs']
-    ]
+    return ParamSpec(
+        spec['monitor_errors'],
+        spec['steerer_errors'], [
+            Param(knob)
+            for knob in spec['knobs']
+        ])
 
 
-def analyze(madx, twiss_args, measured, params):
+def analyze(madx, twiss_args, measured, param_spec):
     madx.globals.update(measured.strengths)
     elems    = madx.sequences[measured.sequence].elements
     monitors = sorted(measured.steerers, key=elems.index)
@@ -110,7 +120,10 @@ def analyze(madx, twiss_args, measured, params):
         for knob in knobs
     ])
     # TODO: divide by the measured variance to account for errors
-    results, chisq = numerics.fit_model(measured_orm, params)
+    results, chisq = numerics.fit_model(
+        measured_orm, param_spec.params,
+        monitor_errors=param_spec.monitor_errors,
+        steerer_errors=param_spec.steerer_errors)
     print(results)
     print(chisq)
 
