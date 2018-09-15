@@ -68,6 +68,7 @@ class _BaseORM:
     def fit_model(self, measured_orm, params,
                   steerer_errors=False,
                   monitor_errors=False,
+                  stddev=1,
                   rcond=1e-8):
         """
         Fit model to the measured ORM via the given params
@@ -87,7 +88,7 @@ class _BaseORM:
             A = np.hstack((A, -self.base_orm))
         if monitor_errors:
             A = np.hstack((A, +self.base_orm))
-        X = np.linalg.lstsq(A, Y, rcond=rcond)[0]
+        X = np.linalg.lstsq(A/stddev, Y/stddev, rcond=rcond)[0]
         return X, chisq(A, X, Y)
 
 

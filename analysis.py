@@ -27,17 +27,18 @@ class ResponseMatrix:
 
 class ParamSpec:
 
-    def __init__(self, monitor_errors, steerer_errors, params):
+    def __init__(self, monitor_errors, steerer_errors, params, stddev):
         self.monitor_errors = monitor_errors
         self.steerer_errors = steerer_errors
         self.params = params
+        self.stddev = stddev
 
 
 def mean_var(x):
     """Return the mean and variance of ``x`` along its 0-axis."""
     return np.hstack((
         np.mean(x, axis=0),
-        np.var(x, axis=0),
+        np.var(x, axis=0, ddof=1),
     ))
 
 
@@ -46,7 +47,8 @@ def diff_var(x1, x0):
     ``[x1-x0, y1-y0, var(x1-x0), var(y1-y0)]``."""
     return np.hstack((
         x1[:2] - x0[:2],
-        x1[2:]**2 + x0[2:]**2,
+        # FIXME…
+        x1[2:] + x0[2:],
     ))
 
 
@@ -91,7 +93,7 @@ def join_record_files(orbit_responses):
 
 
 def load_param_spec(filename):
-    # TODO: EALIGN, tilt, FINT, FINTX, L, …
+    # TODO: EALIGN, tilt, FINT, FINTX, L, AT, …
     spec = load_yaml(filename)
     return ParamSpec(
         spec['monitor_errors'],
@@ -119,11 +121,15 @@ def analyze(madx, twiss_args, measured, param_spec):
         ])
         for knob in knobs
     ])
-    # TODO: divide by the measured variance to account for errors
+    stddev = np.hstack([
+        measured.responses.get((monitor, knob))[2:]
+        for monitor in monitors
+    ]).T if param_spec.stddev else 1
     results, chisq = numerics.fit_model(
         measured_orm, param_spec.params,
         monitor_errors=param_spec.monitor_errors,
-        steerer_errors=param_spec.steerer_errors)
+        steerer_errors=param_spec.steerer_errors,
+        stddev=stddev)
     print(results)
     print(chisq)
 
