@@ -237,14 +237,7 @@ class MainWindow(QtGui.QMainWindow):
                          enabled=control.has_sequence),
                 ]),
                 Separator,
-                menu.Menu('&Settings', [
-                    # TODO: dynamically fill by plugin
-                    Item('&Jitter', None,
-                         'Random Jitter for test interface',
-                         control.toggle_jitter,
-                         enabled=control.is_connected,
-                         checked=True),
-                ]),
+                menu.Menu('&Settings', []),
             ]),
             Menu('&Help', [
                 Item('About &madgui', None,
@@ -269,6 +262,8 @@ class MainWindow(QtGui.QMainWindow):
         ])
         self.csys_menu = items[-2]
         self.dc_action = self.csys_menu.actions()[0]
+        self.csys_settings_menu = self.csys_menu.children()[-1]
+        self.csys_settings_menu.setEnabled(False)
 
     def add_online_plugin(self, loader, name=None):
         name = name or getattr(loader, 'name', loader.__name__)
