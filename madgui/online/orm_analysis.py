@@ -193,7 +193,7 @@ class ProcBot(_ProcBot):
             'sequence': self.model.seq_name,
             'monitors': self.corrector.selected['monitors'],
             'steerers': [elem.name for elem, _ in self.corrector.elem_knobs],
-            'knobs':    [knob      for _, knob in self.corrector.elem_knobs],
+            'knobs':    [knob for _, knob in self.corrector.elem_knobs],
             'twiss_args': self.model._get_twiss_args(),
         })
         self.write_data({
