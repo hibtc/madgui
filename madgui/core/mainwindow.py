@@ -417,14 +417,14 @@ class MainWindow(QtGui.QMainWindow):
 
     def saveBeam(self):
         # TODO: import/export MAD-X file (with only BEAM command)
-        self._export("Save MAD-X strengths file", [
+        self._export("Export initial BEAM settings", [
             ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
         ], self.model().export_beam, data_key='beam')
 
     def saveTwiss(self):
         # TODO: import/export MAD-X file (with only TWISS command)
-        self._export("Save MAD-X strengths file", [
+        self._export("Export initial TWISS settings", [
             ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
         ], self.model().export_twiss, data_key='twiss')
