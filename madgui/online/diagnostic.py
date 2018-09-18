@@ -88,6 +88,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def update(self):
+        self.control.monitors.invalidate()
         self.on_update()
         self.draw()
 
