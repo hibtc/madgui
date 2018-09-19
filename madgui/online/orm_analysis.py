@@ -90,7 +90,7 @@ class MeasureWidget(QtGui.QWidget):
             for idx in self.ctrl_monitors.selectedIndexes()})
         last_monitor = max(monitors, default=0)
 
-        elem_knobs = [
+        self.elem_knobs = elem_knobs = [
             (elem, knob) for elem in self.kickers
             if elem.index < last_monitor
             for knob in self.model.get_elem_knobs(elem)
@@ -188,10 +188,13 @@ class ProcBot(_ProcBot):
                 monitor=self.corrector.monitors[-1],
             ))
         self.file = open(fname, 'wt', encoding='utf-8')
+
         self.write_data({
             'sequence': self.model.seq_name,
             'monitors': self.corrector.selected['monitors'],
-            'steerers': self.corrector.selected['steerers'],
+            'steerers': [elem.name for elem, _ in self.corrector.elem_knobs],
+            'knobs':    [knob for _, knob in self.corrector.elem_knobs],
+            'twiss_args': self.model._get_twiss_args(),
         })
         self.write_data({
             'model': self.corrector.base_optics,
