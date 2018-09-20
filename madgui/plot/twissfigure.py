@@ -64,12 +64,12 @@ class TwissFigure(Object):
 
     graph_changed = Signal()
 
-    def __init__(self, figure, model, config):
+    def __init__(self, figure, model, config, matcher):
         super().__init__()
         self.model = model
         self.config = config
         self.figure = figure
-        self.matcher = self.model.get_matcher()
+        self.matcher = matcher
         # scene
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
@@ -105,7 +105,7 @@ class TwissFigure(Object):
         self.plot = plot
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
-        plot.addTool(MatchTool(plot))
+        plot.addTool(MatchTool(plot, self.matcher))
         plot.addTool(CompareTool(plot))
 
     graph_name = None
@@ -508,11 +508,11 @@ class MatchTool(CaptureTool):
     text = 'Match for desired target value'
     icon = load_icon_resource('madgui.data', 'target.xpm')
 
-    def __init__(self, plot):
+    def __init__(self, plot, matcher):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
         self.model = plot.scene.model
-        self.matcher = self.model.get_matcher()
+        self.matcher = matcher
         self.matcher.finished.connect(partial(self.setChecked, False))
 
     def activate(self):
@@ -563,7 +563,7 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        from madgui.model.match import Constraint
+        from madgui.online.match import Constraint
         elem, pos = self.model.get_best_match_pos(event.x)
         constraints = [Constraint(elem, pos, name, event.y)]
 

@@ -80,8 +80,6 @@ class Model:
     :ivar str path: base folder
     """
 
-    matcher = None
-
     def __init__(self, filename, config, command_log, stdout, undo_stack):
         super().__init__()
         self.twiss.invalidated.connect(self.sector.invalidate)
@@ -204,13 +202,6 @@ class Model:
         self.update_element({attr: value}, self.elements[elem].index)
 
     # curves
-
-    def get_matcher(self):
-        if self.matcher is None:
-            # TODO: create MatchDialog
-            from madgui.model.match import Matcher
-            self.matcher = Matcher(self, self.config['matching'])
-        return self.matcher
 
     ELEM_KNOBS = {
         'sbend':        ['angle', 'k0'],
