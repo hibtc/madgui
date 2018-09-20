@@ -208,7 +208,7 @@ class Model:
     def get_matcher(self):
         if self.matcher is None:
             # TODO: create MatchDialog
-            from madgui.online.match import Matcher
+            from madgui.model.match import Matcher
             self.matcher = Matcher(self, self.config['matching'])
         return self.matcher
 

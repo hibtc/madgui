@@ -576,7 +576,7 @@ class MainWindow(QtGui.QMainWindow):
         if not any(map(filename.endswith, exts)):
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
-        from madgui.core.model import Model
+        from madgui.model.madx import Model
         self.destroyModel()
         filename = os.path.abspath(filename)
         self.folder, name = os.path.split(filename)
