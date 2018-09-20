@@ -3,7 +3,8 @@ import yaml
 
 from cpymad.madx import Madx
 
-from orm import NumericalORM, Param
+from orm import NumericalORM
+from errors import Param, Ealign, Efcomp
 
 
 def load_yaml(filename):
@@ -99,8 +100,15 @@ def load_param_spec(filename):
         spec['monitor_errors'],
         spec['steerer_errors'], [
             Param(knob)
-            for knob in spec['knobs']
-        ])
+            for knob in spec.get('knobs', ())
+        ] + [
+            Ealign(**s)
+            for s in spec.get('ealign', ())
+        ] + [
+            Efcomp(**s)
+            for s in spec.get('efcomp', ())
+        ]
+    )
 
 
 def analyze(madx, twiss_args, measured, param_spec):

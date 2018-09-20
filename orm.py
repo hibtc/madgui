@@ -1,29 +1,7 @@
 
-from contextlib import contextmanager
-
 import numpy as np
 
-
-class Param:
-
-    """Variable parameter."""
-
-    def __init__(self, knob, step=1e-4):
-        self.knob = knob
-        self.step = step
-
-    @contextmanager
-    def vary(self, model):
-        knob = self.knob
-        step = self.step
-        madx = model.madx
-        madx.globals[knob] += step
-        try:
-            yield step
-        except:
-            raise
-        else:
-            madx.globals[knob] -= step
+from errors import Param
 
 
 class _BaseORM:
