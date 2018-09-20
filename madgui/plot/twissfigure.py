@@ -187,11 +187,37 @@ class TwissFigure(Object):
         coord_fmt = "{0:.6f}{1}".format
         parts = [coord_fmt(x, get_raw_label(ax.x_unit)),
                  coord_fmt(y, get_raw_label(ax.y_unit))]
-        elem = self.model.get_element_by_mouse_position(ax, x)
+        elem = self.get_element_by_mouse_position(ax, x)
         if elem:
             name = strip_suffix(elem.node_name, '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
+
+    def get_element_by_mouse_position(self, axes, pos):
+        """Find an element close to the mouse cursor."""
+        model = self.model
+        elems = model.elements
+        elem = model.get_element_by_position(pos)
+        if elem is None:
+            return None
+        # Fuzzy select nearby elements, if they are <= 3px:
+        at, L = elem.position, elem.length
+        index = elem.index
+        x0_px = axes.transData.transform_point((0, 0))[0]
+        x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
+        len_px = x2pix(L)
+        if len_px > 5 or elem.base_name == 'drift':
+            # max 2px cursor distance:
+            edge_px = max(1, min(2, round(0.2*len_px)))
+            if index > 0 \
+                    and x2pix(pos-at) < edge_px \
+                    and x2pix(elems[index-1].length) <= 3:
+                return elems[index-1]
+            if index < len(elems) \
+                    and x2pix(at+L-pos) < edge_px \
+                    and x2pix(elems[index+1].length) <= 3:
+                return elems[index+1]
+        return elem
 
     def update(self):
         """Update existing plot after TWISS recomputation."""

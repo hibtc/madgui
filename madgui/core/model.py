@@ -173,30 +173,6 @@ class Model:
         i0 = bisect_right(self.positions, pos)
         return self.elements[i0-1 if i0 > 0 else 0]
 
-    def get_element_by_mouse_position(self, axes, pos):
-        """Find an element close to the mouse cursor."""
-        elem = self.get_element_by_position(pos)
-        if elem is None:
-            return None
-        # Fuzzy select nearby elements, if they are <= 3px:
-        at, L = elem.position, elem.length
-        index = elem.index
-        x0_px = axes.transData.transform_point((0, 0))[0]
-        x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
-        len_px = x2pix(L)
-        if len_px > 5 or elem.base_name == 'drift':
-            # max 2px cursor distance:
-            edge_px = max(1, min(2, round(0.2*len_px)))
-            if index > 0 \
-                    and x2pix(pos-at) < edge_px \
-                    and x2pix(self.elements[index-1].length) <= 3:
-                return self.elements[index-1]
-            if index < len(self.elements) \
-                    and x2pix(at+L-pos) < edge_px \
-                    and x2pix(self.elements[index+1].length) <= 3:
-                return self.elements[index+1]
-        return elem
-
     def el_pos(self, el):
         """Position for matching / output."""
         return el.position + el.length
