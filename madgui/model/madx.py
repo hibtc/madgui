@@ -466,19 +466,12 @@ class Model:
             p.inform = p.name.lower() in twiss_args
         return pars
 
-    def _par_list(self, data, name, title_transform=str.title, **kw):
+    def _par_list(self, data, name, title_transform=str.title, mutable=bool):
         from madgui.widget.params import ParamInfo
         conf = self.config['parameter_sets'][name]
         data = process_spec(conf['params'], data)
-        readonly = conf.get('readonly', ())
-        return [ParamInfo(title_transform(key), val,
-                          mutable=key not in readonly)
+        return [ParamInfo(title_transform(key), val, mutable=mutable(key))
                 for key, val in data.items()]
-
-    # TODO…
-    def _is_mutable_attribute(self, k, v):
-        blacklist = self.config['parameter_sets']['element']['readonly']
-        return k.lower() not in blacklist
 
     def _update(self, old, new, write, text):
         old = {k.lower(): v for k, v in items(old)}
@@ -548,12 +541,11 @@ class Model:
 
     def _update_element(self, data, elem_index):
         # TODO: this crashes for many parameters
-        # - proper mutability detection
         # - update only changed values
         elem = self.elements[elem_index]
         name = elem.node_name
         d = {k.lower(): v for k, v in data.items()
-             if self._is_mutable_attribute(k, v)}
+             if k in elem.cmdpar}
         if 'kick' in d and elem.base_name == 'sbend':
             # FIXME: This assumes the definition `k0:=(angle+k0)/l` and
             # will deliver incorrect results if this is not the case!
