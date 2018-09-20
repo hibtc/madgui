@@ -229,10 +229,6 @@ class Model:
 
     # curves
 
-    @property
-    def curve_style(self):
-        return self.config['line_view']['curve_style']
-
     def get_matcher(self):
         if self.matcher is None:
             # TODO: create MatchDialog
@@ -717,11 +713,10 @@ class Model:
 
     # curves
 
-    def get_graph_data(self, name, xlim):
+    def get_graph_data(self, name, xlim, styles):
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
 
-        styles = self.config['line_view']['curve_style']
         conf = self.config['graphs'][name]
         info = PlotInfo(
             name=name,

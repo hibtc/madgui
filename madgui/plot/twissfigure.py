@@ -200,7 +200,8 @@ class TwissFigure(Object):
 
     def update_graph_data(self):
         self.graph_info, graph_data = \
-            self.model.get_graph_data(self.graph_name, self.xlim)
+            self.model.get_graph_data(self.graph_name, self.xlim,
+                                      self.config['curve_style'])
         self.graph_data = {
             name: np.vstack((to_ui('s', x),
                              to_ui(name, y))).T
