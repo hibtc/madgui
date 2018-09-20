@@ -292,6 +292,13 @@ class Cache(Object):
             self.updated.emit()
         return self.data
 
+    @classmethod
+    def decorate(cls, fn):
+        # TODO: resolve cyclic dependency!
+        from madgui.util.misc import memoize
+        return property(memoize(wraps(fn)(
+            lambda self: cls(fn.__get__(self)))))
+
 
 class CachedList(Sequence):
 

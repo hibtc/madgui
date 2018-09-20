@@ -84,8 +84,6 @@ class Model:
 
     def __init__(self, filename, config, command_log, stdout, undo_stack):
         super().__init__()
-        self.twiss = Cache(self._retrack)
-        self.sector = Cache(self._sector)
         self.twiss.invalidated.connect(self.sector.invalidate)
         self.data = {}
         self.path = None
@@ -761,7 +759,8 @@ class Model:
         cols.update(self.twiss.data._cache.keys())
         return cols
 
-    def _retrack(self):
+    @Cache.decorate
+    def twiss(self):
         """Recalculate TWISS parameters."""
         step = self.sequence.elements[-1].position/400
         self.madx.command.select(flag='interpolate', clear=True)
@@ -788,7 +787,8 @@ class Model:
 
         # TODO: update elements
 
-    def _sector(self):
+    @Cache.decorate
+    def sector(self):
         """Compute sectormaps of all elements."""
         # TODO: Ideally, we should compute sectormaps and twiss during the
         # same MAD-X TWISS command. But, since we don't need interpolated

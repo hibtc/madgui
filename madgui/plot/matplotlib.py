@@ -165,9 +165,8 @@ class MultiFigure:
         """Create an empty matplotlib figure with multiple subplots."""
         self.backend_figure = Figure(tight_layout=True)
         self.share_axes = share_axes
-        draw_idle = Cache(self.draw)
-        self.invalidate = draw_idle.invalidate
-        draw_idle.updated.connect(lambda: None)     # always update
+        self.invalidate = self.draw.invalidate
+        self.draw.updated.connect(lambda: None)     # always update
         self.axes = ()
 
     def set_num_axes(self, num_axes, shared=False):
@@ -200,6 +199,7 @@ class MultiFigure:
         for ax in self.axes:
             _autoscale_axes(ax)
 
+    @Cache.decorate
     def draw(self):
         """Draw the figure on its canvas."""
         self.canvas.draw()
