@@ -14,9 +14,10 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
 from madgui.qt import QtCore, QtGui
-from madgui.core.base import Signal, Cache
+from madgui.core.base import Signal
 from madgui.core.unit import from_ui
 from madgui.util.layout import VBoxLayout
+from madgui.util.collections import Cache
 
 
 mpl_backend = get_backend_module()

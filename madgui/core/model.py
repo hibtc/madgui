@@ -22,11 +22,10 @@ import numpy as np
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
 from cpymad.util import normalize_range_name, is_identifier
 
-from madgui.core.base import Cache
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
-from madgui.util.collections import CachedList
+from madgui.util.collections import Cache, CachedList
 
 
 PlotInfo = namedtuple('PlotInfo', [
