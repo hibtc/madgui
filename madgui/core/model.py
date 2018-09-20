@@ -83,7 +83,7 @@ class Model:
 
     matcher = None
 
-    def __init__(self, filename, config, command_log, stdout_log, undo_stack):
+    def __init__(self, filename, config, command_log, stdout, undo_stack):
         super().__init__()
         self.twiss = Cache(self._retrack)
         self.sector = Cache(self._sector)
@@ -92,7 +92,6 @@ class Model:
         self.path = None
         self.init_files = []
         self.command_log = command_log
-        self.stdout_log = stdout_log
         self.undo_stack = undo_stack
         self.undo_stack.model = self
         self.config = config
@@ -102,7 +101,7 @@ class Model:
         self.path = path
         self.name = base
         self.madx = Madx(command_log=self.command_log,
-                         stdout=self.stdout_log,
+                         stdout=stdout,
                          stderr=subprocess.STDOUT,
                          lock=RLock())
         if ext.lower() in ('.yml', '.yaml'):

@@ -587,7 +587,7 @@ class MainWindow(QtGui.QMainWindow):
         logging.info('Logging commands to: {}'.format(logfile))
         self.model.set(Model(filename, self.config,
                              command_log=self.log_command,
-                             stdout_log=self.dataReceived.emit,
+                             stdout=self.dataReceived.emit,
                              undo_stack=self.undo_stack))
         self.showTwiss()
 
