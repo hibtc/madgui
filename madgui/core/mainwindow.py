@@ -832,7 +832,8 @@ class InfoBoxGroup:
     def create_info_box(self, el_id):
         from madgui.widget.elementinfo import ElementInfoBox
         model = self.model()
-        info = ElementInfoBox(model, el_id)
+        config = self.mainwindow.config
+        info = ElementInfoBox(model, el_id, config.parameter_sets.summary)
         dock = Dialog(self.mainwindow)
         dock.setSimpleExportWidget(info, None)
         dock.setWindowTitle(

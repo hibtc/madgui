@@ -277,17 +277,6 @@ parameter_sets:
 
   element:
     params: []
-    show:
-      common:       [name, base_name, index, position, length]
-      srotation:    [angle]
-      solenoid:     [ks]
-      multipole:    [knl, ksl, tilt]
-      sbend:        [angle, kick, e1, e2, tilt]
-      quadrupole:   [k1, k1s, tilt]
-      collimator:   [apertype, aperture]
-      hkicker:      [kick, tilt]
-      vkicker:      [kick, tilt]
-      kicker:       [hkick, vkick, tilt]
 
   twiss:
     params: [
@@ -302,3 +291,15 @@ parameter_sets:
 
   sector:
     params: []
+
+  summary:
+    common:       [name, base_name, index, position, length]
+    srotation:    [angle]
+    solenoid:     [ks]
+    multipole:    [knl, ksl, tilt]
+    sbend:        [angle, kick, e1, e2, tilt]
+    quadrupole:   [k1, k1s, tilt]
+    collimator:   [apertype, aperture]
+    hkicker:      [kick, tilt]
+    vkicker:      [kick, tilt]
+    kicker:       [hkick, vkick, tilt]

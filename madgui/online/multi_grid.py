@@ -43,7 +43,7 @@ class Corrector(Matcher):
     direct = True
 
     def __init__(self, control, configs):
-        super().__init__(control.model(), None)
+        super().__init__(control.model(), control._frame.config['matching'])
         self.fit_results = None
         self.active = None
         self.control = control

@@ -30,8 +30,9 @@ class ElementInfoBox(QtGui.QWidget):
     changed_element = Signal()
     _el_id = None
 
-    def __init__(self, model, el_id, **kwargs):
+    def __init__(self, model, el_id, summary, **kwargs):
         super().__init__()
+        self.summary = summary
 
         self.notebook = TabParamTables([
             ('Summary', ParamTable(self._fetch_summary, self._update_element,
@@ -111,7 +112,7 @@ class ElementInfoBox(QtGui.QWidget):
 
     def _fetch_summary(self, elem_index=0):
         elem = self.model.elements[elem_index]
-        show = self.model.config['parameter_sets']['element']['show']
+        show = self.summary
         data = OrderedDict([
             (k, getattr(elem, k))
             for k in show['common'] + show.get(elem.base_name, [])
