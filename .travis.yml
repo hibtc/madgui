@@ -14,7 +14,30 @@ matrix:
 # sanity checks at least (note that I found mypy/pylint much too noisy…):
 install:
   - pip install flake8 docutils pygments
-
-script:
   - flake8
   - python setup.py check -rs
+
+  - pip install pytest
+  - git clone git://github.com/hibtc/hit_models
+
+  # Check that the source distribution can be used for installation -
+  # without having *any* dependencies installed:
+  - python setup.py sdist
+  - pip install $(ls ./dist/*.tar.gz | sort -rV | head -n1)
+  # Need to remove source folder otherwise it will be imported, but we want
+  # to check the version installed from the source distribution:
+  - rm -r madgui
+
+script:
+  - pytest tests
+
+# Enable caching of python wheels
+env:
+  global:
+    - PIP_FIND_LINKS=file://$HOME/.pip-cache
+    - PIP_WHEEL_DIR=$HOME/.pip-cache
+
+cache:
+  apt: true
+  directories:
+    - $PIP_WHEEL_DIR
