@@ -423,9 +423,6 @@ class Model:
     def export_twiss(self):
         return dict(self.twiss_args)
 
-    def fetch_globals(self):
-        return self._par_list(self.globals, 'globals', str.upper)
-
     def fetch_beam(self):
         from madgui.widget.params import ParamInfo
         beam = self.beam

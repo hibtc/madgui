@@ -272,9 +272,6 @@ parameter_sets:
       n1min:    -1,
     ]
 
-  globals:
-    params: []
-
   element:
     params: []
 
