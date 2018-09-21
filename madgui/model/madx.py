@@ -73,7 +73,6 @@ class Model:
         self.data = {}
         self.path = None
         self.init_files = []
-        self.command_log = command_log
         self.undo_stack = undo_stack
         self.undo_stack.model = self
         self.filename = os.path.abspath(filename)
@@ -81,7 +80,7 @@ class Model:
         base, ext = os.path.splitext(name)
         self.path = path
         self.name = base
-        self.madx = Madx(command_log=self.command_log,
+        self.madx = Madx(command_log=command_log,
                          stdout=stdout,
                          stderr=subprocess.STDOUT,
                          lock=RLock())
