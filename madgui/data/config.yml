@@ -188,15 +188,14 @@ matching:
   py:       [quadrupole,sbend,kicker,vkicker]
 
 
-parameter_sets:
-  summary:
-    common:       [name, base_name, index, position, length]
-    srotation:    [angle]
-    solenoid:     [ks]
-    multipole:    [knl, ksl, tilt]
-    sbend:        [angle, kick, e1, e2, tilt]
-    quadrupole:   [k1, k1s, tilt]
-    collimator:   [apertype, aperture]
-    hkicker:      [kick, tilt]
-    vkicker:      [kick, tilt]
-    kicker:       [hkick, vkick, tilt]
+summary_attrs:
+  common:       [name, base_name, index, position, length]
+  srotation:    [angle]
+  solenoid:     [ks]
+  multipole:    [knl, ksl, tilt]
+  sbend:        [angle, kick, e1, e2, tilt]
+  quadrupole:   [k1, k1s, tilt]
+  collimator:   [apertype, aperture]
+  hkicker:      [kick, tilt]
+  vkicker:      [kick, tilt]
+  kicker:       [hkick, vkick, tilt]
