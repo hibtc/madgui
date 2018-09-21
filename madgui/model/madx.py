@@ -14,7 +14,7 @@ import itertools
 from bisect import bisect_right
 import subprocess
 from threading import RLock
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 import logging
 
 import numpy as np
@@ -104,16 +104,19 @@ class Model:
         )
         self.twiss.invalidate()
 
+    def __del__(self):
+        self.destroy()
+
     def destroy(self):
         """Annihilate current model. Stop interpreter."""
-        if self.rpc_client:
-            self.rpc_client.close()
+        if self.madx is not None:
+            with suppress(AttributeError, RuntimeError):
+                self.madx._libmadx.finish()
+            with suppress(AttributeError, RuntimeError):
+                self.madx._service.close()
+            with suppress(AttributeError, RuntimeError):
+                self.madx._process.wait()
         self.madx = None
-
-    @property
-    def rpc_client(self):
-        """Low level RPC client."""
-        return self.madx and self.madx._service
 
     def _load_params(self, data, name):
         """Load parameter dict from file if necessary."""
