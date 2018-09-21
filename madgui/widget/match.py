@@ -8,6 +8,8 @@ from madgui.widget.tableview import TableItem
 from madgui.model.match import Constraint
 from madgui.util.enum import make_enum
 
+from cpymad.util import PARAM_TYPE_CONSTRAINT
+
 
 Button = QtGui.QDialogButtonBox
 
@@ -41,8 +43,11 @@ class MatchWidget(QtGui.QWidget):
         load_ui(self, __package__, self.ui_file)
         self.matcher = matcher
         self.model = model = matcher.model
-        local_constraints = ['envx', 'envy'] + model.config['constraints']
-        local_constraints = sorted(local_constraints)
+        local_constraints = ['envx', 'envy'] + [
+            cmdpar.name
+            for cmdpar in model.madx.command.constraint.cmdpar.values()
+            if cmdpar.dtype == PARAM_TYPE_CONSTRAINT
+        ]
         self.elem_enum = make_enum('Elem', model.el_names)
         self.lcon_enum = make_enum('Local', local_constraints, strict=False)
         self.knob_enum = make_enum('Knobs', matcher.knobs, strict=False)

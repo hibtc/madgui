@@ -302,34 +302,3 @@ parameter_sets:
 
   sector:
     params: []
-
-constraints: [
-  betx, alfx, mux,
-  bety, alfy, muy,
-  x, px,
-  y, py,
-  t, pt,
-  dx, dpx,
-  dy, dpy,
-  wx, phix, dmux,
-  wy, phiy, dmuy,
-  ddx, ddpx,
-  ddy, ddpy,
-  r11, r12,
-  r21, r22,
-  energy,
-  mvar1, mvar2,
-  mvar3, mvar4,
-  re11, re12, re13, re14, re15, re16,
-  re21, re22, re23, re24, re25, re26,
-  re31, re32, re33, re34, re35, re36,
-  re41, re42, re43, re44, re45, re46,
-  re51, re52, re53, re54, re55, re56,
-  re61, re62, re63, re64, re65, re66,
-  alfa,
-  beta11, alfa11, mu1,
-  beta22, alfa22, mu2,
-  beta33, alfa33, mu3,
-  disp1, disp2, disp3, disp4,
-  beta0,
-]
