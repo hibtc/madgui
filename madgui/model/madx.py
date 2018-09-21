@@ -85,7 +85,7 @@ class Model:
                          stderr=subprocess.STDOUT,
                          lock=RLock())
         if ext.lower() in ('.yml', '.yaml'):
-            with open(os.path.join(self.path, filename), 'rb') as f:
+            with open(self.filename, 'rb') as f:
                 self.data = data = yaml.safe_load(f)
             self.path = os.path.join(self.path, data.get('path', '.'))
             self._load_params(data, 'beam')
