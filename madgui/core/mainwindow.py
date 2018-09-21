@@ -639,6 +639,7 @@ class MainWindow(QtGui.QMainWindow):
 
         model = self.model()
         config = self.config.line_view
+        graphs = self.config['graphs']
 
         # update twiss *before* creating the figure to avoid immediate
         # unnecessary redraws:
@@ -655,7 +656,8 @@ class MainWindow(QtGui.QMainWindow):
         figure = plt.MultiFigure()
         plot = plt.PlotWidget(figure)
 
-        scene = twissfigure.TwissFigure(figure, model, config, self.matcher)
+        scene = twissfigure.TwissFigure(
+            figure, model, config, graphs, self.matcher)
         scene.show_indicators = show_indicators
         scene.set_graph(name or settings.get('graph') or config.default_graph)
         scene.attach(plot)

@@ -28,19 +28,6 @@ from madgui.util.export import read_str_file, import_params
 from madgui.util.collections import Cache, CachedList
 
 
-PlotInfo = namedtuple('PlotInfo', [
-    'name',     # internal graph id (e.g. 'beta.g')
-    'title',    # long display name ('Beta function')
-    'curves',   # [CurveInfo]
-])
-
-CurveInfo = namedtuple('CurveInfo', [
-    'name',     # internal curve id (e.g. 'beta.g.a')
-    'short',    # display name for statusbar ('beta_a')
-    'label',    # y-axis/legend label ('$\beta_a$')
-    'style',    # **kwargs for ax.plot
-])
-
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
@@ -669,49 +656,6 @@ class Model:
 
     def ey(self):
         return self.summary.ey
-
-    # curves
-
-    def get_graph_data(self, name, xlim, styles):
-        """Get the data for a particular graph."""
-        # TODO: use xlim for interpolate
-
-        conf = self.config['graphs'][name]
-        info = PlotInfo(
-            name=name,
-            title=conf['title'],
-            curves=[
-                CurveInfo(
-                    name=name,
-                    short=name,
-                    label=label,
-                    style=style)
-                for (name, label), style in zip(conf['curves'], styles)
-            ])
-
-        twiss = self.twiss()
-        xdata = twiss.s + self.start.position
-        data = {
-            curve.short: (xdata, twiss[curve.name])
-            for curve in info.curves
-        }
-        return info, data
-
-    def get_graphs(self):
-        """Get a list of graph names."""
-        return {name: info['title']
-                for name, info in self.config['graphs'].items()}
-
-    def get_graph_columns(self):
-        """Get a set of all columns used in any graph."""
-        cols = {
-            name
-            for info in self.config['graphs'].values()
-            for name, _ in info['curves']
-        }
-        cols.add('s')
-        cols.update(self.twiss.data._cache.keys())
-        return cols
 
     @Cache.decorate
     def twiss(self):
