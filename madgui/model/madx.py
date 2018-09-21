@@ -128,24 +128,17 @@ class Model:
                 data[name] = data[name][name]
 
     @property
+    def twiss_args(self):
+        return self._twiss_args
+
+    @property
     def beam(self):
         """Get the beam parameter dictionary."""
         return self._beam
 
-    @beam.setter
-    def beam(self, beam):
-        """Set beam from a parameter dictionary."""
-        self._beam = beam = dict(beam, sequence=self.sequence.name)
-        self.madx.command.beam(**beam)
-
     @property
     def globals(self):
         return self.madx.globals
-
-    @globals.setter
-    def globals(self, knobs):
-        for k, v in knobs.items():
-            self.madx.globals[k] = v
 
     def get_element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -278,8 +271,9 @@ class Model:
         self.seq_name = self.sequence.name
         self.continuous_matching = True
 
-        self.beam = beam
-        self.twiss_args = twiss_args
+        self._beam = beam = dict(beam, sequence=self.seq_name)
+        self._twiss_args = twiss_args
+        self.madx.command.beam(**beam)
         self.sequence.use()
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
@@ -406,13 +400,15 @@ class Model:
             mass = eval(new_beam.get('mass', 1))
             new_beam['energy'] = (ekin + 1) * mass
         new_beam.pop('e_kin', None)
-        self.beam = new_beam
+        new_beam['sequence'] = self.seq_name
+        self._beam = new_beam
+        self.madx.command.beam(new_beam)
         self.twiss.invalidate()
 
     def _update_twiss_args(self, twiss):
         new_twiss = self.twiss_args.copy()
         new_twiss.update((k.lower(), v) for k, v in twiss.items())
-        self.twiss_args = new_twiss
+        self._twiss_args = new_twiss
         self.twiss.invalidate()
 
     def _update_element(self, data, elem_index):
