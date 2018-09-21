@@ -900,7 +900,7 @@ def _get_seq_model(madx, sequence_name):
     }
 
 
-def _get_twiss(sequence):
+def _get_twiss(madx, sequence):
     """
     Try to determine (range, twiss) from the MAD-X state.
 
@@ -915,24 +915,16 @@ def _get_twiss(sequence):
             last not in sequence.expanded_elements:
         raise RuntimeError(
             "The TWISS table appears to belong to a different sequence.")
-    mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
-    optional_fields = {
-        'x', 'px', 'mux', 'dx', 'dpx',
-        'y', 'py', 'muy', 'dy', 'dpy',
-        't', 'pt',
-        'wx', 'phix', 'dmux', 'ddx', 'ddpx',
-        'wy', 'phiy', 'dmuy', 'ddy', 'ddpy',
-        'r11', 'r12', 'r21', 'r22',
-        'tolerance', 'deltap',   # TODO: deltap has special format!
-    }
+    mandatory = {'betx', 'bety', 'alfx', 'alfy'}
+    defaults = madx.command.twiss
     # TODO: periodic lines -> only mux/muy/deltap
     # TODO: logical parameters like CHROM
     twiss = {
         key: float(val)
         for key, val in table[0].items()
         if issubclass(val.dtype.type, np.number) and (
-                (key in mandatory_fields) or
-                (key in optional_fields and val != 0)
+                (key in mandatory) or
+                (key in defaults and val != defaults.cmdpar[key].value)
         )
     }
     return (first, last), twiss
