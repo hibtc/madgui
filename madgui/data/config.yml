@@ -272,23 +272,6 @@ parameter_sets:
       n1min:    -1,
     ]
 
-  element:
-    params: []
-
-  twiss:
-    params: [
-      alfx: 0,
-      alfy: 0,
-      betx: 1,
-      bety: 1,
-    ]
-
-  sigma:
-    params: []
-
-  sector:
-    params: []
-
   summary:
     common:       [name, base_name, index, position, length]
     srotation:    [angle]

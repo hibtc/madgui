@@ -19,7 +19,8 @@ from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.base import Signal
 from madgui.core.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
+from madgui.widget.params import (
+    TabParamTables, ParamTable, CommandEdit, ParamInfo)
 
 
 mpl_backend = get_backend_module()
@@ -117,15 +118,16 @@ class ElementInfoBox(QtGui.QWidget):
             (k, getattr(elem, k))
             for k in show['common'] + show.get(elem.base_name, [])
         ])
-        return self.model._par_list(data, 'element', mutable=elem.__contains__)
+        return [ParamInfo(k.title(), v, mutable=k in elem)
+                for k, v in data.items()]
 
     def _fetch_twiss(self, elem_index=0):
         data = self.model.get_elem_twiss(elem_index)
-        return self.model._par_list(data, 'twiss')
+        return [ParamInfo(k.title(), v) for k, v in data.items()]
 
     def _fetch_sigma(self, elem_index=0):
         data = self.model.get_elem_sigma(elem_index)
-        return self.model._par_list(data, 'sigma')
+        return [ParamInfo(k.title(), v) for k, v in data.items()]
 
     def _fetch_sector(self, elem_index=0):
         sectormap = self.model.sectormap(elem_index)
@@ -137,7 +139,7 @@ class ElementInfoBox(QtGui.QWidget):
             'k{}'.format(i+1): sectormap[6, i]
             for i in range(6)
         })
-        return self.model._par_list(data, 'sector')
+        return [ParamInfo(k.title(), v) for k, v in data.items()]
 
 
 class EllipseWidget(QtGui.QWidget):
