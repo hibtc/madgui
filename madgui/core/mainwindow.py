@@ -586,7 +586,7 @@ class MainWindow(QtGui.QMainWindow):
         self.logfile = open(logfile, 'wt')
         logging.info('Loading {}'.format(filename))
         logging.info('Logging commands to: {}'.format(logfile))
-        self.model.set(Model(filename, self.config,
+        self.model.set(Model(filename,
                              command_log=self.log_command,
                              stdout=self.dataReceived.emit,
                              undo_stack=self.undo_stack))

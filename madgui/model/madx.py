@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 import os
-from collections import namedtuple, OrderedDict, defaultdict
+from collections import namedtuple, defaultdict
 from collections.abc import Mapping
 from functools import partial, reduce
 import itertools
@@ -67,7 +67,7 @@ class Model:
     :ivar str path: base folder
     """
 
-    def __init__(self, filename, config, command_log, stdout, undo_stack):
+    def __init__(self, filename, command_log, stdout, undo_stack):
         super().__init__()
         self.twiss.invalidated.connect(self.sector.invalidate)
         self.data = {}
@@ -76,7 +76,6 @@ class Model:
         self.command_log = command_log
         self.undo_stack = undo_stack
         self.undo_stack.model = self
-        self.config = config
         self.filename = os.path.abspath(filename)
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
@@ -426,27 +425,27 @@ class Model:
     def fetch_beam(self):
         from madgui.widget.params import ParamInfo
         beam = self.beam
-        pars = self._par_list(beam, 'beam')
+        pars = [
+            ParamInfo(k.title(), v,
+                      inform=k in beam,
+                      mutable=k != 'sequence')
+            for k, v in self.sequence.beam.items()
+        ]
         ekin = (beam['energy'] - beam['mass']) / beam['mass']
         idx = next(i for i, p in enumerate(pars) if p.name.lower() == 'energy')
         pars.insert(idx, ParamInfo('E_kin', ekin))
-        for p in pars:
-            p.inform = p.name.lower() in beam
         return pars
 
     def fetch_twiss(self):
-        twiss_args = self.twiss_args
-        pars = self._par_list(twiss_args, 'twiss_args')
-        for p in pars:
-            p.inform = p.name.lower() in twiss_args
-        return pars
-
-    def _par_list(self, data, name, title_transform=str.title, mutable=bool):
         from madgui.widget.params import ParamInfo
-        conf = self.config['parameter_sets'][name]
-        data = process_spec(conf['params'], data)
-        return [ParamInfo(title_transform(key), val, mutable=mutable(key))
-                for key, val in data.items()]
+        blacklist = ('sequence', 'line', 'range', 'notable')
+        twiss_args = self.twiss_args
+        return [
+            ParamInfo(k.title(), twiss_args.get(k, v),
+                      inform=k in twiss_args,
+                      mutable=k not in blacklist)
+            for k, v in self.madx.command.twiss.items()
+        ]
 
     def _update(self, old, new, write, text):
         old = {k.lower(): v for k, v in items(old)}
@@ -793,34 +792,6 @@ class Model:
     write_params = update_globals
 
 
-def process_spec(prespec, data):
-    # NOTE: we cast integers specified in the config to floats, in order to
-    # get the correct ValueProxy in TableView. Technically, this makes it
-    # impossible to specify a pure int parameter in the config file, but we
-    # don't have any so far anyway… Note that we can't use `isinstance` here,
-    # because that matches bool as well.
-    float_ = lambda x: float(x) if type(x) is int else x
-    # TODO: Handle defaults for hard-coded and ad-hoc keys homogeniously.
-    # The simplest option would be to simply specify list of priority keys in
-    # the config file…
-    spec = OrderedDict([
-        (k, float_(data.get(k, v)))
-        for item in prespec
-        for spec in item.items()
-        for k, v in process_spec_item(*spec)
-        # TODO: distinguish items that are not in `data` (we can't just
-        # filter, because that prevents editting defaulted parameters)
-        # if k in data
-    ])
-    # Add keys that were not hard-coded in config:
-    spec.update(OrderedDict([
-        (k, v)
-        for k, v in data.items()
-        if k not in spec
-    ]))
-    return spec
-
-
 class ElementList(CachedList):
 
     """
@@ -840,18 +811,6 @@ class ElementList(CachedList):
                 elif name in ('#e', 'end'):
                     return len(self) - 1
         return super().index(element)
-
-
-# TODO: support expressions
-def process_spec_item(key, value):
-    if isinstance(value, list):
-        rows = len(value)
-        if rows > 0 and isinstance(value[0], list):
-            cols = len(value[0])
-            return [("{}{}{}".format(key, row+1, col+1), value[row][col])
-                    for row in range(rows)
-                    for col in range(cols)]
-    return [(key, value)]
 
 
 # stuff for online control
