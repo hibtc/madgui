@@ -115,11 +115,6 @@ class Model:
         """Low level RPC client."""
         return self.madx and self.madx._service
 
-    @property
-    def remote_process(self):
-        """Backend process."""
-        return self.madx and self.madx._process
-
     def _load_params(self, data, name):
         """Load parameter dict from file if necessary."""
         vals = data.get(name, {})
