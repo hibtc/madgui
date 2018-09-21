@@ -94,8 +94,8 @@ class Model:
                 self._call(filename)
         else:
             self._call(filename)
-            sequence = self._guess_main_sequence()
-            data = self._get_seq_model(sequence)
+            sequence = _guess_main_sequence(self.madx)
+            data = _get_seq_model(self.madx, sequence)
         self._init_segment(
             sequence=data['sequence'],
             range=data['range'],
@@ -269,100 +269,6 @@ class Model:
             'beam': self.beam,
             'twiss': self.twiss_args,
         })
-
-    def _guess_main_sequence(self):
-        """Try to guess the 'main' sequence to be viewed."""
-        sequence = self.madx.sequence()
-        if sequence:
-            return sequence.name
-        sequences = self.madx.sequence
-        if not sequences:
-            raise ValueError("No sequences defined!")
-        if len(sequences) != 1:
-            # TODO: ask user which one to use
-            raise ValueError("Multiple sequences defined, none active. "
-                             "Cannot uniquely determine which to use.")
-        return next(iter(sequences))
-
-    def _get_seq_model(self, sequence_name):
-        """
-        Return a model as good as possible from the last TWISS statement used
-        for the given sequence, if available.
-
-        Note that it seems currently not possible to reliably access prior
-        TWISS statements and hence the information required to guess the
-        model is extracted from the TWISS tables associated with the
-        sequences. This means that
-
-            - twiss tables may accidentally be associated with the wrong
-              sequence
-            - there is no reliable way to tell which parameters were set in
-              the twiss command and hence deduce the correct (expected) model
-            - you have to make sure the twiss range starts with a zero-width
-              element (e.g. MARKER), otherwise TWISS parameters at the start
-              of the range can not be reliably extrapolated
-
-        The returned model should be seen as a first guess/approximation. Some
-        fields may be empty if they cannot reliably be determined.
-
-        :raises RuntimeError: if the sequence is undefined
-        """
-        try:
-            sequence = self.madx.sequence[sequence_name]
-        except KeyError:
-            raise RuntimeError("The sequence is not defined.")
-        try:
-            beam = sequence.beam
-        except RuntimeError:
-            beam = {}
-        try:
-            range, twiss = self._get_twiss(sequence)
-        except RuntimeError:
-            range = (sequence_name+'$start', sequence_name+'$end')
-            twiss = {}
-        return {
-            'sequence': sequence_name,
-            'range': range,
-            'beam': _eval_expr(beam),
-            'twiss': _eval_expr(twiss),
-        }
-
-    def _get_twiss(self, sequence):
-        """
-        Try to determine (range, twiss) from the MAD-X state.
-
-        :raises RuntimeError: if unable to make a useful guess
-        """
-        table = sequence.twiss_table        # raises RuntimeError
-        try:
-            first, last = table.range
-        except ValueError:
-            raise RuntimeError("TWISS table inaccessible or nonsensical.")
-        if first not in sequence.expanded_elements or \
-                last not in sequence.expanded_elements:
-            raise RuntimeError(
-                "The TWISS table appears to belong to a different sequence.")
-        mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
-        optional_fields = {
-            'x', 'px', 'mux', 'dx', 'dpx',
-            'y', 'py', 'muy', 'dy', 'dpy',
-            't', 'pt',
-            'wx', 'phix', 'dmux', 'ddx', 'ddpx',
-            'wy', 'phiy', 'dmuy', 'ddy', 'ddpy',
-            'r11', 'r12', 'r21', 'r22',
-            'tolerance', 'deltap',   # TODO: deltap has special format!
-        }
-        # TODO: periodic lines -> only mux/muy/deltap
-        # TODO: logical parameters like CHROM
-        twiss = {
-            key: float(val)
-            for key, val in table[0].items()
-            if issubclass(val.dtype.type, np.number) and (
-                    (key in mandatory_fields) or
-                    (key in optional_fields and val != 0)
-            )
-        }
-        return (first, last), twiss
 
     def _init_segment(self, sequence, range, beam, twiss_args):
         """
@@ -933,3 +839,100 @@ class TwissTable(Table):
             return super()._query(column)
         else:
             return transform(self)
+
+
+def _guess_main_sequence(madx):
+    """Try to guess the 'main' sequence to be viewed."""
+    sequence = madx.sequence()
+    if sequence:
+        return sequence.name
+    sequences = madx.sequence
+    if not sequences:
+        raise ValueError("No sequences defined!")
+    if len(sequences) != 1:
+        # TODO: ask user which one to use
+        raise ValueError("Multiple sequences defined, none active. "
+                         "Cannot uniquely determine which to use.")
+    return next(iter(sequences))
+
+
+def _get_seq_model(madx, sequence_name):
+    """
+    Return a model as good as possible from the last TWISS statement used
+    for the given sequence, if available.
+
+    Note that it seems currently not possible to reliably access prior
+    TWISS statements and hence the information required to guess the
+    model is extracted from the TWISS tables associated with the
+    sequences. This means that
+
+        - twiss tables may accidentally be associated with the wrong
+          sequence
+        - there is no reliable way to tell which parameters were set in
+          the twiss command and hence deduce the correct (expected) model
+        - you have to make sure the twiss range starts with a zero-width
+          element (e.g. MARKER), otherwise TWISS parameters at the start
+          of the range can not be reliably extrapolated
+
+    The returned model should be seen as a first guess/approximation. Some
+    fields may be empty if they cannot reliably be determined.
+
+    :raises RuntimeError: if the sequence is undefined
+    """
+    try:
+        sequence = madx.sequence[sequence_name]
+    except KeyError:
+        raise RuntimeError("The sequence is not defined.")
+    try:
+        beam = sequence.beam
+    except RuntimeError:
+        beam = {}
+    try:
+        range, twiss = _get_twiss(sequence)
+    except RuntimeError:
+        range = (sequence_name+'$start', sequence_name+'$end')
+        twiss = {}
+    return {
+        'sequence': sequence_name,
+        'range': range,
+        'beam': _eval_expr(beam),
+        'twiss': _eval_expr(twiss),
+    }
+
+
+def _get_twiss(sequence):
+    """
+    Try to determine (range, twiss) from the MAD-X state.
+
+    :raises RuntimeError: if unable to make a useful guess
+    """
+    table = sequence.twiss_table        # raises RuntimeError
+    try:
+        first, last = table.range
+    except ValueError:
+        raise RuntimeError("TWISS table inaccessible or nonsensical.")
+    if first not in sequence.expanded_elements or \
+            last not in sequence.expanded_elements:
+        raise RuntimeError(
+            "The TWISS table appears to belong to a different sequence.")
+    mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
+    optional_fields = {
+        'x', 'px', 'mux', 'dx', 'dpx',
+        'y', 'py', 'muy', 'dy', 'dpy',
+        't', 'pt',
+        'wx', 'phix', 'dmux', 'ddx', 'ddpx',
+        'wy', 'phiy', 'dmuy', 'ddy', 'ddpy',
+        'r11', 'r12', 'r21', 'r22',
+        'tolerance', 'deltap',   # TODO: deltap has special format!
+    }
+    # TODO: periodic lines -> only mux/muy/deltap
+    # TODO: logical parameters like CHROM
+    twiss = {
+        key: float(val)
+        for key, val in table[0].items()
+        if issubclass(val.dtype.type, np.number) and (
+                (key in mandatory_fields) or
+                (key in optional_fields and val != 0)
+        )
+    }
+    return (first, last), twiss
