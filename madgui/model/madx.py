@@ -127,14 +127,16 @@ class Model:
             if len(data[name]) == 1 and name in data[name]:
                 data[name] = data[name][name]
 
-    def get_beam(self):
+    @property
+    def beam(self):
         """Get the beam parameter dictionary."""
         return self._beam
 
-    def set_beam(self, beam):
+    @beam.setter
+    def beam(self, beam):
         """Set beam from a parameter dictionary."""
-        self._beam = beam
-        self._use_beam(beam)
+        self._beam = beam = dict(beam, sequence=self.sequence.name)
+        self.madx.command.beam(**beam)
 
     @property
     def globals(self):
@@ -144,8 +146,6 @@ class Model:
     def globals(self, knobs):
         for k, v in knobs.items():
             self.madx.globals[k] = v
-
-    beam = property(get_beam, set_beam)
 
     def get_element_by_position(self, pos):
         """Find optics element by longitudinal position."""
@@ -278,9 +278,8 @@ class Model:
         self.seq_name = self.sequence.name
         self.continuous_matching = True
 
-        self._beam = beam
+        self.beam = beam
         self.twiss_args = twiss_args
-        self._use_beam(beam)
         self.sequence.use()
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
@@ -433,10 +432,6 @@ class Model:
 
         self.elements.invalidate(elem)
         self.twiss.invalidate()
-
-    def _use_beam(self, beam):
-        beam = dict(beam, sequence=self.sequence.name)
-        self.madx.command.beam(**beam)
 
     def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
