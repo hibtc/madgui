@@ -11,6 +11,7 @@ __all__ = [
 import math
 import logging
 from functools import partial
+from collections import namedtuple
 
 import numpy as np
 
@@ -30,6 +31,20 @@ import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib
 import matplotlib.colors as mpl_colors
 
 
+PlotInfo = namedtuple('PlotInfo', [
+    'name',     # internal graph id (e.g. 'beta.g')
+    'title',    # long display name ('Beta function')
+    'curves',   # [CurveInfo]
+])
+
+CurveInfo = namedtuple('CurveInfo', [
+    'name',     # internal curve id (e.g. 'beta.g.a')
+    'short',    # display name for statusbar ('beta_a')
+    'label',    # y-axis/legend label ('$\beta_a$')
+    'style',    # **kwargs for ax.plot
+])
+
+
 # basic twiss figure
 
 class PlotSelector(QtGui.QComboBox):
@@ -40,7 +55,7 @@ class PlotSelector(QtGui.QComboBox):
         super().__init__(*args, **kwargs)
         self.scene = scene
         self.scene.graph_changed.connect(self.update_index)
-        items = [(l, n) for n, l in scene.model.get_graphs().items()]
+        items = [(l, n) for n, l in scene.get_graphs().items()]
         for label, name in sorted(items):
             self.addItem(label, name)
         self.update_index()
@@ -64,12 +79,13 @@ class TwissFigure(Object):
 
     graph_changed = Signal()
 
-    def __init__(self, figure, model, config):
+    def __init__(self, figure, model, config, graphs, matcher):
         super().__init__()
         self.model = model
         self.config = config
+        self._graph_conf = graphs
         self.figure = figure
-        self.matcher = self.model.get_matcher()
+        self.matcher = matcher
         # scene
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
@@ -105,7 +121,7 @@ class TwissFigure(Object):
         self.plot = plot
         plot.set_scene(self)
         plot.addTool(InfoTool(plot))
-        plot.addTool(MatchTool(plot))
+        plot.addTool(MatchTool(plot, self.matcher))
         plot.addTool(CompareTool(plot))
 
     graph_name = None
@@ -187,11 +203,37 @@ class TwissFigure(Object):
         coord_fmt = "{0:.6f}{1}".format
         parts = [coord_fmt(x, get_raw_label(ax.x_unit)),
                  coord_fmt(y, get_raw_label(ax.y_unit))]
-        elem = self.model.get_element_by_mouse_position(ax, x)
+        elem = self.get_element_by_mouse_position(ax, x)
         if elem:
             name = strip_suffix(elem.node_name, '[0]')
             parts.insert(0, name.upper())
         return ', '.join(parts)
+
+    def get_element_by_mouse_position(self, axes, pos):
+        """Find an element close to the mouse cursor."""
+        model = self.model
+        elems = model.elements
+        elem = model.get_element_by_position(pos)
+        if elem is None:
+            return None
+        # Fuzzy select nearby elements, if they are <= 3px:
+        at, L = elem.position, elem.length
+        index = elem.index
+        x0_px = axes.transData.transform_point((0, 0))[0]
+        x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
+        len_px = x2pix(L)
+        if len_px > 5 or elem.base_name == 'drift':
+            # max 2px cursor distance:
+            edge_px = max(1, min(2, round(0.2*len_px)))
+            if index > 0 \
+                    and x2pix(pos-at) < edge_px \
+                    and x2pix(elems[index-1].length) <= 3:
+                return elems[index-1]
+            if index < len(elems) \
+                    and x2pix(at+L-pos) < edge_px \
+                    and x2pix(elems[index+1].length) <= 3:
+                return elems[index+1]
+        return elem
 
     def update(self):
         """Update existing plot after TWISS recomputation."""
@@ -200,7 +242,8 @@ class TwissFigure(Object):
 
     def update_graph_data(self):
         self.graph_info, graph_data = \
-            self.model.get_graph_data(self.graph_name, self.xlim)
+            self.get_graph_data(self.graph_name, self.xlim,
+                                self.config['curve_style'])
         self.graph_data = {
             name: np.vstack((to_ui('s', x),
                              to_ui(name, y))).T
@@ -215,6 +258,49 @@ class TwissFigure(Object):
     def get_curve_by_name(self, name):
         return next((c for c in self.twiss_curves.items if c.y_name == name),
                     None)
+
+    # curves
+
+    def get_graph_data(self, name, xlim, styles):
+        """Get the data for a particular graph."""
+        # TODO: use xlim for interpolate
+
+        conf = self._graph_conf[name]
+        info = PlotInfo(
+            name=name,
+            title=conf['title'],
+            curves=[
+                CurveInfo(
+                    name=name,
+                    short=name,
+                    label=label,
+                    style=style)
+                for (name, label), style in zip(conf['curves'], styles)
+            ])
+
+        twiss = self.model.twiss()
+        xdata = twiss.s + self.model.start.position
+        data = {
+            curve.short: (xdata, twiss[curve.name])
+            for curve in info.curves
+        }
+        return info, data
+
+    def get_graphs(self):
+        """Get a list of graph names."""
+        return {name: info['title']
+                for name, info in self._graph_conf.items()}
+
+    def get_graph_columns(self):
+        """Get a set of all columns used in any graph."""
+        cols = {
+            name
+            for info in self._graph_conf.values()
+            for name, _ in info['curves']
+        }
+        cols.add('s')
+        cols.update(self.model.twiss.data._cache.keys())
+        return cols
 
     @property
     def show_indicators(self):
@@ -481,11 +567,11 @@ class MatchTool(CaptureTool):
     text = 'Match for desired target value'
     icon = load_icon_resource('madgui.data', 'target.xpm')
 
-    def __init__(self, plot):
+    def __init__(self, plot, matcher):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
         self.model = plot.scene.model
-        self.matcher = self.model.get_matcher()
+        self.matcher = matcher
         self.matcher.finished.connect(partial(self.setChecked, False))
 
     def activate(self):

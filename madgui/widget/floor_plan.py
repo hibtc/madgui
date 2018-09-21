@@ -16,7 +16,7 @@ from math import cos, sin, sqrt, pi, atan2, floor, log10
 import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui
-from madgui.core.model import FloorCoords
+from madgui.model.madx import FloorCoords
 
 
 ELEMENT_COLOR = {

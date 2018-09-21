@@ -51,6 +51,7 @@ class MainWindow(QtGui.QMainWindow):
         self.options = options
         self.config = config.load(options['--config'])
         self.session_file = self.config.session_file
+        self.matcher = None
         self.model = Boxed(None)
         self.model.changed.connect(self._on_model_changed)
         self.control = control.Control(self)
@@ -488,7 +489,7 @@ class MainWindow(QtGui.QMainWindow):
     @SingleWindow.factory
     def viewMatchDialog(self):
         from madgui.widget.match import MatchWidget
-        widget = MatchWidget(self.model().get_matcher())
+        widget = MatchWidget(self.matcher)
         dialog = Dialog(self)
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Matching constraints.")
@@ -576,7 +577,7 @@ class MainWindow(QtGui.QMainWindow):
         if not any(map(filename.endswith, exts)):
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
-        from madgui.core.model import Model
+        from madgui.model.madx import Model
         self.destroyModel()
         filename = os.path.abspath(filename)
         self.folder, name = os.path.split(filename)
@@ -585,9 +586,9 @@ class MainWindow(QtGui.QMainWindow):
         self.logfile = open(logfile, 'wt')
         logging.info('Loading {}'.format(filename))
         logging.info('Logging commands to: {}'.format(logfile))
-        self.model.set(Model(filename, self.config,
+        self.model.set(Model(filename,
                              command_log=self.log_command,
-                             stdout_log=self.dataReceived.emit,
+                             stdout=self.dataReceived.emit,
                              undo_stack=self.undo_stack))
         self.showTwiss()
 
@@ -596,8 +597,12 @@ class MainWindow(QtGui.QMainWindow):
         self.context['model'] = model
 
         if model is None:
+            self.matcher = None
             self.setWindowTitle("madgui")
             return
+
+        from madgui.model.match import Matcher
+        self.matcher = Matcher(model, self.config['matching'])
 
         self.context['madx'] = model.madx
         self.context['twiss'] = model.twiss.data
@@ -634,6 +639,7 @@ class MainWindow(QtGui.QMainWindow):
 
         model = self.model()
         config = self.config.line_view
+        graphs = self.config['graphs']
 
         # update twiss *before* creating the figure to avoid immediate
         # unnecessary redraws:
@@ -650,7 +656,8 @@ class MainWindow(QtGui.QMainWindow):
         figure = plt.MultiFigure()
         plot = plt.PlotWidget(figure)
 
-        scene = twissfigure.TwissFigure(figure, model, config)
+        scene = twissfigure.TwissFigure(
+            figure, model, config, graphs, self.matcher)
         scene.show_indicators = show_indicators
         scene.set_graph(name or settings.get('graph') or config.default_graph)
         scene.attach(plot)
@@ -827,7 +834,8 @@ class InfoBoxGroup:
     def create_info_box(self, el_id):
         from madgui.widget.elementinfo import ElementInfoBox
         model = self.model()
-        info = ElementInfoBox(model, el_id)
+        config = self.mainwindow.config
+        info = ElementInfoBox(model, el_id, config.summary_attrs)
         dock = Dialog(self.mainwindow)
         dock.setSimpleExportWidget(info, None)
         dock.setWindowTitle(

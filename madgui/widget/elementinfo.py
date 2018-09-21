@@ -19,7 +19,8 @@ from madgui.qt import Qt, QtCore, QtGui
 from madgui.core.base import Signal
 from madgui.core.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.widget.params import TabParamTables, ParamTable, CommandEdit
+from madgui.widget.params import (
+    TabParamTables, ParamTable, CommandEdit, ParamInfo)
 
 
 mpl_backend = get_backend_module()
@@ -30,8 +31,9 @@ class ElementInfoBox(QtGui.QWidget):
     changed_element = Signal()
     _el_id = None
 
-    def __init__(self, model, el_id, **kwargs):
+    def __init__(self, model, el_id, summary, **kwargs):
         super().__init__()
+        self.summary = summary
 
         self.notebook = TabParamTables([
             ('Summary', ParamTable(self._fetch_summary, self._update_element,
@@ -111,20 +113,21 @@ class ElementInfoBox(QtGui.QWidget):
 
     def _fetch_summary(self, elem_index=0):
         elem = self.model.elements[elem_index]
-        show = self.model.config['parameter_sets']['element']['show']
+        show = self.summary
         data = OrderedDict([
             (k, getattr(elem, k))
             for k in show['common'] + show.get(elem.base_name, [])
         ])
-        return self.model._par_list(data, 'element')
+        return [ParamInfo(k.title(), v, mutable=k in elem)
+                for k, v in data.items()]
 
     def _fetch_twiss(self, elem_index=0):
         data = self.model.get_elem_twiss(elem_index)
-        return self.model._par_list(data, 'twiss')
+        return [ParamInfo(k.title(), v) for k, v in data.items()]
 
     def _fetch_sigma(self, elem_index=0):
         data = self.model.get_elem_sigma(elem_index)
-        return self.model._par_list(data, 'sigma')
+        return [ParamInfo(k.title(), v) for k, v in data.items()]
 
     def _fetch_sector(self, elem_index=0):
         sectormap = self.model.sectormap(elem_index)
@@ -136,7 +139,7 @@ class ElementInfoBox(QtGui.QWidget):
             'k{}'.format(i+1): sectormap[6, i]
             for i in range(6)
         })
-        return self.model._par_list(data, 'sector')
+        return [ParamInfo(k.title(), v) for k, v in data.items()]
 
 
 class EllipseWidget(QtGui.QWidget):

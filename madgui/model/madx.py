@@ -7,7 +7,7 @@ __all__ = [
 ]
 
 import os
-from collections import namedtuple, OrderedDict, defaultdict
+from collections import namedtuple, defaultdict
 from collections.abc import Mapping
 from functools import partial, reduce
 import itertools
@@ -22,25 +22,11 @@ import numpy as np
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
 from cpymad.util import normalize_range_name, is_identifier
 
-from madgui.core.base import Cache
 from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
-from madgui.util.collections import CachedList
+from madgui.util.collections import Cache, CachedList
 
-
-PlotInfo = namedtuple('PlotInfo', [
-    'name',     # internal graph id (e.g. 'beta.g')
-    'title',    # long display name ('Beta function')
-    'curves',   # [CurveInfo]
-])
-
-CurveInfo = namedtuple('CurveInfo', [
-    'name',     # internal curve id (e.g. 'beta.g.a')
-    'short',    # display name for statusbar ('beta_a')
-    'label',    # y-axis/legend label ('$\beta_a$')
-    'style',    # **kwargs for ax.plot
-])
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
@@ -81,28 +67,21 @@ class Model:
     :ivar str path: base folder
     """
 
-    matcher = None
-
-    def __init__(self, filename, config, command_log, stdout_log, undo_stack):
+    def __init__(self, filename, command_log, stdout, undo_stack):
         super().__init__()
-        self.twiss = Cache(self._retrack)
-        self.sector = Cache(self._sector)
         self.twiss.invalidated.connect(self.sector.invalidate)
         self.data = {}
         self.path = None
         self.init_files = []
-        self.command_log = command_log
-        self.stdout_log = stdout_log
         self.undo_stack = undo_stack
         self.undo_stack.model = self
-        self.config = config
         self.filename = os.path.abspath(filename)
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         self.path = path
         self.name = base
-        self.madx = Madx(command_log=self.command_log,
-                         stdout=self.stdout_log,
+        self.madx = Madx(command_log=command_log,
+                         stdout=stdout,
                          stderr=subprocess.STDOUT,
                          lock=RLock())
         if ext.lower() in ('.yml', '.yaml'):
@@ -115,8 +94,8 @@ class Model:
                 self._call(filename)
         else:
             self._call(filename)
-            sequence = self._guess_main_sequence()
-            data = self._get_seq_model(sequence)
+            sequence = _guess_main_sequence(self.madx)
+            data = _get_seq_model(self.madx, sequence)
         self._init_segment(
             sequence=data['sequence'],
             range=data['range'],
@@ -177,30 +156,6 @@ class Model:
         i0 = bisect_right(self.positions, pos)
         return self.elements[i0-1 if i0 > 0 else 0]
 
-    def get_element_by_mouse_position(self, axes, pos):
-        """Find an element close to the mouse cursor."""
-        elem = self.get_element_by_position(pos)
-        if elem is None:
-            return None
-        # Fuzzy select nearby elements, if they are <= 3px:
-        at, L = elem.position, elem.length
-        index = elem.index
-        x0_px = axes.transData.transform_point((0, 0))[0]
-        x2pix = lambda x: axes.transData.transform_point((x, 0))[0]-x0_px
-        len_px = x2pix(L)
-        if len_px > 5 or elem.base_name == 'drift':
-            # max 2px cursor distance:
-            edge_px = max(1, min(2, round(0.2*len_px)))
-            if index > 0 \
-                    and x2pix(pos-at) < edge_px \
-                    and x2pix(self.elements[index-1].length) <= 3:
-                return self.elements[index-1]
-            if index < len(self.elements) \
-                    and x2pix(at+L-pos) < edge_px \
-                    and x2pix(self.elements[index+1].length) <= 3:
-                return self.elements[index+1]
-        return elem
-
     def el_pos(self, el):
         """Position for matching / output."""
         return el.position + el.length
@@ -232,17 +187,6 @@ class Model:
         self.update_element({attr: value}, self.elements[elem].index)
 
     # curves
-
-    @property
-    def curve_style(self):
-        return self.config['line_view']['curve_style']
-
-    def get_matcher(self):
-        if self.matcher is None:
-            # TODO: create MatchDialog
-            from madgui.online.match import Matcher
-            self.matcher = Matcher(self, self.config['matching'])
-        return self.matcher
 
     ELEM_KNOBS = {
         'sbend':        ['angle', 'k0'],
@@ -326,100 +270,6 @@ class Model:
             'twiss': self.twiss_args,
         })
 
-    def _guess_main_sequence(self):
-        """Try to guess the 'main' sequence to be viewed."""
-        sequence = self.madx.sequence()
-        if sequence:
-            return sequence.name
-        sequences = self.madx.sequence
-        if not sequences:
-            raise ValueError("No sequences defined!")
-        if len(sequences) != 1:
-            # TODO: ask user which one to use
-            raise ValueError("Multiple sequences defined, none active. "
-                             "Cannot uniquely determine which to use.")
-        return next(iter(sequences))
-
-    def _get_seq_model(self, sequence_name):
-        """
-        Return a model as good as possible from the last TWISS statement used
-        for the given sequence, if available.
-
-        Note that it seems currently not possible to reliably access prior
-        TWISS statements and hence the information required to guess the
-        model is extracted from the TWISS tables associated with the
-        sequences. This means that
-
-            - twiss tables may accidentally be associated with the wrong
-              sequence
-            - there is no reliable way to tell which parameters were set in
-              the twiss command and hence deduce the correct (expected) model
-            - you have to make sure the twiss range starts with a zero-width
-              element (e.g. MARKER), otherwise TWISS parameters at the start
-              of the range can not be reliably extrapolated
-
-        The returned model should be seen as a first guess/approximation. Some
-        fields may be empty if they cannot reliably be determined.
-
-        :raises RuntimeError: if the sequence is undefined
-        """
-        try:
-            sequence = self.madx.sequence[sequence_name]
-        except KeyError:
-            raise RuntimeError("The sequence is not defined.")
-        try:
-            beam = sequence.beam
-        except RuntimeError:
-            beam = {}
-        try:
-            range, twiss = self._get_twiss(sequence)
-        except RuntimeError:
-            range = (sequence_name+'$start', sequence_name+'$end')
-            twiss = {}
-        return {
-            'sequence': sequence_name,
-            'range': range,
-            'beam': _eval_expr(beam),
-            'twiss': _eval_expr(twiss),
-        }
-
-    def _get_twiss(self, sequence):
-        """
-        Try to determine (range, twiss) from the MAD-X state.
-
-        :raises RuntimeError: if unable to make a useful guess
-        """
-        table = sequence.twiss_table        # raises RuntimeError
-        try:
-            first, last = table.range
-        except ValueError:
-            raise RuntimeError("TWISS table inaccessible or nonsensical.")
-        if first not in sequence.expanded_elements or \
-                last not in sequence.expanded_elements:
-            raise RuntimeError(
-                "The TWISS table appears to belong to a different sequence.")
-        mandatory_fields = {'betx', 'bety', 'alfx', 'alfy'}
-        optional_fields = {
-            'x', 'px', 'mux', 'dx', 'dpx',
-            'y', 'py', 'muy', 'dy', 'dpy',
-            't', 'pt',
-            'wx', 'phix', 'dmux', 'ddx', 'ddpx',
-            'wy', 'phiy', 'dmuy', 'ddy', 'ddpy',
-            'r11', 'r12', 'r21', 'r22',
-            'tolerance', 'deltap',   # TODO: deltap has special format!
-        }
-        # TODO: periodic lines -> only mux/muy/deltap
-        # TODO: logical parameters like CHROM
-        twiss = {
-            key: float(val)
-            for key, val in table[0].items()
-            if issubclass(val.dtype.type, np.number) and (
-                    (key in mandatory_fields) or
-                    (key in optional_fields and val != 0)
-            )
-        }
-        return (first, last), twiss
-
     def _init_segment(self, sequence, range, beam, twiss_args):
         """
         :param str sequence:
@@ -477,40 +327,30 @@ class Model:
     def export_twiss(self):
         return dict(self.twiss_args)
 
-    def fetch_globals(self):
-        return self._par_list(self.globals, 'globals', str.upper)
-
     def fetch_beam(self):
         from madgui.widget.params import ParamInfo
         beam = self.beam
-        pars = self._par_list(beam, 'beam')
+        pars = [
+            ParamInfo(k.title(), v,
+                      inform=k in beam,
+                      mutable=k != 'sequence')
+            for k, v in self.sequence.beam.items()
+        ]
         ekin = (beam['energy'] - beam['mass']) / beam['mass']
         idx = next(i for i, p in enumerate(pars) if p.name.lower() == 'energy')
         pars.insert(idx, ParamInfo('E_kin', ekin))
-        for p in pars:
-            p.inform = p.name.lower() in beam
         return pars
 
     def fetch_twiss(self):
-        twiss_args = self.twiss_args
-        pars = self._par_list(twiss_args, 'twiss_args')
-        for p in pars:
-            p.inform = p.name.lower() in twiss_args
-        return pars
-
-    def _par_list(self, data, name, title_transform=str.title, **kw):
         from madgui.widget.params import ParamInfo
-        conf = self.config['parameter_sets'][name]
-        data = process_spec(conf['params'], data)
-        readonly = conf.get('readonly', ())
-        return [ParamInfo(title_transform(key), val,
-                          mutable=key not in readonly)
-                for key, val in data.items()]
-
-    # TODO…
-    def _is_mutable_attribute(self, k, v):
-        blacklist = self.config['parameter_sets']['element']['readonly']
-        return k.lower() not in blacklist
+        blacklist = ('sequence', 'line', 'range', 'notable')
+        twiss_args = self.twiss_args
+        return [
+            ParamInfo(k.title(), twiss_args.get(k, v),
+                      inform=k in twiss_args,
+                      mutable=k not in blacklist)
+            for k, v in self.madx.command.twiss.items()
+        ]
 
     def _update(self, old, new, write, text):
         old = {k.lower(): v for k, v in items(old)}
@@ -580,12 +420,11 @@ class Model:
 
     def _update_element(self, data, elem_index):
         # TODO: this crashes for many parameters
-        # - proper mutability detection
         # - update only changed values
         elem = self.elements[elem_index]
         name = elem.node_name
         d = {k.lower(): v for k, v in data.items()
-             if self._is_mutable_attribute(k, v)}
+             if k in elem.cmdpar}
         if 'kick' in d and elem.base_name == 'sbend':
             # FIXME: This assumes the definition `k0:=(angle+k0)/l` and
             # will deliver incorrect results if this is not the case!
@@ -719,51 +558,8 @@ class Model:
     def ey(self):
         return self.summary.ey
 
-    # curves
-
-    def get_graph_data(self, name, xlim):
-        """Get the data for a particular graph."""
-        # TODO: use xlim for interpolate
-
-        styles = self.config['line_view']['curve_style']
-        conf = self.config['graphs'][name]
-        info = PlotInfo(
-            name=name,
-            title=conf['title'],
-            curves=[
-                CurveInfo(
-                    name=name,
-                    short=name,
-                    label=label,
-                    style=style)
-                for (name, label), style in zip(conf['curves'], styles)
-            ])
-
-        twiss = self.twiss()
-        xdata = twiss.s + self.start.position
-        data = {
-            curve.short: (xdata, twiss[curve.name])
-            for curve in info.curves
-        }
-        return info, data
-
-    def get_graphs(self):
-        """Get a list of graph names."""
-        return {name: info['title']
-                for name, info in self.config['graphs'].items()}
-
-    def get_graph_columns(self):
-        """Get a set of all columns used in any graph."""
-        cols = {
-            name
-            for info in self.config['graphs'].values()
-            for name, _ in info['curves']
-        }
-        cols.add('s')
-        cols.update(self.twiss.data._cache.keys())
-        return cols
-
-    def _retrack(self):
+    @Cache.decorate
+    def twiss(self):
         """Recalculate TWISS parameters."""
         step = self.sequence.elements[-1].position/400
         self.madx.command.select(flag='interpolate', clear=True)
@@ -790,7 +586,8 @@ class Model:
 
         # TODO: update elements
 
-    def _sector(self):
+    @Cache.decorate
+    def sector(self):
         """Compute sectormaps of all elements."""
         # TODO: Ideally, we should compute sectormaps and twiss during the
         # same MAD-X TWISS command. But, since we don't need interpolated
@@ -900,34 +697,6 @@ class Model:
     write_params = update_globals
 
 
-def process_spec(prespec, data):
-    # NOTE: we cast integers specified in the config to floats, in order to
-    # get the correct ValueProxy in TableView. Technically, this makes it
-    # impossible to specify a pure int parameter in the config file, but we
-    # don't have any so far anyway… Note that we can't use `isinstance` here,
-    # because that matches bool as well.
-    float_ = lambda x: float(x) if type(x) is int else x
-    # TODO: Handle defaults for hard-coded and ad-hoc keys homogeniously.
-    # The simplest option would be to simply specify list of priority keys in
-    # the config file…
-    spec = OrderedDict([
-        (k, float_(data.get(k, v)))
-        for item in prespec
-        for spec in item.items()
-        for k, v in process_spec_item(*spec)
-        # TODO: distinguish items that are not in `data` (we can't just
-        # filter, because that prevents editting defaulted parameters)
-        # if k in data
-    ])
-    # Add keys that were not hard-coded in config:
-    spec.update(OrderedDict([
-        (k, v)
-        for k, v in data.items()
-        if k not in spec
-    ]))
-    return spec
-
-
 class ElementList(CachedList):
 
     """
@@ -947,18 +716,6 @@ class ElementList(CachedList):
                 elif name in ('#e', 'end'):
                     return len(self) - 1
         return super().index(element)
-
-
-# TODO: support expressions
-def process_spec_item(key, value):
-    if isinstance(value, list):
-        rows = len(value)
-        if rows > 0 and isinstance(value[0], list):
-            cols = len(value[0])
-            return [("{}{}{}".format(key, row+1, col+1), value[row][col])
-                    for row in range(rows)
-                    for col in range(cols)]
-    return [(key, value)]
 
 
 # stuff for online control
@@ -1082,3 +839,92 @@ class TwissTable(Table):
             return super()._query(column)
         else:
             return transform(self)
+
+
+def _guess_main_sequence(madx):
+    """Try to guess the 'main' sequence to be viewed."""
+    sequence = madx.sequence()
+    if sequence:
+        return sequence.name
+    sequences = madx.sequence
+    if not sequences:
+        raise ValueError("No sequences defined!")
+    if len(sequences) != 1:
+        # TODO: ask user which one to use
+        raise ValueError("Multiple sequences defined, none active. "
+                         "Cannot uniquely determine which to use.")
+    return next(iter(sequences))
+
+
+def _get_seq_model(madx, sequence_name):
+    """
+    Return a model as good as possible from the last TWISS statement used
+    for the given sequence, if available.
+
+    Note that it seems currently not possible to reliably access prior
+    TWISS statements and hence the information required to guess the
+    model is extracted from the TWISS tables associated with the
+    sequences. This means that
+
+        - twiss tables may accidentally be associated with the wrong
+          sequence
+        - there is no reliable way to tell which parameters were set in
+          the twiss command and hence deduce the correct (expected) model
+        - you have to make sure the twiss range starts with a zero-width
+          element (e.g. MARKER), otherwise TWISS parameters at the start
+          of the range can not be reliably extrapolated
+
+    The returned model should be seen as a first guess/approximation. Some
+    fields may be empty if they cannot reliably be determined.
+
+    :raises RuntimeError: if the sequence is undefined
+    """
+    try:
+        sequence = madx.sequence[sequence_name]
+    except KeyError:
+        raise RuntimeError("The sequence is not defined.")
+    try:
+        beam = sequence.beam
+    except RuntimeError:
+        beam = {}
+    try:
+        range, twiss = _get_twiss(sequence)
+    except RuntimeError:
+        range = (sequence_name+'$start', sequence_name+'$end')
+        twiss = {}
+    return {
+        'sequence': sequence_name,
+        'range': range,
+        'beam': _eval_expr(beam),
+        'twiss': _eval_expr(twiss),
+    }
+
+
+def _get_twiss(madx, sequence):
+    """
+    Try to determine (range, twiss) from the MAD-X state.
+
+    :raises RuntimeError: if unable to make a useful guess
+    """
+    table = sequence.twiss_table        # raises RuntimeError
+    try:
+        first, last = table.range
+    except ValueError:
+        raise RuntimeError("TWISS table inaccessible or nonsensical.")
+    if first not in sequence.expanded_elements or \
+            last not in sequence.expanded_elements:
+        raise RuntimeError(
+            "The TWISS table appears to belong to a different sequence.")
+    mandatory = {'betx', 'bety', 'alfx', 'alfy'}
+    defaults = madx.command.twiss
+    # TODO: periodic lines -> only mux/muy/deltap
+    # TODO: logical parameters like CHROM
+    twiss = {
+        key: float(val)
+        for key, val in table[0].items()
+        if issubclass(val.dtype.type, np.number) and (
+                (key in mandatory) or
+                (key in defaults and val != defaults.cmdpar[key].value)
+        )
+    }
+    return (first, last), twiss

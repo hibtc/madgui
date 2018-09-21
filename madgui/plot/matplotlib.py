@@ -14,9 +14,10 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
 from madgui.qt import QtCore, QtGui
-from madgui.core.base import Signal, Cache
+from madgui.core.base import Signal
 from madgui.core.unit import from_ui
 from madgui.util.layout import VBoxLayout
+from madgui.util.collections import Cache
 
 
 mpl_backend = get_backend_module()
@@ -141,7 +142,7 @@ class PlotWidget(QtGui.QWidget):
         axes = mpl_event.inaxes
         xpos = from_ui(axes.x_name[0], mpl_event.xdata)
         ypos = from_ui(axes.y_name[0], mpl_event.ydata)
-        elem = self.scene.model.get_element_by_mouse_position(axes, xpos)
+        elem = self.scene.get_element_by_mouse_position(axes, xpos)
         event = MouseEvent(mpl_event.button, xpos, ypos,
                            axes, elem, mpl_event.guiEvent)
         signal.emit(event)
@@ -164,9 +165,8 @@ class MultiFigure:
         """Create an empty matplotlib figure with multiple subplots."""
         self.backend_figure = Figure(tight_layout=True)
         self.share_axes = share_axes
-        draw_idle = Cache(self.draw)
-        self.invalidate = draw_idle.invalidate
-        draw_idle.updated.connect(lambda: None)     # always update
+        self.invalidate = self.draw.invalidate
+        self.draw.updated.connect(lambda: None)     # always update
         self.axes = ()
 
     def set_num_axes(self, num_axes, shared=False):
@@ -199,6 +199,7 @@ class MultiFigure:
         for ax in self.axes:
             _autoscale_axes(ax)
 
+    @Cache.decorate
     def draw(self):
         """Draw the figure on its canvas."""
         self.canvas.draw()
