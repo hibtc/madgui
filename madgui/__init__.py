@@ -51,4 +51,4 @@ __classifiers__ = [
 
 def get_copyright_notice():
     from importlib_resources import read_binary
-    return read_binary('madgui', 'COPYING.txt').decode('utf-8')
+    return read_binary('madgui.data', 'COPYING.txt').decode('utf-8')

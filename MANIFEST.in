@@ -1,6 +1,5 @@
 include README.rst
 include COPYING.rst COPYING.GPLv3.txt
-include madgui/COPYING.txt
 include madgui/data/*.txt
 include madgui/data/*.yml
 include madgui/data/*.xpm
