@@ -39,7 +39,6 @@ from madgui.qt import QtCore, QtGui
 
 from madgui import __version__
 from madgui.core.mainwindow import MainWindow
-from madgui.core.worker import QueuedDispatcher
 from madgui.util.qt import load_icon_resource
 
 
@@ -65,7 +64,6 @@ def main(argv=None):
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
     opts = docopt(__doc__, args, version=__version__)
-    app.dispatch = QueuedDispatcher()
     mainwindow = MainWindow(opts)
     mainwindow.show()
     app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))

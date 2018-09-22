@@ -16,7 +16,6 @@ from collections import namedtuple
 import numpy as np
 
 from madgui.qt import QtGui, Qt
-from madgui.core.worker import fetch_all
 from madgui.core.base import Object, Signal
 
 from madgui.util.qt import load_icon_resource
@@ -393,8 +392,6 @@ class ListView(SceneGraph):
 
 class IndicatorManager(SceneGraph):
 
-    _fetch = None
-
     def create(self, axes, scene, style):
         self.scene = scene
         self.axes = axes
@@ -402,30 +399,19 @@ class IndicatorManager(SceneGraph):
         self.clear()
         self.update()
 
-    def callback(self, elements):
+    def update(self):
         # TODO: update indicators rather than recreate all of them anew:
         scene, style = self.scene, self.style
         self.clear([
             SceneGraph([
                 ElementIndicator(ax, scene, style, elem)
-                for elem in elements
+                for elem in self.scene.model.elements
                 if elem.base_name.lower() in style
             ])
             for ax in self.axes
         ])
 
-    def update(self):
-        self._stop_fetch()
-        self._fetch = fetch_all(
-            self.scene.model.elements, self.callback, block=0.5)
-
-    def _stop_fetch(self):
-        if self._fetch:
-            self._fetch.stop()
-            self._fetch = None
-
     def remove(self):
-        self._stop_fetch()
         super().remove()
 
 
