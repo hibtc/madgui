@@ -13,7 +13,6 @@ from functools import partial, reduce
 import itertools
 from bisect import bisect_right
 import subprocess
-from threading import RLock
 from contextlib import contextmanager, suppress
 import logging
 
@@ -82,8 +81,7 @@ class Model:
         self.name = base
         self.madx = Madx(command_log=command_log,
                          stdout=stdout,
-                         stderr=subprocess.STDOUT,
-                         lock=RLock())
+                         stderr=subprocess.STDOUT)
         if ext.lower() in ('.yml', '.yaml'):
             with open(self.filename, 'rb') as f:
                 self.data = data = yaml.safe_load(f)
