@@ -38,7 +38,7 @@ from docopt import docopt
 from madgui.qt import QtCore, QtGui
 
 from madgui import __version__
-from madgui.core.mainwindow import MainWindow
+from madgui.widget.mainwindow import MainWindow
 from madgui.util.qt import load_icon_resource
 
 

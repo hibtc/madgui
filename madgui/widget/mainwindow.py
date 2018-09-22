@@ -25,7 +25,7 @@ from madgui.widget.log import LogRecord
 
 import madgui.online.control as control
 import madgui.core.config as config
-import madgui.core.menu as menu
+import madgui.util.menu as menu
 import madgui.util.yaml as yaml
 
 
@@ -551,7 +551,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.aboutQt(self)
 
     def _showAboutDialog(self, module):
-        import madgui.core.about as about
+        import madgui.widget.about as about
         info = about.VersionInfo(module)
         return about.AboutDialog(info, self)
 
@@ -769,7 +769,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def _createShell(self):
         """Create a python shell widget."""
-        import madgui.core.pyshell as pyshell
+        import madgui.widget.pyshell as pyshell
         self.shell = pyshell.create(self.context)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
