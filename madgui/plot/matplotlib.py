@@ -9,7 +9,7 @@ __all__ = [
 
 from collections import namedtuple
 
-from madgui.plot import get_backend_module
+from madgui.plot import mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
@@ -19,8 +19,6 @@ from madgui.util.unit import from_ui
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import Cache
 
-
-mpl_backend = get_backend_module()
 
 Triple = namedtuple('Triple', ['x', 'y', 's'])
 

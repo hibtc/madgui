@@ -12,7 +12,7 @@ from functools import partial
 from math import sqrt, pi, atan2
 import itertools
 
-from madgui.plot import get_backend_module
+from madgui.plot import mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 
@@ -24,9 +24,6 @@ from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
 from madgui.widget.params import (
     TabParamTables, ParamTable, CommandEdit, ParamInfo)
-
-
-mpl_backend = get_backend_module()
 
 
 class ElementInfoBox(QtGui.QWidget):
