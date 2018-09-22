@@ -43,10 +43,8 @@ class Item:
             else:
                 icon = self.icon
             action.setIcon(icon)
-        if self.enabled is not None:
-            self._dynamic_property(self.enabled, action.setEnabled)
-        if checkable:
-            self._dynamic_property(self.checked, action.setChecked)
+        _set_from(action.setEnabled, self.enabled)
+        _set_from(action.setChecked, self.checked)
         return action
 
     def append_to(self, menu, parent=None):
@@ -54,13 +52,15 @@ class Item:
         menu.addAction(action)
         return action
 
-    def _dynamic_property(self, prop, setter):
+
+def _set_from(slot, val):
+    if val is not None:
         try:
-            cur = prop()
-            prop.changed.connect(setter)
+            cur = val()
+            val.changed.connect(slot)
         except TypeError:
-            cur = prop
-        setter(cur)
+            cur = val
+        slot(cur)
 
 
 class Menu:
