@@ -12,7 +12,7 @@ from functools import partial
 from math import sqrt, pi, atan2
 import itertools
 
-from madgui.matplotlib import get_backend_module
+from madgui.plot import get_backend_module
 from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 

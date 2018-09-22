@@ -9,7 +9,7 @@ __all__ = [
 
 from collections import namedtuple
 
-from madgui.matplotlib import get_backend_module
+from madgui.plot import get_backend_module
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
