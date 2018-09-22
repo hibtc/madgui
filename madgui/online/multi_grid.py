@@ -14,7 +14,7 @@ import yaml
 
 from madgui.qt import QtCore, QtGui, load_ui
 
-from madgui.core.unit import ui_units, change_unit, get_raw_label
+from madgui.util.unit import ui_units, change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.qt import bold
 from madgui.widget.tableview import TableItem

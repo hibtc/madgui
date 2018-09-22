@@ -14,7 +14,7 @@ from functools import partial
 import cpymad.util as _dtypes
 
 from madgui.qt import QtGui, Qt
-from madgui.core.unit import ui_units, get_raw_label
+from madgui.util.unit import ui_units, get_raw_label
 from madgui.util.qt import bold
 from madgui.util.export import export_params, import_params
 

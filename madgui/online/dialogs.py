@@ -3,7 +3,7 @@ Dialog for selecting DVM parameters to be synchronized.
 """
 
 from madgui.qt import QtGui, Qt
-from madgui.core.unit import change_unit, get_raw_label
+from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
 from madgui.util.qt import bold
 from madgui.widget.tableview import TableView, TableItem

@@ -7,7 +7,7 @@ import logging
 import numpy as np
 
 from madgui.qt import Qt, QtGui, load_ui
-from madgui.core.unit import ui_units
+from madgui.util.unit import ui_units
 from madgui.util import yaml
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List

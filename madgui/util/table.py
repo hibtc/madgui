@@ -7,7 +7,7 @@ from os.path import abspath
 
 import numpy as np
 
-from madgui.core.unit import from_config, from_ui
+from madgui.util.unit import from_config, from_ui
 
 
 TFS_READER = None
