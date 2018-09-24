@@ -25,12 +25,10 @@ The interface contract is currently designed as follows:
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 
-_Interface = ABCMeta('_Interface', (object,), {})
 
+class Backend(metaclass=ABCMeta):
 
-class Loader(_Interface):
-
-    """Loader interface for online control plugin."""
+    """Interface for a online control plugin."""
 
     @classmethod
     def check_avail(self):
@@ -41,11 +39,6 @@ class Loader(_Interface):
     def load(self, frame):
         """Get a :class:`Backend` instance."""
         raise NotImplementedError
-
-
-class Backend(_Interface):
-
-    """Interface for a connected online control plugin."""
 
     @abstractmethod
     def connect(self):
