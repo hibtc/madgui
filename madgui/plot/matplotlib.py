@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
 from madgui.qt import QtCore, QtGui
-from madgui.core.base import Signal
+from madgui.core.signal import Signal
 from madgui.util.unit import from_ui
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import Cache

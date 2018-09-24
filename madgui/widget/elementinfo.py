@@ -17,7 +17,7 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 
 from madgui.qt import Qt, QtCore, QtGui
-from madgui.core.base import Signal
+from madgui.core.signal import Signal
 from madgui.util.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import notifyCloseEvent, notifyEvent

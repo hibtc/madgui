@@ -15,7 +15,7 @@ from functools import partial
 import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui, load_ui
-from madgui.core.base import Signal
+from madgui.core.signal import Signal
 from madgui.util.collections import Selection, Boxed
 from madgui.util.misc import SingleWindow, logfile_name, try_import, relpath
 from madgui.util.qt import notifyCloseEvent

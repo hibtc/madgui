@@ -9,7 +9,7 @@ import re
 from madgui.qt import Qt, QtGui
 
 from madgui.util.unit import units, get_raw_label, get_unit, tounit
-from madgui.core.base import Signal
+from madgui.core.signal import Signal
 from madgui.util.misc import rw_property
 
 import madgui.core.config as config

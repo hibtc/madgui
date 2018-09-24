@@ -7,7 +7,7 @@ import math
 from madgui.qt import Qt, QtCore, QtGui
 
 from madgui.widget.quantity import ValueControlBase, QuantityControlBase
-from madgui.core.base import Signal
+from madgui.core.signal import Signal
 import madgui.core.config as config
 
 
