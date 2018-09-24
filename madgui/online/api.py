@@ -2,15 +2,12 @@
 This module defines the API of any online control plugin. Note that the API
 is subject to change (as is most parts of madgui…).
 
-The interface contract is currently designed as follows:
+The user must add their derived :class:`Backend` to the madgui config as:
 
-    - The user must add their derived :class:`Backend` in the "onload" config
-      section via ``frame.add_online_backend(MyBackend)``
+.. code-block:: yaml
 
-    - It loads the DLL / connects the database when requested and returns a
-      :class:`Backend` instance.
-
-    - A :class:`Backend` instance mediates access to the online parameters.
+    online_control:
+      backend: 'hit_csys.plugin:OnlineBackend'
 """
 
 from abc import ABCMeta, abstractmethod
@@ -21,13 +18,8 @@ class Backend(metaclass=ABCMeta):
 
     """Interface for a online control plugin."""
 
-    @classmethod
-    def check_avail(self):
-        """Check if the plugin is available."""
-        return True
-
-    @classmethod
-    def load(self, frame):
+    @abstractmethod
+    def __init__(self, frame, settings):
         """Get a :class:`Backend` instance."""
         raise NotImplementedError
 

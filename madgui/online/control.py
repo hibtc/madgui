@@ -3,6 +3,7 @@ Plugin that integrates a beamoptikdll UI into MadGUI.
 """
 
 import logging
+from importlib import import_module
 
 import numpy as np
 
@@ -36,23 +37,32 @@ class Control(Object):
         self.readouts = List()
         # menu conditions
         self.is_connected = Bool(False)
-        self.can_connect = ~self.is_connected
+        self.has_backend = Bool(False)
+        self.can_connect = ~self.is_connected & self.has_backend
         self.has_sequence = self.is_connected & self.model
-        self.loader_name = None
-        self._settings = frame.config.online_control.settings
+        self._config = config = frame.config.online_control
+        self._settings = config.settings
         self._on_model_changed()
+        self.set_backend(config.backend)
+
+    def set_backend(self, qualname):
+        self.backend_spec = qualname
+        self.has_backend.set(bool(qualname))
 
     # menu handlers
 
-    def connect(self, name, loader):
-        logging.info('Connecting online control: {}'.format(name))
-        self.model.changed.connect(self._on_model_changed)
-        self._on_model_changed()
-        self.backend = loader.load(self._frame, self._settings)
+    def connect(self):
+        qualname = self.backend_spec
+        logging.info('Connecting online control: {}'.format(qualname))
+        modname, clsname = qualname.split(':')
+        mod = import_module(modname)
+        cls = getattr(mod, clsname)
+        self.backend = cls(self._frame, self._settings)
         self.backend.connect()
         self._frame.context['csys'] = self.backend
         self.is_connected.set(True)
-        self.loader_name = name
+        self.model.changed.connect(self._on_model_changed)
+        self._on_model_changed()
 
     def disconnect(self):
         self._settings = self.export_settings()
@@ -60,7 +70,6 @@ class Control(Object):
         self.backend.disconnect()
         self.backend = None
         self.is_connected.set(False)
-        self.loader_name = None
         self.model.changed.disconnect(self._on_model_changed)
         self._on_model_changed()
 

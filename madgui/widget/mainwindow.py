@@ -89,7 +89,8 @@ class MainWindow(QtGui.QMainWindow):
                 'init_pos': [self.pos().x(), self.pos().y()],
             },
             'online_control': {
-                'connect': self.control.loader_name,
+                'backend': self.control.backend_spec,
+                'connect': self.control.is_connected(),
                 'monitors': self.config.online_control['monitors'],
                 'offsets': self.config.online_control['offsets'],
                 'settings': self.control.export_settings() or {},
@@ -126,11 +127,14 @@ class MainWindow(QtGui.QMainWindow):
         self.move(*self.config.mainwindow.init_pos)
 
     def loadDefault(self):
-        filename = self.options['FILE'] or self.config.load_default
+        config = self.config
+        filename = self.options['FILE'] or config.load_default
         if filename:
             self.loadFile(self.searchFile(filename))
         else:
             logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
+        if config.online_control.connect and self.control.can_connect():
+            self.control.connect()
 
     def createMenu(self):
         control = self.control
@@ -199,7 +203,11 @@ class MainWindow(QtGui.QMainWindow):
                      self.setSpinBox, checked=self.config.number.spinbox),
             ]),
             Menu('&Online control', [
-                Item('Disconnect', None,
+                Item('&Connect', None,
+                     'Connect to the online backend',
+                     control.connect,
+                     enabled=control.can_connect),
+                Item('&Disconnect', None,
                      'Disconnect online control interface',
                      control.disconnect,
                      enabled=control.is_connected),
@@ -265,21 +273,6 @@ class MainWindow(QtGui.QMainWindow):
         self.dc_action = self.csys_menu.actions()[0]
         self.csys_settings_menu = self.csys_menu.children()[-1]
         self.csys_settings_menu.setEnabled(False)
-
-    def add_online_backend(self, loader, name=None):
-        name = name or getattr(loader, 'name', loader.__name__)
-        if loader.check_avail():
-            self.csys_menu.insertAction(self.dc_action, menu.Item(
-                'Connect ' + loader.title, loader.hotkey,
-                'Connect ' + loader.descr,
-                partial(self.control.connect, name, loader),
-                enabled=self.control.can_connect).action(self.menuBar()))
-            if self.config.online_control.connect == name and \
-                    not self.control.is_connected():
-                self.control.connect(name, loader)
-
-    # backwards compatibility alias… for now:
-    add_online_plugin = add_online_backend
 
     dataReceived = Signal(object)
 

@@ -80,11 +80,9 @@ Example file:
 
     model_path: ../hit_models
     session_file: madgui.session.yml
-
-    onload: |
-      from hit_csys.plugin import DllLoader, StubLoader
-      frame.add_online_backend(DllLoader)
-      frame.add_online_backend(StubLoader)
+    online_control:
+      connect: true
+      backend: 'hit_csys.plugin:TestBackend'
 
 Note that the onload handler can be used to execute user-defined code, import
 modules and e.g. add loaders for online control plugins. The API is defined in
