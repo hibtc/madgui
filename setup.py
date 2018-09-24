@@ -53,6 +53,7 @@ def main():
             'madgui',
             'madgui.core',
             'madgui.data',
+            'madgui.model',
             'madgui.online',
             'madgui.plot',
             'madgui.util',

@@ -18,9 +18,9 @@ from madgui.core.unit import ui_units, change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.qt import bold
 from madgui.widget.tableview import TableItem
+from madgui.model.match import Matcher, Constraint
 
 from .orbit import fit_particle_orbit
-from .match import Matcher, Constraint
 from ._common import EditConfigDialog
 
 
@@ -43,7 +43,7 @@ class Corrector(Matcher):
     direct = True
 
     def __init__(self, control, configs):
-        super().__init__(control.model(), None)
+        super().__init__(control.model(), control._frame.config['matching'])
         self.fit_results = None
         self.active = None
         self.control = control

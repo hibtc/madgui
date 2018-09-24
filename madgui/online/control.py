@@ -130,7 +130,7 @@ class Control(Object):
         self.read_beam()
 
     def read_beam(self):
-        self.model().set_beam(self._plugin.get_beam())
+        self.model().update_beam(self._plugin.get_beam())
 
     def read_monitor(self, name):
         return self._plugin.read_monitor(name)

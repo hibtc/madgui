@@ -10,10 +10,10 @@ __all__ = [
 from collections.abc import MutableSequence, Sequence
 from contextlib import contextmanager
 from functools import wraps, partial
-from threading import Lock
 import operator
 
-from madgui.core.base import Object, Signal, Cache
+from madgui.qt import QtCore
+from madgui.core.base import Object, Signal
 
 
 def _operator(get):
@@ -88,7 +88,6 @@ class List(Object):
         """Use the items object by reference."""
         super().__init__()
         self._items = list() if items is None else items
-        self.lock = Lock()
 
     def mirror(self, other):
         """Connect another list to be mirror of oneself."""
@@ -102,21 +101,20 @@ class List(Object):
     @contextmanager
     def update_notify(self, slice, new_values):
         """Emit update signals, only when ."""
-        with self.lock:
-            old_values = self[slice]
-            num_del, num_ins = len(old_values), len(new_values)
-            if slice.step not in (None, 1) and num_del != num_ins:
-                # This scenario is forbidden by `list` as well (even step=-1).
-                # Catch it before emitting the event.
-                raise ValueError(
-                    "attempt to assign sequence of size {} to slice of size {}"
-                    .format(num_ins, num_del))
-            self.update_before.emit(slice, old_values, new_values)
-            try:
-                yield None
-            finally:
-                self._emit_single_notify(slice, old_values, new_values)
-                self.update_after.emit(slice, old_values, new_values)
+        old_values = self[slice]
+        num_del, num_ins = len(old_values), len(new_values)
+        if slice.step not in (None, 1) and num_del != num_ins:
+            # This scenario is forbidden by `list` as well (even step=-1).
+            # Catch it before emitting the event.
+            raise ValueError(
+                "attempt to assign sequence of size {} to slice of size {}"
+                .format(num_ins, num_del))
+        self.update_before.emit(slice, old_values, new_values)
+        try:
+            yield None
+        finally:
+            self._emit_single_notify(slice, old_values, new_values)
+            self.update_after.emit(slice, old_values, new_values)
 
     def _emit_single_notify(self, slice, old_values, new_values):
         num_old = len(old_values)
@@ -254,6 +252,49 @@ def maintain_selection(sel, avail):
     avail.insert_notify.connect(insert)
     avail.delete_notify.connect(delete)
     sel[:] = range(len(avail))
+
+
+class Cache(Object):
+
+    """
+    Cached state that can be invalidated. Invalidation triggers recomputation
+    in the main loop at the next idle time.
+    """
+
+    invalidated = Signal()
+    updated = Signal()      # emitted after update
+    invalid = False         # prevents invalidation during callback()
+
+    def __init__(self, callback):
+        super().__init__()
+        self.data = None
+        self.timer = QtCore.QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self)
+        self.callback = callback
+
+    def invalidate(self):
+        if not self.invalid:
+            self.invalid = True
+            if self.receivers(self.updated) > 0:
+                self.timer.start()
+            self.invalidated.emit()
+
+    def __call__(self, force=False):
+        if force or self.invalid:
+            self.timer.stop()
+            self.invalid = True     # prevent repeated invalidation in callback
+            self.data = self.callback()
+            self.invalid = False    # clear AFTER update
+            self.updated.emit()
+        return self.data
+
+    @classmethod
+    def decorate(cls, fn):
+        # TODO: resolve cyclic dependency!
+        from madgui.util.misc import memoize
+        return property(memoize(wraps(fn)(
+            lambda self: cls(fn.__get__(self)))))
 
 
 class CachedList(Sequence):
