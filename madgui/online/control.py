@@ -217,11 +217,11 @@ class MonitorReadout:
     def __init__(self, name, values):
         self.name = name
         self.data = values
-        self.posx = values.get('posx')
-        self.posy = values.get('posy')
-        self.envx = values.get('envx')
-        self.envy = values.get('envy')
-        self.valid = (self.envx is not None and self.envx > 0 and
-                      self.envy is not None and self.envy > 0 and
-                      not np.isclose(self.posx, -9.999) and
-                      not np.isclose(self.posy, -9.999))
+        self.posx = posx = values.get('posx')
+        self.posy = posy = values.get('posy')
+        self.envx = envx = values.get('envx')
+        self.envy = envy = values.get('envy')
+        self.valid = (envx is not None and envx > 0 and
+                      envy is not None and envy > 0 and
+                      not np.isclose(posx, -9.999) and
+                      not np.isclose(posy, -9.999))
