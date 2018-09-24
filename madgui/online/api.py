@@ -4,13 +4,13 @@ is subject to change (as is most parts of madgui…).
 
 The interface contract is currently designed as follows:
 
-    - A subclass of :class:`PluginLoader` is registered under the
-      "madgui.online.PluginLoader" entry point.
+    - A subclass of :class:`Loader` is registered under the
+      "madgui.online.Loader" entry point.
 
     - It loads the DLL / connects the database when requested and returns a
-      :class:`OnlinePlugin` instance.
+      :class:`Backend` instance.
 
-    - An :class:`OnlinePlugin` instance is used to instanciate accessors for
+    - An :class:`Backend` instance is used to instanciate accessors for
       the actual elements.
 
     - There are two kinds of accessors (returned as tuple):
@@ -28,7 +28,7 @@ from collections import namedtuple
 _Interface = ABCMeta('_Interface', (object,), {})
 
 
-class PluginLoader(_Interface):
+class Loader(_Interface):
 
     """Loader interface for online control plugin."""
 
@@ -39,11 +39,11 @@ class PluginLoader(_Interface):
 
     @classmethod
     def load(self, frame):
-        """Get a :class:`OnlinePlugin` instance."""
+        """Get a :class:`Backend` instance."""
         raise NotImplementedError
 
 
-class OnlinePlugin(_Interface):
+class Backend(_Interface):
 
     """Interface for a connected online control plugin."""
 

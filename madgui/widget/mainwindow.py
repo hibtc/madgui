@@ -266,7 +266,7 @@ class MainWindow(QtGui.QMainWindow):
         self.csys_settings_menu = self.csys_menu.children()[-1]
         self.csys_settings_menu.setEnabled(False)
 
-    def add_online_plugin(self, loader, name=None):
+    def add_online_backend(self, loader, name=None):
         name = name or getattr(loader, 'name', loader.__name__)
         if loader.check_avail():
             self.csys_menu.insertAction(self.dc_action, menu.Item(
@@ -277,6 +277,9 @@ class MainWindow(QtGui.QMainWindow):
             if self.config.online_control.connect == name and \
                     not self.control.is_connected():
                 self.control.connect(name, loader)
+
+    # backwards compatibility alias… for now:
+    add_online_plugin = add_online_backend
 
     dataReceived = Signal(object)
 

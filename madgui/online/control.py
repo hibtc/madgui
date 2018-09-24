@@ -31,7 +31,7 @@ class Control(Object):
         """
         super().__init__()
         self._frame = frame
-        self._plugin = None
+        self.backend = None
         self.model = frame.model
         self.readouts = List()
         # menu conditions
@@ -48,17 +48,17 @@ class Control(Object):
         logging.info('Connecting online control: {}'.format(name))
         self.model.changed.connect(self._on_model_changed)
         self._on_model_changed()
-        self._plugin = loader.load(self._frame, self._settings)
-        self._plugin.connect()
-        self._frame.context['csys'] = self._plugin
+        self.backend = loader.load(self._frame, self._settings)
+        self.backend.connect()
+        self._frame.context['csys'] = self.backend
         self.is_connected.set(True)
         self.loader_name = name
 
     def disconnect(self):
         self._settings = self.export_settings()
         self._frame.context.pop('csys', None)
-        self._plugin.disconnect()
-        self._plugin = None
+        self.backend.disconnect()
+        self.backend = None
         self.is_connected.set(False)
         self.loader_name = None
         self.model.changed.disconnect(self._on_model_changed)
@@ -76,8 +76,8 @@ class Control(Object):
         ])
 
     def export_settings(self):
-        if hasattr(self._plugin, 'export_settings'):
-            return self._plugin.export_settings()
+        if hasattr(self.backend, 'export_settings'):
+            return self.backend.export_settings()
         return self._settings
 
     def get_knobs(self):
@@ -85,7 +85,7 @@ class Control(Object):
         if not self.model():
             return []
         return list(filter(
-            None, map(self._plugin.param_info, self.model().globals)))
+            None, map(self.backend.param_info, self.model().globals)))
 
     # TODO: unify export/import dialog -> "show knobs"
     # TODO: can we drop the read-all button in favor of automatic reads?
@@ -102,7 +102,7 @@ class Control(Object):
 
     def _show_sync_dialog(self, widget, apply):
         from madgui.online.dialogs import SyncParamItem
-        model, live = self.model(), self._plugin
+        model, live = self.model(), self.backend
         widget.data = [
             SyncParamItem(
                 knob, live.read_param(knob.name), model.read_param(knob.name))
@@ -112,7 +112,7 @@ class Control(Object):
         self._show_dialog(widget, apply)
 
     def read_all(self, knobs=None):
-        live = self._plugin
+        live = self.backend
         self.model().write_params([
             (knob.name, live.read_param(knob.name))
             for knob in knobs or self.get_knobs()
@@ -130,10 +130,10 @@ class Control(Object):
         self.read_beam()
 
     def read_beam(self):
-        self.model().update_beam(self._plugin.get_beam())
+        self.model().update_beam(self.backend.get_beam())
 
     def read_monitor(self, name):
-        return self._plugin.read_monitor(name)
+        return self.backend.read_monitor(name)
 
     @SingleWindow.factory
     def monitor_widget(self):
@@ -203,13 +203,13 @@ class Control(Object):
     # helper functions
 
     def write_params(self, params):
-        write = self._plugin.write_param
+        write = self.backend.write_param
         for param, value in params:
             write(param, value)
-        self._plugin.execute()
+        self.backend.execute()
 
     def read_param(self, name):
-        return self._plugin.read_param(name)
+        return self.backend.read_param(name)
 
 
 class MonitorReadout:
