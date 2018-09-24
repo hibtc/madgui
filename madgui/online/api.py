@@ -4,33 +4,22 @@ is subject to change (as is most parts of madgui…).
 
 The interface contract is currently designed as follows:
 
-    - A subclass of :class:`PluginLoader` is registered under the
-      "madgui.online.PluginLoader" entry point.
+    - The user must add their derived :class:`Backend` in the "onload" config
+      section via ``frame.add_online_backend(MyBackend)``
 
     - It loads the DLL / connects the database when requested and returns a
-      :class:`OnlinePlugin` instance.
+      :class:`Backend` instance.
 
-    - An :class:`OnlinePlugin` instance is used to instanciate accessors for
-      the actual elements.
-
-    - There are two kinds of accessors (returned as tuple):
-
-        - :class:`ElementBackend` performs the actual database I/O, i.e.
-          reads/writes parameters from the database.
-
-        - :class:`ElementBackendConverter` performs parameter conversions
-          between internal and standard representation
+    - A :class:`Backend` instance mediates access to the online parameters.
 """
 
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 
-_Interface = ABCMeta('_Interface', (object,), {})
 
+class Backend(metaclass=ABCMeta):
 
-class PluginLoader(_Interface):
-
-    """Loader interface for online control plugin."""
+    """Interface for a online control plugin."""
 
     @classmethod
     def check_avail(self):
@@ -39,13 +28,8 @@ class PluginLoader(_Interface):
 
     @classmethod
     def load(self, frame):
-        """Get a :class:`OnlinePlugin` instance."""
+        """Get a :class:`Backend` instance."""
         raise NotImplementedError
-
-
-class OnlinePlugin(_Interface):
-
-    """Interface for a connected online control plugin."""
 
     @abstractmethod
     def connect(self):

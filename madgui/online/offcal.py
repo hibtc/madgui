@@ -155,8 +155,8 @@ class OffsetCalibrationWidget(QtGui.QWidget):
 
         # TODO: this should be done with a more generic API
         # TODO: do this without beamoptikdll to decrease the waiting time
-        plug = self.control._plugin
-        dll = self.control._plugin._dvm
+        plug = self.control.backend
+        dll = self.control.backend._dvm
         values, channels = dll.GetMEFIValue()
         vacc = dll.GetSelectedVAcc()
 

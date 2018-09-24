@@ -83,8 +83,8 @@ Example file:
 
     onload: |
       from hit_csys.plugin import DllLoader, StubLoader
-      frame.add_online_plugin(DllLoader)
-      frame.add_online_plugin(StubLoader)
+      frame.add_online_backend(DllLoader)
+      frame.add_online_backend(StubLoader)
 
 Note that the onload handler can be used to execute user-defined code, import
 modules and e.g. add loaders for online control plugins. The API is defined in
