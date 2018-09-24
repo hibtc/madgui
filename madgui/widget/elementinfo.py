@@ -7,23 +7,23 @@ __all__ = [
 ]
 
 from collections import OrderedDict
+from functools import partial
 
 from math import sqrt, pi, atan2
 import itertools
 
-from madgui.matplotlib import get_backend_module
+from madgui.plot import mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 
 from madgui.qt import Qt, QtCore, QtGui
-from madgui.core.base import Signal
-from madgui.core.unit import ui_units, to_ui
+from madgui.core.signal import Signal
+from madgui.util.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
+from madgui.util.qt import notifyCloseEvent, notifyEvent
+from madgui.widget.dialog import Dialog
 from madgui.widget.params import (
     TabParamTables, ParamTable, CommandEdit, ParamInfo)
-
-
-mpl_backend = get_backend_module()
 
 
 class ElementInfoBox(QtGui.QWidget):
@@ -202,3 +202,71 @@ class EllipseWidget(QtGui.QWidget):
 
         self.figure.tight_layout()
         self.canvas.draw()
+
+
+class InfoBoxGroup:
+
+    def __init__(self, mainwindow, selection):
+        """Add toolbar tool to panel and subscribe to capture events."""
+        super().__init__()
+        self.mainwindow = mainwindow
+        self.model = mainwindow.model
+        self.selection = selection
+        self.boxes = [self.create_info_box(elem)
+                      for elem in selection.elements]
+        selection.elements.insert_notify.connect(self._insert)
+        selection.elements.delete_notify.connect(self._delete)
+        selection.elements.modify_notify.connect(self._modify)
+
+    # keep info boxes in sync with current selection
+
+    def _insert(self, index, el_id):
+        self.boxes.insert(index, self.create_info_box(el_id))
+
+    def _delete(self, index):
+        if self.boxes[index].isVisible():
+            self.boxes[index].window().close()
+        del self.boxes[index]
+
+    def _modify(self, index, el_id):
+        self.boxes[index].el_id = el_id
+        self.boxes[index].setWindowTitle(
+            self.model().elements[el_id].node_name)
+
+    # utility methods
+
+    def _on_close_box(self, box):
+        el_id = box.el_id
+        if el_id in self.selection.elements:
+            self.selection.elements.remove(el_id)
+
+    def set_active_box(self, box):
+        self.selection.top = self.boxes.index(box)
+        box.raise_()
+
+    def create_info_box(self, el_id):
+        model = self.model()
+        config = self.mainwindow.config
+        info = ElementInfoBox(model, el_id, config.summary_attrs)
+        dock = Dialog(self.mainwindow)
+        dock.setSimpleExportWidget(info, None)
+        dock.setWindowTitle(
+            "Element details: " + model.elements[el_id].node_name)
+        notifyCloseEvent(dock, lambda: self._on_close_box(info))
+        notifyEvent(info, 'focusInEvent',
+                    lambda event: self.set_active_box(info))
+
+        dock.show()
+        dock.raise_()
+
+        info.changed_element.connect(partial(self._changed_box_element, info))
+        return info
+
+    def _changed_box_element(self, box):
+        box_index = self.boxes.index(box)
+        new_el_id = box.el_id
+        old_el_id = self.selection.elements[box_index]
+        if new_el_id != old_el_id:
+            self.selection.elements[box_index] = new_el_id
+        box.window().setWindowTitle(
+            "Element details: " + self.model().elements[new_el_id].node_name)

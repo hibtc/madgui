@@ -5,7 +5,7 @@ Implementation of the matching system.
 import logging
 from collections import namedtuple
 
-from madgui.core.base import Object, Signal
+from madgui.core.signal import Object, Signal
 from madgui.util.collections import List
 
 

@@ -13,7 +13,7 @@ from functools import partial
 import numpy as np
 
 from madgui.qt import QtCore, QtGui
-from madgui.core.unit import change_unit, get_raw_label
+from madgui.util.unit import change_unit, get_raw_label
 from madgui.widget.tableview import TableItem
 
 from .multi_grid import Corrector as _Corrector, CorrectorWidget as _Widget

@@ -6,7 +6,7 @@ import logging
 
 import numpy as np
 
-from madgui.core.base import Object
+from madgui.core.signal import Object
 from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool, List, CachedList
 

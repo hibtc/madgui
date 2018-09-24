@@ -15,17 +15,17 @@ from functools import partial
 import numpy as np
 
 from madgui.qt import Qt, QtCore, QtGui, load_ui
-from madgui.core.base import Signal
+from madgui.core.signal import Signal
 from madgui.util.collections import Selection, Boxed
 from madgui.util.misc import SingleWindow, logfile_name, try_import, relpath
-from madgui.util.qt import notifyCloseEvent, notifyEvent
+from madgui.util.qt import notifyCloseEvent
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord
 
 import madgui.online.control as control
 import madgui.core.config as config
-import madgui.core.menu as menu
+import madgui.util.menu as menu
 import madgui.util.yaml as yaml
 
 
@@ -551,7 +551,7 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.aboutQt(self)
 
     def _showAboutDialog(self, module):
-        import madgui.core.about as about
+        import madgui.widget.about as about
         info = about.VersionInfo(module)
         return about.AboutDialog(info, self)
 
@@ -610,6 +610,7 @@ class MainWindow(QtGui.QMainWindow):
 
         model.twiss.updated.connect(self.update_twiss)
 
+        from madgui.widget.elementinfo import InfoBoxGroup
         model.selection = Selection()
         model.box_group = InfoBoxGroup(self, model.selection)
 
@@ -768,7 +769,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def _createShell(self):
         """Create a python shell widget."""
-        import madgui.core.pyshell as pyshell
+        import madgui.widget.pyshell as pyshell
         self.shell = pyshell.create(self.context)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
@@ -789,72 +790,3 @@ class MainWindow(QtGui.QMainWindow):
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, 'wt') as f:
             yaml.safe_dump(data, f, default_flow_style=False)
-
-
-class InfoBoxGroup:
-
-    def __init__(self, mainwindow, selection):
-        """Add toolbar tool to panel and subscribe to capture events."""
-        super().__init__()
-        self.mainwindow = mainwindow
-        self.model = mainwindow.model
-        self.selection = selection
-        self.boxes = [self.create_info_box(elem)
-                      for elem in selection.elements]
-        selection.elements.insert_notify.connect(self._insert)
-        selection.elements.delete_notify.connect(self._delete)
-        selection.elements.modify_notify.connect(self._modify)
-
-    # keep info boxes in sync with current selection
-
-    def _insert(self, index, el_id):
-        self.boxes.insert(index, self.create_info_box(el_id))
-
-    def _delete(self, index):
-        if self.boxes[index].isVisible():
-            self.boxes[index].window().close()
-        del self.boxes[index]
-
-    def _modify(self, index, el_id):
-        self.boxes[index].el_id = el_id
-        self.boxes[index].setWindowTitle(
-            self.model().elements[el_id].node_name)
-
-    # utility methods
-
-    def _on_close_box(self, box):
-        el_id = box.el_id
-        if el_id in self.selection.elements:
-            self.selection.elements.remove(el_id)
-
-    def set_active_box(self, box):
-        self.selection.top = self.boxes.index(box)
-        box.raise_()
-
-    def create_info_box(self, el_id):
-        from madgui.widget.elementinfo import ElementInfoBox
-        model = self.model()
-        config = self.mainwindow.config
-        info = ElementInfoBox(model, el_id, config.summary_attrs)
-        dock = Dialog(self.mainwindow)
-        dock.setSimpleExportWidget(info, None)
-        dock.setWindowTitle(
-            "Element details: " + model.elements[el_id].node_name)
-        notifyCloseEvent(dock, lambda: self._on_close_box(info))
-        notifyEvent(info, 'focusInEvent',
-                    lambda event: self.set_active_box(info))
-
-        dock.show()
-        dock.raise_()
-
-        info.changed_element.connect(partial(self._changed_box_element, info))
-        return info
-
-    def _changed_box_element(self, box):
-        box_index = self.boxes.index(box)
-        new_el_id = box.el_id
-        old_el_id = self.selection.elements[box_index]
-        if new_el_id != old_el_id:
-            self.selection.elements[box_index] = new_el_id
-        box.window().setWindowTitle(
-            "Element details: " + self.model().elements[new_el_id].node_name)

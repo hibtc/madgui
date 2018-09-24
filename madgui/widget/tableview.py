@@ -12,8 +12,8 @@ from inspect import getmro
 from functools import partial
 
 from madgui.qt import QtCore, QtGui, Qt
-from madgui.core.base import Signal
-from madgui.core.unit import to_ui, from_ui, ui_units
+from madgui.core.signal import Signal
+from madgui.util.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property, ranges, cachedproperty
 from madgui.util.collections import List
@@ -21,7 +21,7 @@ from madgui.util.qt import monospace
 from madgui.util.enum import Enum
 from madgui.widget.spinbox import QuantitySpinBox
 
-import madgui.core.unit as unit
+import madgui.util.unit as unit
 import madgui.core.config as config
 
 

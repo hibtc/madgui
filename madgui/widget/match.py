@@ -3,7 +3,7 @@ UI for matching.
 """
 
 from madgui.qt import QtGui, load_ui
-from madgui.core.unit import ui_units
+from madgui.util.unit import ui_units
 from madgui.widget.tableview import TableItem
 from madgui.model.match import Constraint
 from madgui.util.enum import make_enum

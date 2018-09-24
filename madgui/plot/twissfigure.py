@@ -16,12 +16,12 @@ from collections import namedtuple
 import numpy as np
 
 from madgui.qt import QtGui, Qt
-from madgui.core.base import Object, Signal
+from madgui.core.signal import Object, Signal
 
 from madgui.util.qt import load_icon_resource
 from madgui.util.misc import memoize, strip_suffix, SingleWindow
 from madgui.util.collections import List, maintain_selection
-from madgui.core.unit import (
+from madgui.util.unit import (
     to_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
