@@ -3,21 +3,14 @@ Misc programming toolbox.
 """
 
 __all__ = [
-    'suppress',
     'memoize',
     'cachedproperty',
-    'update_property',
     'Property',
     'SingleWindow',
-    'rename_key',
-    'merged',
-    'translate_default',
-    'make_index',
 ]
 
 import os
 import functools
-from collections.abc import Sequence
 import tempfile
 import importlib
 
@@ -30,13 +23,6 @@ def try_import(name):
     try:
         return importlib.import_module(name)
     except ImportError:
-        return None
-
-
-def suppress(exc, fun, *args, **kwargs):
-    try:
-        return fun(*args, **kwargs)
-    except exc:
         return None
 
 
@@ -82,18 +68,6 @@ def rw_property(func, name=None):
     def del_(self):
         setattr(self, key, None)
     return property(get_, set_, del_)
-
-
-def update_property(update, name=None):
-    key = '_' + update.__name__
-
-    @functools.wraps(update)
-    def wrapper(self, *args, **kwargs):
-        old = getattr(self, key, None)
-        new = update(self, old, *args, **kwargs)
-        setattr(self, key, new)
-        return new
-    return wrapper
 
 
 class Property:
@@ -177,44 +151,7 @@ class SingleWindow(Property):
         present(self.val.window())
 
 
-class LazyList(Sequence):
-
-    def __init__(self, len, get):
-        self._len = len
-        self._get = get
-        self._dat = {}
-
-    def __getitem__(self, index):
-        if index not in self._dat:
-            self._dat[index] = self._get(index)
-        return self._dat[index]
-
-    def __len__(self):
-        return self._len
-
-
 # dictionary utils
-
-def rename_key(d, name, new):
-    if name in d:
-        d[new] = d.pop(name)
-
-
-def merged(d1, *others):
-    r = d1.copy()
-    for d in others:
-        r.update(d)
-    return r
-
-
-def translate_default(d, name, old_default, new_default):
-    if d[name] == old_default:
-        d[name] = new_default
-
-
-def make_index(values):
-    return {k: i for i, k in enumerate(values)}
-
 
 def ranges(nums):
     """Identify groups of consecutive numbers in a list."""
