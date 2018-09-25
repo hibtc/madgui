@@ -12,7 +12,6 @@ from collections.abc import Mapping
 from functools import partial, reduce
 import itertools
 from bisect import bisect_right
-import subprocess
 from contextlib import contextmanager, suppress
 import logging
 from numbers import Number
@@ -22,7 +21,7 @@ import numpy as np
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
 from cpymad.util import normalize_range_name, is_identifier
 
-from madgui.util.undo import UndoCommand
+from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
 from madgui.util.collections import Cache, CachedList
@@ -67,22 +66,20 @@ class Model:
     :ivar str path: base folder
     """
 
-    def __init__(self, filename, command_log, stdout, undo_stack):
+    def __init__(self, filename, madx=None, *, undo_stack=None, **madx_kwargs):
         super().__init__()
         self.twiss.invalidated.connect(self.sector.invalidate)
         self.data = {}
         self.path = None
         self.init_files = []
-        self.undo_stack = undo_stack
+        self.undo_stack = undo_stack or UndoStack()
         self.undo_stack.model = self
         self.filename = os.path.abspath(filename)
         path, name = os.path.split(filename)
         base, ext = os.path.splitext(name)
         self.path = path
         self.name = base
-        self.madx = Madx(command_log=command_log,
-                         stdout=stdout,
-                         stderr=subprocess.STDOUT)
+        self.madx = madx or Madx(**madx_kwargs)
         if ext.lower() in ('.yml', '.yaml'):
             with open(self.filename, 'rb') as f:
                 self.data = data = yaml.safe_load(f)

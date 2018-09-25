@@ -9,6 +9,7 @@ __all__ = [
 import glob
 import os
 import logging
+import subprocess
 import time
 from functools import partial
 
@@ -595,6 +596,7 @@ class MainWindow(QtGui.QMainWindow):
         self.model.set(Model(filename,
                              command_log=self.log_command,
                              stdout=self.dataReceived.emit,
+                             stderr=subprocess.STDOUT,
                              undo_stack=self.undo_stack))
         self.showTwiss()
 
