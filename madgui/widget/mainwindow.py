@@ -17,7 +17,7 @@ import numpy as np
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.signal import Signal
 from madgui.util.collections import Selection, Boxed
-from madgui.util.misc import SingleWindow, logfile_name, relpath
+from madgui.util.misc import SingleWindow, relpath
 from madgui.util.qt import notifyCloseEvent
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
@@ -182,6 +182,10 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Twiss && orbit', None,
                      'Export initial twiss parameters.',
                      self.saveTwiss),
+                Separator,
+                Item('Save MAD-X &commands', None,
+                     'Export all MAD-X commands to a file.',
+                     self.saveCommands),
             ]),
             Menu('&Import', [
                 Item('&Strengths', None,
@@ -332,8 +336,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def log_command(self, text):
         text = text.rstrip()
-        self.logfile.write(text + '\n')
-        self.logfile.flush()
+        self.commands.append(text)
         self.log_window.records.append(LogRecord(
             time.time(), 'SEND', text))
 
@@ -424,14 +427,26 @@ class MainWindow(QtGui.QMainWindow):
             ("All files", "*"),
         ], self.model().export_twiss, data_key='twiss')
 
-    def _export(self, title, filters, fetch_data, data_key):
+    def saveCommands(self):
+        def write_file(filename, content):
+            with open(filename, 'wt') as f:
+                f.write(content)
+        # TODO: save timestamps and chdirs as comments!
+        # TODO: add generic `saveLog` command instead?
+        self._export("Save MAD-X command session", [
+            ("MAD-X files", "*.madx"),
+            ("All files", "*"),
+        ], lambda: "\n".join(self.commands), write_file)
+
+    def _export(self, title, filters, fetch_data, export=None, **kw):
         from madgui.widget.filedialog import getSaveFileName
         folder = self.str_folder or self.folder
         filename = getSaveFileName(self, title, folder, filters)
         if filename:
-            from madgui.widget.params import export_params
+            if export is None:
+                from madgui.widget.params import export_params as export
             data = fetch_data()
-            export_params(filename, data, data_key=data_key)
+            export(filename, data, **kw)
             self.str_folder = os.path.dirname(filename)
 
     @SingleWindow.factory
@@ -573,13 +588,10 @@ class MainWindow(QtGui.QMainWindow):
                                       .format(filename))
         from madgui.model.madx import Model
         self.destroyModel()
+        self.commands = []
         filename = os.path.abspath(filename)
-        self.folder, name = os.path.split(filename)
-        base, ext = os.path.splitext(name)
-        logfile = logfile_name(self.folder, base, '.commands.madx')
-        self.logfile = open(logfile, 'wt')
+        self.folder = os.path.split(filename)[0]
         logging.info('Loading {}'.format(filename))
-        logging.info('Logging commands to: {}'.format(logfile))
         self.model.set(Model(filename,
                              command_log=self.log_command,
                              stdout=self.dataReceived.emit,
@@ -623,7 +635,6 @@ class MainWindow(QtGui.QMainWindow):
             pass
         self.context['model'] = None
         self.context['twiss'] = None
-        self.logfile.close()
 
     def update_twiss(self):
         self.context['twiss'] = self.model().twiss.data

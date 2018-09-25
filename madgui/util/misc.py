@@ -11,7 +11,6 @@ __all__ = [
 
 import os
 import functools
-import tempfile
 
 from madgui.util.collections import Bool
 from madgui.util.qt import notifyCloseEvent, present
@@ -150,17 +149,6 @@ def ranges(nums):
     gaps = [[s, e] for s, e in zip(nums, nums[1:]) if s+1 < e]
     edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
     return [(s, e+1) for s, e in zip(edges, edges)]
-
-
-# Returns a filename rather than a `NamedTemporaryFile` to gain more
-# control over the encoding on python2:
-def logfile_name(path, base, ext):
-    # TODO: should also print log path
-    # TODO: how to avoid clutter? delete old files / use unique filename/dir?
-    # NOTE: saves all logs to temp folder currently
-    fd, name = tempfile.mkstemp(suffix=ext, prefix=base+'.', text=True)
-    os.close(fd)
-    return name
 
 
 def strip_suffix(s, suffix):
