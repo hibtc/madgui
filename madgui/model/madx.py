@@ -15,6 +15,7 @@ from bisect import bisect_right
 import subprocess
 from contextlib import contextmanager, suppress
 import logging
+from numbers import Number
 
 import numpy as np
 
@@ -875,7 +876,7 @@ def _get_seq_model(madx, sequence_name):
     except RuntimeError:
         beam = {}
     try:
-        range, twiss = _get_twiss(sequence)
+        range, twiss = _get_twiss(madx, sequence)
     except RuntimeError:
         range = (sequence_name+'$start', sequence_name+'$end')
         twiss = {}
@@ -909,7 +910,7 @@ def _get_twiss(madx, sequence):
     twiss = {
         key: float(val)
         for key, val in table[0].items()
-        if issubclass(val.dtype.type, np.number) and (
+        if isinstance(val, Number) and (
                 (key in mandatory) or
                 (key in defaults and val != defaults.cmdpar[key].value)
         )
