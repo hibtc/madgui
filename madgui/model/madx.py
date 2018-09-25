@@ -71,7 +71,6 @@ class Model:
         self.twiss.invalidated.connect(self.sector.invalidate)
         self.data = {}
         self.path = None
-        self.init_files = []
         self.undo_stack = undo_stack or UndoStack()
         self.undo_stack.model = self
         self.filename = os.path.abspath(filename)
@@ -92,6 +91,7 @@ class Model:
             self._call(filename)
             sequence = _guess_main_sequence(self.madx)
             data = _get_seq_model(self.madx, sequence)
+            data['init-files'] = [filename]
         self._init_segment(
             sequence=data['sequence'],
             range=data['range'],
@@ -234,7 +234,6 @@ class Model:
         name = os.path.join(self.path, name)
         vals = read_str_file(name)
         self.madx.call(name, True)
-        self.init_files.append(name)
         return vals
 
     # Serialization
@@ -250,7 +249,6 @@ class Model:
     def model_data(self):
         """Return model data as dictionary."""
         return dict(self.data, **{
-            'init-files': self.init_files,
             'sequence': self.seq_name,
             'range': list(self.range),
             'beam': self.beam,
