@@ -12,18 +12,9 @@ __all__ = [
 import os
 import functools
 import tempfile
-import importlib
 
 from madgui.util.collections import Bool
 from madgui.util.qt import notifyCloseEvent, present
-
-
-def try_import(name):
-    """Try to import module. Returns the module or ``None`` if it fails."""
-    try:
-        return importlib.import_module(name)
-    except ImportError:
-        return None
 
 
 # class utils

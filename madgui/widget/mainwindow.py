@@ -17,7 +17,7 @@ import numpy as np
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.core.signal import Signal
 from madgui.util.collections import Selection, Boxed
-from madgui.util.misc import SingleWindow, logfile_name, try_import, relpath
+from madgui.util.misc import SingleWindow, logfile_name, relpath
 from madgui.util.qt import notifyCloseEvent
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
@@ -252,11 +252,9 @@ class MainWindow(QtGui.QMainWindow):
                 Item('About &madgui', None,
                      'About the madgui GUI application.',
                      self.helpAboutMadGUI.create),
-                try_import('cpymad') and
                 Item('About &cpymad', None,
                      'About the cpymad python binding to MAD-X.',
                      self.helpAboutCPyMAD.create),
-                try_import('cpymad') and
                 Item('About MAD-&X', None,
                      'About the included MAD-X backend.',
                      self.helpAboutMadX.create),
