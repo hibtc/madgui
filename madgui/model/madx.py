@@ -66,39 +66,43 @@ class Model:
     :ivar str path: base folder
     """
 
-    def __init__(self, filename, madx=None, *, undo_stack=None, **madx_kwargs):
+    def __init__(self, madx, data, *, filename=None, undo_stack=None):
         super().__init__()
-        self.twiss.invalidated.connect(self.sector.invalidate)
-        self.data = {}
-        self.path = None
+        self.madx = madx
+        self.data = data
+        self.filename = filename and os.path.abspath(filename)
+        self.path, self.name = filename and os.path.split(filename)
         self.undo_stack = undo_stack or UndoStack()
         self.undo_stack.model = self
-        self.filename = os.path.abspath(filename)
-        path, name = os.path.split(filename)
-        base, ext = os.path.splitext(name)
-        self.path = path
-        self.name = base
-        self.madx = madx or Madx(**madx_kwargs)
-        if ext.lower() in ('.yml', '.yaml'):
-            with open(self.filename, 'rb') as f:
-                self.data = data = yaml.safe_load(f)
-            self.path = os.path.join(self.path, data.get('path', '.'))
-            self._load_params(data, 'beam')
-            self._load_params(data, 'twiss')
-            for filename in data.get('init-files', []):
-                self._call(filename)
-        else:
-            self._call(filename)
-            sequence = _guess_main_sequence(self.madx)
-            data = _get_seq_model(self.madx, sequence)
-            data['init-files'] = [filename]
         self._init_segment(
             sequence=data['sequence'],
             range=data['range'],
             beam=data['beam'],
             twiss_args=data['twiss'],
         )
+        self.twiss.invalidated.connect(self.sector.invalidate)
         self.twiss.invalidate()
+
+    @classmethod
+    def load_file(cls, filename, madx=None, *, undo_stack=None, **madx_kwargs):
+        madx = madx or Madx(**madx_kwargs)
+        filename = os.path.abspath(filename)
+        path, name = os.path.split(filename)
+        ext = os.path.splitext(name)[1].lower()
+        if ext in ('.yml', '.yaml'):
+            with open(filename, 'rb') as f:
+                data = yaml.safe_load(f)
+            path = os.path.join(path, data.get('path', '.'))
+            _load_params(data, 'beam', path)
+            _load_params(data, 'twiss', path)
+            for fname in data.get('init-files', []):
+                _call(madx, path, fname)
+        else:
+            _call(madx, path, filename)
+            seqname = _guess_main_sequence(madx)
+            data = _get_seq_model(madx, seqname)
+            data['init-files'] = [filename]
+        return cls(madx, data, undo_stack=undo_stack, filename=filename)
 
     def __del__(self):
         self.destroy()
@@ -113,15 +117,6 @@ class Model:
             with suppress(AttributeError, RuntimeError):
                 self.madx._process.wait()
         self.madx = None
-
-    def _load_params(self, data, name):
-        """Load parameter dict from file if necessary."""
-        vals = data.get(name, {})
-        if isinstance(vals, str):
-            with open(os.path.join(self.path, vals), 'rb') as f:
-                data[name] = yaml.safe_load(f)
-            if len(data[name]) == 1 and name in data[name]:
-                data[name] = data[name][name]
 
     @property
     def twiss_args(self):
@@ -209,7 +204,7 @@ class Model:
 
     def call(self, name):
         old = self.globals.defs
-        new = self._call(name)
+        new = _call(self.madx, self.path, name)
         if new is None:
             # Have to clear the stack because general MAD-X commands are not
             # necessarily reversible (sequence definition, makethin, loading
@@ -228,13 +223,6 @@ class Model:
             logging.error("Parser error in {!r}:\n{}".format(filename, e))
         else:
             self.update_globals(data)
-
-    def _call(self, name):
-        """Load a MAD-X file into the current workspace."""
-        name = os.path.join(self.path, name)
-        vals = read_str_file(name)
-        self.madx.call(name, True)
-        return vals
 
     # Serialization
 
@@ -822,6 +810,24 @@ class TwissTable(Table):
             return super()._query(column)
         else:
             return transform(self)
+
+
+def _load_params(data, name, path):
+    """Load parameter dict from file if necessary."""
+    vals = data.get(name, {})
+    if isinstance(vals, str):
+        with open(os.path.join(path, vals), 'rb') as f:
+            data[name] = yaml.safe_load(f)
+        if len(data[name]) == 1 and name in data[name]:
+            data[name] = data[name][name]
+
+
+def _call(madx, path, name):
+    """Load a MAD-X file into the current workspace."""
+    name = os.path.join(path, name)
+    vals = read_str_file(name)
+    madx.call(name, True)
+    return vals
 
 
 def _guess_main_sequence(madx):

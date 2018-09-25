@@ -593,11 +593,12 @@ class MainWindow(QtGui.QMainWindow):
         filename = os.path.abspath(filename)
         self.folder = os.path.split(filename)[0]
         logging.info('Loading {}'.format(filename))
-        self.model.set(Model(filename,
-                             command_log=self.log_command,
-                             stdout=self.dataReceived.emit,
-                             stderr=subprocess.STDOUT,
-                             undo_stack=self.undo_stack))
+        self.model.set(Model.load_file(
+            filename,
+            command_log=self.log_command,
+            stdout=self.dataReceived.emit,
+            stderr=subprocess.STDOUT,
+            undo_stack=self.undo_stack))
         self.showTwiss()
 
     def _on_model_changed(self, model):
