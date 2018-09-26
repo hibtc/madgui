@@ -525,7 +525,6 @@ class MainWindow(QtGui.QMainWindow):
         if old_model is not None:
             old_model.twiss.updated.disconnect(self.update_twiss)
             del old_model.selection.elements[:]
-            old_model.destroy()
 
         if model is None:
             self.matcher = None

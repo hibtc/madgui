@@ -28,6 +28,8 @@ class Session:
         self.user_ns = user_ns = SimpleNamespace()
         self.session_file = self.config.session_file
         self.folder = self.config.model_path
+        self.model.changed[object, object].connect(
+            lambda old, new: old and old.destroy())
         # Maintain these members into the namespace
         subscribe(user_ns, 'model', self.model)
         subscribe(user_ns, 'window', self.window)
