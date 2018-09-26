@@ -5,8 +5,10 @@ from types import SimpleNamespace
 import numpy as np
 
 from madgui.util.collections import Boxed
+from madgui.util.misc import relpath
 from madgui.online.control import Control
 import madgui.core.config as config
+import madgui.util.yaml as yaml
 
 
 class Session:
@@ -24,6 +26,7 @@ class Session:
         self.model = Boxed(None)
         self.control = Control(self)
         self.user_ns = user_ns = SimpleNamespace()
+        self.session_file = self.config.session_file
         self.folder = self.config.model_path
         # Maintain these members into the namespace
         subscribe(user_ns, 'model', self.model)
@@ -43,6 +46,9 @@ class Session:
         exec(self.config.onload, self.user_ns.__dict__)
 
     def terminate(self):
+        if self.session_file:
+            self.save(self.session_file)
+            self.session_file = None
         if self.control.is_connected():
             self.control.disconnect()
         self.model.set(None)
@@ -81,7 +87,34 @@ class Session:
         raise OSError("File not found: {!r}".format(name))
 
     def model_args(self, filename):
+        """Please OVERRIDE to provide custom model arguments."""
         return {}
+
+    def save(self, filename):
+        """Save session state to file."""
+        data = self.session_data()
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, 'wt') as f:
+            yaml.safe_dump(data, f, default_flow_style=False)
+
+    def session_data(self):
+        folder = self.config.model_path or self.folder
+        default = self.model() and relpath(self.model().filename, folder)
+        data = {
+            'online_control': {
+                'backend': self.control.backend_spec,
+                'connect': self.control.is_connected(),
+                'monitors': self.config.online_control['monitors'],
+                'offsets': self.config.online_control['offsets'],
+                'settings': self.control.export_settings() or {},
+            },
+            'model_path': folder,
+            'load_default': default,
+            'number': self.config['number'],
+        }
+        if self.window():
+            data.update(self.window().session_data())
+        return data
 
 
 def subscribe(ns, key, boxed):

@@ -15,14 +15,13 @@ from functools import partial
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.signal import Signal
 from madgui.util.collections import Selection
-from madgui.util.misc import SingleWindow, relpath
+from madgui.util.misc import SingleWindow
 from madgui.util.qt import notifyCloseEvent
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord
 
 import madgui.util.menu as menu
-import madgui.util.yaml as yaml
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -40,7 +39,6 @@ class MainWindow(QtGui.QMainWindow):
         self.control = session.control
         self.model = session.model
         self.user_ns = session.user_ns
-        self.session_file = self.config.session_file
         self.exec_folder = self.config.exec_folder
         self.str_folder = self.config.str_folder
         self.matcher = None
@@ -54,19 +52,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def session_data(self):
         open_plot_windows = list(map(self._save_plot_window, self.views))
-        folder = self.config.model_path or self.folder
-        default = self.model() and relpath(self.model().filename, folder)
         return {
             'mainwindow': {
                 'init_size': [self.size().width(), self.size().height()],
                 'init_pos': [self.pos().x(), self.pos().y()],
-            },
-            'online_control': {
-                'backend': self.control.backend_spec,
-                'connect': self.control.is_connected(),
-                'monitors': self.config.online_control['monitors'],
-                'offsets': self.config.online_control['offsets'],
-                'settings': self.control.export_settings() or {},
             },
             'logging': {
                 'enable': self.log_window.logging_enabled,
@@ -80,11 +69,8 @@ class MainWindow(QtGui.QMainWindow):
                     'out': self.log_window.enabled('MADX'),
                 }
             },
-            'model_path': folder,
-            'load_default': default,
             'exec_folder': self.exec_folder,
             'str_folder': self.str_folder,
-            'number': self.config['number'],
             'plot_windows': open_plot_windows + self.config.plot_windows,
         }
 
@@ -715,14 +701,5 @@ class MainWindow(QtGui.QMainWindow):
         return dock
 
     def closeEvent(self, event):
-        if self.session_file:
-            self.save_session(self.session_file)
-        # Terminate the remote session, otherwise `_readLoop()` may hang:
         self.session.terminate()
         event.accept()
-
-    def save_session(self, filename):
-        data = self.session_data()
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, 'wt') as f:
-            yaml.safe_dump(data, f, default_flow_style=False)
