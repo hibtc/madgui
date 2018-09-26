@@ -35,11 +35,6 @@ def fit_particle_orbit(model, offsets, records, secmaps, range_start=None):
     return init_tw, data
 
 
-def show_backtrack_curve(frame, curve):
-    style = frame.config['line_view']['backtrack_style']
-    frame.add_curve("backtrack", curve, style)
-
-
 def fit_initial_orbit(records):
     """
     Compute initial beam position/momentum from multiple recorded monitor
