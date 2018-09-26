@@ -298,7 +298,6 @@ class MainWindow(QtGui.QMainWindow):
 
     def log_command(self, text):
         text = text.rstrip()
-        self.commands.append(text) #FIXME
         self.log_window.records.append(LogRecord(
             time.time(), 'SEND', text))
 
@@ -398,7 +397,7 @@ class MainWindow(QtGui.QMainWindow):
         self._export("Save MAD-X command session", [
             ("MAD-X files", "*.madx"),
             ("All files", "*"),
-        ], lambda: "\n".join(self.commands), write_file)
+        ], lambda: "\n".join(self.model().madx.history), write_file)
 
     def _export(self, title, filters, fetch_data, export=None, **kw):
         from madgui.widget.filedialog import getSaveFileName
@@ -529,7 +528,6 @@ class MainWindow(QtGui.QMainWindow):
     # Update state
 
     def model_args(self, filename):
-        self.commands = []      # FIXME BAD EVIL FIXME
         return dict(
             command_log=self.log_command,
             stdout=self.dataReceived.emit,

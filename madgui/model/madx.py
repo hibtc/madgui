@@ -35,10 +35,15 @@ class Madx(Madx):
     _enter_count = 0
     _collected_cmds = None
 
+    def __init__(self, *args, **kwargs):
+        self.history = []
+        super().__init__(*args, **kwargs)
+
     def input(self, text):
         if self._enter_count > 0:
             self._collected_cmds.append(text)
             return
+        self.history.append(text)
         super().input(text)
 
     @contextmanager
