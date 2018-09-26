@@ -21,7 +21,7 @@ class Control(Object):
     Plugin class for MadGUI.
     """
 
-    def __init__(self, frame):
+    def __init__(self, session):
         """
         Add plugin to the frame.
 
@@ -31,19 +31,24 @@ class Control(Object):
         exactly as in the database and are assigned with the ":=" operator.
         """
         super().__init__()
-        self._frame = frame
+        self.session = session
         self.backend = None
-        self.model = frame.model
+        self.model = session.model
         self.readouts = List()
         # menu conditions
         self.is_connected = Bool(False)
         self.has_backend = Bool(False)
         self.can_connect = ~self.is_connected & self.has_backend
         self.has_sequence = self.is_connected & self.model
-        self._config = config = frame.config.online_control
+        self._config = config = session.config.online_control
         self._settings = config['settings']
         self._on_model_changed()
         self.set_backend(config.backend)
+
+    @property
+    def _frame(self):
+        # for backward compatibility
+        return self.session.window()
 
     def set_backend(self, qualname):
         self.backend_spec = qualname
@@ -59,14 +64,14 @@ class Control(Object):
         cls = getattr(mod, clsname)
         self.backend = cls(self._frame, self._settings)
         self.backend.connect()
-        self._frame.context['csys'] = self.backend
+        self._frame.user_ns.csys = self.backend
         self.is_connected.set(True)
         self.model.changed.connect(self._on_model_changed)
         self._on_model_changed()
 
     def disconnect(self):
         self._settings = self.export_settings()
-        self._frame.context.pop('csys', None)
+        self._frame.user_ns.csys = None
         self.backend.disconnect()
         self.backend = None
         self.is_connected.set(False)

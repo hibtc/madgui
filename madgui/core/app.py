@@ -38,6 +38,7 @@ from docopt import docopt
 from madgui.qt import QtCore, QtGui
 
 from madgui import __version__
+from madgui.core.session import Session
 from madgui.widget.mainwindow import MainWindow
 from madgui.util.qt import load_icon_resource
 
@@ -64,9 +65,21 @@ def main(argv=None):
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
     opts = docopt(__doc__, args, version=__version__)
-    mainwindow = MainWindow(opts)
-    mainwindow.show()
+    session = Session(opts)
+    window = MainWindow(session)
+    session.window.set(window)
+    window.show()
     app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
+    # Defer `loadDefault` to avoid creation of a AsyncRead thread before
+    # the main loop is entered: (Being in the mainloop simplifies
+    # terminating the AsyncRead thread via the QApplication.aboutToQuit
+    # signal. Without this, if the setup code excepts after creating the
+    # thread the main loop will never be entered and thus aboutToQuit
+    # never be emitted, even when pressing Ctrl+C.)
+    QtCore.QTimer.singleShot(0, session.load_default)
+    # This is required to make the thread exit (and hence allow the
+    # application to close) by calling app.quit() on Ctrl-C:
+    app.aboutToQuit.connect(session.terminate)
     return sys.exit(app.exec_())
 
 

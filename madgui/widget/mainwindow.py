@@ -6,35 +6,23 @@ __all__ = [
     'MainWindow',
 ]
 
-import glob
 import os
 import logging
 import subprocess
 import time
 from functools import partial
 
-import numpy as np
-
-from madgui.qt import Qt, QtCore, QtGui, load_ui
+from madgui.qt import Qt, QtGui, load_ui
 from madgui.core.signal import Signal
-from madgui.util.collections import Selection, Boxed
+from madgui.util.collections import Selection
 from madgui.util.misc import SingleWindow, relpath
 from madgui.util.qt import notifyCloseEvent
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord
 
-import madgui.online.control as control
-import madgui.core.config as config
 import madgui.util.menu as menu
 import madgui.util.yaml as yaml
-
-
-def expand_ext(path, *exts):
-    for ext in exts:
-        if os.path.isfile(path+ext):
-            return path+ext
-    return path
 
 
 class MainWindow(QtGui.QMainWindow):
@@ -43,42 +31,27 @@ class MainWindow(QtGui.QMainWindow):
 
     # Basic setup
 
-    def __init__(self, options, *args, **kwargs):
+    def __init__(self, session, *args, **kwargs):
         super().__init__(*args, **kwargs)
         load_ui(self, __package__, self.ui_file)
-        self.context = {
-            'frame': self,
-        }
-        self.options = options
-        self.config = config.load(options['--config'])
+        session.model_args = self.model_args
+        self.session = session
+        self.config = session.config
+        self.control = session.control
+        self.model = session.model
+        self.user_ns = session.user_ns
         self.session_file = self.config.session_file
-        self.matcher = None
-        self.model = Boxed(None)
-        self.model.changed.connect(self._on_model_changed)
-        self.control = control.Control(self)
-        self.initUI()
-        # Defer `loadDefault` to avoid creation of a AsyncRead thread before
-        # the main loop is entered: (Being in the mainloop simplifies
-        # terminating the AsyncRead thread via the QApplication.aboutToQuit
-        # signal. Without this, if the setup code excepts after creating the
-        # thread the main loop will never be entered and thus aboutToQuit
-        # never be emitted, even when pressing Ctrl+C.)
-        QtCore.QTimer.singleShot(0, self.loadDefault)
-        # This is required to make the thread exit (and hence allow the
-        # application to close) by calling app.quit() on Ctrl-C:
-        QtGui.qApp.aboutToQuit.connect(self.destroyModel)
-
-    def configure(self):
-        runtime = self.config.get('runtime_path', [])
-        runtime = [runtime] if isinstance(runtime, str) else runtime
-        for path in runtime:
-            os.environ['PATH'] += os.pathsep + os.path.abspath(path)
-        self.folder = self.config.model_path
         self.exec_folder = self.config.exec_folder
         self.str_folder = self.config.str_folder
-        config.number = self.config.number
-        np.set_printoptions(**self.config['printoptions'])
-        exec(self.config.onload, self.context)
+        self.matcher = None
+        self._prev_model = self.model()
+        self.model.changed.connect(self._on_model_changed)
+        self.initUI()
+        logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
+
+    @property
+    def folder(self):
+        return self.session.folder
 
     def session_data(self):
         open_plot_windows = list(map(self._save_plot_window, self.views))
@@ -120,22 +93,11 @@ class MainWindow(QtGui.QMainWindow):
         self.views = []
         self.createMenu()
         self.createControls()
-        self.configure()
         self.initPos()
 
     def initPos(self):
         self.resize(*self.config.mainwindow.init_size)
         self.move(*self.config.mainwindow.init_pos)
-
-    def loadDefault(self):
-        config = self.config
-        filename = self.options['FILE'] or config.load_default
-        if filename:
-            self.loadFile(self.searchFile(filename))
-        else:
-            logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
-        if config.online_control.connect and self.control.can_connect():
-            self.control.connect()
 
     def createMenu(self):
         control = self.control
@@ -337,7 +299,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def log_command(self, text):
         text = text.rstrip()
-        self.commands.append(text)
+        self.commands.append(text) #FIXME
         self.log_window.records.append(LogRecord(
             time.time(), 'SEND', text))
 
@@ -362,7 +324,7 @@ class MainWindow(QtGui.QMainWindow):
         filename = getOpenFileName(
             self, 'Open file', self.folder, filters)
         if filename:
-            self.loadFile(filename)
+            self.session.load_model(filename)
 
     def execFile(self):
         from madgui.widget.filedialog import getOpenFileName
@@ -567,55 +529,38 @@ class MainWindow(QtGui.QMainWindow):
 
     # Update state
 
-    known_extensions = ['.cpymad.yml', '.init', '.lat', '.madx']
-
-    def searchFile(self, path):
-        for path in [path, os.path.join(self.folder or '.', path)]:
-            if os.path.isdir(path):
-                models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
-                          glob.glob(os.path.join(path, '*.init')))
-                if models:
-                    path = models[0]
-            path = expand_ext(path, '', *self.known_extensions)
-            if os.path.isfile(path):
-                return path
-        raise OSError("File not found: {!r}".format(path))
-
-    def loadFile(self, filename):
-        """Load the specified model and show plot inside the main window."""
-        exts = ('.cpymad.yml', '.madx', '.str', '.seq')
-        if not any(map(filename.endswith, exts)):
-            raise NotImplementedError("Unsupported file format: {}"
-                                      .format(filename))
-        from madgui.model.madx import Model
-        self.destroyModel()
-        self.commands = []
-        filename = os.path.abspath(filename)
-        self.folder = os.path.split(filename)[0]
-        logging.info('Loading {}'.format(filename))
-        self.model.set(Model.load_file(
-            filename,
+    def model_args(self, filename):
+        self.commands = []      # FIXME BAD EVIL FIXME
+        return dict(
             command_log=self.log_command,
             stdout=self.dataReceived.emit,
             stderr=subprocess.STDOUT,
-            undo_stack=self.undo_stack))
-        self.showTwiss()
+            undo_stack=self.undo_stack)
 
     def _on_model_changed(self, model):
-        self.destroyModel()
-        self.context['model'] = model
+
+        prev_model, self._prev_model = self._prev_model, model
+        if prev_model is not None:
+            prev_model.twiss.updated.disconnect(self.update_twiss)
+            del prev_model.selection.elements[:]
+            prev_model.destroy()
 
         if model is None:
             self.matcher = None
+            self.user_ns.madx = None
+            self.user_ns.twiss = None
             self.setWindowTitle("madgui")
             return
+
+        self.session.folder = os.path.split(model.filename)[0]
+        logging.info('Loading {}'.format(model.filename))
 
         from madgui.model.match import Matcher
         self.matcher = Matcher(model, self.config['matching'])
 
-        self.context['madx'] = model.madx
-        self.context['twiss'] = model.twiss.data
-        exec(model.data.get('onload', ''), self.context)
+        self.user_ns.madx = model.madx
+        self.user_ns.twiss = model.twiss.data
+        exec(model.data.get('onload', ''), self.user_ns.__dict__)
 
         model.twiss.updated.connect(self.update_twiss)
 
@@ -624,23 +569,10 @@ class MainWindow(QtGui.QMainWindow):
         model.box_group = InfoBoxGroup(self, model.selection)
 
         self.setWindowTitle(model.name)
-
-    def destroyModel(self):
-        model = self.context.get('model')
-        if model is None:
-            return
-        model.twiss.updated.disconnect(self.update_twiss)
-        del model.selection.elements[:]
-        try:
-            model.destroy()
-        except IOError:
-            # The connection may already be terminated in case MAD-X crashed.
-            pass
-        self.context['model'] = None
-        self.context['twiss'] = None
+        self.showTwiss()
 
     def update_twiss(self):
-        self.context['twiss'] = self.model().twiss.data
+        self.user_ns.twiss = self.model().twiss.data
 
     def showTwiss(self, name=None):
         import madgui.plot.matplotlib as plt
@@ -672,7 +604,7 @@ class MainWindow(QtGui.QMainWindow):
         scene.attach(plot)
 
         # for convenience when debugging:
-        self.context.update({
+        self.user_ns.__dict__.update({
             'plot': plot,
             'figure': figure.backend_figure,
             'canvas': plot.canvas,
@@ -778,7 +710,7 @@ class MainWindow(QtGui.QMainWindow):
     def _createShell(self):
         """Create a python shell widget."""
         import madgui.widget.pyshell as pyshell
-        self.shell = pyshell.create(self.context)
+        self.shell = pyshell.create(self.user_ns.__dict__)
         dock = QtGui.QDockWidget()
         dock.setWidget(self.shell)
         dock.setWindowTitle("python shell")
@@ -790,7 +722,7 @@ class MainWindow(QtGui.QMainWindow):
         if self.session_file:
             self.save_session(self.session_file)
         # Terminate the remote session, otherwise `_readLoop()` may hang:
-        self.destroyModel()
+        self.session.terminate()
         event.accept()
 
     def save_session(self, filename):
