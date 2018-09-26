@@ -7,7 +7,7 @@ import numpy as np
 from madgui.util.collections import Boxed
 from madgui.util.misc import relpath
 from madgui.online.control import Control
-import madgui.core.config as config
+from madgui.core.config import load as load_config
 import madgui.util.yaml as yaml
 
 
@@ -19,25 +19,24 @@ class Session:
 
     capture_stdout = None
 
-    def __init__(self, options):
-        self.options = options
-        self.config = config.load(options['--config'])
+    def __init__(self, config=None):
+        if config is None:
+            config = load_config()
+        self.config = config
         self.window = Boxed(None)
         self.model = Boxed(None)
         self.control = Control(self)
         self.user_ns = user_ns = SimpleNamespace()
-        self.session_file = self.config.session_file
-        self.folder = self.config.model_path
+        self.session_file = config.session_file
+        self.folder = config.model_path
         self.model.changed[object, object].connect(
             lambda old, new: old and old.destroy())
         # Maintain these members into the namespace
         subscribe(user_ns, 'model', self.model)
         subscribe(user_ns, 'window', self.window)
-        user_ns.config = self.config
+        user_ns.config = config
         user_ns.context = self
         user_ns.control = self.control
-        # global side-effects…:
-        config.number = self.config.number
 
     def __enter__(self):
         return self
@@ -62,13 +61,13 @@ class Session:
         self.model.set(None)
         self.window.set(None)
 
-    def load_default(self):
+    def load_default(self, model=None):
         self.configure()
         config = self.config
-        filename = self.options['FILE'] or config.load_default
+        filename = model or config.load_default
         if filename:
             self.load_model(self.find_model(filename))
-        if config.online_control.connect and self.control.can_connect():
+        if self.control.can_connect() and config.online_control.connect:
             self.control.connect()
 
     def load_model(self, filename):

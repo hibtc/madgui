@@ -7,11 +7,6 @@ from madgui.core.app import init_app
 from madgui.core.session import Session
 
 
-options = {
-    '--config': None,
-}
-
-
 @pytest.fixture(scope="session")
 def app():
     # NOTE: this fixture (in particular the sys.excepthook patch) is required
@@ -22,12 +17,12 @@ def app():
 
 
 def test_empty_session(app):
-    with Session(options):
+    with Session():
         pass
 
 
 def test_session_load_model(app):
-    with Session(options) as session:
+    with Session() as session:
         path = session.find_model('hit_models/hht3')
         assert path.endswith('hht3.cpymad.yml')
         session.load_model(path)
@@ -36,7 +31,7 @@ def test_session_load_model(app):
 
 
 def test_session_destroyed(app):
-    with Session(options) as session:
+    with Session() as session:
         session.load_model(session.find_model('hit_models/hht3'))
         model = session.model()
     assert session.model() is None

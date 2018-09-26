@@ -30,6 +30,7 @@ import warnings
 import traceback
 import signal
 import sys
+from functools import partial
 
 from importlib_resources import read_binary
 
@@ -41,6 +42,7 @@ from madgui import __version__
 from madgui.core.session import Session
 from madgui.widget.mainwindow import MainWindow
 from madgui.util.qt import load_icon_resource
+import madgui.core.config as config
 
 
 def main(argv=None):
@@ -62,7 +64,9 @@ def main(argv=None):
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
     opts = docopt(__doc__, args, version=__version__)
-    with Session(opts) as session:
+    conf = config.load(opts['--config'])
+    config.number = conf.number
+    with Session(conf) as session:
         window = MainWindow(session)
         session.window.set(window)
         window.show()
@@ -73,7 +77,8 @@ def main(argv=None):
         # signal. Without this, if the setup code excepts after creating the
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
-        QtCore.QTimer.singleShot(0, session.load_default)
+        QtCore.QTimer.singleShot(
+            0, partial(session.load_default, opts['FILE']))
         return sys.exit(app.exec_())
 
 
