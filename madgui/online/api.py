@@ -19,7 +19,7 @@ class Backend(metaclass=ABCMeta):
     """Interface for a online control plugin."""
 
     @abstractmethod
-    def __init__(self, frame, settings):
+    def __init__(self, session, settings):
         """Get a :class:`Backend` instance."""
         raise NotImplementedError
 

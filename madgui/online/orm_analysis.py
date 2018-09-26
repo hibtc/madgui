@@ -15,12 +15,11 @@ class MeasureWidget(QtGui.QWidget):
     ui_file = 'orm_measure.ui'
     extension = '.orm_measurement.yml'
 
-    def __init__(self, control, model, frame):
+    def __init__(self, session):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
-        self.control = control
-        self.model = model
-        self.frame = frame
+        self.control = session.control
+        self.model = session.model()
 
         kick_elements = ('hkicker', 'vkicker', 'kicker', 'sbend')
         self.kickers = [elem for elem in self.model.elements
@@ -35,7 +34,7 @@ class MeasureWidget(QtGui.QWidget):
             'optics':   [],
         }
 
-        self.corrector = Corrector(control, {'default': self.config})
+        self.corrector = Corrector(self.control, {'default': self.config})
         self.corrector.setup('default')
         self.corrector.start()
         self.bot = ProcBot(self, self.corrector)

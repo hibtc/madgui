@@ -19,28 +19,24 @@ class Control(Object):
 
     """
     Plugin class for MadGUI.
+
+    When connected, the plugin can be used to access parameters in the online
+    database. This works only if the corresponding parameters were named
+    exactly as in the database and are assigned with the ":=" operator.
     """
 
-    def __init__(self, frame):
-        """
-        Add plugin to the frame.
-
-        Add a menu that can be used to connect to the online control. When
-        connected, the plugin can be used to access parameters in the online
-        database. This works only if the corresponding parameters were named
-        exactly as in the database and are assigned with the ":=" operator.
-        """
+    def __init__(self, session):
         super().__init__()
-        self._frame = frame
+        self.session = session
         self.backend = None
-        self.model = frame.model
+        self.model = session.model
         self.readouts = List()
         # menu conditions
         self.is_connected = Bool(False)
         self.has_backend = Bool(False)
         self.can_connect = ~self.is_connected & self.has_backend
         self.has_sequence = self.is_connected & self.model
-        self._config = config = frame.config.online_control
+        self._config = config = session.config.online_control
         self._settings = config['settings']
         self._on_model_changed()
         self.set_backend(config.backend)
@@ -57,16 +53,16 @@ class Control(Object):
         modname, clsname = qualname.split(':')
         mod = import_module(modname)
         cls = getattr(mod, clsname)
-        self.backend = cls(self._frame, self._settings)
+        self.backend = cls(self.session, self._settings)
         self.backend.connect()
-        self._frame.context['csys'] = self.backend
+        self.session.user_ns.csys = self.backend
         self.is_connected.set(True)
         self.model.changed.connect(self._on_model_changed)
         self._on_model_changed()
 
     def disconnect(self):
         self._settings = self.export_settings()
-        self._frame.context.pop('csys', None)
+        self.session.user_ns.csys = None
         self.backend.disconnect()
         self.backend = None
         self.is_connected.set(False)
@@ -148,24 +144,24 @@ class Control(Object):
     def monitor_widget(self):
         """Read out SD values (beam position/envelope)."""
         from madgui.online.diagnostic import MonitorWidget
-        return MonitorWidget(self, self.model(), self._frame)
+        return MonitorWidget(self.session)
 
     @SingleWindow.factory
     def orm_measure_widget(self):
         """Measure ORM for later analysis."""
         from madgui.widget.dialog import Dialog
         from madgui.online.orm_analysis import MeasureWidget
-        widget = MeasureWidget(self, self.model(), self._frame)
-        dialog = Dialog(self._frame)
+        widget = MeasureWidget(self.session)
+        dialog = Dialog(self.session.window())
         dialog.setWidget(widget)
         dialog.setWindowTitle("ORM scan")
         return dialog
 
     def _show_dialog(self, widget, apply=None, export=True):
         from madgui.widget.dialog import Dialog
-        dialog = Dialog(self._frame)
+        dialog = Dialog(self.session.window())
         if export:
-            dialog.setExportWidget(widget, self._frame.folder)
+            dialog.setExportWidget(widget, self.session.folder)
             dialog.serious.updateButtons()
         else:
             dialog.setWidget(widget, tight=True)
@@ -184,11 +180,11 @@ class Control(Object):
 
         self.read_all()
 
-        method = module.Corrector(self, varyconf)
+        method = module.Corrector(self.session, varyconf)
         method.setup(selected)
 
         widget = module.CorrectorWidget(method)
-        dialog = Dialog(self._frame)
+        dialog = Dialog(self.session.window())
         dialog.setWidget(widget, tight=True)
         dialog.show()
 
@@ -201,11 +197,11 @@ class Control(Object):
 
         self.read_all()
 
-        method = module.Corrector(self, varyconf)
+        method = module.Corrector(self.session, varyconf)
         method.setup(selected)
 
         widget = module.CorrectorWidget(method)
-        dialog = Dialog(self._frame)
+        dialog = Dialog(self.session.window())
         dialog.setWidget(widget, tight=True)
         dialog.show()
 

@@ -30,6 +30,7 @@ import warnings
 import traceback
 import signal
 import sys
+from functools import partial
 
 from importlib_resources import read_binary
 
@@ -38,8 +39,10 @@ from docopt import docopt
 from madgui.qt import QtCore, QtGui
 
 from madgui import __version__
+from madgui.core.session import Session
 from madgui.widget.mainwindow import MainWindow
 from madgui.util.qt import load_icon_resource
+import madgui.core.config as config
 
 
 def main(argv=None):
@@ -57,17 +60,33 @@ def main(argv=None):
         argv = sys.argv
     app = QtGui.qApp = QtGui.QApplication(argv)
     app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
+    init_app(app)
+    # Filter arguments understood by Qt before doing our own processing:
+    args = app.arguments()[1:]
+    opts = docopt(__doc__, args, version=__version__)
+    conf = config.load(opts['--config'])
+    config.number = conf.number
+    with Session(conf) as session:
+        window = MainWindow(session)
+        session.window.set(window)
+        window.show()
+        app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
+        # Defer `loadDefault` to avoid creation of a AsyncRead thread before
+        # the main loop is entered: (Being in the mainloop simplifies
+        # terminating the AsyncRead thread via the QApplication.aboutToQuit
+        # signal. Without this, if the setup code excepts after creating the
+        # thread the main loop will never be entered and thus aboutToQuit
+        # never be emitted, even when pressing Ctrl+C.)
+        QtCore.QTimer.singleShot(
+            0, partial(session.load_default, opts['FILE']))
+        return sys.exit(app.exec_())
+
+
+def init_app(app):
     setup_interrupt_handling(app)
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
     # where an uncaught exception would usually cause the program to abort.
     sys.excepthook = traceback.print_exception
-    # Filter arguments understood by Qt before doing our own processing:
-    args = app.arguments()[1:]
-    opts = docopt(__doc__, args, version=__version__)
-    mainwindow = MainWindow(opts)
-    mainwindow.show()
-    app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
-    return sys.exit(app.exec_())
 
 
 def setup_interrupt_handling(app):

@@ -25,6 +25,7 @@ plot_windows:
     pos: null
 
 online_control:
+  backend: null
   connect: false
   monitors: {}
   offsets: {}
