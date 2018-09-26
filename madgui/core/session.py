@@ -37,6 +37,12 @@ class Session:
         # global side-effects…:
         config.number = self.config.number
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        self.terminate()
+
     def configure(self):
         runtime = self.config.get('runtime_path', [])
         runtime = [runtime] if isinstance(runtime, str) else runtime

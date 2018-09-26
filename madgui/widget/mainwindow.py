@@ -699,7 +699,3 @@ class MainWindow(QtGui.QMainWindow):
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         self.shell.exit_requested.connect(dock.close)
         return dock
-
-    def closeEvent(self, event):
-        self.session.terminate()
-        event.accept()
