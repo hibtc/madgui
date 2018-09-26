@@ -120,9 +120,6 @@ class MainWindow(QtGui.QMainWindow):
         self.createMenu()
         self.createControls()
         self.configure()
-        self.initPos()
-
-    def initPos(self):
         self.resize(*self.config.mainwindow.init_size)
         self.move(*self.config.mainwindow.init_pos)
 
