@@ -44,8 +44,7 @@ class MainWindow(QtGui.QMainWindow):
         self.exec_folder = self.config.exec_folder
         self.str_folder = self.config.str_folder
         self.matcher = None
-        self._prev_model = self.model()
-        self.model.changed.connect(self._on_model_changed)
+        self.model.changed[object, object].connect(self._on_model_changed)
         self.initUI()
         logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
 
@@ -537,13 +536,12 @@ class MainWindow(QtGui.QMainWindow):
             stderr=subprocess.STDOUT,
             undo_stack=self.undo_stack)
 
-    def _on_model_changed(self, model):
+    def _on_model_changed(self, old_model, model):
 
-        prev_model, self._prev_model = self._prev_model, model
-        if prev_model is not None:
-            prev_model.twiss.updated.disconnect(self.update_twiss)
-            del prev_model.selection.elements[:]
-            prev_model.destroy()
+        if old_model is not None:
+            old_model.twiss.updated.disconnect(self.update_twiss)
+            del old_model.selection.elements[:]
+            old_model.destroy()
 
         if model is None:
             self.matcher = None

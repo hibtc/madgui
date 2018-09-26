@@ -34,7 +34,7 @@ class Boxed(Object):
 
     """A box for a single value that can be observed for changes."""
 
-    changed = Signal(object)
+    changed = Signal([object], [object, object])
 
     def __init__(self, value):
         super().__init__()
@@ -44,10 +44,12 @@ class Boxed(Object):
         return self._value
 
     def set(self, value):
-        value = self._dtype(value)
-        if value != self._value:
-            self._value = value
-            self.changed.emit(value)
+        new = self._dtype(value)
+        old = self._value
+        if new != old:
+            self._value = new
+            self.changed.emit(new)
+            self.changed[object, object].emit(old, new)
 
     def _dtype(self, value):
         return value
