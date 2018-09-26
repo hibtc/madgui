@@ -78,11 +78,12 @@ class TwissFigure(Object):
 
     graph_changed = Signal()
 
-    def __init__(self, figure, model, config, graphs, matcher):
+    def __init__(self, figure, session, matcher):
         super().__init__()
-        self.model = model
-        self.config = config
-        self._graph_conf = graphs
+        self.session = session
+        self.model = session.model()
+        self.config = session.config.line_view
+        self._graph_conf = session.config['graphs']
         self.figure = figure
         self.matcher = matcher
         # scene
@@ -112,7 +113,7 @@ class TwissFigure(Object):
         self.x_name = 's'
         self.x_label = 's'
         self.x_unit = ui_units.get('s')
-        self.element_style = config['element_style']
+        self.element_style = self.config['element_style']
         # slots
         self.model.twiss.updated.connect(self.update, Qt.QueuedConnection)
 
@@ -126,6 +127,7 @@ class TwissFigure(Object):
     graph_name = None
 
     def set_graph(self, graph_name):
+        graph_name = graph_name or self.config.default_graph
         if graph_name == self.graph_name:
             return
         self.graph_name = graph_name
@@ -565,7 +567,7 @@ class MatchTool(CaptureTool):
         self.matcher.start()
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
-        self.plot.window().parent().viewMatchDialog.create()
+        self.session.window().viewMatchDialog.create()
 
     def deactivate(self):
         """Stop matching mode."""

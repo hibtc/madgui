@@ -18,13 +18,13 @@ from madgui.online.orbit import fit_particle_orbit, show_backtrack_curve
 
 class MonitorWidget(QtGui.QDialog):
 
-    def __init__(self, control, model, frame):
-        super().__init__(frame)
+    def __init__(self, session):
+        super().__init__(session.window())
         self.tabs = QtGui.QTabWidget()
-        self.tabs.addTab(PlotMonitorWidget(control, model, frame), "Plot")
-        self.tabs.addTab(OrbitWidget(control, model, frame), "Orbit")
-        self.tabs.addTab(EmittanceDialog(control, model, frame), "Optics")
-        self.tabs.addTab(OffsetsWidget(control, model, frame), "Offsets")
+        self.tabs.addTab(PlotMonitorWidget(session), "Plot")
+        self.tabs.addTab(OrbitWidget(session), "Orbit")
+        self.tabs.addTab(EmittanceDialog(session), "Optics")
+        self.tabs.addTab(OffsetsWidget(session), "Offsets")
         self.setLayout(VBoxLayout([self.tabs], tight=True))
         self.setSizeGripEnabled(True)
 
@@ -46,18 +46,19 @@ class MonitorWidgetBase(QtGui.QWidget):
     headline = "Select for which monitors to plot measurements:"
     folder = None
 
-    def __init__(self, control, model, frame):
-        super().__init__(frame)
+    def __init__(self, session):
+        super().__init__(session.window())
         load_ui(self, __package__, self.ui_file)
 
-        self.control = control
-        self.model = model
-        self.frame = frame
-        self.monitors = control.monitors.as_list()
+        self.session = session
+        self.control = session.control
+        self.model = session.model()
+        self.frame = session.window()
+        self.monitors = self.control.monitors.as_list()
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
-        self._monconf = frame.config['online_control']['monitors']
-        self._offsets = frame.config['online_control']['offsets']
+        self._monconf = session.config['online_control']['monitors']
+        self._offsets = session.config['online_control']['offsets']
 
         self.mtab.set_viewmodel(self.get_monitor_row, self.monitors, unit=True)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -119,7 +120,7 @@ class MonitorWidgetBase(QtGui.QWidget):
                             or shown.get(mon.name)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
-        style = self.frame.config['line_view']['monitor_style']
+        style = self.session.config['line_view']['monitor_style']
 
         self.frame.add_curve(name, data, style)
 
@@ -160,8 +161,8 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
     ui_file = 'monitorwidget.ui'
 
-    def __init__(self, control, model, frame):
-        super().__init__(control, model, frame)
+    def __init__(self, session):
+        super().__init__(session)
         self._selected = self._monconf.setdefault('show', {})
 
     def showEvent(self, event):
@@ -298,8 +299,8 @@ class _FitWidget(MonitorWidgetBase):
             TableItem(ui_units.label(r.name)),
         ]
 
-    def __init__(self, control, model, frame):
-        super().__init__(control, model, frame)
+    def __init__(self, session):
+        super().__init__(session)
         self.btn_apply.clicked.connect(self.apply)
         self.results = List()
 
@@ -310,8 +311,8 @@ class _FitWidget(MonitorWidgetBase):
 
 class OrbitWidget(_FitWidget):
 
-    def __init__(self, control, model, frame):
-        super().__init__(control, model, frame)
+    def __init__(self, session):
+        super().__init__(session)
         self.options_box.hide()
         self.mtab.hideColumn(3)
         self.mtab.hideColumn(4)
@@ -359,8 +360,8 @@ class EmittanceDialog(_FitWidget):
 
     # The three steps of UI initialization
 
-    def __init__(self, control, model, frame):
-        super().__init__(control, model, frame)
+    def __init__(self, session):
+        super().__init__(session)
         self.long_transfer.clicked.connect(self.match_values)
         self.use_dispersion.clicked.connect(self.match_values)
         self.respect_coupling.clicked.connect(self.match_values)

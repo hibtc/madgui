@@ -42,11 +42,12 @@ class Corrector(Matcher):
     mode = 'xy'
     direct = True
 
-    def __init__(self, control, configs):
-        super().__init__(control.model(), control._frame.config['matching'])
+    def __init__(self, session, configs):
+        super().__init__(session.model(), session.config['matching'])
         self.fit_results = None
         self.active = None
-        self.control = control
+        self.session = session
+        self.control = control = session.control
         self.configs = configs
         self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
         # save elements
@@ -54,11 +55,11 @@ class Corrector(Matcher):
         self.readouts = List()
         self.records = List()
         self.fit_range = None
-        self._offsets = control._frame.config['online_control']['offsets']
+        self._offsets = session.config['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
         QtCore.QTimer.singleShot(
-            0, partial(control._frame.open_graph, 'orbit'))
+            0, partial(session.window().open_graph, 'orbit'))
 
     def setup(self, name, dirs=None, force=False):
         if not name or (name == self.active and not force):
@@ -565,4 +566,4 @@ class CorrectorWidget(QtGui.QWidget):
 
     @property
     def frame(self):
-        return self.window().parent()
+        return self.corrector.session.window()
