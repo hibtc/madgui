@@ -204,7 +204,7 @@ class MainWindow(QtGui.QMainWindow):
                      self.setNumberFormat),
                 Item('&Spin box', None,
                      'Display spinboxes for number input controls',
-                     self.setSpinBox, checked=self.config.number.spinbox),
+                     self.toggleSpinBox, checked=self.config.number.spinbox),
             ]),
             Menu('&Online control', [
                 Item('&Connect', None,
@@ -517,7 +517,7 @@ class MainWindow(QtGui.QMainWindow):
             return
         self.config.number.fmtspec = fmtspec
 
-    def setSpinBox(self):
+    def toggleSpinBox(self):
         # TODO: sync with menu state
         self.config.number.spinbox = not self.config.number.spinbox
 
