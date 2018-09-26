@@ -58,10 +58,7 @@ def main(argv=None):
         argv = sys.argv
     app = QtGui.qApp = QtGui.QApplication(argv)
     app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
-    setup_interrupt_handling(app)
-    # Print uncaught exceptions. This changes the default behaviour on PyQt5,
-    # where an uncaught exception would usually cause the program to abort.
-    sys.excepthook = traceback.print_exception
+    init_app(app)
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
     opts = docopt(__doc__, args, version=__version__)
@@ -78,6 +75,13 @@ def main(argv=None):
         # never be emitted, even when pressing Ctrl+C.)
         QtCore.QTimer.singleShot(0, session.load_default)
         return sys.exit(app.exec_())
+
+
+def init_app(app):
+    setup_interrupt_handling(app)
+    # Print uncaught exceptions. This changes the default behaviour on PyQt5,
+    # where an uncaught exception would usually cause the program to abort.
+    sys.excepthook = traceback.print_exception
 
 
 def setup_interrupt_handling(app):
