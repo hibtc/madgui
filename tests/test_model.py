@@ -10,3 +10,10 @@ def test_load_model():
         'hit_models/hht3/hht3.cpymad.yml',
         undo_stack=mock.Mock())
     assert model.seq_name == 'hht3'
+
+
+def test_load_model_without_def():
+    model = Model.load_file(
+        'hit_models/hht3/run.madx',
+        undo_stack=mock.Mock())
+    assert model.seq_name == 'hht3'
