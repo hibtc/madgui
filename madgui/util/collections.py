@@ -32,7 +32,19 @@ def _operator(get):
 
 class Boxed(Object):
 
-    """A box for a single value that can be observed for changes."""
+    """
+    A box that holds a single object and can be observed for changes
+    (assigning a different object).
+
+    Storing an object inside another one is the only way to pass around
+    variable references in python (which doesn't have native pointer or
+    references variables otherwise and therefore only supports passing the
+    objects themselves).
+
+    This class also provides a signal that notifies about changes in value.
+
+    This has some similarities to what is called a BehaviourSubject in RX.
+    """
 
     changed = Signal([object], [object, object])
 

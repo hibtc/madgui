@@ -14,10 +14,12 @@ import madgui.util.yaml as yaml
 class Session:
 
     """
-    Context variables for a madgui session.
+    Context variables and top-level application logic for a madgui session,
+    i.e. the interaction between user and different parts of the computer
+    program. This object keeps track and coordinates the use of the currently
+    opened model, GUI window, user variables, control system connection, and
+    configuration data.
     """
-
-    capture_stdout = None
 
     def __init__(self, config=None):
         if config is None:
