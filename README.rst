@@ -7,24 +7,11 @@ madgui_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_
 Requirements
 ~~~~~~~~~~~~
 
-- **Python >= 3.4**
-
-  *On linux*, I recommend the latest python version you can find.
-
-  *On windows*, I recommend `WinPython 3.4 Qt5`_ (should be about 300MiB in
-  size). In particular, you **can not use 64bit python 3.5 and above** on
-  windows 10, since there are problems building cpymad for these versions, see
-  `hibtc/cpymad#41`_.
+- **Python >= 3.4** (higher is better, except on windows, see `hibtc/cpymad#41`_!)
 
 - PyQt5_
 
-- cpymad_, in order to work with MAD-X_.
-
-  *On windows*, installing cpymad should be as simple as::
-
-    pip install cpymad
-
-  Otherwise, please refer to cpymad's `installation instructions`_.
+- cpymad_, see cpymad's `installation instructions`_.
 
 .. _WinPython 3.4 Qt5: https://sourceforge.net/projects/winpython/files/WinPython_3.4/3.4.4.6/
 .. _hibtc/cpymad#41: https://github.com/hibtc/cpymad/issues/41
