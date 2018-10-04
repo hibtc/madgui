@@ -7,24 +7,11 @@ madgui_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_
 Requirements
 ~~~~~~~~~~~~
 
-- **Python >= 3.4**
-
-  *On linux*, I recommend the latest python version you can find.
-
-  *On windows*, I recommend `WinPython 3.4 Qt5`_ (should be about 300MiB in
-  size). In particular, you **can not use 64bit python 3.5 and above** on
-  windows 10, since there are problems building cpymad for these versions, see
-  `hibtc/cpymad#41`_.
+- **Python >= 3.4** (higher is better, except on windows, see `hibtc/cpymad#41`_!)
 
 - PyQt5_
 
-- cpymad_, in order to work with MAD-X_.
-
-  *On windows*, installing cpymad should be as simple as::
-
-    pip install cpymad
-
-  Otherwise, please refer to cpymad's `installation instructions`_.
+- cpymad_, see cpymad's `installation instructions`_.
 
 .. _WinPython 3.4 Qt5: https://sourceforge.net/projects/winpython/files/WinPython_3.4/3.4.4.6/
 .. _hibtc/cpymad#41: https://github.com/hibtc/cpymad/issues/41
@@ -37,18 +24,9 @@ Requirements
 Installation
 ~~~~~~~~~~~~
 
-You are now ready to install madgui. Type::
+.. code-block:: bash
 
     pip install madgui
-
-Or, in order to install from the local checkout::
-
-    python setup.py install
-
-If you intend to make changes to the madgui code and want to try the effects
-immediately, use::
-
-    python setup.py develop
 
 
 Usage
@@ -58,14 +36,13 @@ Now, you should be able to start madgui with the command::
 
     madgui
 
-or::
+Optionally, madgui can take a filename for a madx/model file::
 
-    python -m madgui
+    madgui /path/to/model.madx
 
-If you are on windows, and nothing happens, you can start madgui manually as
-follows, which may provide you with more error information::
-
-    python -c "from madgui.core.app import main; main()"
+Note that madgui is currently only suited for relatively small sequences, on
+the scale of few hundred elements at the most. Don't say I didn't warn you if
+you use it with the LHC;)
 
 
 Configuration
@@ -83,10 +60,8 @@ Example file:
     online_control:
       connect: true
       backend: 'hit_csys.plugin:TestBackend'
-
-Note that the onload handler can be used to execute user-defined code, import
-modules and e.g. add loaders for online control plugins. The API is defined in
-the ``madgui.online.api`` module.
+    onload: |
+      code to execute on startup
 
 
 Development guidelines
@@ -104,10 +79,12 @@ Development guidelines
 
 **Naming:**
 
-- Stick to ``names_with_underscores`` for methods and variable names as
-  recommended by PEP8_ (I admit that the code base is currently somewhat
-  inconsistent in this regard)
+Altough the current code base is not entirely consistent, all new code should
+follow these rules:
+
 - class names are in ``CamelCase``
+- for method, member and variable names, stick to ``names_with_underscores`` as
+  recommended by PEP8_
 - only PyQt class method overrides and their parameters shall be written in
   ``lowerCamelCase``
 
