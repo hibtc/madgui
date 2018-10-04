@@ -40,6 +40,10 @@ Optionally, madgui can take a filename for a madx/model file::
 
     madgui /path/to/model.madx
 
+Note that madgui is currently only suited for relatively small sequences, on
+the scale of few hundred elements at the most. Don't say I didn't warn you if
+you use it with the LHC;)
+
 
 Configuration
 ~~~~~~~~~~~~~
@@ -75,10 +79,12 @@ Development guidelines
 
 **Naming:**
 
-- Stick to ``names_with_underscores`` for methods and variable names as
-  recommended by PEP8_ (I admit that the code base is currently somewhat
-  inconsistent in this regard)
+Altough the current code base is not entirely consistent, all new code should
+follow these rules:
+
 - class names are in ``CamelCase``
+- for method, member and variable names, stick to ``names_with_underscores`` as
+  recommended by PEP8_
 - only PyQt class method overrides and their parameters shall be written in
   ``lowerCamelCase``
 
