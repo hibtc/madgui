@@ -24,18 +24,9 @@ Requirements
 Installation
 ~~~~~~~~~~~~
 
-You are now ready to install madgui. Type::
+.. code-block:: bash
 
     pip install madgui
-
-Or, in order to install from the local checkout::
-
-    python setup.py install
-
-If you intend to make changes to the madgui code and want to try the effects
-immediately, use::
-
-    python setup.py develop
 
 
 Usage
@@ -45,14 +36,9 @@ Now, you should be able to start madgui with the command::
 
     madgui
 
-or::
+Optionally, madgui can take a filename for a madx/model file::
 
-    python -m madgui
-
-If you are on windows, and nothing happens, you can start madgui manually as
-follows, which may provide you with more error information::
-
-    python -c "from madgui.core.app import main; main()"
+    madgui /path/to/model.madx
 
 
 Configuration
@@ -70,10 +56,8 @@ Example file:
     online_control:
       connect: true
       backend: 'hit_csys.plugin:TestBackend'
-
-Note that the onload handler can be used to execute user-defined code, import
-modules and e.g. add loaders for online control plugins. The API is defined in
-the ``madgui.online.api`` module.
+    onload: |
+      code to execute on startup
 
 
 Development guidelines
