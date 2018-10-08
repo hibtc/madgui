@@ -60,13 +60,5 @@ jobs:
           on:
             branch: master
 
-# Enable caching of python wheels
-env:
-  global:
-    - PIP_FIND_LINKS=file://$HOME/.pip-cache
-    - PIP_WHEEL_DIR=$HOME/.pip-cache
-
 cache:
-  apt: true
-  directories:
-    - $PIP_WHEEL_DIR
+  pip: true
