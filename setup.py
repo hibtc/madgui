@@ -6,6 +6,7 @@ Usage:
     python setup.py install
 """
 
+import sys
 from setuptools import setup
 from distutils.util import convert_path
 
@@ -39,6 +40,7 @@ def main():
     """Execute setup."""
     long_description = get_long_description()
     meta = exec_file('madgui/__init__.py')
+    mpl_version = '==2' if sys.version_info < (3, 5) else ''
     setup(
         name='madgui',
         version=meta['__version__'],
@@ -62,7 +64,7 @@ def main():
         install_requires=[
             'cpymad>=1.0.6',
             'docopt',           # command line parsing
-            'matplotlib',
+            'matplotlib' + mpl_version,
             'numpy',
             'PyYAML',           # config/model files
             'Pint==0.8.1',
