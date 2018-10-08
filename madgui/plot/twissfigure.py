@@ -19,7 +19,7 @@ from madgui.qt import QtGui, Qt
 from madgui.core.signal import Object, Signal
 
 from madgui.util.qt import load_icon_resource
-from madgui.util.misc import memoize, strip_suffix, SingleWindow
+from madgui.util.misc import memoize, strip_suffix, SingleWindow, cachedproperty
 from madgui.util.collections import List, maintain_selection
 from madgui.util.unit import (
     to_ui, get_raw_label, ui_units)
@@ -553,7 +553,10 @@ class MatchTool(CaptureTool):
     mode = 'MATCH'
     short = 'match constraints'
     text = 'Match for desired target value'
-    icon = load_icon_resource('madgui.data', 'target.xpm')
+
+    @cachedproperty
+    def icon(self):
+        return load_icon_resource('madgui.data', 'target.xpm')
 
     def __init__(self, plot, matcher):
         """Add toolbar tool to panel and subscribe to capture events."""

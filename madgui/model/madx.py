@@ -67,7 +67,7 @@ class Model:
     metadata.
 
     :ivar Madx madx: CPyMAD interpreter
-    :ivar dict data: loaded model data
+    :ivar dict Model.data: loaded model data
     :ivar str path: base folder
     """
 

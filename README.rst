@@ -1,7 +1,7 @@
 madgui
 ======
 
-madgui_ is a Qt5 python GUI for interactive accelerator simulations using MAD-X_.
+madgui is a Qt5 python GUI for interactive accelerator simulations using MAD-X_.
 
 
 Requirements
