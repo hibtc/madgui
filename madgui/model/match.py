@@ -34,7 +34,7 @@ class Matcher(Object):
         self.mirror_mode = rules.get('mirror', True)
 
     def match(self):
-        """Match the :ivar:`variables` to satisfy :ivar:`constraints`."""
+        """Match the :attr:`variables` to satisfy :attr:`constraints`."""
         # transform constraints (envx => betx, etc)
         transform = MatchTransform()
         constraints = [
@@ -94,7 +94,7 @@ class Matcher(Object):
 
     def detect_variables(self):
         """
-        Fill :ivar:`variables` to the same length as :ivar:`constraints`.
+        Fill :attr:`variables` to the same length as :attr:`constraints`.
         """
         # The following uses the most naive, greedy and probably stupid
         # algorithm to select all elements that can be used for varying.

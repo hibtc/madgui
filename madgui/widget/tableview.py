@@ -246,7 +246,7 @@ class TableModel(QtCore.QAbstractItemModel):
     Table data model.
 
     Column specifications are provided as :class:`TableItem` instances. The
-    data can be accessed and changed via the list-like :attribute:`rows`.
+    data can be accessed and changed via the list-like :attr:`rows`.
     """
 
     def __init__(self, titles, rowitems, data=None):
