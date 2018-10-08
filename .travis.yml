@@ -25,9 +25,6 @@ install:
   # without having *any* dependencies installed:
   - python setup.py sdist
   - pip install $(ls ./dist/*.tar.gz | sort -rV | head -n1)
-  # Need to remove source folder otherwise it will be imported, but we want
-  # to check the version installed from the source distribution:
-  - rm -r madgui
 
 script:
   - pytest tests

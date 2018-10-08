@@ -7,7 +7,7 @@ Usage:
 """
 
 import sys
-from setuptools import setup
+from setuptools import setup, find_packages
 from distutils.util import convert_path
 
 
@@ -39,7 +39,7 @@ def get_long_description():
 def main():
     """Execute setup."""
     long_description = get_long_description()
-    meta = exec_file('madgui/__init__.py')
+    meta = exec_file('src/madgui/__init__.py')
     mpl_version = '==2' if sys.version_info < (3, 5) else ''
     setup(
         name='madgui',
@@ -51,16 +51,8 @@ def main():
         url=meta['__uri__'],
         license=meta['__license__'],
         classifiers=meta['__classifiers__'],
-        packages=[
-            'madgui',
-            'madgui.core',
-            'madgui.data',
-            'madgui.model',
-            'madgui.online',
-            'madgui.plot',
-            'madgui.util',
-            'madgui.widget',
-        ],
+        packages=find_packages('src'),
+        package_dir={'': 'src'},
         install_requires=[
             'cpymad>=1.0.6',
             'docopt',           # command line parsing
