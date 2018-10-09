@@ -1,32 +1,42 @@
 language: python
 
-sudo: true
-# Dependencies can be installed as follows. This works only for packages
-# whitelisted on https://github.com/travis-ci/apt-package-whitelist:
+python: "3.4"
+dist: trusty
+sudo: false
+
+# See https://github.com/travis-ci/apt-package-whitelist:
 addons:
   apt:
+    update: true
     packages:
       - python3-pyqt5
 
 virtualenv:
   system_site_packages: true
 
-# We don't have real tests for now, so do flake8 (=pyflakes+pycodestyle+mccabe)
-# sanity checks at least (note that I found mypy/pylint much too noisy…):
-install:
-  - pip install flake8 docutils pygments
-  - flake8
-  - python setup.py check -rs
+env:
+  global:
+    # GITHUB_TOKEN:
+    - secure: "Pdt8rdFHAwQ20jFF0Q3p0SWxbx+B0R5p55Yh3ujDF6UvWdMyTRKzOQs3giLkva5nZBmt9fb0mDa0fUSFCThgJRqd9E2ZCfU2QhD2DlCBJ+wA3EweaNosoiBWQwfeKFcJxtL6SkIsZxgZEx6XZrd3lVsqnFRX3W7fI0X6fIfBj4x+kPR/9AyUtsb2ls+6GJUk9OZxIpgsHhlBoXRJQ1KiS2o2mdBZGYt+Fl+K2RQzThqkFpc3WsubLeGszllUtvIzB3v1PzZGhLOeBVmH/ut6LT7QQJOwMT4YXKcE/0fIBzm33hHj5pphgnTZoX22/kFoLDD9N7vNs8zh3QoUj8f+obLOFNRZQk48MzBaukDwkObANE4tlVhh8Vr1wsX0UaVFrXoFLhMuTQ1BX4706UmEYLaUYxl4e607Lp9PTWStuFxdYnxoHRyHEFuCH9cjwin/YWZ9CoOIKUy0qwPR6YUU4VWd1LKbY6nisuHB541LSc9BoFZ144zz5+vVkZP9hkBSwFWI7FvOW7oBlDZniw5Ri37PmQOP4ikqlFEm9lut4LjXUEV0Cn3482mmPY3GT2uw2teHi6OlXq0LugNK7XD5DE0I67VdEj0pcNHFJ4jBVjlpHKJqWfoMHIs4jsW4XSJwQyz1SBcE3xJTcVb2mG9+FtJcwHmEeTt/hmoiWdg7REA="
+    # PYPI_PASSWORD:
+    - secure: "SbZ2REqlEyEfumRt/2DLVkvapZS702GP99yli6y9tEf80WobNcP5KDsqOyPvNlz+qn6v1NnmEVokjyeRbDrZGECNLeNRrMOjvAqy2ZVF91QOfbxMrfIIh5hNK5p8wd+7AMJ0xEw+EN3YQ2xOWINpmtOgRT9exU7QxR+bEYChgh/9fHl4B9NJ9N2T/M31mFYmhKpIUjq8kLgaN6ExeQeo4rqCYSC8oKGPb+I29e1u/wVSjjt01iZKK+pvpkcxfluFuBfi1WaStyr+65mfPtcKojKCldIqYJ9SEeTluFZMqVbcyB1ArT/CR3XNVOXpOYTqhIrrYFFQJk0slzEd0WxkkTOobs5wugq4KXfbkUFLv/WBcwnIQ5N8mZPFC7dfj2gR/XqOYqLVSfBcTDgOyn69HijYyLrA1ztV387quUSnGEXIuFTzwYSkH43zHDgaJcnof8ITbuEHpJwZtVd7zANhVaYq7wnYXZC7c8hLPj2cuo/v9iAKIKUsk2YfmD5u5bhkeWyZBHQnU1HjmdJff0FBPBZYPl0SDiT+MkJCJydyHcoZRQCCCWvzAcQPP6oiWYjqGf+ewPq6f9w1XT+Mela9PZqPY2k5SXLt4OrLz1vyNgWprOLD36a1C3V7leQXUZu7G/G58DHrI1mdzTiHB8xWEh2BdKcVLYlfeRLRDQ3hD3g="
 
-  - pip install pytest
+before_install:
+  - lsb_release -a
+  - env | sort
+
+install:
+  # Use -and thereby test(!)- the source distribution as installation medium:
+  - python setup.py sdist
+  - pip install ./dist/*.tar.gz
+
+  - pip install flake8 docutils pygments pytest
   - git clone git://github.com/hibtc/hit_models
 
-  # Check that the source distribution can be used for installation -
-  # without having *any* dependencies installed:
-  - python setup.py sdist
-  - pip install $(ls ./dist/*.tar.gz | sort -rV | head -n1)
-
 script:
+  - python setup.py check -rs
+  - flake8
+
   - pytest tests
 
 
@@ -36,12 +46,10 @@ script:
 jobs:
   include:
     - {python: "3.4", dist: trusty}
-    - {python: "3.5", dist: xenial}
+    - {python: "3.5", dist: xenial, sudo: true}
   # - {python: "3.6", dist: bionic}
 
     - stage: deploy
-      python: "3.4"
-      dist: trusty
       name: Upload Documentation
       install:
         - pip install sphinx sphinx_rtd_theme
@@ -52,10 +60,45 @@ jobs:
         - provider: pages
           local-dir: docs/_build/html
           skip-cleanup: true
-          github-token:
-            secure: "kMSU+klQmq83Rc/N9trJQ0C8yCNNzzrskoGrFWlnB7pOQoSM4EhYHj1qhWUwBRrx7603EowKU/vmdOftlf59V/QbnQ2cCB8ddVHwNBqD+BWm3aToaltjTnXbaVtevvV07l07lO9oEHThHlDdAp2yr29NrH2d/tZ+g99PGYvbQcClCJlWyDP/7AdZVRV5ZneEpD8DemAGV2TBd8r/HOVp5piQQ73m+MOAYxt98V/Yvn/HobQ3Ui9JtlvFbkqLGPBDUNFdUuVjFqpk0PquZcO8cer87Dir0YPWVFal0L4mUOzQljxBRpL/koCz1FGubgutzDYawzXQzCl5TXvHIunUFMUMt4r8n+pSJOw37FTE/T3wnaVLVyMS6PdCTf2fPBVnzRLNKOM+0nRjypecmhEf/txhHQY+RdhbwuIjUYBIZB1YQbXE+xL2kFH9gwfReDDSUOWKZYe3iJwRvFlkpq1qNyDdcA70o2ZkrvNazn8P+YyK63m9ttY6IDjeq5xFBd8hvaqR7/LLQSHRzznr+UMZtboxIbZI/4TjGPPMI/0tEO/ILfeob3D5QphJjigRW0Vgt4Ksv1oFEpGUNLSP5z7IwdRt7gvMi9KBGblAOPGbmcJafvScCfKLJRhwo6wgB5zvbxwcckSURPqGbUFEu/IbJvKuXNlBvShfnoePw2Kt21A="
+          github-token: $GITHUB_TOKEN
           on:
             branch: master
+
+    - stage: deploy
+      name: Upload release to Test PyPI
+      if: branch = test-release
+      addons:           # not needed
+      install: skip
+      script:
+        - sed -i "/^__version__ = /s/'$/.dev$TRAVIS_BUILD_NUMBER'/"
+            src/madgui/__init__.py
+        - python setup.py sdist
+      deploy:
+      # Upload manylinux wheels to test.pypi.org (only on branch test-release)
+      - provider: pypi
+        skip_cleanup: true
+        server: https://test.pypi.org/legacy/
+        on:
+          branch: test-release
+        user: hibtc-deploy
+        password: $PYPI_PASSWORD
+
+    - stage: deploy
+      name: Upload release to PyPI
+      if: tag IS present
+      addons:           # not needed
+      install: skip
+      script:
+        - python setup.py sdist
+      # Upload manylinux wheels (only when pushing tags)
+      deploy:
+      - provider: pypi
+        skip_cleanup: true
+        on:
+          tags: true
+        user: hibtc-deploy
+        password: $PYPI_PASSWORD
+
 
 cache:
   pip: true
