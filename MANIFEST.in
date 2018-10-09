@@ -1,4 +1,4 @@
 include README.rst
 include COPYING.rst COPYING.GPLv3.txt
-recursive-include madgui/data *.txt *.yml *.xpm *.css
-recursive-include madgui *.ui
+recursive-include src/madgui/data *.txt *.yml *.xpm *.css
+recursive-include src/madgui *.ui
