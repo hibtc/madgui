@@ -2,12 +2,12 @@ language: python
 
 python: "3.4"
 dist: trusty
-sudo: true
+sudo: false
 
-# Dependencies can be installed as follows. This works only for packages
-# whitelisted on https://github.com/travis-ci/apt-package-whitelist:
+# See https://github.com/travis-ci/apt-package-whitelist:
 addons:
   apt:
+    update: true
     packages:
       - python3-pyqt5
 
@@ -21,22 +21,22 @@ env:
     # PYPI_PASSWORD:
     - secure: "SbZ2REqlEyEfumRt/2DLVkvapZS702GP99yli6y9tEf80WobNcP5KDsqOyPvNlz+qn6v1NnmEVokjyeRbDrZGECNLeNRrMOjvAqy2ZVF91QOfbxMrfIIh5hNK5p8wd+7AMJ0xEw+EN3YQ2xOWINpmtOgRT9exU7QxR+bEYChgh/9fHl4B9NJ9N2T/M31mFYmhKpIUjq8kLgaN6ExeQeo4rqCYSC8oKGPb+I29e1u/wVSjjt01iZKK+pvpkcxfluFuBfi1WaStyr+65mfPtcKojKCldIqYJ9SEeTluFZMqVbcyB1ArT/CR3XNVOXpOYTqhIrrYFFQJk0slzEd0WxkkTOobs5wugq4KXfbkUFLv/WBcwnIQ5N8mZPFC7dfj2gR/XqOYqLVSfBcTDgOyn69HijYyLrA1ztV387quUSnGEXIuFTzwYSkH43zHDgaJcnof8ITbuEHpJwZtVd7zANhVaYq7wnYXZC7c8hLPj2cuo/v9iAKIKUsk2YfmD5u5bhkeWyZBHQnU1HjmdJff0FBPBZYPl0SDiT+MkJCJydyHcoZRQCCCWvzAcQPP6oiWYjqGf+ewPq6f9w1XT+Mela9PZqPY2k5SXLt4OrLz1vyNgWprOLD36a1C3V7leQXUZu7G/G58DHrI1mdzTiHB8xWEh2BdKcVLYlfeRLRDQ3hD3g="
 
-# We don't have real tests for now, so do flake8 (=pyflakes+pycodestyle+mccabe)
-# sanity checks at least (note that I found mypy/pylint much too noisy…):
-install:
-  - pip install flake8 docutils pygments
-  - flake8
-  - python setup.py check -rs
+before_install:
+  - lsb_release -a
+  - env | sort
 
-  - pip install pytest
+install:
+  # Use -and thereby test(!)- the source distribution as installation medium:
+  - python setup.py sdist
+  - pip install ./dist/*.tar.gz
+
+  - pip install flake8 docutils pygments pytest
   - git clone git://github.com/hibtc/hit_models
 
-  # Check that the source distribution can be used for installation -
-  # without having *any* dependencies installed:
-  - python setup.py sdist
-  - pip install $(ls ./dist/*.tar.gz | sort -rV | head -n1)
-
 script:
+  - python setup.py check -rs
+  - flake8
+
   - pytest tests
 
 
@@ -46,7 +46,7 @@ script:
 jobs:
   include:
     - {python: "3.4", dist: trusty}
-    - {python: "3.5", dist: xenial}
+    - {python: "3.5", dist: xenial, sudo: true}
   # - {python: "3.6", dist: bionic}
 
     - stage: deploy
