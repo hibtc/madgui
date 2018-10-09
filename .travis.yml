@@ -65,11 +65,13 @@ jobs:
             branch: master
 
     - stage: deploy
-      name: Upload release to PyPI
-      if: branch = test-release OR tag IS present
+      name: Upload release to Test PyPI
+      if: branch = test-release
       addons:           # not needed
       install: skip
       script:
+        - sed -i "/^__version__ = /s/'$/.dev$TRAVIS_BUILD_NUMBER'/"
+            src/madgui/__init__.py
         - python setup.py sdist
       deploy:
       # Upload manylinux wheels to test.pypi.org (only on branch test-release)
@@ -80,7 +82,16 @@ jobs:
           branch: test-release
         user: hibtc-deploy
         password: $PYPI_PASSWORD
+
+    - stage: deploy
+      name: Upload release to PyPI
+      if: tag IS present
+      addons:           # not needed
+      install: skip
+      script:
+        - python setup.py sdist
       # Upload manylinux wheels (only when pushing tags)
+      deploy:
       - provider: pypi
         skip_cleanup: true
         on:
