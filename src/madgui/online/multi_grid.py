@@ -143,7 +143,10 @@ class Corrector(Matcher):
 
     def update_vars(self):
         self.control.read_all()
-        self.base_optics = self._read_vars()
+        self.base_optics = {
+            par.name.lower(): self.model.read_param(par.name)
+            for par in self.control.get_knobs()
+        }
         self.cur_results = self._push_history()
 
     def update(self):

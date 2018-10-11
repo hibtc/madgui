@@ -34,7 +34,7 @@ class MeasureWidget(QtGui.QWidget):
             'optics':   [],
         }
 
-        self.corrector = Corrector(self.control, {'default': self.config})
+        self.corrector = Corrector(session, {'default': self.config})
         self.corrector.setup('default')
         self.corrector.start()
         self.bot = ProcBot(self, self.corrector)
@@ -191,8 +191,8 @@ class ProcBot(_ProcBot):
         self.write_data({
             'sequence': self.model.seq_name,
             'monitors': self.corrector.selected['monitors'],
-            'steerers': [elem.name for elem, _ in self.corrector.elem_knobs],
-            'knobs':    [knob for _, knob in self.corrector.elem_knobs],
+            'steerers': [elem.name for elem, _ in self.widget.elem_knobs],
+            'knobs':    [knob for _, knob in self.widget.elem_knobs],
             'twiss_args': self.model._get_twiss_args(),
         })
         self.write_data({
