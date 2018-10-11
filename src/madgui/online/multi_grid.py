@@ -58,8 +58,6 @@ class Corrector(Matcher):
         self._offsets = session.config['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
-        QtCore.QTimer.singleShot(
-            0, partial(session.window().open_graph, 'orbit'))
 
     def setup(self, name, dirs=None, force=False):
         if not name or (name == self.active and not force):
@@ -423,6 +421,7 @@ class CorrectorWidget(QtGui.QWidget):
             self.get_steerer_row, corr.variables)
         self.tab_targets.set_viewmodel(
             self.get_cons_row, corr.constraints)
+        self.corrector.session.window().open_graph('orbit')
 
     def set_initial_values(self):
         self.btn_fit.setFocus()

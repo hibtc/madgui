@@ -51,6 +51,7 @@ class MeasureWidget(QtGui.QWidget):
         self.ctrl_correctors.set_viewmodel(
             self.get_corrector_row, unit=(None, 'kick'))
         self.ctrl_monitors.set_viewmodel(self.get_monitor_row)
+        self.corrector.session.window().open_graph('orbit')
 
     def set_initial_values(self):
         self.set_folder('.')    # FIXME
