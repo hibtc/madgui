@@ -7,7 +7,7 @@ import madgui.util.yaml as yaml
 from madgui.qt import QtCore, QtGui, load_ui
 from madgui.widget.tableview import TableItem
 
-from madgui.online.optic_variation import Corrector, ProcBot as _ProcBot
+from madgui.online.optic_variation import Corrector, ProcBot
 
 
 class MeasureWidget(QtGui.QWidget):
@@ -38,6 +38,7 @@ class MeasureWidget(QtGui.QWidget):
         self.corrector.setup('default')
         self.corrector.start()
         self.bot = ProcBot(self, self.corrector)
+        self.file = None
 
         self.init_controls()
         self.set_initial_values()
@@ -130,7 +131,7 @@ class MeasureWidget(QtGui.QWidget):
             {knob: val + self.d_phi.get(knob.lower(), self.default_dphi)}
             for knob, val in self.corrector._read_vars().items() if val
         ]
-        self.bot.start()
+        self.start_bot()
 
     @property
     def running(self):
@@ -142,6 +143,8 @@ class MeasureWidget(QtGui.QWidget):
 
     def update_ui(self):
         running = self.running
+        if self.file and not running:
+            self.on_stop()
         valid = bool(self.corrector.optic_params)
         self.btn_cancel.setEnabled(running)
         self.btn_start.setEnabled(not running and valid)
@@ -154,6 +157,9 @@ class MeasureWidget(QtGui.QWidget):
         self.ctrl_progress.setRange(0, self.bot.totalops)
         self.ctrl_progress.setValue(self.bot.progress)
 
+    def set_progress(self, progress):
+        self.ctrl_progress.setValue(progress)
+
     def update_fit(self):
         """Called when procedure finishes succesfully."""
         pass
@@ -162,25 +168,25 @@ class MeasureWidget(QtGui.QWidget):
         self.corrector.update_readouts()
         records = self.corrector.current_orbit_records()
         if shot == 0:
-            self.bot.write_data([{
+            self.write_data([{
                 'optics': self.corrector.optics[step],
             }])
-            self.bot.file.write('  shots:\n')
-        self.bot.write_data([{
+            self.file.write('  shots:\n')
+        self.write_data([{
             r.monitor: [r.readout.posx, r.readout.posy,
                         r.readout.envx, r.readout.envy]
             for r in records
         }], "  ")
 
+    def start_bot(self):
+        self.bot.start(
+            self.num_shots_wait.value(),
+            self.num_shots_use.value())
 
-class ProcBot(_ProcBot):
-
-    def start(self):
-        super().start()
         now = time.localtime(time.time())
         fname = os.path.join(
-            self.widget.ctrl_dir.text(),
-            self.widget.ctrl_file.text().format(
+            self.ctrl_dir.text(),
+            self.ctrl_file.text().format(
                 date=time.strftime("%Y-%m-%d", now),
                 time=time.strftime("%H-%M-%S", now),
                 sequence=self.model.seq_name,
@@ -191,8 +197,8 @@ class ProcBot(_ProcBot):
         self.write_data({
             'sequence': self.model.seq_name,
             'monitors': self.corrector.selected['monitors'],
-            'steerers': [elem.name for elem, _ in self.widget.elem_knobs],
-            'knobs':    [knob for _, knob in self.widget.elem_knobs],
+            'steerers': [elem.name for elem, _ in self.elem_knobs],
+            'knobs':    [knob for _, knob in self.elem_knobs],
             'twiss_args': self.model._get_twiss_args(),
         })
         self.write_data({
@@ -202,9 +208,13 @@ class ProcBot(_ProcBot):
             '#    posx[m]    posy[m]    envx[m]    envy[m]\n'
             'records:\n')
 
-    def stop(self):
-        super().stop()
+    def on_stop(self):
         self.file.close()
+        self.file = None
 
     def write_data(self, data, indent="", **kwd):
         self.file.write(textwrap.indent(yaml.safe_dump(data, **kwd), indent))
+
+    def log(self, text, *args, **kwargs):
+        self.status_log.appendPlainText(
+            text.format(*args, **kwargs))

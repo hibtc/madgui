@@ -105,7 +105,7 @@ class CorrectorWidget(_Widget):
         self.btn_record.clicked.connect(self.add_record)
         self.btn_set_optic.clicked.connect(self.set_optic)
         self.tab_records.connectButtons(self.btn_rec_remove, self.btn_rec_clear)
-        self.btn_proc_start.clicked.connect(self.bot.start)
+        self.btn_proc_start.clicked.connect(self.start_bot)
         self.btn_proc_abort.clicked.connect(self.bot.cancel)
 
     def add_record(self, step, shot):
@@ -171,6 +171,18 @@ class CorrectorWidget(_Widget):
         self.ctrl_progress.setRange(0, self.bot.totalops)
         self.ctrl_progress.setValue(self.bot.progress)
 
+    def set_progress(self, progress):
+        self.ctrl_progress.setValue(progress)
+
+    def start_bot(self):
+        self.bot.start(
+            self.num_shots_wait.value(),
+            self.num_shots_use.value())
+
+    def log(self, text, *args, **kwargs):
+        self.status_log.appendPlainText(
+            text.format(*args, **kwargs))
+
 
 class ProcBot:
 
@@ -183,9 +195,7 @@ class ProcBot:
         self.totalops = 100
         self.progress = 0
 
-    def start(self):
-        num_ignore = self.widget.num_shots_wait.value()
-        num_average = self.widget.num_shots_use.value()
+    def start(self, num_ignore, num_average):
         self.corrector.records.clear()
         self.numsteps = len(self.corrector.optics)
         self.numshots = num_average + num_ignore + 1
@@ -194,7 +204,7 @@ class ProcBot:
         self.progress = 0
         self.running = True
         self.widget.update_ui()
-        self.log("Started")
+        self.widget.log("Started")
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.poll)
         self.timer.start(300)
@@ -202,13 +212,13 @@ class ProcBot:
     def finish(self):
         self.stop()
         self.widget.update_fit()
-        self.log("Finished\n")
+        self.widget.log("Finished\n")
 
     def cancel(self):
         if self.running:
             self.stop()
             self.reset()
-            self.log("Cancelled by user.\n")
+            self.widget.log("Cancelled by user.\n")
 
     def stop(self):
         if self.running:
@@ -229,12 +239,12 @@ class ProcBot:
         shot = self.progress % self.numshots
 
         if shot == 0:
-            self.log("optic {}".format(step))
+            self.widget.log("optic {}".format(step))
             self.corrector.set_optic(step)
 
             self.last_readouts = self.read_monitors()
             self.progress += 1
-            self.widget.ctrl_progress.setValue(self.progress)
+            self.widget.set_progress(self.progress)
             return
 
         readouts = self.read_monitors()
@@ -243,13 +253,13 @@ class ProcBot:
         self.last_readouts = readouts
 
         self.progress += 1
-        self.widget.ctrl_progress.setValue(self.progress)
+        self.widget.set_progress(self.progress)
 
         if shot <= self.num_ignore:
-            self.log('  -> shot {} (ignored)', shot)
+            self.widget.log('  -> shot {} (ignored)', shot)
             return
 
-        self.log('  -> shot {}', shot)
+        self.widget.log('  -> shot {}', shot)
         self.widget.add_record(step, shot-self.num_ignore-1)
 
         if self.progress == self.totalops:
@@ -258,7 +268,3 @@ class ProcBot:
     def read_monitors(self):
         self.corrector.update_readouts()
         return {r.name: r.data for r in self.corrector.readouts}
-
-    def log(self, text, *args, **kwargs):
-        self.widget.status_log.appendPlainText(
-            text.format(*args, **kwargs))
