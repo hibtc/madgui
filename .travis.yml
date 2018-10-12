@@ -26,7 +26,7 @@ before_install:
   - env | sort
 
 install:
-  # Use -and thereby test(!)- the source distribution as installation medium:
+  # Use [test!] the source distribution as installation medium:
   - python setup.py sdist
   - pip install ./dist/*.tar.gz
 
