@@ -8,7 +8,7 @@ from madgui.qt import QtCore
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
-from madgui.online.multi_grid import Corrector
+from madgui.online.procedure import Corrector
 
 
 @pytest.fixture(scope="session")

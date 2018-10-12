@@ -7,7 +7,7 @@ import madgui.util.yaml as yaml
 from madgui.qt import QtCore, QtGui, load_ui
 from madgui.widget.tableview import TableItem
 
-from madgui.online.optic_variation import Corrector, ProcBot
+from madgui.online.procedure import Corrector, ProcBot
 
 
 class MeasureWidget(QtGui.QWidget):
@@ -34,7 +34,7 @@ class MeasureWidget(QtGui.QWidget):
             'optics':   [],
         }
 
-        self.corrector = Corrector(session, {'default': self.config})
+        self.corrector = Corrector(session, {'default': self.config}, False)
         self.corrector.setup('default')
         self.corrector.start()
         self.bot = ProcBot(self, self.corrector)

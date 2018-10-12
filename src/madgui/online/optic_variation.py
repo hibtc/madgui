@@ -4,7 +4,6 @@ alignment.
 """
 
 __all__ = [
-    'Corrector',
     'CorrectorWidget',
 ]
 
@@ -12,15 +11,12 @@ from functools import partial
 
 import numpy as np
 
-from madgui.qt import QtCore, QtGui
+from madgui.qt import QtGui
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.widget.tableview import TableItem
 
-from .multi_grid import Corrector as _Corrector, CorrectorWidget as _Widget
-
-
-class Corrector(_Corrector):
-    direct = False
+from .procedure import ProcBot
+from .multi_grid import CorrectorWidget as _Widget
 
 
 class CorrectorWidget(_Widget):
@@ -182,89 +178,3 @@ class CorrectorWidget(_Widget):
     def log(self, text, *args, **kwargs):
         self.status_log.appendPlainText(
             text.format(*args, **kwargs))
-
-
-class ProcBot:
-
-    def __init__(self, widget, corrector):
-        self.widget = widget
-        self.corrector = corrector
-        self.running = False
-        self.model = corrector.model
-        self.control = corrector.control
-        self.totalops = 100
-        self.progress = 0
-
-    def start(self, num_ignore, num_average):
-        self.corrector.records.clear()
-        self.numsteps = len(self.corrector.optics)
-        self.numshots = num_average + num_ignore + 1
-        self.num_ignore = num_ignore
-        self.totalops = self.numsteps * self.numshots
-        self.progress = 0
-        self.running = True
-        self.widget.update_ui()
-        self.widget.log("Started")
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.poll)
-        self.timer.start(300)
-
-    def finish(self):
-        self.stop()
-        self.widget.update_fit()
-        self.widget.log("Finished\n")
-
-    def cancel(self):
-        if self.running:
-            self.stop()
-            self.reset()
-            self.widget.log("Cancelled by user.\n")
-
-    def stop(self):
-        if self.running:
-            self.corrector.set_optic(None)
-            self.running = False
-            self.timer.stop()
-            self.widget.update_ui()
-
-    def reset(self):
-        self.corrector.fit_results = None
-        self.widget.update_ui()
-
-    def poll(self):
-        if not self.running:
-            return
-
-        step = self.progress // self.numshots
-        shot = self.progress % self.numshots
-
-        if shot == 0:
-            self.widget.log("optic {}".format(step))
-            self.corrector.set_optic(step)
-
-            self.last_readouts = self.read_monitors()
-            self.progress += 1
-            self.widget.set_progress(self.progress)
-            return
-
-        readouts = self.read_monitors()
-        if readouts == self.last_readouts:
-            return
-        self.last_readouts = readouts
-
-        self.progress += 1
-        self.widget.set_progress(self.progress)
-
-        if shot <= self.num_ignore:
-            self.widget.log('  -> shot {} (ignored)', shot)
-            return
-
-        self.widget.log('  -> shot {}', shot)
-        self.widget.add_record(step, shot-self.num_ignore-1)
-
-        if self.progress == self.totalops:
-            self.finish()
-
-    def read_monitors(self):
-        self.corrector.update_readouts()
-        return {r.name: r.data for r in self.corrector.readouts}
