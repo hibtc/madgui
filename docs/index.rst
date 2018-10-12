@@ -16,7 +16,7 @@ Contents
 
    installation
    getting-started
-   apidocs/index
+   api/index
 
 
 Links
