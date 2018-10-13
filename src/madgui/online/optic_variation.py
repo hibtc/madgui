@@ -98,19 +98,14 @@ class CorrectorWidget(_Widget):
         super().connect_signals()
         self.btn_read_focus.clicked.connect(self.read_focus)
         self.btn_update.clicked.connect(self.corrector.update_readouts)
-        self.btn_record.clicked.connect(self.add_record)
+        self.btn_record.clicked.connect(self.corrector.add_record)
         self.btn_set_optic.clicked.connect(self.set_optic)
         self.tab_records.connectButtons(self.btn_rec_remove, self.btn_rec_clear)
         self.btn_proc_start.clicked.connect(self.start_bot)
         self.btn_proc_abort.clicked.connect(self.bot.cancel)
-
-    def add_record(self, step, shot):
-        # TODO: disable "record" button until monitor readouts updated
-        # (or maybe until "update" clicked as simpler alternative)
-        self.corrector.update_vars()
-        self.corrector.update_readouts()
-        self.corrector.records.extend(
-            self.corrector.current_orbit_records())
+        # TODO: after add_record: disable "record" button until monitor
+        # readouts updated (or maybe until "update" clicked as simpler
+        # alternative)
 
     def set_optic(self):
         # TODO: disable "write" button until another optic has been selected

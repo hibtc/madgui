@@ -1,10 +1,12 @@
 
 from itertools import accumulate, product
+import textwrap
 
 import numpy as np
 
 from madgui.qt import QtCore
 
+import madgui.util.yaml as yaml
 from madgui.util.collections import List
 
 from madgui.model.match import Matcher, Constraint
@@ -28,6 +30,8 @@ class Corrector(Matcher):
 
     mode = 'xy'
 
+    # TODO: elem_knobs
+
     def __init__(self, session, configs, direct=True):
         super().__init__(session.model(), session.config['matching'])
         self.fit_results = None
@@ -37,6 +41,8 @@ class Corrector(Matcher):
         self.configs = configs
         self.direct = direct
         self._knobs = control.get_knobs()
+        self.file = None
+        self.elem_knobs = None
         # save elements
         self.monitors = List()
         self.readouts = List()
@@ -45,6 +51,14 @@ class Corrector(Matcher):
         self._offsets = session.config['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
+        # for ORM
+        kick_elements = ('hkicker', 'vkicker', 'kicker', 'sbend')
+        self.all_kickers = [
+            elem.name for elem in self.model.elements
+            if elem.base_name.lower() in kick_elements]
+        self.all_monitors = [
+            elem.name for elem in self.model.elements
+            if elem.base_name.lower().endswith('monitor')]
 
     def setup(self, name, dirs=None, force=False):
         if not name or (name == self.active and not force):
@@ -99,6 +113,31 @@ class Corrector(Matcher):
             for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
+
+    def configure(self, conf_name, config):
+        elements = self.model.elements
+
+        monitors = sorted(config['monitors'], key=elements.index)
+        last_monitor = elements.index(monitors[-1])
+
+        self.elem_knobs = elem_knobs = [
+            (elem, knob) for name in self.all_kickers
+            for elem in [elements[name]]
+            if elem.index < last_monitor
+            for knob in self.model.get_elem_knobs(elem)
+        ]
+
+        self.configs.setdefault(conf_name, {}).update({
+            'monitors': monitors,
+            'steerers': {
+                'x': [knob for elem, knob in elem_knobs
+                      if elem.base_name != 'vkicker'],
+                'y': [knob for elem, knob in elem_knobs
+                      if elem.base_name == 'vkicker'],
+            },
+            'optics': [knob for _, knob in elem_knobs],
+        })
+        self.setup(conf_name, force=True)
 
     def _read_vars(self):
         model = self.model
@@ -330,6 +369,48 @@ class Corrector(Matcher):
             orm_row(v, 1e-4) for v in self.variables
         ])
 
+    def add_record(self, step, shot):
+        self.update_vars()
+        self.update_readouts()
+        records = self.current_orbit_records()
+        self.records.extend(records)
+        if self.file:
+            if shot == 0:
+                self.write_data([{
+                    'optics': self.optics[step],
+                }])
+                self.file.write('  shots:\n')
+            self.write_data([{
+                r.monitor: [r.readout.posx, r.readout.posy,
+                            r.readout.envx, r.readout.envy]
+                for r in records
+            }], "  ")
+
+    def open_export(self, fname):
+        self.file = open(fname, 'wt', encoding='utf-8')
+
+        self.write_data({
+            'sequence': self.model.seq_name,
+            'monitors': self.selected['monitors'],
+            'steerers': [elem.name for elem, _ in self.elem_knobs],
+            'knobs':    [knob for _, knob in self.elem_knobs],
+            'twiss_args': self.model._get_twiss_args(),
+        })
+        self.write_data({
+            'model': self.base_optics,
+        }, default_flow_style=False)
+        self.file.write(
+            '#    posx[m]    posy[m]    envx[m]    envy[m]\n'
+            'records:\n')
+
+    def close_export(self):
+        if self.file:
+            self.file.close()
+            self.file = None
+
+    def write_data(self, data, indent="", **kwd):
+        self.file.write(textwrap.indent(yaml.safe_dump(data, **kwd), indent))
+
 
 class ProcBot:
 
@@ -369,6 +450,7 @@ class ProcBot:
 
     def stop(self):
         if self.running:
+            self.corrector.close_export()
             self.corrector.set_optic(None)
             self.running = False
             self.timer.stop()
@@ -407,7 +489,7 @@ class ProcBot:
             return
 
         self.widget.log('  -> shot {}', shot)
-        self.widget.add_record(step, shot-self.num_ignore-1)
+        self.corrector.add_record(step, shot-self.num_ignore-1)
 
         if self.progress == self.totalops:
             self.finish()
