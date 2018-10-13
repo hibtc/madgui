@@ -133,6 +133,18 @@ class Corrector(Matcher):
         })
         self.setup(self.selected)
 
+    def set_optics_delta(self, deltas, default):
+        self.base_optics = {
+            knob: self.model.read_param(knob)
+            for knob in self.control.get_knobs()
+        }
+        self.optics = [{}] + [
+            {knob: val + delta}
+            for knob, val in self._read_vars().items()
+            for delta in [deltas.get(knob.lower(), default)]
+            if delta
+        ]
+
     def _read_vars(self):
         model = self.model
         return {

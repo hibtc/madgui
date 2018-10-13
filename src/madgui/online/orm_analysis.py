@@ -124,16 +124,7 @@ class MeasureWidget(QtGui.QWidget):
 
     def start_bot(self):
         self.control.read_all()
-        self.corrector.base_optics = {
-            knob: self.model.read_param(knob)
-            for knob in self.control.get_knobs()
-        }
-        self.corrector.optics = [] + [
-            {knob: val + delta}
-            for knob, val in self.corrector._read_vars().items()
-            for delta in [self.d_phi.get(knob.lower(), self.default_delta)]
-            if delta
-        ]
+        self.corrector.set_optics_delta(self.d_phi, self.default_dphi)
 
         self.bot.start(
             self.num_shots_wait.value(),
