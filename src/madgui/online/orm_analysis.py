@@ -129,8 +129,10 @@ class MeasureWidget(QtGui.QWidget):
             for knob in self.control.get_knobs()
         }
         self.corrector.optics = [] + [
-            {knob: val + self.d_phi.get(knob.lower(), self.default_dphi)}
-            for knob, val in self.corrector._read_vars().items() if val
+            {knob: val + delta}
+            for knob, val in self.corrector._read_vars().items()
+            for delta in [self.d_phi.get(knob.lower(), self.default_delta)]
+            if delta
         ]
 
         self.bot.start(
