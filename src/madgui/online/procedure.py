@@ -30,8 +30,6 @@ class Corrector(Matcher):
 
     mode = 'xy'
 
-    # TODO: elem_knobs
-
     def __init__(self, session, direct=True):
         super().__init__(session.model(), session.config['matching'])
         self.fit_results = None
@@ -40,7 +38,6 @@ class Corrector(Matcher):
         self.direct = direct
         self._knobs = control.get_knobs()
         self.file = None
-        self.elem_knobs = None
         # save elements
         self.monitors = List()
         self.readouts = List()
@@ -52,7 +49,7 @@ class Corrector(Matcher):
         # for ORM
         kick_elements = ('hkicker', 'vkicker', 'kicker', 'sbend')
         self.all_kickers = [
-            elem.name for elem in self.model.elements
+            elem for elem in self.model.elements
             if elem.base_name.lower() in kick_elements]
         self.all_monitors = [
             elem.name for elem in self.model.elements
@@ -63,20 +60,47 @@ class Corrector(Matcher):
 
         self._clr_history()
 
+        elements = self.model.elements
         self.selected = config
-        monitors = config['monitors']
-        steerers = sum([config['steerers'][d] for d in dirs], [])
-        targets = config['targets']
+        monitors = sorted(config['monitors'], key=elements.index)
+        last_mon = max(map(elements.index, monitors), default=0)
 
-        params = [k.lower() for k in config.get('optics', ())]
-        self.optic_params = [self._knobs[k] for k in params
-                             if k in self._knobs]
-        self.optic_elems = params and [
-            elem.name
-            for elem in self.model.elements
-            if any(k.lower() in params
-                   for k in self.model.get_elem_knobs(elem))
+        knob_elems = {}
+        for elem in elements:
+            for knob in self.model.get_elem_knobs(elem):
+                knob_elems.setdefault(knob.lower(), []).append(elem)
+
+        # steerer optics -> good default for ORM analysis
+        optic_knobs = config.setdefault('optics', [
+            knob
+            for name in self.all_kickers
+            for elem in [elements[name]]
+            if elem.index < last_mon
+            for knob in self.model.get_elem_knobs(elem)
+        ])
+        optic_knobs = [k.lower() for k in optic_knobs]
+
+        self.optic_elems = [
+            elem.name.lower()
+            for knob in optic_knobs
+            for elem in knob_elems[knob]
         ]
+
+        self.optic_params = [self._knobs[k] for k in optic_knobs
+                             if k in self._knobs]
+
+        # again, steerer optics only useful for ORM
+        config.setdefault('steerers', {
+            'x': [knob for knob in optic_knobs
+                  if any(elem.base_name != 'vkicker'
+                         for elem in knob_elems[knob])],
+            'y': [knob for knob in optic_knobs
+                  if any(elem.base_name == 'vkicker'
+                         for elem in knob_elems[knob])],
+        })
+
+        targets = config.setdefault('targets', {})
+        steerers = sum([config['steerers'][d] for d in dirs], [])
 
         self.method = config.get('method', ('jacobian', {}))
         self.mode = dirs
@@ -84,7 +108,6 @@ class Corrector(Matcher):
         self.assign = {k: v for s in steerers if isinstance(s, dict)
                        for k, v in s.items()}
 
-        elements = self.model.elements
         self.targets = sorted(targets, key=elements.index)
         self.monitors[:] = sorted(monitors, key=elements.index)
         self._readouts = self.control.monitors.sublist(
@@ -107,31 +130,6 @@ class Corrector(Matcher):
             for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
-
-    def configure(self, config):
-        elements = self.model.elements
-
-        monitors = sorted(config['monitors'], key=elements.index)
-        last_monitor = elements.index(monitors[-1])
-
-        self.elem_knobs = elem_knobs = [
-            (elem, knob) for name in self.all_kickers
-            for elem in [elements[name]]
-            if elem.index < last_monitor
-            for knob in self.model.get_elem_knobs(elem)
-        ]
-
-        self.selected.update({
-            'monitors': monitors,
-            'steerers': {
-                'x': [knob for elem, knob in elem_knobs
-                      if elem.base_name != 'vkicker'],
-                'y': [knob for elem, knob in elem_knobs
-                      if elem.base_name == 'vkicker'],
-            },
-            'optics': [knob for _, knob in elem_knobs],
-        })
-        self.setup(self.selected)
 
     def set_optics_delta(self, deltas, default):
         self.base_optics = {
@@ -399,8 +397,8 @@ class Corrector(Matcher):
         self.write_data({
             'sequence': self.model.seq_name,
             'monitors': self.selected['monitors'],
-            'steerers': [elem.name for elem, _ in self.elem_knobs],
-            'knobs':    [knob for _, knob in self.elem_knobs],
+            'steerers': self.optic_elems,
+            'knobs':    self.selected['optics'],
             'twiss_args': self.model._get_twiss_args(),
         })
         self.write_data({
