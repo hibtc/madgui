@@ -428,8 +428,9 @@ class ProcBot:
         self.control = corrector.control
         self.totalops = 100
         self.progress = 0
+        self.timer = None
 
-    def start(self, num_ignore, num_average):
+    def start(self, num_ignore, num_average, gui=True):
         self.corrector.records.clear()
         self.numsteps = len(self.corrector.optics)
         self.numshots = num_average + num_ignore + 1
@@ -439,9 +440,10 @@ class ProcBot:
         self.running = True
         self.widget.update_ui()
         self.widget.log("Started")
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.poll)
-        self.timer.start(300)
+        if gui:
+            self.timer = QtCore.QTimer()
+            self.timer.timeout.connect(self.poll)
+            self.timer.start(10)
 
     def finish(self):
         self.stop()
@@ -459,8 +461,10 @@ class ProcBot:
             self.corrector.close_export()
             self.corrector.set_optic(None)
             self.running = False
-            self.timer.stop()
             self.widget.update_ui()
+        if self.timer:
+            self.timer.stop()
+            self.timer = None
 
     def reset(self):
         self.corrector.fit_results = None

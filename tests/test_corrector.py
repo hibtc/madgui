@@ -60,6 +60,6 @@ def test_procbot(app):
 
         widget = mock.Mock()
         procbot = ProcBot(widget, corrector)
-        procbot.start(0, 1)
+        procbot.start(0, 1, gui=False)
 
         assert widget.update_ui.call_count == 1
