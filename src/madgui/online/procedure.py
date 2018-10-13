@@ -32,13 +32,11 @@ class Corrector(Matcher):
 
     # TODO: elem_knobs
 
-    def __init__(self, session, configs, direct=True):
+    def __init__(self, session, direct=True):
         super().__init__(session.model(), session.config['matching'])
         self.fit_results = None
-        self.active = None
         self.session = session
         self.control = control = session.control
-        self.configs = configs
         self.direct = direct
         self._knobs = control.get_knobs()
         self.file = None
@@ -60,12 +58,12 @@ class Corrector(Matcher):
             elem.name for elem in self.model.elements
             if elem.base_name.lower().endswith('monitor')]
 
-    def setup(self, name, dirs=None):
+    def setup(self, config, dirs=None):
         dirs = dirs or self.mode
 
         self._clr_history()
 
-        selected = self.selected = self.configs[name]
+        selected = self.selected = config
         monitors = selected['monitors']
         steerers = sum([selected['steerers'][d] for d in dirs], [])
         targets = selected['targets']
@@ -81,7 +79,6 @@ class Corrector(Matcher):
         ]
 
         self.method = selected.get('method', ('jacobian', {}))
-        self.active = name
         self.mode = dirs
         self.match_names = [s for s in steerers if isinstance(s, str)]
         self.assign = {k: v for s in steerers if isinstance(s, dict)
@@ -111,7 +108,7 @@ class Corrector(Matcher):
             if knob.lower() in self._knobs
         ]
 
-    def configure(self, conf_name, config):
+    def configure(self, config):
         elements = self.model.elements
 
         monitors = sorted(config['monitors'], key=elements.index)
@@ -124,7 +121,7 @@ class Corrector(Matcher):
             for knob in self.model.get_elem_knobs(elem)
         ]
 
-        self.configs.setdefault(conf_name, {}).update({
+        self.selected.update({
             'monitors': monitors,
             'steerers': {
                 'x': [knob for elem, knob in elem_knobs
@@ -134,7 +131,7 @@ class Corrector(Matcher):
             },
             'optics': [knob for _, knob in elem_knobs],
         })
-        self.setup(conf_name)
+        self.setup(self.selected)
 
     def _read_vars(self):
         model = self.model

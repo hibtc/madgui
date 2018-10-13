@@ -22,6 +22,8 @@ from .multi_grid import CorrectorWidget as _Widget
 class CorrectorWidget(_Widget):
 
     ui_file = 'ovm_dialog.ui'
+    data_key = 'optic_variation'
+    multi_step = True
 
     def get_optic_row(self, i, o) -> ("#", "kL (1)", "kL (2)"):
         return [
@@ -136,8 +138,6 @@ class CorrectorWidget(_Widget):
             self._on_update_optics()
         finally:
             dvm.SelectMEFI(vacc, *channels)
-
-    data_key = 'optic_variation'
 
     def update_ui(self):
         super().update_ui()

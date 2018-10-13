@@ -17,13 +17,13 @@ class MeasureWidget(QtGui.QWidget):
         load_ui(self, __package__, self.ui_file)
         self.control = session.control
         self.model = session.model()
-        self.corrector = Corrector(session, {'default': {
+        self.corrector = Corrector(session, False)
+        self.corrector.setup({
             'monitors': [],
             'steerers': {'x': [], 'y': []},
             'targets':  {},
             'optics':   [],
-        }}, False)
-        self.corrector.setup('default')
+        })
         self.corrector.start()
         self.bot = ProcBot(self, self.corrector)
 
@@ -73,7 +73,7 @@ class MeasureWidget(QtGui.QWidget):
         self.d_phi[c.name.lower()] = value
 
     def monitor_selection_changed(self, selected, deselected):
-        self.corrector.configure('default', {
+        self.corrector.configure({
             'monitors': [
                 self.corrector.all_monitors[idx.row()]
                 for idx in self.ctrl_monitors.selectedIndexes()

@@ -30,12 +30,7 @@ def test_simple_procedure(app):
         session.control.set_backend('hit_csys.plugin:TestBackend')
         session.control.connect()
 
-        corrector = Corrector(session, {'default': {
-            'monitors': [],
-            'steerers': {'x': [], 'y': []},
-            'targets':  {},
-            'optics':   [],
-        }})
+        corrector = Corrector(session)
         assert corrector.fit_results is None
 
 
@@ -48,7 +43,8 @@ def test_procbot(app):
         session.control.set_backend('hit_csys.plugin:TestBackend')
         session.control.connect()
 
-        corrector = Corrector(session, {'default': {
+        corrector = Corrector(session)
+        corrector.setup({
             'monitors': [
                 't3dg2g',
                 't3dg1g',
@@ -60,7 +56,7 @@ def test_procbot(app):
             },
             'targets':  {},
             'optics':   ['ax_g3mw2', 'ax_g3ms2', 'ay_g3mw1', 'ay_g3ms1'],
-        }})
+        })
 
         widget = mock.Mock()
         procbot = ProcBot(widget, corrector)

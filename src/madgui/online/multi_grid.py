@@ -19,11 +19,14 @@ from madgui.widget.tableview import TableItem
 from madgui.model.match import Constraint
 
 from ._common import EditConfigDialog
+from .procedure import Corrector
 
 
 class CorrectorWidget(QtGui.QWidget):
 
     ui_file = 'mgm_dialog.ui'
+    data_key = 'multi_grid'
+    multi_step = False
 
     def get_readout_row(self, i, r) -> ("Monitor", "X", "Y"):
         return [
@@ -69,11 +72,14 @@ class CorrectorWidget(QtGui.QWidget):
             self.corrector._push_history(results)
             self.update_ui()
 
-    def __init__(self, corrector):
+    def __init__(self, session, active=None):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
-        self.corrector = corrector
+        self.configs = session.model().data.get(self.data_key, {})
+        self.active = active or next(iter(self.configs))
+        self.corrector = Corrector(session, direct=not self.multi_step)
         self.corrector.start()
+        self.corrector.setup(self.configs[self.active])
         self.init_controls()
         self.set_initial_values()
         self.connect_signals()
@@ -108,8 +114,8 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_config(self):
         self.combo_config.clear()
-        self.combo_config.addItems(list(self.corrector.configs))
-        self.combo_config.setCurrentText(self.corrector.active)
+        self.combo_config.addItems(list(self.configs))
+        self.combo_config.setCurrentText(self.active)
 
     def connect_signals(self):
         self.btn_fit.clicked.connect(self.update_fit)
@@ -156,11 +162,11 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
-        self.corrector.setup(name, self.corrector.mode)
+        self.corrector.setup(self.configs[name], self.corrector.mode)
         self.update_status()
 
     def on_change_mode(self, dirs):
-        self.corrector.setup(self.corrector.active, dirs)
+        self.corrector.setup(self.configs[self.active], dirs)
         self.update_status()
 
         # TODO: make 'optimal'-column in tab_corrections editable and update
@@ -190,8 +196,6 @@ class CorrectorWidget(QtGui.QWidget):
         dialog = EditConfigDialog(self.corrector.model, self.apply_config)
         dialog.exec_()
 
-    data_key = 'multi_grid'
-
     def apply_config(self, text):
         try:
             data = yaml.safe_load(text)
@@ -214,9 +218,9 @@ class CorrectorWidget(QtGui.QWidget):
         with open(model.filename, 'w') as f:
             f.write(text)
 
-        self.corrector.configs = configs
+        self.configs = configs
         model.data[self.data_key] = configs
-        conf = self.corrector.active
+        conf = self.active
         if conf not in configs:
             conf = next(iter(configs))
 

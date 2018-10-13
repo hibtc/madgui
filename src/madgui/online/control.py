@@ -175,37 +175,19 @@ class Control(Object):
         return dialog
 
     def on_correct_multi_grid_method(self):
-        from .procedure import Corrector
         from .multi_grid import CorrectorWidget
         from madgui.widget.dialog import Dialog
-
-        varyconf = self.model().data.get('multi_grid', {})
-        selected = next(iter(varyconf))
-
         self.read_all()
-
-        method = Corrector(self.session, varyconf, direct=True)
-        method.setup(selected)
-
-        widget = CorrectorWidget(method)
+        widget = CorrectorWidget(self.session)
         dialog = Dialog(self.session.window())
         dialog.setWidget(widget, tight=True)
         dialog.show()
 
     def on_correct_optic_variation_method(self):
-        from .procedure import Corrector
         from .optic_variation import CorrectorWidget
         from madgui.widget.dialog import Dialog
-
-        varyconf = self.model().data.get('optic_variation', {})
-        selected = next(iter(varyconf))
-
         self.read_all()
-
-        method = Corrector(self.session, varyconf, direct=False)
-        method.setup(selected)
-
-        widget = CorrectorWidget(method)
+        widget = CorrectorWidget(self.session)
         dialog = Dialog(self.session.window())
         dialog.setWidget(widget, tight=True)
         dialog.show()
