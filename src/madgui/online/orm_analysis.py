@@ -125,8 +125,8 @@ class MeasureWidget(QtGui.QWidget):
     def start(self):
         self.control.read_all()
         self.corrector.base_optics = {
-            par.name.lower(): self.model.read_param(par.name)
-            for par in self.control.get_knobs()
+            knob: self.model.read_param(knob)
+            for knob in self.control.get_knobs()
         }
         self.corrector.optics = [] + [
             {knob: val + self.d_phi.get(knob.lower(), self.default_dphi)}

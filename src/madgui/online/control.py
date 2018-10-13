@@ -86,11 +86,15 @@ class Control(Object):
         return self._settings
 
     def get_knobs(self):
-        """Get list of :class:`ParamInfo`."""
+        """Get dict of lowercase name → :class:`ParamInfo`."""
         if not self.model():
-            return []
-        return list(filter(
-            None, map(self.backend.param_info, self.model().globals)))
+            return {}
+        return {
+            knob: info
+            for knob in self.model().globals
+            for info in [self.backend.param_info(knob)]
+            if info
+        }
 
     # TODO: unify export/import dialog -> "show knobs"
     # TODO: can we drop the read-all button in favor of automatic reads?
@@ -109,9 +113,8 @@ class Control(Object):
         from madgui.online.dialogs import SyncParamItem
         model, live = self.model(), self.backend
         widget.data = [
-            SyncParamItem(
-                knob, live.read_param(knob.name), model.read_param(knob.name))
-            for knob in self.get_knobs()
+            SyncParamItem(info, live.read_param(name), model.read_param(name))
+            for name, info in self.get_knobs().items()
         ]
         widget.data_key = 'dvm_parameters'
         self._show_dialog(widget, apply)
@@ -119,14 +122,14 @@ class Control(Object):
     def read_all(self, knobs=None):
         live = self.backend
         self.model().write_params([
-            (knob.name, live.read_param(knob.name))
+            (knob, live.read_param(knob))
             for knob in knobs or self.get_knobs()
         ], "Read params from online control")
 
     def write_all(self, knobs=None):
         model = self.model()
         self.write_params([
-            (knob.name, model.read_param(knob.name))
+            (knob, model.read_param(knob))
             for knob in knobs or self.get_knobs()
         ])
 

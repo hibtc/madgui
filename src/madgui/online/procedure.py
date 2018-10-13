@@ -36,7 +36,7 @@ class Corrector(Matcher):
         self.control = control = session.control
         self.configs = configs
         self.direct = direct
-        self._knobs = {knob.name.lower(): knob for knob in control.get_knobs()}
+        self._knobs = control.get_knobs()
         # save elements
         self.monitors = List()
         self.readouts = List()
@@ -129,8 +129,8 @@ class Corrector(Matcher):
     def update_vars(self):
         self.control.read_all()
         self.base_optics = {
-            par.name.lower(): self.model.read_param(par.name)
-            for par in self.control.get_knobs()
+            knob: self.model.read_param(knob)
+            for knob in self.control.get_knobs()
         }
         self.cur_results = self._push_history()
 
