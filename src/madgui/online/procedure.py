@@ -187,6 +187,7 @@ class Corrector(Matcher):
 
     def update_readouts(self):
         self._readouts.invalidate()
+        return list(self._readouts)
 
     def update_records(self):
         if self.direct:
