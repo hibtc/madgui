@@ -63,12 +63,12 @@ class Corrector(Matcher):
 
         self._clr_history()
 
-        selected = self.selected = config
-        monitors = selected['monitors']
-        steerers = sum([selected['steerers'][d] for d in dirs], [])
-        targets = selected['targets']
+        self.selected = config
+        monitors = config['monitors']
+        steerers = sum([config['steerers'][d] for d in dirs], [])
+        targets = config['targets']
 
-        params = [k.lower() for k in selected.get('optics', ())]
+        params = [k.lower() for k in config.get('optics', ())]
         self.optic_params = [self._knobs[k] for k in params
                              if k in self._knobs]
         self.optic_elems = params and [
@@ -78,7 +78,7 @@ class Corrector(Matcher):
                    for k in self.model.get_elem_knobs(elem))
         ]
 
-        self.method = selected.get('method', ('jacobian', {}))
+        self.method = config.get('method', ('jacobian', {}))
         self.mode = dirs
         self.match_names = [s for s in steerers if isinstance(s, str)]
         self.assign = {k: v for s in steerers if isinstance(s, dict)
