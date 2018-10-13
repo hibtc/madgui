@@ -3,6 +3,8 @@
 # - installed hit_csys (pip install)
 
 from unittest import mock
+import os
+import time
 
 import pytest
 
@@ -37,7 +39,12 @@ def test_simple_procedure(app):
 def test_procbot(app):
     config = load_config(isolated=True)
     with Session(config) as session:
-        session.config.online_control.jitter_interval = 0.010
+        session.control._settings.update({
+            'jitter_interval': 0.001,
+            'jitter': True,
+            'auto_params': True,
+            'auto_sd': True,
+        })
         session.load_model(
             session.find_model('hit_models/hht3'))
         session.control.set_backend('hit_csys.plugin:TestBackend')
@@ -50,16 +57,36 @@ def test_procbot(app):
                 't3dg1g',
                 't3df1',
             ],
-            'steerers': {
-                'x': ['ax_g3mw2', 'ax_g3ms2'],
-                'y': ['ay_g3mw1', 'ay_g3ms1'],
-            },
-            'targets':  {},
-            'optics':   ['ax_g3mw2', 'ax_g3ms2', 'ay_g3mw1', 'ay_g3ms1'],
+            'optics':   [
+                'ax_g3mw2',
+                'ax_g3ms2',
+                'ay_g3mw1',
+                'ay_g3ms1',
+            ],
         })
+        num_mons = 3
+        num_optics = 5          # 4+1 for base_optics
+        num_shots = 2
 
-        widget = mock.Mock()
-        procbot = ProcBot(widget, corrector)
-        procbot.start(0, 1, gui=False)
+        corrector.set_optics_delta({}, 1e-4)
+        corrector.open_export('timeseries.yml')
+        assert os.path.exists('timeseries.yml')
 
-        assert widget.update_ui.call_count == 1
+        try:
+            widget = mock.Mock()
+            procbot = ProcBot(widget, corrector)
+            procbot.start(1, num_shots, gui=False)
+
+            assert widget.update_ui.call_count == 1
+
+            i = 0
+            while procbot.running and i < 100:
+                procbot.poll()
+                time.sleep(0.010)
+                i += 1
+
+            assert not procbot.running
+            assert len(corrector.records) == num_mons * num_optics * num_shots
+
+        finally:
+            os.remove('timeseries.yml')
