@@ -220,7 +220,7 @@ class CorrectorWidget(QtGui.QWidget):
         if conf not in configs:
             conf = next(iter(configs))
 
-        self.corrector.setup(conf, force=True)
+        self.corrector.setup(conf)
         self.update_config()
         self.update_status()
 

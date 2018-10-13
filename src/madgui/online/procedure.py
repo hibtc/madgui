@@ -60,10 +60,7 @@ class Corrector(Matcher):
             elem.name for elem in self.model.elements
             if elem.base_name.lower().endswith('monitor')]
 
-    def setup(self, name, dirs=None, force=False):
-        if not name or (name == self.active and not force):
-            return
-
+    def setup(self, name, dirs=None):
         dirs = dirs or self.mode
 
         self._clr_history()
@@ -137,7 +134,7 @@ class Corrector(Matcher):
             },
             'optics': [knob for _, knob in elem_knobs],
         })
-        self.setup(conf_name, force=True)
+        self.setup(conf_name)
 
     def _read_vars(self):
         model = self.model
