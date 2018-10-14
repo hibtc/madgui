@@ -47,12 +47,12 @@ def test_simple_procedure(session):
     assert corrector.fit_results is None
 
 
-def test_procbot(session):
+@pytest.fixture
+def corrector(session):
     session.load_model(
         session.find_model('hit_models/hht3'))
     session.control.set_backend('hit_csys.plugin:TestBackend')
     session.control.connect()
-
     corrector = Corrector(session)
     corrector.setup({
         'monitors': [
@@ -67,29 +67,34 @@ def test_procbot(session):
             'ay_g3ms1',
         ],
     })
+    return corrector
+
+
+@pytest.yield_fixture
+def procbot(corrector):
+    corrector.set_optics_delta({}, 1e-4)
+    corrector.open_export('timeseries.yml')
+    assert os.path.exists('timeseries.yml')
+    try:
+        widget = mock.Mock()
+        procbot = ProcBot(widget, corrector)
+        procbot.start(1, 2, gui=False)
+        assert widget.update_ui.call_count == 1
+        yield procbot
+    finally:
+        os.remove('timeseries.yml')
+
+
+def test_procbot(corrector, procbot):
     num_mons = 3
     num_optics = 5          # 4+1 for base_optics
     num_shots = 2
 
-    corrector.set_optics_delta({}, 1e-4)
-    corrector.open_export('timeseries.yml')
-    assert os.path.exists('timeseries.yml')
+    i = 0
+    while procbot.running and i < 100:
+        procbot.poll()
+        time.sleep(0.010)
+        i += 1
 
-    try:
-        widget = mock.Mock()
-        procbot = ProcBot(widget, corrector)
-        procbot.start(1, num_shots, gui=False)
-
-        assert widget.update_ui.call_count == 1
-
-        i = 0
-        while procbot.running and i < 100:
-            procbot.poll()
-            time.sleep(0.010)
-            i += 1
-
-        assert not procbot.running
-        assert len(corrector.records) == num_mons * num_optics * num_shots
-
-    finally:
-        os.remove('timeseries.yml')
+    assert not procbot.running
+    assert len(corrector.records) == num_mons * num_optics * num_shots
