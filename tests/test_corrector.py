@@ -13,6 +13,7 @@ from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.online.procedure import Corrector, ProcBot
+from madgui.util.yaml import safe_load
 
 
 @pytest.fixture(scope="session")
@@ -98,3 +99,11 @@ def test_procbot(corrector, procbot):
 
     assert not procbot.running
     assert len(corrector.records) == num_mons * num_optics * num_shots
+
+    with open('timeseries.yml') as f:
+        dump = safe_load(f)
+
+    assert dump['sequence'] == 'hht3'
+    assert dump['monitors'] == ['t3dg2g', 't3dg1g', 't3df1']
+    assert len(dump['records']) == num_optics
+    assert all([len(r['shots']) == num_shots for r in dump['records']])
