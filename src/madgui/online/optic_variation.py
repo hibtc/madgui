@@ -4,7 +4,6 @@ alignment.
 """
 
 __all__ = [
-    'Corrector',
     'CorrectorWidget',
 ]
 
@@ -12,20 +11,19 @@ from functools import partial
 
 import numpy as np
 
-from madgui.qt import QtCore, QtGui
+from madgui.qt import QtGui
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.widget.tableview import TableItem
 
-from .multi_grid import Corrector as _Corrector, CorrectorWidget as _Widget
-
-
-class Corrector(_Corrector):
-    direct = False
+from .procedure import ProcBot
+from .multi_grid import CorrectorWidget as _Widget
 
 
 class CorrectorWidget(_Widget):
 
     ui_file = 'ovm_dialog.ui'
+    data_key = 'optic_variation'
+    multi_step = True
 
     def get_optic_row(self, i, o) -> ("#", "kL (1)", "kL (2)"):
         return [
@@ -102,19 +100,14 @@ class CorrectorWidget(_Widget):
         super().connect_signals()
         self.btn_read_focus.clicked.connect(self.read_focus)
         self.btn_update.clicked.connect(self.corrector.update_readouts)
-        self.btn_record.clicked.connect(self.add_record)
+        self.btn_record.clicked.connect(self.corrector.add_record)
         self.btn_set_optic.clicked.connect(self.set_optic)
         self.tab_records.connectButtons(self.btn_rec_remove, self.btn_rec_clear)
-        self.btn_proc_start.clicked.connect(self.bot.start)
+        self.btn_proc_start.clicked.connect(self.start_bot)
         self.btn_proc_abort.clicked.connect(self.bot.cancel)
-
-    def add_record(self, step, shot):
-        # TODO: disable "record" button until monitor readouts updated
-        # (or maybe until "update" clicked as simpler alternative)
-        self.corrector.update_vars()
-        self.corrector.update_readouts()
-        self.corrector.records.extend(
-            self.corrector.current_orbit_records())
+        # TODO: after add_record: disable "record" button until monitor
+        # readouts updated (or maybe until "update" clicked as simpler
+        # alternative)
 
     def set_optic(self):
         # TODO: disable "write" button until another optic has been selected
@@ -146,8 +139,6 @@ class CorrectorWidget(_Widget):
         finally:
             dvm.SelectMEFI(vacc, *channels)
 
-    data_key = 'optic_variation'
-
     def update_ui(self):
         super().update_ui()
 
@@ -171,94 +162,14 @@ class CorrectorWidget(_Widget):
         self.ctrl_progress.setRange(0, self.bot.totalops)
         self.ctrl_progress.setValue(self.bot.progress)
 
+    def set_progress(self, progress):
+        self.ctrl_progress.setValue(progress)
 
-class ProcBot:
-
-    def __init__(self, widget, corrector):
-        self.widget = widget
-        self.corrector = corrector
-        self.running = False
-        self.model = corrector.model
-        self.control = corrector.control
-        self.totalops = 100
-        self.progress = 0
-
-    def start(self):
-        num_ignore = self.widget.num_shots_wait.value()
-        num_average = self.widget.num_shots_use.value()
-        self.corrector.records.clear()
-        self.numsteps = len(self.corrector.optics)
-        self.numshots = num_average + num_ignore + 1
-        self.num_ignore = num_ignore
-        self.totalops = self.numsteps * self.numshots
-        self.progress = 0
-        self.running = True
-        self.widget.update_ui()
-        self.log("Started")
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.poll)
-        self.timer.start(300)
-
-    def finish(self):
-        self.stop()
-        self.widget.update_fit()
-        self.log("Finished\n")
-
-    def cancel(self):
-        if self.running:
-            self.stop()
-            self.reset()
-            self.log("Cancelled by user.\n")
-
-    def stop(self):
-        if self.running:
-            self.corrector.set_optic(None)
-            self.running = False
-            self.timer.stop()
-            self.widget.update_ui()
-
-    def reset(self):
-        self.corrector.fit_results = None
-        self.widget.update_ui()
-
-    def poll(self):
-        if not self.running:
-            return
-
-        step = self.progress // self.numshots
-        shot = self.progress % self.numshots
-
-        if shot == 0:
-            self.log("optic {}".format(step))
-            self.corrector.set_optic(step)
-
-            self.last_readouts = self.read_monitors()
-            self.progress += 1
-            self.widget.ctrl_progress.setValue(self.progress)
-            return
-
-        readouts = self.read_monitors()
-        if readouts == self.last_readouts:
-            return
-        self.last_readouts = readouts
-
-        self.progress += 1
-        self.widget.ctrl_progress.setValue(self.progress)
-
-        if shot <= self.num_ignore:
-            self.log('  -> shot {} (ignored)', shot)
-            return
-
-        self.log('  -> shot {}', shot)
-        self.widget.add_record(step, shot-self.num_ignore-1)
-
-        if self.progress == self.totalops:
-            self.finish()
-
-    def read_monitors(self):
-        self.corrector.update_readouts()
-        return {r.name: r.data for r in self.corrector.readouts}
+    def start_bot(self):
+        self.bot.start(
+            self.num_shots_wait.value(),
+            self.num_shots_use.value())
 
     def log(self, text, *args, **kwargs):
-        self.widget.status_log.appendPlainText(
+        self.status_log.appendPlainText(
             text.format(*args, **kwargs))

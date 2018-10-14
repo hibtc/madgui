@@ -50,13 +50,14 @@ def _load_file(path):
     return yaml.safe_load(path and _read_file(path) or '')
 
 
-def load(*config_files):
+def load(*config_files, isolated=False):
     """Read config file and recursively merge it with a base config file."""
     resources = [
         _loads(read_binary('madgui.data', 'config.yml')),   # package default
+    ] + ([] if isolated else [
         _load_file(get_default_user_config_path()),         # user folder
         _load_file('madgui.yml'),                           # current directory
-    ]
+    ])
     resources.extend(map(_load_file, config_files))         # command line
     # NOTE: we deliberately mixin the autosaved session data on lower priority
     # than user defined config files! This allows to always reset specific

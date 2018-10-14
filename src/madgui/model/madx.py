@@ -91,6 +91,7 @@ class Model:
     @classmethod
     def load_file(cls, filename, madx=None, *, undo_stack=None, **madx_kwargs):
         madx = madx or Madx(**madx_kwargs)
+        madx.option(echo=False)
         filename = os.path.abspath(filename)
         path, name = os.path.split(filename)
         ext = os.path.splitext(name)[1].lower()

@@ -94,8 +94,8 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.totalops = self.numsteps * self.numshots
         self.prepare = True
         self.control.read_all()
-        self.base_optics = {par.name.lower(): self.model.read_param(par.name)
-                            for par in self.control.get_knobs()}
+        self.base_optics = {knob: self.model.read_param(knob)
+                            for knob in self.control.get_knobs()}
         self.progress = 0
         self.backup = None
         self.sectormaps = None
