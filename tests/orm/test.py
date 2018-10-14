@@ -74,7 +74,7 @@ def main():
 
     # load gantry model
     m = Madx(stdout=False)
-    m.call('../../hit_models/hht3/run.madx', True)
+    m.call('../hit_models/hht3/run.madx', True)
     d_kick = 0.1e-3
 
     # define elements

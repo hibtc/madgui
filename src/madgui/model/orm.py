@@ -13,7 +13,7 @@ class _BaseORM:
     def __init__(self, madx, sequ, twiss_args, monitors, steerers, knobs):
         self.madx = madx
         self.sequ = sequ = madx.sequence[sequ]
-        self.elms = elms = sequ.elements
+        self.elms = elms = sequ.expanded_elements
         self.monitors = [elms[el] for el in monitors]
         self.steerers = [elms[el] for el in steerers]
         self.knobs = knobs
@@ -40,7 +40,7 @@ class _BaseORM:
         with param.vary(self) as step:
             self.set_operating_point('base_deriv')
             try:
-                return (self.get_orm() - self.backup_orm) / step
+                return (self.get_orm() - backup_orm) / step
             finally:
                 self.base_tw = backup_tw
                 self.base_orm = backup_orm
@@ -63,11 +63,13 @@ class _BaseORM:
         """
         # TODO: add rows for monitor/steerer sensitivity
         Y = measured_orm - self.base_orm
-        A = [self.get_orm_deriv(param) for param in params]
+        A = np.array([self.get_orm_deriv(param) for param in params])
         if steerer_errors:
             A = np.hstack((A, -self.base_orm))
         if monitor_errors:
             A = np.hstack((A, +self.base_orm))
+        A = A.reshape((A.shape[0], -1)).T
+        Y = Y.reshape((-1,))
         X = np.linalg.lstsq(A/stddev, Y/stddev, rcond=rcond)[0]
         return X, chisq(A, X, Y)
 
@@ -85,7 +87,7 @@ class NumericalORM(_BaseORM):
             x_0, y_0, x_1, y_1, …
         """
         return np.vstack([
-            self._get_knob_response(self, knob)
+            self._get_knob_response(knob)
             for knob in self.knobs
         ]).T
 
@@ -94,7 +96,7 @@ class NumericalORM(_BaseORM):
         to the knob ``j`` (specified by name) by performing a second twiss pass
         with a slightly varied knob value."""
         tw0 = self.base_tw
-        with Param(knob) as step:
+        with Param(knob).vary(self) as step:
             tw1 = self.twiss('vary')
             idx = [mon.index for mon in self.monitors]
             return np.vstack((
@@ -162,11 +164,11 @@ class ResponseMatrix:
 
 class ParamSpec:
 
-    def __init__(self, monitor_errors, steerer_errors, params, stddev):
+    def __init__(self, monitor_errors, steerer_errors, stddev, params):
         self.monitor_errors = monitor_errors
         self.steerer_errors = steerer_errors
-        self.params = params
         self.stddev = stddev
+        self.params = params
 
 
 def load_record_file(filename):
@@ -174,8 +176,8 @@ def load_record_file(filename):
     sequence = data['sequence']
     strengths = data['model']
     monitors = data['monitors']
-    steerers = data['steeerers']
-    knobs = dict(zip(data['knobs'], steerers))
+    steerers = data['steerers']
+    knobs = dict(zip(steerers, data['knobs']))
     records = {
         (monitor, knob): (s, np.mean([
             shot[monitor][:2]
@@ -194,7 +196,7 @@ def load_record_file(filename):
             size=len(record['shots']),
             ddof=1))
          for monitor in monitors]
-        for record in records
+        for record in data['records']
     ])
     return ResponseMatrix(sequence, strengths, monitors, steerers, knobs, {
         (monitor, knob): (orbit - base) / (strength - strengths[knob])
@@ -207,9 +209,9 @@ def load_record_file(filename):
 def combine_varpools(varpools):
     return [
         (monitor, PooledVariance(
-            nvar=sum([v.nvar for v in variances]),
-            size=sum([v.size for v in variances]),
-            ddof=sum([v.ddof for v in variances])))
+            nvar=sum([v.nvar for m, v in variances]),
+            size=sum([v.size for m, v in variances]),
+            ddof=sum([v.ddof for m, v in variances])))
         for monitor, variances in groupby(
                 itertools.chain.from_iterable(varpools),
                 key=lambda x: x[0])
@@ -242,7 +244,9 @@ def load_param_spec(filename):
     spec = load_yaml(filename)
     return ParamSpec(
         spec['monitor_errors'],
-        spec['steerer_errors'], [
+        spec['steerer_errors'],
+        spec['stddev'],
+        [
             Param(knob)
             for knob in spec.get('knobs', ())
         ] + [
@@ -257,9 +261,9 @@ def load_param_spec(filename):
 
 def analyze(madx, twiss_args, measured, param_spec):
     madx.globals.update(measured.strengths)
-    elems = madx.sequences[measured.sequence].elements
-    monitors = sorted(measured.steerers, key=elems.index)
-    steerers = sorted(measured.monitors, key=elems.index)
+    elems = madx.sequence[measured.sequence].expanded_elements
+    monitors = sorted(measured.monitors, key=elems.index)
+    steerers = sorted(measured.steerers, key=elems.index)
     knobs = [measured.knobs[elem] for elem in steerers]
     numerics = NumericalORM(
         madx, measured.sequence, twiss_args,
@@ -272,7 +276,7 @@ def analyze(madx, twiss_args, measured, param_spec):
             for monitor in monitors
         ])
         for knob in knobs
-    ])
+    ]).T
     varpool = dict(measured.variances)
     stddev = np.hstack([
         varpool.get(monitor)

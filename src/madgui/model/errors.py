@@ -33,7 +33,7 @@ class Ealign:
     @contextmanager
     def vary(self, model):
         cmd = model.madx.command
-        cmd.select(flag='error', **self.selectors)
+        cmd.select(flag='error', **self.select)
         cmd.ealign(**{self.attr: self.magn})
         try:
             yield self.magn
