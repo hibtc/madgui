@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import yaml
 
@@ -5,6 +7,20 @@ from cpymad.madx import Madx
 
 from orm import NumericalORM
 from errors import Param, Ealign, Efcomp
+
+
+class PooledVariance:
+
+    """Data for combining variances."""
+
+    def __init__(self, nvar, size, ddof):
+        self.nvar = nvar        # size * var, easier for processing
+        self.size = size
+        self.ddof = ddof
+
+    @property
+    def var(self):
+        return self.nvar / self.size
 
 
 def load_yaml(filename):
@@ -17,13 +33,14 @@ class ResponseMatrix:
 
     def __init__(self, sequence, strengths,
                  monitors, steerers, knobs,
-                 responses):
+                 responses, variances):
         self.sequence = sequence
         self.strengths = strengths
         self.monitors = monitors
         self.steerers = steerers
         self.knobs = knobs
         self.responses = responses
+        self.variances = variances
 
 
 class ParamSpec:
@@ -35,24 +52,6 @@ class ParamSpec:
         self.stddev = stddev
 
 
-def mean_var(x):
-    """Return the mean and variance of ``x`` along its 0-axis."""
-    return np.hstack((
-        np.mean(x, axis=0),
-        np.var(x, axis=0, ddof=1),
-    ))
-
-
-def diff_var(x1, x0):
-    """Given two arrays ``[x, y, var(x), var(y)]``, return the difference
-    ``[x1-x0, y1-y0, var(x1-x0), var(y1-y0)]``."""
-    return np.hstack((
-        x1[:2] - x0[:2],
-        # FIXME…
-        x1[2:] + x0[2:],
-    ))
-
-
 def load_record_file(filename):
     data = load_yaml(filename)
     sequence = data['sequence']
@@ -61,20 +60,47 @@ def load_record_file(filename):
     steerers = data['steeerers']
     knobs = dict(zip(data['knobs'], steerers))
     records = {
-        (monitor, knob): (s, mean_var([
+        (monitor, knob): (s, np.mean([
             shot[monitor][:2]
             for shot in record['shots']
-        ]))
+        ], axis=0))
         for record in data['records']
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
+    varpool = combine_varpools([
+        [(monitor, PooledVariance(
+            nvar=np.var([
+                shot[monitor][:2]
+                for shot in record['shots']
+            ], axis=0) * len(record['shots']),
+            size=len(record['shots']),
+            ddof=1))
+         for monitor in monitors]
+        for record in records
+    ])
     return ResponseMatrix(sequence, strengths, monitors, steerers, knobs, {
-        (monitor, knob): diff_var(orbit, base) / (strength - strengths[knob])
+        (monitor, knob): (orbit - base) / (strength - strengths[knob])
         for (monitor, knob), (strength, orbit) in records.items()
         if knob
         for _, base in [records[monitor, None]]
-    })
+    }, varpool)
+
+
+def combine_varpools(varpools):
+    return [
+        (monitor, PooledVariance(
+            nvar=sum([v.nvar for v in variances]),
+            size=sum([v.size for v in variances]),
+            ddof=sum([v.ddof for v in variances])))
+        for monitor, variances in groupby(
+                itertools.chain.from_iterable(varpools),
+                key=lambda x: x[0])
+    ]
+
+
+def groupby(data, key=None):
+    return itertools.groupby(sorted(data, key=key), key=key)
 
 
 def join_record_files(orbit_responses):
@@ -83,6 +109,7 @@ def join_record_files(orbit_responses):
     acc.monitors = set(acc.monitors)
     acc.steerers = set(acc.steerers)
     acc.knobs = acc.knobs.copy()
+    acc.variances = combine_varpools([mat.variances for mat in mats])
     for mat in mats:
         assert acc.sequence == mat.sequence
         assert acc.strengths == mat.strengths
@@ -129,8 +156,9 @@ def analyze(madx, twiss_args, measured, param_spec):
         ])
         for knob in knobs
     ])
+    varpool = dict(measured.variances)
     stddev = np.hstack([
-        measured.responses.get((monitor, knob))[2:]
+        varpool.get(monitor)
         for monitor in monitors
     ]).T if param_spec.stddev else 1
     results, chisq = numerics.fit_model(
