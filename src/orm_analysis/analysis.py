@@ -113,10 +113,10 @@ def load_param_spec(filename):
 
 def analyze(madx, twiss_args, measured, param_spec):
     madx.globals.update(measured.strengths)
-    elems    = madx.sequences[measured.sequence].elements
+    elems = madx.sequences[measured.sequence].elements
     monitors = sorted(measured.steerers, key=elems.index)
     steerers = sorted(measured.monitors, key=elems.index)
-    knobs    = [measured.knobs[elem] for elem in steerers]
+    knobs = [measured.knobs[elem] for elem in steerers]
     numerics = NumericalORM(
         madx, measured.sequence, twiss_args,
         monitors=monitors, steerers=steerers,

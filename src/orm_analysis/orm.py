@@ -111,10 +111,10 @@ class AnalyticalORM(_BaseORM):
         I = [elem.index for elem in self.steerers]
         J = [elem.index for elem in self.monitors]
         tw = self.base_tw
-        rx = np.sqrt(tw.betx[I,None] * tw.betx[None,J] *
-                     np.sin(2*np.pi*(tw.mux[None,J] - tw.mux[I,None])))
-        ry = np.sqrt(tw.bety[I,None] * tw.bety[None,J] *
-                     np.sin(2*np.pi*(tw.muy[None,J] - tw.muy[I,None])))
+        rx = np.sqrt(tw.betx[I, None] * tw.betx[None, J] *
+                     np.sin(2*np.pi*(tw.mux[None, J] - tw.mux[I, None])))
+        ry = np.sqrt(tw.bety[I, None] * tw.bety[None, J] *
+                     np.sin(2*np.pi*(tw.muy[None, J] - tw.muy[I, None])))
         # FIXME: this packing is inconsistent with the numerical case…
         return np.hstack((rx, ry)).T
 

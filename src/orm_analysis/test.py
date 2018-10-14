@@ -12,6 +12,7 @@ def ORM_sin(tw, i, j):
     return (sqrt(tw.betx[i]*tw.betx[j]) * sin(2*pi*(tw.mux[j]-tw.mux[i])),
             sqrt(tw.bety[i]*tw.bety[j]) * sin(2*pi*(tw.muy[j]-tw.muy[i])))
 
+
 def ORM_vary(delta_x, delta_theta):
     return delta_x / delta_theta
 
@@ -44,7 +45,6 @@ def calc_orms(m, H, V, M, d_kick):
     t2 = m.twiss(sequence='hht3', table='t2', **tw)
     els[V].kick -= d_kick
 
-
     # analysis
 
     def orms(i, m):
@@ -53,8 +53,8 @@ def calc_orms(m, H, V, M, d_kick):
             ORM_sin(t0, V, m)[1],
             ORM_vary(t1.x[m]-t0.x[m], d_kick),
             ORM_vary(t2.y[m]-t0.y[m], d_kick),
-            hm[i,0,1],
-            vm[i,2,3],
+            hm[i, 0, 1],
+            vm[i, 2, 3],
         )
 
     return np.array([orms(i, m) for i, m in enumerate(M)])
@@ -97,20 +97,19 @@ def main():
     orm_tab = (orm_tab_2 - orm_tab_1) / 1e-7
     orm_tab = orm_tab_2
 
-
     xlabel = [els[m].name for m in M]
 
-    plt.plot(xlabel, orm_tab[:,0], 'o', label="sin x")
-    plt.plot(xlabel, orm_tab[:,2], label="var x")
-    plt.plot(xlabel, orm_tab[:,4], label="sec x")
+    plt.plot(xlabel, orm_tab[:, 0], 'o', label="sin x")
+    plt.plot(xlabel, orm_tab[:, 2], label="var x")
+    plt.plot(xlabel, orm_tab[:, 4], label="sec x")
     plt.legend()
     plt.setp(plt.xticks()[1], rotation=50)
     plt.show()
 
     plt.clf()
-    plt.plot(xlabel, orm_tab[:,1], 'o', label="sin y")
-    plt.plot(xlabel, orm_tab[:,3], label="var y")
-    plt.plot(xlabel, orm_tab[:,5], label="sec y")
+    plt.plot(xlabel, orm_tab[:, 1], 'o', label="sin y")
+    plt.plot(xlabel, orm_tab[:, 3], label="var y")
+    plt.plot(xlabel, orm_tab[:, 5], label="sec y")
     plt.legend()
     plt.setp(plt.xticks()[1], rotation=50)
     plt.show()
