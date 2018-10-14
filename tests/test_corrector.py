@@ -30,7 +30,7 @@ def session(app):
     config = load_config(isolated=True)
     with Session(config) as session:
         session.control._settings.update({
-            'jitter_interval': 0.001,
+            'shot_interval': 0.001,
             'jitter': True,
             'auto_params': True,
             'auto_sd': True,
