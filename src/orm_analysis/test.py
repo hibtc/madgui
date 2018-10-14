@@ -32,8 +32,8 @@ def calc_orms(m, H, V, M, d_kick):
     t0 = m.twiss(sequence='hht3', table='t0', sectormap=True, **tw)
 
     sm = m.sectortable()
-    vm = np.array(list(accumulate(sm[2:], lambda a, b: b@a)))
-    hm = np.array([x@sm[1] for x in vm])
+    vm = np.array(list(accumulate(sm[2:], lambda a, b: np.dot(b, a))))
+    hm = np.array([np.dot(x, sm[1]) for x in vm])
 
     # vary horizontal kicker
     els[H].kick += d_kick
