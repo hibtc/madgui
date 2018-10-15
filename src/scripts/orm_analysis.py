@@ -18,7 +18,7 @@ def main(model_file, twiss_file, spec_file, *record_files):
     RECORDS is a list of record YAML files that were dumped by madgui's ORM
     dialog.
     """
-    madx = Madx()
+    madx = Madx(stdout=False)
     madx.call(model_file, True)
     return analyze(madx, load_yaml(twiss_file), join_record_files([
         load_record_file(filename)
