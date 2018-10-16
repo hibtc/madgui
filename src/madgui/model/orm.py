@@ -64,14 +64,16 @@ class _BaseORM:
         # TODO: add rows for monitor/steerer sensitivity
         Y = measured_orm - self.base_orm
         A = np.array([self.get_orm_deriv(param) for param in params])
+        S = np.array(stddev)
         if steerer_errors:
             A = np.hstack((A, -self.base_orm))
         if monitor_errors:
             A = np.hstack((A, +self.base_orm))
         A = A.reshape((A.shape[0], -1)).T
-        Y = Y.reshape((-1,))
-        X = np.linalg.lstsq(A/stddev, Y/stddev, rcond=rcond)[0]
-        return X, chisq(A, X, Y)
+        Y = Y.reshape((-1, 1))
+        S = S.reshape((-1, 1))
+        X = np.linalg.lstsq(A/S, Y/S, rcond=rcond)[0]
+        return X, reduced_chisq(A, X, Y, S)
 
 
 class NumericalORM(_BaseORM):
@@ -123,9 +125,9 @@ class AnalyticalORM(_BaseORM):
         return np.hstack((rx, ry)).T
 
 
-def chisq(A, X, Y):
-    residuals = np.dot(A, X) - Y
-    return np.dot(residuals, residuals)
+def reduced_chisq(A, X, Y, S):
+    residuals = (np.dot(A, X) - Y) / S
+    return np.dot(residuals.T, residuals) / (len(residuals) - len(X))
 
 
 class PooledVariance:
@@ -139,7 +141,11 @@ class PooledVariance:
 
     @property
     def var(self):
-        return self.nvar / self.size
+        return self.nvar / (self.size - self.ddof)
+
+    @property
+    def sdev(self):
+        return np.sqrt(self.var)
 
 
 def load_yaml(filename):
@@ -189,17 +195,17 @@ def load_record_file(filename):
     }
     varpool = combine_varpools([
         [(monitor, PooledVariance(
-            nvar=np.var([
+            nvar=2 * np.var([   # x2 for the difference (orbit-base)
                 shot[monitor][:2]
                 for shot in record['shots']
             ], axis=0) * len(record['shots']),
             size=len(record['shots']),
-            ddof=1))
+            ddof=0))
          for monitor in monitors]
         for record in data['records']
     ])
     return ResponseMatrix(sequence, strengths, monitors, steerers, knobs, {
-        (monitor, knob): (orbit - base) / (strength - strengths[knob])
+        (monitor, knob): ((orbit - base), (strength - strengths[knob]))
         for (monitor, knob), (strength, orbit) in records.items()
         if knob
         for _, base in [records[monitor, None]]
@@ -219,7 +225,10 @@ def combine_varpools(varpools):
 
 
 def groupby(data, key=None):
-    return itertools.groupby(sorted(data, key=key), key=key)
+    return [
+        (k, list(g))
+        for k, g in itertools.groupby(sorted(data, key=key), key=key)
+    ]
 
 
 def join_record_files(orbit_responses):
@@ -228,7 +237,7 @@ def join_record_files(orbit_responses):
     acc.monitors = set(acc.monitors)
     acc.steerers = set(acc.steerers)
     acc.knobs = acc.knobs.copy()
-    acc.variances = combine_varpools([mat.variances for mat in mats])
+    acc.variances = combine_varpools([mat.variances for mat in orbit_responses])
     for mat in mats:
         assert acc.sequence == mat.sequence
         assert acc.strengths == mat.strengths
@@ -272,15 +281,22 @@ def analyze(madx, twiss_args, measured, param_spec):
     numerics.set_operating_point()
     measured_orm = np.vstack([
         np.hstack([
-            measured.responses.get((monitor, knob))[:2]
+            delta_orbit / delta_param
             for monitor in monitors
+            for delta_orbit, delta_param in [
+                    measured.responses.get((monitor, knob))]
         ])
         for knob in knobs
     ]).T
     varpool = dict(measured.variances)
-    stddev = np.hstack([
-        varpool.get(monitor)
-        for monitor in monitors
+    stddev = np.vstack([
+        np.hstack([
+            varpool.get(monitor).sdev / delta_param
+            for monitor in monitors
+            for _, delta_param in [
+                    measured.responses.get((monitor, knob))]
+        ])
+        for knob in knobs
     ]).T if param_spec.stddev else 1
     results, chisq = numerics.fit_model(
         measured_orm, param_spec.params,
