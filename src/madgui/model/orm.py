@@ -40,7 +40,7 @@ class _BaseORM:
         with param.vary(self) as step:
             self.set_operating_point('base_deriv')
             try:
-                return (self.get_orm() - backup_orm) / step
+                return (self.base_orm - backup_orm) / step
             finally:
                 self.base_tw = backup_tw
                 self.base_orm = backup_orm
