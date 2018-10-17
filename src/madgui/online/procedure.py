@@ -218,8 +218,12 @@ class Corrector(Matcher):
         if i is not None:
             optic.update(self.optics[i])
         # only for optic variation method
-        self.control.write_params(optic.items())
+        # NOTE: It is currently necessary to always change `model` before
+        # `control` because the test backend asks the model for new SD values.
+        # TODO: we should let have the test backend have its own model to
+        # prevent such issues.
         self.model.write_params(optic.items())
+        self.control.write_params(optic.items())
         self.active_optic = i
 
     # computations
@@ -375,7 +379,9 @@ class Corrector(Matcher):
         ])
 
     def add_record(self, step, shot):
-        self.update_vars()
+        # update_vars breaks ORM procedures because it re-reads base_optics!
+        # self.update_vars()
+        self.control.read_all()
         self.update_readouts()
         records = self.current_orbit_records()
         self.records.extend(records)

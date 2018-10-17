@@ -44,6 +44,7 @@ def main(model_file, twiss_file, spec_file, record_file):
         session.model().update_twiss_args(twiss_args)
         session.control.set_backend('hit_csys.plugin:TestBackend')
         session.control.connect()
+        session.control.write_all()
         corrector = Corrector(session)
         corrector.setup({
             'monitors': setup_args['monitors'],
@@ -57,6 +58,7 @@ def main(model_file, twiss_file, spec_file, record_file):
         errors = load_param_spec(spec_file)
         for error in errors.params:
             stack.enter_context(error.vary(model))
+        model.twiss.invalidate()
 
         corrector.set_optics_delta(
             setup_args.get('optics_deltas', {}),
