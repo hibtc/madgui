@@ -131,24 +131,6 @@ def reduced_chisq(A, X, Y, S):
     return np.dot(residuals.T, residuals) / (len(residuals) - len(X))
 
 
-class PooledVariance:
-
-    """Data for combining variances."""
-
-    def __init__(self, nvar, size, ddof):
-        self.nvar = nvar        # size * var, easier for processing
-        self.size = size
-        self.ddof = ddof
-
-    @property
-    def var(self):
-        return self.nvar / (self.size - self.ddof)
-
-    @property
-    def sdev(self):
-        return np.sqrt(self.var)
-
-
 def load_yaml(filename):
     """Load yaml document from filename."""
     with open(filename) as f:
@@ -159,14 +141,13 @@ class ResponseMatrix:
 
     def __init__(self, sequence, strengths,
                  monitors, steerers, knobs,
-                 responses, variances):
+                 responses):
         self.sequence = sequence
         self.strengths = strengths
         self.monitors = monitors
         self.steerers = steerers
         self.knobs = knobs
         self.responses = responses
-        self.variances = variances
 
 
 class ParamSpec:
@@ -189,40 +170,21 @@ def load_record_file(filename):
         (monitor, knob): (s, np.mean([
             shot[monitor][:2]
             for shot in record['shots']
-        ], axis=0))
+        ], axis=0), np.var([
+            shot[monitor][:2]
+            for shot in record['shots']
+        ], axis=0, ddof=1) / len(record['shots']))
         for record in data['records']
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
-    varpool = combine_varpools([
-        [(monitor, PooledVariance(
-            nvar=2 * np.var([   # x2 for the difference (orbit-base)
-                shot[monitor][:2]
-                for shot in record['shots']
-            ], axis=0) * len(record['shots']),
-            size=len(record['shots']),
-            ddof=0))
-         for monitor in monitors]
-        for record in data['records']
-    ])
     return ResponseMatrix(sequence, strengths, monitors, steerers, knobs, {
-        (monitor, knob): ((orbit - base), (strength - strengths[knob]))
-        for (monitor, knob), (strength, orbit) in records.items()
+        (monitor, knob): (
+            (orbit - base), (strength - strengths[knob]), (error + _err))
+        for (monitor, knob), (strength, orbit, error) in records.items()
         if knob
-        for _, base in [records[monitor, None]]
-    }, varpool)
-
-
-def combine_varpools(varpools):
-    return [
-        (monitor, PooledVariance(
-            nvar=sum([v.nvar for m, v in variances]),
-            size=sum([v.size for m, v in variances]),
-            ddof=sum([v.ddof for m, v in variances])))
-        for monitor, variances in groupby(
-                itertools.chain.from_iterable(varpools),
-                key=lambda x: x[0])
-    ]
+        for _, base, _err in [records[monitor, None]]
+    })
 
 
 def groupby(data, key=None):
@@ -238,7 +200,6 @@ def join_record_files(orbit_responses):
     acc.monitors = set(acc.monitors)
     acc.steerers = set(acc.steerers)
     acc.knobs = acc.knobs.copy()
-    acc.variances = combine_varpools([mat.variances for mat in orbit_responses])
     for mat in mats:
         assert acc.sequence == mat.sequence
         assert acc.strengths == mat.strengths
@@ -284,17 +245,16 @@ def analyze(madx, twiss_args, measured, param_spec):
         np.hstack([
             delta_orbit / delta_param
             for monitor in monitors
-            for delta_orbit, delta_param in [
+            for delta_orbit, delta_param, _ in [
                     measured.responses.get((monitor, knob))]
         ])
         for knob in knobs
     ]).T
-    varpool = dict(measured.variances)
     stddev = np.vstack([
         np.hstack([
-            varpool.get(monitor).sdev / delta_param
+            np.sqrt(mean_error) / delta_param
             for monitor in monitors
-            for _, delta_param in [
+            for _, delta_param, mean_error in [
                     measured.responses.get((monitor, knob))]
         ])
         for knob in knobs
