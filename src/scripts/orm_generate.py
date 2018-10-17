@@ -42,7 +42,8 @@ def main(model_file, twiss_file, spec_file, record_file):
         })
         session.load_model(
             session.find_model(model_file),
-            stdout=False)
+            stdout=False,
+            command_log=lambda text: print("X:>", text))
         session.model().update_twiss_args(twiss_args)
         session.control.set_backend('hit_csys.plugin:TestBackend')
         session.control.connect()
