@@ -352,6 +352,7 @@ class Corrector(Matcher):
                 for is_vkicker in [elems[c].base_name == 'vkicker']
             ])
 
+    # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
     def compute_orbit_response_matrix(self, init_orbit):
         model = self.model
         madx = model.madx
