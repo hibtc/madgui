@@ -31,15 +31,15 @@ def main(model_file, twiss_file, spec_file, record_file):
 
     config = load_config(isolated=True)
     with ExitStack() as stack:
+        twiss_args = load_yaml(twiss_file) if twiss_file else {}
+        setup_args = load_yaml(spec_file)
         session = stack.enter_context(Session(config))
         session.control._settings.update({
             'shot_interval': 0.001,
-            'jitter': True,
+            'jitter': setup_args.get('jitter', True),
             'auto_params': False,
             'auto_sd': True,
         })
-        twiss_args = load_yaml(twiss_file) if twiss_file else {}
-        setup_args = load_yaml(spec_file)
         session.load_model(session.find_model(model_file))
         session.model().update_twiss_args(twiss_args)
         session.control.set_backend('hit_csys.plugin:TestBackend')

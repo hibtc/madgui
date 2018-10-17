@@ -439,6 +439,7 @@ class ProcBot:
         self.running = True
         self.widget.update_ui()
         self.widget.log("Started")
+        self.last_readouts = None
         if gui:
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.poll)
@@ -480,7 +481,6 @@ class ProcBot:
             self.widget.log("optic {}".format(step))
             self.corrector.set_optic(step)
 
-            self.last_readouts = self.read_monitors()
             self.progress += 1
             self.widget.set_progress(self.progress)
             return
