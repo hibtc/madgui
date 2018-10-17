@@ -161,16 +161,6 @@ class ResponseMatrix:
         self.responses = responses
 
 
-class ParamSpec:
-
-    def __init__(self, iterations, monitor_errors, steerer_errors, stddev, params):
-        self.iterations = iterations
-        self.monitor_errors = monitor_errors
-        self.steerer_errors = steerer_errors
-        self.stddev = stddev
-        self.params = params
-
-
 def load_record_file(filename):
     data = load_yaml(filename)
     sequence = data['sequence']
@@ -232,28 +222,21 @@ def join_record_files(orbit_responses):
     return acc
 
 
-def load_param_spec(filename):
+def create_errors_from_spec(spec):
     # TODO: EALIGN, tilt, FINT, FINTX, L, AT, …
-    spec = load_yaml(filename)
-    return ParamSpec(
-        spec.get('iterations', 1),
-        spec['monitor_errors'],
-        spec['steerer_errors'],
-        spec['stddev'],
-        [
-            Param(knob, step)
-            for knob, step in spec.get('knobs', {}).items()
-        ] + [
-            Ealign(**s)
-            for s in spec.get('ealign', ())
-        ] + [
-            Efcomp(**s)
-            for s in spec.get('efcomp', ())
-        ]
-    )
+    return [
+        Param(knob, step)
+        for knob, step in spec.get('knobs', {}).items()
+    ] + [
+        Ealign(**s)
+        for s in spec.get('ealign', ())
+    ] + [
+        Efcomp(**s)
+        for s in spec.get('efcomp', ())
+    ]
 
 
-def analyze(madx, twiss_args, measured, param_spec):
+def analyze(madx, twiss_args, measured, fit_args):
     madx.globals.update(measured.strengths)
     elems = madx.sequence[measured.sequence].expanded_elements
     monitors = sorted(measured.monitors, key=elems.index)
@@ -281,23 +264,25 @@ def analyze(madx, twiss_args, measured, param_spec):
                     measured.responses.get((monitor, knob))]
         ])
         for knob in knobs
-    ]).T if param_spec.stddev else 1
+    ]).T if fit_args.get('stddev', False) else 1
+
+    errors = create_errors_from_spec(fit_args)
 
     # NOTE: multiple iterations don't work with `Ealign` or # `Efcomp`!
     # (because they always set the full error currently)
-    for i in range(param_spec.iterations):
+    for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
         numerics.set_operating_point()
 
         results, chisq = numerics.fit_model(
-            measured_orm, param_spec.params,
-            monitor_errors=param_spec.monitor_errors,
-            steerer_errors=param_spec.steerer_errors,
+            measured_orm, errors,
+            monitor_errors=fit_args.get('monitor_errors'),
+            steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev)
         print("ΔX     =", results)
         print("red χ² =", chisq)
 
-        for param, value in zip(param_spec.params, results.flatten()):
+        for param, value in zip(errors, results.flatten()):
             param.apply(numerics.madx, value)
         print()
         print()

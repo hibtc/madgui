@@ -8,7 +8,7 @@ from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.online.procedure import Corrector, ProcBot
 
-from madgui.model.orm import load_yaml, load_param_spec
+from madgui.model.orm import load_yaml, create_errors_from_spec
 
 
 def main(model_file, twiss_file, spec_file, record_file):
@@ -32,7 +32,7 @@ def main(model_file, twiss_file, spec_file, record_file):
     config = load_config(isolated=True)
     with ExitStack() as stack:
         twiss_args = load_yaml(twiss_file) if twiss_file else {}
-        setup_args = load_yaml(spec_file)
+        setup_args = load_yaml(spec_file)['procedure']
         session = stack.enter_context(Session(config))
         session.control._settings.update({
             'shot_interval': 0.001,
@@ -58,8 +58,8 @@ def main(model_file, twiss_file, spec_file, record_file):
         # order to fix this, the hit_csys test backend will have to use an
         # independent model!
         model = session.model()
-        errors = load_param_spec(spec_file)
-        for error in errors.params:
+        errors = create_errors_from_spec(setup_args)
+        for error in errors:
             stack.enter_context(error.vary(model))
         model.twiss.invalidate()
 
@@ -72,9 +72,13 @@ def main(model_file, twiss_file, spec_file, record_file):
         procbot = ProcBot(widget, corrector)
 
         num_mons = len(setup_args['monitors'])
-        num_optics = len(setup_args['optics'])+1
-        num_ignore = setup_args.get('num_ignore', 1)
-        num_shots = setup_args.get('num_shots', 5)
+        num_optics = len(setup_args['optics']) + 1
+        if setup_args.get('jitter', True):
+            num_ignore = setup_args.get('num_ignore', 1)
+            num_shots = setup_args.get('num_shots', 5)
+        else:
+            num_ignore = 0
+            num_shots = 1
 
         procbot.start(num_ignore, num_shots, gui=False)
 

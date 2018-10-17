@@ -1,7 +1,7 @@
 from cpymad.madx import Madx
 
 from madgui.model.orm import (
-    analyze, load_yaml, load_record_file, join_record_files, load_param_spec)
+    analyze, load_yaml, load_record_file, join_record_files)
 
 
 def main(model_file, twiss_file, spec_file, *record_files):
@@ -23,7 +23,7 @@ def main(model_file, twiss_file, spec_file, *record_files):
     return analyze(madx, load_yaml(twiss_file), join_record_files([
         load_record_file(filename)
         for filename in record_files
-    ]), load_param_spec(spec_file))
+    ]), load_yaml(spec_file)['analysis'])
 
 
 if __name__ == '__main__':
