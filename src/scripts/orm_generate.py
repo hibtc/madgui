@@ -40,7 +40,9 @@ def main(model_file, twiss_file, spec_file, record_file):
             'auto_params': False,
             'auto_sd': True,
         })
-        session.load_model(session.find_model(model_file))
+        session.load_model(
+            session.find_model(model_file),
+            stdout=False)
         session.model().update_twiss_args(twiss_args)
         session.control.set_backend('hit_csys.plugin:TestBackend')
         session.control.connect()
