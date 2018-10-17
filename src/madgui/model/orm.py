@@ -69,7 +69,8 @@ class _BaseORM:
             A = np.hstack((A, -self.base_orm))
         if monitor_errors:
             A = np.hstack((A, +self.base_orm))
-        A = A.reshape((A.shape[0], -1)).T
+        n = Y.size
+        A = A.reshape((-1, n)).T
         Y = Y.reshape((-1, 1))
         S = S.reshape((-1, 1))
         X = np.linalg.lstsq(A/S, Y/S, rcond=rcond)[0]
