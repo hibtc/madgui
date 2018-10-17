@@ -163,7 +163,8 @@ class ResponseMatrix:
 
 class ParamSpec:
 
-    def __init__(self, monitor_errors, steerer_errors, stddev, params):
+    def __init__(self, iterations, monitor_errors, steerer_errors, stddev, params):
+        self.iterations = iterations
         self.monitor_errors = monitor_errors
         self.steerer_errors = steerer_errors
         self.stddev = stddev
@@ -235,6 +236,7 @@ def load_param_spec(filename):
     # TODO: EALIGN, tilt, FINT, FINTX, L, AT, …
     spec = load_yaml(filename)
     return ParamSpec(
+        spec.get('iterations', 1),
         spec['monitor_errors'],
         spec['steerer_errors'],
         spec['stddev'],
@@ -280,10 +282,22 @@ def analyze(madx, twiss_args, measured, param_spec):
         ])
         for knob in knobs
     ]).T if param_spec.stddev else 1
-    results, chisq = numerics.fit_model(
-        measured_orm, param_spec.params,
-        monitor_errors=param_spec.monitor_errors,
-        steerer_errors=param_spec.steerer_errors,
-        stddev=stddev)
-    print("ΔX     =", results)
-    print("red χ² =", chisq)
+
+    # NOTE: multiple iterations don't work with `Ealign` or # `Efcomp`!
+    # (because they always set the full error currently)
+    for i in range(param_spec.iterations):
+        print("ITERATION", i)
+        numerics.set_operating_point()
+
+        results, chisq = numerics.fit_model(
+            measured_orm, param_spec.params,
+            monitor_errors=param_spec.monitor_errors,
+            steerer_errors=param_spec.steerer_errors,
+            stddev=stddev)
+        print("ΔX     =", results)
+        print("red χ² =", chisq)
+
+        for param, value in zip(param_spec.params, results.flatten()):
+            param.apply(numerics.madx, value)
+        print()
+        print()
