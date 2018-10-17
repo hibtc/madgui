@@ -256,8 +256,8 @@ def load_param_spec(filename):
         spec['steerer_errors'],
         spec['stddev'],
         [
-            Param(knob)
-            for knob in spec.get('knobs', ())
+            Param(knob, step)
+            for knob, step in spec.get('knobs', {}).items()
         ] + [
             Ealign(**s)
             for s in spec.get('ealign', ())
