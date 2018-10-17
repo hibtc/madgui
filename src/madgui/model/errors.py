@@ -11,14 +11,16 @@ class Param:
 
     @contextmanager
     def vary(self, model):
-        knob = self.knob
-        step = self.step
         madx = model.madx
-        madx.globals[knob] += step
+        step = self.step
+        self.apply(madx, step)
         try:
             yield step
         finally:
-            madx.globals[knob] -= step
+            self.apply(madx, -step)
+
+    def apply(self, madx, value):
+        madx.globals[self.knob] += value
 
 
 class Ealign:
@@ -32,32 +34,44 @@ class Ealign:
 
     @contextmanager
     def vary(self, model):
-        cmd = model.madx.command
-        cmd.select(flag='error', **self.select)
-        cmd.ealign(**{self.attr: self.magn})
+        self.apply(model.madx, self.magn)
         try:
             yield self.magn
         finally:
-            cmd.ealign(**{self.attr: 0})
-            cmd.select(flag='error', clear=True)
+            self.apply(model.madx, 0)
+
+    def apply(self, madx, value):
+        cmd = madx.command
+        cmd.select(flag='error', clear=True)
+        cmd.select(flag='error', **self.select)
+        cmd.ealign(**{self.attr: value})
 
 
 class Efcomp:
 
     """Field error."""
 
-    def __init__(self, select, attrs, magn):
+    def __init__(self, select, attr, value, order=0, radius=1):
         self.select = select
-        self.attrs = attrs
-        self.magn = magn
+        self.attr = attr
+        self.value = value
+        self.order = order
+        self.radius = radius
+        self.magn = sum(value)
 
     @contextmanager
     def vary(self, model):
-        cmd = model.madx.command
-        cmd.select(flag='error', **self.selectors)
-        cmd.efcomp(**self.attrs)
+        self.apply(model.madx, self.magn)
         try:
             yield self.magn
         finally:
-            cmd.efcomp(**self.attrs)
-            cmd.select(flag='error', clear=True)
+            self.apply(model.madx, 0)
+
+    def apply(self, madx, value):
+        cmd = madx.command
+        cmd.select(flag='error', clear=True)
+        cmd.select(flag='error', **self.select)
+        cmd.efcomp(
+            order=self.order,
+            radius=self.radius,
+            **{self.attr: [v * value for v in self.value]})
