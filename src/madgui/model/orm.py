@@ -38,6 +38,7 @@ class _BaseORM:
         backup_tw = self.base_tw
         backup_orm = self.base_orm
         with param.vary(self) as step:
+            print("DERIV", param)
             self.set_operating_point('base_deriv')
             try:
                 return (self.base_orm - backup_orm) / step
@@ -102,6 +103,16 @@ class NumericalORM(_BaseORM):
         with Param(knob).vary(self) as step:
             tw1 = self.twiss('vary')
             idx = [mon.index for mon in self.monitors]
+
+            x0 = np.vstack([tw0.x[idx], tw0.y[idx]]).T * 1e3
+            x1 = np.vstack([tw1.x[idx], tw1.y[idx]]).T * 1e3
+            print("COMPUTE", knob, self.madx.eval(knob))
+            print("\n".join(
+                "{:6} {}: {: .3f} {: .3f} -> {: .3f} {: .3f} | {: .3f} {: .3f}"
+                .format(mon.name, knob, *np.hstack([a, b, b - a]))
+                for a, b, mon in zip(x0, x1, self.monitors)
+            ))
+
             return np.vstack((
                 (tw1.x - tw0.x)[idx],
                 (tw1.y - tw0.y)[idx],
@@ -178,6 +189,16 @@ def load_record_file(filename):
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
+    print("MEASURED")
+    print("\n".join(
+        "{:6} {}: {: .3f} {: .3f} -> {: .3f} {: .3f}"
+        " | {: .3f} {: .3f} ± {: .3f} {: .3f}"
+        .format(monitor, knob, *np.hstack([
+            base, orbit, orbit-base, np.sqrt(error+_err)])*1e3)
+        for (monitor, knob), (strength, orbit, error) in records.items()
+        if knob
+        for _, base, _err in [records[monitor, None]]
+    ))
     return ResponseMatrix(sequence, strengths, monitors, steerers, knobs, {
         (monitor, knob): (
             (orbit - base), (strength - strengths[knob]), (error + _err))
@@ -264,5 +285,5 @@ def analyze(madx, twiss_args, measured, param_spec):
         monitor_errors=param_spec.monitor_errors,
         steerer_errors=param_spec.steerer_errors,
         stddev=stddev)
-    print(results)
-    print(chisq)
+    print("ΔX     =", results)
+    print("red χ² =", chisq)

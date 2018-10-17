@@ -22,6 +22,11 @@ class Param:
     def apply(self, madx, value):
         madx.globals[self.knob] += value
 
+    def __repr__(self):
+        return "[Δ{}={}]".format(self.knob, self.step)
+
+    __str__ = __repr__
+
 
 class Ealign:
 
@@ -45,6 +50,12 @@ class Ealign:
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
         cmd.ealign(**{self.attr: value})
+
+    def __repr__(self):
+        return "[EALIGN {}->{}={}]".format(
+            self.select['range'], self.attr, self.magn)
+
+    __str__ = __repr__
 
 
 class Efcomp:
@@ -75,3 +86,9 @@ class Efcomp:
             order=self.order,
             radius=self.radius,
             **{self.attr: [v * value for v in self.value]})
+
+    def __repr__(self):
+        return "[EFCOMP {}->{}={}]".format(
+            self.select['range'], self.attr, self.magn)
+
+    __str__ = __repr__
