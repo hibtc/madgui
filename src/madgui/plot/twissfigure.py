@@ -570,7 +570,7 @@ class MatchTool(CaptureTool):
         self.matcher.start()
         self.plot.startCapture(self.mode, self.short)
         self.plot.buttonPress.connect(self.onClick)
-        self.session.window().viewMatchDialog.create()
+        self.plot.scene.session.window().viewMatchDialog.create()
 
     def deactivate(self):
         """Stop matching mode."""
@@ -613,7 +613,7 @@ class MatchTool(CaptureTool):
             self.clearConstraints()
 
         # add the clicked constraint
-        from madgui.online.match import Constraint
+        from madgui.model.match import Constraint
         elem, pos = self.model.get_best_match_pos(event.x)
         constraints = [Constraint(elem, pos, name, event.y)]
 
