@@ -65,6 +65,9 @@
        <property name="text">
         <string>x</string>
        </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttongroup_xy</string>
+       </attribute>
       </widget>
      </item>
      <item>
@@ -72,6 +75,9 @@
        <property name="text">
         <string>y</string>
        </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttongroup_xy</string>
+       </attribute>
       </widget>
      </item>
      <item>
@@ -79,6 +85,9 @@
        <property name="text">
         <string>x/y</string>
        </property>
+       <attribute name="buttonGroup">
+        <string notr="true">buttongroup_xy</string>
+       </attribute>
       </widget>
      </item>
     </layout>
@@ -130,6 +139,9 @@
           <property name="checked">
            <bool>true</bool>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttongroup_method</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -137,6 +149,9 @@
           <property name="text">
            <string>ORM</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttongroup_method</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -144,6 +159,9 @@
           <property name="text">
            <string>sectormap</string>
           </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttongroup_method</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -220,4 +238,8 @@
  </customwidgets>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="buttongroup_xy"/>
+  <buttongroup name="buttongroup_method"/>
+ </buttongroups>
 </ui>
