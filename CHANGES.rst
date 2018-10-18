@@ -1,6 +1,101 @@
 CHANGELOG
 ~~~~~~~~~
 
+18.10.0
+~~~~~~~
+Date: 18.10.2018
+
+Now in calver_ (calendaric versioning) ``YY.MM.patch`` since this better fits
+the nature of madgui development and is I believe more useful for end-users.
+
+.. _calver: https://calver.org/
+
+New features:
+
+- add app icon as .ico file (for shortcuts etc)
+- add orbit response matrix (ORM) based mode for orbit correction
+- add even simpler mode that assumes orbit response matrix = sectormap
+- add method selection to OVM dialog
+- add dialog for recording orbit response matrix
+- add script for generating test ORM recordings
+- add script for analyzing ORM recordings
+
+Improvements:
+
+- can edit the steerer values before executing
+- implement prev/next buttons in optic variation dialog
+- allow multiple floor plan windows
+- prevent annoying busy cursor due to MPL redraws
+- turn on warnings for our own modules
+- close and wait for the MAD-X process properly
+- improve update of steerer/monitor display tables
+- don't automatically create logfile for every MAD-X session anymore
+- make MAD-X less verbose: command echo off!
+
+Bug fixes:
+
+- fix ``AttributeError`` when clicking ``Apply`` in optic variation dialog
+- fix ``NameError`` when opening curve manager widget
+- fix missing reaction to changing selected config in OVM dialog
+- fix missing update before recording in OVM automatic mode
+- fix ``AttributeError`` after editing config in MGM dialog
+- update the config combo box after editting config
+- fix current config not being updated after editting config
+- fix jitter option…
+- fix several DeprecationWarnings
+- stop ORM procedure upon closing the widget
+- fix status messages for export menuitems
+- fix bug in Model loader (path)
+- fix ``yaml.RepresenterError`` when no csys backend is loaded
+- fix error when loading stand-alone .madx file
+- misc fixes to corrector code
+- use button groups to safeguard against deselecting radio buttons
+
+Meta:
+
+- add sanity checks (pyflakes, hinting to missing imports, syntax errors, etc)
+- add automatic style checks (pycodestyle)
+- add first tests for the (now) non-UI components: model/session/corrector
+- add rudimentary documentation (updated when pushing to master)
+- automatically upload release to PyPI when pushing tags
+- move source code to unimportable subdirectory
+
+Refactoring:
+
+- improve naming: set_rowgetter -> set_viewmodel
+- deduplicate code between optic variation and multi grid modules (OVM/MGM)
+- remove our ElementInfo proxy class, simply use Element from cpymad
+- remove several obsolete/unused methods, dead code
+- shared management of monitor readouts
+- move AsyncReader functionality to cpymad
+- make use cpymad multiline input for collected commands
+- auto show SingleWindow widgets
+- simplify access to twiss table
+- let the online plugin manage its settings menu
+- relocate several modules and classes
+- demeterize Model: no GUI, no config, no graphs!!!!
+- remove several static configuration items for MAD-X data structures that can
+  now be introspected via cpymad
+- globalize several private methods that don't need to be part of class
+  interfaces
+- slightly simplify the twiss args guesser
+- lose obsolete thread utils [core.worker, QueuedDispatcher]
+- don't need thread-safety anymore (no more threads…;)
+- rename control._plugin -> .backend
+- remove the need for a separate Loader class
+- add ``Model.changed`` overload that passes old and new value
+- inline and simplify several methods
+- introduce a new ``Session`` object that replaces ``MainWindow`` as context
+  object and can be used without active GUI
+- DRY up MANIFEST.in
+- demeterize ProcBot for non-GUI usage
+- make the Corrector GUI-independent
+- move recording/export responsibilities to Corrector (from CorrectorWidget)
+- let Corrector know only the active configuration
+
+…and many more
+
+
 1.14.0
 ~~~~~~
 Date: 24.07.2018

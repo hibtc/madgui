@@ -54,7 +54,7 @@ def main():
         packages=find_packages('src'),
         package_dir={'': 'src'},
         install_requires=[
-            'cpymad>=1.0.6',
+            'cpymad>=1.0.8',
             'docopt',           # command line parsing
             'matplotlib' + mpl_version,
             'numpy',
