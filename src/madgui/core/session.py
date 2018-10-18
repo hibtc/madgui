@@ -72,14 +72,14 @@ class Session:
         if self.control.can_connect() and config.online_control.connect:
             self.control.connect()
 
-    def load_model(self, filename):
+    def load_model(self, filename, **madx_args):
         exts = ('.cpymad.yml', '.madx', '.str', '.seq')
         if not any(map(filename.endswith, exts)):
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
         from madgui.model.madx import Model
         self.model.set(Model.load_file(
-            filename, **self.model_args(filename)))
+            filename, **dict(self.model_args(filename), **madx_args)))
 
     known_extensions = ['.cpymad.yml', '.madx']
 

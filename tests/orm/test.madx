@@ -1,0 +1,19 @@
+
+const deg = pi/180;
+
+ax_hk = 0.5e-3;
+ay_vk = 0.8e-3;
+
+
+seq: sequence, l=10, refer=entry;
+hk: hkicker, kick:= ax_hk, at=0.5;
+vk: vkicker, kick:= ay_vk, at=0.5;
+sb: sbend, at=1, angle=10*deg, l=1;
+qp: quadrupole, at=3, k1=0.5, l=1;
+mon: monitor, at=5;
+endsequence;
+
+
+beam;
+use, sequence=seq;
+

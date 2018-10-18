@@ -218,8 +218,12 @@ class Corrector(Matcher):
         if i is not None:
             optic.update(self.optics[i])
         # only for optic variation method
-        self.control.write_params(optic.items())
+        # NOTE: It is currently necessary to always change `model` before
+        # `control` because the test backend asks the model for new SD values.
+        # TODO: we should let have the test backend have its own model to
+        # prevent such issues.
         self.model.write_params(optic.items())
+        self.control.write_params(optic.items())
         self.active_optic = i
 
     # computations
@@ -348,6 +352,7 @@ class Corrector(Matcher):
                 for is_vkicker in [elems[c].base_name == 'vkicker']
             ])
 
+    # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
     def compute_orbit_response_matrix(self, init_orbit):
         model = self.model
         madx = model.madx
@@ -375,7 +380,9 @@ class Corrector(Matcher):
         ])
 
     def add_record(self, step, shot):
-        self.update_vars()
+        # update_vars breaks ORM procedures because it re-reads base_optics!
+        # self.update_vars()
+        self.control.read_all()
         self.update_readouts()
         records = self.current_orbit_records()
         self.records.extend(records)
@@ -439,6 +446,7 @@ class ProcBot:
         self.running = True
         self.widget.update_ui()
         self.widget.log("Started")
+        self.last_readouts = None
         if gui:
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.poll)
@@ -480,7 +488,6 @@ class ProcBot:
             self.widget.log("optic {}".format(step))
             self.corrector.set_optic(step)
 
-            self.last_readouts = self.read_monitors()
             self.progress += 1
             self.widget.set_progress(self.progress)
             return
