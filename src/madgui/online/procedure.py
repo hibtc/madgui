@@ -51,6 +51,7 @@ class Corrector(Matcher):
         self.readouts = List()
         self.records = List()
         self.fit_range = None
+        self.objective_values = {}
         self._offsets = session.config['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
@@ -117,9 +118,14 @@ class Corrector(Matcher):
                        for k, v in s.items()}
 
         targets = sorted(targets, key=elements.index)
+        self.objective_values.update({
+            t.elem: (t.x, t.y)
+            for t in self.targets
+        })
         self.targets[:] = [
-            Target(elem, 0, 0)
+            Target(elem, x, y)
             for elem in targets
+            for x, y in [self.objective_values.get(elem, (0, 0))]
         ]
         self.monitors[:] = sorted(monitors, key=elements.index)
         self._readouts = self.control.monitors.sublist(
