@@ -1,4 +1,5 @@
 from itertools import accumulate, product
+import logging
 import textwrap
 
 import numpy as np
@@ -270,11 +271,7 @@ class Corrector(Matcher):
         :param dict init_orbit: initial conditions as returned by the fit
         """
         model = self.model
-        elements = model.elements
-        constraints = [
-            (elements[elem], None, ax, val)
-            for elem, ax, val in self._get_constraints()
-        ]
+        constraints = self._get_constraints()
         with model.undo_stack.rollback("Orbit correction", transient=True):
             model.update_globals(self.assign)
             model.update_twiss_args(init_orbit)
@@ -290,10 +287,10 @@ class Corrector(Matcher):
     def _compute_steerer_corrections_tm(self, init_orbit):
         return self._compute_steerer_corrections_orm(init_orbit, 'tm')
 
-    def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
+    def _get_objective_deltas(self):
         targets = {
             (el.lower(), ax): val
-            for el, ax, val in self._get_constraints()
+            for el, ax, val in self._get_objectives()
         }
         S = [
             i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
@@ -309,14 +306,18 @@ class Corrector(Matcher):
             targets.get((elem.lower(), axis), 0.0)
             for elem, axis in product(self.monitors, 'xy')
         ])
+        return y_target - y_measured, S
 
+    def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
         if calc_orm == 'match':
             orm = self.compute_orbit_response_matrix(init_orbit)
         else:
             orm = self.compute_sectormap(init_orbit)
 
+        delta, S = self._get_objective_deltas()
+
         dvar = np.linalg.lstsq(
-            orm.T[S, :], (y_target-y_measured)[S], rcond=1e-10)[0]
+            orm.T[S, :], delta[S], rcond=1e-10)[0]
 
         globals_ = self.model.globals
         self.match_results = self._push_history({
@@ -326,12 +327,35 @@ class Corrector(Matcher):
         return self.match_results
 
     def _get_constraints(self):
+        model = self.model
+        elements = model.elements
+        elem_twiss = model.get_elem_twiss
+
         def get_offsets(elem):
             return self._offsets.get(elem.lower(), (0, 0))
+
+        targets = {t.elem.lower() for t in self.targets}
+        monitors = {m.lower() for m in self.monitors}
+        if targets.issubset(monitors):
+            delta, S = self._get_objective_deltas()
+            return [
+                (elements[mon], None, ax, elem_twiss(mon)[ax] + delta[i])
+                for i, (mon, ax) in enumerate(product(self.monitors, 'xy'))
+                if i in S
+            ]
+        else:
+            logging.warning(
+                "Matching absolute orbit (prone to inaccurate backtracking)!")
+            return [
+                (elements[elem], None, ax, val + get_offsets(elem)[ax == 'y'])
+                for elem, ax, val in self._get_objectives()
+            ]
+
+    def _get_objectives(self):
         return [
-            (t.elem, ax, val + offs)
+            (t.elem, ax, val)
             for t in self.targets
-            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
+            for ax, val in zip("xy", (t.x, t.y))
             if ax in self.mode
         ]
 
