@@ -239,6 +239,7 @@ class CorrectorWidget(QtGui.QWidget):
              'y': r.posy + dy}
             for r in self.corrector.readouts
             for dx, dy in [self.corrector._offsets.get(r.name.lower(), (0, 0))]
+            if r.posx is not None and r.posy is not None
         ]
         curve_data = {
             name: np.array([d[name] for d in monitor_data])
