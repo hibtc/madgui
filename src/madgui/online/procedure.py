@@ -187,12 +187,6 @@ class Corrector(Matcher):
         }
         self.cur_results = self._push_history()
 
-    def update(self):
-        self.update_vars()
-        self.update_readouts()
-        self.update_records()
-        self.update_fit()
-
     def update_readouts(self):
         self._readouts.invalidate()
         return list(self._readouts)
@@ -211,6 +205,8 @@ class Corrector(Matcher):
             return
         self.fit_results = init_orbit
         self.model.update_twiss_args(init_orbit)
+        if self.fit_results and self.variables:
+            self.compute_steerer_corrections(self.fit_results)
 
     def apply(self):
         self.model.write_params(self.top_results.items())

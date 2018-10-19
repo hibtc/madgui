@@ -140,12 +140,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_change_meth(self, strategy):
         self.corrector.strategy = strategy
-        if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(
-                self.corrector.fit_results)
-            self.corrector.variables.touch()
-            self.update_ui()
-            self.draw()
+        self.update_fit()
 
     def update_status(self):
         self.corrector.update_vars()
@@ -160,10 +155,10 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
-        self.corrector.update()
-        if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(
-                self.corrector.fit_results)
+        self.corrector.update_vars()
+        self.corrector.update_readouts()
+        self.corrector.update_records()
+        self.corrector.update_fit()
         self.update_ui()
         self.draw()
 
