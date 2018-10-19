@@ -11,15 +11,14 @@ from functools import partial
 import numpy as np
 import yaml
 
-from madgui.qt import QtCore, QtGui, load_ui
+from madgui.qt import Qt, QtCore, QtGui, load_ui
 
-from madgui.util.unit import ui_units, change_unit, get_raw_label
+from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.qt import bold
 from madgui.widget.tableview import TableItem
-from madgui.model.match import Constraint
 
 from ._common import EditConfigDialog
-from .procedure import Corrector
+from .procedure import Corrector, Target
 
 
 class CorrectorWidget(QtGui.QWidget):
@@ -35,12 +34,17 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(r.posy, name='posy'),
         ]
 
-    def get_cons_row(self, i, c) -> ("Element", "Param", "Value", "Unit"):
+    def get_cons_row(self, i, t) -> ("Target", "X", "Y"):
+        mode = self.corrector.mode
+        active_x = 'x' in mode
+        active_y = 'y' in mode
+        textcolor = QtGui.QColor(Qt.darkGray), QtGui.QColor(Qt.black)
         return [
-            TableItem(c.elem.node_name),
-            TableItem(c.axis),
-            TableItem(c.value, set_value=self.set_cons_value, name=c.axis),
-            TableItem(ui_units.label(c.axis)),
+            TableItem(t.elem),
+            TableItem(t.x, name='x', set_value=self.set_x_value,
+                      editable=active_x, foreground=textcolor[active_x]),
+            TableItem(t.y, name='y', set_value=self.set_y_value,
+                      editable=active_y, foreground=textcolor[active_y]),
         ]
 
     def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
@@ -60,8 +64,11 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(get_raw_label(info.ui_unit)),
         ]
 
-    def set_cons_value(self, i, c, value):
-        self.corrector.constraints[i] = Constraint(c.elem, c.pos, c.axis, value)
+    def set_x_value(self, i, t, value):
+        self.corrector.targets[i] = Target(t.elem, value, t.y)
+
+    def set_y_value(self, i, t, value):
+        self.corrector.targets[i] = Target(t.elem, t.x, value)
 
     def set_steerer_value(self, i, v, value):
         info = self.corrector._knobs[v.lower()]
@@ -103,7 +110,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.tab_corrections.set_viewmodel(
             self.get_steerer_row, corr.variables)
         self.tab_targets.set_viewmodel(
-            self.get_cons_row, corr.constraints)
+            self.get_cons_row, corr.targets, unit=True)
         self.corrector.session.window().open_graph('orbit')
 
     def set_initial_values(self):

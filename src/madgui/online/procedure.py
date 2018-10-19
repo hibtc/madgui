@@ -1,4 +1,3 @@
-
 from itertools import accumulate, product
 import textwrap
 
@@ -9,7 +8,7 @@ from madgui.qt import QtCore
 import madgui.util.yaml as yaml
 from madgui.util.collections import List
 
-from madgui.model.match import Matcher, Constraint
+from madgui.model.match import Matcher
 from .orbit import fit_particle_orbit
 
 
@@ -20,6 +19,14 @@ class OrbitRecord:
         self.readout = readout
         self.optics = optics
         self.tm = tm
+
+
+class Target:
+
+    def __init__(self, elem, x, y):
+        self.elem = elem
+        self.x = x
+        self.y = y
 
 
 class Corrector(Matcher):
@@ -40,6 +47,7 @@ class Corrector(Matcher):
         self.file = None
         # save elements
         self.monitors = List()
+        self.targets = List()
         self.readouts = List()
         self.records = List()
         self.fit_range = None
@@ -108,23 +116,18 @@ class Corrector(Matcher):
         self.assign = {k: v for s in steerers if isinstance(s, dict)
                        for k, v in s.items()}
 
-        self.targets = sorted(targets, key=elements.index)
+        targets = sorted(targets, key=elements.index)
+        self.targets[:] = [
+            Target(elem, 0, 0)
+            for elem in targets
+        ]
         self.monitors[:] = sorted(monitors, key=elements.index)
         self._readouts = self.control.monitors.sublist(
             map(str.lower, self.monitors))
         self._readouts.as_list(self.readouts)
-        fit_elements = (list(self.targets) + list(self.monitors) +
-                        list(self.optic_elems))
+        fit_elements = targets + list(self.monitors) + list(self.optic_elems)
         self.fit_range = (min(fit_elements, key=elements.index, default=0),
                           max(fit_elements, key=elements.index, default=0))
-        self.constraints[:] = sorted([
-            Constraint(elements[target],
-                       elements[target].position,
-                       key, float(value))
-            for target, values in targets.items()
-            for key, value in values.items()
-            if key[-1] in dirs
-        ], key=lambda c: c.pos)
         self.variables[:] = [
             knob
             for knob in self.match_names + list(self.assign)
@@ -261,18 +264,16 @@ class Corrector(Matcher):
         :param dict init_orbit: initial conditions as returned by the fit
         """
 
-        def offset(c):
-            dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
-            if c.axis in ('x', 'posx'):
-                return dx
-            if c.axis in ('y', 'posy'):
-                return dy
-            return 0
-        constraints = [
-            (c.elem, None, c.axis, c.value+offset(c))
-            for c in self.constraints
-        ]
+        def get_offsets(elem):
+            return self._offsets.get(elem.lower(), (0, 0))
         model = self.model
+        elements = model.elements
+        constraints = [
+            (elements[t.elem], None, ax, val+offs)
+            for t in self.targets
+            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
+            if ax in self.mode
+        ]
         with model.undo_stack.rollback("Orbit correction", transient=True):
             model.update_globals(self.assign)
             model.update_twiss_args(init_orbit)
@@ -289,16 +290,13 @@ class Corrector(Matcher):
         return self._compute_steerer_corrections_orm(init_orbit, 'tm')
 
     def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
-        def offset(c):
-            dx, dy = self._offsets.get(c.elem.name.lower(), (0, 0))
-            if c.axis in ('x', 'posx'):
-                return dx
-            if c.axis in ('y', 'posy'):
-                return dy
-            return 0
+        def get_offsets(elem):
+            return self._offsets.get(elem.lower(), (0, 0))
         targets = {
-            (c.elem.name, c.axis): c.value+offset(c)
-            for c in self.constraints
+            (t.elem.lower(), ax): val + offs
+            for t in self.targets
+            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
+            if ax in self.mode
         }
         S = [
             i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
