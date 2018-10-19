@@ -269,16 +269,11 @@ class Corrector(Matcher):
 
         :param dict init_orbit: initial conditions as returned by the fit
         """
-
-        def get_offsets(elem):
-            return self._offsets.get(elem.lower(), (0, 0))
         model = self.model
         elements = model.elements
         constraints = [
-            (elements[t.elem], None, ax, val+offs)
-            for t in self.targets
-            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
-            if ax in self.mode
+            (elements[elem], None, ax, val)
+            for elem, ax, val in self._get_constraints()
         ]
         with model.undo_stack.rollback("Orbit correction", transient=True):
             model.update_globals(self.assign)
@@ -296,13 +291,9 @@ class Corrector(Matcher):
         return self._compute_steerer_corrections_orm(init_orbit, 'tm')
 
     def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
-        def get_offsets(elem):
-            return self._offsets.get(elem.lower(), (0, 0))
         targets = {
-            (t.elem.lower(), ax): val + offs
-            for t in self.targets
-            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
-            if ax in self.mode
+            (el.lower(), ax): val
+            for el, ax, val in self._get_constraints()
         }
         S = [
             i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
@@ -333,6 +324,16 @@ class Corrector(Matcher):
             for var, delta in zip(self.variables, dvar)
         })
         return self.match_results
+
+    def _get_constraints(self):
+        def get_offsets(elem):
+            return self._offsets.get(elem.lower(), (0, 0))
+        return [
+            (t.elem, ax, val + offs)
+            for t in self.targets
+            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
+            if ax in self.mode
+        ]
 
     def compute_sectormap(self, init_orbit):
         model = self.model
