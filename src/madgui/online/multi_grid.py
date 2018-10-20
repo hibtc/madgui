@@ -138,6 +138,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.radio_meth_orm.clicked.connect(partial(self.on_change_meth, 'orm'))
         self.radio_meth_tm.clicked.connect(partial(self.on_change_meth, 'tm'))
         self.check_backtrack.clicked.connect(self.on_check_backtracking)
+        self.check_bydelta.clicked.connect(self.on_check_bydelta)
 
     def on_change_meth(self, strategy):
         self.corrector.strategy = strategy
@@ -145,6 +146,10 @@ class CorrectorWidget(QtGui.QWidget):
 
     def on_check_backtracking(self, checked):
         self.corrector.use_backtracking = checked
+        self.update_fit()
+
+    def on_check_bydelta(self, checked):
+        self.corrector.use_delta_objective = checked
         self.update_fit()
 
     def update_status(self):
@@ -158,9 +163,12 @@ class CorrectorWidget(QtGui.QWidget):
     def update_setup(self):
         if self.corrector.knows_targets_readouts():
             self.check_backtrack.setEnabled(True)
+            self.check_bydelta.setEnabled(True)
         else:
             self.check_backtrack.setEnabled(False)
             self.check_backtrack.setChecked(True)
+            self.check_bydelta.setEnabled(False)
+            self.check_bydelta.setEnabled(False)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""

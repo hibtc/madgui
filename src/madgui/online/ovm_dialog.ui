@@ -164,6 +164,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="check_bydelta">
+          <property name="text">
+           <string>by delta</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>

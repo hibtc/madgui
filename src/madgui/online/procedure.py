@@ -46,6 +46,7 @@ class Corrector(Matcher):
         self._knobs = control.get_knobs()
         self.file = None
         self.use_backtracking = True
+        self.use_delta_objective = False
         # save elements
         self.monitors = List()
         self.targets = List()
@@ -286,16 +287,20 @@ class Corrector(Matcher):
             self.compute_orbit_response_matrix())
 
     def _get_objective_deltas(self):
-        if self.knows_targets_readouts():
+        use_delta_objective = self.use_delta_objective
+        if use_delta_objective and not self.knows_targets_readouts():
+            use_delta_objective = False
+            logging.warning(
+                "Matching absolute orbit (more sensitive to inaccurate "
+                "backtracking)!")
+
+        if use_delta_objective:
             measured = {
                 (r.name.lower(), ax): val
                 for r in self.readouts
                 for ax, val in zip("xy", (r.posx, r.posy))
             }
         else:
-            logging.warning(
-                "Matching absolute orbit (more sensitive to inaccurate "
-                "backtracking)!")
             offsets = self._offsets
             elem_twiss = self.model.get_elem_twiss
             measured = {
