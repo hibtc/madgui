@@ -254,8 +254,8 @@ class Corrector(Matcher):
     def compute_steerer_corrections(self):
         strats = {
             'match': self._compute_steerer_corrections_match,
-            'orm': self._compute_steerer_corrections_orm,
-            'tm': self._compute_steerer_corrections_tm,
+            'orm': self._compute_steerer_corrections_orm_ndiff1,
+            'tm': self._compute_steerer_corrections_orm_sectormap,
         }
         self.match_results = results = strats[self.strategy]()
         self._push_history(results)
@@ -277,8 +277,13 @@ class Corrector(Matcher):
                 constraints=constraints)
             return self._read_vars()
 
-    def _compute_steerer_corrections_tm(self):
-        return self._compute_steerer_corrections_orm('tm')
+    def _compute_steerer_corrections_orm_sectormap(self):
+        return self._compute_steerer_corrections_orm(
+            self.compute_sectormap())
+
+    def _compute_steerer_corrections_orm_ndiff1(self):
+        return self._compute_steerer_corrections_orm(
+            self.compute_orbit_response_matrix())
 
     def _get_objective_deltas(self):
         targets = {
@@ -301,17 +306,10 @@ class Corrector(Matcher):
         ])
         return y_target - y_measured, S
 
-    def _compute_steerer_corrections_orm(self, calc_orm='match'):
-        if calc_orm == 'match':
-            orm = self.compute_orbit_response_matrix()
-        else:
-            orm = self.compute_sectormap()
-
+    def _compute_steerer_corrections_orm(self, orm):
         delta, S = self._get_objective_deltas()
-
         dvar = np.linalg.lstsq(
             orm.T[S, :], delta[S], rcond=1e-10)[0]
-
         globals_ = self.model.globals
         return {
             var.lower(): globals_[var] + delta
