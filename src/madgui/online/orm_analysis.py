@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 
 from madgui.qt import QtCore, QtGui, load_ui
 from madgui.widget.tableview import TableItem
@@ -140,5 +141,6 @@ class MeasureWidget(QtGui.QWidget):
         self.corrector.open_export(fname)
 
     def log(self, text, *args, **kwargs):
-        self.status_log.appendPlainText(
-            text.format(*args, **kwargs))
+        formatted = text.format(*args, **kwargs)
+        logging.info(formatted)
+        self.status_log.appendPlainText(formatted)
