@@ -92,7 +92,7 @@ class Corrector(Matcher):
         self.optic_elems = [
             elem.name.lower()
             for knob in optic_knobs
-            for elem in knob_elems[knob]
+            if elem in knob_elems[knob]
         ]
 
         self.optic_params = [self._knobs[k] for k in optic_knobs
