@@ -206,7 +206,7 @@ class Corrector(Matcher):
         self.fit_results = init_orbit
         self.model.update_twiss_args(init_orbit)
         if self.fit_results and self.variables:
-            self.compute_steerer_corrections(self.fit_results)
+            self.compute_steerer_corrections()
 
     def apply(self):
         self.model.write_params(self.top_results.items())
@@ -252,25 +252,22 @@ class Corrector(Matcher):
                     self.monitors, self.readouts, secmaps)
         ]
 
-    def compute_steerer_corrections(self, init_orbit):
+    def compute_steerer_corrections(self):
         strats = {
             'match': self._compute_steerer_corrections_match,
             'orm': self._compute_steerer_corrections_orm,
             'tm': self._compute_steerer_corrections_tm,
         }
-        return strats[self.strategy](init_orbit)
+        return strats[self.strategy]()
 
-    def _compute_steerer_corrections_match(self, init_orbit):
+    def _compute_steerer_corrections_match(self):
         """
         Compute corrections for the x_steerers, y_steerers.
-
-        :param dict init_orbit: initial conditions as returned by the fit
         """
         model = self.model
         constraints = self._get_constraints()
         with model.undo_stack.rollback("Orbit correction", transient=True):
             model.update_globals(self.assign)
-            model.update_twiss_args(init_orbit)
             model.match(
                 vary=self.match_names,
                 limits=self.selected.get('limits'),
@@ -280,8 +277,8 @@ class Corrector(Matcher):
             self.match_results = self._push_history()
             return self.match_results
 
-    def _compute_steerer_corrections_tm(self, init_orbit):
-        return self._compute_steerer_corrections_orm(init_orbit, 'tm')
+    def _compute_steerer_corrections_tm(self):
+        return self._compute_steerer_corrections_orm('tm')
 
     def _get_objective_deltas(self):
         targets = {
@@ -304,11 +301,11 @@ class Corrector(Matcher):
         ])
         return y_target - y_measured, S
 
-    def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
+    def _compute_steerer_corrections_orm(self, calc_orm='match'):
         if calc_orm == 'match':
-            orm = self.compute_orbit_response_matrix(init_orbit)
+            orm = self.compute_orbit_response_matrix()
         else:
-            orm = self.compute_sectormap(init_orbit)
+            orm = self.compute_sectormap()
 
         delta, S = self._get_objective_deltas()
 
@@ -355,11 +352,10 @@ class Corrector(Matcher):
             if ax in self.mode
         ]
 
-    def compute_sectormap(self, init_orbit):
+    def compute_sectormap(self):
         model = self.model
         elems = model.elements
         with model.undo_stack.rollback("Orbit correction", transient=True):
-            model.update_twiss_args(init_orbit)
             model.sector.invalidate()
 
             elem_by_knob = {}
@@ -378,13 +374,12 @@ class Corrector(Matcher):
             ])
 
     # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
-    def compute_orbit_response_matrix(self, init_orbit):
+    def compute_orbit_response_matrix(self):
         model = self.model
         madx = model.madx
 
         madx.command.select(flag='interpolate', clear=True)
         tw_args = model._get_twiss_args().copy()
-        tw_args.update(init_orbit)
         tw_args['table'] = 'orm_tmp'
 
         tw0 = madx.twiss(**tw_args)
