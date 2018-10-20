@@ -39,7 +39,10 @@ class UndoStack(QtGui.QUndoStack):
             self.endMacro()
             macro = self.command(self.count()-1)
             if macro.childCount() == 0:
-                macro.setObsolete(True)
+                try:
+                    macro.setObsolete(True)
+                except AttributeError:
+                    pass
                 self.undo()
 
     @contextmanager
@@ -53,7 +56,10 @@ class UndoStack(QtGui.QUndoStack):
             self.endMacro()
             macro = self.command(self.count()-1)
             if macro.childCount() == 0 or hidden:
-                macro.setObsolete(True)
+                try:
+                    macro.setObsolete(True)
+                except AttributeError:
+                    pass
             self.undo()
             if transient:
                 self.model.twiss.invalid = invalid
