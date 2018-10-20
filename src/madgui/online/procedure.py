@@ -166,8 +166,7 @@ class Corrector(Matcher):
         self.cur_results = {}
         self.top_results = {}
 
-    def _push_history(self, results=None):
-        results = self._read_vars() if results is None else results
+    def _push_history(self, results):
         if results != self.top_results:
             self.top_results = results
             self.hist_idx += 1
@@ -184,7 +183,7 @@ class Corrector(Matcher):
             knob: self.model.read_param(knob)
             for knob in self.control.get_knobs()
         }
-        self.cur_results = self._push_history()
+        self.cur_results = self._push_history(self._read_vars())
 
     def update_readouts(self):
         self._readouts.invalidate()
@@ -256,7 +255,9 @@ class Corrector(Matcher):
             'orm': self._compute_steerer_corrections_orm,
             'tm': self._compute_steerer_corrections_tm,
         }
-        return strats[self.strategy]()
+        self.match_results = results = strats[self.strategy]()
+        self._push_history(results)
+        return results
 
     def _compute_steerer_corrections_match(self):
         """
@@ -272,8 +273,7 @@ class Corrector(Matcher):
                 method=self.method,
                 weight={'x': 1e3, 'y': 1e3, 'px': 1e2, 'py': 1e2},
                 constraints=constraints)
-            self.match_results = self._push_history()
-            return self.match_results
+            return self._read_vars()
 
     def _compute_steerer_corrections_tm(self):
         return self._compute_steerer_corrections_orm('tm')
@@ -311,11 +311,10 @@ class Corrector(Matcher):
             orm.T[S, :], delta[S], rcond=1e-10)[0]
 
         globals_ = self.model.globals
-        self.match_results = self._push_history({
+        return {
             var.lower(): globals_[var] + delta
             for var, delta in zip(self.variables, dvar)
-        })
-        return self.match_results
+        }
 
     def _get_constraints(self):
         model = self.model
