@@ -40,7 +40,6 @@ class Corrector(Matcher):
 
     def __init__(self, session, direct=True):
         super().__init__(session.model(), session.config['matching'])
-        self.fit_results = None
         self.session = session
         self.control = control = session.control
         self.direct = direct
@@ -196,17 +195,16 @@ class Corrector(Matcher):
             self.records[:] = self.current_orbit_records()
 
     def update_fit(self):
-        self.fit_results = None
-        if len(self.records) < 2:
+        if len(self.records) < 2 or len(self.variables) < 1:
             return
+
         init_orbit, chi_squared, singular = \
             self.fit_particle_orbit(self.records)
-        if singular:
+        if singular or not init_orbit:
             return
-        self.fit_results = init_orbit
         self.model.update_twiss_args(init_orbit)
-        if self.fit_results and self.variables:
-            self.compute_steerer_corrections()
+
+        self.compute_steerer_corrections()
 
     def apply(self):
         self.model.write_params(self.top_results.items())
@@ -494,7 +492,6 @@ class ProcBot:
             self.timer = None
 
     def reset(self):
-        self.corrector.fit_results = None
         self.widget.update_ui()
 
     def poll(self):
