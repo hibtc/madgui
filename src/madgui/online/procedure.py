@@ -45,6 +45,7 @@ class Corrector(Matcher):
         self.direct = direct
         self._knobs = control.get_knobs()
         self.file = None
+        self.use_backtracking = True
         # save elements
         self.monitors = List()
         self.targets = List()
@@ -197,11 +198,12 @@ class Corrector(Matcher):
         if len(self.records) < 2 or len(self.variables) < 1:
             return
 
-        init_orbit, chi_squared, singular = \
-            self.fit_particle_orbit(self.records)
-        if singular or not init_orbit:
-            return
-        self.model.update_twiss_args(init_orbit)
+        if self.use_backtracking:
+            init_orbit, chi_squared, singular = \
+                self.fit_particle_orbit(self.records)
+            if singular or not init_orbit:
+                return
+            self.model.update_twiss_args(init_orbit)
 
         self.compute_steerer_corrections()
 
@@ -324,9 +326,7 @@ class Corrector(Matcher):
         def get_offsets(elem):
             return self._offsets.get(elem.lower(), (0, 0))
 
-        targets = {t.elem.lower() for t in self.targets}
-        monitors = {m.lower() for m in self.monitors}
-        if targets.issubset(monitors):
+        if self.knows_targets_readouts():
             delta, S = self._get_objective_deltas()
             return [
                 (elements[mon], None, ax, elem_twiss(mon)[ax] + delta[i])
@@ -340,6 +340,11 @@ class Corrector(Matcher):
                 (elements[elem], None, ax, val + get_offsets(elem)[ax == 'y'])
                 for elem, ax, val in self._get_objectives()
             ]
+
+    def knows_targets_readouts(self):
+        targets = {t.elem.lower() for t in self.targets}
+        monitors = {m.lower() for m in self.monitors}
+        return targets.issubset(monitors)
 
     def _get_objectives(self):
         return [

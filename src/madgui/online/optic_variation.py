@@ -87,6 +87,7 @@ class CorrectorWidget(_Widget):
             for info in self.corrector.optic_params
         ]
         self._on_update_optics()
+        super().update_setup()
 
     def _on_update_optics(self):
         self.combo_set_optic.clear()
