@@ -1,6 +1,19 @@
 CHANGELOG
 ~~~~~~~~~
 
+18.10.1
+~~~~~~~
+Date: 20.10.2018
+
+- fix exception when opening matching dialog
+- fix bad fit_range leading to bad initial conditions fit
+- add safeguard for ``None`` offsets in corrector widgets
+- restrict orbit correction to only X/Y constraints
+- let user choose whether to fit the difference between measured and design
+  values or just fit the design value directly (this can be different in case
+  the backtrack does not describe the monitor values very good)
+
+
 18.10.0
 ~~~~~~~
 Date: 18.10.2018
