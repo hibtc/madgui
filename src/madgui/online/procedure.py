@@ -286,30 +286,39 @@ class Corrector(Matcher):
             self.compute_orbit_response_matrix())
 
     def _get_objective_deltas(self):
-        targets = {
-            (el.lower(), ax): val
-            for el, ax, val in self._get_objectives()
-        }
+        if self.knows_targets_readouts():
+            measured = {
+                (r.name.lower(), ax): val
+                for r in self.readouts
+                for ax, val in zip("xy", (r.posx, r.posy))
+            }
+        else:
+            logging.warning(
+                "Matching absolute orbit (more sensitive to inaccurate "
+                "backtracking)!")
+            offsets = self._offsets
+            elem_twiss = self.model.get_elem_twiss
+            measured = {
+                (el, ax): elem_twiss(t.elem)[ax] - offset
+                for t in self.targets
+                for el in [t.elem.lower()]
+                for ax, offset in zip("xy", offsets.get(el, (0, 0)))
+            }
+        return [
+            (el, ax, objective_value - measured_value)
+            for el, ax, objective_value in self._get_objectives()
+            for measured_value in [measured.get(((el, ax)))]
+        ]
+
+    def _compute_steerer_corrections_orm(self, orm):
+        mons, axs, deltas = zip(*self._get_objective_deltas())
+        targets = set(zip(mons, axs))
         S = [
             i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
             if (elem.lower(), axis) in targets
         ]
-
-        y_measured = np.array([
-            [r.posx, r.posy]
-            for r in self.readouts
-        ]).flatten()
-
-        y_target = np.array([
-            targets.get((elem.lower(), axis), 0.0)
-            for elem, axis in product(self.monitors, 'xy')
-        ])
-        return y_target - y_measured, S
-
-    def _compute_steerer_corrections_orm(self, orm):
-        delta, S = self._get_objective_deltas()
         dvar = np.linalg.lstsq(
-            orm.T[S, :], delta[S], rcond=1e-10)[0]
+            orm.T[S, :], deltas, rcond=1e-10)[0]
         globals_ = self.model.globals
         return {
             var.lower(): globals_[var] + delta
@@ -320,24 +329,10 @@ class Corrector(Matcher):
         model = self.model
         elements = model.elements
         elem_twiss = model.get_elem_twiss
-
-        def get_offsets(elem):
-            return self._offsets.get(elem.lower(), (0, 0))
-
-        if self.knows_targets_readouts():
-            delta, S = self._get_objective_deltas()
-            return [
-                (elements[mon], None, ax, elem_twiss(mon)[ax] + delta[i])
-                for i, (mon, ax) in enumerate(product(self.monitors, 'xy'))
-                if i in S
-            ]
-        else:
-            logging.warning(
-                "Matching absolute orbit (prone to inaccurate backtracking)!")
-            return [
-                (elements[elem], None, ax, val + get_offsets(elem)[ax == 'y'])
-                for elem, ax, val in self._get_objectives()
-            ]
+        return [
+            (elements[mon], None, ax, elem_twiss(mon)[ax] + delta)
+            for mon, ax, delta in self._get_objective_deltas()
+        ]
 
     def knows_targets_readouts(self):
         targets = {t.elem.lower() for t in self.targets}
@@ -346,7 +341,7 @@ class Corrector(Matcher):
 
     def _get_objectives(self):
         return [
-            (t.elem, ax, val)
+            (t.elem.lower(), ax, val)
             for t in self.targets
             for ax, val in zip("xy", (t.x, t.y))
             if ax in self.mode
