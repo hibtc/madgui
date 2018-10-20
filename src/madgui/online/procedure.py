@@ -1,4 +1,5 @@
 from itertools import accumulate, product
+import logging
 import textwrap
 
 import numpy as np
@@ -39,12 +40,13 @@ class Corrector(Matcher):
 
     def __init__(self, session, direct=True):
         super().__init__(session.model(), session.config['matching'])
-        self.fit_results = None
         self.session = session
         self.control = control = session.control
         self.direct = direct
         self._knobs = control.get_knobs()
         self.file = None
+        self.use_backtracking = True
+        self.use_delta_objective = False
         # save elements
         self.monitors = List()
         self.targets = List()
@@ -166,8 +168,7 @@ class Corrector(Matcher):
         self.cur_results = {}
         self.top_results = {}
 
-    def _push_history(self, results=None):
-        results = self._read_vars() if results is None else results
+    def _push_history(self, results):
         if results != self.top_results:
             self.top_results = results
             self.hist_idx += 1
@@ -184,13 +185,7 @@ class Corrector(Matcher):
             knob: self.model.read_param(knob)
             for knob in self.control.get_knobs()
         }
-        self.cur_results = self._push_history()
-
-    def update(self):
-        self.update_vars()
-        self.update_readouts()
-        self.update_records()
-        self.update_fit()
+        self.cur_results = self._push_history(self._read_vars())
 
     def update_readouts(self):
         self._readouts.invalidate()
@@ -201,15 +196,17 @@ class Corrector(Matcher):
             self.records[:] = self.current_orbit_records()
 
     def update_fit(self):
-        self.fit_results = None
-        if len(self.records) < 2:
+        if len(self.records) < 2 or len(self.variables) < 1:
             return
-        init_orbit, chi_squared, singular = \
-            self.fit_particle_orbit(self.records)
-        if singular:
-            return
-        self.fit_results = init_orbit
-        self.model.update_twiss_args(init_orbit)
+
+        if self.use_backtracking:
+            init_orbit, chi_squared, singular = \
+                self.fit_particle_orbit(self.records)
+            if singular or not init_orbit:
+                return
+            self.model.update_twiss_args(init_orbit)
+
+        self.compute_steerer_corrections()
 
     def apply(self):
         self.model.write_params(self.top_results.items())
@@ -255,90 +252,110 @@ class Corrector(Matcher):
                     self.monitors, self.readouts, secmaps)
         ]
 
-    def compute_steerer_corrections(self, init_orbit):
+    def compute_steerer_corrections(self):
         strats = {
             'match': self._compute_steerer_corrections_match,
-            'orm': self._compute_steerer_corrections_orm,
-            'tm': self._compute_steerer_corrections_tm,
+            'orm': self._compute_steerer_corrections_orm_ndiff1,
+            'tm': self._compute_steerer_corrections_orm_sectormap,
         }
-        return strats[self.strategy](init_orbit)
+        self.match_results = results = strats[self.strategy]()
+        self._push_history(results)
+        return results
 
-    def _compute_steerer_corrections_match(self, init_orbit):
+    def _compute_steerer_corrections_match(self):
         """
         Compute corrections for the x_steerers, y_steerers.
-
-        :param dict init_orbit: initial conditions as returned by the fit
         """
-
-        def get_offsets(elem):
-            return self._offsets.get(elem.lower(), (0, 0))
         model = self.model
-        elements = model.elements
-        constraints = [
-            (elements[t.elem], None, ax, val+offs)
-            for t in self.targets
-            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
-            if ax in self.mode
-        ]
+        constraints = self._get_constraints()
         with model.undo_stack.rollback("Orbit correction", transient=True):
             model.update_globals(self.assign)
-            model.update_twiss_args(init_orbit)
             model.match(
                 vary=self.match_names,
                 limits=self.selected.get('limits'),
                 method=self.method,
                 weight={'x': 1e3, 'y': 1e3, 'px': 1e2, 'py': 1e2},
                 constraints=constraints)
-            self.match_results = self._push_history()
-            return self.match_results
+            return self._read_vars()
 
-    def _compute_steerer_corrections_tm(self, init_orbit):
-        return self._compute_steerer_corrections_orm(init_orbit, 'tm')
+    def _compute_steerer_corrections_orm_sectormap(self):
+        return self._compute_steerer_corrections_orm(
+            self.compute_sectormap())
 
-    def _compute_steerer_corrections_orm(self, init_orbit, calc_orm='match'):
-        def get_offsets(elem):
-            return self._offsets.get(elem.lower(), (0, 0))
-        targets = {
-            (t.elem.lower(), ax): val + offs
-            for t in self.targets
-            for ax, val, offs in zip("xy", (t.x, t.y), get_offsets(t.elem))
-            if ax in self.mode
-        }
+    def _compute_steerer_corrections_orm_ndiff1(self):
+        return self._compute_steerer_corrections_orm(
+            self.compute_orbit_response_matrix())
+
+    def _get_objective_deltas(self):
+        use_delta_objective = self.use_delta_objective
+        if use_delta_objective and not self.knows_targets_readouts():
+            use_delta_objective = False
+            logging.warning(
+                "Matching absolute orbit (more sensitive to inaccurate "
+                "backtracking)!")
+
+        if use_delta_objective:
+            measured = {
+                (r.name.lower(), ax): val
+                for r in self.readouts
+                for ax, val in zip("xy", (r.posx, r.posy))
+            }
+        else:
+            offsets = self._offsets
+            elem_twiss = self.model.get_elem_twiss
+            measured = {
+                (el, ax): elem_twiss(t.elem)[ax] - offset
+                for t in self.targets
+                for el in [t.elem.lower()]
+                for ax, offset in zip("xy", offsets.get(el, (0, 0)))
+            }
+        return [
+            (el, ax, objective_value - measured_value)
+            for el, ax, objective_value in self._get_objectives()
+            for measured_value in [measured.get(((el, ax)))]
+        ]
+
+    def _compute_steerer_corrections_orm(self, orm):
+        mons, axs, deltas = zip(*self._get_objective_deltas())
+        targets = set(zip(mons, axs))
         S = [
             i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
             if (elem.lower(), axis) in targets
         ]
-
-        y_measured = np.array([
-            [r.posx, r.posy]
-            for r in self.readouts
-        ]).flatten()
-
-        y_target = np.array([
-            targets.get((elem.lower(), axis), 0.0)
-            for elem, axis in product(self.monitors, 'xy')
-        ])
-
-        if calc_orm == 'match':
-            orm = self.compute_orbit_response_matrix(init_orbit)
-        else:
-            orm = self.compute_sectormap(init_orbit)
-
         dvar = np.linalg.lstsq(
-            orm.T[S, :], (y_target-y_measured)[S], rcond=1e-10)[0]
-
+            orm.T[S, :], deltas, rcond=1e-10)[0]
         globals_ = self.model.globals
-        self.match_results = self._push_history({
+        return {
             var.lower(): globals_[var] + delta
             for var, delta in zip(self.variables, dvar)
-        })
-        return self.match_results
+        }
 
-    def compute_sectormap(self, init_orbit):
+    def _get_constraints(self):
+        model = self.model
+        elements = model.elements
+        elem_twiss = model.get_elem_twiss
+        return [
+            (elements[mon], None, ax, elem_twiss(mon)[ax] + delta)
+            for mon, ax, delta in self._get_objective_deltas()
+        ]
+
+    def knows_targets_readouts(self):
+        targets = {t.elem.lower() for t in self.targets}
+        monitors = {m.lower() for m in self.monitors}
+        return targets.issubset(monitors)
+
+    def _get_objectives(self):
+        return [
+            (t.elem.lower(), ax, val)
+            for t in self.targets
+            for ax, val in zip("xy", (t.x, t.y))
+            if ax in self.mode
+        ]
+
+    def compute_sectormap(self):
         model = self.model
         elems = model.elements
         with model.undo_stack.rollback("Orbit correction", transient=True):
-            model.update_twiss_args(init_orbit)
             model.sector.invalidate()
 
             elem_by_knob = {}
@@ -357,13 +374,12 @@ class Corrector(Matcher):
             ])
 
     # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
-    def compute_orbit_response_matrix(self, init_orbit):
+    def compute_orbit_response_matrix(self):
         model = self.model
         madx = model.madx
 
         madx.command.select(flag='interpolate', clear=True)
         tw_args = model._get_twiss_args().copy()
-        tw_args.update(init_orbit)
         tw_args['table'] = 'orm_tmp'
 
         tw0 = madx.twiss(**tw_args)
@@ -478,7 +494,6 @@ class ProcBot:
             self.timer = None
 
     def reset(self):
-        self.corrector.fit_results = None
         self.widget.update_ui()
 
     def poll(self):

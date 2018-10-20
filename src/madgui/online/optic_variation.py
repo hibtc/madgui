@@ -87,6 +87,7 @@ class CorrectorWidget(_Widget):
             for info in self.corrector.optic_params
         ]
         self._on_update_optics()
+        super().update_setup()
 
     def _on_update_optics(self):
         self.combo_set_optic.clear()
@@ -143,7 +144,7 @@ class CorrectorWidget(_Widget):
         super().update_ui()
 
         running = self.bot.running
-        has_fit = self.corrector.fit_results is not None
+        has_fit = len(self.corrector.match_results) > 0     # FIXME
         self.btn_proc_start.setEnabled(not running)
         self.btn_proc_abort.setEnabled(running)
         self.btn_apply.setEnabled(not running and has_fit)

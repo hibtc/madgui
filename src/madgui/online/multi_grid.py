@@ -137,15 +137,20 @@ class CorrectorWidget(QtGui.QWidget):
         self.radio_meth_match.clicked.connect(partial(self.on_change_meth, 'match'))
         self.radio_meth_orm.clicked.connect(partial(self.on_change_meth, 'orm'))
         self.radio_meth_tm.clicked.connect(partial(self.on_change_meth, 'tm'))
+        self.check_backtrack.clicked.connect(self.on_check_backtracking)
+        self.check_bydelta.clicked.connect(self.on_check_bydelta)
 
     def on_change_meth(self, strategy):
         self.corrector.strategy = strategy
-        if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(
-                self.corrector.fit_results)
-            self.corrector.variables.touch()
-            self.update_ui()
-            self.draw()
+        self.update_fit()
+
+    def on_check_backtracking(self, checked):
+        self.corrector.use_backtracking = checked
+        self.update_fit()
+
+    def on_check_bydelta(self, checked):
+        self.corrector.use_delta_objective = checked
+        self.update_fit()
 
     def update_status(self):
         self.corrector.update_vars()
@@ -156,14 +161,21 @@ class CorrectorWidget(QtGui.QWidget):
         QtCore.QTimer.singleShot(0, self.draw)
 
     def update_setup(self):
-        pass
+        if self.corrector.knows_targets_readouts():
+            self.check_backtrack.setEnabled(True)
+            self.check_bydelta.setEnabled(True)
+        else:
+            self.check_backtrack.setEnabled(False)
+            self.check_backtrack.setChecked(True)
+            self.check_bydelta.setEnabled(False)
+            self.check_bydelta.setEnabled(False)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
-        self.corrector.update()
-        if self.corrector.fit_results and self.corrector.variables:
-            self.corrector.compute_steerer_corrections(
-                self.corrector.fit_results)
+        self.corrector.update_vars()
+        self.corrector.update_readouts()
+        self.corrector.update_records()
+        self.corrector.update_fit()
         self.update_ui()
         self.draw()
 
