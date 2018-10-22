@@ -404,7 +404,6 @@ class Corrector(Matcher):
         # update_vars breaks ORM procedures because it re-reads base_optics!
         # self.update_vars()
         self.control.read_all()
-        self.update_readouts()
         records = self.current_orbit_records()
         self.records.extend(records)
         if self.file:
