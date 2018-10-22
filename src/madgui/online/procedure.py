@@ -442,6 +442,7 @@ class Corrector(Matcher):
 
     def write_data(self, data, indent="", **kwd):
         self.file.write(textwrap.indent(yaml.safe_dump(data, **kwd), indent))
+        self.file.flush()
 
 
 class ProcBot:
