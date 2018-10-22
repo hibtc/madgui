@@ -504,7 +504,9 @@ class ProcBot:
         shot = self.progress % self.numshots
 
         if shot == 0:
-            self.widget.log("optic {}".format(step))
+            self.widget.log(
+                "optic {} of {}: {}", step, self.numsteps,
+                self.corrector.optics[step])
             self.corrector.set_optic(step)
 
             self.progress += 1
