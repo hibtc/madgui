@@ -470,7 +470,7 @@ class ProcBot:
         if gui:
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.poll)
-            self.timer.start(10)
+            self.timer.start(2000)
 
     def finish(self):
         self.stop()
