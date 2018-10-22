@@ -10,6 +10,7 @@ import madgui.util.yaml as yaml
 from madgui.util.collections import List
 
 from madgui.model.match import Matcher
+from .control import MonitorReadout
 from .orbit import fit_particle_orbit
 
 
@@ -130,9 +131,6 @@ class Corrector(Matcher):
             for x, y in [self.objective_values.get(elem, (0, 0))]
         ]
         self.monitors[:] = sorted(monitors, key=elements.index)
-        self._readouts = self.control.monitors.sublist(
-            map(str.lower, self.monitors))
-        self._readouts.as_list(self.readouts)
         fit_elements = targets + list(self.monitors) + list(self.optic_elems)
         self.fit_range = (min(fit_elements, key=elements.index, default=0),
                           max(fit_elements, key=elements.index, default=0))
@@ -188,8 +186,11 @@ class Corrector(Matcher):
         self.cur_results = self._push_history(self._read_vars())
 
     def update_readouts(self):
-        self._readouts.invalidate()
-        return list(self._readouts)
+        self.readouts[:] = [
+            MonitorReadout(monitor, self.control.read_monitor(monitor))
+            for monitor in self.monitors
+        ]
+        return list(self.readouts)
 
     def update_records(self):
         if self.direct:
