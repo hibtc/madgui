@@ -8,6 +8,7 @@ __all__ = [
 ]
 
 from functools import partial
+import logging
 
 import numpy as np
 
@@ -172,5 +173,6 @@ class CorrectorWidget(_Widget):
             self.num_shots_use.value())
 
     def log(self, text, *args, **kwargs):
-        self.status_log.appendPlainText(
-            text.format(*args, **kwargs))
+        formatted = text.format(*args, **kwargs)
+        logging.info(formatted)
+        self.status_log.appendPlainText(formatted)

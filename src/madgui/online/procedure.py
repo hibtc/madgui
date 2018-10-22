@@ -146,8 +146,9 @@ class Corrector(Matcher):
             for knob in self.control.get_knobs()
         }
         self.optics = [{}] + [
-            {knob: val + delta}
-            for knob, val in self._read_vars().items()
+            {knob: self.base_optics[knob] + delta}
+            for knob in self.match_names
+            if knob.lower() in self._knobs
             for delta in [deltas.get(knob.lower(), default)]
             if delta
         ]
@@ -416,7 +417,6 @@ class Corrector(Matcher):
         # update_vars breaks ORM procedures because it re-reads base_optics!
         # self.update_vars()
         self.control.read_all()
-        self.update_readouts()
         records = self.current_orbit_records()
         self.records.extend(records)
         if self.file:
@@ -455,6 +455,7 @@ class Corrector(Matcher):
 
     def write_data(self, data, indent="", **kwd):
         self.file.write(textwrap.indent(yaml.safe_dump(data, **kwd), indent))
+        self.file.flush()
 
 
 class ProcBot:
@@ -517,7 +518,9 @@ class ProcBot:
         shot = self.progress % self.numshots
 
         if shot == 0:
-            self.widget.log("optic {}".format(step))
+            self.widget.log(
+                "optic {} of {}: {}", step, self.numsteps,
+                self.corrector.optics[step])
             self.corrector.set_optic(step)
 
             self.progress += 1

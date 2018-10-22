@@ -1,5 +1,6 @@
 import os
 import time
+import logging
 
 from madgui.qt import QtCore, QtGui, load_ui
 from madgui.widget.tableview import TableItem
@@ -42,7 +43,7 @@ class MeasureWidget(QtGui.QWidget):
         self.ctrl_file.setText(
             "{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.d_phi = {}
-        self.default_dphi = 1e-4
+        self.default_dphi = 2e-4
         self.ctrl_correctors.rows[:] = []
         self.ctrl_monitors.rows[:] = self.corrector.all_monitors
         self.update_ui()
@@ -140,5 +141,6 @@ class MeasureWidget(QtGui.QWidget):
         self.corrector.open_export(fname)
 
     def log(self, text, *args, **kwargs):
-        self.status_log.appendPlainText(
-            text.format(*args, **kwargs))
+        formatted = text.format(*args, **kwargs)
+        logging.info(formatted)
+        self.status_log.appendPlainText(formatted)
