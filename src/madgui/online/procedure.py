@@ -148,8 +148,9 @@ class Corrector(Matcher):
             for knob in self.control.get_knobs()
         }
         self.optics = [{}] + [
-            {knob: val + delta}
-            for knob, val in self._read_vars().items()
+            {knob: self.base_optics[knob] + delta}
+            for knob in self.match_names
+            if knob.lower() in self._knobs
             for delta in [deltas.get(knob.lower(), default)]
             if delta
         ]
