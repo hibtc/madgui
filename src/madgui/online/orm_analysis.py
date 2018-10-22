@@ -43,7 +43,7 @@ class MeasureWidget(QtGui.QWidget):
         self.ctrl_file.setText(
             "{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.d_phi = {}
-        self.default_dphi = 1e-4
+        self.default_dphi = 2e-4
         self.ctrl_correctors.rows[:] = []
         self.ctrl_monitors.rows[:] = self.corrector.all_monitors
         self.update_ui()
