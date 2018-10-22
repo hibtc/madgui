@@ -10,6 +10,7 @@ import madgui.util.yaml as yaml
 from madgui.util.collections import List
 
 from madgui.model.match import Matcher
+from .control import MonitorReadout
 from .orbit import fit_particle_orbit
 
 
@@ -94,7 +95,7 @@ class Corrector(Matcher):
         self.optic_elems = [
             elem.name.lower()
             for knob in optic_knobs
-            if elem in knob_elems[knob]
+            for elem in knob_elems[knob]
         ]
 
         self.optic_params = [self._knobs[k] for k in optic_knobs
@@ -130,9 +131,6 @@ class Corrector(Matcher):
             for x, y in [self.objective_values.get(elem, (0, 0))]
         ]
         self.monitors[:] = sorted(monitors, key=elements.index)
-        self._readouts = self.control.monitors.sublist(
-            map(str.lower, self.monitors))
-        self._readouts.as_list(self.readouts)
         fit_elements = targets + list(self.monitors) + list(self.optic_elems)
         self.fit_range = (min(fit_elements, key=elements.index, default=0),
                           max(fit_elements, key=elements.index, default=0))
@@ -188,8 +186,23 @@ class Corrector(Matcher):
         self.cur_results = self._push_history(self._read_vars())
 
     def update_readouts(self):
-        self._readouts.invalidate()
-        return list(self._readouts)
+        last_readouts = self._read_monitors()
+        while True:
+            readouts = self._read_monitors()
+            if readouts == last_readouts:
+                break
+            last_readouts = readouts
+        self.readouts[:] = [
+            MonitorReadout(monitor, data)
+            for monitor, data in readouts.items()
+        ]
+        return list(self.readouts)
+
+    def _read_monitors(self):
+        return {
+            monitor: self.control.read_monitor(monitor)
+            for monitor in self.monitors
+        }
 
     def update_records(self):
         if self.direct:
@@ -470,7 +483,7 @@ class ProcBot:
         if gui:
             self.timer = QtCore.QTimer()
             self.timer.timeout.connect(self.poll)
-            self.timer.start(10)
+            self.timer.start(2000)
 
     def finish(self):
         self.stop()
