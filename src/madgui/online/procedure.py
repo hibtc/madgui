@@ -186,11 +186,23 @@ class Corrector(Matcher):
         self.cur_results = self._push_history(self._read_vars())
 
     def update_readouts(self):
+        last_readouts = self._read_monitors()
+        while True:
+            readouts = self._read_monitors()
+            if readouts == last_readouts:
+                break
+            last_readouts = readouts
         self.readouts[:] = [
-            MonitorReadout(monitor, self.control.read_monitor(monitor))
-            for monitor in self.monitors
+            MonitorReadout(monitor, data)
+            for monitor, data in readouts.items()
         ]
         return list(self.readouts)
+
+    def _read_monitors(self):
+        return {
+            monitor: self.control.read_monitor(monitor)
+            for monitor in self.monitors
+        }
 
     def update_records(self):
         if self.direct:
