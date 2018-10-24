@@ -247,12 +247,16 @@ def analyze(madx, twiss_args, measured, fit_args):
         monitors=monitors, steerers=steerers,
         knobs=knobs)
     numerics.set_operating_point()
+    no_response = (np.array([0.0, 0.0]),    # delta_orbit
+                   1.0,                     # delta_param
+                   np.array([1.0, 1.0]))    # mean_error    TODO use base error
     measured_orm = np.vstack([
         np.hstack([
             delta_orbit / delta_param
             for monitor in monitors
             for delta_orbit, delta_param, _ in [
-                    measured.responses.get((monitor, knob))]
+                    measured.responses.get(
+                        (monitor.lower(), knob.lower()), no_response)]
         ])
         for knob in knobs
     ]).T
@@ -261,7 +265,8 @@ def analyze(madx, twiss_args, measured, fit_args):
             np.sqrt(mean_error) / delta_param
             for monitor in monitors
             for _, delta_param, mean_error in [
-                    measured.responses.get((monitor, knob))]
+                    measured.responses.get(
+                        (monitor.lower(), knob.lower()), no_response)]
         ])
         for knob in knobs
     ]).T if fit_args.get('stddev', False) else 1
