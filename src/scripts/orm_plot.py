@@ -93,10 +93,13 @@ def main(model_file, spec_file, *record_files):
                 continue
 
             for j, ax in enumerate("xy"):
-                plt.subplot(1, 2, 1+j)
+                axes = plt.subplot(1, 2, 1+j)
                 plt.title(ax)
-                plt.xlabel("steerer position [m]")
-                plt.ylabel("orbit response [mm/mrad]")
+                plt.xlabel(r"steerer position [m]")
+                if ax == 'x':
+                    plt.ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+                else:
+                    axes.yaxis.tick_right()
 
                 plt.errorbar(
                     xpos,
