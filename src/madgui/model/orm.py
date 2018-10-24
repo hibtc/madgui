@@ -161,12 +161,24 @@ class ResponseMatrix:
         self.responses = responses
 
 
-def load_record_file(filename):
+def load_record_file(filename, model):
     data = load_yaml(filename)
     sequence = data['sequence']
     strengths = data['model']
     monitors = data['monitors']
     steerers = data['steerers']
+
+    # Fix empty `steerers` field in record file:
+    if model is not None:
+        knob_elems = {}
+        for elem in model.elements:
+            for knob in model.get_elem_knobs(elem):
+                knob_elems.setdefault(knob.lower(), []).append(elem.name)
+
+        steerers = [
+            knob_elems[knob][0].lower()
+            for knob in data['knobs']
+        ]
 
     used_knobs = {
         knob.lower()
