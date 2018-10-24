@@ -100,7 +100,7 @@ class NumericalORM(_BaseORM):
         to the knob ``j`` (specified by name) by performing a second twiss pass
         with a slightly varied knob value."""
         tw0 = self.base_tw
-        with Param(knob).vary(self) as step:
+        with Param(knob, 2e-4).vary(self) as step:
             tw1 = self.twiss('vary')
             idx = [mon.index for mon in self.monitors]
 
