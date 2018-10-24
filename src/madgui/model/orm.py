@@ -167,7 +167,25 @@ def load_record_file(filename):
     strengths = data['model']
     monitors = data['monitors']
     steerers = data['steerers']
-    knobs = dict(zip(steerers, data['knobs']))
+
+    used_knobs = {
+        knob.lower()
+        for record in data['records']
+        for knob in record['optics']
+    }
+
+    knobs = {
+        steerer: knob.lower()
+        for steerer, knob in zip(steerers, data['knobs'])
+        if knob.lower() in used_knobs
+    }
+
+    steerers = [
+        steerer
+        for steerer in steerers
+        if steerer in knobs
+    ]
+
     records = {
         (monitor, knob): (s, np.mean([
             shot[monitor][:2]
