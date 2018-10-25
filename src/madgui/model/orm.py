@@ -100,7 +100,7 @@ class NumericalORM(_BaseORM):
         to the knob ``j`` (specified by name) by performing a second twiss pass
         with a slightly varied knob value."""
         tw0 = self.base_tw
-        with Param(knob, 2e-4).vary(self) as step:
+        with Param(knob, 2e-4, self.madx).vary(self) as step:
             tw1 = self.twiss('vary')
             idx = [mon.index for mon in self.monitors]
 
@@ -302,9 +302,9 @@ def analyze(madx, twiss_args, measured, fit_args):
     ]).T if fit_args.get('stddev', False) else 1
 
     errors = create_errors_from_spec(fit_args)
+    for error in errors:
+        error.set_base(numerics.madx)
 
-    # NOTE: multiple iterations don't work with `Ealign` or # `Efcomp`!
-    # (because they always set the full error currently)
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
         numerics.set_operating_point()
@@ -314,10 +314,15 @@ def analyze(madx, twiss_args, measured, fit_args):
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev)
-        print("ΔX     =", results)
+        print("ΔX     =", results.flatten())
         print("red χ² =", chisq)
+        print("X_tot  =", np.array([
+            err.base + delta
+            for err, delta in zip(errors, results.flatten())
+        ]))
 
         for param, value in zip(errors, results.flatten()):
-            param.apply(numerics.madx, value)
+            param.base += value
+            param.apply(numerics.madx, param.base)
         print()
         print()
