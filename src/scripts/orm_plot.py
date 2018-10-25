@@ -85,8 +85,14 @@ def main(model_file, spec_file, *record_files):
             ]), load_yaml(spec_file)['analysis'])
 
         setup_args = load_yaml(spec_file)['analysis']
-        monitor_subset = setup_args.get('monitors', monitors)
+        monitor_subset = setup_args.get('plot_monitors', monitors)
+        steerer_subset = setup_args.get('plot_steerers', steerers)
         xpos = [model.elements[elem].position for elem in steerers]
+
+        shape = (len(monitors), 2, len(steerers))
+        measured_orm = measured_orm.reshape(shape)
+        model_orm = model_orm.reshape(shape)
+        stddev = stddev.reshape(shape)
 
         for i, monitor in enumerate(monitors):
             if monitor not in monitor_subset:
@@ -103,18 +109,50 @@ def main(model_file, spec_file, *record_files):
 
                 plt.errorbar(
                     xpos,
-                    measured_orm[2*i+j, :].flatten(),
-                    stddev[2*i+j, :].flatten(),
+                    measured_orm[i, j, :].flatten(),
+                    stddev[i, j, :].flatten(),
                     label=ax + " measured")
 
                 plt.plot(
                     xpos,
-                    model_orm[2*i+j, :].flatten(),
+                    model_orm[i, j, :].flatten(),
                     label=ax + " model")
 
                 plt.legend()
 
             plt.suptitle(monitor)
+
+            plt.show()
+            plt.cla()
+
+        xpos = [model.elements[elem].position for elem in monitors]
+        for i, steerer in enumerate(steerers):
+            if steerer not in steerer_subset:
+                continue
+
+            for j, ax in enumerate("xy"):
+                axes = plt.subplot(1, 2, 1+j)
+                plt.title(ax)
+                plt.xlabel(r"monitor position [m]")
+                if ax == 'x':
+                    plt.ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+                else:
+                    axes.yaxis.tick_right()
+
+                plt.errorbar(
+                    xpos,
+                    measured_orm[:, j, i].flatten(),
+                    stddev[:, j, i].flatten(),
+                    label=ax + " measured")
+
+                plt.plot(
+                    xpos,
+                    model_orm[:, j, i].flatten(),
+                    label=ax + " model")
+
+                plt.legend()
+
+            plt.suptitle(steerer)
 
             plt.show()
             plt.cla()
