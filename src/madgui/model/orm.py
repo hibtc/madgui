@@ -266,7 +266,7 @@ def create_errors_from_spec(spec):
     ]
 
 
-def analyze(madx, twiss_args, measured, fit_args):
+def get_orms(madx, twiss_args, measured, fit_args):
     madx.globals.update(measured.strengths)
     elems = madx.sequence[measured.sequence].expanded_elements
     monitors = sorted(measured.monitors, key=elems.index)
@@ -277,8 +277,15 @@ def analyze(madx, twiss_args, measured, fit_args):
         monitors=monitors, steerers=steerers,
         knobs=knobs)
     numerics.set_operating_point()
+    print("\n".join("{}: {}".format(m, k) for m, k in sorted([
+        (monitor, knob)
+        for knob in knobs
+        for monitor in monitors
+        if (monitor.lower(), knob.lower()) not in measured.responses
+    ])))
+
     no_response = (np.array([0.0, 0.0]),    # delta_orbit
-                   1.0,                     # delta_param
+                   1e5,                     # delta_param
                    np.array([1.0, 1.0]))    # mean_error    TODO use base error
     measured_orm = np.vstack([
         np.hstack([
@@ -290,6 +297,7 @@ def analyze(madx, twiss_args, measured, fit_args):
         ])
         for knob in knobs
     ]).T
+
     stddev = np.vstack([
         np.hstack([
             np.sqrt(mean_error) / delta_param
@@ -300,6 +308,13 @@ def analyze(madx, twiss_args, measured, fit_args):
         ])
         for knob in knobs
     ]).T if fit_args.get('stddev', False) else 1
+
+    return monitors, steerers, measured_orm, numerics, stddev
+
+
+def analyze(madx, twiss_args, measured, fit_args):
+    monitors, steerers, measured_orm, numerics, stddev = get_orms(
+        madx, twiss_args, measured, fit_args)
 
     errors = create_errors_from_spec(fit_args)
     for error in errors:
