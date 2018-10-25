@@ -1,6 +1,33 @@
 CHANGELOG
 ~~~~~~~~~
 
+18.10.2
+~~~~~~~
+Date: 25.10.2018
+
+bugfixes:
+    - fix for missing setObsolete on Qt<5.9 (was previously fixed only partially)
+    - fix empty list of optic elements in output file
+    - fix beamoptikdll not initiating device download due to flooding
+    - fix duplicate value bug in the readout logic
+    - decrease chance of race condition leading to inconsistent readouts
+
+UX improvements:
+    - log to main logwindow as well
+    - increase logging verbosity during orbit response measurements
+    - flush file after each write
+    - vary steerers in sequence order
+    - avoid one redundant readout
+    - increase default steerer variation to 0.2 mrad
+
+ORM analysis:
+    - handle missing ORM entries as zero
+    - restrict to used knobs
+    - fix empty steerers field in record file
+    - handle accumulated errors in ORM analysis
+    - add simple plotting script
+
+
 18.10.1
 ~~~~~~~
 Date: 20.10.2018
