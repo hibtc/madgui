@@ -29,7 +29,7 @@ def main(model_file, spec_file, *record_files):
             command_log=lambda text: print("X:>", text))
         model = session.model()
         return analyze(model.madx, model.twiss_args, join_record_files([
-            load_record_file(filename)
+            load_record_file(filename, model)
             for filename in record_files
         ]), load_yaml(spec_file)['analysis'])
 

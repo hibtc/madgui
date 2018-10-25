@@ -100,7 +100,7 @@ class NumericalORM(_BaseORM):
         to the knob ``j`` (specified by name) by performing a second twiss pass
         with a slightly varied knob value."""
         tw0 = self.base_tw
-        with Param(knob).vary(self) as step:
+        with Param(knob, 2e-4, self.madx).vary(self) as step:
             tw1 = self.twiss('vary')
             idx = [mon.index for mon in self.monitors]
 
@@ -161,13 +161,43 @@ class ResponseMatrix:
         self.responses = responses
 
 
-def load_record_file(filename):
+def load_record_file(filename, model):
     data = load_yaml(filename)
     sequence = data['sequence']
     strengths = data['model']
     monitors = data['monitors']
     steerers = data['steerers']
-    knobs = dict(zip(steerers, data['knobs']))
+
+    # Fix empty `steerers` field in record file:
+    if model is not None:
+        knob_elems = {}
+        for elem in model.elements:
+            for knob in model.get_elem_knobs(elem):
+                knob_elems.setdefault(knob.lower(), []).append(elem.name)
+
+        steerers = [
+            knob_elems[knob][0].lower()
+            for knob in data['knobs']
+        ]
+
+    used_knobs = {
+        knob.lower()
+        for record in data['records']
+        for knob in record['optics']
+    }
+
+    knobs = {
+        steerer: knob.lower()
+        for steerer, knob in zip(steerers, data['knobs'])
+        if knob.lower() in used_knobs
+    }
+
+    steerers = [
+        steerer
+        for steerer in steerers
+        if steerer in knobs
+    ]
+
     records = {
         (monitor, knob): (s, np.mean([
             shot[monitor][:2]
@@ -247,12 +277,16 @@ def analyze(madx, twiss_args, measured, fit_args):
         monitors=monitors, steerers=steerers,
         knobs=knobs)
     numerics.set_operating_point()
+    no_response = (np.array([0.0, 0.0]),    # delta_orbit
+                   1.0,                     # delta_param
+                   np.array([1.0, 1.0]))    # mean_error    TODO use base error
     measured_orm = np.vstack([
         np.hstack([
             delta_orbit / delta_param
             for monitor in monitors
             for delta_orbit, delta_param, _ in [
-                    measured.responses.get((monitor, knob))]
+                    measured.responses.get(
+                        (monitor.lower(), knob.lower()), no_response)]
         ])
         for knob in knobs
     ]).T
@@ -261,15 +295,16 @@ def analyze(madx, twiss_args, measured, fit_args):
             np.sqrt(mean_error) / delta_param
             for monitor in monitors
             for _, delta_param, mean_error in [
-                    measured.responses.get((monitor, knob))]
+                    measured.responses.get(
+                        (monitor.lower(), knob.lower()), no_response)]
         ])
         for knob in knobs
     ]).T if fit_args.get('stddev', False) else 1
 
     errors = create_errors_from_spec(fit_args)
+    for error in errors:
+        error.set_base(numerics.madx)
 
-    # NOTE: multiple iterations don't work with `Ealign` or # `Efcomp`!
-    # (because they always set the full error currently)
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
         numerics.set_operating_point()
@@ -279,10 +314,15 @@ def analyze(madx, twiss_args, measured, fit_args):
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev)
-        print("ΔX     =", results)
+        print("ΔX     =", results.flatten())
         print("red χ² =", chisq)
+        print("X_tot  =", np.array([
+            err.base + delta
+            for err, delta in zip(errors, results.flatten())
+        ]))
 
         for param, value in zip(errors, results.flatten()):
-            param.apply(numerics.madx, value)
+            param.base += value
+            param.apply(numerics.madx, param.base)
         print()
         print()
