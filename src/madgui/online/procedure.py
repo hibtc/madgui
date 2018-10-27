@@ -393,8 +393,7 @@ class Corrector(Matcher):
         madx = model.madx
 
         madx.command.select(flag='interpolate', clear=True)
-        tw_args = model._get_twiss_args().copy()
-        tw_args['table'] = 'orm_tmp'
+        tw_args = model._get_twiss_args(table='orm_tmp')
 
         tw0 = madx.twiss(**tw_args)
         x0, y0 = tw0.x, tw0.y
