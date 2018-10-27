@@ -32,6 +32,9 @@ class NumericalORM:
         name in MAD-X."""
         return self.madx.twiss(**dict(self.twiss_args, table=table))
 
+    def get_orm_derivs(self, params):
+        return [self.get_orm_deriv(p) for p in params]
+
     def get_orm_deriv(self, param) -> np.array:
         """Compute the derivative of the orbit response matrix with respect to
         the parameter ``p`` as ``ΔR_ij/Δp``."""
@@ -45,37 +48,6 @@ class NumericalORM:
             finally:
                 self.base_tw = backup_tw
                 self.base_orm = backup_orm
-
-    def fit_model(self, measured_orm, params,
-                  steerer_errors=False,
-                  monitor_errors=False,
-                  stddev=1,
-                  rcond=1e-8):
-        """
-        Fit model to the measured ORM via the given params
-        (:class:`Param`). Return the best-fit solutions X for the parameters
-        and the squared sum of residuals.
-
-        ``measured_orm`` must be a numpy array with the same
-        layout as returned our ``get_orm``.
-
-        See also:
-        Response Matrix Measurements and Analysis at DESY, Joachim Keil, 2005
-        """
-        # TODO: add rows for monitor/steerer sensitivity
-        Y = measured_orm - self.base_orm
-        A = np.array([self.get_orm_deriv(param) for param in params])
-        S = np.array(stddev)
-        if steerer_errors:
-            A = np.hstack((A, -self.base_orm))
-        if monitor_errors:
-            A = np.hstack((A, +self.base_orm))
-        n = Y.size
-        A = A.reshape((-1, n)).T
-        Y = Y.reshape((-1, 1))
-        S = S.reshape((-1, 1))
-        X = np.linalg.lstsq(A/S, Y/S, rcond=rcond)[0]
-        return X, reduced_chisq(A, X, Y, S)
 
     def get_orm(self) -> np.array:
         """
@@ -104,6 +76,38 @@ class NumericalORM:
                 (tw1.x - tw0.x)[idx],
                 (tw1.y - tw0.y)[idx],
             )).T.flatten() / step
+
+
+def fit_model(measured_orm, model_orm, model_orm_derivs,
+              steerer_errors=False,
+              monitor_errors=False,
+              stddev=1,
+              rcond=1e-8):
+    """
+    Fit model to the measured ORM via the given params
+    (:class:`Param`). Return the best-fit solutions X for the parameters
+    and the squared sum of residuals.
+
+    ``measured_orm`` must be a numpy array with the same
+    layout as returned our ``get_orm``.
+
+    See also:
+    Response Matrix Measurements and Analysis at DESY, Joachim Keil, 2005
+    """
+    # TODO: add rows for monitor/steerer sensitivity
+    Y = measured_orm - model_orm
+    A = np.array(model_orm_derivs)
+    S = np.array(stddev)
+    if steerer_errors:
+        A = np.hstack((A, -model_orm))
+    if monitor_errors:
+        A = np.hstack((A, +model_orm))
+    n = Y.size
+    A = A.reshape((-1, n)).T
+    Y = Y.reshape((-1, 1))
+    S = S.reshape((-1, 1))
+    X = np.linalg.lstsq(A/S, Y/S, rcond=rcond)[0]
+    return X, reduced_chisq(A, X, Y, S)
 
 
 def reduced_chisq(A, X, Y, S):
@@ -277,8 +281,8 @@ def analyze(madx, twiss_args, measured, fit_args):
         print("ITERATION", i)
         numerics.set_operating_point()
 
-        results, chisq = numerics.fit_model(
-            measured_orm, errors,
+        results, chisq = fit_model(
+            measured_orm, numerics.base_orm, numerics.get_orm_derivs(errors),
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev)
