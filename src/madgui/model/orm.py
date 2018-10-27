@@ -1,5 +1,3 @@
-import itertools
-
 import numpy as np
 import yaml
 
@@ -190,13 +188,6 @@ def load_record_file(filename, model):
         if knob
         for _, base, _err in [records[monitor, None]]
     })
-
-
-def groupby(data, key=None):
-    return [
-        (k, list(g))
-        for k, g in itertools.groupby(sorted(data, key=key), key=key)
-    ]
 
 
 def join_record_files(orbit_responses):
