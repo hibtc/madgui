@@ -48,6 +48,7 @@ class UndoStack(QtGui.QUndoStack):
     @contextmanager
     def rollback(self, text="temporary change", hidden=False, transient=False):
         if transient:
+            table = self.model.twiss.data
             invalid = self.model.twiss.invalid  # TODO: model member variable…
         self.beginMacro(text)
         try:
@@ -62,4 +63,5 @@ class UndoStack(QtGui.QUndoStack):
                     pass
             self.undo()
             if transient:
+                self.model.twiss.data = table
                 self.model.twiss.invalid = invalid
