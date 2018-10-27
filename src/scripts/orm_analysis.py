@@ -23,7 +23,7 @@ def main(model_file, spec_file, *record_files):
     config = load_config(isolated=True)
     with Session(config) as session:
         session.load_model(
-            session.find_model(model_file),
+            model_file,
             stdout=False,
             command_log=lambda text: print("X:>", text))
         model = session.model()

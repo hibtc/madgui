@@ -32,7 +32,7 @@ def test_session_load_model(app):
 
 def test_session_destroyed(app):
     with Session() as session:
-        session.load_model(session.find_model('hit_models/hht3'))
+        session.load_model('hit_models/hht3')
         model = session.model()
     assert session.model() is None
     assert model.madx is None

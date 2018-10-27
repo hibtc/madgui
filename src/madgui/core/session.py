@@ -68,11 +68,12 @@ class Session:
         config = self.config
         filename = model or config.load_default
         if filename:
-            self.load_model(self.find_model(filename))
+            self.load_model(filename)
         if self.control.can_connect() and config.online_control.connect:
             self.control.connect()
 
-    def load_model(self, filename, **madx_args):
+    def load_model(self, name, **madx_args):
+        filename = self.find_model(name)
         exts = ('.cpymad.yml', '.madx', '.str', '.seq')
         if not any(map(filename.endswith, exts)):
             raise NotImplementedError("Unsupported file format: {}"

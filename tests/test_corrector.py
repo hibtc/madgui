@@ -39,8 +39,7 @@ def session(app):
 
 
 def test_simple_procedure(session):
-    session.load_model(
-        session.find_model('hit_models/hht3'))
+    session.load_model('hit_models/hht3')
     session.control.set_backend('hit_csys.plugin:TestBackend')
     session.control.connect()
 
@@ -50,8 +49,7 @@ def test_simple_procedure(session):
 
 @pytest.fixture
 def corrector(session):
-    session.load_model(
-        session.find_model('hit_models/hht3'))
+    session.load_model('hit_models/hht3')
     session.control.set_backend('hit_csys.plugin:TestBackend')
     session.control.connect()
     corrector = Corrector(session)
