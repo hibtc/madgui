@@ -71,7 +71,8 @@ class Model:
     :ivar str path: base folder
     """
 
-    def __init__(self, madx, data, *, filename=None, undo_stack=None):
+    def __init__(self, madx, data, *, filename=None, undo_stack=None,
+                 interpolate=0):
         super().__init__()
         self.madx = madx
         self.data = data
@@ -85,11 +86,13 @@ class Model:
             beam=data['beam'],
             twiss_args=data['twiss'],
         )
+        self.interpolate = interpolate
         self.twiss.invalidated.connect(self.sector.invalidate)
         self.twiss.invalidate()
 
     @classmethod
-    def load_file(cls, filename, madx=None, *, undo_stack=None, **madx_kwargs):
+    def load_file(cls, filename, madx=None, *,
+                  undo_stack=None, interpolate=0, **madx_kwargs):
         madx = madx or Madx(**madx_kwargs)
         madx.option(echo=False)
         filename = os.path.abspath(filename)
@@ -108,7 +111,11 @@ class Model:
             seqname = _guess_main_sequence(madx)
             data = _get_seq_model(madx, seqname)
             data['init-files'] = [filename]
-        return cls(madx, data, undo_stack=undo_stack, filename=filename)
+        return cls(
+            madx, data,
+            undo_stack=undo_stack,
+            filename=filename,
+            interpolate=interpolate)
 
     def __del__(self):
         self.destroy()
@@ -538,9 +545,10 @@ class Model:
     @Cache.decorate
     def twiss(self):
         """Recalculate TWISS parameters."""
-        step = self.sequence.elements[-1].position/400
-        self.madx.command.select(flag='interpolate', clear=True)
-        self.madx.command.select(flag='interpolate', step=step)
+        if self.interpolate:
+            step = self.sequence.elements[-1].position/self.interpolate
+            self.madx.command.select(flag='interpolate', clear=True)
+            self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args())
         results = TwissTable(results._name, results._libmadx, _check=False)
         self.summary = results.summary

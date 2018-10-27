@@ -515,7 +515,8 @@ class MainWindow(QtGui.QMainWindow):
             command_log=self.log_command,
             stdout=self.dataReceived.emit,
             stderr=subprocess.STDOUT,
-            undo_stack=self.undo_stack)
+            undo_stack=self.undo_stack,
+            interpolate=400)
 
     def _on_model_changed(self, old_model, model):
 
