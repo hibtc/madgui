@@ -125,6 +125,10 @@ class DataRecord:
         self.records = records
 
 
+def load_record_files(filenames):
+    return join_record_files(map(load_record_file, filenames))
+
+
 def load_record_file(filename):
     data = load_yaml(filename)
     sequence = data['sequence']

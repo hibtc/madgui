@@ -4,8 +4,7 @@ from madgui.qt import QtGui
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
-from madgui.model.orm import (
-    load_yaml, load_record_file, join_record_files, get_orms)
+from madgui.model.orm import load_yaml, load_record_files, get_orms
 
 
 def main(model_file, spec_file, *record_files):
@@ -32,10 +31,8 @@ def main(model_file, spec_file, *record_files):
         model = session.model()
 
         monitors, steerers, base_orbit, measured_orm, numerics, stddev = get_orms(
-            model, join_record_files([
-                load_record_file(filename)
-                for filename in record_files
-            ]), load_yaml(spec_file)['analysis'])
+            model, load_record_files(record_files),
+            load_yaml(spec_file)['analysis'])
         model_orm = numerics.base_orm
 
         setup_args = load_yaml(spec_file)['analysis']
