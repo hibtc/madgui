@@ -8,14 +8,12 @@ class NumericalORM:
 
     """Helper for ORM calculations."""
 
-    def __init__(self, madx, sequ, twiss_args, monitors, steerers, knobs):
-        self.madx = madx
-        self.sequ = sequ = madx.sequence[sequ]
-        self.elms = elms = sequ.expanded_elements
-        self.monitors = [elms[el] for el in monitors]
-        self.steerers = [elms[el] for el in steerers]
+    def __init__(self, model, monitors, steerers, knobs):
+        self.madx = model.madx
+        self.monitors = [model.elements[el] for el in monitors]
+        self.steerers = [model.elements[el] for el in steerers]
         self.knobs = knobs
-        self.twiss_args = twiss_args
+        self.twiss_args = model.twiss_args
         self.base_tw = None
         self.base_orm = None
 
@@ -214,7 +212,7 @@ def create_errors_from_spec(spec):
     ]
 
 
-def get_orms(madx, twiss_args, measured, fit_args):
+def get_orms(model, measured, fit_args):
 
     strengths = measured.strengths
     records = measured.records
@@ -233,15 +231,12 @@ def get_orms(madx, twiss_args, measured, fit_args):
         if not knob
     }
 
-    madx.globals.update(strengths)
-    elems = madx.sequence[measured.sequence].expanded_elements
+    model.update_globals(strengths.items())
+    elems = model.elements
     monitors = sorted(measured.monitors, key=elems.index)
     steerers = sorted(measured.steerers, key=elems.index)
     knobs = [measured.knobs[elem] for elem in steerers]
-    numerics = NumericalORM(
-        madx, measured.sequence, twiss_args,
-        monitors=monitors, steerers=steerers,
-        knobs=knobs)
+    numerics = NumericalORM(model, monitors, steerers, knobs)
     numerics.set_operating_point()
 
     no_response = (np.array([0.0, 0.0]),    # delta_orbit
@@ -272,10 +267,10 @@ def get_orms(madx, twiss_args, measured, fit_args):
     return monitors, steerers, base_orbit, measured_orm, numerics, stddev
 
 
-def analyze(madx, twiss_args, data_records, fit_args):
+def analyze(model, data_records, fit_args):
 
     monitors, steerers, base_orbit, measured_orm, numerics, stddev = get_orms(
-        madx, twiss_args, data_records, fit_args)
+        model, data_records, fit_args)
 
     errors = create_errors_from_spec(fit_args)
     for error in errors:

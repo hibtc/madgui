@@ -28,7 +28,7 @@ def main(model_file, spec_file, *record_files):
             stdout=False,
             command_log=lambda text: print("X:>", text))
         model = session.model()
-        return analyze(model.madx, model.twiss_args, join_record_files([
+        return analyze(model, join_record_files([
             load_record_file(filename, model)
             for filename in record_files
         ]), load_yaml(spec_file)['analysis'])
