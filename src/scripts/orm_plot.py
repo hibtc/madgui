@@ -33,7 +33,7 @@ def main(model_file, spec_file, *record_files):
 
         monitors, steerers, base_orbit, measured_orm, numerics, stddev = get_orms(
             model, join_record_files([
-                load_record_file(filename, model)
+                load_record_file(filename)
                 for filename in record_files
             ]), load_yaml(spec_file)['analysis'])
         model_orm = numerics.base_orm

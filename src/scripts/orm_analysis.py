@@ -29,7 +29,7 @@ def main(model_file, spec_file, *record_files):
             command_log=lambda text: print("X:>", text))
         model = session.model()
         return analyze(model, join_record_files([
-            load_record_file(filename, model)
+            load_record_file(filename)
             for filename in record_files
         ]), load_yaml(spec_file)['analysis'])
 

@@ -119,54 +119,16 @@ def load_yaml(filename):
 
 class DataRecord:
 
-    def __init__(self, sequence, strengths,
-                 monitors, steerers, knobs,
-                 records):
+    def __init__(self, sequence, strengths, records):
         self.sequence = sequence
         self.strengths = strengths
-        self.monitors = monitors
-        self.steerers = steerers
-        self.knobs = knobs
         self.records = records
 
 
-def load_record_file(filename, model):
+def load_record_file(filename):
     data = load_yaml(filename)
     sequence = data['sequence']
     strengths = data['model']
-    monitors = data['monitors']
-    steerers = data['steerers']
-
-    # Fix empty `steerers` field in record file:
-    if model is not None:
-        knob_elems = {}
-        for elem in model.elements:
-            for knob in model.get_elem_knobs(elem):
-                knob_elems.setdefault(knob.lower(), []).append(elem.name)
-
-        steerers = [
-            knob_elems[knob][0].lower()
-            for knob in data['knobs']
-        ]
-
-    used_knobs = {
-        knob.lower()
-        for record in data['records']
-        for knob in record['optics']
-    }
-
-    knobs = {
-        steerer: knob.lower()
-        for steerer, knob in zip(steerers, data['knobs'])
-        if knob.lower() in used_knobs
-    }
-
-    steerers = [
-        steerer
-        for steerer in steerers
-        if steerer in knobs
-    ]
-
     records = {
         (monitor, knob): (s, np.mean([
             shot[monitor][:2]
@@ -179,22 +141,16 @@ def load_record_file(filename, model):
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
-    return DataRecord(sequence, strengths, monitors, steerers, knobs, records)
+    return DataRecord(sequence, strengths, records)
 
 
 def join_record_files(data_records):
     mats = iter(data_records)
     acc = next(mats)
-    acc.monitors = set(acc.monitors)
-    acc.steerers = set(acc.steerers)
-    acc.knobs = acc.knobs.copy()
     for mat in mats:
         assert acc.sequence == mat.sequence
         assert acc.strengths == mat.strengths
         acc.records.update(mat.records)
-        acc.monitors.update(mat.monitors)
-        acc.steerers.update(mat.steerers)
-        acc.knobs.update(mat.knobs)
     return acc
 
 
@@ -231,11 +187,19 @@ def get_orms(model, measured, fit_args):
         if not knob
     }
 
-    model.update_globals(strengths.items())
+    # Get list of all knobs and corresponding knobs:
     elems = model.elements
-    monitors = sorted(measured.monitors, key=elems.index)
-    steerers = sorted(measured.steerers, key=elems.index)
-    knobs = [measured.knobs[elem] for elem in steerers]
+    knob_elems = {}
+    for elem in elems:
+        for knob in model.get_elem_knobs(elem):
+            knob_elems.setdefault(knob.lower(), []).append(elem.name)
+
+    monitors = sorted({mon.lower() for mon, _ in records}, key=elems.index)
+    knobs = sorted({knob.lower() for _, knob in records if knob},
+                   key=lambda k: elems.index(knob_elems[k][0]))
+    steerers = [knob_elems[k][0] for k in knobs]
+
+    model.update_globals(strengths.items())
     numerics = NumericalORM(model, monitors, steerers, knobs)
     numerics.set_operating_point()
 
