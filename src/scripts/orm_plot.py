@@ -30,10 +30,11 @@ def main(model_file, spec_file, *record_files):
             command_log=lambda text: print("X:>", text))
         model = session.model()
 
-        monitors, steerers, base_orbit, measured_orm, numerics, stddev = get_orms(
+        monitors, steerers, knobs, base_orbit, measured_orm, stddev = get_orms(
             model, load_record_files(record_files),
             load_yaml(spec_file)['analysis'])
-        model_orm = numerics.base_orm
+
+        model_orm = model.get_orbit_response_matrix(monitors, knobs)
 
         setup_args = load_yaml(spec_file)['analysis']
         monitor_subset = setup_args.get('plot_monitors', monitors)

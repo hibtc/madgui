@@ -531,6 +531,38 @@ class Model:
             for i, j in zip(indices, indices[1:])
         ]
 
+    # TODO: default values for knobs/monitors
+    # TODO: reshape M 2 K
+    # TODO: use this for `madgui.online.procedure.Corrector`
+    # TODO: pass entire optic (knob + delta)
+    def get_orbit_response_matrix(self, monitors, knobs) -> np.array:
+        """
+        Get the orbit response matrix ``R_ij`` of monitor measurements ``i``
+        as a function of knob ``j``.
+
+        The matrix rows are arranged as consecutive pairs of x/y values for
+        each monitors, i.e.:
+
+            x_0, y_0, x_1, y_1, …
+        """
+        def get_knob_response(knob):
+            tw0 = self.twiss()
+            step = 2e-4
+            with self.undo_stack.rollback("ORM", transient=True):
+                self.update_globals({knob: self.globals[knob] + step})
+                self.update_twiss_args({'table': 'orm'})
+                tw1 = self.twiss()
+                idx = [self.indices[self.elements.index(mon)].stop
+                       for mon in monitors]
+                return np.vstack((
+                    (tw1.x - tw0.x)[idx],
+                    (tw1.y - tw0.y)[idx],
+                )).T.flatten() / step
+        return np.vstack([
+            get_knob_response(knob)
+            for knob in knobs
+        ]).T
+
     def survey(self):
         table = self.madx.survey()
         array = np.array([table[key] for key in FloorCoords._fields])

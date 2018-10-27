@@ -4,74 +4,18 @@ import yaml
 from .errors import Param, Ealign, Efcomp
 
 
-class NumericalORM:
+def get_orm_derivs(model, monitors, knobs, base_orm, params):
+    return [get_orm_deriv(model, monitors, knobs, base_orm, p) for p in params]
 
-    """Helper for ORM calculations."""
 
-    def __init__(self, model, monitors, steerers, knobs):
-        self.madx = model.madx
-        self.monitors = [model.elements[el] for el in monitors]
-        self.steerers = [model.elements[el] for el in steerers]
-        self.knobs = knobs
-        self.twiss_args = model.twiss_args
-        self.base_tw = None
-        self.base_orm = None
-
-    def set_operating_point(self, table='base'):
-        """Set the base model, and calculate the model ORM. Must be called
-        before other methods."""
-        self.base_tw = self.twiss(table)
-        self.base_orm = self.get_orm()
-
-    def twiss(self, table):
-        """Compute TWISS with the current settings, using a specified table
-        name in MAD-X."""
-        return self.madx.twiss(**dict(self.twiss_args, table=table))
-
-    def get_orm_derivs(self, params):
-        return [self.get_orm_deriv(p) for p in params]
-
-    def get_orm_deriv(self, param) -> np.array:
-        """Compute the derivative of the orbit response matrix with respect to
-        the parameter ``p`` as ``ΔR_ij/Δp``."""
-        backup_tw = self.base_tw
-        backup_orm = self.base_orm
-        with param.vary(self) as step:
-            print("DERIV", param)
-            self.set_operating_point('base_deriv')
-            try:
-                return (self.base_orm - backup_orm) / step
-            finally:
-                self.base_tw = backup_tw
-                self.base_orm = backup_orm
-
-    def get_orm(self) -> np.array:
-        """
-        Get the orbit response matrix ``R_ij`` of monitor measurements ``i``
-        as a function of knob ``j``.
-
-        The matrix rows are arranged as consecutive pairs of x/y values for
-        each monitors, i.e.:
-
-            x_0, y_0, x_1, y_1, …
-        """
-        return np.vstack([
-            self._get_knob_response(knob)
-            for knob in self.knobs
-        ]).T
-
-    def _get_knob_response(self, knob):
-        """Calculate column ``R_j`` of the orbit response matrix corresponding
-        to the knob ``j`` (specified by name) by performing a second twiss pass
-        with a slightly varied knob value."""
-        tw0 = self.base_tw
-        with Param(knob, 2e-4, self.madx).vary(self) as step:
-            tw1 = self.twiss('vary')
-            idx = [mon.index for mon in self.monitors]
-            return np.vstack((
-                (tw1.x - tw0.x)[idx],
-                (tw1.y - tw0.y)[idx],
-            )).T.flatten() / step
+def get_orm_deriv(model, monitors, knobs, base_orm, param) -> np.array:
+    """Compute the derivative of the orbit response matrix with respect to
+    the parameter ``p`` as ``ΔR_ij/Δp``."""
+    with model.undo_stack.rollback("orm_deriv", transient=True):
+        with param.vary(model) as step:
+            model.twiss.invalidate()
+            varied_orm = model.get_orbit_response_matrix(monitors, knobs)
+            return (varied_orm - base_orm) / step
 
 
 def fit_model(measured_orm, model_orm, model_orm_derivs,
@@ -204,8 +148,6 @@ def get_orms(model, measured, fit_args):
     steerers = [knob_elems[k][0] for k in knobs]
 
     model.update_globals(strengths.items())
-    numerics = NumericalORM(model, monitors, steerers, knobs)
-    numerics.set_operating_point()
 
     no_response = (np.array([0.0, 0.0]),    # delta_orbit
                    1e5,                     # delta_param
@@ -232,24 +174,25 @@ def get_orms(model, measured, fit_args):
         for knob in knobs
     ]).T if fit_args.get('stddev', False) else 1
 
-    return monitors, steerers, base_orbit, measured_orm, numerics, stddev
+    return monitors, steerers, knobs, base_orbit, measured_orm, stddev
 
 
 def analyze(model, data_records, fit_args):
 
-    monitors, steerers, base_orbit, measured_orm, numerics, stddev = get_orms(
+    monitors, steerers, knobs, base_orbit, measured_orm, stddev = get_orms(
         model, data_records, fit_args)
 
     errors = create_errors_from_spec(fit_args)
     for error in errors:
-        error.set_base(numerics.madx)
+        error.set_base(model.madx)
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
-        numerics.set_operating_point()
+        model_orm = model.get_orbit_response_matrix(monitors, knobs)
 
         results, chisq = fit_model(
-            measured_orm, numerics.base_orm, numerics.get_orm_derivs(errors),
+            measured_orm, model_orm, get_orm_derivs(
+                model, monitors, knobs, model_orm, errors),
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev)
@@ -262,6 +205,6 @@ def analyze(model, data_records, fit_args):
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
-            param.apply(numerics.madx, param.base)
+            param.apply(model.madx, param.base)
         print()
         print()
