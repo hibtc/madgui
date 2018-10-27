@@ -77,7 +77,7 @@ class Model:
         self.data = data
         self.filename = filename and os.path.abspath(filename)
         self.path, self.name = filename and os.path.split(filename)
-        self.undo_stack = undo_stack or UndoStack()
+        self.undo_stack = UndoStack() if undo_stack is None else undo_stack
         self.undo_stack.model = self
         self._init_segment(
             sequence=data['sequence'],
