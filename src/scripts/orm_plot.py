@@ -31,7 +31,7 @@ def main(model_file, spec_file, *record_files):
             command_log=lambda text: print("X:>", text))
         model = session.model()
 
-        monitors, steerers, measured_orm, numerics, stddev = get_orms(
+        monitors, steerers, base_orbit, measured_orm, numerics, stddev = get_orms(
             model.madx, model.twiss_args, join_record_files([
                 load_record_file(filename, model)
                 for filename in record_files

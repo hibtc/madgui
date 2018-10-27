@@ -119,17 +119,17 @@ def load_yaml(filename):
         return yaml.safe_load(f)
 
 
-class ResponseMatrix:
+class DataRecord:
 
     def __init__(self, sequence, strengths,
                  monitors, steerers, knobs,
-                 responses):
+                 records):
         self.sequence = sequence
         self.strengths = strengths
         self.monitors = monitors
         self.steerers = steerers
         self.knobs = knobs
-        self.responses = responses
+        self.records = records
 
 
 def load_record_file(filename, model):
@@ -181,17 +181,11 @@ def load_record_file(filename, model):
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
-    return ResponseMatrix(sequence, strengths, monitors, steerers, knobs, {
-        (monitor, knob): (
-            (orbit - base), (strength - strengths[knob]), (error + _err))
-        for (monitor, knob), (strength, orbit, error) in records.items()
-        if knob
-        for _, base, _err in [records[monitor, None]]
-    })
+    return DataRecord(sequence, strengths, monitors, steerers, knobs, records)
 
 
-def join_record_files(orbit_responses):
-    mats = iter(orbit_responses)
+def join_record_files(data_records):
+    mats = iter(data_records)
     acc = next(mats)
     acc.monitors = set(acc.monitors)
     acc.steerers = set(acc.steerers)
@@ -199,7 +193,7 @@ def join_record_files(orbit_responses):
     for mat in mats:
         assert acc.sequence == mat.sequence
         assert acc.strengths == mat.strengths
-        acc.responses.update(mat.responses)
+        acc.records.update(mat.records)
         acc.monitors.update(mat.monitors)
         acc.steerers.update(mat.steerers)
         acc.knobs.update(mat.knobs)
@@ -221,7 +215,25 @@ def create_errors_from_spec(spec):
 
 
 def get_orms(madx, twiss_args, measured, fit_args):
-    madx.globals.update(measured.strengths)
+
+    strengths = measured.strengths
+    records = measured.records
+
+    responses = {
+        (monitor, knob): (
+            (orbit - base), (strength - strengths[knob]), (error + _err))
+        for (monitor, knob), (strength, orbit, error) in records.items()
+        if knob
+        for _, base, _err in [records[monitor, None]]
+    }
+
+    base_orbit = {
+        monitor: (orbit, error)
+        for (monitor, knob), (_, orbit, error) in records.items()
+        if not knob
+    }
+
+    madx.globals.update(strengths)
     elems = madx.sequence[measured.sequence].expanded_elements
     monitors = sorted(measured.monitors, key=elems.index)
     steerers = sorted(measured.steerers, key=elems.index)
@@ -240,7 +252,7 @@ def get_orms(madx, twiss_args, measured, fit_args):
             delta_orbit / delta_param
             for monitor in monitors
             for delta_orbit, delta_param, _ in [
-                    measured.responses.get(
+                    responses.get(
                         (monitor.lower(), knob.lower()), no_response)]
         ])
         for knob in knobs
@@ -251,18 +263,19 @@ def get_orms(madx, twiss_args, measured, fit_args):
             np.sqrt(mean_error) / delta_param
             for monitor in monitors
             for _, delta_param, mean_error in [
-                    measured.responses.get(
+                    responses.get(
                         (monitor.lower(), knob.lower()), no_response)]
         ])
         for knob in knobs
     ]).T if fit_args.get('stddev', False) else 1
 
-    return monitors, steerers, measured_orm, numerics, stddev
+    return monitors, steerers, base_orbit, measured_orm, numerics, stddev
 
 
-def analyze(madx, twiss_args, measured, fit_args):
-    monitors, steerers, measured_orm, numerics, stddev = get_orms(
-        madx, twiss_args, measured, fit_args)
+def analyze(madx, twiss_args, data_records, fit_args):
+
+    monitors, steerers, base_orbit, measured_orm, numerics, stddev = get_orms(
+        madx, twiss_args, data_records, fit_args)
 
     errors = create_errors_from_spec(fit_args)
     for error in errors:
