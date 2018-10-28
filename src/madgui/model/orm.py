@@ -62,15 +62,72 @@ def load_yaml(filename):
         return yaml.safe_load(f)
 
 
-class DataRecord:
+class OrbitResponse:
 
-    def __init__(self, strengths, records):
+    def __init__(self, strengths, records, monitors, knobs, steerers):
+        self.monitors = monitors
+        self.knobs = knobs
+        self.steerers = steerers
         self.strengths = strengths
-        self.records = records
+        self.responses = responses = {
+            (monitor, knob): (
+                (orbit - base), (strength - strengths[knob]), (error + _err))
+            for (monitor, knob), (strength, orbit, error) in records.items()
+            if knob
+            for _, base, _err in [records[monitor, None]]
+        }
+        self.base_orbit = {
+            monitor: (orbit, error)
+            for (monitor, knob), (_, orbit, error) in records.items()
+            if not knob
+        }
+        no_response = (
+            np.array([0.0, 0.0]),    # delta_orbit
+            1e5,                     # delta_param
+            np.array([1.0, 1.0]))    # mean_error    TODO use base error
+        self.orm = np.vstack([
+            np.hstack([
+                delta_orbit / delta_param
+                for monitor in monitors
+                for delta_orbit, delta_param, _ in [
+                        responses.get(
+                            (monitor.lower(), knob.lower()), no_response)]
+            ])
+            for knob in knobs
+        ]).T
+        self.stddev = np.vstack([
+            np.hstack([
+                np.sqrt(mean_error) / delta_param
+                for monitor in monitors
+                for _, delta_param, mean_error in [
+                        responses.get(
+                            (monitor.lower(), knob.lower()), no_response)]
+            ])
+            for knob in knobs
+        ]).T
+
+    @classmethod
+    def load(cls, model, filenames):
+        strengths = {}
+        records = {}
+        for s, r in map(load_record_file, filenames):
+            strengths.update(s)
+            records.update(r)
+        monitors = {mon.lower() for mon, _ in records}
+        knobs = {knob.lower() for _, knob in records if knob}
+        return cls(strengths, records, *sorted_mesh(model, monitors, knobs))
 
 
-def load_record_files(filenames):
-    return join_record_files(map(load_record_file, filenames))
+def sorted_mesh(model, monitors, knobs):
+    elems = model.elements
+    knob_elems = {}
+    for elem in elems:
+        for knob in model.get_elem_knobs(elem):
+            knob_elems.setdefault(knob.lower(), []).append(elem.name)
+    monitors = sorted(monitors, key=elems.index)
+    knobs = sorted(knobs, key=lambda k: elems.index(knob_elems[k][0]))
+    steerers = [knob_elems[k][0] for k in knobs]
+    return monitors, knobs, steerers
 
 
 def load_record_file(filename):
@@ -88,16 +145,7 @@ def load_record_file(filename):
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
-    return DataRecord(strengths, records)
-
-
-def join_record_files(data_records):
-    mats = iter(data_records)
-    acc = next(mats)
-    for mat in mats:
-        assert acc.strengths == mat.strengths
-        acc.records.update(mat.records)
-    return acc
+    return strengths, records
 
 
 def create_errors_from_spec(spec):
@@ -114,71 +162,13 @@ def create_errors_from_spec(spec):
     ]
 
 
-def get_orms(model, measured, fit_args):
+def analyze(model, measured, fit_args):
 
-    strengths = measured.strengths
-    records = measured.records
-
-    responses = {
-        (monitor, knob): (
-            (orbit - base), (strength - strengths[knob]), (error + _err))
-        for (monitor, knob), (strength, orbit, error) in records.items()
-        if knob
-        for _, base, _err in [records[monitor, None]]
-    }
-
-    base_orbit = {
-        monitor: (orbit, error)
-        for (monitor, knob), (_, orbit, error) in records.items()
-        if not knob
-    }
-
-    # Get list of all knobs and corresponding knobs:
-    elems = model.elements
-    knob_elems = {}
-    for elem in elems:
-        for knob in model.get_elem_knobs(elem):
-            knob_elems.setdefault(knob.lower(), []).append(elem.name)
-
-    monitors = sorted({mon.lower() for mon, _ in records}, key=elems.index)
-    knobs = sorted({knob.lower() for _, knob in records if knob},
-                   key=lambda k: elems.index(knob_elems[k][0]))
-    steerers = [knob_elems[k][0] for k in knobs]
-
-    model.update_globals(strengths.items())
-
-    no_response = (np.array([0.0, 0.0]),    # delta_orbit
-                   1e5,                     # delta_param
-                   np.array([1.0, 1.0]))    # mean_error    TODO use base error
-    measured_orm = np.vstack([
-        np.hstack([
-            delta_orbit / delta_param
-            for monitor in monitors
-            for delta_orbit, delta_param, _ in [
-                    responses.get(
-                        (monitor.lower(), knob.lower()), no_response)]
-        ])
-        for knob in knobs
-    ]).T
-
-    stddev = np.vstack([
-        np.hstack([
-            np.sqrt(mean_error) / delta_param
-            for monitor in monitors
-            for _, delta_param, mean_error in [
-                    responses.get(
-                        (monitor.lower(), knob.lower()), no_response)]
-        ])
-        for knob in knobs
-    ]).T if fit_args.get('stddev', False) else 1
-
-    return monitors, steerers, knobs, base_orbit, measured_orm, stddev
-
-
-def analyze(model, data_records, fit_args):
-
-    monitors, steerers, knobs, base_orbit, measured_orm, stddev = get_orms(
-        model, data_records, fit_args)
+    model.update_globals(measured.strengths.items())
+    monitors = measured.monitors
+    knobs = measured.knobs
+    measured_orm = measured.orm
+    stddev = measured.stddev
 
     errors = create_errors_from_spec(fit_args)
     for error in errors:
@@ -187,9 +177,7 @@ def analyze(model, data_records, fit_args):
     model_orm = model.get_orbit_response_matrix(monitors, knobs)
     print("INITIAL red χ² = ", reduced_chisq(
         (measured_orm - model_orm) / stddev, len(errors)))
-    make_plots(
-        fit_args, model, monitors, steerers,
-        model_orm, measured_orm, stddev)
+    make_plots(fit_args, model, measured, model_orm)
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
@@ -216,37 +204,24 @@ def analyze(model, data_records, fit_args):
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
         print("red χ² = ", reduced_chisq(
             (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
-        make_plots(
-            fit_args, model, monitors, steerers,
-            model_orm, measured_orm, stddev)
+        make_plots(fit_args, model, measured, model_orm)
 
 
-def make_plots(
-        setup_args, model, monitors, steerers,
-        model_orm, measured_orm, stddev):
+def make_plots(setup_args, model, measured, model_orm):
     monitor_subset = setup_args.get('plot_monitors', [])
     steerer_subset = setup_args.get('plot_steerers', [])
-
-    plot_monitor_response(
-        model, monitors, steerers, monitor_subset,
-        model_orm, measured_orm, stddev)
-
-    plot_steerer_response(
-        model, monitors, steerers, steerer_subset,
-        model_orm, measured_orm, stddev)
+    plot_monitor_response(model, measured, monitor_subset, model_orm)
+    plot_steerer_response(model, measured, steerer_subset, model_orm)
 
 
-def plot_monitor_response(
-        model, monitors, steerers, monitor_subset,
-        model_orm, measured_orm, stddev):
-    xpos = [model.elements[elem].position for elem in steerers]
-
-    shape = (len(monitors), 2, len(steerers))
-    measured_orm = measured_orm.reshape(shape)
+def plot_monitor_response(model, measured, monitor_subset, model_orm):
+    shape = (len(measured.monitors), 2, len(measured.steerers))
+    measured_orm = measured.orm.reshape(shape)
     model_orm = model_orm.reshape(shape)
-    stddev = stddev.reshape(shape)
+    stddev = measured.stddev.reshape(shape)
+    xpos = [model.elements[elem].position for elem in measured.steerers]
 
-    for i, monitor in enumerate(monitors):
+    for i, monitor in enumerate(measured.monitors):
         if monitor not in monitor_subset:
             continue
 
@@ -278,17 +253,14 @@ def plot_monitor_response(
         plt.cla()
 
 
-def plot_steerer_response(
-        model, monitors, steerers, steerer_subset,
-        model_orm, measured_orm, stddev):
-
-    shape = (len(monitors), 2, len(steerers))
-    measured_orm = measured_orm.reshape(shape)
+def plot_steerer_response(model, measured, steerer_subset, model_orm):
+    shape = (len(measured.monitors), 2, len(measured.steerers))
+    measured_orm = measured.orm.reshape(shape)
     model_orm = model_orm.reshape(shape)
-    stddev = stddev.reshape(shape)
+    stddev = measured.stddev.reshape(shape)
+    xpos = [model.elements[elem].position for elem in measured.monitors]
 
-    xpos = [model.elements[elem].position for elem in monitors]
-    for i, steerer in enumerate(steerers):
+    for i, steerer in enumerate(measured.steerers):
         if steerer not in steerer_subset:
             continue
 
