@@ -168,18 +168,21 @@ def analyze(model, measured, fit_args):
     monitors = measured.monitors
     knobs = measured.knobs
     measured_orm = measured.orm
+    model_orm = model.get_orbit_response_matrix(monitors, knobs)
     stddev = measured.stddev
 
     errors = create_errors_from_spec(fit_args)
     for error in errors:
         error.set_base(model.madx)
 
-    model_orm = model.get_orbit_response_matrix(monitors, knobs)
+    def info(comment):
+        print("X_tot  =", np.array([err.base for err in errors]))
+        print("red χ² =", reduced_chisq(
+            (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
+        make_plots(fit_args, model, measured, model_orm, comment)
+
     print("INITIAL")
-    print("red χ² =", reduced_chisq(
-        (measured_orm - model_orm) / stddev, len(errors)))
-    print("X_tot  =", np.array([err.base for err in errors]))
-    make_plots(fit_args, model, measured, model_orm, "initial")
+    info("initial")
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
@@ -190,22 +193,16 @@ def analyze(model, measured, fit_args):
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev)
-        print("ΔX     =", results.flatten())
-        print("X_tot  =", np.array([
-            err.base + delta
-            for err, delta in zip(errors, results.flatten())
-        ]))
-        print("red χ² =", chisq, "(linear hypothesis)")
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
             param.apply(model.madx, param.base)
 
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
-        print("red χ² =", reduced_chisq(
-            (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
-        make_plots(fit_args, model, measured, model_orm,
-                   "Iteration {}".format(i))
+
+        print("red χ² =", chisq, "(linear hypothesis)")
+        print("ΔX     =", results.flatten())
+        info("iteration {}".format(i))
 
 
 def make_plots(setup_args, model, measured, model_orm, comment="Response"):
