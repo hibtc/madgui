@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
@@ -215,3 +216,87 @@ def analyze(model, data_records, fit_args):
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
         print("red χ² = ", reduced_chisq(
             (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
+
+
+def plot_monitor_response(
+        model, monitors, steerers, monitor_subset,
+        model_orm, measured_orm, stddev):
+    xpos = [model.elements[elem].position for elem in steerers]
+
+    shape = (len(monitors), 2, len(steerers))
+    measured_orm = measured_orm.reshape(shape)
+    model_orm = model_orm.reshape(shape)
+    stddev = stddev.reshape(shape)
+
+    for i, monitor in enumerate(monitors):
+        if monitor not in monitor_subset:
+            continue
+
+        for j, ax in enumerate("xy"):
+            axes = plt.subplot(1, 2, 1+j)
+            plt.title(ax)
+            plt.xlabel(r"steerer position [m]")
+            if ax == 'x':
+                plt.ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+            else:
+                axes.yaxis.tick_right()
+
+            plt.errorbar(
+                xpos,
+                measured_orm[i, j, :].flatten(),
+                stddev[i, j, :].flatten(),
+                label=ax + " measured")
+
+            plt.plot(
+                xpos,
+                model_orm[i, j, :].flatten(),
+                label=ax + " model")
+
+            plt.legend()
+
+        plt.suptitle(monitor)
+
+        plt.show()
+        plt.cla()
+
+
+def plot_steerer_response(
+        model, monitors, steerers, steerer_subset,
+        model_orm, measured_orm, stddev):
+
+    shape = (len(monitors), 2, len(steerers))
+    measured_orm = measured_orm.reshape(shape)
+    model_orm = model_orm.reshape(shape)
+    stddev = stddev.reshape(shape)
+
+    xpos = [model.elements[elem].position for elem in monitors]
+    for i, steerer in enumerate(steerers):
+        if steerer not in steerer_subset:
+            continue
+
+        for j, ax in enumerate("xy"):
+            axes = plt.subplot(1, 2, 1+j)
+            plt.title(ax)
+            plt.xlabel(r"monitor position [m]")
+            if ax == 'x':
+                plt.ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+            else:
+                axes.yaxis.tick_right()
+
+            plt.errorbar(
+                xpos,
+                measured_orm[:, j, i].flatten(),
+                stddev[:, j, i].flatten(),
+                label=ax + " measured")
+
+            plt.plot(
+                xpos,
+                model_orm[:, j, i].flatten(),
+                label=ax + " model")
+
+            plt.legend()
+
+        plt.suptitle(steerer)
+
+        plt.show()
+        plt.cla()
