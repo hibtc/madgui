@@ -545,21 +545,28 @@ class Model:
 
             x_0, y_0, x_1, y_1, …
         """
-        def get_knob_response(knob):
-            tw0 = self.twiss()
-            step = 2e-4
-            with self.undo_stack.rollback("ORM", transient=True):
-                self.update_globals({knob: self.globals[knob] + step})
-                self.update_twiss_args({'table': 'orm'})
-                tw1 = self.twiss()
-                idx = [self.indices[self.elements.index(mon)].stop
-                       for mon in monitors]
+        madx = self.madx
+        madx.command.select(flag='interpolate', clear=True)
+        tw_args = self._get_twiss_args(table='orm_tmp')
+
+        tw0 = madx.twiss(**tw_args)
+        x0, y0 = tw0.x, tw0.y
+        idx = [self.elements.index(m) for m in monitors]
+
+        def get_knob_response(var, step):
+            try:
+                madx.globals[var] += step
+                tw1 = madx.twiss(**tw_args)
+                x1, y1 = tw1.x, tw1.y
                 return np.vstack((
-                    (tw1.x - tw0.x)[idx],
-                    (tw1.y - tw0.y)[idx],
+                    (x1 - x0)[idx],
+                    (y1 - y0)[idx],
                 )).T.flatten() / step
+            finally:
+                madx.globals[var] -= step
+
         return np.vstack([
-            get_knob_response(knob)
+            get_knob_response(knob, 2e-4)
             for knob in knobs
         ]).T
 
