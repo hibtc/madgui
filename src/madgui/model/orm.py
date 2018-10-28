@@ -64,8 +64,7 @@ def load_yaml(filename):
 
 class DataRecord:
 
-    def __init__(self, sequence, strengths, records):
-        self.sequence = sequence
+    def __init__(self, strengths, records):
         self.strengths = strengths
         self.records = records
 
@@ -76,7 +75,6 @@ def load_record_files(filenames):
 
 def load_record_file(filename):
     data = load_yaml(filename)
-    sequence = data['sequence']
     strengths = data['model']
     records = {
         (monitor, knob): (s, np.mean([
@@ -90,14 +88,13 @@ def load_record_file(filename):
         for knob, s in (record['optics'] or {None: None}).items()
         for monitor in data['monitors']
     }
-    return DataRecord(sequence, strengths, records)
+    return DataRecord(strengths, records)
 
 
 def join_record_files(data_records):
     mats = iter(data_records)
     acc = next(mats)
     for mat in mats:
-        assert acc.sequence == mat.sequence
         assert acc.strengths == mat.strengths
         acc.records.update(mat.records)
     return acc
