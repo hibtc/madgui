@@ -86,8 +86,8 @@ class OrbitResponse:
             np.array([0.0, 0.0]),    # delta_orbit
             1e5,                     # delta_param
             np.array([1.0, 1.0]))    # mean_error    TODO use base error
-        self.orm = np.vstack([
-            np.hstack([
+        self.orm = np.dstack([
+            np.vstack([
                 delta_orbit / delta_param
                 for monitor in monitors
                 for delta_orbit, delta_param, _ in [
@@ -95,9 +95,9 @@ class OrbitResponse:
                             (monitor.lower(), knob.lower()), no_response)]
             ])
             for knob in knobs
-        ]).T
-        self.stddev = np.vstack([
-            np.hstack([
+        ])
+        self.stddev = np.dstack([
+            np.vstack([
                 np.sqrt(mean_error) / delta_param
                 for monitor in monitors
                 for _, delta_param, mean_error in [
@@ -105,7 +105,7 @@ class OrbitResponse:
                             (monitor.lower(), knob.lower()), no_response)]
             ])
             for knob in knobs
-        ]).T
+        ])
 
     @classmethod
     def load(cls, model, filenames):
@@ -244,12 +244,7 @@ def make_plots(setup_args, model, measured, model_orm, comment="Response"):
 
 
 def plot_monitor_response(model, measured, monitor_subset, model_orm, comment):
-    shape = (len(measured.monitors), 2, len(measured.steerers))
-    measured_orm = measured.orm.reshape(shape)
-    model_orm = model_orm.reshape(shape)
-    stddev = measured.stddev.reshape(shape)
     xpos = [model.elements[elem].position for elem in measured.steerers]
-
     for i, monitor in enumerate(measured.monitors):
         if monitor not in monitor_subset:
             continue
@@ -265,8 +260,8 @@ def plot_monitor_response(model, measured, monitor_subset, model_orm, comment):
 
             plt.errorbar(
                 xpos,
-                measured_orm[i, j, :].flatten(),
-                stddev[i, j, :].flatten(),
+                measured.orm[i, j, :].flatten(),
+                measured.stddev[i, j, :].flatten(),
                 label=ax + " measured")
 
             plt.plot(
@@ -283,12 +278,7 @@ def plot_monitor_response(model, measured, monitor_subset, model_orm, comment):
 
 
 def plot_steerer_response(model, measured, steerer_subset, model_orm, comment):
-    shape = (len(measured.monitors), 2, len(measured.steerers))
-    measured_orm = measured.orm.reshape(shape)
-    model_orm = model_orm.reshape(shape)
-    stddev = measured.stddev.reshape(shape)
     xpos = [model.elements[elem].position for elem in measured.monitors]
-
     for i, steerer in enumerate(measured.steerers):
         if steerer not in steerer_subset:
             continue
@@ -304,8 +294,7 @@ def plot_steerer_response(model, measured, steerer_subset, model_orm, comment):
 
             plt.errorbar(
                 xpos,
-                measured_orm[:, j, i].flatten(),
-                stddev[:, j, i].flatten(),
+                measured.stddev[:, j, i].flatten(),
                 label=ax + " measured")
 
             plt.plot(
