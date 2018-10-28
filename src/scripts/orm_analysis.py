@@ -24,8 +24,7 @@ def main(model_file, spec_file, *record_files):
     with Session(config) as session:
         session.load_model(
             model_file,
-            stdout=False,
-            command_log=lambda text: print("X:>", text))
+            stdout=False)
         model = session.model()
         return analyze(
             model, OrbitResponse.load(model, record_files),

@@ -175,9 +175,11 @@ def analyze(model, measured, fit_args):
         error.set_base(model.madx)
 
     model_orm = model.get_orbit_response_matrix(monitors, knobs)
-    print("INITIAL red χ² = ", reduced_chisq(
+    print("INITIAL")
+    print("red χ² =", reduced_chisq(
         (measured_orm - model_orm) / stddev, len(errors)))
-    make_plots(fit_args, model, measured, model_orm)
+    print("X_tot  =", np.array([err.base for err in errors]))
+    make_plots(fit_args, model, measured, model_orm, "initial")
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
@@ -198,23 +200,22 @@ def analyze(model, measured, fit_args):
         for param, value in zip(errors, results.flatten()):
             param.base += value
             param.apply(model.madx, param.base)
-        print()
-        print()
 
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
-        print("red χ² = ", reduced_chisq(
+        print("red χ² =", reduced_chisq(
             (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
-        make_plots(fit_args, model, measured, model_orm)
+        make_plots(fit_args, model, measured, model_orm,
+                   "Iteration {}".format(i))
 
 
-def make_plots(setup_args, model, measured, model_orm):
+def make_plots(setup_args, model, measured, model_orm, comment="Response"):
     monitor_subset = setup_args.get('plot_monitors', [])
     steerer_subset = setup_args.get('plot_steerers', [])
-    plot_monitor_response(model, measured, monitor_subset, model_orm)
-    plot_steerer_response(model, measured, steerer_subset, model_orm)
+    plot_monitor_response(model, measured, monitor_subset, model_orm, comment)
+    plot_steerer_response(model, measured, steerer_subset, model_orm, comment)
 
 
-def plot_monitor_response(model, measured, monitor_subset, model_orm):
+def plot_monitor_response(model, measured, monitor_subset, model_orm, comment):
     shape = (len(measured.monitors), 2, len(measured.steerers))
     measured_orm = measured.orm.reshape(shape)
     model_orm = model_orm.reshape(shape)
@@ -247,13 +248,13 @@ def plot_monitor_response(model, measured, monitor_subset, model_orm):
 
             plt.legend()
 
-        plt.suptitle(monitor)
+        plt.suptitle("{1}: {0}".format(monitor, comment))
 
         plt.show()
         plt.cla()
 
 
-def plot_steerer_response(model, measured, steerer_subset, model_orm):
+def plot_steerer_response(model, measured, steerer_subset, model_orm, comment):
     shape = (len(measured.monitors), 2, len(measured.steerers))
     measured_orm = measured.orm.reshape(shape)
     model_orm = model_orm.reshape(shape)
@@ -286,7 +287,7 @@ def plot_steerer_response(model, measured, steerer_subset, model_orm):
 
             plt.legend()
 
-        plt.suptitle(steerer)
+        plt.suptitle("{1}: {0}".format(steerer, comment))
 
         plt.show()
         plt.cla()
