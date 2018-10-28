@@ -164,13 +164,9 @@ def create_errors_from_spec(spec):
 
 def analyze(model, measured, fit_args):
 
-    model.update_globals(measured.strengths.items())
     monitors = measured.monitors
     knobs = measured.knobs
-    measured_orm = measured.orm
-    model_orm = model.get_orbit_response_matrix(monitors, knobs)
-    stddev = measured.stddev
-
+    stddev = measured.stddev if fit_args.get('stddev') else 1
     errors = create_errors_from_spec(fit_args)
     for error in errors:
         error.set_base(model.madx)
@@ -178,17 +174,19 @@ def analyze(model, measured, fit_args):
     def info(comment):
         print("X_tot  =", np.array([err.base for err in errors]))
         print("red χ² =", reduced_chisq(
-            (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
+            (measured.orm - model_orm) / stddev, len(errors)))
         make_plots(fit_args, model, measured, model_orm, comment)
 
     print("INITIAL")
+    model.update_globals(measured.strengths.items())
+    model_orm = model.get_orbit_response_matrix(monitors, knobs)
     info("initial")
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
 
         results, chisq = fit_model(
-            measured_orm, model_orm, get_orm_derivs(
+            measured.orm, model_orm, get_orm_derivs(
                 model, monitors, knobs, model_orm, errors),
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
