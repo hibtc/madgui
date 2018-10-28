@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
+from madgui.online.orbit import fit_particle_orbit
 from .errors import Param, Ealign, Efcomp
 
 
@@ -162,6 +163,31 @@ def create_errors_from_spec(spec):
     ]
 
 
+class Readout:
+    def __init__(self, name, posx, posy):
+        self.name = name
+        self.posx = posx
+        self.posy = posy
+
+
+def fit_init_orbit(model, measured, fit_monitors):
+    fit_monitors = sorted(fit_monitors, key=model.elements.index)
+    range_start = fit_monitors[0]
+    base_orbit = measured.base_orbit
+    readouts = [
+        Readout(monitor, *base_orbit[monitor.lower()][0])
+        for monitor in fit_monitors
+    ]
+    secmaps = [
+        model.sectormap(range_start, monitor)
+        for monitor in fit_monitors
+    ]
+    offsets = {}
+    (twiss_init, chisq, singular), curve = fit_particle_orbit(
+        model, offsets, readouts, secmaps, fit_monitors[0])
+    return twiss_init
+
+
 def analyze(model, measured, fit_args):
 
     monitors = measured.monitors
@@ -181,6 +207,13 @@ def analyze(model, measured, fit_args):
     model.update_globals(measured.strengths.items())
     model_orm = model.get_orbit_response_matrix(monitors, knobs)
     info("initial")
+
+    fit_twiss = fit_args.get('fit_twiss')
+    if fit_twiss:
+        print("TWISS INIT")
+        model.update_twiss_args(fit_init_orbit(model, measured, fit_twiss))
+        model_orm = model.get_orbit_response_matrix(monitors, knobs)
+        info("twiss_init")
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
