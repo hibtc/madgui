@@ -1,4 +1,4 @@
-from madgui.qt import QtCore
+from madgui.qt import QtGui
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
@@ -17,7 +17,7 @@ def main(model_file, spec_file, *record_files):
     RECORDS is a list of record YAML files that were dumped by madgui's ORM
     dialog.
     """
-    app = QtCore.QCoreApplication([])
+    app = QtGui.QApplication([])
     init_app(app)
 
     config = load_config(isolated=True)

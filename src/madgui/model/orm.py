@@ -190,6 +190,9 @@ def analyze(model, data_records, fit_args):
     model_orm = model.get_orbit_response_matrix(monitors, knobs)
     print("INITIAL red χ² = ", reduced_chisq(
         (measured_orm - model_orm) / stddev, len(errors)))
+    make_plots(
+        fit_args, model, monitors, steerers,
+        model_orm, measured_orm, stddev)
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
@@ -216,6 +219,24 @@ def analyze(model, data_records, fit_args):
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
         print("red χ² = ", reduced_chisq(
             (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
+        make_plots(
+            fit_args, model, monitors, steerers,
+            model_orm, measured_orm, stddev)
+
+
+def make_plots(
+        setup_args, model, monitors, steerers,
+        model_orm, measured_orm, stddev):
+    monitor_subset = setup_args.get('plot_monitors', [])
+    steerer_subset = setup_args.get('plot_steerers', [])
+
+    plot_monitor_response(
+        model, monitors, steerers, monitor_subset,
+        model_orm, measured_orm, stddev)
+
+    plot_steerer_response(
+        model, monitors, steerers, steerer_subset,
+        model_orm, measured_orm, stddev)
 
 
 def plot_monitor_response(
