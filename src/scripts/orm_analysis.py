@@ -2,8 +2,7 @@ from madgui.qt import QtCore
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
-from madgui.model.orm import (
-    analyze, load_yaml, load_record_file, join_record_files)
+from madgui.model.orm import analyze, load_yaml, load_record_files
 
 
 def main(model_file, spec_file, *record_files):
@@ -24,14 +23,13 @@ def main(model_file, spec_file, *record_files):
     config = load_config(isolated=True)
     with Session(config) as session:
         session.load_model(
-            session.find_model(model_file),
+            model_file,
             stdout=False,
             command_log=lambda text: print("X:>", text))
         model = session.model()
-        return analyze(model.madx, model.twiss_args, join_record_files([
-            load_record_file(filename, model)
-            for filename in record_files
-        ]), load_yaml(spec_file)['analysis'])
+        return analyze(
+            model, load_record_files(record_files),
+            load_yaml(spec_file)['analysis'])
 
 
 if __name__ == '__main__':

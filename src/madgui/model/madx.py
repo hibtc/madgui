@@ -71,7 +71,8 @@ class Model:
     :ivar str path: base folder
     """
 
-    def __init__(self, madx, data, *, filename=None, undo_stack=None):
+    def __init__(self, madx, data, *, filename=None, undo_stack=None,
+                 interpolate=0):
         super().__init__()
         self.madx = madx
         self.data = data
@@ -85,11 +86,13 @@ class Model:
             beam=data['beam'],
             twiss_args=data['twiss'],
         )
+        self.interpolate = interpolate
         self.twiss.invalidated.connect(self.sector.invalidate)
         self.twiss.invalidate()
 
     @classmethod
-    def load_file(cls, filename, madx=None, *, undo_stack=None, **madx_kwargs):
+    def load_file(cls, filename, madx=None, *,
+                  undo_stack=None, interpolate=0, **madx_kwargs):
         madx = madx or Madx(**madx_kwargs)
         madx.option(echo=False)
         filename = os.path.abspath(filename)
@@ -108,7 +111,11 @@ class Model:
             seqname = _guess_main_sequence(madx)
             data = _get_seq_model(madx, seqname)
             data['init-files'] = [filename]
-        return cls(madx, data, undo_stack=undo_stack, filename=filename)
+        return cls(
+            madx, data,
+            undo_stack=undo_stack,
+            filename=filename,
+            interpolate=interpolate)
 
     def __del__(self):
         self.destroy()
@@ -524,6 +531,44 @@ class Model:
             for i, j in zip(indices, indices[1:])
         ]
 
+    # TODO: default values for knobs/monitors
+    # TODO: reshape M 2 K
+    # TODO: pass entire optic (knob + delta)
+    def get_orbit_response_matrix(self, monitors, knobs) -> np.array:
+        """
+        Get the orbit response matrix ``R_ij`` of monitor measurements ``i``
+        as a function of knob ``j``.
+
+        The matrix rows are arranged as consecutive pairs of x/y values for
+        each monitors, i.e.:
+
+            x_0, y_0, x_1, y_1, …
+        """
+        madx = self.madx
+        madx.command.select(flag='interpolate', clear=True)
+        tw_args = self._get_twiss_args(table='orm_tmp')
+
+        tw0 = madx.twiss(**tw_args)
+        x0, y0 = tw0.x, tw0.y
+        idx = [self.elements.index(m) for m in monitors]
+
+        def get_knob_response(var, step):
+            try:
+                madx.globals[var] += step
+                tw1 = madx.twiss(**tw_args)
+                x1, y1 = tw1.x, tw1.y
+                return np.vstack((
+                    (x1 - x0)[idx],
+                    (y1 - y0)[idx],
+                )).T.flatten() / step
+            finally:
+                madx.globals[var] -= step
+
+        return np.vstack([
+            get_knob_response(knob, 2e-4)
+            for knob in knobs
+        ]).T
+
     def survey(self):
         table = self.madx.survey()
         array = np.array([table[key] for key in FloorCoords._fields])
@@ -538,9 +583,10 @@ class Model:
     @Cache.decorate
     def twiss(self):
         """Recalculate TWISS parameters."""
-        step = self.sequence.elements[-1].position/400
-        self.madx.command.select(flag='interpolate', clear=True)
-        self.madx.command.select(flag='interpolate', step=step)
+        if self.interpolate:
+            step = self.sequence.elements[-1].position/self.interpolate
+            self.madx.command.select(flag='interpolate', clear=True)
+            self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args())
         results = TwissTable(results._name, results._libmadx, _check=False)
         self.summary = results.summary
