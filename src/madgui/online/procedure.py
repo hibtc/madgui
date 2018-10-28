@@ -337,7 +337,7 @@ class Corrector(Matcher):
             if (elem.lower(), axis) in targets
         ]
         dvar = np.linalg.lstsq(
-            orm.T[S, :], deltas, rcond=1e-10)[0]
+            orm[S, :], deltas, rcond=1e-10)[0]
         globals_ = self.model.globals
         return {
             var.lower(): globals_[var] + delta
@@ -385,32 +385,12 @@ class Corrector(Matcher):
                 for v in self.variables
                 for c in [elem_by_knob[v.lower()]]
                 for is_vkicker in [elems[c].base_name == 'vkicker']
-            ])
+            ]).T
 
     # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
     def compute_orbit_response_matrix(self):
-        model = self.model
-        madx = model.madx
-
-        madx.command.select(flag='interpolate', clear=True)
-        tw_args = model._get_twiss_args(table='orm_tmp')
-
-        tw0 = madx.twiss(**tw_args)
-        x0, y0 = tw0.x, tw0.y
-        M = [model.elements[m].index for m in self.monitors]
-
-        def orm_row(var, step):
-            try:
-                madx.globals[var] += step
-                tw1 = madx.twiss(**tw_args)
-                x1, y1 = tw1.x, tw1.y
-                return np.vstack(((x1-x0)[M],
-                                  (y1-y0)[M])).T.flatten() / step
-            finally:
-                madx.globals[var] -= step
-        return np.vstack([
-            orm_row(v, 1e-4) for v in self.variables
-        ])
+        return self.model.get_orbit_response_matrix(
+            self.monitors, self.variables)
 
     def add_record(self, step, shot):
         # update_vars breaks ORM procedures because it re-reads base_optics!

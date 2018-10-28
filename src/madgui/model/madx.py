@@ -533,7 +533,6 @@ class Model:
 
     # TODO: default values for knobs/monitors
     # TODO: reshape M 2 K
-    # TODO: use this for `madgui.online.procedure.Corrector`
     # TODO: pass entire optic (knob + delta)
     def get_orbit_response_matrix(self, monitors, knobs) -> np.array:
         """
