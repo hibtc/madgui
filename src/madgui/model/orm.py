@@ -47,12 +47,12 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
     Y = Y.reshape((-1, 1))
     S = S.reshape((-1, 1))
     X = np.linalg.lstsq(A/S, Y/S, rcond=rcond)[0]
-    return X, reduced_chisq(A, X, Y, S)
+    return X, reduced_chisq((np.dot(A, X) - Y) / S, len(X))
 
 
-def reduced_chisq(A, X, Y, S):
-    residuals = (np.dot(A, X) - Y) / S
-    return np.dot(residuals.T, residuals) / (len(residuals) - len(X))
+def reduced_chisq(residuals, ddof):
+    residuals = residuals.flatten()
+    return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
 
 
 def load_yaml(filename):
@@ -186,9 +186,12 @@ def analyze(model, data_records, fit_args):
     for error in errors:
         error.set_base(model.madx)
 
+    model_orm = model.get_orbit_response_matrix(monitors, knobs)
+    print("INITIAL red χ² = ", reduced_chisq(
+        (measured_orm - model_orm) / stddev, len(errors)))
+
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
-        model_orm = model.get_orbit_response_matrix(monitors, knobs)
 
         results, chisq = fit_model(
             measured_orm, model_orm, get_orm_derivs(
@@ -197,14 +200,18 @@ def analyze(model, data_records, fit_args):
             steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev)
         print("ΔX     =", results.flatten())
-        print("red χ² =", chisq)
         print("X_tot  =", np.array([
             err.base + delta
             for err, delta in zip(errors, results.flatten())
         ]))
+        print("red χ² =", chisq, "(linear hypothesis)")
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
             param.apply(model.madx, param.base)
         print()
         print()
+
+        model_orm = model.get_orbit_response_matrix(monitors, knobs)
+        print("red χ² = ", reduced_chisq(
+            (measured_orm - model_orm) / stddev, len(errors)), "(actual)")
