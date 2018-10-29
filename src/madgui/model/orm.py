@@ -197,6 +197,7 @@ def analyze(model, measured, fit_args):
     errors = create_errors_from_spec(fit_args)
     for error in errors:
         error.set_base(model.madx)
+    model.madx.eoption(add=True)
 
     def info(comment):
         print("X_tot  =", np.array([err.base for err in errors]))
@@ -215,6 +216,7 @@ def analyze(model, measured, fit_args):
         model.update_twiss_args(fit_init_orbit(model, measured, fit_twiss))
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
         info("twiss_init")
+        model.madx.use(sequence=model.seq_name)
 
     for i in range(fit_args.get('iterations', 1)):
         print("ITERATION", i)
@@ -228,7 +230,7 @@ def analyze(model, measured, fit_args):
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
-            param.apply(model.madx, param.base)
+            param.apply(model.madx, value)
 
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
 
