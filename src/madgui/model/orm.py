@@ -203,6 +203,10 @@ def analyze(model, measured, fit_args):
         print("X_tot  =", np.array([err.base for err in errors]))
         print("red χ² =", reduced_chisq(
             (measured.orm - model_orm) / stddev, len(errors)))
+        print("    |x =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[:, 0, :], len(errors)))
+        print("    |y =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[:, 1, :], len(errors)))
         make_plots(fit_args, model, measured, model_orm, comment)
 
     print("INITIAL")
