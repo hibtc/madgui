@@ -155,8 +155,9 @@ def create_errors_from_spec(spec):
         Param(knob, step)
         for knob, step in spec.get('knobs', {}).items()
     ] + [
-        Ealign(**s)
-        for s in spec.get('ealign', ())
+        Ealign({'range': rng}, attr, step)
+        for rng, vals in spec.get('ealign', {}).items()
+        for attr, step in vals.items()
     ] + [
         Efcomp(**s)
         for s in spec.get('efcomp', ())
