@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from madgui.qt import QtGui
 from madgui.core.app import init_app
 from madgui.core.session import Session
