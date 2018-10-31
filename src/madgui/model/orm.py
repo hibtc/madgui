@@ -161,6 +161,7 @@ def load_record_file(filename):
 
 def create_errors_from_spec(spec):
     def error_from_spec(name, value):
+        value = 1.0e-4 if value is None else value
         if '->' in name:
             elem, attr = name.split('->')
             return ElemAttr(elem, attr, value)
