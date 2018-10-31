@@ -3,7 +3,7 @@ import numpy as np
 import yaml
 
 from madgui.online.orbit import fit_particle_orbit
-from .errors import Param, Ealign, Efcomp
+from .errors import Param, Ealign, Efcomp, ElemAttr
 
 
 def get_orm_derivs(model, monitors, knobs, base_orm, params):
@@ -162,6 +162,10 @@ def create_errors_from_spec(spec):
         Param(knob, step)
         for knob, step in spec.get('knobs', {}).items()
     ] + [
+        ElemAttr(elem, attr, step)
+        for elem, vals in spec.get('elems', {}).items()
+        for attr, step in vals.items()
+    ]+ [
         Ealign({'range': rng}, attr, step)
         for rng, vals in spec.get('ealign', {}).items()
         for attr, step in vals.items()

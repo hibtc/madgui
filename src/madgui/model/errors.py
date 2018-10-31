@@ -86,3 +86,36 @@ class Efcomp(BaseError):
     def __repr__(self):
         return "[EFCOMP {}->{}={}]".format(
             self.select['range'], self.attr, self.step)
+
+
+class ElemAttr(BaseError):
+
+    """Variable parameter."""
+
+    def __init__(self, elem, attr, step=1e-4, madx=None):
+        super().__init__(step)
+        self.elem = elem
+        self.attr = attr
+        if madx is not None:
+            self.set_base(madx)
+
+    def set_base(self, madx):
+        self.base = madx.elements[self.elem][self.attr]
+
+    @contextmanager
+    def vary(self, model):
+        madx = model.madx
+        step = self.step
+        backup = madx.elements[self.elem].cmdpar[self.attr].definition
+        self.apply(madx, step)
+        try:
+            yield step
+        finally:
+            madx.elements[self.elem][self.attr] = backup
+
+    def apply(self, madx, value):
+        madx.elements[self.elem][self.attr] = "({}) + ({})".format(
+            madx.elements[self.elem].cmdpar[self.attr].definition, value)
+
+    def __repr__(self):
+        return "[Δ{}->{}={}]".format(self.elem, self.attr, self.step)
