@@ -276,6 +276,7 @@ def make_plots(setup_args, model, measured, model_orm, comment="Response"):
 def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.steerers]
     i = measured.monitors.index(monitor)
+    lines = []
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
@@ -292,19 +293,21 @@ def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
             measured.stddev[i, j, :].flatten(),
             label=ax + " measured")
 
-        axes.plot(
+        lines.append(axes.plot(
             xpos,
             model_orm[i, j, :].flatten(),
-            label=ax + " model")
+            label=ax + " model"))
 
         axes.legend()
 
     fig.suptitle("{1}: {0}".format(monitor, comment))
+    return lines
 
 
 def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.monitors]
     i = measured.steerers.index(steerer)
+    lines = []
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
@@ -321,11 +324,12 @@ def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
             measured.stddev[:, j, i].flatten(),
             label=ax + " measured")
 
-        axes.plot(
+        lines.append(axes.plot(
             xpos,
             model_orm[:, j, i].flatten(),
-            label=ax + " model")
+            label=ax + " model"))
 
         axes.legend()
 
     fig.suptitle("{1}: {0}".format(steerer, comment))
+    return lines

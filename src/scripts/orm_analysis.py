@@ -60,7 +60,7 @@ class MainWindow(QtGui.QMainWindow):
         self.logwidget.setReadOnly(True)
 
         update_button = QtGui.QPushButton("Update")
-        update_button.clicked.connect(self.update_model_orm)
+        update_button.clicked.connect(lambda: self.update_model_orm(False))
 
         widget = QtGui.QWidget()
         widget.setLayout(HBoxLayout([
@@ -96,7 +96,7 @@ class MainWindow(QtGui.QMainWindow):
             ]),
         ])
 
-    def update_model_orm(self):
+    def update_model_orm(self, clear=True):
         errors = self.read_spec()
         with self.apply_errors(errors):
             measured = self.measured
@@ -110,16 +110,23 @@ class MainWindow(QtGui.QMainWindow):
                 ((measured.orm - model_orm) / stddev)[:, 0, :], len(errors)))
             self.log("    |y = {}", reduced_chisq(
                 ((measured.orm - model_orm) / stddev)[:, 1, :], len(errors)))
-        self.draw_figure()
+        self.draw_figure(clear)
 
-    def draw_figure(self):
-        self.figure.backend_figure.clear()
-        plot_monitor_response(
-            self.figure.backend_figure,
-            'g3dg3g', self.model, self.measured, self.model_orm,
-            "model versus measured ORM")
-        self.figure.canvas.draw()
-        self.figure.canvas.updateGeometry()
+    def draw_figure(self, clear=True):
+        monitor = 'g3dg3g'
+        if clear:
+            self.figure.backend_figure.clear()
+            self.lines = plot_monitor_response(
+                self.figure.backend_figure,
+                monitor, self.model, self.measured, self.model_orm,
+                "model versus measured ORM")
+            self.figure.canvas.draw()
+            self.figure.canvas.updateGeometry()
+        else:
+            i = self.measured.monitors.index(monitor)
+            self.lines[0][0].set_ydata(self.model_orm[i, 0, :].flatten())
+            self.lines[1][0].set_ydata(self.model_orm[i, 1, :].flatten())
+            self.figure.canvas.draw()
 
     def read_spec(self):
         text = self.confedit.toPlainText()
