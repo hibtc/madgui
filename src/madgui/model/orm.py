@@ -313,6 +313,7 @@ def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
 
         axes.errorbar(
             xpos,
+            measured.orm[:, j, i].flatten(),
             measured.stddev[:, j, i].flatten(),
             label=ax + " measured")
 
