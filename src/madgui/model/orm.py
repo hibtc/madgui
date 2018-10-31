@@ -24,6 +24,7 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
               steerer_errors=False,
               monitor_errors=False,
               stddev=1,
+              mode='xy',
               rcond=1e-8):
     """
     Fit model to the measured ORM via the given params
@@ -39,11 +40,17 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
     # TODO: add rows for monitor/steerer sensitivity
     Y = measured_orm - model_orm
     A = np.array(model_orm_derivs)
-    S = np.array(stddev)
+    S = np.broadcast_to(stddev, Y.shape)
     if steerer_errors:
         A = np.hstack((A, -model_orm))
     if monitor_errors:
         A = np.hstack((A, +model_orm))
+    if mode == 'x' or mode == 'y':
+        d = mode == 'y'
+        print(A.shape, Y.shape, S.shape)
+        A = A[:, :, d, :]
+        Y = Y[:, d, :]
+        S = S[:, d, :]
     n = Y.size
     A = A.reshape((-1, n)).T
     Y = Y.reshape((-1, 1))
@@ -193,7 +200,8 @@ def analyze(model, measured, fit_args):
 
     monitors = measured.monitors
     knobs = measured.knobs
-    stddev = measured.stddev if fit_args.get('stddev') else 1
+    stddev = (measured.stddev if fit_args.get('stddev') else
+              np.ones(measured.orm.shape))
     errors = create_errors_from_spec(fit_args)
     for error in errors:
         error.set_base(model.madx)
@@ -230,7 +238,8 @@ def analyze(model, measured, fit_args):
                 model, monitors, knobs, model_orm, errors),
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
-            stddev=stddev)
+            stddev=stddev,
+            mode=fit_args.get('mode', 'xy'))
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
