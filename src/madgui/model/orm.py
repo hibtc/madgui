@@ -255,72 +255,72 @@ def analyze(model, measured, fit_args):
 def make_plots(setup_args, model, measured, model_orm, comment="Response"):
     monitor_subset = setup_args.get('plot_monitors', [])
     steerer_subset = setup_args.get('plot_steerers', [])
-    plot_monitor_response(model, measured, monitor_subset, model_orm, comment)
-    plot_steerer_response(model, measured, steerer_subset, model_orm, comment)
+    for monitor in measured.monitors:
+        if monitor in monitor_subset:
+            plot_monitor_response(
+                plt.figure(1), monitor, model, measured, model_orm, comment)
+            plt.show()
+            plt.clf()
+    for steerer in measured.steerers:
+        if steerer in steerer_subset:
+            plot_steerer_response(
+                plt.figure(1), steerer, model, measured, model_orm, comment)
+            plt.show()
+            plt.clf()
 
 
-def plot_monitor_response(model, measured, monitor_subset, model_orm, comment):
+def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.steerers]
-    for i, monitor in enumerate(measured.monitors):
-        if monitor not in monitor_subset:
-            continue
+    i = measured.monitors.index(monitor)
 
-        for j, ax in enumerate("xy"):
-            axes = plt.subplot(1, 2, 1+j)
-            plt.title(ax)
-            plt.xlabel(r"steerer position [m]")
-            if ax == 'x':
-                plt.ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
-            else:
-                axes.yaxis.tick_right()
+    for j, ax in enumerate("xy"):
+        axes = fig.add_subplot(1, 2, 1+j)
+        axes.set_title(ax)
+        axes.set_xlabel(r"steerer position [m]")
+        if ax == 'x':
+            axes.set_ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+        else:
+            axes.yaxis.tick_right()
 
-            plt.errorbar(
-                xpos,
-                measured.orm[i, j, :].flatten(),
-                measured.stddev[i, j, :].flatten(),
-                label=ax + " measured")
+        axes.errorbar(
+            xpos,
+            measured.orm[i, j, :].flatten(),
+            measured.stddev[i, j, :].flatten(),
+            label=ax + " measured")
 
-            plt.plot(
-                xpos,
-                model_orm[i, j, :].flatten(),
-                label=ax + " model")
+        axes.plot(
+            xpos,
+            model_orm[i, j, :].flatten(),
+            label=ax + " model")
 
-            plt.legend()
+        axes.legend()
 
-        plt.suptitle("{1}: {0}".format(monitor, comment))
-
-        plt.show()
-        plt.cla()
+    fig.suptitle("{1}: {0}".format(monitor, comment))
 
 
-def plot_steerer_response(model, measured, steerer_subset, model_orm, comment):
+def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.monitors]
-    for i, steerer in enumerate(measured.steerers):
-        if steerer not in steerer_subset:
-            continue
+    i = measured.steerers.index(steerer)
 
-        for j, ax in enumerate("xy"):
-            axes = plt.subplot(1, 2, 1+j)
-            plt.title(ax)
-            plt.xlabel(r"monitor position [m]")
-            if ax == 'x':
-                plt.ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
-            else:
-                axes.yaxis.tick_right()
+    for j, ax in enumerate("xy"):
+        axes = fig.add_subplot(1, 2, 1+j)
+        axes.set_title(ax)
+        axes.set_xlabel(r"monitor position [m]")
+        if ax == 'x':
+            axes.set_ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+        else:
+            axes.yaxis.tick_right()
 
-            plt.errorbar(
-                xpos,
-                measured.stddev[:, j, i].flatten(),
-                label=ax + " measured")
+        axes.errorbar(
+            xpos,
+            measured.stddev[:, j, i].flatten(),
+            label=ax + " measured")
 
-            plt.plot(
-                xpos,
-                model_orm[:, j, i].flatten(),
-                label=ax + " model")
+        axes.plot(
+            xpos,
+            model_orm[:, j, i].flatten(),
+            label=ax + " model")
 
-            plt.legend()
+        axes.legend()
 
-        plt.suptitle("{1}: {0}".format(steerer, comment))
-
-        plt.show()
-        plt.cla()
+    fig.suptitle("{1}: {0}".format(steerer, comment))
