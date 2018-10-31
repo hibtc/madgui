@@ -1,8 +1,8 @@
-from madgui.qt import QtCore
+from madgui.qt import QtGui
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
-from madgui.model.orm import analyze, load_yaml, load_record_files
+from madgui.model.orm import analyze, load_yaml, OrbitResponse
 
 
 def main(model_file, spec_file, *record_files):
@@ -17,18 +17,17 @@ def main(model_file, spec_file, *record_files):
     RECORDS is a list of record YAML files that were dumped by madgui's ORM
     dialog.
     """
-    app = QtCore.QCoreApplication([])
+    app = QtGui.QApplication([])
     init_app(app)
 
     config = load_config(isolated=True)
     with Session(config) as session:
         session.load_model(
             model_file,
-            stdout=False,
-            command_log=lambda text: print("X:>", text))
+            stdout=False)
         model = session.model()
         return analyze(
-            model, load_record_files(record_files),
+            model, OrbitResponse.load(model, record_files),
             load_yaml(spec_file)['analysis'])
 
 

@@ -390,7 +390,7 @@ class Corrector(Matcher):
     # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
     def compute_orbit_response_matrix(self):
         return self.model.get_orbit_response_matrix(
-            self.monitors, self.variables)
+            self.monitors, self.variables).reshape((-1, len(self.variables)))
 
     def add_record(self, step, shot):
         # update_vars breaks ORM procedures because it re-reads base_optics!

@@ -13,13 +13,12 @@ class BaseError:
     @contextmanager
     def vary(self, model):
         madx = model.madx
-        base = self.base
         step = self.step
-        self.apply(madx, base+step)
+        self.apply(madx, step)
         try:
             yield step
         finally:
-            self.apply(madx, base)
+            self.apply(madx, -step)
 
 
 class Param(BaseError):
@@ -36,7 +35,7 @@ class Param(BaseError):
         self.base = madx.globals[self.knob]
 
     def apply(self, madx, value):
-        madx.globals[self.knob] = value
+        madx.globals[self.knob] += value
 
     def __repr__(self):
         return "[Δ{}={}]".format(self.knob, self.step)

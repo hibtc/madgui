@@ -532,17 +532,11 @@ class Model:
         ]
 
     # TODO: default values for knobs/monitors
-    # TODO: reshape M 2 K
     # TODO: pass entire optic (knob + delta)
     def get_orbit_response_matrix(self, monitors, knobs) -> np.array:
         """
-        Get the orbit response matrix ``R_ij`` of monitor measurements ``i``
-        as a function of knob ``j``.
-
-        The matrix rows are arranged as consecutive pairs of x/y values for
-        each monitors, i.e.:
-
-            x_0, y_0, x_1, y_1, …
+        Compute the orbit response matrix Δx/Δφ numerically (by varying knobs)
+        and return as `M×2×K` matrix (monitors × x|y × knobs).
         """
         madx = self.madx
         madx.command.select(flag='interpolate', clear=True)
@@ -553,6 +547,7 @@ class Model:
         idx = [self.elements.index(m) for m in monitors]
 
         def get_knob_response(var, step):
+            """Return `2×M` matrix with responses for specified variable."""
             try:
                 madx.globals[var] += step
                 tw1 = madx.twiss(**tw_args)
@@ -560,14 +555,14 @@ class Model:
                 return np.vstack((
                     (x1 - x0)[idx],
                     (y1 - y0)[idx],
-                )).T.flatten() / step
+                )).T / step
             finally:
                 madx.globals[var] -= step
 
-        return np.vstack([
+        return np.dstack([
             get_knob_response(knob, 2e-4)
             for knob in knobs
-        ]).T
+        ])
 
     def survey(self):
         table = self.madx.survey()
