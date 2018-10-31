@@ -59,6 +59,11 @@ class MainWindow(QtGui.QMainWindow):
         self.logwidget = QtGui.QPlainTextEdit()
         self.logwidget.setReadOnly(True)
 
+        monitor_select = self.monitor_select = QtGui.QComboBox()
+        monitor_select.addItems(measured.monitors)
+        monitor_select.setCurrentText(measured.monitors[-1])
+        monitor_select.currentTextChanged.connect(self.change_monitor)
+
         update_button = QtGui.QPushButton("Update")
         update_button.clicked.connect(lambda: self.update_model_orm(False))
 
@@ -66,7 +71,7 @@ class MainWindow(QtGui.QMainWindow):
         widget.setLayout(HBoxLayout([
             self.confedit,
             self.logwidget,
-            VBoxLayout([update_button, Stretch(1)]),
+            VBoxLayout([monitor_select, update_button, Stretch(1)]),
         ]))
 
         dock = QtGui.QDockWidget()
@@ -112,8 +117,11 @@ class MainWindow(QtGui.QMainWindow):
                 ((measured.orm - model_orm) / stddev)[:, 1, :], len(errors)))
         self.draw_figure(clear)
 
+    def change_monitor(self, monitor):
+        self.draw_figure()
+
     def draw_figure(self, clear=True):
-        monitor = 'g3dg3g'
+        monitor = self.monitor_select.currentText()
         if clear:
             self.figure.backend_figure.clear()
             self.lines = plot_monitor_response(
