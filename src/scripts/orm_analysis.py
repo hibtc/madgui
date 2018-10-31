@@ -26,31 +26,14 @@ from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.model.orm import (
     analyze, load_yaml, OrbitResponse, plot_monitor_response,
-    create_errors_from_spec)
+    create_errors_from_spec, reduced_chisq)
 
 from madgui.util.qt import monospace
-from madgui.util.layout import VBoxLayout, HBoxLayout
+from madgui.util.layout import VBoxLayout, HBoxLayout, Stretch
 from madgui.plot.matplotlib import MultiFigure, PlotWidget as _PlotWidget
 
 import madgui.util.yaml as yaml
 import madgui.util.menu as menu
-
-
-class ConfigEditor(QtGui.QWidget):
-
-    def __init__(self, update):
-        super().__init__()
-        self.textbox = QtGui.QPlainTextEdit()
-        self.textbox.setFont(monospace())
-        self.update_button = QtGui.QPushButton("Update")
-        buttons = VBoxLayout([
-            self.update_button,
-        ])
-        buttons.addStretch()
-        self.setLayout(VBoxLayout([
-            HBoxLayout([self.textbox, buttons], tight=True),
-        ]))
-        self.update_button.clicked.connect(update)
 
 
 class PlotWidget(_PlotWidget):
@@ -68,17 +51,36 @@ class MainWindow(QtGui.QMainWindow):
         figure = MultiFigure()
         canvas = PlotWidget(figure)
         self.setCentralWidget(canvas)
-        edit = ConfigEditor(self.update_model_orm)
+
+        self.setFont(monospace())
+
+        self.confedit = QtGui.QPlainTextEdit()
+        self.confedit.setPlainText(self.get_init_text())
+        self.logwidget = QtGui.QPlainTextEdit()
+        self.logwidget.setReadOnly(True)
+
+        update_button = QtGui.QPushButton("Update")
+        update_button.clicked.connect(self.update_model_orm)
+
+        widget = QtGui.QWidget()
+        widget.setLayout(HBoxLayout([
+            self.confedit,
+            self.logwidget,
+            VBoxLayout([update_button, Stretch(1)]),
+        ]))
+
         dock = QtGui.QDockWidget()
-        dock.setWidget(edit)
+        dock.setWidget(widget)
         dock.setWindowTitle("Model errors")
+
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)
         self.create_menu()
-        self.textbox = edit.textbox
-        self.textbox.setPlainText(self.get_init_text())
         self.figure = figure
         self.model_orm = None
         self.update_model_orm()
+
+    def log(self, text, *args, **kwargs):
+        self.logwidget.appendPlainText(text.format(*args, **kwargs))
 
     def create_menu(self):
         Menu, Item = menu.Menu, menu.Item
@@ -97,8 +99,17 @@ class MainWindow(QtGui.QMainWindow):
     def update_model_orm(self):
         errors = self.read_spec()
         with self.apply_errors(errors):
-            self.model_orm = self.model.get_orbit_response_matrix(
-                self.measured.monitors, self.measured.knobs)
+            measured = self.measured
+            self.log("recalculating ORM…")
+            self.model_orm = model_orm = self.model.get_orbit_response_matrix(
+                measured.monitors, measured.knobs)
+            stddev = measured.stddev
+            self.log("red χ² = {}", reduced_chisq(
+                (measured.orm - model_orm) / stddev, len(errors)))
+            self.log("    |x = {}", reduced_chisq(
+                ((measured.orm - model_orm) / stddev)[:, 0, :], len(errors)))
+            self.log("    |y = {}", reduced_chisq(
+                ((measured.orm - model_orm) / stddev)[:, 1, :], len(errors)))
         self.draw_figure()
 
     def draw_figure(self):
@@ -111,7 +122,7 @@ class MainWindow(QtGui.QMainWindow):
         self.figure.canvas.updateGeometry()
 
     def read_spec(self):
-        text = self.textbox.toPlainText()
+        text = self.confedit.toPlainText()
         args = yaml.safe_load(text)
         return create_errors_from_spec(args)
 
