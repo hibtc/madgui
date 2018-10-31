@@ -152,9 +152,13 @@ class MainWindow(QtGui.QMainWindow):
 
     def get_init_text(self):
         return """
-knobs: {}
-ealign: {}
-efcomp: []
+{
+# g3mu1->angle: 0.01,
+# g3mu1->fint: 0.1,
+# kl_g3qd11: 0.01,
+# kl_g3qd12: 0.01,
+# g3qd11<dx>: 0.001,
+}
 """.strip()
 
 

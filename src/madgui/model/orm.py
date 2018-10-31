@@ -1,9 +1,12 @@
+import re
+
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
+from cpymad.util import is_identifier
 from madgui.online.orbit import fit_particle_orbit
-from .errors import Param, Ealign, Efcomp, ElemAttr
+from .errors import Param, Ealign, ElemAttr
 
 
 def get_orm_derivs(model, monitors, knobs, base_orm, params):
@@ -157,22 +160,19 @@ def load_record_file(filename):
 
 
 def create_errors_from_spec(spec):
-    # TODO: EALIGN, tilt, FINT, FINTX, L, AT, …
-    return [
-        Param(knob, step)
-        for knob, step in spec.get('knobs', {}).items()
-    ] + [
-        ElemAttr(elem, attr, step)
-        for elem, vals in spec.get('elems', {}).items()
-        for attr, step in vals.items()
-    ]+ [
-        Ealign({'range': rng}, attr, step)
-        for rng, vals in spec.get('ealign', {}).items()
-        for attr, step in vals.items()
-    ] + [
-        Efcomp(**s)
-        for s in spec.get('efcomp', ())
-    ]
+    def error_from_spec(name, value):
+        if '->' in name:
+            elem, attr = name.split('->')
+            return ElemAttr(elem, attr, value)
+        if '<' in name:
+            elem, attr = re.match(r'(.*)\<(.*)\>', name).groups()
+            return Ealign({'range': elem}, attr, value)
+        if is_identifier(name):
+            return Param(name, value)
+        # TODO: efcomp field errors!
+        raise ValueError("{!r} is not a valid error specification!"
+                         .format(name))
+    return [error_from_spec(name, value) for name, value in spec.items()]
 
 
 class Readout:
