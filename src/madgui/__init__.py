@@ -12,7 +12,7 @@ __title__ = 'madgui'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
 __uri__ = 'https://github.com/hibtc/madgui'
 
-__version__ = '18.10.2'
+__version__ = '18.10.3'
 
 __author__ = 'Thomas Gläßle'
 __email__ = 't_glaessle@gmx.de'

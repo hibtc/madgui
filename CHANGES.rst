@@ -1,6 +1,25 @@
 CHANGELOG
 ~~~~~~~~~
 
+18.10.3
+~~~~~~~
+Date: 31.10.2018
+
+bugfixes:
+    - fix undo feature not working because of using the wrong stack
+    - fix exception in Model.twiss when a table is specified
+
+ORM analysis:
+
+    - share get_orm() implementation with orbit correction
+    - deduplications, several code improvements and simplifications
+    - use base_orbit to backtrack initial conditions
+    - add plot functions to the analysis script
+    - better output
+    - add ability to fit X and Y independently
+    - compacter ealign notation in undocumented spec file
+
+
 18.10.2
 ~~~~~~~
 Date: 25.10.2018
