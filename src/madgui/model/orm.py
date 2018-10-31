@@ -206,7 +206,7 @@ def analyze(model, measured, fit_args):
     knobs = measured.knobs
     stddev = (measured.stddev if fit_args.get('stddev') else
               np.ones(measured.orm.shape))
-    errors = create_errors_from_spec(fit_args)
+    errors = create_errors_from_spec(fit_args['errors'])
     for error in errors:
         error.set_base(model.madx)
     model.madx.eoption(add=True)
