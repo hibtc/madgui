@@ -164,7 +164,7 @@ class MainWindow(QtGui.QMainWindow):
 
 def main(args=None):
     opts = docopt(__doc__, args)
-    app = QtGui.QApplication([])
+    app = QtGui.QApplication(['madgui'])
     init_app(app)
 
     model_file = opts['MODEL']
