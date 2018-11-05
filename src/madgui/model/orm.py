@@ -1,3 +1,4 @@
+import os
 import re
 
 import matplotlib.pyplot as plt
@@ -6,7 +7,7 @@ import yaml
 
 from cpymad.util import is_identifier
 from madgui.online.orbit import fit_particle_orbit
-from .errors import Param, Ealign, ElemAttr, ScaleAttr, ScaleParam
+from .errors import Param, Ealign, Efcomp, ElemAttr, ScaleAttr, ScaleParam
 
 
 def get_orm_derivs(model, monitors, knobs, base_orm, params):
@@ -274,24 +275,32 @@ def analyze(model, measured, fit_args):
         info("iteration {}".format(i))
 
 
-def make_plots(setup_args, model, measured, model_orm, comment="Response"):
+def make_plots(setup_args, model, measured, model_orm, comment="Response",
+               save_to=None, base_orm=None, index=0):
     monitor_subset = setup_args.get('plot_monitors', [])
     steerer_subset = setup_args.get('plot_steerers', [])
     for monitor in measured.monitors:
         if monitor in monitor_subset:
             plot_monitor_response(
-                plt.figure(1), monitor, model, measured, model_orm, comment)
-            plt.show()
+                plt.figure(1), monitor, model, measured, base_orm, model_orm, comment)
+            if save_to is None:
+                plt.show()
+            else:
+                plt.savefig('{}-mon-{}.png'.format(save_to, index))
             plt.clf()
     for steerer in measured.steerers:
         if steerer in steerer_subset:
             plot_steerer_response(
-                plt.figure(1), steerer, model, measured, model_orm, comment)
-            plt.show()
+                plt.figure(1), steerer, model, measured, base_orm, model_orm, comment)
+            if save_to is None:
+                plt.show()
+            else:
+                plt.savefig('{}-ste-{}.png'.format(save_to, index))
             plt.clf()
 
 
-def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
+def plot_monitor_response(
+        fig, monitor, model, measured, base_orm, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.steerers]
     i = measured.monitors.index(monitor)
     lines = []
@@ -311,6 +320,12 @@ def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
             measured.stddev[i, j, :].flatten(),
             label=ax + " measured")
 
+        if base_orm is not None:
+            axes.plot(
+                xpos,
+                base_orm[i, j, :].flatten(),
+                label=ax + " base model")
+
         lines.append(axes.plot(
             xpos,
             model_orm[i, j, :].flatten(),
@@ -322,7 +337,8 @@ def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
     return lines
 
 
-def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
+def plot_steerer_response(
+        fig, steerer, model, measured, base_orm, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.monitors]
     i = measured.steerers.index(steerer)
     lines = []
@@ -342,6 +358,12 @@ def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
             measured.stddev[:, j, i].flatten(),
             label=ax + " measured")
 
+        if base_orm is not None:
+            axes.plot(
+                xpos,
+                base_orm[i, j, :].flatten(),
+                label=ax + " base model")
+
         lines.append(axes.plot(
             xpos,
             model_orm[:, j, i].flatten(),
@@ -351,3 +373,102 @@ def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
 
     fig.suptitle("{1}: {0}".format(steerer, comment))
     return lines
+
+
+def plot_series(model, measured, fit_args):
+    monitors = measured.monitors
+    knobs = measured.knobs
+    stddev = (measured.stddev if fit_args.get('stddev') else
+              np.ones(measured.orm.shape))
+
+    model.madx.eoption(add=True)
+
+    print("INITIAL")
+    model.update_globals(measured.strengths.items())
+    model_orm = model.get_orbit_response_matrix(monitors, knobs)
+
+    fit_twiss = fit_args.get('fit_twiss')
+    if fit_twiss:
+        print("TWISS INIT")
+        model.update_twiss_args(fit_init_orbit(model, measured, fit_twiss))
+        model_orm = model.get_orbit_response_matrix(monitors, knobs)
+        model.madx.use(sequence=model.seq_name)
+
+    base_orm = None
+
+    def info(param, index):
+        print("red χ² =", reduced_chisq(
+            (measured.orm - model_orm) / stddev, 1))
+        print("    |x =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[:, 0, :], 1))
+        print("    |y =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[:, 1, :], 1))
+        if index is not None:
+            os.makedirs('plots', exist_ok=True)
+            make_plots(
+                fit_args, model, measured, model_orm, str(param),
+                save_to='plots/fig', base_orm=base_orm, index=index)
+
+    info("INITIAL", 0)
+    base_orm = model_orm
+    for i, param in enumerate(get_error_params(model, fit_args)):
+        with param.vary(model):
+            model_orm = model.get_orbit_response_matrix(monitors, knobs)
+        info(param, i)
+
+
+def get_error_params(model, plot_args):
+    for name in plot_args['elements']:
+        yield from get_elem_params(model, name)
+
+    for knob in plot_args['knobs']:
+        if isinstance(knob, dict):
+            (knob, value), = knob.items()
+        else:
+            value = 4e-2
+        yield ScaleParam(knob, +value)
+        yield ScaleParam(knob, -value)
+
+
+ERR_ATTR = {
+    'sbend': ['angle', 'e1', 'e2', 'k0', 'hgap', 'fint'],
+    'quadrupole': ['k1', 'k1s'],
+    'hkicker': ['kick', 'tilt'],
+    'vkicker': ['kick', 'tilt'],
+    'srotation': ['angle'],
+}
+
+ERR_EALIGN = ['dx', 'dy', 'ds', 'dpsi', 'dphi', 'dtheta']
+
+
+# scaling: monitor
+# scaling: kicker
+
+def get_elem_params(model, name, *, delta=False, scale=True, efcomp=False):
+    elem = model.elements[name]
+    if elem.base_name == 'drift':
+        return
+
+    if delta:
+        for attr in ERR_ATTR.get(elem.base_name, []):
+            yield ElemAttr(name, attr, +1e-4)
+            yield ElemAttr(name, attr, -1e-4)
+        for attr in ERR_EALIGN:
+            yield Ealign({'range': name}, attr, +1e-3)
+            yield Ealign({'range': name}, attr, -1e-3)
+
+    if scale:
+        for attr in ERR_ATTR.get(elem.base_name, []):
+            yield ScaleAttr(name, attr, +5e-2)
+            yield ScaleAttr(name, attr, -5e-2)
+
+    if efcomp:
+        kwargs = dict(order=None, radius=None)
+        if elem.base_name == 'sbend':
+            yield Efcomp({'range': name}, 'dkn', [+1e-3], **kwargs)
+            yield Efcomp({'range': name}, 'dkn', [-1e-3], **kwargs)
+        if elem.base_name == 'quadrupole':
+            yield Efcomp({'range': name}, 'dkn', [0, +1e-3], **kwargs)
+            yield Efcomp({'range': name}, 'dkn', [0, -1e-3], **kwargs)
+            yield Efcomp({'range': name}, 'dks', [0, +1e-3], **kwargs)
+            yield Efcomp({'range': name}, 'dks', [0, -1e-3], **kwargs)

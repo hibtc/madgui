@@ -3,11 +3,12 @@
 Utility for analyzing on ORM measurements.
 
 Usage:
-    ./orm_analysis.py (-i | -s SPEC) MODEL RECORDS...
+    ./orm_analysis.py (-i | -f SPEC | -p SPEC) MODEL RECORDS...
 
 Options:
     -i, --interactive       Interactive mode
-    -s SPEC, --spec SPEC    Fit specification file
+    -f SPEC, --fit SPEC     Fit specification file
+    -p SPEC, --plot SPEC    Plot and save figures
 
 Arguments:
     MODEL must be the path of the model/sequence file to initialize MAD-X.
@@ -26,7 +27,7 @@ from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.model.orm import (
     analyze, load_yaml, OrbitResponse, plot_monitor_response,
-    create_errors_from_spec, reduced_chisq)
+    create_errors_from_spec, reduced_chisq, plot_series)
 
 from madgui.util.qt import monospace
 from madgui.util.layout import VBoxLayout, HBoxLayout, Stretch
@@ -126,7 +127,7 @@ class MainWindow(QtGui.QMainWindow):
             self.figure.backend_figure.clear()
             self.lines = plot_monitor_response(
                 self.figure.backend_figure,
-                monitor, self.model, self.measured, self.model_orm,
+                monitor, self.model, self.measured, None, self.model_orm,
                 "model versus measured ORM")
             self.figure.canvas.draw()
             self.figure.canvas.updateGeometry()
@@ -181,8 +182,13 @@ def main(args=None):
             window = MainWindow(model, measured)
             window.show()
             return app.exec_()
+        elif opts['--plot']:
+            spec_file = opts['--plot']
+            plot_series(
+                model, measured,
+                load_yaml(spec_file)['plot'])
         else:
-            spec_file = opts['--spec']
+            spec_file = opts['--fit']
             return analyze(
                 model, measured,
                 load_yaml(spec_file)['analysis'])
