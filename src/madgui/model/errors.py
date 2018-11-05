@@ -119,3 +119,39 @@ class ElemAttr(BaseError):
 
     def __repr__(self):
         return "[Δ{}->{}={}]".format(self.elem, self.attr, self.step)
+
+
+class ScaleAttr(ElemAttr):
+
+    def set_base(self, madx):
+        self.base = 0.0
+
+    def apply(self, madx, value):
+        madx.elements[self.elem][self.attr] = "({}) * ({})".format(
+            madx.elements[self.elem].cmdpar[self.attr].definition, 1+value)
+
+    def __repr__(self):
+        return "[δ{}->{}={}]".format(self.elem, self.attr, self.step)
+
+
+class ScaleParam(Param):
+
+    def set_base(self, madx):
+        self.base = 0.0
+
+    @contextmanager
+    def vary(self, model):
+        madx = model.madx
+        step = self.step
+        backup = madx.globals.cmdpar[self.knob].definition
+        self.apply(madx, step)
+        try:
+            yield step
+        finally:
+            madx.globals[self.knob] = backup
+
+    def apply(self, madx, value):
+        madx.globals[self.knob] *= 1+value
+
+    def __repr__(self):
+        return "[δ{}={}]".format(self.knob, self.step)
