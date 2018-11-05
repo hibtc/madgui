@@ -49,8 +49,7 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
     if monitor_errors:
         A = np.hstack((A, +model_orm))
     if mode == 'x' or mode == 'y':
-        d = mode == 'y'
-        print(A.shape, Y.shape, S.shape)
+        d = int(mode == 'y')
         A = A[:, :, d, :]
         Y = Y[:, d, :]
         S = S[:, d, :]
