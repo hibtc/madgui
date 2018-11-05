@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from unittest import mock
 from contextlib import ExitStack
 import time
@@ -54,7 +55,7 @@ def main(model_file, spec_file, record_file):
         # order to fix this, the hit_csys test backend will have to use an
         # independent model!
         model = session.model()
-        errors = create_errors_from_spec(setup_args)
+        errors = create_errors_from_spec(setup_args['errors'])
         for error in errors:
             error.set_base(model.madx)
             stack.enter_context(error.vary(model))
