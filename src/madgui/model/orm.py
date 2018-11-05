@@ -28,6 +28,7 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
               monitor_errors=False,
               stddev=1,
               mode='xy',
+              monitors=None,
               rcond=1e-8):
     """
     Fit model to the measured ORM via the given params
@@ -48,6 +49,10 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
         A = np.hstack((A, -model_orm))
     if monitor_errors:
         A = np.hstack((A, +model_orm))
+    if monitors:
+        A = A[:, monitors, :, :]
+        Y = Y[monitors, :, :]
+        S = S[monitors, :, :]
     if mode == 'x' or mode == 'y':
         d = int(mode == 'y')
         A = A[:, :, d, :]
@@ -217,14 +222,19 @@ def analyze(model, measured, fit_args):
         error.set_base(model.madx)
     model.madx.eoption(add=True)
 
+    sel = [
+        monitors.index(m.lower())
+        for m in fit_args.get('fit_monitors', monitors)
+    ]
+
     def info(comment):
         print("X_tot  =", np.array([err.base for err in errors]))
         print("red χ² =", reduced_chisq(
-            (measured.orm - model_orm) / stddev, len(errors)))
+            ((measured.orm - model_orm) / stddev)[sel], len(errors)))
         print("    |x =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[:, 0, :], len(errors)))
+            ((measured.orm - model_orm) / stddev)[sel][:, 0, :], len(errors)))
         print("    |y =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[:, 1, :], len(errors)))
+            ((measured.orm - model_orm) / stddev)[sel][:, 1, :], len(errors)))
         make_plots(fit_args, model, measured, model_orm, comment)
 
     print("INITIAL")
@@ -249,7 +259,9 @@ def analyze(model, measured, fit_args):
             monitor_errors=fit_args.get('monitor_errors'),
             steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev,
-            mode=fit_args.get('mode', 'xy'))
+            mode=fit_args.get('mode', 'xy'),
+            monitors=sel,
+        )
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
