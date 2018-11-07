@@ -239,7 +239,7 @@ def analyze(model, measured, fit_args):
             ((measured.orm - model_orm) / stddev)[sel][:, 1, :], len(errors)))
         make_plots(fit_args, model, measured, model_orm, comment)
 
-    print("Errors", errors)
+    print("Errors =", [err.name for err in errors])
 
     print("INITIAL")
     model.update_globals(measured.strengths.items())
@@ -296,7 +296,7 @@ def analyze(model, measured, fit_args):
 
         print("red χ² =", chisq)
         print("ΔX     =", results.flatten())
-        print("Errors", errors)
+        print("Errors =", [err.name for err in errors])
         info("final")
 
     else:
