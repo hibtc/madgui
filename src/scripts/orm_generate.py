@@ -3,7 +3,6 @@ from unittest import mock
 from contextlib import ExitStack
 import time
 
-from madgui.qt import QtCore
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
@@ -25,8 +24,7 @@ def main(model_file, spec_file, record_file):
 
     RECORDS is the name of the YAML output file where
     """
-    app = QtCore.QCoreApplication([])
-    init_app(app)
+    init_app([], gui=False)
 
     config = load_config(isolated=True)
     with ExitStack() as stack:

@@ -165,8 +165,7 @@ class MainWindow(QtGui.QMainWindow):
 
 def main(args=None):
     opts = docopt(__doc__, args)
-    app = QtGui.QApplication(['madgui'])
-    init_app(app)
+    app = init_app(['madgui'])
 
     model_file = opts['MODEL']
     record_files = opts['RECORDS']

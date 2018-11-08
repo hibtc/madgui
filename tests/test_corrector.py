@@ -8,7 +8,6 @@ import time
 
 import pytest
 
-from madgui.qt import QtCore
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
@@ -20,9 +19,7 @@ from madgui.util.yaml import safe_load
 def app():
     # NOTE: this fixture (in particular the sys.excepthook patch) is required
     # to not segfault the tests!
-    app = QtCore.QCoreApplication([])
-    init_app(app)
-    return app
+    return init_app([], gui=False)
 
 
 @pytest.yield_fixture

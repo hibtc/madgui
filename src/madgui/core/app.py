@@ -45,8 +45,7 @@ from madgui.util.qt import load_icon_resource
 import madgui.core.config as config
 
 
-def main(argv=None):
-    """Run madgui mainloop and exit process when finished."""
+def init_app(argv=None, gui=True):
     warnings.filterwarnings(
         "default", module='(madgui|cpymad|minrpc|pydicti).*')
     set_app_id('hit.madgui')
@@ -58,9 +57,22 @@ def main(argv=None):
     # QApplication needs a valid argument list:
     if argv is None:
         argv = sys.argv
-    app = QtGui.qApp = QtGui.QApplication(argv)
-    app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
-    init_app(app)
+    if gui:
+        app = QtGui.qApp = QtGui.QApplication(argv)
+        app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
+        app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
+    else:
+        app = QtCore.qApp = QtCore.QCoreApplication(argv)
+    # Print uncaught exceptions. This changes the default behaviour on PyQt5,
+    # where an uncaught exception would usually cause the program to abort.
+    sys.excepthook = traceback.print_exception
+    setup_interrupt_handling(app)
+    return app
+
+
+def main(argv=None):
+    """Run madgui mainloop and exit process when finished."""
+    app = init_app(argv)
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
     opts = docopt(__doc__, args, version=__version__)
@@ -70,7 +82,6 @@ def main(argv=None):
         window = MainWindow(session)
         session.window.set(window)
         window.show()
-        app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
         # Defer `loadDefault` to avoid creation of a AsyncRead thread before
         # the main loop is entered: (Being in the mainloop simplifies
         # terminating the AsyncRead thread via the QApplication.aboutToQuit
@@ -80,13 +91,6 @@ def main(argv=None):
         QtCore.QTimer.singleShot(
             0, partial(session.load_default, opts['FILE']))
         return sys.exit(app.exec_())
-
-
-def init_app(app):
-    setup_interrupt_handling(app)
-    # Print uncaught exceptions. This changes the default behaviour on PyQt5,
-    # where an uncaught exception would usually cause the program to abort.
-    sys.excepthook = traceback.print_exception
 
 
 def setup_interrupt_handling(app):
