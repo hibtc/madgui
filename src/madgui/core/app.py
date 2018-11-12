@@ -51,7 +51,7 @@ def init_app(argv=None, gui=True):
     set_app_id('hit.madgui')
     # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
     # Note that sys.stdout can be ``None`` if starting as console_script:
-    if sys.stdout and sys.stdout.encoding != 'UTF-8':
+    if sys.stdout and sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
         import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     # QApplication needs a valid argument list:
