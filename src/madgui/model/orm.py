@@ -18,6 +18,7 @@ def get_orm_derivs(model, monitors, knobs, base_orm, params):
 def get_orm_deriv(model, monitors, knobs, base_orm, param) -> np.array:
     """Compute the derivative of the orbit response matrix with respect to
     the parameter ``p`` as ``ΔR_ij/Δp``."""
+    print('.', end='', flush=True)
     with model.undo_stack.rollback("orm_deriv", transient=True):
         with param.vary(model) as step:
             model.twiss.invalidate()
@@ -25,11 +26,25 @@ def get_orm_deriv(model, monitors, knobs, base_orm, param) -> np.array:
             return (varied_orm - base_orm) / step
 
 
-def fit_model(measured_orm, model_orm, model_orm_derivs,
-              stddev=1,
-              mode='xy',
-              monitors=None,
-              rcond=1e-8):
+def fit_model(
+        model, measured, stddev, errors, monitor_subset,
+        mode='xy', iterations=50, method='minimize',
+        callback=None):
+    implementations = {
+        'minimize': fit_model_minimize,
+        'lstsq': fit_model_lstsq,
+    }
+    return implementations[method](
+        model, measured, stddev, errors, monitor_subset,
+        mode=mode, iterations=iterations, callback=callback)
+
+
+def fit_model_lstsq_single(
+        measured_orm, model_orm, model_orm_derivs,
+        stddev=1,
+        mode='xy',
+        monitors=None,
+        rcond=1e-8):
     """
     Fit model to the measured ORM via the given params
     (:class:`Param`). Return the best-fit solutions X for the parameters
@@ -223,7 +238,7 @@ def analyze(model, measured, fit_args):
         for m in fit_args.get('fit_monitors', monitors)
     ]
 
-    def info(comment):
+    def info(comment, errors, model_orm):
         print("X_tot  =", np.array([err.base for err in errors]))
         print("red χ² =", reduced_chisq(
             ((measured.orm - model_orm) / stddev)[sel], len(errors)))
@@ -238,83 +253,114 @@ def analyze(model, measured, fit_args):
     print("INITIAL")
     model.update_globals(measured.strengths.items())
     model_orm = model.get_orbit_response_matrix(monitors, knobs)
-    info("initial")
+    info("initial", errors, model_orm)
 
     fit_twiss = fit_args.get('fit_twiss')
     if fit_twiss:
         print("TWISS INIT")
         model.update_twiss_args(fit_init_orbit(model, measured, fit_twiss))
         model_orm = model.get_orbit_response_matrix(monitors, knobs)
-        info("twiss_init")
+        info("twiss_init", errors, model_orm)
         model.madx.use(sequence=model.seq_name)
 
-    method = fit_args.get('method', 'jacobian')
+    return fit_model(
+        model, measured, stddev, errors, sel,
+        mode=fit_args.get('mode', 'xy'),
+        iterations=fit_args.get('iterations', 1),
+        method=fit_args.get('method', 'minimize'),
+        callback=info)
 
-    if method == 'jacobian':
-        from scipy.optimize import minimize, Bounds
 
-        d = [i for i, c in enumerate("xy")
-                if c in fit_args.get('mode', 'xy')]
+def fit_model_minimize(
+        model, measured, stddev, errors,
+        monitor_subset,
+        mode='xy', iterations=100, callback=None):
 
-        def objective(values):
-            nonlocal model_orm, chisq
-            with ExitStack() as stack:
-                for error, value in zip(errors, values):
-                    error.step = value
-                    stack.enter_context(error.vary(model))
-                model_orm = model.get_orbit_response_matrix(
-                    monitors, knobs)
-                chisq = reduced_chisq(
-                    ((measured.orm - model_orm) / stddev)[sel][:, d, :], 1)
-                print(values, chisq)
-                return chisq
+    from scipy.optimize import minimize, Bounds
 
-        error_values = np.zeros(len(errors))
-        result = minimize(
-            objective, error_values,
-            bounds=Bounds(-0.1, 0.1),
-            tol=1e-6, options={
-                'maxiter': fit_args.get('iterations', 1)
-            })
-        results = result.x
-        print(result.message)
+    monitors = measured.monitors
+    knobs = measured.knobs
+    stddev = measured.stddev
+    sel = monitor_subset
+    callback = callback or NOP
+
+    d = [i for i, c in enumerate("xy") if c in mode]
+
+    def objective(values):
+        nonlocal model_orm, chisq
+        with ExitStack() as stack:
+            for error, value in zip(errors, values):
+                error.step = value
+                stack.enter_context(error.vary(model))
+            model_orm = model.get_orbit_response_matrix(
+                monitors, knobs)
+            chisq = reduced_chisq(
+                ((measured.orm - model_orm) / stddev)[sel][:, d, :], 1)
+            print(values, chisq)
+            return chisq
+
+    error_values = np.zeros(len(errors))
+    result = minimize(
+        objective, error_values,
+        bounds=Bounds(-0.1, 0.1),
+        tol=1e-6, options={'maxiter': iterations})
+    results = result.x
+    print(result.message)
+
+    for param, value in zip(errors, results.flatten()):
+        param.base += value
+        param.apply(model.madx, value)
+
+    model_orm = model.get_orbit_response_matrix(
+        monitors, knobs)
+    chisq = reduced_chisq(
+        ((measured.orm - model_orm) / stddev)[sel][:, d, :], 1)
+
+    for err, val in zip(errors, results.flatten()):
+        err.base += val
+
+    print("red χ² =", chisq)
+    print("ΔX     =", results.flatten())
+    print("Errors =", [err.name for err in errors])
+    callback("final", errors, model_orm)
+
+
+def fit_model_lstsq(
+        model, measured, stddev, errors, monitor_subset,
+        mode='xy', iterations=100, callback=None):
+
+    monitors = measured.monitors
+    knobs = measured.knobs
+    callback = callback or NOP
+
+    for i in range(iterations):
+        print("ITERATION", i)
+        model_orm = model.get_orbit_response_matrix(monitors, knobs)
+        callback("iteration {}".format(i), errors, model_orm)
+        print("...", end='', flush=True)
+
+        results, chisq = fit_model_lstsq_single(
+            measured.orm, model_orm, get_orm_derivs(
+                model, monitors, knobs, model_orm, errors),
+            stddev=stddev,
+            mode=mode,
+            monitors=monitor_subset,
+        )
+
+        print(" ->")
+        print("ΔX     =", results.flatten())
+        print("red χ² =", chisq, "(linear hypothesis)")
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
             param.apply(model.madx, value)
 
-        model_orm = model.get_orbit_response_matrix(
-            monitors, knobs)
-        chisq = reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[sel][:, d, :], 1)
+    model_orm = model.get_orbit_response_matrix(monitors, knobs)
+    callback("final", errors, model_orm)
 
-        print("red χ² =", chisq)
-        print("ΔX     =", results.flatten())
-        print("Errors =", [err.name for err in errors])
-        info("final")
 
-    else:
-
-        for i in range(fit_args.get('iterations', 1)):
-            print("ITERATION", i)
-
-            results, chisq = fit_model(
-                measured.orm, model_orm, get_orm_derivs(
-                    model, monitors, knobs, model_orm, errors),
-                stddev=stddev,
-                mode=fit_args.get('mode', 'xy'),
-                monitors=sel,
-            )
-
-            for param, value in zip(errors, results.flatten()):
-                param.base += value
-                param.apply(model.madx, value)
-
-            model_orm = model.get_orbit_response_matrix(monitors, knobs)
-
-            print("red χ² =", chisq, "(linear hypothesis)")
-            print("ΔX     =", results.flatten())
-            info("iteration {}".format(i))
+def NOP(*args, **kwargs):
+    pass
 
 
 def make_plots(setup_args, model, measured, model_orm, comment="Response",
