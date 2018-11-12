@@ -1,6 +1,6 @@
 import os
 import re
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -222,19 +222,31 @@ def fit_init_orbit(model, measured, fit_monitors):
     return twiss_init
 
 
-def analyze(model, measured, fit_args):
+class Analysis:
 
-    print("INITIAL")
-    model.update_globals(measured.strengths.items())
-    monitors = measured.monitors
-    knobs = measured.knobs
+    def __init__(self, model, measured):
+        self.model = model
+        self.measured = measured
+        self.monitors = measured.monitors
+        self.steerers = measured.steerers
+        self.knobs = measured.knobs
 
-    def selected_monitors(selected):
-        return [monitors.index(m.lower()) for m in selected]
+    def init(self, strengths=None):
+        print("INITIAL")
+        if strengths is None:
+            strengths = self.measured.strengths
+        self.model.update_globals(strengths.items())
+        self.model_orm = self.get_orbit_response()
+        sel = self.get_selected_monitors(self.monitors)
+        self.info("initial", sel)
 
-    def info(comment, model_orm, sel, errors=None, ddof=1):
+    def info(self, comment, sel=None, errors=None, ddof=1):
+        measured = self.measured
         if errors:
             print("X_tot  =", np.array([err.base for err in errors]))
+        if sel is None:
+            sel = slice(None)
+        model_orm = self.model_orm
         stddev = measured.stddev
         print("red χ² =", reduced_chisq(
             ((measured.orm - model_orm) / stddev)[sel], ddof))
@@ -243,57 +255,85 @@ def analyze(model, measured, fit_args):
         print("    |y =", reduced_chisq(
             ((measured.orm - model_orm) / stddev)[sel][:, 1, :], ddof))
 
-    model_orm = model.get_orbit_response_matrix(monitors, knobs)
-    info("initial", model_orm, selected_monitors(monitors))
+    def get_orbit_response(self):
+        return self.model.get_orbit_response_matrix(
+            self.monitors, self.knobs)
 
-    for command in fit_args:
-        action = command['action']
+    def get_selected_monitors(self, selected):
+        return [self.monitors.index(m.lower()) for m in selected]
 
-        if action == 'plot-monitor':
-            select = command.get('monitors', monitors)
-            print("plotting monitors: {}".format(" ".join(select)))
-            make_monitor_plots(
-                select, model, measured, model_orm,
-                save_to=command.get('save_to'))
+    def plot_monitors(self, select=None, save_to=None):
+        if select is None:
+            select = self.monitors
+        print("plotting monitors: {}".format(" ".join(select)))
+        make_monitor_plots(
+            select, self.model, self.measured, self.model_orm,
+            save_to=save_to)
 
-        if action == 'plot-steerer':
-            select = command.get('steerers', monitors)
-            print("plotting steerers: {}".format(" ".join(select)))
-            make_steerer_plots(
-                select, model, measured, model_orm,
-                save_to=command.get('save_to'))
+    def plot_steerers(self, select=None, save_to=None):
+        if select is None:
+            select = self.steerers
+        print("plotting steerers: {}".format(" ".join(select)))
+        make_steerer_plots(
+            select, self.model, self.measured, self.model_orm,
+            save_to=save_to)
 
-        if action == 'info':
-            comment = command['comment']
-            ddof = command.get('ddof', 1)
-            sel = selected_monitors(command.get('monitors', monitors))
-            model_orm = model.get_orbit_response_matrix(monitors, knobs)
-            info(comment, model_orm, sel, ddof=ddof)
+    def backtrack(self, monitors):
+        print("TWISS INIT")
+        self.model.update_twiss_args(
+            fit_init_orbit(self.model, self.measured, monitors))
+        self.model_orm = self.get_orbit_response()
 
-        if action == 'backtrack':
-            print("TWISS INIT")
-            model.update_twiss_args(
-                fit_init_orbit(model, measured, command['monitors']))
+    def fit(self, errors, monitors,
+            mode='xy', iterations=50,
+            use_stddev=True,
+            method='minimize'):
+        print("Fitting model")
+        model = self.model
+        measured = self.measured
+        stddev = (measured.stddev if use_stddev else
+                  np.ones(measured.orm.shape))
 
-        if action == 'fit':
-            print("FIT MODEL")
-            stddev = (measured.stddev if command.get('stddev') else
-                      np.ones(measured.orm.shape))
+        sel = self.get_selected_monitors(monitors or self.monitors)
+        for error in errors:
+            error.set_base(model.madx)
+        model.madx.eoption(add=True)
 
-            sel = selected_monitors(command.get('monitors', monitors))
-            errors = create_errors_from_spec(command['errors'])
-            for error in errors:
-                error.set_base(model.madx)
-            model.madx.eoption(add=True)
+        def callback(comment, model_orm, sel, errors):
+            self.model_orm = model_orm
+            self.info(comment, sel, errors)
 
-            fit_model(
-                model, measured, stddev, errors, sel,
-                mode=command.get('mode', 'xy'),
-                iterations=command.get('iterations', 1),
-                method=command.get('method', 'minimize'),
-                callback=info)
+        fit_model(
+            model, measured, stddev, errors, sel,
+            mode=mode,
+            iterations=iterations,
+            method=method,
+            callback=callback)
+        self.model_orm = self.get_orbit_response()
 
-            print("Errors =", [err.name for err in errors])
+        print("Errors =", [err.name for err in errors])
+
+    @classmethod
+    @contextmanager
+    def app(cls, model_file, record_files):
+        from madgui.core.app import init_app
+        from madgui.core.session import Session
+        from madgui.core.config import load as load_config
+        from glob import glob
+
+        init_app(['madgui'])
+
+        if isinstance(record_files, str):
+            record_files = glob(record_files)
+
+        config = load_config(isolated=True)
+        with Session(config) as session:
+            session.load_model(
+                model_file,
+                stdout=False)
+            model = session.model()
+            measured = OrbitResponse.load(model, record_files)
+            yield cls(model, measured)
 
 
 def fit_model_minimize(
@@ -399,7 +439,7 @@ def make_monitor_plots(
             if save_to is None:
                 plt.show()
             else:
-                plt.savefig('{}-mon-{}.png'.format(save_to, index))
+                plt.savefig('{}-mon-{}-{}.png'.format(save_to, index, monitor))
             plt.clf()
 
 
@@ -414,7 +454,7 @@ def make_steerer_plots(
             if save_to is None:
                 plt.show()
             else:
-                plt.savefig('{}-ste-{}.png'.format(save_to, index))
+                plt.savefig('{}-ste-{}-{}.png'.format(save_to, index, steerer))
             plt.clf()
 
 

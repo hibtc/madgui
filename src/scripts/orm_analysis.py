@@ -26,7 +26,7 @@ from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.model.orm import (
-    analyze, load_yaml, OrbitResponse, plot_monitor_response,
+    load_yaml, OrbitResponse, plot_monitor_response,
     create_errors_from_spec, reduced_chisq, plot_series)
 
 from madgui.util.qt import monospace
@@ -186,11 +186,6 @@ def main(args=None):
             plot_series(
                 model, measured,
                 load_yaml(spec_file)['plot'])
-        else:
-            spec_file = opts['--fit']
-            return analyze(
-                model, measured,
-                load_yaml(spec_file)['analysis'])
 
 
 if __name__ == '__main__':
