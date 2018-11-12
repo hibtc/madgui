@@ -58,6 +58,7 @@ def main():
             'docopt',           # command line parsing
             'matplotlib' + mpl_version,
             'numpy',
+            'scipy',
             'PyYAML',           # config/model files
             'Pint==0.8.1',
             'docutils',         # about dialogs
