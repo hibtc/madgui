@@ -224,51 +224,76 @@ def fit_init_orbit(model, measured, fit_monitors):
 
 def analyze(model, measured, fit_args):
 
-    monitors = measured.monitors
-    knobs = measured.knobs
-    stddev = (measured.stddev if fit_args.get('stddev') else
-              np.ones(measured.orm.shape))
-    errors = create_errors_from_spec(fit_args['errors'])
-    for error in errors:
-        error.set_base(model.madx)
-    model.madx.eoption(add=True)
-
-    sel = [
-        monitors.index(m.lower())
-        for m in fit_args.get('fit_monitors', monitors)
-    ]
-
-    def info(comment, errors, model_orm):
-        print("X_tot  =", np.array([err.base for err in errors]))
-        print("red χ² =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[sel], len(errors)))
-        print("    |x =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[sel][:, 0, :], len(errors)))
-        print("    |y =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[sel][:, 1, :], len(errors)))
-        make_plots(fit_args, model, measured, model_orm, comment)
-
-    print("Errors =", [err.name for err in errors])
-
     print("INITIAL")
     model.update_globals(measured.strengths.items())
+    monitors = measured.monitors
+    knobs = measured.knobs
+
+    def selected_monitors(selected):
+        return [monitors.index(m.lower()) for m in selected]
+
+    def info(comment, model_orm, sel, errors=None, ddof=1):
+        if errors:
+            print("X_tot  =", np.array([err.base for err in errors]))
+        stddev = measured.stddev
+        print("red χ² =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[sel], ddof))
+        print("    |x =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[sel][:, 0, :], ddof))
+        print("    |y =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[sel][:, 1, :], ddof))
+
     model_orm = model.get_orbit_response_matrix(monitors, knobs)
-    info("initial", errors, model_orm)
+    info("initial", model_orm, selected_monitors(monitors))
 
-    fit_twiss = fit_args.get('fit_twiss')
-    if fit_twiss:
-        print("TWISS INIT")
-        model.update_twiss_args(fit_init_orbit(model, measured, fit_twiss))
-        model_orm = model.get_orbit_response_matrix(monitors, knobs)
-        info("twiss_init", errors, model_orm)
-        model.madx.use(sequence=model.seq_name)
+    for command in fit_args:
+        action = command['action']
 
-    return fit_model(
-        model, measured, stddev, errors, sel,
-        mode=fit_args.get('mode', 'xy'),
-        iterations=fit_args.get('iterations', 1),
-        method=fit_args.get('method', 'minimize'),
-        callback=info)
+        if action == 'plot-monitor':
+            select = command.get('monitors', monitors)
+            print("plotting monitors: {}".format(" ".join(select)))
+            make_monitor_plots(
+                select, model, measured, model_orm,
+                save_to=command.get('save_to'))
+
+        if action == 'plot-steerer':
+            select = command.get('steerers', monitors)
+            print("plotting steerers: {}".format(" ".join(select)))
+            make_steerer_plots(
+                select, model, measured, model_orm,
+                save_to=command.get('save_to'))
+
+        if action == 'info':
+            comment = command['comment']
+            ddof = command.get('ddof', 1)
+            sel = selected_monitors(command.get('monitors', monitors))
+            model_orm = model.get_orbit_response_matrix(monitors, knobs)
+            info(comment, model_orm, sel, ddof=ddof)
+
+        if action == 'backtrack':
+            print("TWISS INIT")
+            model.update_twiss_args(
+                fit_init_orbit(model, measured, command['monitors']))
+
+        if action == 'fit':
+            print("FIT MODEL")
+            stddev = (measured.stddev if command.get('stddev') else
+                      np.ones(measured.orm.shape))
+
+            sel = selected_monitors(command.get('monitors', monitors))
+            errors = create_errors_from_spec(command['errors'])
+            for error in errors:
+                error.set_base(model.madx)
+            model.madx.eoption(add=True)
+
+            fit_model(
+                model, measured, stddev, errors, sel,
+                mode=command.get('mode', 'xy'),
+                iterations=command.get('iterations', 1),
+                method=command.get('method', 'minimize'),
+                callback=info)
+
+            print("Errors =", [err.name for err in errors])
 
 
 def fit_model_minimize(
@@ -322,7 +347,7 @@ def fit_model_minimize(
     print("red χ² =", chisq)
     print("ΔX     =", results.flatten())
     print("Errors =", [err.name for err in errors])
-    callback("final", errors, model_orm)
+    callback("final", model_orm, sel, errors)
 
 
 def fit_model_lstsq(
@@ -356,17 +381,16 @@ def fit_model_lstsq(
             param.apply(model.madx, value)
 
     model_orm = model.get_orbit_response_matrix(monitors, knobs)
-    callback("final", errors, model_orm)
+    callback("final", model_orm, monitor_subset, errors)
 
 
 def NOP(*args, **kwargs):
     pass
 
 
-def make_plots(setup_args, model, measured, model_orm, comment="Response",
-               save_to=None, base_orm=None, index=0):
-    monitor_subset = setup_args.get('plot_monitors', [])
-    steerer_subset = setup_args.get('plot_steerers', [])
+def make_monitor_plots(
+        monitor_subset, model, measured, model_orm, comment="Response",
+        save_to=None, base_orm=None, index=0):
     for monitor in measured.monitors:
         if monitor in monitor_subset:
             plot_monitor_response(
@@ -377,6 +401,11 @@ def make_plots(setup_args, model, measured, model_orm, comment="Response",
             else:
                 plt.savefig('{}-mon-{}.png'.format(save_to, index))
             plt.clf()
+
+
+def make_steerer_plots(
+        steerer_subset, model, measured, model_orm, comment="Response",
+        save_to=None, base_orm=None, index=0):
     for steerer in measured.steerers:
         if steerer in steerer_subset:
             plot_steerer_response(
@@ -495,8 +524,13 @@ def plot_series(model, measured, fit_args):
             ((measured.orm - model_orm) / stddev)[:, 1, :], 1))
         if index is not None:
             os.makedirs('plots', exist_ok=True)
-            make_plots(
-                fit_args, model, measured, model_orm, str(param),
+            monitor_subset = fit_args.get('plot_monitors', [])
+            steerer_subset = fit_args.get('plot_steerers', [])
+            make_monitor_plots(
+                monitor_subset, model, measured, model_orm, str(param),
+                save_to='plots/fig', base_orm=base_orm, index=index)
+            make_steerer_plots(
+                steerer_subset, model, measured, model_orm, str(param),
                 save_to='plots/fig', base_orm=base_orm, index=index)
 
     info("INITIAL", 0)
