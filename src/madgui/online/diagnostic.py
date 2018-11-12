@@ -252,9 +252,7 @@ class OffsetsWidget(MonitorWidgetBase):
             self.load_from(filename)
 
     def load_from(self, filename):
-        with open(filename) as f:
-            data = f.read()
-        offsets = yaml.safe_load(data)['offsets']
+        offsets = yaml.load_file(filename)['offsets']
         self._offsets.clear()
         self._offsets.update(offsets)
         self.update()

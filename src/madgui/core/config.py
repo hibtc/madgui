@@ -34,20 +34,15 @@ def update_recursive(a, b):
     return a
 
 
-def _read_file(filename):
-    try:
-        with open(filename, 'rb') as f:
-            return f.read()
-    except IOError:
-        return None
-
-
 def _loads(text):
     return yaml.safe_load(text) if text else None
 
 
 def _load_file(path):
-    return yaml.safe_load(path and _read_file(path) or '')
+    try:
+        return yaml.load_file(path)
+    except FileNotFoundError:
+        return ''
 
 
 def load(*config_files, isolated=False):

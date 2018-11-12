@@ -7,6 +7,7 @@ import yaml
 
 # Let's not define bare `load`, `safe` for now:
 __all__ = [
+    'load_file',
     'safe_load',
     'safe_dump',
     'YAMLError',
@@ -21,6 +22,12 @@ SafeDumper = getattr(yaml, 'CSafeDumper', yaml.SafeDumper)
 YAMLError = yaml.error.YAMLError
 ParserError = yaml.parser.ParserError
 ScannerError = yaml.scanner.ScannerError
+
+
+def load_file(filename):
+    """Load yaml document from filename."""
+    with open(filename, 'rb') as f:
+        return safe_load(f)
 
 
 if sys.version_info >= (3, 6):

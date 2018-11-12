@@ -7,8 +7,7 @@ import madgui.util.yaml as yaml
 def import_params(filename, data_key=None):
     _, ext = os.path.splitext(filename.lower())
     if ext in ('.yml', '.yaml'):
-        with open(filename, 'rt') as f:
-            data = yaml.safe_load(f)
+        data = yaml.load_file(filename)
         if data_key:
             data = data[data_key]
     elif ext == '.str':

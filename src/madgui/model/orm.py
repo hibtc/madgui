@@ -3,9 +3,10 @@ from contextlib import ExitStack, contextmanager
 
 import matplotlib.pyplot as plt
 import numpy as np
-import yaml
 
 from cpymad.util import is_identifier
+
+import madgui.util.yaml as yaml
 from madgui.online.orbit import fit_particle_orbit
 from .errors import Param, Ealign, Efcomp, ElemAttr, ScaleAttr, ScaleParam
 
@@ -81,12 +82,6 @@ def reduced_chisq(residuals, ddof):
     return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
 
 
-def load_yaml(filename):
-    """Load yaml document from filename."""
-    with open(filename) as f:
-        return yaml.safe_load(f)
-
-
 class OrbitResponse:
 
     def __init__(self, strengths, records, monitors, knobs, steerers):
@@ -156,7 +151,7 @@ def sorted_mesh(model, monitors, knobs):
 
 
 def load_record_file(filename):
-    data = load_yaml(filename)
+    data = yaml.load_file(filename)
     strengths = data['model']
     records = {
         (monitor, knob): (s, np.mean([
