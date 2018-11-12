@@ -26,8 +26,6 @@ def get_orm_deriv(model, monitors, knobs, base_orm, param) -> np.array:
 
 
 def fit_model(measured_orm, model_orm, model_orm_derivs,
-              steerer_errors=False,
-              monitor_errors=False,
               stddev=1,
               mode='xy',
               monitors=None,
@@ -47,10 +45,6 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
     Y = measured_orm - model_orm
     A = np.array(model_orm_derivs)
     S = np.broadcast_to(stddev, Y.shape)
-    if steerer_errors:
-        A = np.hstack((A, -model_orm))
-    if monitor_errors:
-        A = np.hstack((A, +model_orm))
     if monitors:
         A = A[:, monitors, :, :]
         Y = Y[monitors, :, :]
@@ -307,8 +301,6 @@ def analyze(model, measured, fit_args):
             results, chisq = fit_model(
                 measured.orm, model_orm, get_orm_derivs(
                     model, monitors, knobs, model_orm, errors),
-                monitor_errors=fit_args.get('monitor_errors'),
-                steerer_errors=fit_args.get('steerer_errors'),
                 stddev=stddev,
                 mode=fit_args.get('mode', 'xy'),
                 monitors=sel,
