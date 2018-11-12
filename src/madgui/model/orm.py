@@ -29,14 +29,14 @@ def get_orm_deriv(model, monitors, knobs, base_orm, param) -> np.array:
 def fit_model(
         model, measured, stddev, errors, monitor_subset,
         mode='xy', iterations=50, method='minimize',
-        callback=None):
+        callback=None, **kwargs):
     implementations = {
         'minimize': fit_model_minimize,
         'lstsq': fit_model_lstsq,
     }
     return implementations[method](
         model, measured, stddev, errors, monitor_subset,
-        mode=mode, iterations=iterations, callback=callback)
+        mode=mode, iterations=iterations, callback=callback, **kwargs)
 
 
 def fit_model_lstsq_single(
@@ -333,6 +333,7 @@ class Analysis:
 def fit_model_minimize(
         model, measured, stddev, errors,
         monitor_subset,
+        bounds=None,
         mode='xy', iterations=100, callback=None):
 
     from scipy.optimize import minimize, Bounds
@@ -361,7 +362,7 @@ def fit_model_minimize(
     error_values = np.zeros(len(errors))
     result = minimize(
         objective, error_values,
-        bounds=Bounds(-0.1, 0.1),
+        bounds=Bounds(*bounds) if bounds else None,
         tol=1e-6, options={'maxiter': iterations})
     results = result.x
     print(result.message)
