@@ -429,8 +429,8 @@ def NOP(*args, **kwargs):
 
 def make_monitor_plots(
         monitor_subset, model, measured, model_orm, comment="Response",
-        save_to=None, base_orm=None, index=0):
-    for monitor in measured.monitors:
+        save_to=None, base_orm=None):
+    for index, monitor in enumerate(measured.monitors):
         if monitor in monitor_subset:
             plot_monitor_response(
                 plt.figure(1), monitor,
@@ -444,8 +444,8 @@ def make_monitor_plots(
 
 def make_steerer_plots(
         steerer_subset, model, measured, model_orm, comment="Response",
-        save_to=None, base_orm=None, index=0):
-    for steerer in measured.steerers:
+        save_to=None, base_orm=None):
+    for index, steerer in enumerate(measured.steerers):
         if steerer in steerer_subset:
             plot_steerer_response(
                 plt.figure(1), steerer,
