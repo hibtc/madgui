@@ -3,6 +3,8 @@ from contextlib import contextmanager
 
 class BaseError:
 
+    leader = 'Δ'
+
     def __init__(self, step):
         self.base = 0.0
         self.step = step
@@ -20,6 +22,9 @@ class BaseError:
         finally:
             self.apply(madx, -step)
 
+    def __repr__(self):
+        return "[{}{}={}]".format(self.leader, self.name, self.step)
+
 
 class Param(BaseError):
 
@@ -27,7 +32,7 @@ class Param(BaseError):
 
     def __init__(self, knob, step=1e-4, madx=None):
         super().__init__(step)
-        self.knob = knob
+        self.knob = self.name = knob
         if madx is not None:
             self.set_base(madx)
 
@@ -36,9 +41,6 @@ class Param(BaseError):
 
     def apply(self, madx, value):
         madx.globals[self.knob] += value
-
-    def __repr__(self):
-        return "[Δ{}={}]".format(self.knob, self.step)
 
 
 class Ealign(BaseError):
@@ -49,16 +51,13 @@ class Ealign(BaseError):
         super().__init__(step)
         self.select = select
         self.attr = attr
+        self.name = '{}<{}>'.format(select.get('range'), attr)
 
     def apply(self, madx, value):
         cmd = madx.command
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
         cmd.ealign(**{self.attr: value})
-
-    def __repr__(self):
-        return "[EALIGN {}->{}={}]".format(
-            self.select['range'], self.attr, self.step)
 
 
 class Efcomp(BaseError):
@@ -72,6 +71,7 @@ class Efcomp(BaseError):
         self.value = value
         self.order = order
         self.radius = radius
+        self.name = '{}+{}'.format(select['range'], attr)
 
     def apply(self, madx, value):
         cmd = madx.command
@@ -82,10 +82,6 @@ class Efcomp(BaseError):
             'radius': self.radius,
             self.attr: [v * value for v in self.value],
         })
-
-    def __repr__(self):
-        return "[EFCOMP {}->{}={}]".format(
-            self.select['range'], self.attr, self.step)
 
 
 class ElemAttr(BaseError):
@@ -98,6 +94,7 @@ class ElemAttr(BaseError):
         self.attr = attr
         if madx is not None:
             self.set_base(madx)
+        self.name = '{}->{}'.format(elem, attr)
 
     def set_base(self, madx):
         self.base = madx.elements[self.elem][self.attr]
@@ -117,5 +114,36 @@ class ElemAttr(BaseError):
         madx.elements[self.elem][self.attr] = "({}) + ({})".format(
             madx.elements[self.elem].cmdpar[self.attr].definition, value)
 
-    def __repr__(self):
-        return "[Δ{}->{}={}]".format(self.elem, self.attr, self.step)
+
+class ScaleAttr(ElemAttr):
+
+    leader = 'δ'
+
+    def set_base(self, madx):
+        self.base = 0.0
+
+    def apply(self, madx, value):
+        madx.elements[self.elem][self.attr] = "({}) * ({})".format(
+            madx.elements[self.elem].cmdpar[self.attr].definition, 1+value)
+
+
+class ScaleParam(Param):
+
+    leader = 'δ'
+
+    def set_base(self, madx):
+        self.base = 0.0
+
+    @contextmanager
+    def vary(self, model):
+        madx = model.madx
+        step = self.step
+        backup = madx.globals.cmdpar[self.knob].definition
+        self.apply(madx, step)
+        try:
+            yield step
+        finally:
+            madx.globals[self.knob] = backup
+
+    def apply(self, madx, value):
+        madx.globals[self.knob] *= 1+value

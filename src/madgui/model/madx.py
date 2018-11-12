@@ -99,8 +99,7 @@ class Model:
         path, name = os.path.split(filename)
         ext = os.path.splitext(name)[1].lower()
         if ext in ('.yml', '.yaml'):
-            with open(filename, 'rb') as f:
-                data = yaml.safe_load(f)
+            data = yaml.load_file(filename)
             path = os.path.join(path, data.get('path', '.'))
             _load_params(data, 'beam', path)
             _load_params(data, 'twiss', path)
@@ -863,8 +862,7 @@ def _load_params(data, name, path):
     """Load parameter dict from file if necessary."""
     vals = data.get(name, {})
     if isinstance(vals, str):
-        with open(os.path.join(path, vals), 'rb') as f:
-            data[name] = yaml.safe_load(f)
+        data[name] = yaml.load_file(os.path.join(path, vals))
         if len(data[name]) == 1 and name in data[name]:
             data[name] = data[name][name]
 

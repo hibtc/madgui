@@ -3,13 +3,13 @@ from unittest import mock
 from contextlib import ExitStack
 import time
 
-from madgui.qt import QtCore
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.online.procedure import Corrector, ProcBot
 
-from madgui.model.orm import load_yaml, create_errors_from_spec
+import madgui.util.yaml as yaml
+from madgui.model.orm import create_errors_from_spec
 
 
 def main(model_file, spec_file, record_file):
@@ -25,12 +25,11 @@ def main(model_file, spec_file, record_file):
 
     RECORDS is the name of the YAML output file where
     """
-    app = QtCore.QCoreApplication([])
-    init_app(app)
+    init_app([], gui=False)
 
     config = load_config(isolated=True)
     with ExitStack() as stack:
-        setup_args = load_yaml(spec_file)['procedure']
+        setup_args = yaml.load_file(spec_file)['procedure']
         session = stack.enter_context(Session(config))
         session.control._settings.update({
             'shot_interval': 0.001,

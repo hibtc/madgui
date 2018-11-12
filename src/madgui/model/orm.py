@@ -1,12 +1,14 @@
 import re
+from contextlib import ExitStack, contextmanager
 
 import matplotlib.pyplot as plt
 import numpy as np
-import yaml
 
 from cpymad.util import is_identifier
+
+import madgui.util.yaml as yaml
 from madgui.online.orbit import fit_particle_orbit
-from .errors import Param, Ealign, ElemAttr
+from .errors import Param, Ealign, Efcomp, ElemAttr, ScaleAttr, ScaleParam
 
 
 def get_orm_derivs(model, monitors, knobs, base_orm, params):
@@ -16,6 +18,7 @@ def get_orm_derivs(model, monitors, knobs, base_orm, params):
 def get_orm_deriv(model, monitors, knobs, base_orm, param) -> np.array:
     """Compute the derivative of the orbit response matrix with respect to
     the parameter ``p`` as ``ΔR_ij/Δp``."""
+    print('.', end='', flush=True)
     with model.undo_stack.rollback("orm_deriv", transient=True):
         with param.vary(model) as step:
             model.twiss.invalidate()
@@ -23,12 +26,25 @@ def get_orm_deriv(model, monitors, knobs, base_orm, param) -> np.array:
             return (varied_orm - base_orm) / step
 
 
-def fit_model(measured_orm, model_orm, model_orm_derivs,
-              steerer_errors=False,
-              monitor_errors=False,
-              stddev=1,
-              mode='xy',
-              rcond=1e-8):
+def fit_model(
+        model, measured, stddev, errors, monitor_subset,
+        mode='xy', iterations=50, method='minimize',
+        callback=None, **kwargs):
+    implementations = {
+        'minimize': fit_model_minimize,
+        'lstsq': fit_model_lstsq,
+    }
+    return implementations[method](
+        model, measured, stddev, errors, monitor_subset,
+        mode=mode, iterations=iterations, callback=callback, **kwargs)
+
+
+def fit_model_lstsq_single(
+        measured_orm, model_orm, model_orm_derivs,
+        stddev=1,
+        mode='xy',
+        monitors=None,
+        rcond=1e-8):
     """
     Fit model to the measured ORM via the given params
     (:class:`Param`). Return the best-fit solutions X for the parameters
@@ -44,13 +60,12 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
     Y = measured_orm - model_orm
     A = np.array(model_orm_derivs)
     S = np.broadcast_to(stddev, Y.shape)
-    if steerer_errors:
-        A = np.hstack((A, -model_orm))
-    if monitor_errors:
-        A = np.hstack((A, +model_orm))
+    if monitors:
+        A = A[:, monitors, :, :]
+        Y = Y[monitors, :, :]
+        S = S[monitors, :, :]
     if mode == 'x' or mode == 'y':
-        d = mode == 'y'
-        print(A.shape, Y.shape, S.shape)
+        d = int(mode == 'y')
         A = A[:, :, d, :]
         Y = Y[:, d, :]
         S = S[:, d, :]
@@ -65,12 +80,6 @@ def fit_model(measured_orm, model_orm, model_orm_derivs,
 def reduced_chisq(residuals, ddof):
     residuals = residuals.flatten()
     return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
-
-
-def load_yaml(filename):
-    """Load yaml document from filename."""
-    with open(filename) as f:
-        return yaml.safe_load(f)
 
 
 class OrbitResponse:
@@ -142,7 +151,7 @@ def sorted_mesh(model, monitors, knobs):
 
 
 def load_record_file(filename):
-    data = load_yaml(filename)
+    data = yaml.load_file(filename)
     strengths = data['model']
     records = {
         (monitor, knob): (s, np.mean([
@@ -162,13 +171,19 @@ def load_record_file(filename):
 def create_errors_from_spec(spec):
     def error_from_spec(name, value):
         value = 1.0e-4 if value is None else value
+        mult = name.endswith('*')
+        name = name.rstrip('*')
         if '->' in name:
             elem, attr = name.split('->')
+            if mult:
+                return ScaleAttr(elem, attr, value)
             return ElemAttr(elem, attr, value)
         if '<' in name:
             elem, attr = re.match(r'(.*)\<(.*)\>', name).groups()
             return Ealign({'range': elem}, attr, value)
         if is_identifier(name):
+            if mult:
+                return ScaleParam(name, value)
             return Param(name, value)
         # TODO: efcomp field errors!
         raise ValueError("{!r} is not a valid error specification!"
@@ -201,80 +216,245 @@ def fit_init_orbit(model, measured, fit_monitors):
     return twiss_init
 
 
-def analyze(model, measured, fit_args):
+class Analysis:
+
+    def __init__(self, model, measured):
+        self.model = model
+        self.measured = measured
+        self.monitors = measured.monitors
+        self.steerers = measured.steerers
+        self.knobs = measured.knobs
+
+    def init(self, strengths=None):
+        print("INITIAL")
+        if strengths is None:
+            strengths = self.measured.strengths
+        self.model.update_globals(strengths.items())
+        self.model_orm = self.get_orbit_response()
+        sel = self.get_selected_monitors(self.monitors)
+        self.info("initial", sel)
+
+    def info(self, comment, sel=None, errors=None, ddof=1):
+        measured = self.measured
+        if errors:
+            print("X_tot  =", np.array([err.base for err in errors]))
+        if sel is None:
+            sel = slice(None)
+        model_orm = self.model_orm
+        stddev = measured.stddev
+        print("red χ² =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[sel], ddof))
+        print("    |x =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[sel][:, 0, :], ddof))
+        print("    |y =", reduced_chisq(
+            ((measured.orm - model_orm) / stddev)[sel][:, 1, :], ddof))
+
+    def get_orbit_response(self):
+        return self.model.get_orbit_response_matrix(
+            self.monitors, self.knobs)
+
+    def get_selected_monitors(self, selected):
+        return [self.monitors.index(m.lower()) for m in selected]
+
+    def plot_monitors(self, select=None, save_to=None):
+        if select is None:
+            select = self.monitors
+        print("plotting monitors: {}".format(" ".join(select)))
+        make_monitor_plots(
+            select, self.model, self.measured, self.model_orm,
+            save_to=save_to)
+
+    def plot_steerers(self, select=None, save_to=None):
+        if select is None:
+            select = self.steerers
+        print("plotting steerers: {}".format(" ".join(select)))
+        make_steerer_plots(
+            select, self.model, self.measured, self.model_orm,
+            save_to=save_to)
+
+    def backtrack(self, monitors):
+        print("TWISS INIT")
+        self.model.update_twiss_args(
+            fit_init_orbit(self.model, self.measured, monitors))
+        self.model_orm = self.get_orbit_response()
+
+    def fit(self, errors, monitors,
+            mode='xy', iterations=50,
+            use_stddev=True,
+            method='minimize'):
+        print("Fitting model")
+        model = self.model
+        measured = self.measured
+        stddev = (measured.stddev if use_stddev else
+                  np.ones(measured.orm.shape))
+
+        sel = self.get_selected_monitors(monitors or self.monitors)
+        for error in errors:
+            error.set_base(model.madx)
+        model.madx.eoption(add=True)
+
+        def callback(comment, model_orm, sel, errors):
+            self.model_orm = model_orm
+            self.info(comment, sel, errors)
+
+        fit_model(
+            model, measured, stddev, errors, sel,
+            mode=mode,
+            iterations=iterations,
+            method=method,
+            callback=callback)
+        self.model_orm = self.get_orbit_response()
+
+        print("Errors =", [err.name for err in errors])
+
+    @classmethod
+    @contextmanager
+    def app(cls, model_file, record_files):
+        from madgui.core.app import init_app
+        from madgui.core.session import Session
+        from madgui.core.config import load as load_config
+        from glob import glob
+
+        init_app(['madgui'])
+
+        if isinstance(record_files, str):
+            record_files = glob(record_files)
+
+        config = load_config(isolated=True)
+        with Session(config) as session:
+            session.load_model(
+                model_file,
+                stdout=False)
+            model = session.model()
+            measured = OrbitResponse.load(model, record_files)
+            yield cls(model, measured)
+
+
+def fit_model_minimize(
+        model, measured, stddev, errors,
+        monitor_subset,
+        bounds=None,
+        mode='xy', iterations=100, callback=None):
+
+    from scipy.optimize import minimize, Bounds
 
     monitors = measured.monitors
     knobs = measured.knobs
-    stddev = (measured.stddev if fit_args.get('stddev') else
-              np.ones(measured.orm.shape))
-    errors = create_errors_from_spec(fit_args['errors'])
-    for error in errors:
-        error.set_base(model.madx)
-    model.madx.eoption(add=True)
+    stddev = measured.stddev
+    sel = monitor_subset
+    callback = callback or NOP
 
-    def info(comment):
-        print("X_tot  =", np.array([err.base for err in errors]))
-        print("red χ² =", reduced_chisq(
-            (measured.orm - model_orm) / stddev, len(errors)))
-        print("    |x =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[:, 0, :], len(errors)))
-        print("    |y =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[:, 1, :], len(errors)))
-        make_plots(fit_args, model, measured, model_orm, comment)
+    d = [i for i, c in enumerate("xy") if c in mode]
 
-    print("INITIAL")
-    model.update_globals(measured.strengths.items())
-    model_orm = model.get_orbit_response_matrix(monitors, knobs)
-    info("initial")
+    def objective(values):
+        nonlocal model_orm, chisq
+        with ExitStack() as stack:
+            for error, value in zip(errors, values):
+                error.step = value
+                stack.enter_context(error.vary(model))
+            model_orm = model.get_orbit_response_matrix(
+                monitors, knobs)
+            chisq = reduced_chisq(
+                ((measured.orm - model_orm) / stddev)[sel][:, d, :], 1)
+            print(values, chisq)
+            return chisq
 
-    fit_twiss = fit_args.get('fit_twiss')
-    if fit_twiss:
-        print("TWISS INIT")
-        model.update_twiss_args(fit_init_orbit(model, measured, fit_twiss))
-        model_orm = model.get_orbit_response_matrix(monitors, knobs)
-        info("twiss_init")
-        model.madx.use(sequence=model.seq_name)
+    error_values = np.zeros(len(errors))
+    result = minimize(
+        objective, error_values,
+        bounds=Bounds(*bounds) if bounds else None,
+        tol=1e-6, options={'maxiter': iterations})
+    results = result.x
+    print(result.message)
 
-    for i in range(fit_args.get('iterations', 1)):
+    for param, value in zip(errors, results.flatten()):
+        param.base += value
+        param.apply(model.madx, value)
+
+    model_orm = model.get_orbit_response_matrix(
+        monitors, knobs)
+    chisq = reduced_chisq(
+        ((measured.orm - model_orm) / stddev)[sel][:, d, :], 1)
+
+    for err, val in zip(errors, results.flatten()):
+        err.base += val
+
+    print("red χ² =", chisq)
+    print("ΔX     =", results.flatten())
+    print("Errors =", [err.name for err in errors])
+    callback("final", model_orm, sel, errors)
+
+
+def fit_model_lstsq(
+        model, measured, stddev, errors, monitor_subset,
+        mode='xy', iterations=100, callback=None):
+
+    monitors = measured.monitors
+    knobs = measured.knobs
+    callback = callback or NOP
+
+    for i in range(iterations):
         print("ITERATION", i)
+        model_orm = model.get_orbit_response_matrix(monitors, knobs)
+        callback("iteration {}".format(i), errors, model_orm)
+        print("...", end='', flush=True)
 
-        results, chisq = fit_model(
+        results, chisq = fit_model_lstsq_single(
             measured.orm, model_orm, get_orm_derivs(
                 model, monitors, knobs, model_orm, errors),
-            monitor_errors=fit_args.get('monitor_errors'),
-            steerer_errors=fit_args.get('steerer_errors'),
             stddev=stddev,
-            mode=fit_args.get('mode', 'xy'))
+            mode=mode,
+            monitors=monitor_subset,
+        )
+
+        print(" ->")
+        print("ΔX     =", results.flatten())
+        print("red χ² =", chisq, "(linear hypothesis)")
 
         for param, value in zip(errors, results.flatten()):
             param.base += value
             param.apply(model.madx, value)
 
-        model_orm = model.get_orbit_response_matrix(monitors, knobs)
-
-        print("red χ² =", chisq, "(linear hypothesis)")
-        print("ΔX     =", results.flatten())
-        info("iteration {}".format(i))
+    model_orm = model.get_orbit_response_matrix(monitors, knobs)
+    callback("final", model_orm, monitor_subset, errors)
 
 
-def make_plots(setup_args, model, measured, model_orm, comment="Response"):
-    monitor_subset = setup_args.get('plot_monitors', [])
-    steerer_subset = setup_args.get('plot_steerers', [])
-    for monitor in measured.monitors:
+def NOP(*args, **kwargs):
+    pass
+
+
+def make_monitor_plots(
+        monitor_subset, model, measured, model_orm, comment="Response",
+        save_to=None, base_orm=None):
+    for index, monitor in enumerate(measured.monitors):
         if monitor in monitor_subset:
             plot_monitor_response(
-                plt.figure(1), monitor, model, measured, model_orm, comment)
-            plt.show()
+                plt.figure(1), monitor,
+                model, measured, base_orm, model_orm, comment)
+            if save_to is None:
+                plt.show()
+            else:
+                plt.savefig('{}-mon-{}-{}.png'.format(save_to, index, monitor))
             plt.clf()
-    for steerer in measured.steerers:
+
+
+def make_steerer_plots(
+        steerer_subset, model, measured, model_orm, comment="Response",
+        save_to=None, base_orm=None):
+    for index, steerer in enumerate(measured.steerers):
         if steerer in steerer_subset:
             plot_steerer_response(
-                plt.figure(1), steerer, model, measured, model_orm, comment)
-            plt.show()
+                plt.figure(1), steerer,
+                model, measured, base_orm, model_orm, comment)
+            if save_to is None:
+                plt.show()
+            else:
+                plt.savefig('{}-ste-{}-{}.png'.format(save_to, index, steerer))
             plt.clf()
 
 
-def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
+def plot_monitor_response(
+        fig, monitor, model, measured, base_orm, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.steerers]
     i = measured.monitors.index(monitor)
     lines = []
@@ -294,6 +474,12 @@ def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
             measured.stddev[i, j, :].flatten(),
             label=ax + " measured")
 
+        if base_orm is not None:
+            axes.plot(
+                xpos,
+                base_orm[i, j, :].flatten(),
+                label=ax + " base model")
+
         lines.append(axes.plot(
             xpos,
             model_orm[i, j, :].flatten(),
@@ -305,7 +491,8 @@ def plot_monitor_response(fig, monitor, model, measured, model_orm, comment):
     return lines
 
 
-def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
+def plot_steerer_response(
+        fig, steerer, model, measured, base_orm, model_orm, comment):
     xpos = [model.elements[elem].position for elem in measured.monitors]
     i = measured.steerers.index(steerer)
     lines = []
@@ -325,6 +512,12 @@ def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
             measured.stddev[:, j, i].flatten(),
             label=ax + " measured")
 
+        if base_orm is not None:
+            axes.plot(
+                xpos,
+                base_orm[i, j, :].flatten(),
+                label=ax + " base model")
+
         lines.append(axes.plot(
             xpos,
             model_orm[:, j, i].flatten(),
@@ -334,3 +527,37 @@ def plot_steerer_response(fig, steerer, model, measured, model_orm, comment):
 
     fig.suptitle("{1}: {0}".format(steerer, comment))
     return lines
+
+
+ERR_ATTR = {
+    'sbend': ['angle', 'e1', 'e2', 'k0', 'hgap', 'fint'],
+    'quadrupole': ['k1', 'k1s'],
+    'hkicker': ['kick', 'tilt'],
+    'vkicker': ['kick', 'tilt'],
+    'srotation': ['angle'],
+}
+
+ERR_EALIGN = ['dx', 'dy', 'ds', 'dpsi', 'dphi', 'dtheta']
+
+
+# scaling: monitor
+# scaling: kicker
+
+def get_elem_ealign(model, name, attrs=ERR_EALIGN, delta=1e-3):
+    return [
+        Ealign({'range': name}, attr, delta)
+        for attr in attrs
+    ]
+
+
+def get_elem_efcomp(model, name, delta=1e-3):
+    elem = model.elements[name]
+    kwargs = dict(order=None, radius=None)
+    if elem.base_name == 'sbend':
+        return [Efcomp({'range': name}, 'dkn', [delta], **kwargs)]
+    if elem.base_name == 'quadrupole':
+        return [
+            Efcomp({'range': name}, 'dkn', [0, delta], **kwargs),
+            Efcomp({'range': name}, 'dks', [0, delta], **kwargs),
+        ]
+    return []

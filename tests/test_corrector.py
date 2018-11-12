@@ -8,21 +8,18 @@ import time
 
 import pytest
 
-from madgui.qt import QtCore
 from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.online.procedure import Corrector, ProcBot
-from madgui.util.yaml import safe_load
+from madgui.util.yaml import load_file
 
 
 @pytest.fixture(scope="session")
 def app():
     # NOTE: this fixture (in particular the sys.excepthook patch) is required
     # to not segfault the tests!
-    app = QtCore.QCoreApplication([])
-    init_app(app)
-    return app
+    return init_app([], gui=False)
 
 
 @pytest.yield_fixture
@@ -98,8 +95,7 @@ def test_procbot(corrector, procbot):
     assert not procbot.running
     assert len(corrector.records) == num_mons * num_optics * num_shots
 
-    with open('timeseries.yml') as f:
-        dump = safe_load(f)
+    dump = load_file('timeseries.yml')
 
     assert dump['sequence'] == 'hht3'
     assert dump['monitors'] == ['t3dg2g', 't3dg1g', 't3df1']

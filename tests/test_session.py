@@ -2,7 +2,6 @@
 
 import pytest
 
-from madgui.qt import QtCore
 from madgui.core.app import init_app
 from madgui.core.session import Session
 
@@ -11,9 +10,7 @@ from madgui.core.session import Session
 def app():
     # NOTE: this fixture (in particular the sys.excepthook patch) is required
     # to not segfault the tests!
-    app = QtCore.QCoreApplication([])
-    init_app(app)
-    return app
+    return init_app([], gui=False)
 
 
 def test_empty_session(app):
