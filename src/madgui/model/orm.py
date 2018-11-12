@@ -1,4 +1,3 @@
-import os
 import re
 from contextlib import ExitStack, contextmanager
 
@@ -534,66 +533,6 @@ def plot_steerer_response(
     return lines
 
 
-def plot_series(model, measured, fit_args):
-    monitors = measured.monitors
-    knobs = measured.knobs
-    stddev = (measured.stddev if fit_args.get('stddev') else
-              np.ones(measured.orm.shape))
-
-    model.madx.eoption(add=True)
-
-    print("INITIAL")
-    model.update_globals(measured.strengths.items())
-    model_orm = model.get_orbit_response_matrix(monitors, knobs)
-
-    fit_twiss = fit_args.get('fit_twiss')
-    if fit_twiss:
-        print("TWISS INIT")
-        model.update_twiss_args(fit_init_orbit(model, measured, fit_twiss))
-        model_orm = model.get_orbit_response_matrix(monitors, knobs)
-        model.madx.use(sequence=model.seq_name)
-
-    base_orm = None
-
-    def info(param, index):
-        print("red χ² =", reduced_chisq(
-            (measured.orm - model_orm) / stddev, 1))
-        print("    |x =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[:, 0, :], 1))
-        print("    |y =", reduced_chisq(
-            ((measured.orm - model_orm) / stddev)[:, 1, :], 1))
-        if index is not None:
-            os.makedirs('plots', exist_ok=True)
-            monitor_subset = fit_args.get('plot_monitors', [])
-            steerer_subset = fit_args.get('plot_steerers', [])
-            make_monitor_plots(
-                monitor_subset, model, measured, model_orm, str(param),
-                save_to='plots/fig', base_orm=base_orm, index=index)
-            make_steerer_plots(
-                steerer_subset, model, measured, model_orm, str(param),
-                save_to='plots/fig', base_orm=base_orm, index=index)
-
-    info("INITIAL", 0)
-    base_orm = model_orm
-    for i, param in enumerate(get_error_params(model, fit_args)):
-        with param.vary(model):
-            model_orm = model.get_orbit_response_matrix(monitors, knobs)
-        info(param, i)
-
-
-def get_error_params(model, plot_args):
-    for name in plot_args['elements']:
-        yield from get_elem_params(model, name)
-
-    for knob in plot_args['knobs']:
-        if isinstance(knob, dict):
-            (knob, value), = knob.items()
-        else:
-            value = 4e-2
-        yield ScaleParam(knob, +value)
-        yield ScaleParam(knob, -value)
-
-
 ERR_ATTR = {
     'sbend': ['angle', 'e1', 'e2', 'k0', 'hgap', 'fint'],
     'quadrupole': ['k1', 'k1s'],
@@ -608,31 +547,21 @@ ERR_EALIGN = ['dx', 'dy', 'ds', 'dpsi', 'dphi', 'dtheta']
 # scaling: monitor
 # scaling: kicker
 
-def get_elem_params(model, name, *, delta=False, scale=True, efcomp=False):
+def get_elem_ealign(model, name, attrs=ERR_EALIGN, delta=1e-3):
+    return [
+        Ealign({'range': name}, attr, delta)
+        for attr in attrs
+    ]
+
+
+def get_elem_efcomp(model, name, delta=1e-3):
     elem = model.elements[name]
-    if elem.base_name == 'drift':
-        return
-
-    if delta:
-        for attr in ERR_ATTR.get(elem.base_name, []):
-            yield ElemAttr(name, attr, +1e-4)
-            yield ElemAttr(name, attr, -1e-4)
-        for attr in ERR_EALIGN:
-            yield Ealign({'range': name}, attr, +1e-3)
-            yield Ealign({'range': name}, attr, -1e-3)
-
-    if scale:
-        for attr in ERR_ATTR.get(elem.base_name, []):
-            yield ScaleAttr(name, attr, +5e-2)
-            yield ScaleAttr(name, attr, -5e-2)
-
-    if efcomp:
-        kwargs = dict(order=None, radius=None)
-        if elem.base_name == 'sbend':
-            yield Efcomp({'range': name}, 'dkn', [+1e-3], **kwargs)
-            yield Efcomp({'range': name}, 'dkn', [-1e-3], **kwargs)
-        if elem.base_name == 'quadrupole':
-            yield Efcomp({'range': name}, 'dkn', [0, +1e-3], **kwargs)
-            yield Efcomp({'range': name}, 'dkn', [0, -1e-3], **kwargs)
-            yield Efcomp({'range': name}, 'dks', [0, +1e-3], **kwargs)
-            yield Efcomp({'range': name}, 'dks', [0, -1e-3], **kwargs)
+    kwargs = dict(order=None, radius=None)
+    if elem.base_name == 'sbend':
+        return [Efcomp({'range': name}, 'dkn', [delta], **kwargs)]
+    if elem.base_name == 'quadrupole':
+        return [
+            Efcomp({'range': name}, 'dkn', [0, delta], **kwargs),
+            Efcomp({'range': name}, 'dks', [0, delta], **kwargs),
+        ]
+    return []

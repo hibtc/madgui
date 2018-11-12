@@ -3,12 +3,7 @@
 Utility for analyzing on ORM measurements.
 
 Usage:
-    ./orm_analysis.py (-i | -f SPEC | -p SPEC) MODEL RECORDS...
-
-Options:
-    -i, --interactive       Interactive mode
-    -f SPEC, --fit SPEC     Fit specification file
-    -p SPEC, --plot SPEC    Plot and save figures
+    ./orm_analysis.py MODEL RECORDS...
 
 Arguments:
     MODEL must be the path of the model/sequence file to initialize MAD-X.
@@ -26,8 +21,8 @@ from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.model.orm import (
-    load_yaml, OrbitResponse, plot_monitor_response,
-    create_errors_from_spec, reduced_chisq, plot_series)
+    OrbitResponse, plot_monitor_response,
+    create_errors_from_spec, reduced_chisq)
 
 from madgui.util.qt import monospace
 from madgui.util.layout import VBoxLayout, HBoxLayout, Stretch
@@ -177,15 +172,9 @@ def main(args=None):
             stdout=False)
         model = session.model()
         measured = OrbitResponse.load(model, record_files)
-        if opts['--interactive']:
-            window = MainWindow(model, measured)
-            window.show()
-            return app.exec_()
-        elif opts['--plot']:
-            spec_file = opts['--plot']
-            plot_series(
-                model, measured,
-                load_yaml(spec_file)['plot'])
+        window = MainWindow(model, measured)
+        window.show()
+        return app.exec_()
 
 
 if __name__ == '__main__':
