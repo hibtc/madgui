@@ -370,7 +370,8 @@ def make_plots(setup_args, model, measured, model_orm, comment="Response",
     for monitor in measured.monitors:
         if monitor in monitor_subset:
             plot_monitor_response(
-                plt.figure(1), monitor, model, measured, base_orm, model_orm, comment)
+                plt.figure(1), monitor,
+                model, measured, base_orm, model_orm, comment)
             if save_to is None:
                 plt.show()
             else:
@@ -379,7 +380,8 @@ def make_plots(setup_args, model, measured, model_orm, comment="Response",
     for steerer in measured.steerers:
         if steerer in steerer_subset:
             plot_steerer_response(
-                plt.figure(1), steerer, model, measured, base_orm, model_orm, comment)
+                plt.figure(1), steerer,
+                model, measured, base_orm, model_orm, comment)
             if save_to is None:
                 plt.show()
             else:
