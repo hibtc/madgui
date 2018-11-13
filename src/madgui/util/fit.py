@@ -24,7 +24,10 @@ def fit(f, x0, y=0, sig=1, method=None, bounds=None,
     return fit_minimize(f, x0, y, sig, method=method, bounds=bounds, **kwargs)
 
 
-def fit_minimize(f, x0, y=0, sig=1, iterations=None, callback=None, **kwargs):
+def fit_minimize(f, x0, y=0, sig=1,
+                 delta=None, jac=None,
+                 iterations=None, callback=None,
+                 **kwargs):
     """Fit objective function ``f(x) = y`` using least-squares fit via
     ``scipy.optimize.minimize``."""
     state = sciopt.OptimizeResult(
@@ -42,8 +45,14 @@ def fit_minimize(f, x0, y=0, sig=1, iterations=None, callback=None, **kwargs):
     def objective(y0):
         return reduced_chisq((y - y0) / sig, len(x0))
 
+    def obj_fun(x):
+        return objective(f(x))
+
+    if jac is None and delta is not None:
+        jac = partial(jac_twopoint, obj_fun, delta=delta)
+
     result = sciopt.minimize(
-        lambda x: objective(f(x)), x0,
+        obj_fun, x0, jac=jac,
         callback=callback and callback_wrapper,
         options={'maxiter': iterations}, **kwargs)
     result.fun = f(result.x)
@@ -51,7 +60,7 @@ def fit_minimize(f, x0, y=0, sig=1, iterations=None, callback=None, **kwargs):
     return result
 
 
-def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8,
+def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
               iterations=None, callback=None):
     """Fit objective function ``f(x) = y`` using a naive repeated linear
     least-squares fit."""
@@ -72,7 +81,7 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8,
             success = False
             break
         dx, dy = fit_lstsq_oneshot(
-            f, x0, y, sig, y0=y0, jac=jac, rcond=tol)
+            f, x0, y, sig, y0=y0, jac=jac, delta=delta, rcond=tol)
         x0 += dx
     chisq = reduced_chisq((y - y0) / sig, len(x0))
     return sciopt.OptimizeResult(
@@ -80,14 +89,15 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8,
         success=success, message=message)
 
 
-def fit_lstsq_oneshot(f, x0, y=0, sig=1, y0=None, jac=None, rcond=1e-8):
+def fit_lstsq_oneshot(f, x0, y=0, sig=1, y0=None,
+                      delta=None, jac=None, rcond=1e-8):
     """Single least squares fit for ``f(x) = y`` around ``x0``.
     Returns ``(Δx, Δy)``, where ``Δy`` is the linear hypothesis for how much
     ``y`` will change due to change in ``x``."""
     if y0 is None:
         y0 = f(x0)
     if jac is None:
-        jac = partial(jac_twopoint, f, y0=y0)
+        jac = partial(jac_twopoint, f, y0=y0, delta=delta)
     A = jac(x0)
     Y = y - y0
     S = np.broadcast_to(sig, Y.shape)
@@ -103,7 +113,7 @@ def jac_twopoint(f, x0, y0=None, delta=1e-3):
     """Compute jacobian ``df/dx_i`` using two point-finite differencing."""
     if y0 is None:
         y0 = f(x0)
-    return [
+    return np.array([
         (f(x0 + dx) - y0) / np.linalg.norm(dx)
         for dx in np.eye(len(x0)) * delta
-    ]
+    ])

@@ -208,7 +208,7 @@ class Analysis:
             fit_init_orbit(self.model, self.measured, monitors))
         self.model_orm = self.get_orbit_response()
 
-    def fit(self, errors, monitors,
+    def fit(self, errors, monitors, delta=1e-4,
             mode='xy', iterations=50, bounds=None,
             tol=1e-8, use_stddev=True, **kwargs):
 
@@ -251,7 +251,7 @@ class Analysis:
         x0 = np.zeros(len(errors))
         result = fit(
             objective, x0, obj_slice(measured.orm), obj_slice(stddev),
-            bounds=None if bounds is None else Bounds(*bounds),
+            bounds=None if bounds is None else Bounds(*bounds), delta=delta,
             tol=tol, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
         apply_errors(model, errors, result.x)
