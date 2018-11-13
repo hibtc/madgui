@@ -14,11 +14,7 @@ class BaseError:
     leader = 'Δ'
 
     def __init__(self, step):
-        self.base = 0.0
         self.step = step
-
-    def set_base(self, madx):
-        self.base = 0.0
 
     @contextmanager
     def vary(self, model):
@@ -38,14 +34,9 @@ class Param(BaseError):
 
     """Variable parameter."""
 
-    def __init__(self, knob, step=1e-4, madx=None):
+    def __init__(self, knob, step=1e-4):
         super().__init__(step)
         self.knob = self.name = knob
-        if madx is not None:
-            self.set_base(madx)
-
-    def set_base(self, madx):
-        self.base = madx.globals[self.knob]
 
     def apply(self, madx, value):
         madx.globals[self.knob] += value
@@ -96,16 +87,11 @@ class ElemAttr(BaseError):
 
     """Variable parameter."""
 
-    def __init__(self, elem, attr, step=1e-4, madx=None):
+    def __init__(self, elem, attr, step=1e-4):
         super().__init__(step)
         self.elem = elem
         self.attr = attr
-        if madx is not None:
-            self.set_base(madx)
         self.name = '{}->{}'.format(elem, attr)
-
-    def set_base(self, madx):
-        self.base = madx.elements[self.elem][self.attr]
 
     @contextmanager
     def vary(self, model):
@@ -125,7 +111,7 @@ class ElemAttr(BaseError):
 
 class InitTwiss(BaseError):
 
-    def __init__(self, name, step=1e-4, madx=None):
+    def __init__(self, name, step=1e-4):
         super().__init__(step)
         self.name = name
 
@@ -148,9 +134,6 @@ class ScaleAttr(ElemAttr):
 
     leader = 'δ'
 
-    def set_base(self, madx):
-        self.base = 0.0
-
     def apply(self, madx, value):
         madx.elements[self.elem][self.attr] = "({}) * ({})".format(
             madx.elements[self.elem].cmdpar[self.attr].definition, 1+value)
@@ -159,9 +142,6 @@ class ScaleAttr(ElemAttr):
 class ScaleParam(Param):
 
     leader = 'δ'
-
-    def set_base(self, madx):
-        self.base = 0.0
 
     @contextmanager
     def vary(self, model):

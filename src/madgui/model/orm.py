@@ -223,8 +223,6 @@ class Analysis:
         print("VIA:", err_names)
 
         sel = self.get_selected_monitors(monitors or self.monitors)
-        for error in errors:
-            error.set_base(model.madx)
         model.madx.eoption(add=True)
 
         def callback(state):

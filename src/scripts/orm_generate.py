@@ -56,7 +56,6 @@ def main(model_file, spec_file, record_file):
         model = session.model()
         errors = create_errors_from_spec(setup_args['errors'])
         for error in errors:
-            error.set_base(model.madx)
             stack.enter_context(error.vary(model))
         model.twiss.invalidate()
 
