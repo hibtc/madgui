@@ -34,12 +34,12 @@ class Param(BaseError):
 
     """Variable parameter."""
 
-    def __init__(self, knob, step=1e-4):
+    def __init__(self, name, step=1e-4):
         super().__init__(step)
-        self.knob = self.name = knob
+        self.name = name
 
     def apply(self, madx, value):
-        madx.globals[self.knob] += value
+        madx.globals[self.name] += value
 
 
 class Ealign(BaseError):
@@ -147,12 +147,12 @@ class ScaleParam(Param):
     def vary(self, model):
         madx = model.madx
         step = self.step
-        backup = madx.globals.cmdpar[self.knob].definition
+        backup = madx.globals.cmdpar[self.name].definition
         self.apply(madx, step)
         try:
             yield step
         finally:
-            madx.globals[self.knob] = backup
+            madx.globals[self.name] = backup
 
     def apply(self, madx, value):
-        madx.globals[self.knob] *= 1+value
+        madx.globals[self.name] *= 1+value
