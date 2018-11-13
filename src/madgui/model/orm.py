@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import Bounds
 
+from cpymad.madx import TwissFailed
+
 import madgui.util.yaml as yaml
 from madgui.util.fit import reduced_chisq, fit
 from madgui.online.orbit import fit_particle_orbit
@@ -219,8 +221,11 @@ class Analysis:
         obj_slice = lambda y: y[sel][:, dims, :]
 
         def objective(values):
-            self.model_orm = get_orm(
-                model, measured.monitors, measured.knobs, errors, values)
+            try:
+                self.model_orm = get_orm(
+                    model, measured.monitors, measured.knobs, errors, values)
+            except TwissFailed:
+                return 1e5
             return obj_slice(self.model_orm)
 
         x0 = np.zeros(len(errors))
