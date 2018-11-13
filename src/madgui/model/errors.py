@@ -123,6 +123,27 @@ class ElemAttr(BaseError):
             madx.elements[self.elem].cmdpar[self.attr].definition, value)
 
 
+class InitTwiss(BaseError):
+
+    def __init__(self, name, step=1e-4, madx=None):
+        super().__init__(step)
+        self.name = name
+
+    @contextmanager
+    def vary(self, model):
+        step = self.step
+        self.apply(model, step)
+        try:
+            yield step
+        finally:
+            self.apply(model, -step)
+
+    def apply(self, model, value):
+        model.update_twiss_args({
+            self.name: model.twiss_args.get(self.name, 0.0) + value
+        })
+
+
 class ScaleAttr(ElemAttr):
 
     leader = 'δ'
