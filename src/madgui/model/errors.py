@@ -1,4 +1,12 @@
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
+
+
+def apply_errors(model, errors, values):
+    with ExitStack() as stack:
+        for error, value in zip(errors, values):
+            error.step = value
+            stack.enter_context(error.vary(model))
+        return stack.pop_all()
 
 
 class BaseError:
