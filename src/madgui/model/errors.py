@@ -41,11 +41,13 @@ class BaseError:
     def vary(self, model, step):
         old = self.get(model)
         new = self.tinker(old, step)
-        self.set(model, new)
+        if new != old:
+            self.set(model, new)
         try:
             yield step
         finally:
-            self.set(model, old)
+            if new != old:
+                self.set(model, old)
 
     def get(self, model):
         return 0.0
