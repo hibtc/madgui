@@ -36,12 +36,14 @@ class BaseError:
 
     @contextmanager
     def vary(self, model, step):
-        madx = model.madx
-        self.apply(madx, step)
+        memo = self.apply(model, step)
         try:
             yield step
         finally:
-            self.apply(madx, -step)
+            self.restore(model, -step if memo is None else memo)
+
+    def restore(self, model, value):
+        self.apply(model, value)
 
     def __repr__(self):
         return "{}{}".format(self.leader, self.name)
@@ -54,8 +56,13 @@ class Param(BaseError):
     def __init__(self, name):
         self.name = name
 
-    def apply(self, madx, value):
-        madx.globals[self.name] += value
+    def apply(self, model, value):
+        memo = model.globals.cmdpar[self.name].definition
+        model.globals[self.name] += value
+        return memo
+
+    def restore(self, model, value):
+        model.globals[self.name] = value
 
 
 class Ealign(BaseError):
@@ -67,8 +74,8 @@ class Ealign(BaseError):
         self.attr = attr
         self.name = '{}<{}>'.format(select.get('range'), attr)
 
-    def apply(self, madx, value):
-        cmd = madx.command
+    def apply(self, model, value):
+        cmd = model.madx.command
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
         cmd.ealign(**{self.attr: value})
@@ -86,8 +93,8 @@ class Efcomp(BaseError):
         self.radius = radius
         self.name = '{}+{}'.format(select['range'], attr)
 
-    def apply(self, madx, value):
-        cmd = madx.command
+    def apply(self, model, value):
+        cmd = model.madx.command
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
         cmd.efcomp(**{
@@ -106,19 +113,14 @@ class ElemAttr(BaseError):
         self.attr = attr
         self.name = '{}->{}'.format(elem, attr)
 
-    @contextmanager
-    def vary(self, model, step):
-        madx = model.madx
-        backup = madx.elements[self.elem].cmdpar[self.attr].definition
-        self.apply(madx, step)
-        try:
-            yield step
-        finally:
-            madx.elements[self.elem][self.attr] = backup
+    def apply(self, model, value):
+        elem = model.elements[self.elem]
+        memo = elem.cmdpar[self.attr].definition
+        elem[self.attr] = "({}) + ({})".format(memo, value)
+        return memo
 
-    def apply(self, madx, value):
-        madx.elements[self.elem][self.attr] = "({}) + ({})".format(
-            madx.elements[self.elem].cmdpar[self.attr].definition, value)
+    def restore(self, model, value):
+        model.elements[self.elem][self.attr] = value
 
 
 class InitTwiss(BaseError):
@@ -126,42 +128,37 @@ class InitTwiss(BaseError):
     def __init__(self, name):
         self.name = name
 
-    @contextmanager
-    def vary(self, model, step):
-        self.apply(model, step)
-        try:
-            yield step
-        finally:
-            self.apply(model, -step)
-
     def apply(self, model, value):
-        model.update_twiss_args({
-            self.name: model.twiss_args.get(self.name, 0.0) + value
-        })
+        memo = model.twiss_args.get(self.name)
+        model.update_twiss_args({self.name: (memo or 0.0) + value})
+        return memo
+
+    def restore(self, model, value):
+        model.update_twiss_args({self.name: value})
 
 
 class ScaleAttr(ElemAttr):
 
     leader = 'δ'
 
-    def apply(self, madx, value):
-        madx.elements[self.elem][self.attr] = "({}) * ({})".format(
-            madx.elements[self.elem].cmdpar[self.attr].definition, 1+value)
+    def apply(self, model, value):
+        elem = model.elements[self.elem]
+        memo = elem.cmdpar[self.attr].definition
+        elem[self.attr] = "({}) * ({})".format(memo, 1+value)
+        return memo
+
+    def restore(self, model, value):
+        model.elements[self.elem][self.attr] = value
 
 
 class ScaleParam(Param):
 
     leader = 'δ'
 
-    @contextmanager
-    def vary(self, model, step):
-        madx = model.madx
-        backup = madx.globals.cmdpar[self.name].definition
-        self.apply(madx, step)
-        try:
-            yield step
-        finally:
-            madx.globals[self.name] = backup
+    def apply(self, model, value):
+        memo = model.globals.cmdpar[self.name].definition
+        model.globals[self.name] *= 1+value
+        return memo
 
-    def apply(self, madx, value):
-        madx.globals[self.name] *= 1+value
+    def restore(self, model, value):
+        model.globals[self.name] = value
