@@ -7,45 +7,36 @@ from cpymad.util import is_identifier
 def apply_errors(model, errors, values):
     with ExitStack() as stack:
         for error, value in zip(errors, values):
-            error.step = value
-            stack.enter_context(error.vary(model))
+            stack.enter_context(error.vary(model, value))
         return stack.pop_all()
 
 
-def create_errors_from_spec(spec):
-    def error_from_spec(name, value):
-        value = 1.0e-4 if value is None else value
-        mult = name.endswith('*')
-        name = name.rstrip('*')
-        if '->' in name:
-            elem, attr = name.split('->')
-            if mult:
-                return ScaleAttr(elem, attr, value)
-            return ElemAttr(elem, attr, value)
-        if '<' in name:
-            elem, attr = re.match(r'(.*)\<(.*)\>', name).groups()
-            return Ealign({'range': elem}, attr, value)
-        if is_identifier(name):
-            if mult:
-                return ScaleParam(name, value)
-            return Param(name, value)
-        # TODO: efcomp field errors!
-        raise ValueError("{!r} is not a valid error specification!"
-                         .format(name))
-    return [error_from_spec(name, value) for name, value in spec.items()]
+def parse_error(name):
+    mult = name.endswith('*')
+    name = name.rstrip('*')
+    if '->' in name:
+        elem, attr = name.split('->')
+        if mult:
+            return ScaleAttr(elem, attr)
+        return ElemAttr(elem, attr)
+    if '<' in name:
+        elem, attr = re.match(r'(.*)\<(.*)\>', name).groups()
+        return Ealign({'range': elem}, attr)
+    if is_identifier(name):
+        if mult:
+            return ScaleParam(name)
+        return Param(name)
+    # TODO: efcomp field errors!
+    raise ValueError("{!r} is not a valid error specification!".format(name))
 
 
 class BaseError:
 
     leader = 'Δ'
 
-    def __init__(self, step):
-        self.step = step
-
     @contextmanager
-    def vary(self, model):
+    def vary(self, model, step):
         madx = model.madx
-        step = self.step
         self.apply(madx, step)
         try:
             yield step
@@ -53,15 +44,14 @@ class BaseError:
             self.apply(madx, -step)
 
     def __repr__(self):
-        return "[{}{}={}]".format(self.leader, self.name, self.step)
+        return "{}{}".format(self.leader, self.name)
 
 
 class Param(BaseError):
 
     """Variable parameter."""
 
-    def __init__(self, name, step=1e-4):
-        super().__init__(step)
+    def __init__(self, name):
         self.name = name
 
     def apply(self, madx, value):
@@ -72,8 +62,7 @@ class Ealign(BaseError):
 
     """Alignment error."""
 
-    def __init__(self, select, attr, step):
-        super().__init__(step)
+    def __init__(self, select, attr):
         self.select = select
         self.attr = attr
         self.name = '{}<{}>'.format(select.get('range'), attr)
@@ -90,7 +79,6 @@ class Efcomp(BaseError):
     """Field error."""
 
     def __init__(self, select, attr, value, order=0, radius=1):
-        super().__init__(sum(value))
         self.select = select
         self.attr = attr
         self.value = value
@@ -113,16 +101,14 @@ class ElemAttr(BaseError):
 
     """Variable parameter."""
 
-    def __init__(self, elem, attr, step=1e-4):
-        super().__init__(step)
+    def __init__(self, elem, attr):
         self.elem = elem
         self.attr = attr
         self.name = '{}->{}'.format(elem, attr)
 
     @contextmanager
-    def vary(self, model):
+    def vary(self, model, step):
         madx = model.madx
-        step = self.step
         backup = madx.elements[self.elem].cmdpar[self.attr].definition
         self.apply(madx, step)
         try:
@@ -137,13 +123,11 @@ class ElemAttr(BaseError):
 
 class InitTwiss(BaseError):
 
-    def __init__(self, name, step=1e-4):
-        super().__init__(step)
+    def __init__(self, name):
         self.name = name
 
     @contextmanager
-    def vary(self, model):
-        step = self.step
+    def vary(self, model, step):
         self.apply(model, step)
         try:
             yield step
@@ -170,9 +154,8 @@ class ScaleParam(Param):
     leader = 'δ'
 
     @contextmanager
-    def vary(self, model):
+    def vary(self, model, step):
         madx = model.madx
-        step = self.step
         backup = madx.globals.cmdpar[self.name].definition
         self.apply(madx, step)
         try:
