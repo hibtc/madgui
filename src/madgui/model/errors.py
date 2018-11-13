@@ -1,4 +1,7 @@
+import re
 from contextlib import contextmanager, ExitStack
+
+from cpymad.util import is_identifier
 
 
 def apply_errors(model, errors, values):
@@ -7,6 +10,29 @@ def apply_errors(model, errors, values):
             error.step = value
             stack.enter_context(error.vary(model))
         return stack.pop_all()
+
+
+def create_errors_from_spec(spec):
+    def error_from_spec(name, value):
+        value = 1.0e-4 if value is None else value
+        mult = name.endswith('*')
+        name = name.rstrip('*')
+        if '->' in name:
+            elem, attr = name.split('->')
+            if mult:
+                return ScaleAttr(elem, attr, value)
+            return ElemAttr(elem, attr, value)
+        if '<' in name:
+            elem, attr = re.match(r'(.*)\<(.*)\>', name).groups()
+            return Ealign({'range': elem}, attr, value)
+        if is_identifier(name):
+            if mult:
+                return ScaleParam(name, value)
+            return Param(name, value)
+        # TODO: efcomp field errors!
+        raise ValueError("{!r} is not a valid error specification!"
+                         .format(name))
+    return [error_from_spec(name, value) for name, value in spec.items()]
 
 
 class BaseError:

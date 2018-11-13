@@ -1,17 +1,13 @@
-import re
 from contextlib import contextmanager
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import Bounds
 
-from cpymad.util import is_identifier
-
 import madgui.util.yaml as yaml
 from madgui.util.fit import reduced_chisq, fit
 from madgui.online.orbit import fit_particle_orbit
-from .errors import (
-    Param, Ealign, Efcomp, ElemAttr, ScaleAttr, ScaleParam, apply_errors)
+from .errors import Ealign, Efcomp, apply_errors
 
 
 class OrbitResponse:
@@ -98,29 +94,6 @@ def load_record_file(filename):
         for monitor in data['monitors']
     }
     return strengths, records
-
-
-def create_errors_from_spec(spec):
-    def error_from_spec(name, value):
-        value = 1.0e-4 if value is None else value
-        mult = name.endswith('*')
-        name = name.rstrip('*')
-        if '->' in name:
-            elem, attr = name.split('->')
-            if mult:
-                return ScaleAttr(elem, attr, value)
-            return ElemAttr(elem, attr, value)
-        if '<' in name:
-            elem, attr = re.match(r'(.*)\<(.*)\>', name).groups()
-            return Ealign({'range': elem}, attr, value)
-        if is_identifier(name):
-            if mult:
-                return ScaleParam(name, value)
-            return Param(name, value)
-        # TODO: efcomp field errors!
-        raise ValueError("{!r} is not a valid error specification!"
-                         .format(name))
-    return [error_from_spec(name, value) for name, value in spec.items()]
 
 
 class Readout:

@@ -9,7 +9,7 @@ from madgui.core.config import load as load_config
 from madgui.online.procedure import Corrector, ProcBot
 
 import madgui.util.yaml as yaml
-from madgui.model.orm import create_errors_from_spec
+from madgui.model.error import create_errors_from_spec
 
 
 def main(model_file, spec_file, record_file):
