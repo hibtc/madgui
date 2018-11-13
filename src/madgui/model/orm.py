@@ -196,6 +196,7 @@ class Analysis:
         print("VIA:", err_names)
 
         sel = self.get_selected_monitors(monitors or self.monitors)
+        inv = sorted(set(range(len(self.monitors))) - set(sel))
         model.madx.eoption(add=True)
 
         def callback(state):
@@ -207,8 +208,11 @@ class Analysis:
             print("X_tot  =", state.x)
             print(":: (fit) ::")
             self.info(sel)
-            print(":: (overall) ::")
-            self.info()
+            if inv:
+                print(":: (elsewhere) ::")
+                self.info(inv)
+                print(":: (overall) ::")
+                self.info()
             print("----------------------")
 
         dims = [i for i, c in enumerate("xy") if c in mode]
