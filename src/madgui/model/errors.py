@@ -34,6 +34,9 @@ class BaseError:
 
     leader = 'Δ'
 
+    def __init__(self, name):
+        self.name = name
+
     @contextmanager
     def vary(self, model, step):
         old = self.get(model)
@@ -65,9 +68,6 @@ class BaseError:
 class Param(BaseError):
 
     """Variable parameter."""
-
-    def __init__(self, name):
-        self.name = name
 
     def get(self, model):
         return model.globals.cmdpar[self.name].definition
@@ -132,9 +132,6 @@ class ElemAttr(BaseError):
 
 
 class InitTwiss(BaseError):
-
-    def __init__(self, name):
-        self.name = name
 
     def get(self, model):
         return model.twiss_args.get(self.name)
