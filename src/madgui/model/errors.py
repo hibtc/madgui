@@ -36,17 +36,30 @@ class BaseError:
 
     @contextmanager
     def vary(self, model, step):
-        memo = self.apply(model, step)
+        old = self.get(model)
+        new = self.tinker(old, step)
+        self.set(model, new)
         try:
             yield step
         finally:
-            self.restore(model, -step if memo is None else memo)
+            self.set(model, old)
 
-    def restore(self, model, value):
-        self.apply(model, value)
+    def get(self, model):
+        return 0.0
+
+    def set(self, model, value):
+        raise NotImplementedError
 
     def __repr__(self):
         return "{}{}".format(self.leader, self.name)
+
+    def tinker(self, value, step):
+        if isinstance(value, str):
+            return "({}) + ({})".format(value, step)
+        elif value is None:
+            return step
+        else:
+            return value + step
 
 
 class Param(BaseError):
@@ -56,12 +69,10 @@ class Param(BaseError):
     def __init__(self, name):
         self.name = name
 
-    def apply(self, model, value):
-        memo = model.globals.cmdpar[self.name].definition
-        model.globals[self.name] += value
-        return memo
+    def get(self, model):
+        return model.globals.cmdpar[self.name].definition
 
-    def restore(self, model, value):
+    def set(self, model, value):
         model.globals[self.name] = value
 
 
@@ -74,7 +85,7 @@ class Ealign(BaseError):
         self.attr = attr
         self.name = '{}<{}>'.format(select.get('range'), attr)
 
-    def apply(self, model, value):
+    def set(self, model, value):
         cmd = model.madx.command
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
@@ -93,7 +104,7 @@ class Efcomp(BaseError):
         self.radius = radius
         self.name = '{}+{}'.format(select['range'], attr)
 
-    def apply(self, model, value):
+    def set(self, model, value):
         cmd = model.madx.command
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
@@ -113,13 +124,10 @@ class ElemAttr(BaseError):
         self.attr = attr
         self.name = '{}->{}'.format(elem, attr)
 
-    def apply(self, model, value):
-        elem = model.elements[self.elem]
-        memo = elem.cmdpar[self.attr].definition
-        elem[self.attr] = "({}) + ({})".format(memo, value)
-        return memo
+    def get(self, model):
+        return model.elements[self.elem].cmdpar[self.attr].definition
 
-    def restore(self, model, value):
+    def set(self, model, value):
         model.elements[self.elem][self.attr] = value
 
 
@@ -128,37 +136,29 @@ class InitTwiss(BaseError):
     def __init__(self, name):
         self.name = name
 
-    def apply(self, model, value):
-        memo = model.twiss_args.get(self.name)
-        model.update_twiss_args({self.name: (memo or 0.0) + value})
-        return memo
+    def get(self, model):
+        return model.twiss_args.get(self.name)
 
-    def restore(self, model, value):
+    def set(self, model, value):
         model.update_twiss_args({self.name: value})
 
 
-class ScaleAttr(ElemAttr):
+class RelativeError(BaseError):
 
     leader = 'δ'
 
-    def apply(self, model, value):
-        elem = model.elements[self.elem]
-        memo = elem.cmdpar[self.attr].definition
-        elem[self.attr] = "({}) * ({})".format(memo, 1+value)
-        return memo
+    def tinker(self, value, step):
+        if isinstance(value, str):
+            return "({}) * ({})".format(value, 1 + step)
+        elif value is None:
+            return None
+        else:
+            return value * (1 + step)
 
-    def restore(self, model, value):
-        model.elements[self.elem][self.attr] = value
+
+class ScaleAttr(RelativeError, ElemAttr):
+    pass
 
 
-class ScaleParam(Param):
-
-    leader = 'δ'
-
-    def apply(self, model, value):
-        memo = model.globals.cmdpar[self.name].definition
-        model.globals[self.name] *= 1+value
-        return memo
-
-    def restore(self, model, value):
-        model.globals[self.name] = value
+class ScaleParam(RelativeError, Param):
+    pass
