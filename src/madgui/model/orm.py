@@ -189,7 +189,7 @@ class Analysis:
         measured = self.measured
         stddev = (measured.stddev if use_stddev else
                   np.ones(measured.orm.shape))
-        err_names = ', '.join([err.name for err in errors])
+        err_names = ', '.join(map(repr, errors))
 
         print("====================")
         print("FIT:", ', '.join(monitors or self.monitors))
