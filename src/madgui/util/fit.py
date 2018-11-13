@@ -43,7 +43,7 @@ def fit_minimize(f, x0, y=0, sig=1,
         callback(state)
 
     def objective(y0):
-        return reduced_chisq((y - y0) / sig, len(x0))
+        return reduced_chisq((y - y0) / sig)
 
     def obj_fun(x):
         return objective(f(x))
@@ -68,7 +68,7 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
     for nit in count():
         y0 = f(x0)
         if callback is not None:
-            chisq = reduced_chisq((y - y0) / sig, len(x0))
+            chisq = reduced_chisq((y - y0) / sig)
             callback(sciopt.OptimizeResult(
                 x=x0, fun=y0, chisq=chisq, nit=nit, dx=dx,
                 success=False, message="In progress."))
@@ -83,7 +83,7 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
         dx, dy = fit_lstsq_oneshot(
             f, x0, y, sig, y0=y0, jac=jac, delta=delta, rcond=tol)
         x0 += dx
-    chisq = reduced_chisq((y - y0) / sig, len(x0))
+    chisq = reduced_chisq((y - y0) / sig)
     return sciopt.OptimizeResult(
         x=x0, fun=y0, chisq=chisq, nit=nit,
         success=success, message=message)

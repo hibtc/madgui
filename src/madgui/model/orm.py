@@ -206,7 +206,7 @@ class Analysis:
             print("ΔX     =", state.dx)
             print("X_tot  =", state.x)
             print(":: (fit) ::")
-            self.info(sel, ddof=len(errors))
+            self.info(sel)
             print(":: (overall) ::")
             self.info()
             print("----------------------")
