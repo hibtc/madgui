@@ -15,21 +15,43 @@ def reduced_chisq(residuals, ddof=0):
     return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
 
 
-def fit(f, x0, y=0, sig=1, method=None, bounds=None,
+def fit(f, x0, y=0, sig=1, algorithm='minimize', bounds=None,
         **kwargs) -> sciopt.OptimizeResult:
     """Fit objective function ``f(x) = y``, start from ``x0``. Returns
     ``scipy.optimize.OptimizeResult``."""
-    if method == 'lstsq':
+    if algorithm == 'lstsq':
         return fit_lstsq(f, x0, y, sig, **kwargs)
-    return fit_minimize(f, x0, y, sig, method=method, bounds=bounds, **kwargs)
+    if algorithm == 'minimize':
+        return fit_minimize(f, x0, y, sig, bounds=bounds, **kwargs)
+    if algorithm == 'basinhopping':
+        return fit_basinhopping(f, x0, y, sig, bounds=bounds, **kwargs)
+    raise ValueError("Unknown algorithm: {!r}".format(algorithm))
 
 
-def fit_minimize(f, x0, y=0, sig=1,
-                 delta=None, jac=None,
-                 iterations=None, callback=None,
-                 **kwargs):
+def fit_basinhopping(f, x0, y=0, sig=1, **kwargs):
+    """Global optimization of ``f(x) = y`` based on
+    :func:`scipy.optimize.basinhopping`."""
+    def minimize(f, x0, iterations=20, T=1.0, stepsize=0.01,
+                 callback=None, **kwargs):
+        return sciopt.basinhopping(
+            f, x0, niter=iterations, T=T, stepsize=stepsize,
+            minimizer_kwargs=kwargs, callback=callback)
+    return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
+
+
+def fit_minimize(f, x0, y=0, sig=1, **kwargs):
     """Fit objective function ``f(x) = y`` using least-squares fit via
     ``scipy.optimize.minimize``."""
+    def minimize(f, x0, iterations=None, **kwargs):
+        options = {'maxiter': iterations}
+        return sciopt.minimize(f, x0, options=options, **kwargs)
+    return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
+
+
+def _scipy_minimize(
+        minimizer, f, x0, y=0, sig=1,
+        delta=None, jac=None,
+        callback=None, **kwargs):
     state = sciopt.OptimizeResult(
         x=x0, fun=None, chisq=None, nit=0,
         success=False, message="In progress.")
@@ -51,10 +73,10 @@ def fit_minimize(f, x0, y=0, sig=1,
     if jac is None and delta is not None:
         jac = partial(jac_twopoint, obj_fun, delta=delta)
 
-    result = sciopt.minimize(
+    result = minimizer(
         obj_fun, x0, jac=jac,
         callback=callback and callback_wrapper,
-        options={'maxiter': iterations}, **kwargs)
+        **kwargs)
     result.fun = f(result.x)
     result.chisq = objective(result.fun)
     return result
