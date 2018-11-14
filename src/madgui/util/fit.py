@@ -25,6 +25,8 @@ def fit(f, x0, y=0, sig=1, algorithm='minimize', bounds=None,
         return fit_minimize(f, x0, y, sig, bounds=bounds, **kwargs)
     if algorithm == 'basinhopping':
         return fit_basinhopping(f, x0, y, sig, bounds=bounds, **kwargs)
+    if algorithm == 'diffevo':
+        return fit_diffevo(f, x0, y, sig, bounds=bounds, **kwargs)
     raise ValueError("Unknown algorithm: {!r}".format(algorithm))
 
 
@@ -36,6 +38,18 @@ def fit_basinhopping(f, x0, y=0, sig=1, **kwargs):
         return sciopt.basinhopping(
             f, x0, niter=iterations, T=T, stepsize=stepsize,
             minimizer_kwargs=kwargs, callback=callback)
+    return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
+
+
+def fit_diffevo(f, x0, y=0, sig=1, delta=1e-3, bounds=None, **kwargs):
+    """Global optimization of ``f(x) = y`` based on
+    :func:`scipy.optimize.differential_evolution`."""
+    if bounds is None:
+        bounds = [(x - 10*delta, x + 10*delta) for x in x0]
+
+    def minimize(f, x0, iterations=20, method='best1bin', jac=None, **kwargs):
+        return sciopt.differential_evolution(
+            f, bounds, strategy=method, maxiter=iterations, **kwargs)
     return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
 
 
