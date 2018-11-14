@@ -17,8 +17,8 @@ def apply_errors(model, errors, values):
 
 
 def parse_error(name):
-    mult = name.endswith('*')
-    name = name.rstrip('*')
+    mult = name.startswith('δ')
+    name = name.lstrip('δΔ \t')
     if name in ('x', 'y', 'px', 'py'):
         return InitTwiss(name)
     if '->' in name:
