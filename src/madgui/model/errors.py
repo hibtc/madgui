@@ -19,6 +19,8 @@ def apply_errors(model, errors, values):
 def parse_error(name):
     mult = name.endswith('*')
     name = name.rstrip('*')
+    if name in ('x', 'y', 'px', 'py'):
+        return InitTwiss(name)
     if '->' in name:
         elem, attr = name.split('->')
         if mult:
