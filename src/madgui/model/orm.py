@@ -185,7 +185,7 @@ class Analysis:
 
     def fit(self, errors, monitors, delta=1e-4,
             mode='xy', iterations=50, bounds=None,
-            tol=1e-8, use_stddev=True, **kwargs):
+            tol=1e-8, use_stddev=True, save_to=None, **kwargs):
 
         model = self.model
         measured = self.measured
@@ -235,6 +235,14 @@ class Analysis:
             tol=tol, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
         apply_errors(model, errors, result.x)
+
+        if save_to is not None:
+            text = '\n'.join(
+                '{!r}: {}'.format(err, val)
+                for err, val in zip(errors, result.x))
+            with open(save_to, 'wt') as f:
+                f.write(text)
+
         return result
 
     @classmethod
