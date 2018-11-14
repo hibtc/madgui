@@ -2,7 +2,6 @@ from contextlib import contextmanager
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.optimize import Bounds
 
 from cpymad.madx import TwissFailed
 
@@ -230,9 +229,8 @@ class Analysis:
 
         x0 = np.zeros(len(errors))
         result = fit(
-            objective, x0, obj_slice(measured.orm), obj_slice(stddev),
-            bounds=None if bounds is None else Bounds(*bounds), delta=delta,
-            tol=tol, iterations=iterations, callback=callback, **kwargs)
+            objective, x0, obj_slice(measured.orm), obj_slice(stddev), tol=tol,
+            delta=delta, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
         apply_errors(model, errors, result.x)
 

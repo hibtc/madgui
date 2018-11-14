@@ -15,18 +15,18 @@ def reduced_chisq(residuals, ddof=0):
     return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
 
 
-def fit(f, x0, y=0, sig=1, algorithm='minimize', bounds=None,
+def fit(f, x0, y=0, sig=1, algorithm='minimize',
         **kwargs) -> sciopt.OptimizeResult:
     """Fit objective function ``f(x) = y``, start from ``x0``. Returns
     ``scipy.optimize.OptimizeResult``."""
     if algorithm == 'lstsq':
         return fit_lstsq(f, x0, y, sig, **kwargs)
     if algorithm == 'minimize':
-        return fit_minimize(f, x0, y, sig, bounds=bounds, **kwargs)
+        return fit_minimize(f, x0, y, sig, **kwargs)
     if algorithm == 'basinhopping':
-        return fit_basinhopping(f, x0, y, sig, bounds=bounds, **kwargs)
+        return fit_basinhopping(f, x0, y, sig, **kwargs)
     if algorithm == 'diffevo':
-        return fit_diffevo(f, x0, y, sig, bounds=bounds, **kwargs)
+        return fit_diffevo(f, x0, y, sig, **kwargs)
     raise ValueError("Unknown algorithm: {!r}".format(algorithm))
 
 
