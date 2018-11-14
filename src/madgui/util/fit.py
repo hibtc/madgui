@@ -15,21 +15,6 @@ def reduced_chisq(residuals, ddof=0):
     return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
 
 
-def fit(f, x0, y=0, sig=1, algorithm='minimize',
-        **kwargs) -> sciopt.OptimizeResult:
-    """Fit objective function ``f(x) = y``, start from ``x0``. Returns
-    ``scipy.optimize.OptimizeResult``."""
-    if algorithm == 'lstsq':
-        return fit_lstsq(f, x0, y, sig, **kwargs)
-    if algorithm == 'minimize':
-        return fit_minimize(f, x0, y, sig, **kwargs)
-    if algorithm == 'basinhopping':
-        return fit_basinhopping(f, x0, y, sig, **kwargs)
-    if algorithm == 'diffevo':
-        return fit_diffevo(f, x0, y, sig, **kwargs)
-    raise ValueError("Unknown algorithm: {!r}".format(algorithm))
-
-
 def fit_basinhopping(f, x0, y=0, sig=1, **kwargs):
     """Global optimization of ``f(x) = y`` based on
     :func:`scipy.optimize.basinhopping`."""
@@ -153,3 +138,22 @@ def jac_twopoint(f, x0, y0=None, delta=1e-3):
         (f(x0 + dx) - y0) / np.linalg.norm(dx)
         for dx in np.eye(len(x0)) * delta
     ])
+
+
+supported_optimizers = {
+    'lstsq': fit_lstsq,
+    'minimize': fit_minimize,
+    'basinhopping': fit_basinhopping,
+    'diffevo': fit_diffevo,
+}
+
+
+def fit(f, x0, y=0, sig=1, algorithm='minimize',
+        **kwargs) -> sciopt.OptimizeResult:
+    """Fit objective function ``f(x) = y``, start from ``x0``. Returns
+    ``scipy.optimize.OptimizeResult``."""
+    try:
+        fun = supported_optimizers[algorithm]
+    except KeyError:
+        raise ValueError("Unknown optimizer: {!r}".format(algorithm))
+    return fun(f, x0, y, sig, **kwargs)
