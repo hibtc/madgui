@@ -4,6 +4,11 @@ from contextlib import contextmanager, ExitStack
 from cpymad.util import is_identifier
 
 
+def import_errors(model, spec):
+    return apply_errors(
+        model, map(parse_error, spec.keys()), spec.values())
+
+
 def apply_errors(model, errors, values):
     with ExitStack() as stack:
         for error, value in zip(errors, values):
