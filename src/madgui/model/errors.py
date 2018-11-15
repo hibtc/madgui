@@ -1,5 +1,5 @@
 import re
-from contextlib import contextmanager, ExitStack
+from contextlib import ExitStack
 
 from cpymad.util import is_identifier
 
@@ -44,22 +44,14 @@ class BaseError:
     def __init__(self, name):
         self.name = name
 
-    @contextmanager
     def vary(self, model, step):
         old = self.get(model)
         new = self.tinker(old, step)
-        active = new != old
-        if active:
-            self.set(model, new)
-        try:
-            yield step
-        except GeneratorExit:
-            # Prevent cleanup if the contextmanager was discarded without
-            # exiting, e.g. if popped from `ExitStack().pop_all()`:
-            active = False
-        finally:
-            if active:
-                self.set(model, old)
+        with ExitStack() as stack:
+            if new != old:
+                self.set(model, new)
+                stack.callback(self.set, model, old)
+            return stack.pop_all()
 
     def get(self, model):
         return 0.0
