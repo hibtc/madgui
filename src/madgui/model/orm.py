@@ -176,6 +176,14 @@ class Analysis:
             select, self.model, self.measured, self.model_orm,
             save_to=save_to, base_orm=base_orm)
 
+    def plot_orbit(self, save_to=None):
+        fig = plt.figure(1)
+        plot_orbit(fig, self.model, self.measured)
+        if save_to is None:
+            plt.show()
+        else:
+            plt.savefig('{}-orbit.png'.format(save_to))
+
     def backtrack(self, monitors):
         print("TWISS INIT")
         twiss_args = fit_init_orbit(self.model, self.measured, monitors)
@@ -379,6 +387,31 @@ def plot_steerer_response(
 
     fig.suptitle("{1}: {0}".format(steerer, comment))
     return lines
+
+
+def plot_orbit(fig, model, measured):
+    twiss = model.twiss()
+
+    xpos = [model.elements[elem].position for elem in measured.monitors]
+
+    base = [measured.base_orbit[m] for m in measured.monitors]
+    orbit = np.array([orbit for orbit, _ in base])
+    error = np.array([error for _, error in base])
+
+    for j, ax in enumerate("xy"):
+        axes = fig.add_subplot(1, 2, 1+j)
+        axes.set_title(ax)
+        axes.set_xlabel(r"monitor position [m]")
+        if ax == 'x':
+            axes.set_ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+        else:
+            axes.yaxis.tick_right()
+
+        axes.errorbar(xpos, orbit[:, j], error[:, j], label=ax + " measured")
+        axes.plot(twiss.s, twiss[ax], label=ax + " model")
+        axes.legend()
+
+    fig.suptitle("orbit")
 
 
 ERR_ATTR = {
