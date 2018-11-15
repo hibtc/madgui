@@ -9,7 +9,7 @@ from madgui.core.config import load as load_config
 from madgui.online.procedure import Corrector, ProcBot
 
 import madgui.util.yaml as yaml
-from madgui.model.orm import create_errors_from_spec
+from madgui.model.error import import_errors
 
 
 def main(model_file, spec_file, record_file):
@@ -54,10 +54,7 @@ def main(model_file, spec_file, record_file):
         # order to fix this, the hit_csys test backend will have to use an
         # independent model!
         model = session.model()
-        errors = create_errors_from_spec(setup_args['errors'])
-        for error in errors:
-            error.set_base(model.madx)
-            stack.enter_context(error.vary(model))
+        import_errors(model, setup_args['errors'])
         model.twiss.invalidate()
 
         corrector.set_optics_delta(

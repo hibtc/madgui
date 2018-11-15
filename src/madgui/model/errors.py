@@ -1,60 +1,101 @@
-from contextlib import contextmanager
+import re
+from contextlib import contextmanager, ExitStack
+
+from cpymad.util import is_identifier
+
+
+def import_errors(model, spec):
+    return apply_errors(
+        model, map(parse_error, spec.keys()), spec.values())
+
+
+def apply_errors(model, errors, values):
+    with ExitStack() as stack:
+        for error, value in zip(errors, values):
+            stack.enter_context(error.vary(model, value))
+        return stack.pop_all()
+
+
+def parse_error(name):
+    mult = name.startswith('δ')
+    name = name.lstrip('δΔ \t')
+    if name in ('x', 'y', 'px', 'py'):
+        return InitTwiss(name)
+    if '->' in name:
+        elem, attr = name.split('->')
+        if mult:
+            return ScaleAttr(elem, attr)
+        return ElemAttr(elem, attr)
+    if '<' in name:
+        elem, attr = re.match(r'(.*)\<(.*)\>', name).groups()
+        return Ealign({'range': elem}, attr)
+    if is_identifier(name):
+        if mult:
+            return ScaleParam(name)
+        return Param(name)
+    # TODO: efcomp field errors!
+    raise ValueError("{!r} is not a valid error specification!".format(name))
 
 
 class BaseError:
 
     leader = 'Δ'
 
-    def __init__(self, step):
-        self.base = 0.0
-        self.step = step
-
-    def set_base(self, madx):
-        self.base = 0.0
+    def __init__(self, name):
+        self.name = name
 
     @contextmanager
-    def vary(self, model):
-        madx = model.madx
-        step = self.step
-        self.apply(madx, step)
+    def vary(self, model, step):
+        old = self.get(model)
+        new = self.tinker(old, step)
+        if new != old:
+            self.set(model, new)
         try:
             yield step
         finally:
-            self.apply(madx, -step)
+            if new != old:
+                self.set(model, old)
+
+    def get(self, model):
+        return 0.0
+
+    def set(self, model, value):
+        raise NotImplementedError
 
     def __repr__(self):
-        return "[{}{}={}]".format(self.leader, self.name, self.step)
+        return "{}{}".format(self.leader, self.name)
+
+    def tinker(self, value, step):
+        if isinstance(value, str):
+            return "({}) + ({})".format(value, step)
+        elif value is None:
+            return step
+        else:
+            return value + step
 
 
 class Param(BaseError):
 
     """Variable parameter."""
 
-    def __init__(self, knob, step=1e-4, madx=None):
-        super().__init__(step)
-        self.knob = self.name = knob
-        if madx is not None:
-            self.set_base(madx)
+    def get(self, model):
+        return model.globals.cmdpar[self.name].definition
 
-    def set_base(self, madx):
-        self.base = madx.globals[self.knob]
-
-    def apply(self, madx, value):
-        madx.globals[self.knob] += value
+    def set(self, model, value):
+        model.globals[self.name] = value
 
 
 class Ealign(BaseError):
 
     """Alignment error."""
 
-    def __init__(self, select, attr, step):
-        super().__init__(step)
+    def __init__(self, select, attr):
         self.select = select
         self.attr = attr
         self.name = '{}<{}>'.format(select.get('range'), attr)
 
-    def apply(self, madx, value):
-        cmd = madx.command
+    def set(self, model, value):
+        cmd = model.madx.command
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
         cmd.ealign(**{self.attr: value})
@@ -65,7 +106,6 @@ class Efcomp(BaseError):
     """Field error."""
 
     def __init__(self, select, attr, value, order=0, radius=1):
-        super().__init__(sum(value))
         self.select = select
         self.attr = attr
         self.value = value
@@ -73,8 +113,8 @@ class Efcomp(BaseError):
         self.radius = radius
         self.name = '{}+{}'.format(select['range'], attr)
 
-    def apply(self, madx, value):
-        cmd = madx.command
+    def set(self, model, value):
+        cmd = model.madx.command
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
         cmd.efcomp(**{
@@ -88,62 +128,43 @@ class ElemAttr(BaseError):
 
     """Variable parameter."""
 
-    def __init__(self, elem, attr, step=1e-4, madx=None):
-        super().__init__(step)
+    def __init__(self, elem, attr):
         self.elem = elem
         self.attr = attr
-        if madx is not None:
-            self.set_base(madx)
         self.name = '{}->{}'.format(elem, attr)
 
-    def set_base(self, madx):
-        self.base = madx.elements[self.elem][self.attr]
+    def get(self, model):
+        return model.elements[self.elem].cmdpar[self.attr].definition
 
-    @contextmanager
-    def vary(self, model):
-        madx = model.madx
-        step = self.step
-        backup = madx.elements[self.elem].cmdpar[self.attr].definition
-        self.apply(madx, step)
-        try:
-            yield step
-        finally:
-            madx.elements[self.elem][self.attr] = backup
-
-    def apply(self, madx, value):
-        madx.elements[self.elem][self.attr] = "({}) + ({})".format(
-            madx.elements[self.elem].cmdpar[self.attr].definition, value)
+    def set(self, model, value):
+        model.elements[self.elem][self.attr] = value
 
 
-class ScaleAttr(ElemAttr):
+class InitTwiss(BaseError):
+
+    def get(self, model):
+        return model.twiss_args.get(self.name)
+
+    def set(self, model, value):
+        model.update_twiss_args({self.name: value})
+
+
+class RelativeError(BaseError):
 
     leader = 'δ'
 
-    def set_base(self, madx):
-        self.base = 0.0
+    def tinker(self, value, step):
+        if isinstance(value, str):
+            return "({}) * ({})".format(value, 1 + step)
+        elif value is None:
+            return None
+        else:
+            return value * (1 + step)
 
-    def apply(self, madx, value):
-        madx.elements[self.elem][self.attr] = "({}) * ({})".format(
-            madx.elements[self.elem].cmdpar[self.attr].definition, 1+value)
+
+class ScaleAttr(RelativeError, ElemAttr):
+    pass
 
 
-class ScaleParam(Param):
-
-    leader = 'δ'
-
-    def set_base(self, madx):
-        self.base = 0.0
-
-    @contextmanager
-    def vary(self, model):
-        madx = model.madx
-        step = self.step
-        backup = madx.globals.cmdpar[self.knob].definition
-        self.apply(madx, step)
-        try:
-            yield step
-        finally:
-            madx.globals[self.knob] = backup
-
-    def apply(self, madx, value):
-        madx.globals[self.knob] *= 1+value
+class ScaleParam(RelativeError, Param):
+    pass

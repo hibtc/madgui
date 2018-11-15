@@ -42,9 +42,9 @@ class Madx(Madx):
     def input(self, text):
         if self._enter_count > 0:
             self._collected_cmds.append(text)
-            return
+            return True
         self.history.append(text)
-        super().input(text)
+        return super().input(text)
 
     @contextmanager
     def transaction(self):
