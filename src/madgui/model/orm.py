@@ -160,21 +160,21 @@ class Analysis:
     def get_selected_monitors(self, selected):
         return [self.monitors.index(m.lower()) for m in selected]
 
-    def plot_monitors(self, select=None, save_to=None):
+    def plot_monitors(self, select=None, save_to=None, base_orm=None):
         if select is None:
             select = self.monitors
         print("plotting monitors: {}".format(" ".join(select)))
         make_monitor_plots(
             select, self.model, self.measured, self.model_orm,
-            save_to=save_to)
+            save_to=save_to, base_orm=base_orm)
 
-    def plot_steerers(self, select=None, save_to=None):
+    def plot_steerers(self, select=None, save_to=None, base_orm=None):
         if select is None:
             select = self.steerers
         print("plotting steerers: {}".format(" ".join(select)))
         make_steerer_plots(
             select, self.model, self.measured, self.model_orm,
-            save_to=save_to)
+            save_to=save_to, base_orm=base_orm)
 
     def backtrack(self, monitors):
         print("TWISS INIT")
