@@ -48,12 +48,17 @@ class BaseError:
     def vary(self, model, step):
         old = self.get(model)
         new = self.tinker(old, step)
-        if new != old:
+        active = new != old
+        if active:
             self.set(model, new)
         try:
             yield step
+        except GeneratorExit:
+            # Prevent cleanup if the contextmanager was discarded without
+            # exiting, e.g. if popped from `ExitStack().pop_all()`:
+            active = False
         finally:
-            if new != old:
+            if active:
                 self.set(model, old)
 
     def get(self, model):
