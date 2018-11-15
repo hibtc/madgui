@@ -178,9 +178,10 @@ class Analysis:
 
     def backtrack(self, monitors):
         print("TWISS INIT")
-        self.model.update_twiss_args(
-            fit_init_orbit(self.model, self.measured, monitors))
+        twiss_args = fit_init_orbit(self.model, self.measured, monitors)
+        self.model.update_twiss_args(twiss_args)
         self.model_orm = self.get_orbit_response()
+        return twiss_args
 
     def fit(self, errors, monitors, delta=1e-4,
             mode='xy', iterations=50, bounds=None,
