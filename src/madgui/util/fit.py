@@ -15,33 +15,35 @@ def reduced_chisq(residuals, ddof=0):
     return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
 
 
-def fit_basinhopping(f, x0, y=0, sig=1, **kwargs):
+def fit_basinhopping(
+        f, x0, y=0, sig=1, iterations=20, T=1.0, stepsize=0.01, **kwargs):
     """Global optimization of ``f(x) = y`` based on
     :func:`scipy.optimize.basinhopping`."""
-    def minimize(f, x0, iterations=20, T=1.0, stepsize=0.01,
-                 callback=None, **kwargs):
+    def minimize(f, x0, callback=None, **kwargs):
         return sciopt.basinhopping(
             f, x0, niter=iterations, T=T, stepsize=stepsize,
             minimizer_kwargs=kwargs, callback=callback)
     return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
 
 
-def fit_diffevo(f, x0, y=0, sig=1, delta=1e-3, bounds=None, **kwargs):
+def fit_diffevo(
+        f, x0, y=0, sig=1, delta=1e-3, bounds=None,
+        iterations=20, method='best1bin', **kwargs):
     """Global optimization of ``f(x) = y`` based on
     :func:`scipy.optimize.differential_evolution`."""
     if bounds is None:
         bounds = [(x - 10*delta, x + 10*delta) for x in x0]
 
-    def minimize(f, x0, iterations=20, method='best1bin', jac=None, **kwargs):
+    def minimize(f, x0, jac=None, **kwargs):
         return sciopt.differential_evolution(
             f, bounds, strategy=method, maxiter=iterations, **kwargs)
     return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
 
 
-def fit_minimize(f, x0, y=0, sig=1, **kwargs):
+def fit_minimize(f, x0, y=0, sig=1, iterations=None, **kwargs):
     """Fit objective function ``f(x) = y`` using least-squares fit via
     ``scipy.optimize.minimize``."""
-    def minimize(f, x0, iterations=None, **kwargs):
+    def minimize(f, x0, **kwargs):
         options = {'maxiter': iterations}
         return sciopt.minimize(f, x0, options=options, **kwargs)
     return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
