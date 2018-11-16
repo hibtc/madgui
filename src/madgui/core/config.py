@@ -40,7 +40,7 @@ def _loads(text):
 
 def _load_file(path):
     try:
-        return yaml.load_file(path)
+        return yaml.load_file(path or '')
     except FileNotFoundError:
         return ''
 

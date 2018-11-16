@@ -1,5 +1,5 @@
 import re
-from contextlib import contextmanager, ExitStack
+from contextlib import ExitStack
 
 from cpymad.util import is_identifier
 
@@ -44,17 +44,14 @@ class BaseError:
     def __init__(self, name):
         self.name = name
 
-    @contextmanager
     def vary(self, model, step):
         old = self.get(model)
         new = self.tinker(old, step)
-        if new != old:
-            self.set(model, new)
-        try:
-            yield step
-        finally:
+        with ExitStack() as stack:
             if new != old:
-                self.set(model, old)
+                self.set(model, new)
+                stack.callback(self.set, model, old)
+            return stack.pop_all()
 
     def get(self, model):
         return 0.0

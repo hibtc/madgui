@@ -380,7 +380,7 @@ def plot_steerer_response(
         if base_orm is not None:
             axes.plot(
                 xpos,
-                base_orm[i, j, :].flatten(),
+                base_orm[:, j, i].flatten(),
                 label=ax + " base model")
 
         axes.legend()
