@@ -334,16 +334,16 @@ def plot_monitor_response(
             measured.stddev[i, j, :].flatten(),
             label=ax + " measured")
 
+        lines.append(axes.plot(
+            xpos,
+            model_orm[i, j, :].flatten(),
+            label=ax + " model"))
+
         if base_orm is not None:
             axes.plot(
                 xpos,
                 base_orm[i, j, :].flatten(),
                 label=ax + " base model")
-
-        lines.append(axes.plot(
-            xpos,
-            model_orm[i, j, :].flatten(),
-            label=ax + " model"))
 
         axes.legend()
 
@@ -372,16 +372,16 @@ def plot_steerer_response(
             measured.stddev[:, j, i].flatten(),
             label=ax + " measured")
 
+        lines.append(axes.plot(
+            xpos,
+            model_orm[:, j, i].flatten(),
+            label=ax + " model"))
+
         if base_orm is not None:
             axes.plot(
                 xpos,
                 base_orm[i, j, :].flatten(),
                 label=ax + " base model")
-
-        lines.append(axes.plot(
-            xpos,
-            model_orm[:, j, i].flatten(),
-            label=ax + " model"))
 
         axes.legend()
 
