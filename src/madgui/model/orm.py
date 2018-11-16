@@ -130,6 +130,8 @@ class Analysis:
         self.monitors = measured.monitors
         self.steerers = measured.steerers
         self.knobs = measured.knobs
+        self.errors = []
+        self.values = []
 
     def init(self, strengths=None):
         print("INITIAL")
@@ -153,9 +155,13 @@ class Analysis:
         print("    |y =", reduced_chisq(
             ((measured.orm - model_orm) / stddev)[sel][:, 1, :], ddof))
 
+    def apply_errors(self, errors, values):
+        self.errors[:0] = errors
+        self.values[:0] = values
+
     def get_orbit_response(self):
         return self.model.get_orbit_response_matrix(
-            self.monitors, self.knobs)
+            self.monitors, self.knobs, self.errors, self.values)
 
     def get_selected_monitors(self, selected):
         return [self.monitors.index(m.lower()) for m in selected]
@@ -178,7 +184,8 @@ class Analysis:
 
     def plot_orbit(self, save_to=None):
         fig = plt.figure(1)
-        plot_orbit(fig, self.model, self.measured)
+        with apply_errors(self, self.errors, self.values):
+            plot_orbit(fig, self.model, self.measured)
         if save_to is None:
             plt.show()
         else:
@@ -230,8 +237,10 @@ class Analysis:
 
         def objective(values):
             try:
-                self.model_orm = get_orm(
-                    model, measured.monitors, measured.knobs, errors, values)
+                print(".", end='', flush=True)
+                self.model_orm = model.get_orbit_response_matrix(
+                    measured.monitors, measured.knobs,
+                    errors + self.errors, values + self.values)
             except TwissFailed:
                 return 1e5
             return obj_slice(self.model_orm)
@@ -241,7 +250,7 @@ class Analysis:
             objective, x0, obj_slice(measured.orm), obj_slice(stddev), tol=tol,
             delta=delta, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
-        apply_errors(model, errors, result.x)
+        self.apply_errors(model, errors, result.x)
 
         if save_to is not None:
             text = '\n'.join(
@@ -273,14 +282,6 @@ class Analysis:
             model = session.model()
             measured = OrbitResponse.load(model, record_files)
             yield cls(model, measured)
-
-
-def get_orm(model, monitors, knobs, errors, values):
-    with model.undo_stack.rollback("orm_deriv", transient=True):
-        with apply_errors(model, errors, values):
-            print(".", end='', flush=True)
-            model.twiss.invalidate()
-            return model.get_orbit_response_matrix(monitors, knobs)
 
 
 def make_monitor_plots(
