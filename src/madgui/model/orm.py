@@ -17,6 +17,7 @@ class OrbitResponse:
         self.monitors = monitors
         self.knobs = knobs
         self.steerers = steerers
+        self.records = records
         self.strengths = strengths
         self.responses = responses = {
             (monitor, knob): (
