@@ -532,31 +532,34 @@ class Model:
 
     # TODO: default values for knobs/monitors
     # TODO: pass entire optic (knob + delta)
-    def get_orbit_response_matrix(self, monitors, knobs) -> np.array:
+    def get_orbit_response_matrix(
+            self, monitors, knobs, errors=(), values=()) -> np.array:
         """
         Compute the orbit response matrix Δx/Δφ numerically (by varying knobs)
         and return as `M×2×K` matrix (monitors × x|y × knobs).
         """
+        from .errors import apply_errors, Param
         madx = self.madx
         madx.command.select(flag='interpolate', clear=True)
-        tw_args = self._get_twiss_args(table='orm_tmp')
 
-        tw0 = madx.twiss(**tw_args)
+        # applying errors here is a temporary measure until we figure out a
+        # better way to take into account combined error effects (e.g.
+        # relative error on top of absolute error):
+        with apply_errors(self, errors, values):
+            tw0 = madx.twiss(**self._get_twiss_args(table='orm_tmp'))
         x0, y0 = tw0.x, tw0.y
         idx = [self.elements.index(m) for m in monitors]
 
         def get_knob_response(var, step):
             """Return `2×M` matrix with responses for specified variable."""
-            try:
-                madx.globals[var] += step
-                tw1 = madx.twiss(**tw_args)
-                x1, y1 = tw1.x, tw1.y
-                return np.vstack((
-                    (x1 - x0)[idx],
-                    (y1 - y0)[idx],
-                )).T / step
-            finally:
-                madx.globals[var] -= step
+            with apply_errors(self, [Param(var)], [step]):
+                with apply_errors(self, errors, values):
+                    tw1 = madx.twiss(**self._get_twiss_args(table='orm_tmp'))
+            x1, y1 = tw1.x, tw1.y
+            return np.vstack((
+                (x1 - x0)[idx],
+                (y1 - y0)[idx],
+            )).T / step
 
         return np.dstack([
             get_knob_response(knob, 2e-4)

@@ -45,7 +45,7 @@ class BaseError:
         self.name = name
 
     def vary(self, model, step):
-        old = self.get(model)
+        old = self.get(model, step)
         new = self.tinker(old, step)
         with ExitStack() as stack:
             if new != old:
@@ -53,7 +53,7 @@ class BaseError:
                 stack.callback(self.set, model, old)
             return stack.pop_all()
 
-    def get(self, model):
+    def get(self, model, step):
         return 0.0
 
     def set(self, model, value):
@@ -75,7 +75,7 @@ class Param(BaseError):
 
     """Variable parameter."""
 
-    def get(self, model):
+    def get(self, model, step):
         return model.globals.cmdpar[self.name].definition
 
     def set(self, model, value):
@@ -96,6 +96,12 @@ class Ealign(BaseError):
         cmd.select(flag='error', clear=True)
         cmd.select(flag='error', **self.select)
         cmd.ealign(**{self.attr: value})
+
+    def get(self, model, step):
+        return -step
+
+    def tinker(self, value, step):
+        return -value
 
 
 class Efcomp(BaseError):
@@ -120,6 +126,12 @@ class Efcomp(BaseError):
             self.attr: [v * value for v in self.value],
         })
 
+    def get(self, model, step):
+        return -step
+
+    def tinker(self, value, step):
+        return -value
+
 
 class ElemAttr(BaseError):
 
@@ -139,7 +151,7 @@ class ElemAttr(BaseError):
 
 class InitTwiss(BaseError):
 
-    def get(self, model):
+    def get(self, model, step):
         return model.twiss_args.get(self.name)
 
     def set(self, model, value):

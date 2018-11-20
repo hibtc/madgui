@@ -17,6 +17,7 @@ class OrbitResponse:
         self.monitors = monitors
         self.knobs = knobs
         self.steerers = steerers
+        self.records = records
         self.strengths = strengths
         self.responses = responses = {
             (monitor, knob): (
@@ -130,6 +131,8 @@ class Analysis:
         self.monitors = measured.monitors
         self.steerers = measured.steerers
         self.knobs = measured.knobs
+        self.errors = []
+        self.values = []
 
     def init(self, strengths=None):
         print("INITIAL")
@@ -153,34 +156,48 @@ class Analysis:
         print("    |y =", reduced_chisq(
             ((measured.orm - model_orm) / stddev)[sel][:, 1, :], ddof))
 
+    def apply_errors(self, errors, values):
+        self.errors[:0] = errors
+        self.values[:0] = values
+
     def get_orbit_response(self):
         return self.model.get_orbit_response_matrix(
-            self.monitors, self.knobs)
+            self.monitors, self.knobs, self.errors, self.values)
 
     def get_selected_monitors(self, selected):
         return [self.monitors.index(m.lower()) for m in selected]
 
-    def plot_monitors(self, select=None, save_to=None):
+    def plot_monitors(self, select=None, save_to=None, base_orm=None):
         if select is None:
             select = self.monitors
         print("plotting monitors: {}".format(" ".join(select)))
         make_monitor_plots(
             select, self.model, self.measured, self.model_orm,
-            save_to=save_to)
+            save_to=save_to, base_orm=base_orm)
 
-    def plot_steerers(self, select=None, save_to=None):
+    def plot_steerers(self, select=None, save_to=None, base_orm=None):
         if select is None:
             select = self.steerers
         print("plotting steerers: {}".format(" ".join(select)))
         make_steerer_plots(
             select, self.model, self.measured, self.model_orm,
-            save_to=save_to)
+            save_to=save_to, base_orm=base_orm)
+
+    def plot_orbit(self, save_to=None):
+        fig = plt.figure(1)
+        with apply_errors(self, self.errors, self.values):
+            plot_orbit(fig, self.model, self.measured)
+        if save_to is None:
+            plt.show()
+        else:
+            plt.savefig('{}-orbit.png'.format(save_to))
 
     def backtrack(self, monitors):
         print("TWISS INIT")
-        self.model.update_twiss_args(
-            fit_init_orbit(self.model, self.measured, monitors))
+        twiss_args = fit_init_orbit(self.model, self.measured, monitors)
+        self.model.update_twiss_args(twiss_args)
         self.model_orm = self.get_orbit_response()
+        return twiss_args
 
     def fit(self, errors, monitors, delta=1e-4,
             mode='xy', iterations=50, bounds=None,
@@ -221,8 +238,10 @@ class Analysis:
 
         def objective(values):
             try:
-                self.model_orm = get_orm(
-                    model, measured.monitors, measured.knobs, errors, values)
+                print(".", end='', flush=True)
+                self.model_orm = model.get_orbit_response_matrix(
+                    measured.monitors, measured.knobs,
+                    errors + self.errors, values + self.values)
             except TwissFailed:
                 return 1e5
             return obj_slice(self.model_orm)
@@ -232,7 +251,7 @@ class Analysis:
             objective, x0, obj_slice(measured.orm), obj_slice(stddev), tol=tol,
             delta=delta, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
-        apply_errors(model, errors, result.x)
+        self.apply_errors(model, errors, result.x)
 
         if save_to is not None:
             text = '\n'.join(
@@ -264,14 +283,6 @@ class Analysis:
             model = session.model()
             measured = OrbitResponse.load(model, record_files)
             yield cls(model, measured)
-
-
-def get_orm(model, monitors, knobs, errors, values):
-    with model.undo_stack.rollback("orm_deriv", transient=True):
-        with apply_errors(model, errors, values):
-            print(".", end='', flush=True)
-            model.twiss.invalidate()
-            return model.get_orbit_response_matrix(monitors, knobs)
 
 
 def make_monitor_plots(
@@ -325,16 +336,16 @@ def plot_monitor_response(
             measured.stddev[i, j, :].flatten(),
             label=ax + " measured")
 
+        lines.append(axes.plot(
+            xpos,
+            model_orm[i, j, :].flatten(),
+            label=ax + " model"))
+
         if base_orm is not None:
             axes.plot(
                 xpos,
                 base_orm[i, j, :].flatten(),
                 label=ax + " base model")
-
-        lines.append(axes.plot(
-            xpos,
-            model_orm[i, j, :].flatten(),
-            label=ax + " model"))
 
         axes.legend()
 
@@ -363,21 +374,46 @@ def plot_steerer_response(
             measured.stddev[:, j, i].flatten(),
             label=ax + " measured")
 
+        lines.append(axes.plot(
+            xpos,
+            model_orm[:, j, i].flatten(),
+            label=ax + " model"))
+
         if base_orm is not None:
             axes.plot(
                 xpos,
                 base_orm[:, j, i].flatten(),
                 label=ax + " base model")
 
-        lines.append(axes.plot(
-            xpos,
-            model_orm[:, j, i].flatten(),
-            label=ax + " model"))
-
         axes.legend()
 
     fig.suptitle("{1}: {0}".format(steerer, comment))
     return lines
+
+
+def plot_orbit(fig, model, measured):
+    twiss = model.twiss()
+
+    xpos = [model.elements[elem].position for elem in measured.monitors]
+
+    base = [measured.base_orbit[m] for m in measured.monitors]
+    orbit = np.array([orbit for orbit, _ in base])
+    error = np.array([error for _, error in base])
+
+    for j, ax in enumerate("xy"):
+        axes = fig.add_subplot(1, 2, 1+j)
+        axes.set_title(ax)
+        axes.set_xlabel(r"monitor position [m]")
+        if ax == 'x':
+            axes.set_ylabel(r"orbit response $\Delta x/\Delta \phi$ [mm/mrad]")
+        else:
+            axes.yaxis.tick_right()
+
+        axes.errorbar(xpos, orbit[:, j], error[:, j], label=ax + " measured")
+        axes.plot(twiss.s, twiss[ax], label=ax + " model")
+        axes.legend()
+
+    fig.suptitle("orbit")
 
 
 ERR_ATTR = {
