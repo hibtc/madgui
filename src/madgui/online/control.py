@@ -91,7 +91,7 @@ class Control(Object):
             return {}
         return {
             knob: info
-            for knob in self.model().globals
+            for knob in self.model().export_globals()
             for info in [self.backend.param_info(knob)]
             if info
         }

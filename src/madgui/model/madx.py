@@ -19,7 +19,7 @@ from numbers import Number
 import numpy as np
 
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
-from cpymad.util import normalize_range_name, is_identifier
+from cpymad.util import normalize_range_name, is_identifier, VAR_TYPE_CONST
 
 from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
@@ -303,7 +303,7 @@ class Model:
         return {
             k: p.value
             for k, p in self.globals.cmdpar.items()
-            if p.var_type > 0
+            if p.inform and p.var_type != VAR_TYPE_CONST
         }
 
     def export_beam(self):
