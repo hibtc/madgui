@@ -20,6 +20,10 @@ env:
 before_install:
   - lsb_release -a
   - env | sort
+  - if [[ -z $TRAVIS_TAG ]]; then
+      sed -i "/^__version__ = /s/'\$/.dev$TRAVIS_BUILD_NUMBER'/"
+        src/madgui/__init__.py ;
+    fi
 
 install:
   # Use [test!] the source distribution as installation medium:
@@ -66,8 +70,6 @@ jobs:
       addons:           # not needed
       install: skip
       script:
-        - sed -i "/^__version__ = /s/'$/.dev$TRAVIS_BUILD_NUMBER'/"
-            src/madgui/__init__.py
         - python setup.py sdist
       deploy:
       # Upload manylinux wheels to test.pypi.org (only on branch test-release)
