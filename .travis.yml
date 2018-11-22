@@ -2,7 +2,6 @@ language: python
 
 python: "3.4"
 dist: trusty
-sudo: false
 
 # See https://github.com/travis-ci/apt-package-whitelist:
 addons:
@@ -53,7 +52,7 @@ jobs:
 
   include:
     - {python: "3.4", dist: trusty}
-    - {python: "3.5", dist: xenial, sudo: true}
+    - {python: "3.5", dist: xenial}
   # - {python: "3.6", dist: bionic}
 
     - stage: deploy
