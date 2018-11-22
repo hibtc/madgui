@@ -1,9 +1,6 @@
 language: python
-
 python: "3.4"
-dist: trusty
 
-# See https://github.com/travis-ci/apt-package-whitelist:
 addons:
   apt:
     update: true
@@ -40,7 +37,6 @@ script:
   - pytest tests
 
 
-# See: https://docs.travis-ci.com/user/languages/python/
 # Since we need the native python3-pyqt5 system-site package, we only have
 # access to the natively supported python versions on each distribution:
 jobs:
