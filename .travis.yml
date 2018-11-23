@@ -1,10 +1,6 @@
 language: python
-
 python: "3.4"
-dist: trusty
-sudo: false
 
-# See https://github.com/travis-ci/apt-package-whitelist:
 addons:
   apt:
     update: true
@@ -24,6 +20,10 @@ env:
 before_install:
   - lsb_release -a
   - env | sort
+  - if [[ -z $TRAVIS_TAG ]]; then
+      sed -i "/^__version__ = /s/'\$/.dev$TRAVIS_BUILD_NUMBER'/"
+        src/madgui/__init__.py ;
+    fi
 
 install:
   # Use [test!] the source distribution as installation medium:
@@ -41,19 +41,12 @@ script:
   - pytest tests
 
 
-# See: https://docs.travis-ci.com/user/languages/python/
 # Since we need the native python3-pyqt5 system-site package, we only have
 # access to the natively supported python versions on each distribution:
 jobs:
-  fast_finish: true
-  allow_failures:
-    # py3.4 currently fails for unknown reason, but we want to upload docs etc
-    # anyway until the issue is resolved:
-    - python: "3.4"
-
   include:
     - {python: "3.4", dist: trusty}
-    - {python: "3.5", dist: xenial, sudo: true}
+    - {python: "3.5", dist: xenial}
   # - {python: "3.6", dist: bionic}
 
     - stage: deploy
@@ -72,40 +65,18 @@ jobs:
             branch: master
 
     - stage: deploy
-      name: Upload release to Test PyPI
-      if: branch = test-release
-      addons:           # not needed
-      install: skip
-      script:
-        - sed -i "/^__version__ = /s/'$/.dev$TRAVIS_BUILD_NUMBER'/"
-            src/madgui/__init__.py
-        - python setup.py sdist
-      deploy:
-      # Upload manylinux wheels to test.pypi.org (only on branch test-release)
-      - provider: pypi
-        skip_cleanup: true
-        server: https://test.pypi.org/legacy/
-        on:
-          branch: test-release
-        user: hibtc-deploy
-        password: $PYPI_PASSWORD
-
-    - stage: deploy
       name: Upload release to PyPI
-      if: tag IS present
+      if: branch = test-release OR tag IS present
       addons:           # not needed
-      install: skip
+      install:
+        - pip install twine
       script:
         - python setup.py sdist
-      # Upload manylinux wheels (only when pushing tags)
-      deploy:
-      - provider: pypi
-        skip_cleanup: true
-        on:
-          tags: true
-        user: hibtc-deploy
-        password: $PYPI_PASSWORD
-
+        - if [[ -z $TRAVIS_TAG ]]; then
+            ENDPOINT=( --repository-url https://test.pypi.org/legacy/ ) ;
+          fi
+        - twine upload dist/*.tar.gz
+              -u hibtc-deploy -p "$PYPI_PASSWORD" "${ENDPOINT[@]}"
 
 cache:
   pip: true
