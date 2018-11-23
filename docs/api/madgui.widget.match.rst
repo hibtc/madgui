@@ -1,7 +1,0 @@
-madgui.widget.match module
-==========================
-
-.. automodule:: madgui.widget.match
-    :members:
-    :undoc-members:
-    :show-inheritance:

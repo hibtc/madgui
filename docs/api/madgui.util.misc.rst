@@ -1,7 +1,0 @@
-madgui.util.misc module
-=======================
-
-.. automodule:: madgui.util.misc
-    :members:
-    :undoc-members:
-    :show-inheritance:

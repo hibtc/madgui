@@ -1,7 +1,0 @@
-madgui.widget.floor\_plan module
-================================
-
-.. automodule:: madgui.widget.floor_plan
-    :members:
-    :undoc-members:
-    :show-inheritance:

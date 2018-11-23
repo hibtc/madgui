@@ -1,7 +1,0 @@
-madgui.online.orbit module
-==========================
-
-.. automodule:: madgui.online.orbit
-    :members:
-    :undoc-members:
-    :show-inheritance:

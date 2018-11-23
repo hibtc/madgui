@@ -1,7 +1,0 @@
-madgui.widget.dialog module
-===========================
-
-.. automodule:: madgui.widget.dialog
-    :members:
-    :undoc-members:
-    :show-inheritance:

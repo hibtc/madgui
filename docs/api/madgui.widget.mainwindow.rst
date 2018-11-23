@@ -1,7 +1,0 @@
-madgui.widget.mainwindow module
-===============================
-
-.. automodule:: madgui.widget.mainwindow
-    :members:
-    :undoc-members:
-    :show-inheritance:

@@ -1,7 +1,0 @@
-madgui.online.offcal module
-===========================
-
-.. automodule:: madgui.online.offcal
-    :members:
-    :undoc-members:
-    :show-inheritance:

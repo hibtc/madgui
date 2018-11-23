@@ -1,7 +1,0 @@
-madgui.util.collections module
-==============================
-
-.. automodule:: madgui.util.collections
-    :members:
-    :undoc-members:
-    :show-inheritance:

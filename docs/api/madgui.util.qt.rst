@@ -1,7 +1,0 @@
-madgui.util.qt module
-=====================
-
-.. automodule:: madgui.util.qt
-    :members:
-    :undoc-members:
-    :show-inheritance:

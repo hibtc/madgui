@@ -1,7 +1,0 @@
-madgui.plot.twissfigure module
-==============================
-
-.. automodule:: madgui.plot.twissfigure
-    :members:
-    :undoc-members:
-    :show-inheritance:

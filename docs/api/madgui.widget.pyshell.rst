@@ -1,7 +1,0 @@
-madgui.widget.pyshell module
-============================
-
-.. automodule:: madgui.widget.pyshell
-    :members:
-    :undoc-members:
-    :show-inheritance:

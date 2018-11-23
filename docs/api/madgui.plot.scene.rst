@@ -1,7 +1,0 @@
-madgui.plot.scene module
-========================
-
-.. automodule:: madgui.plot.scene
-    :members:
-    :undoc-members:
-    :show-inheritance:

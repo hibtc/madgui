@@ -1,7 +1,0 @@
-madgui.widget.elementinfo module
-================================
-
-.. automodule:: madgui.widget.elementinfo
-    :members:
-    :undoc-members:
-    :show-inheritance:

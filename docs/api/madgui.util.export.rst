@@ -1,7 +1,0 @@
-madgui.util.export module
-=========================
-
-.. automodule:: madgui.util.export
-    :members:
-    :undoc-members:
-    :show-inheritance:

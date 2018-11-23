@@ -1,7 +1,0 @@
-madgui.online.dialogs module
-============================
-
-.. automodule:: madgui.online.dialogs
-    :members:
-    :undoc-members:
-    :show-inheritance:

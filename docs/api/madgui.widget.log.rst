@@ -1,7 +1,0 @@
-madgui.widget.log module
-========================
-
-.. automodule:: madgui.widget.log
-    :members:
-    :undoc-members:
-    :show-inheritance:

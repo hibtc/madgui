@@ -1,7 +1,0 @@
-madgui.widget.tableview module
-==============================
-
-.. automodule:: madgui.widget.tableview
-    :members:
-    :undoc-members:
-    :show-inheritance:

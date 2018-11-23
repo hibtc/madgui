@@ -1,7 +1,0 @@
-madgui.util.undo module
-=======================
-
-.. automodule:: madgui.util.undo
-    :members:
-    :undoc-members:
-    :show-inheritance:

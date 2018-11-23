@@ -1,7 +1,0 @@
-madgui.widget.params module
-===========================
-
-.. automodule:: madgui.widget.params
-    :members:
-    :undoc-members:
-    :show-inheritance:

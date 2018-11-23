@@ -30,6 +30,13 @@ version = madgui.__version__
 release = madgui.__version__
 
 
+def setup(app):
+    from sphinx.ext import apidoc
+    app.connect('builder-inited', lambda _: apidoc.main([
+        '-o', './api', '-d2', '-feMT', '../src/madgui',
+    ]))
+
+
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.

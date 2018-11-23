@@ -1,7 +1,0 @@
-madgui.online.api module
-========================
-
-.. automodule:: madgui.online.api
-    :members:
-    :undoc-members:
-    :show-inheritance:

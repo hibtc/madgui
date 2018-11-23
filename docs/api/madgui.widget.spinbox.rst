@@ -1,7 +1,0 @@
-madgui.widget.spinbox module
-============================
-
-.. automodule:: madgui.widget.spinbox
-    :members:
-    :undoc-members:
-    :show-inheritance:

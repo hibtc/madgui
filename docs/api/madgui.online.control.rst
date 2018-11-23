@@ -1,7 +1,0 @@
-madgui.online.control module
-============================
-
-.. automodule:: madgui.online.control
-    :members:
-    :undoc-members:
-    :show-inheritance:

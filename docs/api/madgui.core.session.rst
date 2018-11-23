@@ -1,7 +1,0 @@
-madgui.core.session module
-==========================
-
-.. automodule:: madgui.core.session
-    :members:
-    :undoc-members:
-    :show-inheritance:

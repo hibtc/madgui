@@ -1,7 +1,0 @@
-madgui.widget.filedialog module
-===============================
-
-.. automodule:: madgui.widget.filedialog
-    :members:
-    :undoc-members:
-    :show-inheritance:

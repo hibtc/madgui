@@ -1,7 +1,0 @@
-madgui.online.diagnostic module
-===============================
-
-.. automodule:: madgui.online.diagnostic
-    :members:
-    :undoc-members:
-    :show-inheritance:

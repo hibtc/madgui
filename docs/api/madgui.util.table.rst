@@ -1,7 +1,0 @@
-madgui.util.table module
-========================
-
-.. automodule:: madgui.util.table
-    :members:
-    :undoc-members:
-    :show-inheritance:

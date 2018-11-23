@@ -1,7 +1,0 @@
-madgui.widget.curvemanager module
-=================================
-
-.. automodule:: madgui.widget.curvemanager
-    :members:
-    :undoc-members:
-    :show-inheritance:

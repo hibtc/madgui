@@ -16,7 +16,7 @@ Contents
 
    installation
    getting-started
-   api/index
+   api/madgui
 
 
 Links

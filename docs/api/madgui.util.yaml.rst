@@ -1,7 +1,0 @@
-madgui.util.yaml module
-=======================
-
-.. automodule:: madgui.util.yaml
-    :members:
-    :undoc-members:
-    :show-inheritance:

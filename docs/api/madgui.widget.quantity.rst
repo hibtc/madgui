@@ -1,7 +1,0 @@
-madgui.widget.quantity module
-=============================
-
-.. automodule:: madgui.widget.quantity
-    :members:
-    :undoc-members:
-    :show-inheritance:

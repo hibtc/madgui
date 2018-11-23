@@ -1,7 +1,0 @@
-madgui.core.config module
-=========================
-
-.. automodule:: madgui.core.config
-    :members:
-    :undoc-members:
-    :show-inheritance:

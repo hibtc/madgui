@@ -1,7 +1,0 @@
-madgui.util.enum module
-=======================
-
-.. automodule:: madgui.util.enum
-    :members:
-    :undoc-members:
-    :show-inheritance:

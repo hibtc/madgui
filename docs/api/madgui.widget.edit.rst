@@ -1,7 +1,0 @@
-madgui.widget.edit module
-=========================
-
-.. automodule:: madgui.widget.edit
-    :members:
-    :undoc-members:
-    :show-inheritance:

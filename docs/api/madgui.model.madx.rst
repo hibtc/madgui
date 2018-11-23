@@ -1,7 +1,0 @@
-madgui.model.madx module
-========================
-
-.. automodule:: madgui.model.madx
-    :members:
-    :undoc-members:
-    :show-inheritance:

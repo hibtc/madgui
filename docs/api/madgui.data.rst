@@ -1,8 +1,0 @@
-madgui.data package
-===================
-
-.. automodule:: madgui.data
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
