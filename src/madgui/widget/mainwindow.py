@@ -339,7 +339,7 @@ class MainWindow(QtGui.QMainWindow):
         self._import("Import initial twiss parameters", [
             ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
-        ], self.model().update_twiss, data_key='twiss')
+        ], self.model().update_twiss_args, data_key='twiss')
 
     def _import(self, title, filters, callback, data_key):
         from madgui.widget.filedialog import getOpenFileName
@@ -347,7 +347,8 @@ class MainWindow(QtGui.QMainWindow):
         filename = getOpenFileName(self, title, folder, filters)
         if filename:
             from madgui.widget.params import import_params
-            callback(import_params)
+            data = import_params(filename)
+            callback(data)
             self.str_folder = os.path.dirname(filename)
 
     def saveStrengths(self):
