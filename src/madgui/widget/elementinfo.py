@@ -36,7 +36,7 @@ class ElementInfoBox(QtGui.QWidget):
 
         self.notebook = TabParamTables([
             ('Summary', ParamTable(self._fetch_summary, self._update_element,
-                                   model=model)),
+                                   model=model, auto_expand=False)),
             ('Params', CommandEdit(self._fetch_cmdpar, self._update_element,
                                    model=model)),
             ('Twiss', ParamTable(self._fetch_twiss)),

@@ -487,12 +487,14 @@ class TreeView(ItemView, QtGui.QTreeView):
       incompatibility with css styling).
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, auto_expand=True, **kwargs):
         super().__init__(*args, **kwargs)
+        self.auto_expand = auto_expand
         # Prevent the user from folding since this makes it easier to show
         # the same image after refreshing the model:
         self.setRootIsDecorated(False)
-        self.setItemsExpandable(False)
+        if auto_expand:
+            self.setItemsExpandable(False)
 
     def resizeColumnsToContents(self):
         for i in range(self.model().columnCount()):
@@ -500,9 +502,13 @@ class TreeView(ItemView, QtGui.QTreeView):
 
     def set_viewmodel(self, rowitems, data=None, unit=(), titles=None):
         super().set_viewmodel(rowitems, data, unit, titles)
-        self.model().rowsInserted.connect(lambda *_: self.expandAll())
-        self.model().modelReset.connect(lambda *_: self.expandAll())
-        self.expandAll()
+        self.model().rowsInserted.connect(self._auto_expand)
+        self.model().modelReset.connect(self._auto_expand)
+        self._auto_expand()
+
+    def _auto_expand(self, *_):
+        if self.auto_expand:
+            self.expandAll()
 
 
 class ItemViewDelegate(QtGui.QStyledItemDelegate):
