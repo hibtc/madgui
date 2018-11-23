@@ -8,7 +8,7 @@ from cpymad.madx import TwissFailed
 import madgui.util.yaml as yaml
 from madgui.util.fit import reduced_chisq, fit
 from madgui.online.orbit import fit_particle_orbit
-from .errors import Ealign, Efcomp, apply_errors
+from .errors import Ealign, Efcomp, apply_errors, Param
 
 
 class OrbitResponse:
@@ -19,41 +19,28 @@ class OrbitResponse:
         self.steerers = steerers
         self.records = records
         self.strengths = strengths
-        self.responses = responses = {
-            (monitor, knob): (
-                (orbit - base), (strength - strengths[knob]), (error + _err))
-            for (monitor, knob), (strength, orbit, error) in records.items()
-            if knob
-            for _, base, _err in [records[monitor, None]]
-        }
         self.base_orbit = {
             monitor: (orbit, error)
             for (monitor, knob), (_, orbit, error) in records.items()
             if not knob
         }
-        no_response = (
-            np.array([0.0, 0.0]),    # delta_orbit
-            1e5,                     # delta_param
-            np.array([1.0, 1.0]))    # mean_error    TODO use base error
         self.orm = np.dstack([
             np.vstack([
-                delta_orbit / delta_param
+                orbit
                 for monitor in monitors
-                for delta_orbit, delta_param, _ in [
-                        responses.get(
-                            (monitor.lower(), knob.lower()), no_response)]
+                for strength, orbit, error in [
+                        records.get((monitor, knob)) or records[monitor, None]]
             ])
-            for knob in knobs
+            for knob in [None] + knobs
         ])
         self.stddev = np.dstack([
             np.vstack([
-                np.sqrt(mean_error) / delta_param
+                np.sqrt(error)
                 for monitor in monitors
-                for _, delta_param, mean_error in [
-                        responses.get(
-                            (monitor.lower(), knob.lower()), no_response)]
+                for strength, orbit, error in [
+                        records.get((monitor, knob)) or records[monitor, None]]
             ])
-            for knob in knobs
+            for knob in [None] + knobs
         ])
 
     @classmethod
@@ -134,6 +121,14 @@ class Analysis:
         self.errors = []
         self.values = []
 
+        records = measured.records
+        strengths = measured.strengths
+        self.deltas = {
+            knob: strength - strengths[knob]
+            for (monitor, knob), (strength, orbit, error) in records.items()
+            if knob is not None
+        }
+
     def init(self, strengths=None):
         print("INITIAL")
         if strengths is None:
@@ -160,9 +155,16 @@ class Analysis:
         self.errors[:0] = errors
         self.values[:0] = values
 
-    def get_orbit_response(self):
-        return self.model.get_orbit_response_matrix(
-            self.monitors, self.knobs, self.errors, self.values)
+    def get_orbit_response(self, errors=(), values=()):
+        model = self.model
+        deltas = self.deltas
+        errs = list(errors) + self.errors
+        vals = list(values) + self.values
+        idx = [model.elements.index(m) for m in self.monitors]
+        return np.dstack([get_orbit(model, errs, vals)] + [
+            get_orbit(model, [Param(knob)] + errs, [deltas[knob]] + vals)
+            for knob in self.knobs
+        ])[idx]
 
     def get_selected_monitors(self, selected):
         return [self.monitors.index(m.lower()) for m in selected]
@@ -239,9 +241,7 @@ class Analysis:
         def objective(values):
             try:
                 print(".", end='', flush=True)
-                self.model_orm = model.get_orbit_response_matrix(
-                    measured.monitors, measured.knobs,
-                    errors + self.errors, values + self.values)
+                self.model_orm = self.get_orbit_response(errors, values)
             except TwissFailed:
                 return 1e5
             return obj_slice(self.model_orm)
@@ -283,6 +283,16 @@ class Analysis:
             model = session.model()
             measured = OrbitResponse.load(model, record_files)
             yield cls(model, measured)
+
+
+def get_orbit(model, errors, values):
+    """Get x, y vectors, with specified errors."""
+    madx = model.madx
+    madx.command.select(flag='interpolate', clear=True)
+    with apply_errors(model, errors, values):
+        tw_args = model._get_twiss_args(table='orm_tmp')
+        twiss = madx.twiss(**tw_args)
+    return np.stack((twiss.x, twiss.y)).T
 
 
 def make_monitor_plots(
