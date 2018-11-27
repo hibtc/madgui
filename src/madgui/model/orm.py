@@ -19,11 +19,6 @@ class OrbitResponse:
         self.steerers = steerers
         self.records = records
         self.strengths = strengths
-        self.base_orbit = {
-            monitor: (orbit, error)
-            for (monitor, knob), (_, orbit, error) in records.items()
-            if not knob
-        }
         self.orm = np.dstack([
             np.vstack([
                 orbit
@@ -95,10 +90,10 @@ class Readout:
 def fit_init_orbit(model, measured, fit_monitors):
     fit_monitors = sorted(fit_monitors, key=model.elements.index)
     range_start = fit_monitors[0]
-    base_orbit = measured.base_orbit
     readouts = [
-        Readout(monitor, *base_orbit[monitor.lower()][0])
+        Readout(monitor, *measured.orm[index, :, 0])
         for monitor in fit_monitors
+        for index in [measured.monitors.index(monitor.lower())]
     ]
     secmaps = [
         model.sectormap(range_start, monitor)
