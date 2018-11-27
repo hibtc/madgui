@@ -331,6 +331,11 @@ def plot_monitor_response(
     i = measured.monitors.index(monitor)
     lines = []
 
+    orm = response_matrix(measured.orm)
+    stddev = response_matrix(measured.stddev)
+    model_orm = response_matrix(model_orm)
+    base_orm = response_matrix(base_orm)
+
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
         axes.set_title(ax)
@@ -342,8 +347,8 @@ def plot_monitor_response(
 
         axes.errorbar(
             xpos,
-            measured.orm[i, j, :].flatten(),
-            measured.stddev[i, j, :].flatten(),
+            orm[i, j, :].flatten(),
+            stddev[i, j, :].flatten(),
             label=ax + " measured")
 
         lines.append(axes.plot(
@@ -369,6 +374,11 @@ def plot_steerer_response(
     i = measured.steerers.index(steerer)
     lines = []
 
+    orm = response_matrix(measured.orm)
+    stddev = response_matrix(measured.stddev)
+    model_orm = response_matrix(model_orm)
+    base_orm = response_matrix(base_orm)
+
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
         axes.set_title(ax)
@@ -380,8 +390,8 @@ def plot_steerer_response(
 
         axes.errorbar(
             xpos,
-            measured.orm[:, j, i].flatten(),
-            measured.stddev[:, j, i].flatten(),
+            orm[:, j, i].flatten(),
+            stddev[:, j, i].flatten(),
             label=ax + " measured")
 
         lines.append(axes.plot(
@@ -399,6 +409,10 @@ def plot_steerer_response(
 
     fig.suptitle("{1}: {0}".format(steerer, comment))
     return lines
+
+
+def response_matrix(orbits):
+    return None if orbits is None else orbits[:, :, 1:] - orbits[:, :, [0]]
 
 
 def plot_orbit(fig, model, measured):
