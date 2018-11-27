@@ -419,10 +419,8 @@ def plot_orbit(fig, model, measured):
     twiss = model.twiss()
 
     xpos = [model.elements[elem].position for elem in measured.monitors]
-
-    base = [measured.base_orbit[m] for m in measured.monitors]
-    orbit = np.array([orbit for orbit, _ in base])
-    error = np.array([error for _, error in base])
+    orbit = measured.orm[:, :, 0]
+    error = measured.stddev[:, :, 0]
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
