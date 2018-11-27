@@ -182,7 +182,7 @@ class Analysis:
 
     def plot_orbit(self, save_to=None):
         fig = plt.figure(1)
-        with apply_errors(self, self.errors, self.values):
+        with apply_errors(self.model, self.errors, self.values):
             plot_orbit(fig, self.model, self.measured)
         if save_to is None:
             plt.show()
@@ -246,7 +246,7 @@ class Analysis:
             objective, x0, obj_slice(measured.orm), obj_slice(stddev), tol=tol,
             delta=delta, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
-        self.apply_errors(model, errors, result.x)
+        self.apply_errors(errors, result.x)
 
         if save_to is not None:
             text = '\n'.join(
