@@ -84,7 +84,7 @@ def _scipy_minimize(
 
 
 def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
-              iterations=None, callback=None):
+              iterations=None, callback=None, rcond=1e-2):
     """Fit objective function ``f(x) = y`` using a naive repeated linear
     least-squares fit."""
     dx = 0
@@ -104,7 +104,7 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
             success = False
             break
         dx, dy = fit_lstsq_oneshot(
-            f, x0, y, sig, y0=y0, jac=jac, delta=delta, rcond=tol)
+            f, x0, y, sig, y0=y0, jac=jac, delta=delta, rcond=rcond)
         x0 += dx
     chisq = reduced_chisq((y - y0) / sig)
     return sciopt.OptimizeResult(
