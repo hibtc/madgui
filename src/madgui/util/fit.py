@@ -83,8 +83,18 @@ def _scipy_minimize(
     return result
 
 
+def fit_svd(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
+            iterations=None, callback=None, rcond=1e-2):
+    """Fit objective function ``f(x) = y`` using a naive repeated linear
+    least-squares fit using the svd-based pseudo inverse."""
+    return fit_lstsq(
+        f, x0, y, sig, jac=jac, tol=tol, delta=delta,
+        iterations=iterations, callback=callback, rcond=rcond,
+        lstsq=_lstsq_svd)
+
+
 def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
-              iterations=None, callback=None, rcond=1e-2):
+              iterations=None, callback=None, rcond=1e-2, lstsq=None):
     """Fit objective function ``f(x) = y`` using a naive repeated linear
     least-squares fit."""
     dx = 0
@@ -104,7 +114,7 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
             success = False
             break
         dx, dy = fit_lstsq_oneshot(
-            f, x0, y, sig, y0=y0, jac=jac, delta=delta, rcond=rcond)
+            lstsq, f, x0, y, sig, y0=y0, jac=jac, delta=delta, rcond=rcond)
         x0 += dx
     chisq = reduced_chisq((y - y0) / sig)
     return sciopt.OptimizeResult(
@@ -112,7 +122,7 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
         success=success, message=message)
 
 
-def fit_lstsq_oneshot(f, x0, y=0, sig=1, y0=None,
+def fit_lstsq_oneshot(lstsq, f, x0, y=0, sig=1, y0=None,
                       delta=None, jac=None, rcond=1e-8):
     """Single least squares fit for ``f(x) = y`` around ``x0``.
     Returns ``(Δx, Δy)``, where ``Δy`` is the linear hypothesis for how much
@@ -128,8 +138,16 @@ def fit_lstsq_oneshot(f, x0, y=0, sig=1, y0=None,
     A = A.reshape((-1, n)).T
     Y = Y.reshape((-1, 1))
     S = S.reshape((-1, 1))
-    X = np.linalg.lstsq(A/S, Y/S, rcond=rcond)[0]
+    X = (lstsq or np.linalg.lstsq)(A/S, Y/S, rcond=rcond)[0]
     return X.flatten(), np.dot(A, X).reshape(y0.shape)
+
+
+def _lstsq_svd(A, Y, rcond=1e-3):
+    u, s, v = np.linalg.svd(A, full_matrices=False)
+    cutoff = s.max() * rcond
+    s_inv = np.array([1/c if c >= cutoff else 0 for c in s])
+    X = np.dot(v.T, np.dot(s_inv[:, None] * u.T, Y))
+    return X, reduced_chisq(Y - np.dot(A, X))
 
 
 def jac_twopoint(f, x0, y0=None, delta=1e-3):
@@ -143,6 +161,7 @@ def jac_twopoint(f, x0, y0=None, delta=1e-3):
 
 
 supported_optimizers = {
+    'svd': fit_svd,
     'lstsq': fit_lstsq,
     'minimize': fit_minimize,
     'basinhopping': fit_basinhopping,
