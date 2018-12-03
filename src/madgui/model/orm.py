@@ -202,8 +202,7 @@ class Analysis:
 
         model = self.model
         measured = self.measured
-        stddev = (measured.stddev if use_stddev else
-                  np.ones(measured.orm.shape))
+        stddev = measured.stddev if use_stddev else 1
         err_names = ', '.join(map(repr, errors))
 
         print("====================")
@@ -231,7 +230,6 @@ class Analysis:
             print("----------------------")
 
         dims = [i for i, c in enumerate("xy") if c in mode]
-        obj_slice = lambda y: y[sel][:, dims, :]
 
         def objective(values):
             try:
@@ -239,11 +237,11 @@ class Analysis:
                 self.model_orm = self.get_orbit_response(errors, values)
             except TwissFailed:
                 return 1e5
-            return obj_slice(self.model_orm)
+            return ((self.model_orm - measured.orm) / stddev)[sel][:, dims, :]
 
         x0 = np.zeros(len(errors))
         result = fit(
-            objective, x0, obj_slice(measured.orm), obj_slice(stddev), tol=tol,
+            objective, x0, tol=tol,
             delta=delta, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
         self.apply_errors(errors, result.x)

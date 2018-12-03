@@ -16,18 +16,18 @@ def reduced_chisq(residuals, ddof=0):
 
 
 def fit_basinhopping(
-        f, x0, y=0, sig=1, iterations=20, T=1.0, stepsize=0.01, **kwargs):
+        f, x0, iterations=20, T=1.0, stepsize=0.01, **kwargs):
     """Global optimization of ``f(x) = y`` based on
     :func:`scipy.optimize.basinhopping`."""
     def minimize(f, x0, callback=None, **kwargs):
         return sciopt.basinhopping(
             f, x0, niter=iterations, T=T, stepsize=stepsize,
             minimizer_kwargs=kwargs, callback=callback)
-    return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
+    return _scipy_minimize(minimize, f, x0, **kwargs)
 
 
 def fit_diffevo(
-        f, x0, y=0, sig=1, delta=1e-3, bounds=None,
+        f, x0, delta=1e-3, bounds=None,
         iterations=20, method='best1bin', **kwargs):
     """Global optimization of ``f(x) = y`` based on
     :func:`scipy.optimize.differential_evolution`."""
@@ -37,20 +37,20 @@ def fit_diffevo(
     def minimize(f, x0, jac=None, **kwargs):
         return sciopt.differential_evolution(
             f, bounds, strategy=method, maxiter=iterations, **kwargs)
-    return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
+    return _scipy_minimize(minimize, f, x0, **kwargs)
 
 
-def fit_minimize(f, x0, y=0, sig=1, iterations=None, **kwargs):
+def fit_minimize(f, x0, iterations=None, **kwargs):
     """Fit objective function ``f(x) = y`` using least-squares fit via
     ``scipy.optimize.minimize``."""
     def minimize(f, x0, **kwargs):
         options = {'maxiter': iterations}
         return sciopt.minimize(f, x0, options=options, **kwargs)
-    return _scipy_minimize(minimize, f, x0, y, sig, **kwargs)
+    return _scipy_minimize(minimize, f, x0, **kwargs)
 
 
 def _scipy_minimize(
-        minimizer, f, x0, y=0, sig=1,
+        minimizer, f, x0,
         delta=None, jac=None,
         callback=None, **kwargs):
     state = sciopt.OptimizeResult(
@@ -62,14 +62,11 @@ def _scipy_minimize(
         state.dx = x - state.x
         state.x = x
         state.fun = f(x)
-        state.chisq = objective(state.fun)
+        state.chisq = reduced_chisq(state.fun)
         callback(state)
 
-    def objective(y0):
-        return reduced_chisq((y - y0) / sig)
-
     def obj_fun(x):
-        return objective(f(x))
+        return reduced_chisq(f(x))
 
     if jac is None and delta is not None:
         jac = partial(jac_twopoint, obj_fun, delta=delta)
@@ -79,21 +76,21 @@ def _scipy_minimize(
         callback=callback and callback_wrapper,
         **kwargs)
     result.fun = f(result.x)
-    result.chisq = objective(result.fun)
+    result.chisq = reduced_chisq(result.fun)
     return result
 
 
-def fit_svd(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
+def fit_svd(f, x0, jac=None, tol=1e-8, delta=None,
             iterations=None, callback=None, rcond=1e-2):
     """Fit objective function ``f(x) = y`` using a naive repeated linear
     least-squares fit using the svd-based pseudo inverse."""
     return fit_lstsq(
-        f, x0, y, sig, jac=jac, tol=tol, delta=delta,
+        f, x0, jac=jac, tol=tol, delta=delta,
         iterations=iterations, callback=callback, rcond=rcond,
         lstsq=_lstsq_svd)
 
 
-def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
+def fit_lstsq(f, x0, jac=None, tol=1e-8, delta=None,
               iterations=None, callback=None, rcond=1e-2, lstsq=None):
     """Fit objective function ``f(x) = y`` using a naive repeated linear
     least-squares fit."""
@@ -101,7 +98,7 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
     for nit in count():
         y0 = f(x0)
         if callback is not None:
-            chisq = reduced_chisq((y - y0) / sig)
+            chisq = reduced_chisq(y0)
             callback(sciopt.OptimizeResult(
                 x=x0, fun=y0, chisq=chisq, nit=nit, dx=dx,
                 success=False, message="In progress."))
@@ -114,31 +111,28 @@ def fit_lstsq(f, x0, y=0, sig=1, jac=None, tol=1e-8, delta=None,
             success = False
             break
         dx, dy = fit_lstsq_oneshot(
-            lstsq, f, x0, y, sig, y0=y0, jac=jac, delta=delta, rcond=rcond)
+            lstsq, f, x0, y0=y0, jac=jac, delta=delta, rcond=rcond)
         x0 += dx
-    chisq = reduced_chisq((y - y0) / sig)
+    chisq = reduced_chisq(y0)
     return sciopt.OptimizeResult(
         x=x0, fun=y0, chisq=chisq, nit=nit,
         success=success, message=message)
 
 
-def fit_lstsq_oneshot(lstsq, f, x0, y=0, sig=1, y0=None,
-                      delta=None, jac=None, rcond=1e-8):
+def fit_lstsq_oneshot(lstsq, f, x0, y0=None, delta=None, jac=None, rcond=1e-8):
     """Single least squares fit for ``f(x) = y`` around ``x0``.
     Returns ``(Δx, Δy)``, where ``Δy`` is the linear hypothesis for how much
     ``y`` will change due to change in ``x``."""
     if y0 is None:
         y0 = f(x0)
     if jac is None:
-        jac = partial(jac_twopoint, f, y0=y0, sig=sig, delta=delta)
+        jac = partial(jac_twopoint, f, y0=y0, delta=delta)
     A = jac(x0)
-    Y = y - y0
-    S = np.broadcast_to(sig, Y.shape)
+    Y = -y0
     n = Y.size
     A = A.reshape((-1, n)).T
     Y = Y.reshape((-1, 1))
-    S = S.reshape((-1, 1))
-    X = (lstsq or np.linalg.lstsq)(A/S, Y/S, rcond=rcond)[0]
+    X = (lstsq or np.linalg.lstsq)(A, Y, rcond=rcond)[0]
     return X.flatten(), np.dot(A, X).reshape(y0.shape)
 
 
@@ -150,12 +144,12 @@ def _lstsq_svd(A, Y, rcond=1e-3):
     return X, reduced_chisq(Y - np.dot(A, X))
 
 
-def jac_twopoint(f, x0, y0=None, sig=1, delta=1e-3):
+def jac_twopoint(f, x0, y0=None, delta=1e-3):
     """Compute jacobian ``df/dx_i`` using two point-finite differencing."""
     if y0 is None:
         y0 = f(x0)
     return np.array([
-        (f(x0 + dx) - y0) / sig / np.linalg.norm(dx)
+        (f(x0 + dx) - y0) / np.linalg.norm(dx)
         for dx in np.eye(len(x0)) * delta
     ])
 
@@ -169,12 +163,11 @@ supported_optimizers = {
 }
 
 
-def fit(f, x0, y=0, sig=1, algorithm='minimize',
-        **kwargs) -> sciopt.OptimizeResult:
+def fit(f, x0, algorithm='minimize', **kwargs) -> sciopt.OptimizeResult:
     """Fit objective function ``f(x) = y``, start from ``x0``. Returns
     ``scipy.optimize.OptimizeResult``."""
     try:
         fun = supported_optimizers[algorithm]
     except KeyError:
         raise ValueError("Unknown optimizer: {!r}".format(algorithm))
-    return fun(f, x0, y, sig, **kwargs)
+    return fun(f, x0, **kwargs)
