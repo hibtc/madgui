@@ -130,7 +130,7 @@ def fit_lstsq_oneshot(lstsq, f, x0, y=0, sig=1, y0=None,
     if y0 is None:
         y0 = f(x0)
     if jac is None:
-        jac = partial(jac_twopoint, f, y0=y0, delta=delta)
+        jac = partial(jac_twopoint, f, y0=y0, sig=sig, delta=delta)
     A = jac(x0)
     Y = y - y0
     S = np.broadcast_to(sig, Y.shape)
@@ -150,12 +150,12 @@ def _lstsq_svd(A, Y, rcond=1e-3):
     return X, reduced_chisq(Y - np.dot(A, X))
 
 
-def jac_twopoint(f, x0, y0=None, delta=1e-3):
+def jac_twopoint(f, x0, y0=None, sig=1, delta=1e-3):
     """Compute jacobian ``df/dx_i`` using two point-finite differencing."""
     if y0 is None:
         y0 = f(x0)
     return np.array([
-        (f(x0 + dx) - y0) / np.linalg.norm(dx)
+        (f(x0 + dx) - y0) / sig / np.linalg.norm(dx)
         for dx in np.eye(len(x0)) * delta
     ])
 
