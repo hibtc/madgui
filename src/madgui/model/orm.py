@@ -197,7 +197,7 @@ class Analysis:
         return twiss_args
 
     def fit(self, errors, monitors, delta=1e-4,
-            mode='xy', iterations=50, bounds=None,
+            mode='xy', iterations=50, bounds=None, fourier=False,
             tol=1e-8, use_stddev=True, save_to=None, **kwargs):
 
         model = self.model
@@ -237,7 +237,14 @@ class Analysis:
                 self.model_orm = self.get_orbit_response(errors, values)
             except TwissFailed:
                 return 1e5
-            return ((self.model_orm - measured.orm) / stddev)[sel][:, dims, :]
+            obj = ((self.model_orm - measured.orm) / stddev)[sel][:, dims, :]
+            if fourier:
+                obj = np.fft.rfft(obj, axis=0)
+                obj = np.array([
+                    np.real(obj),
+                    np.imag(obj),
+                ]).transpose((1, 2, 3, 0))
+            return obj
 
         x0 = np.zeros(len(errors))
         result = fit(
