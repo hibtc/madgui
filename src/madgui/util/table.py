@@ -45,10 +45,10 @@ def read_table(filename):
     with open(filename) as f:
         titles = _parse_header(f)
     columns = map(_parse_column_title, titles)
-    data = np.loadtxt(filename, unpack=True)
+    data = np.genfromtxt(filename, dtype=None, encoding='utf-8')
     return OrderedDict([
-        (name, from_ui(name, _add_unit(dat, unit)))
-        for dat, (name, unit) in zip(data, columns)
+        (name, from_ui(name, _add_unit(data[col], unit)))
+        for col, (name, unit) in zip(data.dtype.names, columns)
     ])
 
 
