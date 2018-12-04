@@ -4,6 +4,8 @@ Dialog for managing shown curves.
 
 import os
 
+import numpy as np
+
 from madgui.qt import QtGui, load_ui
 from madgui.widget.tableview import TableItem
 from madgui.widget.filedialog import getOpenFileName
@@ -86,6 +88,17 @@ class CurveManager(QtGui.QWidget):
     ]
 
     def load_file(self, filename):
+        table = self._load_table(filename)
+        elems = self.scene.model.elements
+        if 'name' in table and 's' not in table:
+            table['s'] = np.array([
+                elem.position + elem.length if elem else float("nan")
+                for name in table['name']
+                for elem in [elems[name] if name in elems else None]
+            ])
+        return table
+
+    def _load_table(self, filename):
         from madgui.util.table import read_table, read_tfsfile
         if filename.lower().rsplit('.')[-1] not in ('tfs', 'twiss'):
             return read_table(filename)
