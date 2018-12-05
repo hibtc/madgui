@@ -142,7 +142,7 @@ class ElemAttr(BaseError):
         self.attr = attr
         self.name = '{}->{}'.format(elem, attr)
 
-    def get(self, model):
+    def get(self, model, step):
         return model.elements[self.elem].cmdpar[self.attr].definition
 
     def set(self, model, value):
