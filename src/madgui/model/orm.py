@@ -7,7 +7,7 @@ from cpymad.madx import TwissFailed
 
 import madgui.util.yaml as yaml
 from madgui.util.fit import reduced_chisq, fit
-from madgui.online.orbit import fit_particle_orbit
+from madgui.online.orbit import fit_particle_readouts, Readout
 from .errors import Ealign, Efcomp, apply_errors
 
 
@@ -98,28 +98,11 @@ def load_record_file(filename):
     return strengths, records
 
 
-class Readout:
-    def __init__(self, name, posx, posy):
-        self.name = name
-        self.posx = posx
-        self.posy = posy
-
-
 def fit_init_orbit(model, measured, fit_monitors):
-    fit_monitors = sorted(fit_monitors, key=model.elements.index)
-    range_start = fit_monitors[0]
-    base_orbit = measured.base_orbit
-    readouts = [
-        Readout(monitor, *base_orbit[monitor.lower()][0])
+    (twiss_init, chisq, singular), curve = fit_particle_readouts(model, [
+        Readout(monitor, *measured.base_orbit[monitor.lower()][0])
         for monitor in fit_monitors
-    ]
-    secmaps = [
-        model.sectormap(range_start, monitor)
-        for monitor in fit_monitors
-    ]
-    offsets = {}
-    (twiss_init, chisq, singular), curve = fit_particle_orbit(
-        model, offsets, readouts, secmaps, fit_monitors[0])
+    ])
     return twiss_init
 
 

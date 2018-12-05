@@ -1,6 +1,23 @@
 import numpy as np
 
 
+class Readout:
+    def __init__(self, name, posx, posy):
+        self.name = name
+        self.posx = posx
+        self.posy = posy
+
+
+def fit_particle_readouts(model, readouts, offsets={}):
+    index = model.elements.index
+    readouts = sorted(readouts, key=lambda r: index(r.name))
+    range_start = readouts[0].name
+    return fit_particle_orbit(model, offsets, readouts, [
+        model.sectormap(range_start, r.name)
+        for r in readouts
+    ])
+
+
 def fit_particle_orbit(model, offsets, records, secmaps, range_start=None):
 
     (x, px, y, py), chi_squared, singular = fit_initial_orbit([
