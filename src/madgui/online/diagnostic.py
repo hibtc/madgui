@@ -13,7 +13,7 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.widget.tableview import TableItem
 
-from madgui.online.orbit import fit_particle_orbit
+from madgui.online.orbit import fit_particle_orbit, add_offsets
 
 
 class MonitorWidget(QtGui.QDialog):
@@ -349,7 +349,7 @@ class OrbitWidget(_FitWidget):
         secmaps[0] = np.eye(7)
         range_start = records[0].name
         ret, curve = fit_particle_orbit(
-            self.model, self._offsets, records, secmaps, range_start)
+            self.model, add_offsets(records, self._offsets), secmaps, range_start)
         style = self.frame.config['line_view']['backtrack_style']
         self.frame.add_curve("backtrack", curve, style)
         return ret

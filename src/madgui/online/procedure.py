@@ -11,7 +11,7 @@ from madgui.util.collections import List
 
 from madgui.model.match import Matcher
 from .control import MonitorReadout
-from .orbit import fit_particle_orbit
+from .orbit import fit_particle_orbit, add_offsets
 
 
 class OrbitRecord:
@@ -252,7 +252,8 @@ class Corrector(Matcher):
         readouts = [r.readout for r in records]
         secmaps = [r.tm for r in records]
         return fit_particle_orbit(
-            self.model, self._offsets, readouts, secmaps, self.fit_range[0])[0]
+            self.model, add_offsets(readouts, self._offsets),
+            secmaps, self.fit_range[0])[0]
 
     def current_orbit_records(self):
         model = self.model

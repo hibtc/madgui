@@ -8,7 +8,15 @@ class Readout:
         self.posy = posy
 
 
-def fit_particle_readouts(model, readouts, offsets={}):
+def add_offsets(readouts, offsets):
+    return [
+        Readout(r.name, r.posx + dx, r.posy + dy)
+        for r in readouts
+        for dx, dy in [offsets.get(r.name.lower(), (0, 0))]
+    ] if offsets else readouts
+
+
+def fit_particle_readouts(model, readouts):
     index = model.elements.index
     readouts = [
         r if hasattr(r, 'name') else Readout(*r)
@@ -16,18 +24,17 @@ def fit_particle_readouts(model, readouts, offsets={}):
     ]
     readouts = sorted(readouts, key=lambda r: index(r.name))
     range_start = readouts[0].name
-    return fit_particle_orbit(model, offsets, readouts, [
+    return fit_particle_orbit(model, readouts, [
         model.sectormap(range_start, r.name)
         for r in readouts
     ])
 
 
-def fit_particle_orbit(model, offsets, records, secmaps, range_start=None):
+def fit_particle_orbit(model, records, secmaps, range_start=None):
 
     (x, px, y, py), chi_squared, singular = fit_initial_orbit([
-        (secmap[:, :6], secmap[:, 6], (record.posx+dx, record.posy+dy))
+        (secmap[:, :6], secmap[:, 6], (record.posx, record.posy))
         for record, secmap in zip(records, secmaps)
-        for dx, dy in [offsets.get(record.name.lower(), (0, 0))]
     ])
 
     if range_start is None:
