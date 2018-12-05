@@ -10,6 +10,10 @@ class Readout:
 
 def fit_particle_readouts(model, readouts, offsets={}):
     index = model.elements.index
+    readouts = [
+        r if hasattr(r, 'name') else Readout(*r)
+        for r in readouts
+    ]
     readouts = sorted(readouts, key=lambda r: index(r.name))
     range_start = readouts[0].name
     return fit_particle_orbit(model, offsets, readouts, [
