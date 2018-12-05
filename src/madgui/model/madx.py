@@ -629,6 +629,9 @@ class Model:
                 self.backseq = self.seq_name + '_backseq'
                 reflect_sequence(self.madx, self.backseq, self.elements)
         self.madx.command.select(flag='interpolate', clear=True)
+        twiss_init.setdefault('betx', 1)
+        twiss_init.setdefault('bety', 1)
+        twiss_init.setdefault('table', 'backtrack')
         tw = self.madx.twiss(sequence=self.backseq, **twiss_init)
         tw = self.madx.table.backtrack
         self.twiss.invalidate()
