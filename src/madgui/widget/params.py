@@ -88,10 +88,6 @@ class ParamTable(TreeView):
     def set_value(self, i, par, value):
         self.store({par.name: value}, **self.fetch_args)
 
-    def set_expr(self, i, par, value):
-        # Replace deferred expressions by their value if `not value`:
-        self.set_value(i, par, value or par.value)
-
     def par_rows(self, par):
         expr = par.expr
         if expr:
@@ -248,12 +244,13 @@ class CommandEdit(ParamTable):
 # TODO: merge with CommandEdit (by unifying the globals API on cpymad side?)
 class GlobalsEdit(ParamTable):
 
-    def get_param_row(self, i, p) -> ("Name", "Value", "Expression"):
+    def get_param_row(self, i, p) -> ("Name", "Value"):
         return [
             TableItem(get_var_name(p.name),
                       rows=self.par_rows(p), rowitems=self.get_param_row),
-            TableItem(p.value, set_value=self.set_value, mutable=p.var_type > 0),
-            TableItem(p.expr, set_value=self.set_expr, mutable=True),
+            TableItem(p.value, set_value=self.set_value, mutable=p.var_type > 0,
+                      name=p.name, toolTip=p.expr, expr=p.expr,
+                      delegate=ExpressionDelegate()),
         ]
 
     exportFilters = [
