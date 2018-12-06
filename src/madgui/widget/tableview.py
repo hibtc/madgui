@@ -19,7 +19,7 @@ from madgui.util.misc import rw_property, ranges, cachedproperty
 from madgui.util.collections import List
 from madgui.util.qt import monospace
 from madgui.util.enum import Enum
-from madgui.widget.spinbox import QuantitySpinBox
+from madgui.widget.spinbox import QuantitySpinBox, ExpressionSpinBox
 
 import madgui.util.unit as unit
 import madgui.core.config as config
@@ -637,6 +637,28 @@ class QuantityDelegate(ItemDelegate):
 
     def setModelData(self, editor, model, index):
         model.setData(index, editor.quantity)
+
+
+class ExpressionDelegate(QuantityDelegate):
+
+    default = ""
+    textAlignment = Qt.AlignRight | Qt.AlignVCenter     # TODO…
+
+    def edit(self, cell):
+        expr = cell.expr and cell.expr.replace(' ', '')
+        return expr or cell.ui_value
+
+    # QStyledItemDelegate
+
+    def createEditor(self, parent, option, index):
+        return ExpressionSpinBox(parent, unit=None)
+
+    def setEditorData(self, editor, index):
+        editor.set_value(index.data(Qt.EditRole))
+        editor.selectAll()
+
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.value)
 
 
 class ListDelegate(ItemDelegate):

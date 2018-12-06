@@ -6,7 +6,8 @@ import math
 
 from madgui.qt import Qt, QtCore, QtGui
 
-from madgui.widget.quantity import ValueControlBase, QuantityControlBase
+from madgui.widget.quantity import (
+    ValueControlBase, QuantityControlBase, ExpressionValidator)
 from madgui.core.signal import Signal
 import madgui.core.config as config
 
@@ -150,7 +151,7 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
         self.updateEdit()
 
     def update_step(self, value):
-        if value is None or value == 0:
+        if not isinstance(value, float) or value == 0:
             return
         log = int(math.floor(math.log10(abs(value))))
         self.step = 10.0 ** (log-1)
@@ -161,5 +162,30 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
     def updateEdit(self):
         buttons = [QtGui.QAbstractSpinBox.NoButtons,
                    QtGui.QAbstractSpinBox.UpDownArrows]
-        self.setButtonSymbols(buttons[bool(config.number.spinbox)])
+        self.setButtonSymbols(buttons[
+            isinstance(self.value, float) and bool(config.number.spinbox)])
         super().updateEdit()
+
+
+class ExpressionSpinBox(QuantitySpinBox):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.validator = ExpressionValidator()
+
+    def stepEnabled(self):
+        if isinstance(self.value, float):
+            return super().stepEnabled()
+        return QtGui.QAbstractSpinBox.StepNone
+
+    def parse(self, text):
+        try:
+            return float(text)
+        except ValueError:
+            return text.strip().lower()
+
+    def format(self, value):
+        try:
+            return super().format(value)
+        except ValueError:
+            return str(value)
