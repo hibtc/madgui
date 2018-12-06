@@ -8,7 +8,7 @@ from cpymad.madx import TwissFailed
 import madgui.util.yaml as yaml
 from madgui.util.fit import reduced_chisq, fit
 from madgui.online.orbit import fit_particle_readouts, Readout
-from .errors import Ealign, Efcomp, apply_errors
+from .errors import Ealign, Efcomp, apply_errors, Param
 
 
 class OrbitResponse:
@@ -19,41 +19,23 @@ class OrbitResponse:
         self.steerers = steerers
         self.records = records
         self.strengths = strengths
-        self.responses = responses = {
-            (monitor, knob): (
-                (orbit - base), (strength - strengths[knob]), (error + _err))
-            for (monitor, knob), (strength, orbit, error) in records.items()
-            if knob
-            for _, base, _err in [records[monitor, None]]
-        }
-        self.base_orbit = {
-            monitor: (orbit, error)
-            for (monitor, knob), (_, orbit, error) in records.items()
-            if not knob
-        }
-        no_response = (
-            np.array([0.0, 0.0]),    # delta_orbit
-            1e5,                     # delta_param
-            np.array([1.0, 1.0]))    # mean_error    TODO use base error
         self.orm = np.dstack([
             np.vstack([
-                delta_orbit / delta_param
+                orbit
                 for monitor in monitors
-                for delta_orbit, delta_param, _ in [
-                        responses.get(
-                            (monitor.lower(), knob.lower()), no_response)]
+                for strength, orbit, error in [
+                        records.get((monitor, knob)) or records[monitor, None]]
             ])
-            for knob in knobs
+            for knob in [None] + knobs
         ])
         self.stddev = np.dstack([
             np.vstack([
-                np.sqrt(mean_error) / delta_param
+                np.sqrt(error)
                 for monitor in monitors
-                for _, delta_param, mean_error in [
-                        responses.get(
-                            (monitor.lower(), knob.lower()), no_response)]
+                for strength, orbit, error in [
+                        records.get((monitor, knob)) or records[monitor, None]]
             ])
-            for knob in knobs
+            for knob in [None] + knobs
         ])
 
     @classmethod
@@ -100,8 +82,9 @@ def load_record_file(filename):
 
 def fit_init_orbit(model, measured, fit_monitors):
     (twiss_init, chisq, singular), curve = fit_particle_readouts(model, [
-        Readout(monitor, *measured.base_orbit[monitor.lower()][0])
+        Readout(monitor, *measured.orm[index, :, 0][0])
         for monitor in fit_monitors
+        for index in [measured.monitors.index(monitor.lower())]
     ])
     return twiss_init
 
@@ -116,6 +99,14 @@ class Analysis:
         self.knobs = measured.knobs
         self.errors = []
         self.values = []
+
+        records = measured.records
+        strengths = measured.strengths
+        self.deltas = {
+            knob: strength - strengths[knob]
+            for (monitor, knob), (strength, orbit, error) in records.items()
+            if knob is not None
+        }
 
     def init(self, strengths=None):
         print("INITIAL")
@@ -143,9 +134,16 @@ class Analysis:
         self.errors[:0] = errors
         self.values[:0] = values
 
-    def get_orbit_response(self):
-        return self.model.get_orbit_response_matrix(
-            self.monitors, self.knobs, self.errors, self.values)
+    def get_orbit_response(self, errors=(), values=()):
+        model = self.model
+        deltas = self.deltas
+        errs = list(errors) + self.errors
+        vals = list(values) + self.values
+        idx = [model.elements.index(m) for m in self.monitors]
+        return np.dstack([get_orbit(model, errs, vals)] + [
+            get_orbit(model, [Param(knob)] + errs, [deltas[knob]] + vals)
+            for knob in self.knobs
+        ])[idx]
 
     def get_selected_monitors(self, selected):
         return [self.monitors.index(m.lower()) for m in selected]
@@ -168,7 +166,7 @@ class Analysis:
 
     def plot_orbit(self, save_to=None):
         fig = plt.figure(1)
-        with apply_errors(self, self.errors, self.values):
+        with apply_errors(self.model, self.errors, self.values):
             plot_orbit(fig, self.model, self.measured)
         if save_to is None:
             plt.show()
@@ -183,13 +181,12 @@ class Analysis:
         return twiss_args
 
     def fit(self, errors, monitors, delta=1e-4,
-            mode='xy', iterations=50, bounds=None,
+            mode='xy', iterations=50, bounds=None, fourier=False,
             tol=1e-8, use_stddev=True, save_to=None, **kwargs):
 
         model = self.model
         measured = self.measured
-        stddev = (measured.stddev if use_stddev else
-                  np.ones(measured.orm.shape))
+        stddev = measured.stddev if use_stddev else 1
         err_names = ', '.join(map(repr, errors))
 
         print("====================")
@@ -217,24 +214,28 @@ class Analysis:
             print("----------------------")
 
         dims = [i for i, c in enumerate("xy") if c in mode]
-        obj_slice = lambda y: y[sel][:, dims, :]
 
         def objective(values):
             try:
                 print(".", end='', flush=True)
-                self.model_orm = model.get_orbit_response_matrix(
-                    measured.monitors, measured.knobs,
-                    errors + self.errors, values + self.values)
+                self.model_orm = self.get_orbit_response(errors, values)
             except TwissFailed:
                 return 1e5
-            return obj_slice(self.model_orm)
+            obj = ((self.model_orm - measured.orm) / stddev)[sel][:, dims, :]
+            if fourier:
+                obj = np.fft.rfft(obj, axis=0)
+                obj = np.array([
+                    np.real(obj),
+                    np.imag(obj),
+                ]).transpose((1, 2, 3, 0))
+            return obj
 
         x0 = np.zeros(len(errors))
         result = fit(
-            objective, x0, obj_slice(measured.orm), obj_slice(stddev), tol=tol,
+            objective, x0, tol=tol,
             delta=delta, iterations=iterations, callback=callback, **kwargs)
         print(result.message)
-        self.apply_errors(model, errors, result.x)
+        self.apply_errors(errors, result.x)
 
         if save_to is not None:
             text = '\n'.join(
@@ -266,6 +267,16 @@ class Analysis:
             model = session.model()
             measured = OrbitResponse.load(model, record_files)
             yield cls(model, measured)
+
+
+def get_orbit(model, errors, values):
+    """Get x, y vectors, with specified errors."""
+    madx = model.madx
+    madx.command.select(flag='interpolate', clear=True)
+    with apply_errors(model, errors, values):
+        tw_args = model._get_twiss_args(table='orm_tmp')
+        twiss = madx.twiss(**tw_args)
+    return np.stack((twiss.x, twiss.y)).T
 
 
 def make_monitor_plots(
@@ -304,6 +315,11 @@ def plot_monitor_response(
     i = measured.monitors.index(monitor)
     lines = []
 
+    orm = response_matrix(measured.orm)
+    stddev = response_matrix(measured.stddev)
+    model_orm = response_matrix(model_orm)
+    base_orm = response_matrix(base_orm)
+
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
         axes.set_title(ax)
@@ -315,8 +331,8 @@ def plot_monitor_response(
 
         axes.errorbar(
             xpos,
-            measured.orm[i, j, :].flatten(),
-            measured.stddev[i, j, :].flatten(),
+            orm[i, j, :].flatten(),
+            stddev[i, j, :].flatten(),
             label=ax + " measured")
 
         lines.append(axes.plot(
@@ -342,6 +358,11 @@ def plot_steerer_response(
     i = measured.steerers.index(steerer)
     lines = []
 
+    orm = response_matrix(measured.orm)
+    stddev = response_matrix(measured.stddev)
+    model_orm = response_matrix(model_orm)
+    base_orm = response_matrix(base_orm)
+
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
         axes.set_title(ax)
@@ -353,8 +374,8 @@ def plot_steerer_response(
 
         axes.errorbar(
             xpos,
-            measured.orm[:, j, i].flatten(),
-            measured.stddev[:, j, i].flatten(),
+            orm[:, j, i].flatten(),
+            stddev[:, j, i].flatten(),
             label=ax + " measured")
 
         lines.append(axes.plot(
@@ -374,14 +395,16 @@ def plot_steerer_response(
     return lines
 
 
+def response_matrix(orbits):
+    return None if orbits is None else orbits[:, :, 1:] - orbits[:, :, [0]]
+
+
 def plot_orbit(fig, model, measured):
     twiss = model.twiss()
 
     xpos = [model.elements[elem].position for elem in measured.monitors]
-
-    base = [measured.base_orbit[m] for m in measured.monitors]
-    orbit = np.array([orbit for orbit, _ in base])
-    error = np.array([error for _, error in base])
+    orbit = measured.orm[:, :, 0]
+    error = measured.stddev[:, :, 0]
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
