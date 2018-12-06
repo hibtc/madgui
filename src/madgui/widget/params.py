@@ -206,7 +206,9 @@ class CommandEdit(ParamTable):
         return [
             TableItem(get_var_name(p.name), rows=self.par_rows(p),
                       rowitems=self.get_knob_row),
-            TableItem(p.value, set_value=self.set_par_value, mutable=mutable),
+            TableItem(p.value, set_value=self.set_par_value, mutable=mutable,
+                      name=p.name, toolTip=p.expr, expr=p.expr,
+                      delegate=ExpressionDelegate()),
             TableItem(None, mutable=False),
         ]
 
