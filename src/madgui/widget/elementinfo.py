@@ -10,7 +10,6 @@ from collections import OrderedDict
 from functools import partial
 
 from math import sqrt, pi, atan2
-import itertools
 
 from madgui.plot import mpl_backend
 from matplotlib.figure import Figure
@@ -23,7 +22,7 @@ from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.util.qt import notifyCloseEvent, notifyEvent
 from madgui.widget.dialog import Dialog
 from madgui.widget.params import (
-    TabParamTables, ParamTable, CommandEdit, ParamInfo)
+    TabParamTables, ParamTable, CommandEdit, ParamInfo, MatrixTable)
 
 
 class ElementInfoBox(QtGui.QWidget):
@@ -41,9 +40,11 @@ class ElementInfoBox(QtGui.QWidget):
             ('Params', CommandEdit(self._fetch_cmdpar, self._update_element,
                                    model=model)),
             ('Twiss', ParamTable(self._fetch_twiss)),
-            ('Sigma', ParamTable(self._fetch_sigma)),
+            ('Sigma', MatrixTable(self._fetch_sigma, shape=(6, 6),
+                                  get_name=sigmat_title)),
             ('Ellipse', EllipseWidget(model)),
-            ('Sector', ParamTable(self._fetch_sector, units=False)),
+            ('Sector', MatrixTable(self._fetch_sector, shape=(6, 7),
+                                   get_name=secmap_title, units=False)),
         ])
 
         # navigation
@@ -126,20 +127,18 @@ class ElementInfoBox(QtGui.QWidget):
         return [ParamInfo(k.title(), v) for k, v in data.items()]
 
     def _fetch_sigma(self, elem_index=0):
-        data = self.model.get_elem_sigma(elem_index)
-        return [ParamInfo(k.title(), v) for k, v in data.items()]
+        return self.model.get_elem_sigma(elem_index)
 
     def _fetch_sector(self, elem_index=0):
-        sectormap = self.model.sectormap(elem_index)
-        data = {
-            'r{}{}'.format(i+1, j+1): sectormap[i, j]
-            for i, j in itertools.product(range(6), range(6))
-        }
-        data.update({
-            'k{}'.format(i+1): sectormap[6, i]
-            for i in range(6)
-        })
-        return [ParamInfo(k.title(), v) for k, v in data.items()]
+        return self.model.sectormap(elem_index)
+
+
+def sigmat_title(i, j):
+    return 'Sig{}{}'.format(i, j)
+
+
+def secmap_title(i, j):
+    return ('R{}{}' if j < 7 else 'K{}').format(i, j)
 
 
 class EllipseWidget(QtGui.QWidget):

@@ -158,8 +158,11 @@ class ParamTable(TreeView):
     def exportTo(self, filename):
         """Export parameters to YAML file."""
         data = {par.name: par.value
-                for par in self.fetch(**self.fetch_args)}
+                for par in self.fetch_params(**self.fetch_args)}
         export_params(filename, data, data_key=self.data_key)
+
+    def fetch_params(self, **fetch_args):
+        return self.fetch(**fetch_args)
 
 
 def get_var_name(name):
@@ -267,6 +270,45 @@ class GlobalsEdit(ParamTable):
     def _fetch(self):
         globals = self._model.globals
         return [p for k, p in globals.cmdpar.items() if p.var_type > 0]
+
+
+class MatrixTable(ParamTable):
+
+    def __init__(self, fetch, shape, get_name, **kwargs):
+        self.shape = shape
+        self.get_name = get_name
+        super().__init__(fetch, **kwargs)
+        self.header().show()
+
+    @property
+    def sections(self):
+        return [
+            self.get_name('[i]', j+1)
+            for j in range(self.shape[1])
+        ]
+
+    def get_param_row(self, i, row):
+        return [
+            TableItem(val, toolTip=self._tooltip(name, val),
+                      name=self.units and name)
+            for j, val in enumerate(row)
+            for name in [self.get_name(i+1, j+1)]
+        ]
+
+    def _tooltip(self, name, value):
+        if self.units:
+            suffix = ' ' + ui_units.label(name, value)
+        else:
+            suffix = ''
+        return '{} = {}{}'.format(name, value, suffix)
+
+    def fetch_params(self, **fetch_args):
+        data = self.fetch(**fetch_args)
+        return [
+            ParamInfo(self.get_name(i+1, j+1), data[i][j])
+            for i in range(self.shape[0])
+            for j in range(self.shape[1])
+        ]
 
 
 class TabParamTables(QtGui.QTabWidget):
