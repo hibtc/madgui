@@ -40,10 +40,11 @@ class ElementInfoBox(QtGui.QWidget):
             ('Params', CommandEdit(self._fetch_cmdpar, self._update_element,
                                    model=model)),
             ('Twiss', ParamTable(self._fetch_twiss)),
-            ('Sigma', MatrixTable(self._fetch_sigma, shape=(6, 6))),
+            ('Sigma', MatrixTable(self._fetch_sigma, shape=(6, 6),
+                                  get_name=sigmat_title)),
             ('Ellipse', EllipseWidget(model)),
             ('Sector', MatrixTable(self._fetch_sector, shape=(6, 7),
-                                   units=False)),
+                                   get_name=secmap_title, units=False)),
         ])
 
         # navigation
@@ -126,22 +127,18 @@ class ElementInfoBox(QtGui.QWidget):
         return [ParamInfo(k.title(), v) for k, v in data.items()]
 
     def _fetch_sigma(self, elem_index=0):
-        data = self.model.get_elem_sigma(elem_index)
-        return [
-            [ParamInfo('Sig{}{}'.format(i+1, j+1), data[i][j])
-             for j in range(6)]
-            for i in range(6)
-        ]
+        return self.model.get_elem_sigma(elem_index)
 
     def _fetch_sector(self, elem_index=0):
-        def title(i, j):
-            return ('R{}{}' if j < 6 else 'K{}').format(i+1, j+1)
-        sectormap = self.model.sectormap(elem_index)
-        return [
-            [ParamInfo(title(i, j), sectormap[i, j])
-             for j in range(7)]
-            for i in range(6)
-        ]
+        return self.model.sectormap(elem_index)
+
+
+def sigmat_title(i, j):
+    return 'Sig{}{}'.format(i, j)
+
+
+def secmap_title(i, j):
+    return ('R{}{}' if j < 7 else 'K{}').format(i, j)
 
 
 class EllipseWidget(QtGui.QWidget):
