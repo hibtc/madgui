@@ -464,11 +464,11 @@ class Model:
         return AttrDict({col: tw[col][i0] for col in self.twiss_columns})
 
     def get_elem_sigma(self, elem):
-        tw = self.twiss()
         ix = self.elements.index(elem)
         i0 = self.indices[ix].stop
+        tw = self.twiss()[i0]
         return {
-            sig_ij: tw[sig_ij][i0]
+            sig_ij: tw[sig_ij]
             for i, j in itertools.product(range(6), range(6))
             for sig_ij in ['sig{}{}'.format(i+1, j+1)]
         }
