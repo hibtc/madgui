@@ -269,6 +269,31 @@ class GlobalsEdit(ParamTable):
         return [p for k, p in globals.cmdpar.items() if p.var_type > 0]
 
 
+class MatrixTable(ParamTable):
+
+    def __init__(self, fetch, shape, **kwargs):
+        self._shape = shape
+        super().__init__(fetch, **kwargs)
+
+    @property
+    def sections(self):
+        return ("",) * self._shape[1]
+
+    def get_param_row(self, i, params):
+        return [
+            TableItem(p.value, toolTip=self._tooltip(p),
+                      name=self.units and p.name)
+            for p in params
+        ]
+
+    def _tooltip(self, p):
+        if self.units:
+            suffix = ' ' + ui_units.label(p.name, p.value)
+        else:
+            suffix = ''
+        return '{} = {}{}'.format(p.name, p.value, suffix)
+
+
 class TabParamTables(QtGui.QTabWidget):
 
     """
