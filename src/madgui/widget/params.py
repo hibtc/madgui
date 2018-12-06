@@ -158,8 +158,11 @@ class ParamTable(TreeView):
     def exportTo(self, filename):
         """Export parameters to YAML file."""
         data = {par.name: par.value
-                for par in self.fetch(**self.fetch_args)}
+                for par in self.fetch_params(**self.fetch_args)}
         export_params(filename, data, data_key=self.data_key)
+
+    def fetch_params(self, **fetch_args):
+        return self.fetch(**fetch_args)
 
 
 def get_var_name(name):
@@ -298,6 +301,14 @@ class MatrixTable(ParamTable):
         else:
             suffix = ''
         return '{} = {}{}'.format(name, value, suffix)
+
+    def fetch_params(self, **fetch_args):
+        data = self.fetch(**fetch_args)
+        return [
+            ParamInfo(self.get_name(i+1, j+1), data[i][j])
+            for i in range(self.shape[0])
+            for j in range(self.shape[1])
+        ]
 
 
 class TabParamTables(QtGui.QTabWidget):
