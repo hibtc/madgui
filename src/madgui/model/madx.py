@@ -396,7 +396,7 @@ class Model:
         new_beam.pop('e_kin', None)
         new_beam['sequence'] = self.seq_name
         self._beam = new_beam
-        self.madx.command.beam(new_beam)
+        self.madx.command.beam(**new_beam)
         self.twiss.invalidate()
 
     def _update_twiss_args(self, twiss):
