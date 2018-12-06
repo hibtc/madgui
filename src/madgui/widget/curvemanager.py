@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 from madgui.qt import QtGui, load_ui
-from madgui.widget.tableview import TableItem
+from madgui.widget.tableview import TableItem, delegates
 from madgui.widget.filedialog import getOpenFileName
 
 
@@ -29,7 +29,7 @@ class CurveManager(QtGui.QWidget):
                 self.selected.remove(i)
         return [
             TableItem(name, checked=i in self.selected,
-                      checkable=True,
+                      checkable=True, delegate=delegates[str],
                       set_value=set_name, set_checked=set_checked),
         ]
 

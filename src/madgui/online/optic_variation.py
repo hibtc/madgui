@@ -14,7 +14,7 @@ import numpy as np
 
 from madgui.qt import QtGui
 from madgui.util.unit import change_unit, get_raw_label
-from madgui.widget.tableview import TableItem
+from madgui.widget.tableview import TableItem, delegates
 
 from .procedure import ProcBot
 from .multi_grid import CorrectorWidget as _Widget
@@ -31,7 +31,8 @@ class CorrectorWidget(_Widget):
             TableItem(i+1),
         ] + [
             TableItem(change_unit(o[par.lower()], info.unit, info.ui_unit),
-                      set_value=partial(self.set_optic_value, par))
+                      set_value=partial(self.set_optic_value, par),
+                      delegate=delegates[float])
             for par in self.corrector.selected['optics']
             for info in [self.corrector.optic_params[i]]
         ]

@@ -15,7 +15,7 @@ from madgui.qt import Qt, QtCore, QtGui, load_ui
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.qt import bold
-from madgui.widget.tableview import TableItem
+from madgui.widget.tableview import TableItem, delegates
 
 from ._common import EditConfigDialog
 from .procedure import Corrector, Target
@@ -42,9 +42,11 @@ class CorrectorWidget(QtGui.QWidget):
         return [
             TableItem(t.elem),
             TableItem(t.x, name='x', set_value=self.set_x_value,
-                      editable=active_x, foreground=textcolor[active_x]),
+                      editable=active_x, foreground=textcolor[active_x],
+                      delegate=delegates[float]),
             TableItem(t.y, name='y', set_value=self.set_y_value,
-                      editable=active_y, foreground=textcolor[active_y]),
+                      editable=active_y, foreground=textcolor[active_y],
+                      delegate=delegates[float]),
         ]
 
     def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
@@ -60,7 +62,8 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(v),
             TableItem(change_unit(initial, info.unit, info.ui_unit)),
             TableItem(change_unit(matched, info.unit, info.ui_unit),
-                      set_value=self.set_steerer_value, **style),
+                      set_value=self.set_steerer_value, **style,
+                      delegate=delegates[float]),
             TableItem(get_raw_label(info.ui_unit)),
         ]
 

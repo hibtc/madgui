@@ -11,14 +11,15 @@ __all__ = [
 
 from functools import partial
 
-import cpymad.util as _dtypes
+from cpymad.types import dtype_to_native
 
 from madgui.qt import QtGui, Qt
 from madgui.util.unit import ui_units, get_raw_label
 from madgui.util.qt import bold
 from madgui.util.export import export_params, import_params
 
-from madgui.widget.tableview import TreeView, TableItem, ExpressionDelegate
+from madgui.widget.tableview import (
+    TreeView, TableItem, ExpressionDelegate, delegates)
 
 
 class ParamInfo:
@@ -76,12 +77,15 @@ class ParamTable(TreeView):
         font = bold() if p.inform else None
         mutable = p.mutable and not self.readonly
         textcolor = QtGui.QColor(Qt.black if mutable else Qt.darkGray)
+        delegate = delegates.get(dtype_to_native.get(p.dtype))
+        extra_args = {'delegate': delegate} if delegate else {}
         return [
             TableItem(p.name, font=font),
             TableItem(p.value, set_value=self.set_value,
                       name=self.units and p.name,
                       mutable=mutable,
-                      foreground=textcolor),
+                      foreground=textcolor,
+                      **extra_args),
             TableItem(ui_units.label(p.name, p.value)),
         ]
 
@@ -193,9 +197,7 @@ class CommandEdit(ParamTable):
         rowitems = (partial(self.get_vector_row, p) if is_vector
                     else self.get_knob_row)
         delegate = {}
-        if p.dtype in (_dtypes.PARAM_TYPE_LOGICAL,
-                       _dtypes.PARAM_TYPE_INTEGER,
-                       _dtypes.PARAM_TYPE_DOUBLE):
+        if dtype_to_native.get(p.dtype) in (bool, int, float):
             delegate = {'delegate': ExpressionDelegate()}
         return [
             TableItem(name, rows=rows, rowitems=rowitems, font=font),

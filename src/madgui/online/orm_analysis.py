@@ -3,7 +3,7 @@ import time
 import logging
 
 from madgui.qt import QtCore, QtGui, load_ui
-from madgui.widget.tableview import TableItem
+from madgui.widget.tableview import TableItem, delegates
 
 from madgui.online.procedure import Corrector, ProcBot
 
@@ -64,7 +64,8 @@ class MeasureWidget(QtGui.QWidget):
         return [
             TableItem(c.name),
             TableItem(self.d_phi.get(c.name.lower(), self.default_dphi),
-                      name='kick', set_value=self.set_kick),
+                      name='kick', set_value=self.set_kick,
+                      delegate=delegates[float]),
         ]
 
     def set_kick(self, i, c, value):

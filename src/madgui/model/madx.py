@@ -19,7 +19,8 @@ from numbers import Number
 import numpy as np
 
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
-from cpymad.util import normalize_range_name, is_identifier, VAR_TYPE_CONST
+from cpymad.util import normalize_range_name, is_identifier
+from cpymad.types import VAR_TYPE_CONST
 
 from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
