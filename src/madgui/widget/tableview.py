@@ -722,7 +722,7 @@ class EnumDelegate(StringDelegate):
         model.setData(index, enum(value))
 
 
-TYPES = {                   # default {type: value proxy} mapping
+delegates = {                   # default {type: value proxy} mapping
     object: ItemDelegate(),
     float: QuantityDelegate(),
     int: IntDelegate(),
@@ -738,7 +738,8 @@ TYPES = {                   # default {type: value proxy} mapping
 # lookupDelegate
 
 def lookupDelegate(value):
-    return TYPES[_get_best_base(value.__class__, TYPES)]
+    cls = value if isinstance(value, type) else value.__class__
+    return delegates[_get_best_base(cls, delegates)]
 
 
 def _get_best_base(cls, bases):

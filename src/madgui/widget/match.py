@@ -4,7 +4,7 @@ UI for matching.
 
 from madgui.qt import QtGui, load_ui
 from madgui.util.unit import ui_units
-from madgui.widget.tableview import TableItem
+from madgui.widget.tableview import TableItem, delegates
 from madgui.model.match import Constraint
 from madgui.util.enum import make_enum
 
@@ -81,7 +81,8 @@ class MatchWidget(QtGui.QWidget):
         return [
             TableItem(elem, set_value=set_elem),
             TableItem(name, set_value=set_name),
-            TableItem(c.value, set_value=set_value, name=c.axis),
+            TableItem(c.value, set_value=set_value, name=c.axis,
+                      delegate=delegates[float]),
             TableItem(unit),
         ]
 
