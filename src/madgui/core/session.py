@@ -11,6 +11,12 @@ from madgui.core.config import load as load_config
 import madgui.util.yaml as yaml
 
 
+def active_session():
+    if Session.active_session is None:
+        Session.active_session = Session()
+    return Session.active_session
+
+
 class Session:
 
     """
@@ -20,6 +26,8 @@ class Session:
     opened model, GUI window, user variables, control system connection, and
     configuration data.
     """
+
+    active_session = None
 
     def __init__(self, config=None):
         if config is None:
@@ -41,6 +49,7 @@ class Session:
         user_ns.control = self.control
 
     def __enter__(self):
+        Session.active_session = self
         return self
 
     def __exit__(self, *exc_info):
