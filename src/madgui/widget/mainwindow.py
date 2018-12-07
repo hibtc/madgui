@@ -35,7 +35,7 @@ class MainWindow(QtGui.QMainWindow):
         load_ui(self, __package__, self.ui_file)
         session.model_args = self.model_args
         self.session = session
-        self.config = session.config
+        self.config = session.config()
         self.control = session.control
         self.model = session.model
         self.user_ns = session.user_ns

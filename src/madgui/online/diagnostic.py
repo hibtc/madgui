@@ -57,8 +57,8 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.monitors = self.control.monitors.as_list()
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
-        self._monconf = session.config['online_control']['monitors']
-        self._offsets = session.config['online_control']['offsets']
+        self._monconf = session.config()['online_control']['monitors']
+        self._offsets = session.config()['online_control']['offsets']
 
         self.mtab.set_viewmodel(self.get_monitor_row, self.monitors, unit=True)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
@@ -120,7 +120,7 @@ class MonitorWidgetBase(QtGui.QWidget):
                             or shown.get(mon.name)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
-        style = self.session.config['line_view']['monitor_style']
+        style = self.session.config()['line_view']['monitor_style']
 
         self.frame.add_curve(name, data, style)
 

@@ -40,7 +40,7 @@ class Corrector(Matcher):
     mode = 'xy'
 
     def __init__(self, session, direct=True):
-        super().__init__(session.model(), session.config['matching'])
+        super().__init__(session.model(), session.config()['matching'])
         self.session = session
         self.control = control = session.control
         self.direct = direct
@@ -55,7 +55,7 @@ class Corrector(Matcher):
         self.records = List()
         self.fit_range = None
         self.objective_values = {}
-        self._offsets = session.config['online_control']['offsets']
+        self._offsets = session.config()['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
         # for ORM

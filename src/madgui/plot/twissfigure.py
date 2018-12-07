@@ -82,8 +82,8 @@ class TwissFigure(Object):
         super().__init__()
         self.session = session
         self.model = session.model()
-        self.config = session.config.line_view
-        self._graph_conf = session.config['graphs']
+        self.config = session.config().line_view
+        self._graph_conf = session.config()['graphs']
         self.figure = figure
         self.matcher = matcher
         # scene

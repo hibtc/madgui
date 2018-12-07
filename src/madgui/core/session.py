@@ -24,7 +24,7 @@ class Session:
     def __init__(self, config=None):
         if config is None:
             config = load_config()
-        self.config = config
+        self.config = Boxed(config)
         self.window = Boxed(None)
         self.model = Boxed(None)
         self.control = Control(self)
@@ -47,12 +47,13 @@ class Session:
         self.terminate()
 
     def configure(self):
-        runtime = self.config.get('runtime_path', [])
+        config = self.config()
+        runtime = config.get('runtime_path', [])
         runtime = [runtime] if isinstance(runtime, str) else runtime
         for path in runtime:
             os.environ['PATH'] += os.pathsep + os.path.abspath(path)
-        np.set_printoptions(**self.config['printoptions'])
-        exec(self.config.onload, self.user_ns.__dict__)
+        np.set_printoptions(**config['printoptions'])
+        exec(config.onload, self.user_ns.__dict__)
 
     def terminate(self):
         if self.session_file:
@@ -65,7 +66,7 @@ class Session:
 
     def load_default(self, model=None):
         self.configure()
-        config = self.config
+        config = self.config()
         filename = model or config.load_default
         if filename:
             self.load_model(filename)
@@ -108,19 +109,20 @@ class Session:
             yaml.safe_dump(data, f, default_flow_style=False)
 
     def session_data(self):
-        folder = self.config.model_path or self.folder
+        config = self.config()
+        folder = config.model_path or self.folder
         default = self.model() and relpath(self.model().filename, folder)
         data = {
             'online_control': {
                 'backend': self.control.backend_spec,
                 'connect': self.control.is_connected(),
-                'monitors': self.config.online_control['monitors'],
-                'offsets': self.config.online_control['offsets'],
+                'monitors': config.online_control['monitors'],
+                'offsets': config.online_control['offsets'],
                 'settings': self.control.export_settings() or {},
             },
             'model_path': folder,
             'load_default': default,
-            'number': self.config['number'],
+            'number': config['number'],
         }
         if self.window():
             data.update(self.window().session_data())

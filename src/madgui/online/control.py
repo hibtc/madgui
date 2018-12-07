@@ -36,7 +36,7 @@ class Control(Object):
         self.has_backend = Bool(False)
         self.can_connect = ~self.is_connected & self.has_backend
         self.has_sequence = self.is_connected & self.model
-        self._config = config = session.config.online_control
+        self._config = config = session.config().online_control
         self._settings = config['settings']
         self._on_model_changed()
         self.set_backend(config.backend)
