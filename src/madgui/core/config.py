@@ -8,16 +8,9 @@ from madgui.util.signal import Signal
 from madgui.util import yaml
 
 
-def get_default_user_config_path():
-    """Return the default path of the user config."""
-    return os.path.join(
-        os.path.expanduser('~'), '.config', 'madgui', 'config.yml')
-
-
-def get_default_user_session_path():
-    """Return the default path of the user config."""
-    return os.path.join(
-        os.path.expanduser('~'), '.config', 'madgui', 'session.yml')
+user_home = os.path.expanduser('~')
+user_config_path = os.path.join(user_home, '.config', 'madgui', 'config.yml')
+user_session_path = os.path.join(user_home, '.config', 'madgui', 'session.yml')
 
 
 def update_recursive(a, b):
@@ -45,7 +38,7 @@ def load(*config_files, isolated=False):
     resources = [
         yaml.load_resource('madgui.data', 'config.yml'),    # package default
     ] + ([] if isolated else [
-        _load_file(get_default_user_config_path()),         # user folder
+        _load_file(user_config_path),                       # user folder
         _load_file('madgui.yml'),                           # current directory
     ])
     resources.extend(map(_load_file, config_files))         # command line
@@ -55,7 +48,7 @@ def load(*config_files, isolated=False):
     session_file = next(
         (d['session_file'] for d in resources[::-1]
          if d and 'session_file' in d),
-        get_default_user_session_path())
+        user_session_path)
     resources.insert(1, _load_file(session_file))
     config = {}
     for merge in resources:
