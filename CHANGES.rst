@@ -1,11 +1,49 @@
 CHANGELOG
 ~~~~~~~~~
 
+18.12.0
+~~~~~~~
+Date: 11.12.2018
+
+Updated dependencies:
+
+- update to cpymad ``1.0.10``
+- new dependency on scipy!
+
+Bug fixes:
+
+- fix a TypeError in beam tab widget
+- fix bug that some widgets are shown only on second click
+- explicitly specify the correct datatype for most editable tables
+- fix exceptions in some import routines
+- fix exception when starting without config file
+- fix early exception on some systems due to encoding name
+
+Misc:
+
+- display sectormap and beam matrix as matrix-like table
+- improve lookup logic for beam matrix
+- remove the "Expression" column in favor of a composite edit widget
+- some internal API changes
+- add fitting API in ``madgui.util.fit``
+- allow loading table files with text column
+- infer missing ``S`` from ``name`` column loading table files
+- autogenerate apidoc files during travis build
+- update travis config for phased out support of container based infrastructure
+- mark build as dev version by default (travis)
+- recognize that consts cannot be used as knobs
+- move load_yaml function to ``madgui.util.yaml``
+- add simpler API for back-fitting orbit
+- never require betx, bety when backtracking
+- development on the ORM utility API
+
+
 18.10.3
 ~~~~~~~
 Date: 31.10.2018
 
 bugfixes:
+
     - fix undo feature not working because of using the wrong stack
     - fix exception in Model.twiss when a table is specified
 
@@ -25,6 +63,7 @@ ORM analysis:
 Date: 25.10.2018
 
 bugfixes:
+
     - fix for missing setObsolete on Qt<5.9 (was previously fixed only partially)
     - fix empty list of optic elements in output file
     - fix beamoptikdll not initiating device download due to flooding
@@ -32,6 +71,7 @@ bugfixes:
     - decrease chance of race condition leading to inconsistent readouts
 
 UX improvements:
+
     - log to main logwindow as well
     - increase logging verbosity during orbit response measurements
     - flush file after each write
@@ -40,6 +80,7 @@ UX improvements:
     - increase default steerer variation to 0.2 mrad
 
 ORM analysis:
+
     - handle missing ORM entries as zero
     - restrict to used knobs
     - fix empty steerers field in record file
