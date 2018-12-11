@@ -43,7 +43,7 @@ def fit_particle_orbit(model, records, secmaps, range_start=None):
         range_start = model.elements[range_start].name
 
     backtw = model.backtrack(
-        range=range_start+'_reflected'+'/#e',
+        range=range_start+'_reversed'+'/#e',
         x=-x, y=y, px=px, py=-py)
 
     data = {'s': backtw.s[-1] - backtw.s,

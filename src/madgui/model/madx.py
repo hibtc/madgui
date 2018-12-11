@@ -628,7 +628,7 @@ class Model:
         if self.backseq is None:
             with self.madx.transaction():
                 self.backseq = self.seq_name + '_backseq'
-                reflect_sequence(self.madx, self.backseq, self.elements)
+                reverse_sequence(self.madx, self.backseq, self.elements)
         self.madx.command.select(flag='interpolate', clear=True)
         twiss_init.setdefault('betx', 1)
         twiss_init.setdefault('bety', 1)
@@ -799,7 +799,7 @@ def trim(s):
     return s.replace(' ', '') if isinstance(s, str) else s
 
 
-def reflect_sequence(madx, name, elements):
+def reverse_sequence(madx, name, elements):
     """
     Create a direction reversed copy of the sequence.
 
@@ -829,7 +829,7 @@ def reflect_sequence(madx, name, elements):
             overrides['e1'] = '-{}->e2'.format(elem.name)
             overrides['e2'] = '-{}->e1'.format(elem.name)
 
-        elem.clone(elem.name + '_reflected', **overrides)
+        elem.clone(elem.name + '_reversed', **overrides)
 
     madx.command.endsequence()
 
