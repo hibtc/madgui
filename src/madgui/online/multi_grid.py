@@ -62,8 +62,8 @@ class CorrectorWidget(QtGui.QWidget):
             TableItem(v),
             TableItem(change_unit(initial, info.unit, info.ui_unit)),
             TableItem(change_unit(matched, info.unit, info.ui_unit),
-                      set_value=self.set_steerer_value, **style,
-                      delegate=delegates[float]),
+                      set_value=self.set_steerer_value,
+                      delegate=delegates[float], **style),
             TableItem(get_raw_label(info.ui_unit)),
         ]
 
