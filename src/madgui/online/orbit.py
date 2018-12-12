@@ -16,7 +16,7 @@ def add_offsets(readouts, offsets):
     ] if offsets else readouts
 
 
-def fit_particle_readouts(model, readouts):
+def fit_particle_readouts(model, readouts, backward=True):
     index = model.elements.index
     readouts = [
         r if hasattr(r, 'name') else Readout(*r)
@@ -24,7 +24,8 @@ def fit_particle_readouts(model, readouts):
     ]
     readouts = sorted(readouts, key=lambda r: index(r.name))
     range_start = readouts[0].name
-    return fit_particle_orbit(model, readouts, [
+    fit_method = fit_particle_orbit if backward else fit_forward_orbit
+    return fit_method(model, readouts, [
         model.sectormap(range_start, r.name)
         for r in readouts
     ])
@@ -59,6 +60,22 @@ def fit_particle_orbit(model, records, secmaps, range_start=None):
     }, chi_squared, singular
 
     return init_tw, data
+
+
+def fit_forward_orbit(model, records, secmaps, range_start=None):
+    (x, px, y, py), chi_squared, singular = fit_initial_orbit([
+        (secmap[:, :6], secmap[:, 6], (record.posx, record.posy))
+        for record, secmap in zip(records, secmaps)
+    ])
+    if range_start is None:
+        range_start = records[0].name
+    else:
+        range_start = model.elements[range_start].name
+    tw = model.twiss(
+        range=range_start+'/#e',
+        betx=1, bety=1,
+        x=x, y=y, px=px, py=py)
+    return (tw[-1], chi_squared, singular), tw
 
 
 def fit_initial_orbit(records):
