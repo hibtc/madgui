@@ -23,30 +23,30 @@ def fit_particle_readouts(model, readouts, to='#s'):
         for r in readouts
     ]
     readouts = sorted(readouts, key=lambda r: index(r.name))
-    range_start = readouts[0].name
+    from_ = readouts[0].name
     return fit_particle_orbit(model, readouts, [
-        model.sectormap(range_start, r.name)
+        model.sectormap(from_, r.name)
         for r in readouts
     ], to=to)
 
 
-def fit_particle_orbit(model, records, secmaps, range_start=None, to='#s'):
+def fit_particle_orbit(model, records, secmaps, from_=None, to='#s'):
 
     (x, px, y, py), chi_squared, singular = fit_initial_orbit([
         (secmap[:, :6], secmap[:, 6], (record.posx, record.posy))
         for record, secmap in zip(records, secmaps)
     ])
 
-    if range_start is None:
-        range_start = records[0].name
+    if from_ is None:
+        from_ = records[0].name
     else:
-        range_start = model.elements[range_start].name
+        from_ = model.elements[from_].name
 
     elems = model.elements
-    if elems.index(to) < elems.index(range_start):
+    if elems.index(to) < elems.index(from_):
         to_rev = '#e' if elems.index(to) == 0 else to + '_reversed'
         backtw = model.backtrack(
-            range=range_start+'_reversed'+'/'+to_rev,
+            range=from_+'_reversed'+'/'+to_rev,
             x=-x, y=y, px=px, py=-py)
         data = {'s': backtw.s[-1] - backtw.s,
                 'x': -backtw.x,
@@ -56,7 +56,7 @@ def fit_particle_orbit(model, records, secmaps, range_start=None, to='#s'):
 
     else:
         data = model.twiss(
-            range=range_start+'/'+to,
+            range=from_+'/'+to,
             betx=1, bety=1,
             x=x, y=y, px=px, py=py)
         orbit = data[-1]
