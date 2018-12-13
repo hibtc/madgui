@@ -135,15 +135,20 @@ class Analysis:
         self.values[:0] = values
 
     def get_orbit_response(self, errors=(), values=()):
-        model = self.model
-        deltas = self.deltas
         errs = list(errors) + self.errors
         vals = list(values) + self.values
-        idx = [model.elements.index(m) for m in self.monitors]
-        return np.dstack([get_orbit(model, errs, vals)] + [
-            get_orbit(model, [Param(knob)] + errs, [deltas[knob]] + vals)
-            for knob in self.knobs
+        idx = [self.model.elements.index(m) for m in self.monitors]
+        return np.dstack([
+            self._get_orbit(errs, vals, knob)
+            for knob in [None] + self.knobs
         ])[idx]
+
+    def _get_orbit(self, errs, vals, knob):
+        deltas = self.deltas
+        return get_orbit(
+            self.model,
+            [Param(knob)] + errs if knob else errs,
+            [deltas[knob]] + vals if knob else vals)
 
     def get_selected_monitors(self, selected):
         return [self.monitors.index(m.lower()) for m in selected]
