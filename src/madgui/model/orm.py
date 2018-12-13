@@ -82,7 +82,7 @@ def load_record_file(filename):
 
 def fit_init_orbit(model, measured, fit_monitors):
     (twiss_init, chisq, singular), curve = fit_particle_readouts(model, [
-        Readout(monitor, *measured.orm[index, :, 0][0])
+        Readout(monitor, *measured.orm[index, :, 0])
         for monitor in fit_monitors
         for index in [measured.monitors.index(monitor.lower())]
     ])
