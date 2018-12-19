@@ -638,6 +638,16 @@ class Model:
         self.twiss.invalidate()
         return tw
 
+    def reverse(self):
+        reverse_sequence_inplace(self.madx, self.seq_name)
+        self.undo_stack.clear()
+        self._init_segment(
+            sequence=self.seq_name,
+            range='#s/#e',
+            beam=self.beam,
+            twiss_args={'betx': 1, 'bety': 1},
+        )
+
     def match(self, vary, constraints, **kwargs):
 
         # list intermediate positions
@@ -799,6 +809,13 @@ def trim(s):
     return s.replace(' ', '') if isinstance(s, str) else s
 
 
+_INVERT_ATTRS = {
+    'sbend':        ['angle', 'k0'],
+    'hkicker':      ['kick'],
+    'kicker':       ['hkick'],
+}
+
+
 def reverse_sequence(madx, name, elements):
     """
     Create a direction reversed copy of the sequence.
@@ -815,15 +832,10 @@ def reverse_sequence(madx, name, elements):
         if elem.occ_cnt == 0 or '$' in elem.name:
             continue
         pos = elem.position
-        invert = {
-            'sbend':        ['angle', 'k0'],
-            'hkicker':      ['kick'],
-            'kicker':       ['hkick'],
-        }
         overrides = {'at': length-pos}
         overrides.update({
             attr: "-{}->{}".format(elem.name, attr)
-            for attr in invert.get(elem.base_name, ())
+            for attr in _INVERT_ATTRS.get(elem.base_name, ())
         })
         if elem.base_name == 'sbend':
             overrides['e1'] = '-{}->e2'.format(elem.name)
@@ -835,6 +847,33 @@ def reverse_sequence(madx, name, elements):
 
     madx.command.beam(sequence=name)
     madx.use(name)
+
+
+def reverse_sequence_inplace(madx, seq_name):
+    cmd = madx.command
+    cmd.seqedit(sequence=seq_name)
+    cmd.flatten()
+    cmd.reflect()
+    cmd.endedit()
+
+    for elem in reversed(madx.sequence[seq_name].elements):
+        if elem.occ_cnt == 0 or '$' in elem.name:
+            continue
+        overrides = {}
+        overrides.update({
+            attr: negate_expr(elem.defs[attr])
+            for attr in _INVERT_ATTRS.get(elem.base_name, ())
+        })
+        if elem.base_name == 'sbend':
+            overrides['e1'] = negate_expr(elem.defs.e2)
+            overrides['e2'] = negate_expr(elem.defs.e1)
+
+        if overrides:
+            elem(**overrides)
+
+
+def negate_expr(value):
+    return "-({})".format(value) if isinstance(value, str) else -value
 
 
 class TwissTable(Table):
