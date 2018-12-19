@@ -20,7 +20,7 @@ import numpy as np
 
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
 from cpymad.util import normalize_range_name, is_identifier
-from cpymad.types import VAR_TYPE_CONST
+from cpymad.types import VAR_TYPE_DIRECT
 
 from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
@@ -300,11 +300,11 @@ class Model:
         return (self.elements[start_name],
                 self.elements[stop_name])
 
-    def export_globals(self):
+    def export_globals(self, var_type=VAR_TYPE_DIRECT):
         return {
             k: p.value
             for k, p in self.globals.cmdpar.items()
-            if p.inform and p.var_type != VAR_TYPE_CONST
+            if p.inform and (p.var_type == var_type or var_type == any)
         }
 
     def export_beam(self):
