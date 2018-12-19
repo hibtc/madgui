@@ -19,7 +19,7 @@ from numbers import Number
 import numpy as np
 
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
-from cpymad.util import normalize_range_name, is_identifier
+from cpymad.util import normalize_range_name
 from cpymad.types import VAR_TYPE_DIRECT
 
 from madgui.util.undo import UndoCommand, UndoStack
@@ -709,8 +709,7 @@ class Model:
     def _get_knobs(self, elem, attr):
         """Return list of all knob names belonging to the given attribute."""
         try:
-            expr, vars = _get_property_lval(elem, attr)
-            return vars
+            return _get_property_knobs(elem, attr)
         except IndexError:
             return []
 
@@ -744,26 +743,18 @@ class ElementList(CachedList):
 
 # stuff for online control
 
-def _get_property_lval(elem, attr):
+def _get_property_knobs(elem, attr):
     """
     Return knobs names for a given element attribute from MAD-X.
 
     >>> get_element_attribute(elements['r1qs1'], 'k1')
-    ('r1qs1->k1', ['kL_R1QS1'])
+    ['kL_R1QS1']
     """
     expr = elem.cmdpar[attr].expr
     madx = elem._madx
     if isinstance(expr, list):
-        vars = list(set.union(*(set(madx.expr_vars(e)) for e in expr if e)))
-        if len(vars) == 1 and any(e == vars[0] for e in expr):
-            name = vars[0]
-        else:
-            name = elem.node_name + '->' + attr
-    else:
-        expr = expr or ''
-        name = expr if is_identifier(expr) else elem.node_name + '->' + attr
-        vars = madx.expr_vars(expr) if expr else []
-    return name, vars
+        return list(set.union(*(set(madx.expr_vars(e)) for e in expr if e)))
+    return madx.expr_vars(expr) if expr else []
 
 
 def _is_property_defined(elem, attr):
