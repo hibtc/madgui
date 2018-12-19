@@ -16,6 +16,17 @@ def apply_errors(model, errors, values):
         return stack.pop_all()
 
 
+def apply_reverse_errors(model, errors, values):
+    return apply_errors(model, *zip(*[
+        reverse_error(model, err, val)
+        for err, val in zip(errors, values)
+    ]))
+
+
+def reverse_error(model, error, value):
+    return error.reversed(model, value)
+
+
 def parse_error(name):
     mult = name.startswith('δ')
     name = name.lstrip('δΔ \t')
@@ -70,6 +81,9 @@ class BaseError:
         else:
             return value + step
 
+    def reversed(self, model, value):
+        return self, value
+
 
 class Param(BaseError):
 
@@ -103,6 +117,10 @@ class Ealign(BaseError):
     def tinker(self, value, step):
         return -value
 
+    def reversed(self, model, value):
+        negate = self.attr in ('dx', 'ds')
+        return self, value * (-1 if negate else +1)
+
 
 class Efcomp(BaseError):
 
@@ -132,6 +150,10 @@ class Efcomp(BaseError):
     def tinker(self, value, step):
         return -value
 
+    def reversed(self, model, value):
+        # TODO: …
+        return self, value
+
 
 class ElemAttr(BaseError):
 
@@ -147,6 +169,22 @@ class ElemAttr(BaseError):
 
     def set(self, model, value):
         model.elements[self.elem][self.attr] = value
+
+    def reversed(self, model, value):
+        rev_elem = self.elem + '_reversed'
+        rev_attr = _EXCHANGE.get(self.attr, self.attr)
+        elem = model.elements[self.elem]
+        negate = self.attr in _NEGATE.get(elem.base_name, ())
+        return ElemAttr(rev_elem, rev_attr), value * (-1 if negate else +1)
+
+
+_EXCHANGE = {'e1': 'e2', 'e2': 'e1'}
+_NEGATE =  {
+    'sbend':        ['angle', 'k0', 'e1', 'e2'],
+    'hkicker':      ['kick'],
+    'kicker':       ['hkick'],
+    'translation':  ['px', 'y'],
+}
 
 
 class InitTwiss(BaseError):
@@ -172,7 +210,12 @@ class RelativeError(BaseError):
 
 
 class ScaleAttr(RelativeError, ElemAttr):
-    pass
+
+    def reversed(self, model, value):
+        # don't negate value
+        rev_elem = self.elem + '_reversed'
+        rev_attr = _EXCHANGE.get(self.attr, self.attr)
+        return ElemAttr(rev_elem, rev_attr), value
 
 
 class ScaleParam(RelativeError, Param):
