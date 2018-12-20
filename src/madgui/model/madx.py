@@ -20,7 +20,7 @@ import numpy as np
 
 from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
 from cpymad.util import normalize_range_name
-from cpymad.types import VAR_TYPE_DIRECT
+from cpymad.types import VAR_TYPE_DIRECT, VAR_TYPE_DEFERRED
 
 from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
@@ -709,7 +709,7 @@ class Model:
     def _get_knobs(self, elem, attr):
         """Return list of all knob names belonging to the given attribute."""
         try:
-            return _get_property_knobs(elem, attr)
+            return _get_leaf_knobs(self.madx, elem.cmdpar[attr].expr)
         except IndexError:
             return []
 
@@ -743,18 +743,26 @@ class ElementList(CachedList):
 
 # stuff for online control
 
-def _get_property_knobs(elem, attr):
+def _get_leaf_knobs(madx, exprs):
     """
     Return knobs names for a given element attribute from MAD-X.
 
     >>> get_element_attribute(elements['r1qs1'], 'k1')
     ['kL_R1QS1']
     """
-    expr = elem.cmdpar[attr].expr
-    madx = elem._madx
-    if isinstance(expr, list):
-        return list(set.union(*(set(madx.expr_vars(e)) for e in expr if e)))
-    return madx.expr_vars(expr) if expr else []
+    cmdpar = madx.globals.cmdpar
+    exprs = exprs if isinstance(exprs, list) else [exprs]
+    exprs = [e for e in exprs if e]
+    seen = set()
+    vars = []
+    while exprs:
+        expr = exprs.pop(0)
+        new = set(madx.expr_vars(expr)) - seen
+        pars = [cmdpar[v] for v in new]
+        vars.extend([p.name for p in pars if p.var_type == VAR_TYPE_DIRECT])
+        exprs.extend([p.expr for p in pars if p.var_type == VAR_TYPE_DEFERRED])
+        seen.update(new)
+    return vars
 
 
 def _is_property_defined(elem, attr):
