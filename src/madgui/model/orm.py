@@ -177,6 +177,7 @@ class Analysis:
             plt.show()
         else:
             plt.savefig('{}-orbit.png'.format(save_to))
+        plt.clf()
 
     def backtrack(self, monitors):
         print("TWISS INIT")
