@@ -226,7 +226,7 @@ class Analysis:
                 print(".", end='', flush=True)
                 self.model_orm = self.get_orbit_response(errors, values)
             except TwissFailed:
-                return 1e5
+                return np.array([1e8])
             obj = ((self.model_orm - measured.orm) / stddev)[sel][:, dims, :]
             if fourier:
                 obj = np.fft.rfft(obj, axis=0)
