@@ -321,9 +321,11 @@ def plot_monitor_response(
     lines = []
 
     orm = response_matrix(measured.orm)
-    stddev = response_matrix(measured.stddev)
     model_orm = response_matrix(model_orm)
     base_orm = response_matrix(base_orm)
+    stddev = measured.stddev
+    if stddev is not None:
+        stddev = (stddev[:, :, 1:]**2 + stddev[:, :, [0]]**2)**0.5
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
@@ -364,9 +366,11 @@ def plot_steerer_response(
     lines = []
 
     orm = response_matrix(measured.orm)
-    stddev = response_matrix(measured.stddev)
     model_orm = response_matrix(model_orm)
     base_orm = response_matrix(base_orm)
+    stddev = measured.stddev
+    if stddev is not None:
+        stddev = (stddev[:, :, 1:]**2 + stddev[:, :, [0]]**2)**0.5
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
