@@ -55,7 +55,7 @@ def fit_particle_orbit(model, records, secmaps, from_=None, to='#s'):
         orbit = {'x': -tw0.x, 'px': tw0.px, 'y': tw0.y, 'py': -tw0.py}
 
     else:
-        data = model.twiss(
+        data = model.madx.twiss(
             range=from_+'/'+to,
             betx=1, bety=1,
             x=x, y=y, px=px, py=py)
