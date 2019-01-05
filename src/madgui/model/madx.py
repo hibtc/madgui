@@ -621,6 +621,38 @@ class Model:
         return self.madx.sectormap(
             (), **self._get_twiss_args(table='sectortwiss'))
 
+    def track_one(self, x=0, px=0, y=0, py=0, range='#s/#e', **kwargs):
+        """
+        Track a particle through the sequence. Handles backward tracking (sort
+        of) by specifying a negative range.
+
+        Currently uses TWISS for tracking internally (to allow tracking
+        through thick sequences). This might change.
+        """
+        elems = self.elements
+        start, end = range.split('/') if isinstance(range, str) else range
+        start, end = normalize_range_name(start), normalize_range_name(end)
+        kwargs.setdefault('betx', 1)
+        kwargs.setdefault('bety', 1)
+        if elems.index(end) < elems.index(start):
+            # TODO: we should use a separate madx process with inplace
+            # reversed sequence for backtracking in the future, this will
+            # simplify all the complications with element names etc.
+            flip = {'#s': '#e', '#e': '#s'}
+            start = flip.get(start, start + '_reversed')
+            end = flip.get(end, end + '_reversed')
+            tw = self.backtrack(
+                x=-x, y=y, px=px, py=-py,
+                range=start+'/'+end, **kwargs)
+            return AttrDict({
+                's': tw.s[-1] - tw.s,
+                'x': -tw.x, 'px': tw.px,
+                'y': tw.y, 'py': -tw.py,
+            })
+        return self.madx.twiss(
+            x=x, px=px, y=y, py=py,
+            range=range, **kwargs)
+
     backseq = None
 
     def backtrack(self, **twiss_init):

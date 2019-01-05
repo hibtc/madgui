@@ -42,24 +42,9 @@ def fit_particle_orbit(model, records, secmaps, from_=None, to='#s'):
     else:
         from_ = model.elements[from_].name
 
-    elems = model.elements
-    if elems.index(to) < elems.index(from_):
-        to_rev = '#e' if elems.index(to) == 0 else to + '_reversed'
-        backtw = model.backtrack(
-            range=from_+'_reversed'+'/'+to_rev,
-            x=-x, y=y, px=px, py=-py)
-        data = {'s': backtw.s[-1] - backtw.s,
-                'x': -backtw.x,
-                'y': backtw.y}
-        tw0 = backtw[-1]
-        orbit = {'x': -tw0.x, 'px': tw0.px, 'y': tw0.y, 'py': -tw0.py}
-
-    else:
-        data = model.madx.twiss(
-            range=from_+'/'+to,
-            betx=1, bety=1,
-            x=x, y=y, px=px, py=py)
-        orbit = data[-1]
+    data = model.track_one(x=x, px=px, y=y, py=py, range=(from_, to))
+    orbit = {'x': data.x[-1], 'px': data.px[-1],
+             'y': data.y[-1], 'py': data.py[-1]}
 
     return (orbit, chi_squared, singular), data
 
