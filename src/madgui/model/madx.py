@@ -274,12 +274,12 @@ class Model:
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
         self.el_names = self.sequence.expanded_element_names()
-        self.elements = ElementList(self._get_element, self.el_names)
+        self.elements = elems = ElementList(self._get_element, self.el_names)
         self.positions = self.sequence.expanded_element_positions()
 
         self.start, self.stop = self.parse_range(range)
-        self.range = (normalize_range_name(self.start.name),
-                      normalize_range_name(self.stop.name))
+        self.range = (normalize_range_name(self.start.name, elems),
+                      normalize_range_name(self.stop.name, elems))
 
     def _get_element(self, index, name):
         """Fetch the ``cpymad.madx.Element`` at the specified index in the
