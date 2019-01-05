@@ -16,49 +16,37 @@ def add_offsets(readouts, offsets):
     ] if offsets else readouts
 
 
-def fit_particle_readouts(model, readouts):
+def fit_particle_readouts(model, readouts, to='#s'):
     index = model.elements.index
     readouts = [
         r if hasattr(r, 'name') else Readout(*r)
         for r in readouts
     ]
     readouts = sorted(readouts, key=lambda r: index(r.name))
-    range_start = readouts[0].name
+    from_ = readouts[0].name
     return fit_particle_orbit(model, readouts, [
-        model.sectormap(range_start, r.name)
+        model.sectormap(from_, r.name)
         for r in readouts
-    ])
+    ], to=to)
 
 
-def fit_particle_orbit(model, records, secmaps, range_start=None):
+def fit_particle_orbit(model, records, secmaps, from_=None, to='#s'):
 
     (x, px, y, py), chi_squared, singular = fit_initial_orbit([
         (secmap[:, :6], secmap[:, 6], (record.posx, record.posy))
         for record, secmap in zip(records, secmaps)
     ])
 
-    if range_start is None:
-        range_start = records[0].name
+    if from_ is None:
+        from_ = records[0].name
     else:
-        range_start = model.elements[range_start].name
+        from_ = model.elements[from_].name
 
-    backtw = model.backtrack(
-        range=range_start+'_reversed'+'/#e',
-        x=-x, y=y, px=px, py=-py)
+    data = model.track_one(x=x, px=px, y=y, py=py, range=(from_, to))
+    orbit = {'x': data.x[-1], 'px': data.px[-1],
+             'y': data.y[-1], 'py': data.py[-1]}
 
-    data = {'s': backtw.s[-1] - backtw.s,
-            'x': -backtw.x,
-            'y': backtw.y}
-
-    tw0 = backtw[-1]
-    x, y, px, py = tw0.x, tw0.y, tw0.px, tw0.py
-
-    init_tw = {
-        'x': -x, 'px': px,
-        'y': y, 'py': -py,
-    }, chi_squared, singular
-
-    return init_tw, data
+    return (orbit, chi_squared, singular), data
 
 
 def fit_initial_orbit(records):

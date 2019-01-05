@@ -135,15 +135,20 @@ class Analysis:
         self.values[:0] = values
 
     def get_orbit_response(self, errors=(), values=()):
-        model = self.model
-        deltas = self.deltas
         errs = list(errors) + self.errors
         vals = list(values) + self.values
-        idx = [model.elements.index(m) for m in self.monitors]
-        return np.dstack([get_orbit(model, errs, vals)] + [
-            get_orbit(model, [Param(knob)] + errs, [deltas[knob]] + vals)
-            for knob in self.knobs
+        idx = [self.model.elements.index(m) for m in self.monitors]
+        return np.dstack([
+            self._get_orbit(errs, vals, knob)
+            for knob in [None] + self.knobs
         ])[idx]
+
+    def _get_orbit(self, errs, vals, knob):
+        deltas = self.deltas
+        return get_orbit(
+            self.model,
+            [Param(knob)] + errs if knob else errs,
+            [deltas[knob]] + vals if knob else vals)
 
     def get_selected_monitors(self, selected):
         return [self.monitors.index(m.lower()) for m in selected]
@@ -172,6 +177,7 @@ class Analysis:
             plt.show()
         else:
             plt.savefig('{}-orbit.png'.format(save_to))
+        plt.clf()
 
     def backtrack(self, monitors):
         print("TWISS INIT")
@@ -220,7 +226,7 @@ class Analysis:
                 print(".", end='', flush=True)
                 self.model_orm = self.get_orbit_response(errors, values)
             except TwissFailed:
-                return 1e5
+                return np.array([1e8])
             obj = ((self.model_orm - measured.orm) / stddev)[sel][:, dims, :]
             if fourier:
                 obj = np.fft.rfft(obj, axis=0)
@@ -316,9 +322,11 @@ def plot_monitor_response(
     lines = []
 
     orm = response_matrix(measured.orm)
-    stddev = response_matrix(measured.stddev)
     model_orm = response_matrix(model_orm)
     base_orm = response_matrix(base_orm)
+    stddev = measured.stddev
+    if stddev is not None:
+        stddev = (stddev[:, :, 1:]**2 + stddev[:, :, [0]]**2)**0.5
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
@@ -359,9 +367,11 @@ def plot_steerer_response(
     lines = []
 
     orm = response_matrix(measured.orm)
-    stddev = response_matrix(measured.stddev)
     model_orm = response_matrix(model_orm)
     base_orm = response_matrix(base_orm)
+    stddev = measured.stddev
+    if stddev is not None:
+        stddev = (stddev[:, :, 1:]**2 + stddev[:, :, [0]]**2)**0.5
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)

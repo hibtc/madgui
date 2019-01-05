@@ -274,12 +274,12 @@ class Model:
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
         self.el_names = self.sequence.expanded_element_names()
-        self.elements = ElementList(self._get_element, self.el_names)
+        self.elements = elems = ElementList(self._get_element, self.el_names)
         self.positions = self.sequence.expanded_element_positions()
 
         self.start, self.stop = self.parse_range(range)
-        self.range = (normalize_range_name(self.start.name),
-                      normalize_range_name(self.stop.name))
+        self.range = (normalize_range_name(self.start.name, elems),
+                      normalize_range_name(self.stop.name, elems))
 
     def _get_element(self, index, name):
         """Fetch the ``cpymad.madx.Element`` at the specified index in the
@@ -621,6 +621,38 @@ class Model:
         return self.madx.sectormap(
             (), **self._get_twiss_args(table='sectortwiss'))
 
+    def track_one(self, x=0, px=0, y=0, py=0, range='#s/#e', **kwargs):
+        """
+        Track a particle through the sequence. Handles backward tracking (sort
+        of) by specifying a negative range.
+
+        Currently uses TWISS for tracking internally (to allow tracking
+        through thick sequences). This might change.
+        """
+        elems = self.elements
+        start, end = range.split('/') if isinstance(range, str) else range
+        start, end = normalize_range_name(start), normalize_range_name(end)
+        kwargs.setdefault('betx', 1)
+        kwargs.setdefault('bety', 1)
+        if elems.index(end) < elems.index(start):
+            # TODO: we should use a separate madx process with inplace
+            # reversed sequence for backtracking in the future, this will
+            # simplify all the complications with element names etc.
+            flip = {'#s': '#e', '#e': '#s'}
+            start = flip.get(start, start + '_reversed')
+            end = flip.get(end, end + '_reversed')
+            tw = self.backtrack(
+                x=-x, y=y, px=px, py=-py,
+                range=start+'/'+end, **kwargs)
+            return AttrDict({
+                's': tw.s[-1] - tw.s,
+                'x': -tw.x, 'px': tw.px,
+                'y': tw.y, 'py': -tw.py,
+            })
+        return self.madx.twiss(
+            x=x, px=px, y=y, py=py,
+            range=range, **kwargs)
+
     backseq = None
 
     def backtrack(self, **twiss_init):
@@ -637,6 +669,16 @@ class Model:
         tw = self.madx.table.backtrack
         self.twiss.invalidate()
         return tw
+
+    def reverse(self):
+        reverse_sequence_inplace(self.madx, self.seq_name)
+        self.undo_stack.clear()
+        self._init_segment(
+            sequence=self.seq_name,
+            range='#s/#e',
+            beam=self.beam,
+            twiss_args={'betx': 1, 'bety': 1},
+        )
 
     def match(self, vary, constraints, **kwargs):
 
@@ -798,6 +840,13 @@ def trim(s):
     return s.replace(' ', '') if isinstance(s, str) else s
 
 
+_INVERT_ATTRS = {
+    'sbend':        ['angle', 'k0'],
+    'hkicker':      ['kick'],
+    'kicker':       ['hkick'],
+}
+
+
 def reverse_sequence(madx, name, elements):
     """
     Create a direction reversed copy of the sequence.
@@ -814,15 +863,10 @@ def reverse_sequence(madx, name, elements):
         if elem.occ_cnt == 0 or '$' in elem.name:
             continue
         pos = elem.position
-        invert = {
-            'sbend':        ['angle', 'k0'],
-            'hkicker':      ['kick'],
-            'kicker':       ['hkick'],
-        }
         overrides = {'at': length-pos}
         overrides.update({
             attr: "-{}->{}".format(elem.name, attr)
-            for attr in invert.get(elem.base_name, ())
+            for attr in _INVERT_ATTRS.get(elem.base_name, ())
         })
         if elem.base_name == 'sbend':
             overrides['e1'] = '-{}->e2'.format(elem.name)
@@ -834,6 +878,33 @@ def reverse_sequence(madx, name, elements):
 
     madx.command.beam(sequence=name)
     madx.use(name)
+
+
+def reverse_sequence_inplace(madx, seq_name):
+    cmd = madx.command
+    cmd.seqedit(sequence=seq_name)
+    cmd.flatten()
+    cmd.reflect()
+    cmd.endedit()
+
+    for elem in reversed(madx.sequence[seq_name].elements):
+        if elem.occ_cnt == 0 or '$' in elem.name:
+            continue
+        overrides = {}
+        overrides.update({
+            attr: negate_expr(elem.defs[attr])
+            for attr in _INVERT_ATTRS.get(elem.base_name, ())
+        })
+        if elem.base_name == 'sbend':
+            overrides['e1'] = negate_expr(elem.defs.e2)
+            overrides['e2'] = negate_expr(elem.defs.e1)
+
+        if overrides:
+            elem(**overrides)
+
+
+def negate_expr(value):
+    return "-({})".format(value) if isinstance(value, str) else -value
 
 
 class TwissTable(Table):
