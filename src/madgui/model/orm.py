@@ -190,14 +190,15 @@ class Analysis:
 
         for i, (knob, tw) in enumerate(zip(knobs, orbits)):
             fig = plt.figure(1)
-            plot_orbit(fig, model, tw, self.measured, base_orbit=base_orbit)
+            plot_orbit(fig, model, tw, self.measured,
+                       base_orbit=base_orbit and base_orbit[i])
             if save_to is None:
                 plt.show()
             else:
                 plt.savefig(f'{save_to}-orbit-{i}-{knob}.png')
             plt.clf()
 
-        return orbits[0]
+        return orbits
 
     def backtrack(self, monitors):
         print("TWISS INIT")
