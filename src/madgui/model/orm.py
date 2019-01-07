@@ -410,6 +410,7 @@ def response_matrix(orbits):
 
 
 def plot_orbit(fig, model, measured):
+    model.twiss.invalidate()
     twiss = model.twiss()
 
     xpos = [model.elements[elem].position for elem in measured.monitors]
