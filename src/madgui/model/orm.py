@@ -169,15 +169,19 @@ class Analysis:
             select, self.model, self.measured, self.model_orm,
             save_to=save_to, base_orm=base_orm)
 
-    def plot_orbit(self, save_to=None):
+    def plot_orbit(self, save_to=None, base_orbit=None):
+        model = self.model
         fig = plt.figure(1)
         with apply_errors(self.model, self.errors, self.values):
-            plot_orbit(fig, self.model, self.measured)
+            model.twiss.invalidate()
+            twiss = model.twiss()
+        plot_orbit(fig, self.model, twiss, self.measured, base_orbit=base_orbit)
         if save_to is None:
             plt.show()
         else:
             plt.savefig('{}-orbit.png'.format(save_to))
         plt.clf()
+        return twiss
 
     def backtrack(self, monitors):
         print("TWISS INIT")
@@ -409,9 +413,7 @@ def response_matrix(orbits):
     return None if orbits is None else orbits[:, :, 1:] - orbits[:, :, [0]]
 
 
-def plot_orbit(fig, model, measured):
-    model.twiss.invalidate()
-    twiss = model.twiss()
+def plot_orbit(fig, model, twiss, measured, base_orbit):
 
     xpos = [model.elements[elem].position for elem in measured.monitors]
     orbit = measured.orm[:, :, 0]
@@ -426,8 +428,10 @@ def plot_orbit(fig, model, measured):
         else:
             axes.yaxis.tick_right()
 
-        axes.errorbar(xpos, orbit[:, j], error[:, j], label=ax + " measured")
+        axes.errorbar(xpos, orbit[:, j], error[:, j], fmt='v-', label=ax + " measured")
         axes.plot(twiss.s, twiss[ax], label=ax + " model")
+        if base_orbit is not None:
+            axes.plot(base_orbit.s, base_orbit[ax], label=ax + " base_orbit")
         axes.legend()
 
     fig.suptitle("orbit")
