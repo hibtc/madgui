@@ -170,18 +170,34 @@ class Analysis:
             save_to=save_to, base_orm=base_orm)
 
     def plot_orbit(self, save_to=None, base_orbit=None):
+
         model = self.model
-        fig = plt.figure(1)
-        with apply_errors(self.model, self.errors, self.values):
-            model.twiss.invalidate()
-            twiss = model.twiss()
-        plot_orbit(fig, self.model, twiss, self.measured, base_orbit=base_orbit)
-        if save_to is None:
-            plt.show()
-        else:
-            plt.savefig('{}-orbit.png'.format(save_to))
-        plt.clf()
-        return twiss
+        madx = model.madx
+
+        def get_orbit(knob):
+            """Get x, y vectors, with specified errors."""
+            deltas = self.deltas
+            errors = ([Param(knob)] if knob else []) + self.errors
+            values = ([deltas[knob]] if knob else []) + self.values
+            with apply_errors(model, errors, values):
+                tw_args = model._get_twiss_args(table='orm_tmp')
+                twiss = madx.twiss(**tw_args)
+            twiss.s, twiss.x, twiss.y
+            return twiss
+
+        knobs = [None] + self.knobs
+        orbits = [get_orbit(knob) for knob in knobs]
+
+        for i, (knob, tw) in enumerate(zip(knobs, orbits)):
+            fig = plt.figure(1)
+            plot_orbit(fig, model, tw, self.measured, base_orbit=base_orbit)
+            if save_to is None:
+                plt.show()
+            else:
+                plt.savefig(f'{save_to}-orbit-{i}-{knob}.png')
+            plt.clf()
+
+        return orbits[0]
 
     def backtrack(self, monitors):
         print("TWISS INIT")
