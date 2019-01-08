@@ -181,7 +181,7 @@ class Analysis:
 
         for i, (knob, tw) in enumerate(zip(knobs, orbits)):
             fig = plt.figure(1)
-            plot_orbit(fig, model, tw, self.measured,
+            plot_orbit(fig, self.model, i, tw, self.measured,
                        base_orbit=base_orbit and base_orbit[i])
             if save_to is None:
                 plt.show()
@@ -420,11 +420,11 @@ def response_matrix(orbits):
     return None if orbits is None else orbits[:, :, 1:] - orbits[:, :, [0]]
 
 
-def plot_orbit(fig, model, twiss, measured, base_orbit):
+def plot_orbit(fig, model, i, twiss, measured, base_orbit):
 
     xpos = [model.elements[elem].position for elem in measured.monitors]
-    orbit = measured.orm[:, :, 0]
-    error = measured.stddev[:, :, 0]
+    orbit = measured.orm[:, :, i]
+    error = measured.stddev[:, :, i]
 
     for j, ax in enumerate("xy"):
         axes = fig.add_subplot(1, 2, 1+j)
