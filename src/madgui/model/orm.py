@@ -140,6 +140,7 @@ class Analysis:
         idx = [self.model.elements.index(m) for m in self.monitors]
         return np.dstack([
             self._get_orbit(errs, vals, knob)
+            .dframe(('x', 'y'))
             for knob in [None] + self.knobs
         ])[idx]
 
@@ -171,22 +172,12 @@ class Analysis:
 
     def plot_orbit(self, save_to=None, base_orbit=None):
 
-        model = self.model
-        madx = model.madx
-
-        def get_orbit(knob):
-            """Get x, y vectors, with specified errors."""
-            deltas = self.deltas
-            errors = ([Param(knob)] if knob else []) + self.errors
-            values = ([deltas[knob]] if knob else []) + self.values
-            with apply_errors(model, errors, values):
-                tw_args = model._get_twiss_args(table='orm_tmp')
-                twiss = madx.twiss(**tw_args)
-            twiss.s, twiss.x, twiss.y
-            return twiss
-
         knobs = [None] + self.knobs
-        orbits = [get_orbit(knob) for knob in knobs]
+        orbits = [
+            self._get_orbit(self.errors, self.values, knob)
+            .dframe(('s', 'x', 'y'))
+            for knob in knobs
+        ]
 
         for i, (knob, tw) in enumerate(zip(knobs, orbits)):
             fig = plt.figure(1)
@@ -302,8 +293,7 @@ def get_orbit(model, errors, values):
     madx.command.select(flag='interpolate', clear=True)
     with apply_errors(model, errors, values):
         tw_args = model._get_twiss_args(table='orm_tmp')
-        twiss = madx.twiss(**tw_args)
-    return np.stack((twiss.x, twiss.y)).T
+        return madx.twiss(**tw_args)
 
 
 def make_monitor_plots(
