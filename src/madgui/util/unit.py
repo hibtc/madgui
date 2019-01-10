@@ -68,7 +68,8 @@ def strip_unit(quantity, unit=None):
 
 
 def change_unit(quantity, from_unit, to_unit):
-    return strip_unit(add_unit(quantity, from_unit), to_unit)
+    return strip_unit(
+        add_unit(quantity, from_config(from_unit)), from_config(to_unit))
 
 
 def toquantity(value):
@@ -105,6 +106,7 @@ def get_raw_label(quantity):
         return ''
     if isinstance(quantity, list):
         return '[{}]'.format(', '.join(map(get_raw_label, quantity)))
+    quantity = from_config(quantity)
     if not isinstance(quantity, units.Quantity):
         return ''
     short = pint.unit.UnitsContainer(
@@ -134,6 +136,8 @@ def from_config(unit):
         10 rad
         m^-2
     """
+    if isinstance(unit, (units.Unit, units.Quantity, float, int)):
+        return unit
     if not unit:
         return None
     if isinstance(unit, list):
