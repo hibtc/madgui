@@ -7,7 +7,6 @@ from importlib import import_module
 
 import numpy as np
 
-from madgui.core.signal import Object
 from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool, List, CachedList
 
@@ -15,7 +14,7 @@ from madgui.util.collections import Bool, List, CachedList
 # TODO: automate loading DVM parameters via model and/or named hook
 
 
-class Control(Object):
+class Control:
 
     """
     Plugin class for MadGUI.
@@ -26,7 +25,6 @@ class Control(Object):
     """
 
     def __init__(self, session):
-        super().__init__()
         self.session = session
         self.backend = None
         self.model = session.model
