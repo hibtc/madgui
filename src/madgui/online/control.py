@@ -111,13 +111,20 @@ class Control(Object):
 
     def _show_sync_dialog(self, widget, apply):
         from madgui.online.dialogs import SyncParamItem
+        from madgui.widget.dialog import Dialog
         model, live = self.model(), self.backend
         widget.data = [
             SyncParamItem(info, live.read_param(name), model.read_param(name))
             for name, info in self.get_knobs().items()
         ]
         widget.data_key = 'dvm_parameters'
-        self._show_dialog(widget, apply)
+        dialog = Dialog(self.session.window())
+        dialog.setExportWidget(widget, self.session.folder)
+        dialog.serious.updateButtons()
+        # dialog.setWindowTitle()
+        dialog.accepted.connect(apply)
+        dialog.show()
+        return dialog
 
     def read_all(self, knobs=None):
         live = self.backend
@@ -158,20 +165,6 @@ class Control(Object):
         dialog = Dialog(self.session.window())
         dialog.setWidget(widget)
         dialog.setWindowTitle("ORM scan")
-        return dialog
-
-    def _show_dialog(self, widget, apply=None, export=True):
-        from madgui.widget.dialog import Dialog
-        dialog = Dialog(self.session.window())
-        if export:
-            dialog.setExportWidget(widget, self.session.folder)
-            dialog.serious.updateButtons()
-        else:
-            dialog.setWidget(widget, tight=True)
-        # dialog.setWindowTitle()
-        if apply is not None:
-            dialog.accepted.connect(apply)
-        dialog.show()
         return dialog
 
     def on_correct_multi_grid_method(self):
