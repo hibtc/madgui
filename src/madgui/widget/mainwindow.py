@@ -193,6 +193,11 @@ class MainWindow(QtGui.QMainWindow):
                          'Perform orbit correction via 2-grids method',
                          control.on_correct_multi_grid_method,
                          enabled=control.has_sequence),
+                    Item('Measured &Response', 'Ctrl+R',
+                         'Perform orbit correction empirically by measuring'
+                         ' the orbit response.',
+                         control.on_correct_measured_response_method,
+                         enabled=control.has_sequence),
                 ]),
                 Separator,
                 menu.Menu('&Settings', []),
