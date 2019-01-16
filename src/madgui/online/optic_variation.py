@@ -126,7 +126,7 @@ class CorrectorWidget(_Widget):
         ctrl = corr.control
         # TODO: this should be done with a more generic API
         # TODO: do this without beamoptikdll to decrease the waiting time
-        dvm = ctrl.backend._dvm
+        dvm = ctrl.backend.beamoptikdll
         values, channels = dvm.GetMEFIValue()
         vacc = dvm.GetSelectedVAcc()
         try:
