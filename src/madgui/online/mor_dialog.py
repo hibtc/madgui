@@ -6,6 +6,7 @@ Multi grid correction method.
 # - use CORRECT command from MAD-X rather than custom numpy method?
 # - combine with optic variation method
 
+from collections import namedtuple
 from functools import partial
 
 import numpy as np
@@ -14,6 +15,7 @@ import yaml
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 
 from madgui.util.unit import change_unit, get_raw_label
+from madgui.util.collections import List
 from madgui.util.qt import bold
 from madgui.widget.tableview import TableItem, delegates
 
@@ -21,10 +23,21 @@ from ._common import EditConfigDialog
 from .procedure import Corrector, Target, ProcBot
 
 
+ORM_Entry = namedtuple('ORM_Entry', ['monitor', 'knob', 'x', 'y'])
+
+
 class CorrectorWidget(QtGui.QWidget):
 
     ui_file = 'mor_dialog.ui'
     data_key = 'multi_grid'     # can reuse the multi grid configuration
+
+    def get_orm_row(self, i, r) -> ("Steerer", "Monitor", "X [mm/mrad]", "Y [mm/mrad]"):
+        return [
+            TableItem(r.knob),
+            TableItem(r.monitor),
+            TableItem(r.x),     # TODO: set_value and delegate
+            TableItem(r.y),
+        ]
 
     def get_readout_row(self, i, r) -> ("Monitor", "X", "Y"):
         return [
@@ -84,6 +97,7 @@ class CorrectorWidget(QtGui.QWidget):
     def __init__(self, session, active=None):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
+        self.orm = List()
         self.configs = session.model().data.get(self.data_key, {})
         self.active = active or next(iter(self.configs))
         self.corrector = Corrector(session)
@@ -107,6 +121,8 @@ class CorrectorWidget(QtGui.QWidget):
             tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
             tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
+        self.tab_orm.set_viewmodel(
+            self.get_orm_row, self.orm)
         self.tab_readouts.set_viewmodel(
             self.get_readout_row, corr.readouts, unit=True)
         self.tab_corrections.set_viewmodel(
@@ -127,6 +143,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.combo_config.setCurrentText(self.active)
 
     def connect_signals(self):
+        self.btn_compute.clicked.connect(self.compute_orm)
         self.btn_measure.clicked.connect(self.measure_orm)
         self.btn_load.clicked.connect(self.load_orm)
         self.btn_fit.clicked.connect(self.update_fit)
@@ -147,6 +164,18 @@ class CorrectorWidget(QtGui.QWidget):
 
     def measure_orm(self):
         pass
+
+    def compute_orm(self):
+        # TODO: for generic knobs (anything other than hkicker/vkicker->kick)
+        # we need to use numerical ORM
+        corrector = self.corrector
+        sectormap = corrector.compute_sectormap().reshape((
+            len(corrector.monitors), 2, len(corrector.variables)))
+        self.orm[:] = [
+            ORM_Entry(mon, var, *sectormap[i_mon, :, i_var])
+            for i_var, var in enumerate(corrector.variables)
+            for i_mon, mon in enumerate(corrector.monitors)
+        ]
 
     def load_orm(self):
         pass
