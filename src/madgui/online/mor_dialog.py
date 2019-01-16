@@ -17,6 +17,7 @@ from madgui.qt import Qt, QtCore, QtGui, load_ui
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.qt import bold
+from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates
 
 from ._common import EditConfigDialog
@@ -163,7 +164,12 @@ class CorrectorWidget(QtGui.QWidget):
         QtCore.QTimer.singleShot(0, self.draw)
 
     def measure_orm(self):
-        pass
+        widget = MeasureWidget(self.corrector)
+        dialog = Dialog(self.window())
+        dialog.setWidget(widget)
+        dialog.setWindowTitle("ORM scan")
+        if dialog.exec_():
+            self.orm[:] = widget.final_orm
 
     def compute_orm(self):
         # TODO: for generic knobs (anything other than hkicker/vkicker->kick)
@@ -182,9 +188,28 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
-        self.corrector.update_vars()
         self.corrector.update_readouts()
-        self.corrector.update_fit()
+
+        indexed = {}
+        for entry in self.orm:
+            monitor = entry.monitor.lower()
+            knob = entry.knob.lower()
+            indexed.setdefault(monitor, {})[knob] = [entry.x, entry.y]
+
+        orm = np.array([
+            [
+                indexed[mon.lower()][var.lower()]
+                for var in self.corrector.variables
+            ]
+            for mon in self.corrector.monitors
+        ])
+        orm = orm.transpose((0, 2, 1)).reshape(
+            (2*len(self.corrector.monitors), len(self.corrector.variables)))
+        results = self.corrector._compute_steerer_corrections_orm(orm)
+
+        self.corrector.match_results = results
+        self.corrector._push_history(results)
+
         self.update_ui()
         self.draw()
 
@@ -285,21 +310,40 @@ class MeasureWidget(QtGui.QWidget):
 
     ui_file = 'mor_measure.ui'
 
-    def __init__(self, session, parent=None):
-        super().__init__(parent)
+    def __init__(self, corrector):
+        super().__init__()
         load_ui(self, __package__, self.ui_file)
-        self.control = session.control
-        self.model = session.model()
-        self.corrector = Corrector(session, False)
+        self.corrector = Corrector(corrector.session, False)
         self.corrector.setup({
-            'monitors': [],
+            'monitors': corrector.monitors,
+            'optics': corrector.variables,
         })
         self.corrector.start()
         self.bot = ProcBot(self, self.corrector)
 
+        elem_by_knob = {}
+        for elem in corrector.model.elements:
+            for knob in corrector.model.get_elem_knobs(elem):
+                elem_by_knob.setdefault(knob.lower(), elem)
+
+        self.steerers = [
+            elem_by_knob[v.lower()]
+            for v in corrector.variables
+        ]
+
+        self.corrector.add_record = self.add_record
+        self.raw_records = []
+
         self.init_controls()
         self.set_initial_values()
         self.connect_signals()
+
+    def add_record(self, step, shot):
+        if shot == 0:
+            self.raw_records.append([])
+        self.raw_records[-1].append({
+            r.name: r.data for r in self.corrector.readouts
+        })
 
     def sizeHint(self):
         return QtCore.QSize(600, 400)
@@ -307,26 +351,16 @@ class MeasureWidget(QtGui.QWidget):
     def init_controls(self):
         self.ctrl_correctors.set_viewmodel(
             self.get_corrector_row, unit=(None, 'kick'))
-        self.ctrl_monitors.set_viewmodel(self.get_monitor_row)
-        self.corrector.session.window().open_graph('orbit')
 
     def set_initial_values(self):
         self.d_phi = {}
         self.default_dphi = 2e-4
-        self.ctrl_correctors.rows[:] = []
-        self.ctrl_monitors.rows[:] = self.corrector.all_monitors
+        self.ctrl_correctors.rows[:] = self.steerers
         self.update_ui()
 
     def connect_signals(self):
         self.btn_start.clicked.connect(self.start_bot)
-        self.btn_cancel.clicked.connect(self.bot.cancel)
-        self.ctrl_monitors.selectionModel().selectionChanged.connect(
-            self.monitor_selection_changed)
-
-    def get_monitor_row(self, i, m) -> ("Monitor",):
-        return [
-            TableItem(m),
-        ]
+        self.btn_cancel.clicked.connect(self.cancel)
 
     def get_corrector_row(self, i, c) -> ("Kicker", "ΔΦ"):
         return [
@@ -338,16 +372,6 @@ class MeasureWidget(QtGui.QWidget):
 
     def set_kick(self, i, c, value):
         self.d_phi[c.name.lower()] = value
-
-    def monitor_selection_changed(self, selected, deselected):
-        self.corrector.setup({
-            'monitors': [
-                self.corrector.all_monitors[idx.row()]
-                for idx in self.ctrl_monitors.selectedIndexes()
-            ],
-        })
-        self.ctrl_correctors.rows = self.corrector.optic_params
-        self.update_ui()
 
     @property
     def running(self):
@@ -362,10 +386,8 @@ class MeasureWidget(QtGui.QWidget):
         valid = bool(self.corrector.optic_params)
         self.btn_cancel.setEnabled(running)
         self.btn_start.setEnabled(not running and valid)
-        self.btn_dir.setEnabled(not running)
         self.num_shots_wait.setEnabled(not running)
         self.num_shots_use.setEnabled(not running)
-        self.ctrl_monitors.setEnabled(not running)
         self.ctrl_correctors.setEnabled(not running)
         self.ctrl_progress.setEnabled(running)
         self.ctrl_progress.setRange(0, self.bot.totalops)
@@ -376,14 +398,38 @@ class MeasureWidget(QtGui.QWidget):
 
     def update_fit(self):
         """Called when procedure finishes succesfully."""
-        pass
+        full_data = np.array([
+            [
+                np.mean([
+                    [shot[monitor]['posx'], shot[monitor]['posy']]
+                    for shot in series
+                ], axis=0)
+                for monitor in self.corrector.monitors
+            ]
+            for series in self.raw_records
+        ])
+        differences = full_data[1:] - full_data[[0]]
+        deltas = [
+            self.d_phi.get(v.lower(), self.default_dphi)
+            for v in self.corrector.variables
+        ]
+        self.final_orm = [
+            ORM_Entry(mon, var, *differences[i_var, i_mon] / deltas[i_var])
+            for i_var, var in enumerate(self.corrector.variables)
+            for i_mon, mon in enumerate(self.corrector.monitors)
+        ]
+
+        self.window().accept()
 
     def start_bot(self):
-        self.control.read_all()
         self.corrector.set_optics_delta(self.d_phi, self.default_dphi)
         self.bot.start(
             self.num_shots_wait.value(),
             self.num_shots_use.value())
+
+    def cancel(self):
+        self.bot.cancel()
+        self.window().reject()
 
     def log(self, text, *args, **kwargs):
         formatted = text.format(*args, **kwargs)
