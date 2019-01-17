@@ -7,6 +7,9 @@ from importlib import import_module
 
 import numpy as np
 
+from madgui.qt import QtCore
+
+from madgui.core.signal import Object, Signal
 from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool, CachedList
 
@@ -28,6 +31,7 @@ class Control:
         self.session = session
         self.backend = None
         self.model = session.model
+        self.sampler = BeamSampler(self)
         # menu conditions
         self.is_connected = Bool(False)
         self.has_backend = Bool(False)
@@ -69,13 +73,14 @@ class Control:
     def _on_model_changed(self):
         model = self.model()
         elems = self.is_connected() and model and model.elements or ()
-        read_monitor = lambda i, n: MonitorReadout(n, self.read_monitor(n))
-        self.monitors = CachedList(read_monitor, [
+        self.monitor_names = [
             elem.name
             for elem in elems
             if elem.base_name.lower().endswith('monitor')
             or elem.base_name.lower() == 'instrument'
-        ])
+        ]
+        read_monitor = lambda i, n: MonitorReadout(n, self.read_monitor(n))
+        self.monitors = CachedList(read_monitor, self.monitor_names)
 
     def export_settings(self):
         if hasattr(self.backend, 'export_settings'):
@@ -201,6 +206,49 @@ class Control:
 
     def read_param(self, name):
         return self.backend.read_param(name)
+
+
+class BeamSampler(Object):
+
+    """
+    Beam surveillance utility.
+
+    Keeps track of BPMs and broadcasts new readouts.
+    """
+
+    updated = Signal(dict)
+
+    def __init__(self, control):
+        super().__init__()
+        self._control = control
+        self._timer = QtCore.QTimer()
+        self._timer.timeout.connect(self._poll)
+        self._timer.start(500)
+        self._confirmed = {}
+        self._candidate = None
+
+    @property
+    def readouts(self):
+        return self._confirmed
+
+    def _poll(self):
+        if not self._control.is_connected():
+            return
+        readouts = {
+            name: self._control.read_monitor(name)
+            for name in self._control.monitor_names
+        }
+        if readouts == self._candidate:
+            activity = {
+                k: v
+                for k, v in readouts.items()
+                if v != self._confirmed.get(k)
+            }
+            self._confirmed = readouts
+            self._candidate = None
+            self.updated.emit(activity)
+        elif readouts != self._confirmed:
+            self._candidate = readouts
 
 
 class MonitorReadout:
