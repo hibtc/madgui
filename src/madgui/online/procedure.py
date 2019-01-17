@@ -4,8 +4,6 @@ import textwrap
 
 import numpy as np
 
-from madgui.qt import QtCore
-
 import madgui.util.yaml as yaml
 from madgui.util.collections import List
 
@@ -66,6 +64,14 @@ class Corrector(Matcher):
         self.all_monitors = [
             elem.name for elem in self.model.elements
             if elem.base_name.lower().endswith('monitor')]
+
+    def start(self):
+        self.control.sampler.updated.connect(self._update_readouts)
+        super().start()
+
+    def stop(self):
+        self.control.sampler.updated.disconnect(self._update_readouts)
+        super().stop()
 
     def setup(self, config, dirs=None):
         dirs = dirs or self.mode
@@ -186,24 +192,12 @@ class Corrector(Matcher):
         }
         self.cur_results = self._push_history(self._read_vars())
 
-    def update_readouts(self):
-        last_readouts = self._read_monitors()
-        while True:
-            readouts = self._read_monitors()
-            if readouts == last_readouts:
-                break
-            last_readouts = readouts
+    def _update_readouts(self, time, changed):
+        readouts = self.control.sampler.readouts
         self.readouts[:] = [
-            MonitorReadout(monitor, data)
-            for monitor, data in readouts.items()
-        ]
-        return list(self.readouts)
-
-    def _read_monitors(self):
-        return {
-            monitor: self.control.read_monitor(monitor)
+            MonitorReadout(monitor, readouts.get(monitor.lower()))
             for monitor in self.monitors
-        }
+        ]
 
     def update_records(self):
         if self.direct:
@@ -448,23 +442,19 @@ class ProcBot:
         self.control = corrector.control
         self.totalops = 100
         self.progress = 0
-        self.timer = None
 
     def start(self, num_ignore, num_average, gui=True):
         self.corrector.records.clear()
         self.numsteps = len(self.corrector.optics)
-        self.numshots = num_average + num_ignore + 1
+        self.numshots = num_average + num_ignore
         self.num_ignore = num_ignore
         self.totalops = self.numsteps * self.numshots
-        self.progress = 0
+        self.progress = -1
         self.running = True
         self.widget.update_ui()
         self.widget.log("Started")
-        self.last_readouts = None
-        if gui:
-            self.timer = QtCore.QTimer()
-            self.timer.timeout.connect(self.poll)
-            self.timer.start(2000)
+        self.corrector.control.sampler.updated.connect(self._feed)
+        self._advance()
 
     def finish(self):
         self.stop()
@@ -482,49 +472,31 @@ class ProcBot:
             self.corrector.close_export()
             self.corrector.set_optic(None)
             self.running = False
+            self.corrector.control.sampler.updated.disconnect(self._feed)
             self.widget.update_ui()
-        if self.timer:
-            self.timer.stop()
-            self.timer = None
 
     def reset(self):
         self.widget.update_ui()
 
-    def poll(self):
-        if not self.running:
-            return
-
+    def _feed(self, time, activity):
         step = self.progress // self.numshots
         shot = self.progress % self.numshots
+        if shot < self.num_ignore:
+            self.widget.log('  -> shot {} (ignored)', shot)
+        else:
+            self.widget.log('  -> shot {}', shot)
+            self.corrector.add_record(step, shot-self.num_ignore-1)
+        self._advance()
 
-        if shot == 0:
+    def _advance(self):
+        self.progress += 1
+        step = self.progress // self.numshots
+        shot = self.progress % self.numshots
+        self.widget.set_progress(self.progress)
+        if self.progress == self.totalops:
+            self.finish()
+        elif shot == 0:
             self.widget.log(
                 "optic {} of {}: {}", step, self.numsteps,
                 self.corrector.optics[step])
             self.corrector.set_optic(step)
-
-            self.progress += 1
-            self.widget.set_progress(self.progress)
-            return
-
-        readouts = self.read_monitors()
-        if readouts == self.last_readouts:
-            return
-        self.last_readouts = readouts
-
-        self.progress += 1
-        self.widget.set_progress(self.progress)
-
-        if shot <= self.num_ignore:
-            self.widget.log('  -> shot {} (ignored)', shot)
-            return
-
-        self.widget.log('  -> shot {}', shot)
-        self.corrector.add_record(step, shot-self.num_ignore-1)
-
-        if self.progress == self.totalops:
-            self.finish()
-
-    def read_monitors(self):
-        self.corrector.update_readouts()
-        return {r.name: r.data for r in self.corrector.readouts}

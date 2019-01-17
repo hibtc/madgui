@@ -157,7 +157,6 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_status(self):
         self.corrector.update_vars()
-        self.corrector.update_readouts()
         self.corrector.update_records()
         self.update_setup()
         self.update_ui()
@@ -176,7 +175,6 @@ class CorrectorWidget(QtGui.QWidget):
     def update_fit(self):
         """Calculate initial positions / corrections."""
         self.corrector.update_vars()
-        self.corrector.update_readouts()
         self.corrector.update_records()
         self.corrector.update_fit()
         self.update_ui()

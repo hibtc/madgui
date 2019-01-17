@@ -102,7 +102,6 @@ class CorrectorWidget(_Widget):
     def connect_signals(self):
         super().connect_signals()
         self.btn_read_focus.clicked.connect(self.read_focus)
-        self.btn_update.clicked.connect(self.corrector.update_readouts)
         self.btn_record.clicked.connect(self.corrector.add_record)
         self.btn_set_optic.clicked.connect(self.set_optic)
         self.tab_records.connectButtons(self.btn_rec_remove, self.btn_rec_clear)
