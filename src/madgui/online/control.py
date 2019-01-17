@@ -183,6 +183,15 @@ class Control:
         dialog.setWidget(widget, tight=True)
         dialog.show()
 
+    def on_correct_measured_response_method(self):
+        from .mor_dialog import CorrectorWidget
+        from madgui.widget.dialog import Dialog
+        self.read_all()
+        widget = CorrectorWidget(self.session)
+        dialog = Dialog(self.session.window())
+        dialog.setWidget(widget, tight=True)
+        dialog.show()
+
     # helper functions
 
     def write_params(self, params):
