@@ -464,7 +464,7 @@ class ProcBot:
     def cancel(self):
         if self.running:
             self.stop()
-            self.reset()
+            self.widget.update_ui()
             self.widget.log("Cancelled by user.\n")
 
     def stop(self):
@@ -474,9 +474,6 @@ class ProcBot:
             self.running = False
             self.corrector.control.sampler.updated.disconnect(self._feed)
             self.widget.update_ui()
-
-    def reset(self):
-        self.widget.update_ui()
 
     def _feed(self, time, activity):
         step = self.progress // self.numshots
