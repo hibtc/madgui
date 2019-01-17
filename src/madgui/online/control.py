@@ -8,7 +8,7 @@ from importlib import import_module
 import numpy as np
 
 from madgui.util.misc import SingleWindow
-from madgui.util.collections import Bool, List, CachedList
+from madgui.util.collections import Bool, CachedList
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
@@ -28,7 +28,6 @@ class Control:
         self.session = session
         self.backend = None
         self.model = session.model
-        self.readouts = List()
         # menu conditions
         self.is_connected = Bool(False)
         self.has_backend = Bool(False)
