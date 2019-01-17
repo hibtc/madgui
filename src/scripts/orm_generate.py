@@ -80,7 +80,7 @@ def main(model_file, spec_file, record_file):
 
         i = 0
         while procbot.running and i < 2 * total_steps:
-            procbot.poll()
+            procbot._feed(None, None)
             time.sleep(0.010)
             i += 1
 

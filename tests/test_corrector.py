@@ -4,7 +4,6 @@
 
 from unittest import mock
 import os
-import time
 
 import pytest
 
@@ -12,7 +11,6 @@ from madgui.core.app import init_app
 from madgui.core.session import Session
 from madgui.core.config import load as load_config
 from madgui.online.procedure import Corrector, ProcBot
-from madgui.util.yaml import load_file
 
 
 @pytest.fixture(scope="session")
@@ -79,25 +77,3 @@ def procbot(corrector):
         yield procbot
     finally:
         os.remove('timeseries.yml')
-
-
-def test_procbot(corrector, procbot):
-    num_mons = 3
-    num_optics = 5          # 4+1 for base_optics
-    num_shots = 2
-
-    i = 0
-    while procbot.running and i < 100:
-        procbot.poll()
-        time.sleep(0.010)
-        i += 1
-
-    assert not procbot.running
-    assert len(corrector.records) == num_mons * num_optics * num_shots
-
-    dump = load_file('timeseries.yml')
-
-    assert dump['sequence'] == 'hht3'
-    assert dump['monitors'] == ['t3dg2g', 't3dg1g', 't3df1']
-    assert len(dump['records']) == num_optics
-    assert all([len(r['shots']) == num_shots for r in dump['records']])
