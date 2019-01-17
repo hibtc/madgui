@@ -2,10 +2,6 @@
 Multi grid correction method.
 """
 
-# TODO:
-# - use CORRECT command from MAD-X rather than custom numpy method?
-# - combine with optic variation method
-
 from collections import namedtuple
 from functools import partial
 
