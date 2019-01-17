@@ -4,6 +4,7 @@ Plugin that integrates a beamoptikdll UI into MadGUI.
 
 import logging
 from importlib import import_module
+import time
 
 import numpy as np
 
@@ -216,7 +217,7 @@ class BeamSampler(Object):
     Keeps track of BPMs and broadcasts new readouts.
     """
 
-    updated = Signal(dict)
+    updated = Signal(int, dict)
 
     def __init__(self, control):
         super().__init__()
@@ -226,10 +227,16 @@ class BeamSampler(Object):
         self._timer.start(500)
         self._confirmed = {}
         self._candidate = None
+        self._confirmed_time = 0
+        self._candidate_time = None
 
     @property
     def readouts(self):
         return self._confirmed
+
+    @property
+    def timestamp(self):
+        return self._confirmed_time
 
     def _poll(self):
         if not self._control.is_connected():
@@ -244,11 +251,13 @@ class BeamSampler(Object):
                 for k, v in readouts.items()
                 if v != self._confirmed.get(k)
             }
-            self._confirmed = readouts
             self._candidate = None
-            self.updated.emit(activity)
+            self._confirmed = readouts
+            self._confirmed_time = self._candidate_time
+            self.updated.emit(self._candidate_time, activity)
         elif readouts != self._confirmed:
             self._candidate = readouts
+            self._candidate_time = time.time()
 
 
 class MonitorReadout:
