@@ -155,7 +155,6 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_status(self):
         self.corrector.update_vars()
-        self.corrector.update_readouts()
         self.update_ui()
         QtCore.QTimer.singleShot(0, self.draw)
 
@@ -184,8 +183,6 @@ class CorrectorWidget(QtGui.QWidget):
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
-        self.corrector.update_readouts()
-
         indexed = {}
         for entry in self.orm:
             monitor = entry.monitor.lower()

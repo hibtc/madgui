@@ -92,12 +92,13 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.numsteps = len(self.optics)
         self.numshots = self.ctrl_numshots.value()
         self.totalops = self.numsteps * self.numshots
-        self.prepare = True
         self.control.read_all()
         self.base_optics = {knob: self.model.read_param(knob)
                             for knob in self.control.get_knobs()}
-        self.progress = 0
-        self.backup = None
+        self.progress = -1
+        self.backup = {p: self.base_optics[p.lower()]
+                       for q in self.selected
+                       for p in [self.quad_knobs[q]]}
         self.sectormaps = None
         self.output_file = open(self.filename, 'wt')
         yaml.safe_dump({
@@ -111,11 +112,10 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.output_file.write('records:\n')
         self.readouts = []
         self.running = True
-        self.update_ui()
         self.ctrl_tab.setCurrentIndex(1)
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.poll)
-        self.timer.start(300)
+        self.control.sampler.updated.connect(self._feed)
+        self._advance()
+        self.update_ui()
 
     def cancel(self):
         self.stop()
@@ -125,7 +125,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         if self.running:
             self.running = False
             self.output_file.close()
-            self.timer.stop()
+            self.control.sampler.updated.disconnect(self._feed)
             self.restore()
             self.update_ui()
 
@@ -255,83 +255,64 @@ class OffsetCalibrationWidget(QtGui.QWidget):
                 filename += self.extension
             self.set_filename(filename)
 
-    def poll(self):
-        if not self.running:
-            return
-
-        quad = min(map(self.model.elements.index, self.selected))
-
+    def _feed(self, time, activity):
         progress = self.progress
         step = progress // self.numshots % self.numsteps
         shot = progress % self.numshots
 
-        kL = self.optics[step]
+        readouts = self.control.sampler.readouts
 
-        if self.prepare:
-            # backup optics
-            if step == 0 and shot == 0:
-                self.backup = {p: self.base_optics[p.lower()]
-                               for q in self.selected
-                               for p in [self.quad_knobs[q]]}
+        self.log('  -> shot {}', shot+1)
+        yaml.safe_dump([{
+            'step': step,
+            'shot': shot,
+            'optics': self.optics[step],
+            'time': time,
+            'active': list(activity),
+            'readout': readouts,
+        }], self.output_file, default_flow_style=False)
 
-            if shot == 0:
-                self.log(" " + ", ".join(
-                    '{}={:.4f}'.format(k, v) for k, v in kL.items()))
+        self.shots.append([
+            (readouts[mon]['posx'], readouts[mon]['posy'])
+            for mon in self.monitors
+        ])
+
+        if len(self.readouts) >= 3:
+            self.update_results()
+
+        self._advance()
+
+    def _advance(self):
+        progress = self.progress = self.progress + 1
+        print(progress, self.totalops)
+        step = progress // self.numshots % self.numsteps
+        shot = progress % self.numshots
+        self.ctrl_progress.setValue(progress)
+
+        if progress == self.totalops:
+            self.finish()
+
+        elif shot == 0:
+            quad = min(map(self.model.elements.index, self.selected))
+            kL = self.optics[step]
+
+            self.log(" " + ", ".join(
+                '{}={:.4f}'.format(k, v) for k, v in kL.items()))
 
             self.control.write_params(kL.items())
             self.model.write_params(kL.items())
 
             # TODO: don't need to redo the "zero-step"-shot for every quad
             # change optics before first shot
-
-            self.prepare = False
-            if shot == 0:
-                sectormaps = [self.model.get_transfer_maps([quad-1, mon])[1]
-                              for mon in self.monitors]
-                self.shots = []
-                self.readouts.append((sectormaps, self.shots))
-                # after changing optics, always wait for at least one cycle
-                self.last_readouts = self.read_monitors()
-                return
-
-        readouts = self.read_monitors()
-        if readouts == self.last_readouts:
-            return
-        self.last_readouts = readouts
-
-        self.log('  -> shot {}', shot+1)
-        yaml.safe_dump([{
-            'step': step,
-            'shot': shot,
-            'optics': kL,
-            'readout': readouts,
-        }], self.output_file, default_flow_style=False)
-
-        data = [
-            (readouts[mon]['posx'], readouts[mon]['posy'])
-            for mon in self.monitors
-        ]
-        self.shots.append(data)
-        self.progress += 1
-        self.prepare = True
-        self.ctrl_progress.setValue(self.progress)
-
-        if len(self.readouts) >= 3:
-            self.update_results()
-
-        if shot == self.numshots-1 and step == self.numsteps-1:
-            self.restore()
-        if self.progress == self.totalops:
-            self.finish()
+            sectormaps = [self.model.sectormap(quad-1, mon)
+                          for mon in self.monitors]
+            self.shots = []
+            self.readouts.append((sectormaps, self.shots))
 
     def finish(self):
         self.stop()
         self.log("Finished\n")
         self.ctrl_tab.setCurrentIndex(2)
-
-    def read_monitors(self):
-        return {mon: self.control.read_monitor(mon)
-                for mon in self.monitors}
 
     def round(self, value):
         return round(value*10000)/10000

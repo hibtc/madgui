@@ -54,13 +54,13 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.control = session.control
         self.model = session.model()
         self.frame = session.window()
-        self.monitors = self.control.monitors.as_list()
+        self.readouts = self.control.readouts.as_list()
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
         self._monconf = session.config['online_control']['monitors']
         self._offsets = session.config['online_control']['offsets']
 
-        self.mtab.set_viewmodel(self.get_monitor_row, self.monitors, unit=True)
+        self.mtab.set_viewmodel(self.get_monitor_row, self.readouts, unit=True)
         self.mtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
 
@@ -76,20 +76,20 @@ class MonitorWidgetBase(QtGui.QWidget):
         return self._selected.setdefault(monitor.name, False)
 
     def num_selected(self):
-        return sum(map(self.selected, self.monitors))
+        return sum(map(self.selected, self.readouts))
 
     def select(self, index):
-        self._selected[self.monitors[index].name] = True
+        self._selected[self.readouts[index].name] = True
         self.on_update()
         self.draw()
 
     def deselect(self, index):
-        self._selected[self.monitors[index].name] = False
+        self._selected[self.readouts[index].name] = False
         self.on_update()
         self.draw()
 
     def update(self):
-        self.control.monitors.invalidate()
+        self.control.readouts.invalidate()
         self.on_update()
         self.draw()
 
@@ -104,7 +104,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         # could then simply register a generic artist to plot the content into
         # all potential scenes.
 
-        for mon in self.monitors:
+        for mon in self.readouts:
             mon.s = self.model.elements[mon.name].position
             dx, dy = self._offsets.get(mon.name.lower(), (0, 0))
             mon.x = (mon.posx + dx) if mon.posx is not None else None
@@ -115,7 +115,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         shown = self._monconf['show']
         data = {
             name: np.array([getattr(mon, name)
-                            for mon in self.monitors
+                            for mon in self.readouts
                             if self.selected(mon)
                             or shown.get(mon.name)])
             for name in ['s', 'envx', 'envy', 'x', 'y']
@@ -266,7 +266,7 @@ class OffsetsWidget(MonitorWidgetBase):
 
     def save_offsets(self):
         self.model.twiss()
-        for m in self.monitors:
+        for m in self.readouts:
             tw = self.model.get_elem_twiss(m.name)
             if self.selected(m):
                 self._offsets[m.name.lower()] = (
@@ -278,7 +278,7 @@ class OffsetsWidget(MonitorWidgetBase):
         from .offcal import OffsetCalibrationWidget
         from madgui.widget.dialog import Dialog
         widget = OffsetCalibrationWidget(self, [
-            m.name for m in self.monitors if self.selected(m)])
+            m.name for m in self.readouts if self.selected(m)])
         dialog = Dialog(self)
         dialog.setWidget(widget)
         dialog.setWindowTitle("Offset calibration")
@@ -344,7 +344,7 @@ class OrbitWidget(_FitWidget):
     def fit_particle_orbit(self):
         if self.num_selected() < 2:
             return {}, 0, False
-        records = [m for m in self.monitors if self.selected(m)]
+        records = [m for m in self.readouts if self.selected(m)]
         secmaps = self.model.get_transfer_maps([0] + [r.name for r in records])
         secmaps[0] = np.eye(7)
         range_start = records[0].name
@@ -412,10 +412,10 @@ class EmittanceDialog(_FitWidget):
 
         model = self.control.model()
 
-        monitors = [m for m in self.monitors if self.selected(m)]
-        monitors = sorted(monitors, key=lambda m: model.elements.index(m.name))
+        readouts = [m for m in self.readouts if self.selected(m)]
+        readouts = sorted(readouts, key=lambda m: model.elements.index(m.name))
 
-        tms = model.get_transfer_maps([0] + [m.name for m in monitors])
+        tms = model.get_transfer_maps([0] + [m.name for m in readouts])
         if not long_transfer:
             tms[0] = np.eye(7)
         tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
@@ -435,8 +435,8 @@ class EmittanceDialog(_FitWidget):
         coupled = coup_xy or coup_yx
         dispersive = coup_xt or coup_yt
 
-        envx = [m.envx for m in monitors]
-        envy = [m.envy for m in monitors]
+        envx = [m.envx for m in readouts]
+        envy = [m.envy for m in readouts]
         xcs = [[(0, cx**2), (2, cy**2)]
                for cx, cy in zip(envx, envy)]
 
