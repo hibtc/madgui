@@ -62,6 +62,7 @@ def main():
             'PyYAML',           # config/model files
             'Pint==0.8.1',
             'docutils',         # about dialogs
+            'pandas',           # optional cpymad dependency, used in orm
             # inprocess python shell:
             'ipython',
             'qtconsole',

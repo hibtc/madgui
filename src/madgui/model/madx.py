@@ -844,6 +844,7 @@ _INVERT_ATTRS = {
     'sbend':        ['angle', 'k0'],
     'hkicker':      ['kick'],
     'kicker':       ['hkick'],
+    'translation':  ['px', 'y'],
 }
 
 
