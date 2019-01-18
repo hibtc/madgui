@@ -81,7 +81,7 @@ class Control:
             or elem.base_name.lower() == 'instrument'
         ]
         read_monitor = lambda i, n: MonitorReadout(n, self.read_monitor(n))
-        self.monitors = CachedList(read_monitor, self.sampler.monitors)
+        self.readouts = CachedList(read_monitor, self.sampler.monitors)
 
     def export_settings(self):
         if hasattr(self.backend, 'export_settings'):
