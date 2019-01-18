@@ -74,14 +74,14 @@ class Control:
     def _on_model_changed(self):
         model = self.model()
         elems = self.is_connected() and model and model.elements or ()
-        self.monitor_names = [
+        self.sampler.monitors = [
             elem.name
             for elem in elems
             if elem.base_name.lower().endswith('monitor')
             or elem.base_name.lower() == 'instrument'
         ]
         read_monitor = lambda i, n: MonitorReadout(n, self.read_monitor(n))
-        self.monitors = CachedList(read_monitor, self.monitor_names)
+        self.monitors = CachedList(read_monitor, self.sampler.monitors)
 
     def export_settings(self):
         if hasattr(self.backend, 'export_settings'):
@@ -219,8 +219,9 @@ class BeamSampler(Object):
 
     updated = Signal(int, dict)
 
-    def __init__(self, control):
+    def __init__(self, control, monitors=()):
         super().__init__()
+        self.monitors = monitors
         self._control = control
         self._timer = QtCore.QTimer()
         self._timer.timeout.connect(self._poll)
@@ -243,7 +244,7 @@ class BeamSampler(Object):
             return
         readouts = {
             name: self._control.read_monitor(name)
-            for name in self._control.monitor_names
+            for name in self.monitors
         }
         if readouts == self._candidate:
             activity = {
