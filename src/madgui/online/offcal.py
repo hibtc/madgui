@@ -286,7 +286,7 @@ class OffsetCalibrationWidget(QtGui.QWidget):
 
             self.prepare = False
             if shot == 0:
-                sectormaps = [self.model.get_transfer_maps([quad-1, mon])[1]
+                sectormaps = [self.model.sectormap(quad-1, mon)
                               for mon in self.monitors]
                 self.shots = []
                 self.readouts.append((sectormaps, self.shots))
