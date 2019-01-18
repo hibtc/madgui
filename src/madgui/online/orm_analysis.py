@@ -43,7 +43,6 @@ class MeasureWidget(QtGui.QWidget):
         self.ctrl_file.setText(
             "{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.d_phi = {}
-        self.default_dphi = 2e-4
         self.ctrl_correctors.rows[:] = []
         self.ctrl_monitors.rows[:] = self.corrector.all_monitors
         self.update_ui()
@@ -55,6 +54,8 @@ class MeasureWidget(QtGui.QWidget):
         self.ctrl_monitors.selectionModel().selectionChanged.connect(
             self.monitor_selection_changed)
         self.ctrl_filter.textChanged.connect(lambda _: self._update_knobs())
+        self.ctrl_default.valueChanged.connect(
+            lambda _: self.ctrl_correctors.rows.touch())
 
     def get_monitor_row(self, i, m) -> ("Monitor",):
         return [
@@ -62,11 +63,13 @@ class MeasureWidget(QtGui.QWidget):
         ]
 
     def get_corrector_row(self, i, c) -> ("Param", "Δ"):
+        default = self.ctrl_default.value() or None
         return [
             TableItem(c.name),
-            TableItem(self.d_phi.get(c.name.lower(), self.default_dphi),
-                      set_value=self.set_delta,
-                      delegate=delegates[float]),
+            TableItem(
+                self.d_phi.get(c.name.lower(), default),
+                set_value=self.set_delta,
+                delegate=delegates[float]),
         ]
 
     def set_delta(self, i, c, value):
@@ -147,7 +150,7 @@ class MeasureWidget(QtGui.QWidget):
 
     def start_bot(self):
         self.control.read_all()
-        self.corrector.set_optics_delta(self.d_phi, self.default_dphi)
+        self.corrector.set_optics_delta(self.d_phi, self.ctrl_default.value())
 
         self.bot.start(
             self.num_shots_wait.value(),
