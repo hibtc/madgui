@@ -80,7 +80,8 @@ class Control:
             if elem.base_name.lower().endswith('monitor')
             or elem.base_name.lower() == 'instrument'
         ]
-        read_monitor = lambda i, n: MonitorReadout(n, self.read_monitor(n))
+        read_monitor = lambda i, n: MonitorReadout(
+            n, self.sampler.readouts.get(n.lower()))
         self.readouts = CachedList(read_monitor, self.sampler.monitors)
 
     def export_settings(self):
