@@ -104,7 +104,7 @@ class MeasureWidget(QtGui.QWidget):
         text = self.ctrl_filter.text()
         text = text.replace(' ', '')
         try:
-            return re.compile(text, re.ASCII|re.IGNORECASE)
+            return re.compile(text, re.ASCII | re.IGNORECASE)
         except re.error:
             return None
 

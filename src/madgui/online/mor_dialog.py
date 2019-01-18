@@ -28,7 +28,8 @@ class CorrectorWidget(QtGui.QWidget):
     ui_file = 'mor_dialog.ui'
     data_key = 'multi_grid'     # can reuse the multi grid configuration
 
-    def get_orm_row(self, i, r) -> ("Steerer", "Monitor", "X [mm/mrad]", "Y [mm/mrad]"):
+    def get_orm_row(self, i, r) -> (
+            "Steerer", "Monitor", "X [mm/mrad]", "Y [mm/mrad]"):
         return [
             TableItem(r.knob),
             TableItem(r.monitor),

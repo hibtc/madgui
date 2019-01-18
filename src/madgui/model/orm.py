@@ -435,7 +435,8 @@ def plot_orbit(fig, model, i, twiss, measured, base_orbit):
         else:
             axes.yaxis.tick_right()
 
-        axes.errorbar(xpos, orbit[:, j], error[:, j], fmt='v-', label=ax + " measured")
+        axes.errorbar(xpos, orbit[:, j], error[:, j],
+                      fmt='v-', label=ax + " measured")
         axes.plot(twiss.s, twiss[ax], label=ax + " model")
         if base_orbit is not None:
             axes.plot(base_orbit.s, base_orbit[ax], label=ax + " base_orbit")
