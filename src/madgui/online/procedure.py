@@ -482,7 +482,7 @@ class ProcBot:
             self.widget.log('  -> shot {} (ignored)', shot)
         else:
             self.widget.log('  -> shot {}', shot)
-            self.corrector.add_record(step, shot-self.num_ignore-1)
+            self.corrector.add_record(step, shot-self.num_ignore)
         self._advance()
 
     def _advance(self):
