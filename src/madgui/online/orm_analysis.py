@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import logging
 
@@ -33,8 +34,7 @@ class MeasureWidget(QtGui.QWidget):
         return QtCore.QSize(600, 400)
 
     def init_controls(self):
-        self.ctrl_correctors.set_viewmodel(
-            self.get_corrector_row, unit=(None, 'kick'))
+        self.ctrl_correctors.set_viewmodel(self.get_corrector_row)
         self.ctrl_monitors.set_viewmodel(self.get_monitor_row)
         self.corrector.session.window().open_graph('orbit')
 
@@ -54,21 +54,22 @@ class MeasureWidget(QtGui.QWidget):
         self.btn_cancel.clicked.connect(self.bot.cancel)
         self.ctrl_monitors.selectionModel().selectionChanged.connect(
             self.monitor_selection_changed)
+        self.ctrl_filter.textChanged.connect(lambda _: self._update_knobs())
 
     def get_monitor_row(self, i, m) -> ("Monitor",):
         return [
             TableItem(m),
         ]
 
-    def get_corrector_row(self, i, c) -> ("Kicker", "ΔΦ"):
+    def get_corrector_row(self, i, c) -> ("Param", "Δ"):
         return [
             TableItem(c.name),
             TableItem(self.d_phi.get(c.name.lower(), self.default_dphi),
-                      name='kick', set_value=self.set_kick,
+                      set_value=self.set_delta,
                       delegate=delegates[float]),
         ]
 
-    def set_kick(self, i, c, value):
+    def set_delta(self, i, c, value):
         self.d_phi[c.name.lower()] = value
 
     def monitor_selection_changed(self, selected, deselected):
@@ -78,8 +79,31 @@ class MeasureWidget(QtGui.QWidget):
                 for idx in self.ctrl_monitors.selectedIndexes()
             ],
         })
-        self.ctrl_correctors.rows = self.corrector.optic_params
+        self._update_knobs()
         self.update_ui()
+
+    def _update_knobs(self):
+        match = self._get_filter()
+        if not match:
+            return
+        elements = self.model.elements
+        last_mon = elements.index(self.corrector.monitors[-1])
+        self.ctrl_correctors.rows = [
+            self.corrector._knobs[knob.lower()]
+            for elem in elements
+            if elem.index < last_mon
+            for knob in self.model.get_elem_knobs(elem)
+            if knob.lower() in self.corrector._knobs
+            and match.search(knob.lower())
+        ]
+
+    def _get_filter(self):
+        text = self.ctrl_filter.text()
+        text = text.replace(' ', '')
+        try:
+            return re.compile(text, re.ASCII|re.IGNORECASE)
+        except re.error:
+            return None
 
     def change_output_file(self):
         from madgui.widget.filedialog import getSaveFolderName
@@ -102,7 +126,7 @@ class MeasureWidget(QtGui.QWidget):
 
     def update_ui(self):
         running = self.running
-        valid = bool(self.corrector.optic_params)
+        valid = bool(self.ctrl_correctors.rows and self._get_filter())
         self.btn_cancel.setEnabled(running)
         self.btn_start.setEnabled(not running and valid)
         self.btn_dir.setEnabled(not running)
