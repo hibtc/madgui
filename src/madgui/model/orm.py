@@ -186,7 +186,7 @@ class Analysis:
             if save_to is None:
                 plt.show()
             else:
-                plt.savefig(f'{save_to}-orbit-{i}-{knob}.png')
+                plt.savefig('{}-orbit-{}-{}.png'.format(save_to, i, knob))
             plt.clf()
 
         return orbits
