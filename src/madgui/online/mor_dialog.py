@@ -97,6 +97,8 @@ class CorrectorWidget(QtGui.QWidget):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
         self.orm = List()
+        self.hist_stack = []
+        self.hist_index = -1
         self.configs = session.model().data.get(self.data_key, {})
         self.active = active or next(iter(self.configs))
         self.corrector = Corrector(session)
@@ -130,6 +132,24 @@ class CorrectorWidget(QtGui.QWidget):
             self.get_cons_row, corr.targets, unit=True)
         self.corrector.session.window().open_graph('orbit')
 
+    def set_orm(self, orm):
+        self.hist_index += 1
+        self.hist_stack[self.hist_index:] = [orm]
+        self.orm[:] = orm
+        self.update_ui()
+
+    def prev_orm(self):
+        if self.hist_index >= 1:
+            self.hist_index -= 1
+            self.orm[:] = self.hist_stack[self.hist_index]
+            self.update_ui()
+
+    def next_orm(self):
+        if self.hist_index < len(self.hist_stack) - 1:
+            self.hist_index += 1
+            self.orm[:] = self.hist_stack[self.hist_index]
+            self.update_ui()
+
     def set_initial_values(self):
         self.btn_fit.setFocus()
         self.radio_mode_xy.setChecked(True)
@@ -155,6 +175,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
         self.btn_prev.clicked.connect(self.prev_vals)
         self.btn_next.clicked.connect(self.next_vals)
+        self.btn_prev_orm.clicked.connect(self.prev_orm)
+        self.btn_next_orm.clicked.connect(self.next_orm)
 
     def update_status(self):
         self.corrector.update_vars()
@@ -167,7 +189,7 @@ class CorrectorWidget(QtGui.QWidget):
         dialog.setWidget(widget)
         dialog.setWindowTitle("ORM scan")
         if dialog.exec_():
-            self.orm[:] = widget.final_orm
+            self.set_orm(widget.final_orm)
 
     def compute_orm(self):
         # TODO: for generic knobs (anything other than hkicker/vkicker->kick)
@@ -175,11 +197,11 @@ class CorrectorWidget(QtGui.QWidget):
         corrector = self.corrector
         sectormap = corrector.compute_sectormap().reshape((
             len(corrector.monitors), 2, len(corrector.variables)))
-        self.orm[:] = [
+        self.set_orm([
             ORM_Entry(mon, var, *sectormap[i_mon, :, i_var])
             for i_var, var in enumerate(corrector.variables)
             for i_mon, mon in enumerate(corrector.monitors)
-        ]
+        ])
 
     folder = '.'
     exportFilters = [
@@ -205,10 +227,10 @@ class CorrectorWidget(QtGui.QWidget):
 
     def load_from(self, filename):
         data = yaml.load_file(filename)['orm']
-        self.orm[:] = [
+        self.set_orm([
             ORM_Entry(*entry)
             for entry in data
-        ]
+        ])
 
     def export_to(self, filename):
         data = yaml.safe_dump({
@@ -273,6 +295,10 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_apply.setEnabled(
             self.corrector.cur_results != self.corrector.top_results)
         self.corrector.variables.touch()
+        self.btn_prev_orm.setEnabled(
+            self.hist_index > 0)
+        self.btn_next_orm.setEnabled(
+            self.hist_index < len(self.hist_stack) - 1)
 
         # TODO: do this only after updating readouts…
         QtCore.QTimer.singleShot(0, self.draw)
