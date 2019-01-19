@@ -32,7 +32,7 @@ install:
 
   - pip install flake8 docutils pygments pytest
   - git clone git://github.com/hibtc/hit_models
-  - pip install git+https://github.com/hibtc/hit_csys@master
+  - pip install git+https://github.com/hibtc/hit_acs@master
 
 script:
   - python setup.py check -rs

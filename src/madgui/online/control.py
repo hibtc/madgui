@@ -57,14 +57,14 @@ class Control:
         cls = getattr(mod, clsname)
         self.backend = cls(self.session, self._settings)
         self.backend.connect()
-        self.session.user_ns.csys = self.backend
+        self.session.user_ns.acs = self.backend
         self.is_connected.set(True)
         self.model.changed.connect(self._on_model_changed)
         self._on_model_changed()
 
     def disconnect(self):
         self._settings = self.export_settings()
-        self.session.user_ns.csys = None
+        self.session.user_ns.acs = None
         self.backend.disconnect()
         self.backend = None
         self.is_connected.set(False)

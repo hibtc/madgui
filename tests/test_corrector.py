@@ -1,6 +1,6 @@
 # This test requires that you have
 # - cloned hit_models (to the root directory)
-# - installed hit_csys (pip install)
+# - installed hit_acs (pip install)
 
 from unittest import mock
 import os
@@ -35,7 +35,7 @@ def session(app):
 
 def test_simple_procedure(session):
     session.load_model('hit_models/hht3')
-    session.control.set_backend('hit_csys.plugin:TestBackend')
+    session.control.set_backend('hit_acs.plugin:TestACS')
     session.control.connect()
 
     corrector = Corrector(session)
@@ -45,7 +45,7 @@ def test_simple_procedure(session):
 @pytest.fixture
 def corrector(session):
     session.load_model('hit_models/hht3')
-    session.control.set_backend('hit_csys.plugin:TestBackend')
+    session.control.set_backend('hit_acs.plugin:TestACS')
     session.control.connect()
     corrector = Corrector(session)
     corrector.setup({

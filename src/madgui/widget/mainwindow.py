@@ -221,10 +221,10 @@ class MainWindow(QtGui.QMainWindow):
                      self.helpAboutQt),
             ]),
         ])
-        self.csys_menu = items[-2]
-        self.dc_action = self.csys_menu.actions()[0]
-        self.csys_settings_menu = self.csys_menu.children()[-1]
-        self.csys_settings_menu.setEnabled(False)
+        self.acs_menu = items[-2]
+        self.dc_action = self.acs_menu.actions()[0]
+        self.acs_settings_menu = self.acs_menu.children()[-1]
+        self.acs_settings_menu.setEnabled(False)
 
     dataReceived = Signal(object)
 

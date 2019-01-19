@@ -7,7 +7,7 @@ The user must add their derived :class:`Backend` to the madgui config as:
 .. code-block:: yaml
 
     online_control:
-      backend: 'hit_csys.plugin:OnlineBackend'
+      backend: 'hit_acs.plugin:HitACS'
 """
 
 from abc import ABCMeta, abstractmethod

@@ -55,7 +55,7 @@ Example file:
     session_file: madgui.session.yml
     online_control:
       connect: true
-      backend: 'hit_csys.plugin:TestBackend'
+      backend: 'hit_acs.plugin:TestACS'
     onload: |
       code to execute on startup
 

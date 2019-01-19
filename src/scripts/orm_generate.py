@@ -41,7 +41,7 @@ def main(model_file, spec_file, record_file):
             model_file,
             stdout=False,
             command_log=lambda text: print("X:>", text))
-        session.control.set_backend('hit_csys.plugin:TestBackend')
+        session.control.set_backend('hit_acs.plugin:TestACS')
         session.control.connect()
         session.control.write_all()
         corrector = Corrector(session)
@@ -51,7 +51,7 @@ def main(model_file, spec_file, record_file):
         })
 
         # FIXME: this is not yet compatible with general parameter errors. In
-        # order to fix this, the hit_csys test backend will have to use an
+        # order to fix this, the hit_acs test backend will have to use an
         # independent model!
         model = session.model()
         import_errors(model, setup_args['errors'])
