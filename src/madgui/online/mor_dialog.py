@@ -4,15 +4,16 @@ Multi grid correction method.
 
 from collections import namedtuple
 from functools import partial
+import os
 
 import numpy as np
-import yaml
 
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.qt import bold
+from madgui.util import yaml
 from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates
 
@@ -96,6 +97,8 @@ class CorrectorWidget(QtGui.QWidget):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
         self.orm = List()
+        self.hist_stack = []
+        self.hist_index = -1
         self.configs = session.model().data.get(self.data_key, {})
         self.active = active or next(iter(self.configs))
         self.corrector = Corrector(session)
@@ -129,6 +132,24 @@ class CorrectorWidget(QtGui.QWidget):
             self.get_cons_row, corr.targets, unit=True)
         self.corrector.session.window().open_graph('orbit')
 
+    def set_orm(self, orm):
+        self.hist_index += 1
+        self.hist_stack[self.hist_index:] = [orm]
+        self.orm[:] = orm
+        self.update_ui()
+
+    def prev_orm(self):
+        if self.hist_index >= 1:
+            self.hist_index -= 1
+            self.orm[:] = self.hist_stack[self.hist_index]
+            self.update_ui()
+
+    def next_orm(self):
+        if self.hist_index < len(self.hist_stack) - 1:
+            self.hist_index += 1
+            self.orm[:] = self.hist_stack[self.hist_index]
+            self.update_ui()
+
     def set_initial_values(self):
         self.btn_fit.setFocus()
         self.radio_mode_xy.setChecked(True)
@@ -144,6 +165,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_compute.clicked.connect(self.compute_orm)
         self.btn_measure.clicked.connect(self.measure_orm)
         self.btn_load.clicked.connect(self.load_orm)
+        self.btn_save.clicked.connect(self.save_orm)
         self.btn_fit.clicked.connect(self.update_fit)
         self.btn_apply.clicked.connect(self.on_execute_corrections)
         self.combo_config.activated.connect(self.on_change_config)
@@ -153,6 +175,8 @@ class CorrectorWidget(QtGui.QWidget):
         self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
         self.btn_prev.clicked.connect(self.prev_vals)
         self.btn_next.clicked.connect(self.next_vals)
+        self.btn_prev_orm.clicked.connect(self.prev_orm)
+        self.btn_next_orm.clicked.connect(self.next_orm)
 
     def update_status(self):
         self.corrector.update_vars()
@@ -165,7 +189,7 @@ class CorrectorWidget(QtGui.QWidget):
         dialog.setWidget(widget)
         dialog.setWindowTitle("ORM scan")
         if dialog.exec_():
-            self.orm[:] = widget.final_orm
+            self.set_orm(widget.final_orm)
 
     def compute_orm(self):
         # TODO: for generic knobs (anything other than hkicker/vkicker->kick)
@@ -173,14 +197,50 @@ class CorrectorWidget(QtGui.QWidget):
         corrector = self.corrector
         sectormap = corrector.compute_sectormap().reshape((
             len(corrector.monitors), 2, len(corrector.variables)))
-        self.orm[:] = [
+        self.set_orm([
             ORM_Entry(mon, var, *sectormap[i_mon, :, i_var])
             for i_var, var in enumerate(corrector.variables)
             for i_mon, mon in enumerate(corrector.monitors)
-        ]
+        ])
+
+    folder = '.'
+    exportFilters = [
+        ("YAML file", "*.yml"),
+    ]
 
     def load_orm(self):
-        pass
+        from madgui.widget.filedialog import getOpenFileName
+        filename = getOpenFileName(
+            self.window(), 'Load Orbit Responses', self.folder,
+            self.exportFilters)
+        if filename:
+            self.load_from(filename)
+
+    def save_orm(self):
+        from madgui.widget.filedialog import getSaveFileName
+        filename = getSaveFileName(
+            self.window(), 'Export Orbit Responses', self.folder,
+            self.exportFilters)
+        if filename:
+            self.export_to(filename)
+            self.folder, _ = os.path.split(filename)
+
+    def load_from(self, filename):
+        data = yaml.load_file(filename)['orm']
+        self.set_orm([
+            ORM_Entry(*entry)
+            for entry in data
+        ])
+
+    def export_to(self, filename):
+        data = yaml.safe_dump({
+            'orm': [
+                [entry.monitor, entry.knob, entry.x, entry.y]
+                for entry in self.orm
+            ]
+        })
+        with open(filename, 'wt') as f:
+            f.write(data)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
@@ -235,6 +295,10 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_apply.setEnabled(
             self.corrector.cur_results != self.corrector.top_results)
         self.corrector.variables.touch()
+        self.btn_prev_orm.setEnabled(
+            self.hist_index > 0)
+        self.btn_next_orm.setEnabled(
+            self.hist_index < len(self.hist_stack) - 1)
 
         # TODO: do this only after updating readouts…
         QtCore.QTimer.singleShot(0, self.draw)
@@ -246,7 +310,7 @@ class CorrectorWidget(QtGui.QWidget):
     def apply_config(self, text):
         try:
             data = yaml.safe_load(text)
-        except yaml.error.YAMLError:
+        except yaml.YAMLError:
             QtGui.QMessageBox.critical(
                 self,
                 'Syntax error in YAML document',
