@@ -4,15 +4,16 @@ Multi grid correction method.
 
 from collections import namedtuple
 from functools import partial
+import os
 
 import numpy as np
-import yaml
 
 from madgui.qt import Qt, QtCore, QtGui, load_ui
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.qt import bold
+from madgui.util import yaml
 from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates
 
@@ -144,6 +145,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_compute.clicked.connect(self.compute_orm)
         self.btn_measure.clicked.connect(self.measure_orm)
         self.btn_load.clicked.connect(self.load_orm)
+        self.btn_save.clicked.connect(self.save_orm)
         self.btn_fit.clicked.connect(self.update_fit)
         self.btn_apply.clicked.connect(self.on_execute_corrections)
         self.combo_config.activated.connect(self.on_change_config)
@@ -179,8 +181,44 @@ class CorrectorWidget(QtGui.QWidget):
             for i_mon, mon in enumerate(corrector.monitors)
         ]
 
+    folder = '.'
+    exportFilters = [
+        ("YAML file", "*.yml"),
+    ]
+
     def load_orm(self):
-        pass
+        from madgui.widget.filedialog import getOpenFileName
+        filename = getOpenFileName(
+            self.window(), 'Load Orbit Responses', self.folder,
+            self.exportFilters)
+        if filename:
+            self.load_from(filename)
+
+    def save_orm(self):
+        from madgui.widget.filedialog import getSaveFileName
+        filename = getSaveFileName(
+            self.window(), 'Export Orbit Responses', self.folder,
+            self.exportFilters)
+        if filename:
+            self.export_to(filename)
+            self.folder, _ = os.path.split(filename)
+
+    def load_from(self, filename):
+        data = yaml.load_file(filename)['orm']
+        self.orm[:] = [
+            ORM_Entry(*entry)
+            for entry in data
+        ]
+
+    def export_to(self, filename):
+        data = yaml.safe_dump({
+            'orm': [
+                [entry.monitor, entry.knob, entry.x, entry.y]
+                for entry in self.orm
+            ]
+        })
+        with open(filename, 'wt') as f:
+            f.write(data)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
@@ -246,7 +284,7 @@ class CorrectorWidget(QtGui.QWidget):
     def apply_config(self, text):
         try:
             data = yaml.safe_load(text)
-        except yaml.error.YAMLError:
+        except yaml.YAMLError:
             QtGui.QMessageBox.critical(
                 self,
                 'Syntax error in YAML document',
