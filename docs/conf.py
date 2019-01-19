@@ -20,7 +20,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'madgui'
-copyright = '2015-2018, Heidelberg Ion beam Therapy center (HIT)'
+copyright = '2015-2019, Heidelberg Ion beam Therapy center (HIT)'
 author = 'Thomas Gläßle'
 
 import madgui

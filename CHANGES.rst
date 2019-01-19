@@ -1,6 +1,23 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.01.0
+~~~~~~~
+Date: 19.01.2019
+
+- fix SyntaxError in py3.4
+- internal development of ORM analysis utilities
+- add method to model to reverse sequence inplace
+- generalize and slightly simplify the orbit fitting API
+- treat only "direct" variables (i.e. not deferred expressions) as knobs
+- search for knobs recursively through deferred expressions
+- parse unit strings from ACS backend on the fly
+- adapt to the renaming hit_csys -> hit_acs
+- adapt to changes in hit_acs 19.01.0
+- basic version of measured response method for empirical orbit correction
+- install a common BeamSampler that monitors and publishes new readouts
+
+
 18.12.0
 ~~~~~~~
 Date: 11.12.2018
