@@ -240,9 +240,7 @@ class CorrectorWidget(QtGui.QWidget):
 
         self.configs = configs
         model.data[self.data_key] = configs
-        conf = self.active
-        if conf not in configs:
-            conf = next(iter(configs))
+        conf = configs.get(self.active, next(iter(configs)))
 
         self.corrector.setup(conf)
         self.update_config()
