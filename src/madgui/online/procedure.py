@@ -394,25 +394,28 @@ class Corrector(Matcher):
         records = self.current_orbit_records()
         self.records.extend(records)
         if self.file:
-            if shot == 0:
-                self.write_data([{
-                    'optics': self.optics[step],
-                }])
-                self.file.write('  shots:\n')
-            self.write_data([{
+            self.write_shot(step, shot, {
                 r.monitor: [r.readout.posx, r.readout.posy,
                             r.readout.envx, r.readout.envy]
                 for r in records
-            }], "  ")
+            })
+
+    def write_shot(self, step, shot, records):
+        if shot == 0:
+            self.write_data([{
+                'optics': self.optics[step],
+            }])
+            self.file.write('  shots:\n')
+        self.write_data([records], "  ")
 
     def open_export(self, fname):
         self.file = open(fname, 'wt', encoding='utf-8')
 
         self.write_data({
             'sequence': self.model.seq_name,
-            'monitors': self.selected['monitors'],
+            'monitors': list(self.selected['monitors']),
             'steerers': self.optic_elems,
-            'knobs':    self.selected['optics'],
+            'knobs':    list(self.selected['optics']),
             'twiss_args': self.model._get_twiss_args(),
         })
         self.write_data({

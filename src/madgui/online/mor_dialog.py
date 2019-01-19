@@ -5,6 +5,7 @@ Multi grid correction method.
 from collections import namedtuple
 from functools import partial
 import os
+import time
 
 import numpy as np
 
@@ -367,6 +368,7 @@ class CorrectorWidget(QtGui.QWidget):
 class MeasureWidget(QtGui.QWidget):
 
     ui_file = 'mor_measure.ui'
+    extension = '.orm_measurement.yml'
 
     def __init__(self, corrector):
         super().__init__()
@@ -399,8 +401,12 @@ class MeasureWidget(QtGui.QWidget):
     def add_record(self, step, shot):
         if shot == 0:
             self.raw_records.append([])
-        self.raw_records[-1].append({
-            r.name: r.data for r in self.corrector.readouts
+        records = {r.name: r.data for r in self.corrector.readouts}
+        self.raw_records[-1].append(records)
+        self.corrector.write_shot(step, shot, {
+            monitor: [data['posx'], data['posy'],
+                      data['envx'], data['envy']]
+            for monitor, data in records.items()
         })
 
     def sizeHint(self):
@@ -414,6 +420,8 @@ class MeasureWidget(QtGui.QWidget):
         self.d_phi = {}
         self.default_dphi = 2e-4
         self.ctrl_correctors.rows[:] = self.steerers
+        self.ctrl_file.setText(
+            "{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.update_ui()
 
     def connect_signals(self):
@@ -484,6 +492,18 @@ class MeasureWidget(QtGui.QWidget):
         self.bot.start(
             self.num_shots_wait.value(),
             self.num_shots_use.value())
+
+        now = time.localtime(time.time())
+        fname = os.path.join(
+            '.',
+            self.ctrl_file.text().format(
+                date=time.strftime("%Y-%m-%d", now),
+                time=time.strftime("%H-%M-%S", now),
+                sequence=self.corrector.model.seq_name,
+                monitor=self.corrector.monitors[-1],
+            ))
+
+        self.corrector.open_export(fname)
 
     def cancel(self):
         self.bot.cancel()
