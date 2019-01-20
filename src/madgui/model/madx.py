@@ -77,6 +77,8 @@ class Model:
         super().__init__()
         self.madx = madx
         self.data = data
+        self.errors = data.get('errors', ())
+        self.values = data.get('values', ())
         self.filename = filename and os.path.abspath(filename)
         self.path, self.name = filename and os.path.split(filename)
         self.undo_stack = UndoStack() if undo_stack is None else undo_stack
@@ -547,7 +549,8 @@ class Model:
         # better way to take into account combined error effects (e.g.
         # relative error on top of absolute error):
         with apply_errors(self, errors, values):
-            tw0 = madx.twiss(**self._get_twiss_args(table='orm_tmp'))
+            with self.apply_errors():
+                tw0 = madx.twiss(**self._get_twiss_args(table='orm_tmp'))
         x0, y0 = tw0.x, tw0.y
         idx = [self.elements.index(m) for m in monitors]
 
@@ -555,7 +558,8 @@ class Model:
             """Return `2×M` matrix with responses for specified variable."""
             with apply_errors(self, [Param(var)], [step]):
                 with apply_errors(self, errors, values):
-                    tw1 = madx.twiss(**self._get_twiss_args(table='orm_tmp'))
+                    with self.apply_errors():
+                        tw1 = madx.twiss(**self._get_twiss_args(table='orm_tmp'))
             x1, y1 = tw1.x, tw1.y
             return np.vstack((
                 (x1 - x0)[idx],
@@ -585,8 +589,9 @@ class Model:
             step = self.sequence.elements[-1].position/self.interpolate
             self.madx.command.select(flag='interpolate', clear=True)
             self.madx.command.select(flag='interpolate', step=step)
-        results = self.madx.twiss(**self._get_twiss_args())
-        results = TwissTable(results._name, results._libmadx, _check=False)
+        with self.apply_errors():
+            results = self.madx.twiss(**self._get_twiss_args())
+            results = TwissTable(results._name, results._libmadx, _check=False)
         self.summary = results.summary
 
         # FIXME: this will fail if subsequent element have the same name.
@@ -618,8 +623,9 @@ class Model:
         # currently fetches twiss columns only demand. Therefore, using the
         # same twiss table for both TWISS/SECTORMAP routines would lead to
         # inconsistent table lengths (interpolate vs no-interpolate!).
-        return self.madx.sectormap(
-            (), **self._get_twiss_args(table='sectortwiss'))
+        with self.apply_errors():
+            return self.madx.sectormap(
+                (), **self._get_twiss_args(table='sectortwiss'))
 
     def track_one(self, x=0, px=0, y=0, py=0, range='#s/#e', **kwargs):
         """
@@ -649,9 +655,24 @@ class Model:
                 'x': -tw.x, 'px': tw.px,
                 'y': tw.y, 'py': -tw.py,
             })
-        return self.madx.twiss(
-            x=x, px=px, y=y, py=py,
-            range=range, **kwargs)
+        with self.apply_errors():
+            return self.madx.twiss(
+                x=x, px=px, y=y, py=py,
+                range=range, **kwargs)
+
+    def apply_errors(self, reverse=False):
+        from .errors import apply_errors
+        if reverse:
+            errors, values = self._reverse_errors()
+        else:
+            errors, values = self.errors, self.values
+        return apply_errors(self, errors, values)
+
+    def _reverse_errors(self):
+        return zip(*[
+            error.reversed(self, value)
+            for error, value in zip(self.errors, self.values)
+        ])
 
     backseq = None
 
@@ -665,8 +686,9 @@ class Model:
         twiss_init.setdefault('betx', 1)
         twiss_init.setdefault('bety', 1)
         twiss_init.setdefault('table', 'backtrack')
-        tw = self.madx.twiss(sequence=self.backseq, **twiss_init)
-        tw = self.madx.table.backtrack
+        with self.apply_errors(reverse=True):
+            tw = self.madx.twiss(sequence=self.backseq, **twiss_init)
+            tw = self.madx.table.backtrack
         self.twiss.invalidate()
         return tw
 
