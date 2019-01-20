@@ -259,7 +259,7 @@ class CorrectorWidget(QtGui.QWidget):
             for mon in self.corrector.monitors
         ])
         orm = orm.transpose((0, 2, 1)).reshape(
-            (2*len(self.corrector.monitors), len(self.corrector.variables)))
+            (len(self.corrector.monitors)*2, len(self.corrector.variables)))
         results = self.corrector._compute_steerer_corrections_orm(orm)
 
         self.corrector.match_results = results
