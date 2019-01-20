@@ -142,6 +142,10 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Twiss && orbit', None,
                      'Import initial twiss parameters.',
                      self.loadTwiss),
+                Separator,
+                Item('&Errors', None,
+                     'Import errors.',
+                     self.loadErrors),
             ]),
             Menu('&Settings', [
                 Item('&Number format', None,
@@ -345,6 +349,17 @@ class MainWindow(QtGui.QMainWindow):
             ("YAML files", "*.yml", "*.yaml"),
             ("All files", "*"),
         ], self.model().update_twiss_args, data_key='twiss')
+
+    def loadErrors(self):
+        def import_errors(spec):
+            from madgui.model.errors import parse_error
+            model = self.model()
+            model.errors = list(map(parse_error, spec.keys()))
+            model.values = list(spec.values())
+        self._import("Import initial twiss parameters", [
+            ("YAML files", "*.yml", "*.yaml"),
+            ("All files", "*"),
+        ], import_errors, data_key='twiss')
 
     def _import(self, title, filters, callback, data_key):
         from madgui.widget.filedialog import getOpenFileName
