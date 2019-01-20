@@ -662,13 +662,16 @@ class Model:
 
     def apply_errors(self, reverse=False):
         from .errors import apply_errors
+        # TMP reverse!!
         if reverse:
-            errors, values = self._reverse_errors()
-        else:
             errors, values = self.errors, self.values
+        else:
+            errors, values = self._reverse_errors()
         return apply_errors(self, errors, values)
 
     def _reverse_errors(self):
+        if not self.errors or not self.values:
+            return (), ()
         return zip(*[
             error.reversed(self, value)
             for error, value in zip(self.errors, self.values)
