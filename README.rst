@@ -1,20 +1,12 @@
 madgui
 ======
 
-madgui is a Qt5 python GUI for interactive accelerator simulations using MAD-X_.
+madgui is a Qt5 python GUI for interactive accelerator simulations using
+MAD-X_ via cpymad_. It currently runs on python 3.4 and above, but higher
+python versions may be required in the near future.
 
-
-Requirements
-~~~~~~~~~~~~
-
-- **Python >= 3.4**
-- PyQt5_
-- cpymad_
-
-.. _hibtc/cpymad#41: https://github.com/hibtc/cpymad/issues/41
 .. _MAD-X: http://madx.web.cern.ch/madx
 .. _cpymad: https://github.com/hibtc/cpymad
-.. _PyQt5: https://riverbankcomputing.com/software/pyqt/intro
 
 
 Installation
