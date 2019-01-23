@@ -1,14 +1,5 @@
 language: python
-python: "3.4"
-
-addons:
-  apt:
-    update: true
-    packages:
-      - python3-pyqt5
-
-virtualenv:
-  system_site_packages: true
+python: "3.5"
 
 env:
   global:
@@ -41,13 +32,19 @@ script:
   - pytest tests
 
 
-# Since we need the native python3-pyqt5 system-site package, we only have
-# access to the natively supported python versions on each distribution:
 jobs:
   include:
-    - {python: "3.4", dist: trusty}
+    - python: "3.4"
+      dist: trusty
+      virtualenv:
+        system_site_packages: true
+      addons:
+        apt:
+          update: true
+          packages: [python3-pyqt5]
     - {python: "3.5", dist: xenial}
-  # - {python: "3.6", dist: bionic}
+    - {python: "3.6", dist: xenial}
+    - {python: "3.7", dist: xenial}
 
     - stage: deploy
       name: Upload Documentation
@@ -67,7 +64,6 @@ jobs:
     - stage: deploy
       name: Upload release to PyPI
       if: branch = test-release OR tag IS present
-      addons:           # not needed
       install:
         - pip install twine
       script:
