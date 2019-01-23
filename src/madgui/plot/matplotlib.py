@@ -34,7 +34,8 @@ class Toolbar(mpl_backend.NavigationToolbar2QT):
     """Toolbar that autoscales the figure when pressing the "Home" button."""
 
     def home(self):
-        self.parent.figure.autoscale()
+        for ax in self.parent.figure.axes:
+            _autoscale_axes(ax)
         self.push_current()
         self.set_history_buttons()
         self._update_view()
@@ -192,10 +193,6 @@ class MultiFigure:
     def canvas(self):
         """Get the canvas."""
         return self.backend_figure.canvas
-
-    def autoscale(self):
-        for ax in self.axes:
-            _autoscale_axes(ax)
 
     @Cache.decorate
     def draw(self):

@@ -181,7 +181,6 @@ class TwissFigure(Object):
             curve.y_name = curve.info.short
         self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
-        self.figure.autoscale()
         if self.figure.share_axes:
             ax = self.figure.axes[0]
             # TODO: move legend on the outside
