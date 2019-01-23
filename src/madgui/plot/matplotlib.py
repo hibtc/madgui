@@ -212,14 +212,6 @@ class MultiFigure:
         for ax in self.axes:
             _clear_ax(ax)
 
-    def connect(self, *args):
-        for ax in self.axes:
-            ax.callbacks.connect(*args)
-
-    def disconnect(self, *args):
-        for ax in self.axes:
-            ax.callbacks.disconnect(*args)
-
 
 def _clear_ax(ax):
     """Clear a single :class:`matplotlib.axes.Axes` instance."""
