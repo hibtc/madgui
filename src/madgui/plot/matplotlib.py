@@ -20,8 +20,6 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import Cache
 
 
-Triple = namedtuple('Triple', ['x', 'y', 's'])
-
 MouseEvent = namedtuple('MouseEvent', [
     'button', 'x', 'y', 'axes', 'elem', 'guiEvent'])
 
