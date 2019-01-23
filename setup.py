@@ -40,7 +40,8 @@ def main():
     """Execute setup."""
     long_description = get_long_description()
     meta = exec_file('src/madgui/__init__.py')
-    mpl_version = '==2' if sys.version_info < (3, 5) else ''
+    py34 = sys.version_info < (3, 5)
+    mpl_version = '==2' if py34 else ''
     setup(
         name='madgui',
         version=meta['__version__'],
@@ -53,7 +54,7 @@ def main():
         classifiers=meta['__classifiers__'],
         packages=find_packages('src'),
         package_dir={'': 'src'},
-        install_requires=[
+        install_requires=([] if py34 else ['PyQt5']) + [
             'cpymad>=1.0.11',
             'docopt',           # command line parsing
             'matplotlib' + mpl_version,
@@ -62,11 +63,10 @@ def main():
             'PyYAML',           # config/model files
             'Pint==0.8.1',
             'docutils',         # about dialogs
+            'importlib_resources>=0.3',     # = importlib.resources in 3.7!
             # inprocess python shell:
             'ipython',
             'qtconsole',
-            # 'PyQt5',
-            'importlib_resources>=0.3',     # = importlib.resources in 3.7!
         ],
         entry_points="""
             [console_scripts]
