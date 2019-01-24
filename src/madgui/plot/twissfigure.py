@@ -137,12 +137,9 @@ class TwissFigure(Object):
         plot.addTool(CompareTool(plot, self))
 
         canvas = plot.canvas
-        self._cid_mouse = canvas.mpl_connect(
-            'button_press_event', self.onButtonPress)
-        self._cid_motion = canvas.mpl_connect(
-            'motion_notify_event', self.onMotion)
-        self._cid_key = canvas.mpl_connect(
-            'key_press_event', self.onKeyPress)
+        canvas.mpl_connect('button_press_event', self.onButtonPress)
+        canvas.mpl_connect('motion_notify_event', self.onMotion)
+        canvas.mpl_connect('key_press_event', self.onKeyPress)
 
     def onButtonPress(self, mpl_event):
         # translate event to matplotlib-oblivious API
