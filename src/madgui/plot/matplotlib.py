@@ -23,7 +23,9 @@ class Toolbar(mpl_backend.NavigationToolbar2QT):
 
     def home(self):
         for ax in self.parent.figure.axes:
-            _autoscale_axes(ax)
+            ax.relim()
+            ax.autoscale()
+            ax.set_autoscale_on(False)
         self.push_current()
         self.set_history_buttons()
         self._update_view()
@@ -162,19 +164,7 @@ class MultiFigure:
     def clear(self):
         """Start a fresh plot."""
         for ax in self.axes:
-            _clear_ax(ax)
-
-
-def _clear_ax(ax):
-    """Clear a single :class:`matplotlib.axes.Axes` instance."""
-    ax.cla()
-    ax.grid(True)
-    ax.get_xaxis().set_minor_locator(AutoMinorLocator())
-    ax.get_yaxis().set_minor_locator(AutoMinorLocator())
-
-
-def _autoscale_axes(axes):
-    """Autoscale a :class:`matplotlib.axes.Axes` to its contents."""
-    axes.relim()
-    axes.autoscale()
-    axes.set_autoscale_on(False)
+            ax.cla()
+            ax.grid(True)
+            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
+            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
