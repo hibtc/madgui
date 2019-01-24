@@ -74,61 +74,7 @@ class PlotSelector(QtGui.QComboBox):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class MultiFigure:
-
-    """
-    A figure composed of multiple subplots with shared x-axis.
-
-    :ivar matplotlib.figure.Figure figure: composed figure
-    """
-
-    def __init__(self, figure, share_axes=False):
-        """Create an empty matplotlib figure with multiple subplots."""
-        super().__init__()
-        self.figure = figure
-        self.share_axes = share_axes
-        self.invalidate = self.draw_idle.invalidate
-        self.draw_idle.updated.connect(lambda: None)    # always update
-
-    def set_num_curves(self, num_curves):
-        figure = self.figure
-        figure.clear()
-        if num_curves == 0:
-            return
-        num_axes = 1 if self.share_axes else num_curves
-        top_ax = figure.add_subplot(num_axes, 1, 1)
-        for i in range(1, num_axes):
-            figure.add_subplot(num_axes, 1, i+1, sharex=top_ax)
-        for ax in self.figure.axes:
-            ax.grid(True, axis='y')
-            ax.x_name = []
-            ax.y_name = []
-
-    @property
-    def canvas(self):
-        """Get the canvas."""
-        return self.figure.canvas
-
-    @Cache.decorate
-    def draw_idle(self):
-        """Draw the figure on its canvas."""
-        self.canvas.draw()
-        self.canvas.updateGeometry()
-
-    def set_xlabel(self, label):
-        """Set label on the s axis."""
-        self.figure.axes[-1].set_xlabel(label)
-
-    def clear(self):
-        """Start a fresh plot."""
-        for ax in self.figure.axes:
-            ax.cla()
-            ax.grid(True)
-            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
-            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
-
-
-class TwissFigure(MultiFigure, Object):
+class TwissFigure(Object):
 
     """A figure containing some X/Y twiss parameters."""
 
@@ -143,12 +89,16 @@ class TwissFigure(MultiFigure, Object):
     keyPress = Signal(KeyboardEvent)
 
     def __init__(self, figure, session, matcher):
-        super().__init__(figure)
+        super().__init__()
+        self.figure = figure
+        self.share_axes = False
         self.session = session
         self.model = session.model()
         self.config = session.config.line_view
         self._graph_conf = session.config['graphs']
         self.matcher = matcher
+        self.invalidate = self.draw_idle.invalidate
+        self.draw_idle.updated.connect(lambda: None)    # always update
         # scene
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
@@ -261,6 +211,40 @@ class TwissFigure(MultiFigure, Object):
         ])
         self.user_curves.renew()
         self.draw()
+
+    @Cache.decorate
+    def draw_idle(self):
+        """Draw the figure on its canvas."""
+        canvas = self.figure.canvas
+        if canvas:
+            canvas.draw()
+            canvas.updateGeometry()
+
+    def clear(self):
+        """Start a fresh plot."""
+        for ax in self.figure.axes:
+            ax.cla()
+            ax.grid(True)
+            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
+            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
+
+    def set_num_curves(self, num_curves):
+        figure = self.figure
+        figure.clear()
+        if num_curves == 0:
+            return
+        num_axes = 1 if self.share_axes else num_curves
+        top_ax = figure.add_subplot(num_axes, 1, 1)
+        for i in range(1, num_axes):
+            figure.add_subplot(num_axes, 1, i+1, sharex=top_ax)
+        for ax in self.figure.axes:
+            ax.grid(True, axis='y')
+            ax.x_name = []
+            ax.y_name = []
+
+    def set_xlabel(self, label):
+        """Set label on the s axis."""
+        self.figure.axes[-1].set_xlabel(label)
 
     def draw(self):
         """Replot from clean state."""
