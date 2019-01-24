@@ -107,7 +107,7 @@ class MultiFigure:
                 figure.add_subplot(num_axes, 1, i+1, sharex=axes[0])
                 for i in range(1, num_axes)
             ])
-        for ax in axes:
+        for ax in self.figure.axes:
             ax.grid(True, axis='y')
             ax.x_name = []
             ax.y_name = []
@@ -130,7 +130,7 @@ class MultiFigure:
 
     def clear(self):
         """Start a fresh plot."""
-        for ax in self.axes:
+        for ax in self.figure.axes:
             ax.cla()
             ax.grid(True)
             ax.get_xaxis().set_minor_locator(AutoMinorLocator())
@@ -143,7 +143,6 @@ class TwissFigure(MultiFigure, Object):
 
     xlim = None
     snapshot_num = 0
-    axes = ()
     loaded_curves = List()
 
     graph_changed = Signal()
@@ -240,14 +239,14 @@ class TwissFigure(MultiFigure, Object):
         """Called to change the number of axes, etc."""
         self.remove()
         self.update_graph_data()
-        self.axes = axes = self.set_num_axes(len(self.graph_info.curves))
+        axes = self.set_num_axes(len(self.graph_info.curves))
         self.indicators.destroy()
-        self.indicators.create(axes, self, self.element_style)
+        self.indicators.create(self.figure.axes, self, self.element_style)
         self.select_markers.destroy()
         self.select_markers.clear([
             ListView(partial(draw_selection_marker, ax, self),
                      self.model.selection.elements)
-            for ax in axes
+            for ax in self.figure.axes
         ])
         self.twiss_curves.destroy()
         for ax, info in zip(axes, self.graph_info.curves):
@@ -291,7 +290,7 @@ class TwissFigure(MultiFigure, Object):
             legend.draggable()
 
     def remove(self):
-        for ax in self.axes:
+        for ax in self.figure.axes:
             ax.cla()
         self.scene_graph.on_remove()
 
@@ -816,7 +815,7 @@ class InfoTool(CaptureTool):
         el_idx = event.elem.index
         scene.hover_marker.clear([
             draw_selection_marker(ax, scene, el_idx, _hover_effects, '#ffffff')
-            for ax in scene.axes
+            for ax in scene.figure.axes
         ])
 
     def onKey(self, event):
@@ -916,7 +915,7 @@ def make_user_curve(scene, idx):
             partial(_get_curve_data, data, y_name),
             style, label=name,
         )
-        for ax in scene.axes
+        for ax in scene.figure.axes
         for x_name, y_name in zip(ax.x_name, ax.y_name)
     ])
 
