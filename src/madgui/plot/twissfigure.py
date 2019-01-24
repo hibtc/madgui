@@ -523,19 +523,7 @@ class ElementIndicator(SimpleArtist):
         ]
 
 
-class ButtonTool:
-
-    @memoize
-    def action(self):
-        icon = self.icon
-        if isinstance(icon, QtGui.QStyle.StandardPixmap):
-            icon = self.plot.style().standardIcon(icon)
-        action = QtGui.QAction(icon, self.text, self.plot)
-        action.triggered.connect(self.activate)
-        return action
-
-
-class CheckTool:
+class CaptureTool:
 
     active = False
 
@@ -565,13 +553,6 @@ class CheckTool:
         action = QtGui.QAction(icon, self.text, self.plot)
         action.setCheckable(True)
         action.toggled.connect(self.onToggle)
-        return action
-
-
-class CaptureTool(CheckTool):
-
-    def action(self):
-        action = super().action()
         self.plot.addCapture(self.mode, action.setChecked)
         return action
 
@@ -834,7 +815,7 @@ def _hover_effects(style):
 
 # Compare tool
 
-class CompareTool(ButtonTool):
+class CompareTool:
 
     """
     Display a precomputed reference curve for comparison.
@@ -849,6 +830,15 @@ class CompareTool(ButtonTool):
     def __init__(self, plot, scene):
         self.plot = plot
         self.scene = scene
+
+    @memoize
+    def action(self):
+        icon = self.icon
+        if isinstance(icon, QtGui.QStyle.StandardPixmap):
+            icon = self.plot.style().standardIcon(icon)
+        action = QtGui.QAction(icon, self.text, self.plot)
+        action.triggered.connect(self.activate)
+        return action
 
     def activate(self):
         self.scene._curveManager.create()
