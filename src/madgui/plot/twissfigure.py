@@ -129,10 +129,9 @@ class TwissFigure(Object):
 
     def attach(self, plot):
         self.plot = plot
-        plot.set_scene(self)
-        plot.addTool(InfoTool(plot))
-        plot.addTool(MatchTool(plot, self.matcher))
-        plot.addTool(CompareTool(plot))
+        plot.addTool(InfoTool(plot, self))
+        plot.addTool(MatchTool(plot, self, self.matcher))
+        plot.addTool(CompareTool(plot, self))
 
         canvas = plot.canvas
         self._cid_mouse = canvas.mpl_connect(
@@ -597,10 +596,11 @@ class MatchTool(CaptureTool):
     def icon(self):
         return load_icon_resource('madgui.data', 'target.xpm')
 
-    def __init__(self, plot, matcher):
+    def __init__(self, plot, scene, matcher):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.model = plot.scene.model
+        self.scene = scene
+        self.model = scene.model
         self.matcher = matcher
         self.matcher.finished.connect(partial(self.setChecked, False))
 
@@ -608,20 +608,20 @@ class MatchTool(CaptureTool):
         """Start matching mode."""
         self.matcher.start()
         self.plot.startCapture(self.mode, self.short)
-        self.plot.scene.buttonPress.connect(self.onClick)
-        self.plot.scene.session.window().viewMatchDialog.create()
+        self.scene.buttonPress.connect(self.onClick)
+        self.scene.session.window().viewMatchDialog.create()
 
     def deactivate(self):
         """Stop matching mode."""
-        self.plot.scene.buttonPress.disconnect(self.onClick)
+        self.scene.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
     def onClick(self, event):
         """Handle clicks into the figure in matching mode."""
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
-        curves = self.plot.scene.twiss_curves.items
-        index = int(bool(self.plot.scene.figure.share_axes and
+        curves = self.scene.twiss_curves.items
+        index = int(bool(self.scene.figure.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
                          len(curves) > 1))
         curve = [c for c in curves if c.axes is event.axes][index]
@@ -719,27 +719,28 @@ class InfoTool(CaptureTool):
     icon = QtGui.QStyle.SP_MessageBoxInformation
     text = 'Show element info boxes'
 
-    def __init__(self, plot):
+    def __init__(self, plot, scene):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.model = plot.scene.model
+        self.scene = scene
+        self.model = scene.model
         self.selection = self.model.selection
 
     def activate(self):
         """Start select mode."""
         self.plot.startCapture(self.mode, self.short)
-        self.plot.scene.buttonPress.connect(self.onClick)
-        self.plot.scene.mouseMotion.connect(self.onMotion)
-        self.plot.scene.keyPress.connect(self.onKey)
+        self.scene.buttonPress.connect(self.onClick)
+        self.scene.mouseMotion.connect(self.onMotion)
+        self.scene.keyPress.connect(self.onKey)
         self.plot.canvas.setFocus()
 
     def deactivate(self):
         """Stop select mode."""
-        self.plot.scene.buttonPress.disconnect(self.onClick)
-        self.plot.scene.mouseMotion.disconnect(self.onMotion)
-        self.plot.scene.keyPress.disconnect(self.onKey)
+        self.scene.buttonPress.disconnect(self.onClick)
+        self.scene.mouseMotion.disconnect(self.onMotion)
+        self.scene.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
-        self.plot.scene.hover_marker.clear()
+        self.scene.hover_marker.clear()
 
     def onClick(self, event):
         """Display a popup window with info about the selected element."""
@@ -767,7 +768,7 @@ class InfoTool(CaptureTool):
         self.plot.canvas.setFocus()
 
     def onMotion(self, event):
-        scene = self.plot.scene
+        scene = self.scene
         el_idx = event.elem.index
         scene.hover_marker.clear([
             draw_selection_marker(ax, scene, el_idx, _hover_effects, '#ffffff')
@@ -845,12 +846,12 @@ class CompareTool(ButtonTool):
     icon = QtGui.QStyle.SP_DirLinkIcon
     text = 'Load data file for comparison.'
 
-    def __init__(self, plot):
-        super().__init__()
+    def __init__(self, plot, scene):
         self.plot = plot
+        self.scene = scene
 
     def activate(self):
-        self.plot.scene._curveManager.create()
+        self.scene._curveManager.create()
 
 
 def make_user_curve(scene, idx):

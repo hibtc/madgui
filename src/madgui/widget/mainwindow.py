@@ -578,7 +578,7 @@ class MainWindow(QtGui.QMainWindow):
         show_indicators = len(model.elements) < 500
 
         figure = plt.MultiFigure()
-        plot = plt.PlotWidget(figure)
+        plot = plt.PlotWidget(figure.backend_figure)
 
         scene = twissfigure.TwissFigure(figure, self.session, self.matcher)
         scene.show_indicators = show_indicators

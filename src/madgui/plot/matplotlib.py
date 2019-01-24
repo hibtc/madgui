@@ -52,7 +52,7 @@ class PlotWidget(QtGui.QWidget):
         super().__init__(*args, **kwargs)
 
         self.figure = figure
-        self.canvas = canvas = mpl_backend.FigureCanvas(figure.backend_figure)
+        self.canvas = canvas = mpl_backend.FigureCanvas(figure)
         self.toolbar = toolbar = Toolbar(canvas, self)
         layout = VBoxLayout([canvas, toolbar])
         layout.setContentsMargins(0, 0, 0, 0)
@@ -69,9 +69,6 @@ class PlotWidget(QtGui.QWidget):
         toolbar._update_buttons_checked = self._updateCapture.emit
 
         self._actions = []
-
-    def set_scene(self, scene):
-        self.scene = scene
 
     def addCapture(self, mode, update):
         self._updateCapture.connect(
