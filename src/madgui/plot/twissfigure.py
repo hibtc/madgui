@@ -80,7 +80,6 @@ class MultiFigure:
     A figure composed of multiple subplots with shared x-axis.
 
     :ivar matplotlib.figure.Figure figure: composed figure
-    :ivar list axes: the axes (:class:`~matplotlib.axes.Axes`)
     """
 
     def __init__(self, figure, share_axes=False):
@@ -90,28 +89,20 @@ class MultiFigure:
         self.share_axes = share_axes
         self.invalidate = self.draw_idle.invalidate
         self.draw_idle.updated.connect(lambda: None)    # always update
-        self.axes = ()
 
-    def set_num_axes(self, num_axes, shared=False):
+    def set_num_curves(self, num_curves):
         figure = self.figure
         figure.clear()
-        self.axes = axes = []
-        if num_axes == 0:
+        if num_curves == 0:
             return
-        if self.share_axes:
-            axes.append(figure.add_subplot(1, 1, 1))
-            axes *= num_axes
-        else:
-            axes.append(figure.add_subplot(num_axes, 1, 1))
-            axes.extend([
-                figure.add_subplot(num_axes, 1, i+1, sharex=axes[0])
-                for i in range(1, num_axes)
-            ])
+        num_axes = 1 if self.share_axes else num_curves
+        top_ax = figure.add_subplot(num_axes, 1, 1)
+        for i in range(1, num_axes):
+            figure.add_subplot(num_axes, 1, i+1, sharex=top_ax)
         for ax in self.figure.axes:
             ax.grid(True, axis='y')
             ax.x_name = []
             ax.y_name = []
-        return axes
 
     @property
     def canvas(self):
@@ -126,7 +117,7 @@ class MultiFigure:
 
     def set_xlabel(self, label):
         """Set label on the s axis."""
-        self.axes[-1].set_xlabel(label)
+        self.figure.axes[-1].set_xlabel(label)
 
     def clear(self):
         """Start a fresh plot."""
@@ -239,7 +230,8 @@ class TwissFigure(MultiFigure, Object):
         """Called to change the number of axes, etc."""
         self.remove()
         self.update_graph_data()
-        axes = self.set_num_axes(len(self.graph_info.curves))
+        num_curves = len(self.graph_info.curves)
+        self.set_num_curves(num_curves)
         self.indicators.destroy()
         self.indicators.create(self.figure.axes, self, self.element_style)
         self.select_markers.destroy()
@@ -249,6 +241,7 @@ class TwissFigure(MultiFigure, Object):
             for ax in self.figure.axes
         ])
         self.twiss_curves.destroy()
+        axes = self.figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.graph_info.curves):
             ax.x_name.append(self.x_name)
             ax.y_name.append(info.short)
