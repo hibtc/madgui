@@ -22,7 +22,7 @@ from madgui.util.qt import load_icon_resource
 from madgui.util.misc import memoize, strip_suffix, SingleWindow, cachedproperty
 from madgui.util.collections import List, maintain_selection
 from madgui.util.unit import (
-    to_ui, get_raw_label, ui_units)
+    to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
@@ -42,6 +42,12 @@ CurveInfo = namedtuple('CurveInfo', [
     'label',    # y-axis/legend label ('$\beta_a$')
     'style',    # **kwargs for ax.plot
 ])
+
+MouseEvent = namedtuple('MouseEvent', [
+    'button', 'x', 'y', 'axes', 'elem', 'guiEvent'])
+
+KeyboardEvent = namedtuple('KeyboardEvent', [
+    'key', 'guiEvent'])
 
 
 # basic twiss figure
@@ -77,6 +83,10 @@ class TwissFigure(Object):
     loaded_curves = List()
 
     graph_changed = Signal()
+
+    buttonPress = Signal(MouseEvent)
+    mouseMotion = Signal(MouseEvent)
+    keyPress = Signal(KeyboardEvent)
 
     def __init__(self, figure, session, matcher):
         super().__init__()
@@ -123,6 +133,36 @@ class TwissFigure(Object):
         plot.addTool(InfoTool(plot))
         plot.addTool(MatchTool(plot, self.matcher))
         plot.addTool(CompareTool(plot))
+
+        canvas = plot.canvas
+        self._cid_mouse = canvas.mpl_connect(
+            'button_press_event', self.onButtonPress)
+        self._cid_motion = canvas.mpl_connect(
+            'motion_notify_event', self.onMotion)
+        self._cid_key = canvas.mpl_connect(
+            'key_press_event', self.onKeyPress)
+
+    def onButtonPress(self, mpl_event):
+        # translate event to matplotlib-oblivious API
+        self._mouse_event(self.buttonPress, mpl_event)
+
+    def onMotion(self, mpl_event):
+        self._mouse_event(self.mouseMotion, mpl_event)
+
+    def _mouse_event(self, signal, mpl_event):
+        if mpl_event.inaxes is None:
+            return
+        axes = mpl_event.inaxes
+        xpos = from_ui(axes.x_name[0], mpl_event.xdata)
+        ypos = from_ui(axes.y_name[0], mpl_event.ydata)
+        elem = self.get_element_by_mouse_position(axes, xpos)
+        event = MouseEvent(mpl_event.button, xpos, ypos,
+                           axes, elem, mpl_event.guiEvent)
+        signal.emit(event)
+
+    def onKeyPress(self, mpl_event):
+        event = KeyboardEvent(mpl_event.key, mpl_event.guiEvent)
+        self.keyPress.emit(event)
 
     graph_name = None
 
@@ -568,12 +608,12 @@ class MatchTool(CaptureTool):
         """Start matching mode."""
         self.matcher.start()
         self.plot.startCapture(self.mode, self.short)
-        self.plot.buttonPress.connect(self.onClick)
+        self.plot.scene.buttonPress.connect(self.onClick)
         self.plot.scene.session.window().viewMatchDialog.create()
 
     def deactivate(self):
         """Stop matching mode."""
-        self.plot.buttonPress.disconnect(self.onClick)
+        self.plot.scene.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
     def onClick(self, event):
@@ -688,16 +728,16 @@ class InfoTool(CaptureTool):
     def activate(self):
         """Start select mode."""
         self.plot.startCapture(self.mode, self.short)
-        self.plot.buttonPress.connect(self.onClick)
-        self.plot.mouseMotion.connect(self.onMotion)
-        self.plot.keyPress.connect(self.onKey)
+        self.plot.scene.buttonPress.connect(self.onClick)
+        self.plot.scene.mouseMotion.connect(self.onMotion)
+        self.plot.scene.keyPress.connect(self.onKey)
         self.plot.canvas.setFocus()
 
     def deactivate(self):
         """Stop select mode."""
-        self.plot.buttonPress.disconnect(self.onClick)
-        self.plot.mouseMotion.disconnect(self.onMotion)
-        self.plot.keyPress.disconnect(self.onKey)
+        self.plot.scene.buttonPress.disconnect(self.onClick)
+        self.plot.scene.mouseMotion.disconnect(self.onMotion)
+        self.plot.scene.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
         self.plot.scene.hover_marker.clear()
 

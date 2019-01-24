@@ -7,24 +7,14 @@ __all__ = [
     'MultiFigure',
 ]
 
-from collections import namedtuple
-
 from madgui.plot import mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.ticker import AutoMinorLocator
 
 from madgui.qt import QtCore, QtGui
 from madgui.core.signal import Signal
-from madgui.util.unit import from_ui
 from madgui.util.layout import VBoxLayout
 from madgui.util.collections import Cache
-
-
-MouseEvent = namedtuple('MouseEvent', [
-    'button', 'x', 'y', 'axes', 'elem', 'guiEvent'])
-
-KeyboardEvent = namedtuple('KeyboardEvent', [
-    'key', 'guiEvent'])
 
 
 class Toolbar(mpl_backend.NavigationToolbar2QT):
@@ -42,12 +32,11 @@ class Toolbar(mpl_backend.NavigationToolbar2QT):
 class PlotWidget(QtGui.QWidget):
 
     """
-    Widget containing a matplotlib figure.
+    Widget containing a matplotlib figure and toolbar. It fixes the annoying
+    cursor loading quirk of the original matplotlib widget and adds an API for
+    adding mouse capture buttons in the toolbar.
     """
 
-    buttonPress = Signal(MouseEvent)
-    mouseMotion = Signal(MouseEvent)
-    keyPress = Signal(KeyboardEvent)
     _updateCapture = Signal()
 
     def __init__(self, figure, *args, **kwargs):
@@ -74,13 +63,6 @@ class PlotWidget(QtGui.QWidget):
         # Prevent annoying busy cursor due to MPL redraws, see:
         # https://github.com/matplotlib/matplotlib/issues/9546
         canvas.set_cursor = lambda cursor: None
-
-        self._cid_mouse = canvas.mpl_connect(
-            'button_press_event', self.onButtonPress)
-        self._cid_motion = canvas.mpl_connect(
-            'motion_notify_event', self.onMotion)
-        self._cid_key = canvas.mpl_connect(
-            'key_press_event', self.onKeyPress)
 
         # Monkey-patch MPL's mouse-capture update logic into a Qt signal:
         self._updateCapture.connect(toolbar._update_buttons_checked)
@@ -125,28 +107,6 @@ class PlotWidget(QtGui.QWidget):
         toolbar.insertAction(before, action)
         # Store reference so the object doesn't get garbage collected:
         self._actions.append(action)
-
-    def onButtonPress(self, mpl_event):
-        # translate event to matplotlib-oblivious API
-        self._mouse_event(self.buttonPress, mpl_event)
-
-    def onMotion(self, mpl_event):
-        self._mouse_event(self.mouseMotion, mpl_event)
-
-    def _mouse_event(self, signal, mpl_event):
-        if mpl_event.inaxes is None:
-            return
-        axes = mpl_event.inaxes
-        xpos = from_ui(axes.x_name[0], mpl_event.xdata)
-        ypos = from_ui(axes.y_name[0], mpl_event.ydata)
-        elem = self.scene.get_element_by_mouse_position(axes, xpos)
-        event = MouseEvent(mpl_event.button, xpos, ypos,
-                           axes, elem, mpl_event.guiEvent)
-        signal.emit(event)
-
-    def onKeyPress(self, mpl_event):
-        event = KeyboardEvent(mpl_event.key, mpl_event.guiEvent)
-        self.keyPress.emit(event)
 
 
 class MultiFigure:
