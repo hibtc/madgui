@@ -560,7 +560,7 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns.twiss = self.model().twiss.data
 
     def showTwiss(self, name=None):
-        import madgui.plot.matplotlib as plt
+        import madgui.widget.plot as plt
         import madgui.plot.twissfigure as twissfigure
 
         model = self.model()
