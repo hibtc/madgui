@@ -11,7 +11,7 @@ from functools import partial
 
 from math import sqrt, pi, atan2
 
-from madgui.plot import mpl_backend
+from madgui.plot.matplotlib import mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
 

@@ -3,11 +3,12 @@ Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
 
 __all__ = [
+    'mpl_backend',
     'Figure',
     'PlotWidget',
 ]
 
-from madgui.plot import mpl_backend
+import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.figure import Figure
 
 from madgui.qt import QtCore, QtGui

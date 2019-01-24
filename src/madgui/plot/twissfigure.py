@@ -26,7 +26,7 @@ from madgui.util.unit import (
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
-import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib
+import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
 from matplotlib.ticker import AutoMinorLocator
 
