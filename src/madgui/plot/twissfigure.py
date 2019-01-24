@@ -20,7 +20,7 @@ from madgui.core.signal import Object, Signal
 
 from madgui.util.qt import load_icon_resource
 from madgui.util.misc import memoize, strip_suffix, SingleWindow, cachedproperty
-from madgui.util.collections import List, maintain_selection
+from madgui.util.collections import List, maintain_selection, Cache
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SimpleArtist, SceneGraph
@@ -28,6 +28,7 @@ from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib
 import matplotlib.colors as mpl_colors
+from matplotlib.ticker import AutoMinorLocator
 
 
 PlotInfo = namedtuple('PlotInfo', [
@@ -73,7 +74,70 @@ class PlotSelector(QtGui.QComboBox):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class TwissFigure(Object):
+class MultiFigure:
+
+    """
+    A figure composed of multiple subplots with shared x-axis.
+
+    :ivar matplotlib.figure.Figure figure: composed figure
+    :ivar list axes: the axes (:class:`~matplotlib.axes.Axes`)
+    """
+
+    def __init__(self, figure, share_axes=False):
+        """Create an empty matplotlib figure with multiple subplots."""
+        super().__init__()
+        self.figure = figure
+        self.share_axes = share_axes
+        self.invalidate = self.draw_idle.invalidate
+        self.draw_idle.updated.connect(lambda: None)    # always update
+        self.axes = ()
+
+    def set_num_axes(self, num_axes, shared=False):
+        figure = self.figure
+        figure.clear()
+        self.axes = axes = []
+        if num_axes == 0:
+            return
+        if self.share_axes:
+            axes.append(figure.add_subplot(1, 1, 1))
+            axes *= num_axes
+        else:
+            axes.append(figure.add_subplot(num_axes, 1, 1))
+            axes.extend([
+                figure.add_subplot(num_axes, 1, i+1, sharex=axes[0])
+                for i in range(1, num_axes)
+            ])
+        for ax in axes:
+            ax.grid(True, axis='y')
+            ax.x_name = []
+            ax.y_name = []
+        return axes
+
+    @property
+    def canvas(self):
+        """Get the canvas."""
+        return self.figure.canvas
+
+    @Cache.decorate
+    def draw_idle(self):
+        """Draw the figure on its canvas."""
+        self.canvas.draw()
+        self.canvas.updateGeometry()
+
+    def set_xlabel(self, label):
+        """Set label on the s axis."""
+        self.axes[-1].set_xlabel(label)
+
+    def clear(self):
+        """Start a fresh plot."""
+        for ax in self.axes:
+            ax.cla()
+            ax.grid(True)
+            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
+            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
+
+
+class TwissFigure(MultiFigure, Object):
 
     """A figure containing some X/Y twiss parameters."""
 
@@ -89,12 +153,11 @@ class TwissFigure(Object):
     keyPress = Signal(KeyboardEvent)
 
     def __init__(self, figure, session, matcher):
-        super().__init__()
+        super().__init__(figure)
         self.session = session
         self.model = session.model()
         self.config = session.config.line_view
         self._graph_conf = session.config['graphs']
-        self.figure = figure
         self.matcher = matcher
         # scene
         self.shown_curves = List()
@@ -118,7 +181,7 @@ class TwissFigure(Object):
             self.user_curves,
             self.hover_marker,
         ])
-        self.scene_graph.parent = self.figure   # for invalidation
+        self.scene_graph.parent = self      # for invalidation
         # style
         self.x_name = 's'
         self.x_label = 's'
@@ -177,7 +240,7 @@ class TwissFigure(Object):
         """Called to change the number of axes, etc."""
         self.remove()
         self.update_graph_data()
-        self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
+        self.axes = axes = self.set_num_axes(len(self.graph_info.curves))
         self.indicators.destroy()
         self.indicators.create(axes, self, self.element_style)
         self.select_markers.destroy()
@@ -211,16 +274,16 @@ class TwissFigure(Object):
         """Replot from clean state."""
         for curve in self.twiss_curves.items:
             ax = curve.axes
-            if not self.figure.share_axes:
+            if not self.share_axes:
                 ax.set_ylabel(curve.label)
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
             # set axes properties for convenient access:
             curve.x_name = self.x_name
             curve.y_name = curve.info.short
-        self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
+        self.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
-        if self.figure.share_axes:
+        if self.share_axes:
             ax = self.figure.axes[0]
             # TODO: move legend on the outside
             legend = ax.legend(loc='upper center', fancybox=True,
@@ -602,7 +665,7 @@ class MatchTool(CaptureTool):
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
         curves = self.scene.twiss_curves.items
-        index = int(bool(self.scene.figure.share_axes and
+        index = int(bool(self.scene.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
                          len(curves) > 1))
         curve = [c for c in curves if c.axes is event.axes][index]

@@ -3,18 +3,16 @@ Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
 
 __all__ = [
+    'Figure',
     'PlotWidget',
-    'MultiFigure',
 ]
 
 from madgui.plot import mpl_backend
 from matplotlib.figure import Figure
-from matplotlib.ticker import AutoMinorLocator
 
 from madgui.qt import QtCore, QtGui
 from madgui.core.signal import Signal
 from madgui.util.layout import VBoxLayout
-from madgui.util.collections import Cache
 
 
 class Toolbar(mpl_backend.NavigationToolbar2QT):
@@ -41,7 +39,7 @@ class PlotWidget(QtGui.QWidget):
 
     _updateCapture = Signal()
 
-    def __init__(self, figure, *args, **kwargs):
+    def __init__(self, figure=None, *args, **kwargs):
 
         """
         Initialize figure/canvas and connect the view.
@@ -53,7 +51,7 @@ class PlotWidget(QtGui.QWidget):
 
         super().__init__(*args, **kwargs)
 
-        self.figure = figure
+        self.figure = figure or Figure(tight_layout=True)
         self.canvas = canvas = mpl_backend.FigureCanvas(figure)
         self.toolbar = toolbar = Toolbar(canvas, self)
         layout = VBoxLayout([canvas, toolbar])
@@ -106,65 +104,3 @@ class PlotWidget(QtGui.QWidget):
         toolbar.insertAction(before, action)
         # Store reference so the object doesn't get garbage collected:
         self._actions.append(action)
-
-
-class MultiFigure:
-
-    """
-    A figure composed of multiple subplots with shared x-axis.
-
-    :ivar matplotlib.figure.Figure backend_figure: composed figure
-    :ivar list axes: the axes (:class:`~matplotlib.axes.Axes`)
-    """
-
-    def __init__(self, share_axes=False):
-        """Create an empty matplotlib figure with multiple subplots."""
-        self.backend_figure = Figure(tight_layout=True)
-        self.share_axes = share_axes
-        self.invalidate = self.draw.invalidate
-        self.draw.updated.connect(lambda: None)     # always update
-        self.axes = ()
-
-    def set_num_axes(self, num_axes, shared=False):
-        figure = self.backend_figure
-        figure.clear()
-        self.axes = axes = []
-        if num_axes == 0:
-            return
-        if self.share_axes:
-            axes.append(figure.add_subplot(1, 1, 1))
-            axes *= num_axes
-        else:
-            axes.append(figure.add_subplot(num_axes, 1, 1))
-            axes.extend([
-                figure.add_subplot(num_axes, 1, i+1, sharex=axes[0])
-                for i in range(1, num_axes)
-            ])
-        for ax in axes:
-            ax.grid(True, axis='y')
-            ax.x_name = []
-            ax.y_name = []
-        return axes
-
-    @property
-    def canvas(self):
-        """Get the canvas."""
-        return self.backend_figure.canvas
-
-    @Cache.decorate
-    def draw(self):
-        """Draw the figure on its canvas."""
-        self.canvas.draw()
-        self.canvas.updateGeometry()
-
-    def set_xlabel(self, label):
-        """Set label on the s axis."""
-        self.axes[-1].set_xlabel(label)
-
-    def clear(self):
-        """Start a fresh plot."""
-        for ax in self.axes:
-            ax.cla()
-            ax.grid(True)
-            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
-            ax.get_yaxis().set_minor_locator(AutoMinorLocator())

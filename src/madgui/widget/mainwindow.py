@@ -577,8 +577,8 @@ class MainWindow(QtGui.QMainWindow):
         # time consuming for large lattices:
         show_indicators = len(model.elements) < 500
 
-        figure = plt.MultiFigure()
-        plot = plt.PlotWidget(figure.backend_figure)
+        figure = plt.Figure(tight_layout=True)
+        plot = plt.PlotWidget(figure)
 
         scene = twissfigure.TwissFigure(figure, self.session, self.matcher)
         scene.show_indicators = show_indicators
@@ -588,7 +588,7 @@ class MainWindow(QtGui.QMainWindow):
         # for convenience when debugging:
         self.user_ns.__dict__.update({
             'plot': plot,
-            'figure': figure.backend_figure,
+            'figure': figure,
             'canvas': plot.canvas,
             'scene': scene,
         })
@@ -625,7 +625,7 @@ class MainWindow(QtGui.QMainWindow):
         notifyCloseEvent(widget, destroyed)
 
         def toggleShareAxes():
-            scene.figure.share_axes = not scene.figure.share_axes
+            scene.share_axes = not scene.share_axes
             scene.relayout()
 
         def toggleIndicators():
