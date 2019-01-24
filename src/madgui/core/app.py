@@ -36,7 +36,8 @@ from importlib_resources import read_binary
 
 from docopt import docopt
 
-from madgui.qt import QtCore, QtGui
+from madgui.qt import QtCore, QtGui     # import Qt *before* matplotlib!
+import matplotlib                       # import matplotlib *after* Qt!
 
 from madgui import __version__
 from madgui.core.session import Session
@@ -78,6 +79,7 @@ def main(argv=None):
     opts = docopt(__doc__, args, version=__version__)
     conf = config.load(opts['--config'])
     config.number = conf.number
+    matplotlib.use('Qt5Agg')        # select importing matplotlib.backends!
     with Session(conf) as session:
         window = MainWindow(session)
         session.window.set(window)

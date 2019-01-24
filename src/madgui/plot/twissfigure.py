@@ -20,14 +20,15 @@ from madgui.core.signal import Object, Signal
 
 from madgui.util.qt import load_icon_resource
 from madgui.util.misc import memoize, strip_suffix, SingleWindow, cachedproperty
-from madgui.util.collections import List, maintain_selection
+from madgui.util.collections import List, maintain_selection, Cache
 from madgui.util.unit import (
-    to_ui, get_raw_label, ui_units)
+    to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
-import matplotlib.patheffects as pe     # import *after* madgui.plot.matplotlib
+import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
+from matplotlib.ticker import AutoMinorLocator
 
 
 PlotInfo = namedtuple('PlotInfo', [
@@ -42,6 +43,12 @@ CurveInfo = namedtuple('CurveInfo', [
     'label',    # y-axis/legend label ('$\beta_a$')
     'style',    # **kwargs for ax.plot
 ])
+
+MouseEvent = namedtuple('MouseEvent', [
+    'button', 'x', 'y', 'axes', 'elem', 'guiEvent'])
+
+KeyboardEvent = namedtuple('KeyboardEvent', [
+    'key', 'guiEvent'])
 
 
 # basic twiss figure
@@ -73,19 +80,25 @@ class TwissFigure(Object):
 
     xlim = None
     snapshot_num = 0
-    axes = ()
     loaded_curves = List()
 
     graph_changed = Signal()
 
+    buttonPress = Signal(MouseEvent)
+    mouseMotion = Signal(MouseEvent)
+    keyPress = Signal(KeyboardEvent)
+
     def __init__(self, figure, session, matcher):
         super().__init__()
+        self.figure = figure
+        self.share_axes = False
         self.session = session
         self.model = session.model()
         self.config = session.config.line_view
         self._graph_conf = session.config['graphs']
-        self.figure = figure
         self.matcher = matcher
+        self.invalidate = self.draw_idle.invalidate
+        self.draw_idle.updated.connect(lambda: None)    # always update
         # scene
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
@@ -108,7 +121,7 @@ class TwissFigure(Object):
             self.user_curves,
             self.hover_marker,
         ])
-        self.scene_graph.parent = self.figure   # for invalidation
+        self.scene_graph.parent = self      # for invalidation
         # style
         self.x_name = 's'
         self.x_label = 's'
@@ -119,10 +132,39 @@ class TwissFigure(Object):
 
     def attach(self, plot):
         self.plot = plot
-        plot.set_scene(self)
-        plot.addTool(InfoTool(plot))
-        plot.addTool(MatchTool(plot, self.matcher))
-        plot.addTool(CompareTool(plot))
+        plot.addTool(InfoTool(plot, self))
+        plot.addTool(MatchTool(plot, self, self.matcher))
+        plot.addTool(CompareTool(plot, self))
+
+        canvas = plot.canvas
+        self._cid_mouse = canvas.mpl_connect(
+            'button_press_event', self.onButtonPress)
+        self._cid_motion = canvas.mpl_connect(
+            'motion_notify_event', self.onMotion)
+        self._cid_key = canvas.mpl_connect(
+            'key_press_event', self.onKeyPress)
+
+    def onButtonPress(self, mpl_event):
+        # translate event to matplotlib-oblivious API
+        self._mouse_event(self.buttonPress, mpl_event)
+
+    def onMotion(self, mpl_event):
+        self._mouse_event(self.mouseMotion, mpl_event)
+
+    def _mouse_event(self, signal, mpl_event):
+        if mpl_event.inaxes is None:
+            return
+        axes = mpl_event.inaxes
+        xpos = from_ui(axes.x_name[0], mpl_event.xdata)
+        ypos = from_ui(axes.y_name[0], mpl_event.ydata)
+        elem = self.get_element_by_mouse_position(axes, xpos)
+        event = MouseEvent(mpl_event.button, xpos, ypos,
+                           axes, elem, mpl_event.guiEvent)
+        signal.emit(event)
+
+    def onKeyPress(self, mpl_event):
+        event = KeyboardEvent(mpl_event.key, mpl_event.guiEvent)
+        self.keyPress.emit(event)
 
     graph_name = None
 
@@ -138,16 +180,18 @@ class TwissFigure(Object):
         """Called to change the number of axes, etc."""
         self.remove()
         self.update_graph_data()
-        self.axes = axes = self.figure.set_num_axes(len(self.graph_info.curves))
+        num_curves = len(self.graph_info.curves)
+        self.set_num_curves(num_curves)
         self.indicators.destroy()
-        self.indicators.create(axes, self, self.element_style)
+        self.indicators.create(self.figure.axes, self, self.element_style)
         self.select_markers.destroy()
         self.select_markers.clear([
             ListView(partial(draw_selection_marker, ax, self),
                      self.model.selection.elements)
-            for ax in axes
+            for ax in self.figure.axes
         ])
         self.twiss_curves.destroy()
+        axes = self.figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.graph_info.curves):
             ax.x_name.append(self.x_name)
             ax.y_name.append(info.short)
@@ -168,21 +212,54 @@ class TwissFigure(Object):
         self.user_curves.renew()
         self.draw()
 
+    @Cache.decorate
+    def draw_idle(self):
+        """Draw the figure on its canvas."""
+        canvas = self.figure.canvas
+        if canvas:
+            canvas.draw()
+            canvas.updateGeometry()
+
+    def clear(self):
+        """Start a fresh plot."""
+        for ax in self.figure.axes:
+            ax.cla()
+            ax.grid(True)
+            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
+            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
+
+    def set_num_curves(self, num_curves):
+        figure = self.figure
+        figure.clear()
+        if num_curves == 0:
+            return
+        num_axes = 1 if self.share_axes else num_curves
+        top_ax = figure.add_subplot(num_axes, 1, 1)
+        for i in range(1, num_axes):
+            figure.add_subplot(num_axes, 1, i+1, sharex=top_ax)
+        for ax in self.figure.axes:
+            ax.grid(True, axis='y')
+            ax.x_name = []
+            ax.y_name = []
+
+    def set_xlabel(self, label):
+        """Set label on the s axis."""
+        self.figure.axes[-1].set_xlabel(label)
+
     def draw(self):
         """Replot from clean state."""
         for curve in self.twiss_curves.items:
             ax = curve.axes
-            if not self.figure.share_axes:
+            if not self.share_axes:
                 ax.set_ylabel(curve.label)
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
             # set axes properties for convenient access:
             curve.x_name = self.x_name
             curve.y_name = curve.info.short
-        self.figure.set_xlabel(ax_label(self.x_label, self.x_unit))
+        self.set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
-        self.figure.autoscale()
-        if self.figure.share_axes:
+        if self.share_axes:
             ax = self.figure.axes[0]
             # TODO: move legend on the outside
             legend = ax.legend(loc='upper center', fancybox=True,
@@ -190,7 +267,7 @@ class TwissFigure(Object):
             legend.draggable()
 
     def remove(self):
-        for ax in self.axes:
+        for ax in self.figure.axes:
             ax.cla()
         self.scene_graph.on_remove()
 
@@ -485,19 +562,7 @@ class ElementIndicator(SimpleArtist):
         ]
 
 
-class ButtonTool:
-
-    @memoize
-    def action(self):
-        icon = self.icon
-        if isinstance(icon, QtGui.QStyle.StandardPixmap):
-            icon = self.plot.style().standardIcon(icon)
-        action = QtGui.QAction(icon, self.text, self.plot)
-        action.triggered.connect(self.activate)
-        return action
-
-
-class CheckTool:
+class CaptureTool:
 
     active = False
 
@@ -527,13 +592,6 @@ class CheckTool:
         action = QtGui.QAction(icon, self.text, self.plot)
         action.setCheckable(True)
         action.toggled.connect(self.onToggle)
-        return action
-
-
-class CaptureTool(CheckTool):
-
-    def action(self):
-        action = super().action()
         self.plot.addCapture(self.mode, action.setChecked)
         return action
 
@@ -558,10 +616,11 @@ class MatchTool(CaptureTool):
     def icon(self):
         return load_icon_resource('madgui.data', 'target.xpm')
 
-    def __init__(self, plot, matcher):
+    def __init__(self, plot, scene, matcher):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.model = plot.scene.model
+        self.scene = scene
+        self.model = scene.model
         self.matcher = matcher
         self.matcher.finished.connect(partial(self.setChecked, False))
 
@@ -569,20 +628,20 @@ class MatchTool(CaptureTool):
         """Start matching mode."""
         self.matcher.start()
         self.plot.startCapture(self.mode, self.short)
-        self.plot.buttonPress.connect(self.onClick)
-        self.plot.scene.session.window().viewMatchDialog.create()
+        self.scene.buttonPress.connect(self.onClick)
+        self.scene.session.window().viewMatchDialog.create()
 
     def deactivate(self):
         """Stop matching mode."""
-        self.plot.buttonPress.disconnect(self.onClick)
+        self.scene.buttonPress.disconnect(self.onClick)
         self.plot.endCapture(self.mode)
 
     def onClick(self, event):
         """Handle clicks into the figure in matching mode."""
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
-        curves = self.plot.scene.twiss_curves.items
-        index = int(bool(self.plot.scene.figure.share_axes and
+        curves = self.scene.twiss_curves.items
+        index = int(bool(self.scene.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
                          len(curves) > 1))
         curve = [c for c in curves if c.axes is event.axes][index]
@@ -680,27 +739,28 @@ class InfoTool(CaptureTool):
     icon = QtGui.QStyle.SP_MessageBoxInformation
     text = 'Show element info boxes'
 
-    def __init__(self, plot):
+    def __init__(self, plot, scene):
         """Add toolbar tool to panel and subscribe to capture events."""
         self.plot = plot
-        self.model = plot.scene.model
+        self.scene = scene
+        self.model = scene.model
         self.selection = self.model.selection
 
     def activate(self):
         """Start select mode."""
         self.plot.startCapture(self.mode, self.short)
-        self.plot.buttonPress.connect(self.onClick)
-        self.plot.mouseMotion.connect(self.onMotion)
-        self.plot.keyPress.connect(self.onKey)
+        self.scene.buttonPress.connect(self.onClick)
+        self.scene.mouseMotion.connect(self.onMotion)
+        self.scene.keyPress.connect(self.onKey)
         self.plot.canvas.setFocus()
 
     def deactivate(self):
         """Stop select mode."""
-        self.plot.buttonPress.disconnect(self.onClick)
-        self.plot.mouseMotion.disconnect(self.onMotion)
-        self.plot.keyPress.disconnect(self.onKey)
+        self.scene.buttonPress.disconnect(self.onClick)
+        self.scene.mouseMotion.disconnect(self.onMotion)
+        self.scene.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
-        self.plot.scene.hover_marker.clear()
+        self.scene.hover_marker.clear()
 
     def onClick(self, event):
         """Display a popup window with info about the selected element."""
@@ -728,11 +788,11 @@ class InfoTool(CaptureTool):
         self.plot.canvas.setFocus()
 
     def onMotion(self, event):
-        scene = self.plot.scene
+        scene = self.scene
         el_idx = event.elem.index
         scene.hover_marker.clear([
             draw_selection_marker(ax, scene, el_idx, _hover_effects, '#ffffff')
-            for ax in scene.axes
+            for ax in scene.figure.axes
         ])
 
     def onKey(self, event):
@@ -794,7 +854,7 @@ def _hover_effects(style):
 
 # Compare tool
 
-class CompareTool(ButtonTool):
+class CompareTool:
 
     """
     Display a precomputed reference curve for comparison.
@@ -806,12 +866,21 @@ class CompareTool(ButtonTool):
     icon = QtGui.QStyle.SP_DirLinkIcon
     text = 'Load data file for comparison.'
 
-    def __init__(self, plot):
-        super().__init__()
+    def __init__(self, plot, scene):
         self.plot = plot
+        self.scene = scene
+
+    @memoize
+    def action(self):
+        icon = self.icon
+        if isinstance(icon, QtGui.QStyle.StandardPixmap):
+            icon = self.plot.style().standardIcon(icon)
+        action = QtGui.QAction(icon, self.text, self.plot)
+        action.triggered.connect(self.activate)
+        return action
 
     def activate(self):
-        self.plot.scene._curveManager.create()
+        self.scene._curveManager.create()
 
 
 def make_user_curve(scene, idx):
@@ -823,7 +892,7 @@ def make_user_curve(scene, idx):
             partial(_get_curve_data, data, y_name),
             style, label=name,
         )
-        for ax in scene.axes
+        for ax in scene.figure.axes
         for x_name, y_name in zip(ax.x_name, ax.y_name)
     ])
 

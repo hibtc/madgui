@@ -560,7 +560,7 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns.twiss = self.model().twiss.data
 
     def showTwiss(self, name=None):
-        import madgui.plot.matplotlib as plt
+        import madgui.widget.plot as plt
         import madgui.plot.twissfigure as twissfigure
 
         model = self.model()
@@ -577,7 +577,7 @@ class MainWindow(QtGui.QMainWindow):
         # time consuming for large lattices:
         show_indicators = len(model.elements) < 500
 
-        figure = plt.MultiFigure()
+        figure = plt.Figure(tight_layout=True)
         plot = plt.PlotWidget(figure)
 
         scene = twissfigure.TwissFigure(figure, self.session, self.matcher)
@@ -588,7 +588,7 @@ class MainWindow(QtGui.QMainWindow):
         # for convenience when debugging:
         self.user_ns.__dict__.update({
             'plot': plot,
-            'figure': figure.backend_figure,
+            'figure': figure,
             'canvas': plot.canvas,
             'scene': scene,
         })
@@ -625,7 +625,7 @@ class MainWindow(QtGui.QMainWindow):
         notifyCloseEvent(widget, destroyed)
 
         def toggleShareAxes():
-            scene.figure.share_axes = not scene.figure.share_axes
+            scene.share_axes = not scene.share_axes
             scene.relayout()
 
         def toggleIndicators():
