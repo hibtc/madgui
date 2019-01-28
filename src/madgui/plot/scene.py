@@ -2,17 +2,6 @@
 Plot base classes.
 """
 
-# NOTE: There are 2 possible invalidations:
-#   a) canvas.draw          currently done automatically
-#   b) artist.render()      currently performed on the spot (no invalidation)
-#
-# Pros of automatic invalidation management:
-#   a)  + don't clutter code with invalidate() statements
-#       - should avoid repeated invalidation during rendering phase
-#
-#   b)  + keep track of which artists need redrawing during update()
-
-
 __all__ = [
     'SceneNode',
     'SimpleArtist',
