@@ -12,6 +12,7 @@ import scipy.optimize as sciopt
 def reduced_chisq(residuals, ddof=0):
     """Compute reduced chi-squared."""
     residuals = np.abs(residuals.flatten())
+    residuals = residuals[~np.isnan(residuals)]
     return np.dot(residuals.T, residuals) / (len(residuals) - ddof)
 
 
