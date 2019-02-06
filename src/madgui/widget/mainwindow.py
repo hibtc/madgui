@@ -15,8 +15,7 @@ from functools import partial
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.util.signal import Signal
 from madgui.util.collections import Selection
-from madgui.util.misc import SingleWindow
-from madgui.util.qt import notifyCloseEvent
+from madgui.util.qt import notifyCloseEvent, SingleWindow
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord

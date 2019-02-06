@@ -18,8 +18,8 @@ import numpy as np
 from madgui.qt import QtGui, QtCore, Qt
 from madgui.util.signal import Signal
 
-from madgui.util.qt import load_icon_resource
-from madgui.util.misc import memoize, strip_suffix, SingleWindow, cachedproperty
+from madgui.util.qt import load_icon_resource, SingleWindow
+from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List, maintain_selection, Cache
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
