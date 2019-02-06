@@ -19,8 +19,6 @@ import numpy as np
 import pint
 import yaml
 
-from madgui.util.defaultdict import DefaultDict
-
 
 units = pint.UnitRegistry(on_redefinition='ignore')
 units.default_format = 'P~'     # make `str(quantity)` slightly nicer
@@ -167,10 +165,13 @@ class UnitConverter:
     @classmethod
     def from_config_dict(cls, conf_dict):
         """Convert a config dict of units to their in-memory representation."""
-        return cls(DefaultDict(lambda k: from_config(conf_dict[k.lower()])))
+        return cls({
+            k.lower(): from_config(v)
+            for k, v in conf_dict.items()
+        })
 
     def get(self, name):
-        return self._units.get(name)
+        return self._units.get(name.lower()) if isinstance(name, str) else name
 
     def label(self, name, value=None):
         """Get the name of the unit for the specified parameter name."""
@@ -181,7 +182,7 @@ class UnitConverter:
 
     def add_unit(self, name, value):
         """Add units to a single number."""
-        unit = self._units.get(name) if isinstance(name, str) else name
+        unit = self.get(name)
         if unit:
             if isinstance(value, (list, tuple)):
                 # FIXME: 'zip' truncates without warning if not enough units
@@ -206,8 +207,7 @@ class UnitConverter:
 
     def strip_unit(self, name, value):
         """Convert to MAD-X units."""
-        unit = self._units.get(name) if isinstance(name, str) else name
-        return strip_unit(value, unit)
+        return strip_unit(value, self.get(name))
 
     def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
