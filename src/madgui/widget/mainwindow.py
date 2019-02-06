@@ -42,7 +42,7 @@ class MainWindow(QtGui.QMainWindow):
         self.exec_folder = self.config.exec_folder
         self.str_folder = self.config.str_folder
         self.matcher = None
-        self.model.changed[object, object].connect(self._on_model_changed)
+        self.model.changed2.connect(self._on_model_changed)
         self.initUI()
         logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
 

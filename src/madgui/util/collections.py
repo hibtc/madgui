@@ -46,7 +46,8 @@ class Boxed(Object):
     This has some similarities to what is called a BehaviourSubject in RX.
     """
 
-    changed = Signal([object], [object, object])
+    changed = Signal([object])
+    changed2 = Signal([object, object])
 
     def __init__(self, value):
         super().__init__()
@@ -61,7 +62,7 @@ class Boxed(Object):
         if new != old:
             self._value = new
             self.changed.emit(new)
-            self.changed[object, object].emit(old, new)
+            self.changed2.emit(old, new)
 
     def _dtype(self, value):
         return value
