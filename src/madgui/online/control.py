@@ -10,7 +10,7 @@ import numpy as np
 
 from madgui.qt import QtCore
 
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool, CachedList
 

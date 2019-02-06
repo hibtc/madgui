@@ -12,7 +12,7 @@ from inspect import getmro
 from functools import partial
 
 from madgui.qt import QtCore, QtGui, Qt
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 from madgui.util.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property, ranges, cachedproperty

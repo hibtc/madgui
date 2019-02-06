@@ -11,7 +11,7 @@ __all__ = [
 import os
 
 from madgui.qt import Qt, QtGui
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 
 
 MODE_OPEN = 0

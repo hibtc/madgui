@@ -13,7 +13,7 @@ import time
 from functools import partial
 
 from madgui.qt import Qt, QtGui, load_ui
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 from madgui.util.collections import Selection
 from madgui.util.misc import SingleWindow
 from madgui.util.qt import notifyCloseEvent

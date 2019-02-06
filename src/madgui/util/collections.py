@@ -13,7 +13,7 @@ from functools import wraps, partial
 import operator
 
 from madgui.qt import QtCore
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 
 
 def _operator(get):

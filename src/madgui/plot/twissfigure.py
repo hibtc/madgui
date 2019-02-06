@@ -16,7 +16,7 @@ from collections import namedtuple
 import numpy as np
 
 from madgui.qt import QtGui, QtCore, Qt
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 
 from madgui.util.qt import load_icon_resource
 from madgui.util.misc import memoize, strip_suffix, SingleWindow, cachedproperty

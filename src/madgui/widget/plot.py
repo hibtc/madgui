@@ -12,7 +12,7 @@ import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.figure import Figure
 
 from madgui.qt import QtCore, QtGui
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 from madgui.util.layout import VBoxLayout
 
 
