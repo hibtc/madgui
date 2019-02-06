@@ -80,7 +80,8 @@ def main(argv=None):
     conf = config.load(opts['--config'])
     config.number = conf.number
     matplotlib.use('Qt5Agg')        # select importing matplotlib.backends!
-    with Session(conf) as session:
+    session = Session(conf)
+    try:
         window = MainWindow(session)
         session.window.set(window)
         window.show()
@@ -92,7 +93,10 @@ def main(argv=None):
         # never be emitted, even when pressing Ctrl+C.)
         QtCore.QTimer.singleShot(
             0, partial(session.load_default, opts['FILE']))
-        return sys.exit(app.exec_())
+        exit_code = app.exec_()
+    finally:
+        session.terminate()
+    return sys.exit(exit_code)
 
 
 def setup_interrupt_handling(app):

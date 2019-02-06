@@ -14,22 +14,23 @@ def app():
 
 
 def test_empty_session(app):
-    with Session():
-        pass
+    session = Session()
+    session.terminate()
 
 
 def test_session_load_model(app):
-    with Session() as session:
-        path = session.find_model('hit_models/hht3')
-        assert path.endswith('hht3.cpymad.yml')
-        session.load_model(path)
-        model = session.model()
-        assert model.seq_name == 'hht3'
+    session = Session()
+    path = session.find_model('hit_models/hht3')
+    assert path.endswith('hht3.cpymad.yml')
+    session.load_model(path)
+    model = session.model()
+    assert model.seq_name == 'hht3'
 
 
 def test_session_destroyed(app):
-    with Session() as session:
-        session.load_model('hit_models/hht3')
-        model = session.model()
+    session = Session()
+    session.load_model('hit_models/hht3')
+    model = session.model()
+    session.terminate()
     assert session.model() is None
     assert model.madx is None

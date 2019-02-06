@@ -20,17 +20,17 @@ def app():
     return init_app([], gui=False)
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def session(app):
     config = load_config(isolated=True)
-    with Session(config) as session:
-        session.control._settings.update({
-            'shot_interval': 0.001,
-            'jitter': True,
-            'auto_params': True,
-            'auto_sd': True,
-        })
-        yield session
+    session = Session(config)
+    session.control._settings.update({
+        'shot_interval': 0.001,
+        'jitter': True,
+        'auto_params': True,
+        'auto_sd': True,
+    })
+    return session
 
 
 def test_simple_procedure(session):
