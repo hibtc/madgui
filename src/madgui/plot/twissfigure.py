@@ -137,18 +137,14 @@ class TwissFigure(Object):
         plot.addTool(CompareTool(plot, self))
 
         canvas = plot.canvas
-        self._cid_mouse = canvas.mpl_connect(
-            'button_press_event', self.onButtonPress)
-        self._cid_motion = canvas.mpl_connect(
-            'motion_notify_event', self.onMotion)
-        self._cid_key = canvas.mpl_connect(
-            'key_press_event', self.onKeyPress)
+        canvas.mpl_connect('button_press_event', self._on_button_press)
+        canvas.mpl_connect('motion_notify_event', self._on_motion_notify)
+        canvas.mpl_connect('key_press_event', self._on_key_press)
 
-    def onButtonPress(self, mpl_event):
-        # translate event to matplotlib-oblivious API
+    def _on_button_press(self, mpl_event):
         self._mouse_event(self.buttonPress, mpl_event)
 
-    def onMotion(self, mpl_event):
+    def _on_motion_notify(self, mpl_event):
         self._mouse_event(self.mouseMotion, mpl_event)
 
     def _mouse_event(self, signal, mpl_event):
@@ -162,7 +158,7 @@ class TwissFigure(Object):
                            axes, elem, mpl_event.guiEvent)
         signal.emit(event)
 
-    def onKeyPress(self, mpl_event):
+    def _on_key_press(self, mpl_event):
         event = KeyboardEvent(mpl_event.key, mpl_event.guiEvent)
         self.keyPress.emit(event)
 
