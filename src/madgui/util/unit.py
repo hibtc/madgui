@@ -171,7 +171,7 @@ class UnitConverter:
         })
 
     def get(self, name):
-        return self._units.get(name.lower())
+        return self._units.get(name.lower()) if isinstance(name, str) else name
 
     def label(self, name, value=None):
         """Get the name of the unit for the specified parameter name."""
@@ -182,7 +182,7 @@ class UnitConverter:
 
     def add_unit(self, name, value):
         """Add units to a single number."""
-        unit = self._units.get(name.lower()) if isinstance(name, str) else name
+        unit = self.get(name)
         if unit:
             if isinstance(value, (list, tuple)):
                 # FIXME: 'zip' truncates without warning if not enough units
@@ -207,8 +207,7 @@ class UnitConverter:
 
     def strip_unit(self, name, value):
         """Convert to MAD-X units."""
-        unit = self._units.get(name.lower()) if isinstance(name, str) else name
-        return strip_unit(value, unit)
+        return strip_unit(value, self.get(name))
 
     def dict_add_unit(self, obj):
         """Add units to all elements in a dictionary."""
