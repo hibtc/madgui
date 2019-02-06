@@ -13,7 +13,7 @@ from functools import wraps, partial
 import operator
 
 from madgui.qt import QtCore
-from madgui.core.signal import Object, Signal
+from madgui.util.signal import Signal
 
 
 def _operator(get):
@@ -30,7 +30,7 @@ def _operator(get):
     return operation
 
 
-class Boxed(Object):
+class Boxed:
 
     """
     A box that holds a single object and can be observed for changes
@@ -46,10 +46,10 @@ class Boxed(Object):
     This has some similarities to what is called a BehaviourSubject in RX.
     """
 
-    changed = Signal([object], [object, object])
+    changed = Signal([object])
+    changed2 = Signal([object, object])
 
     def __init__(self, value):
-        super().__init__()
         self._value = self._dtype(value)
 
     def __call__(self, *value):
@@ -61,7 +61,7 @@ class Boxed(Object):
         if new != old:
             self._value = new
             self.changed.emit(new)
-            self.changed[object, object].emit(old, new)
+            self.changed2.emit(old, new)
 
     def _dtype(self, value):
         return value
@@ -85,7 +85,7 @@ class Bool(Boxed):
     __invert__ = _operator(operator.__not__)
 
 
-class List(Object):
+class List:
 
     """A list-like class that can be observed for changes."""
 
@@ -100,7 +100,6 @@ class List(Object):
 
     def __init__(self, items=None):
         """Use the items object by reference."""
-        super().__init__()
         self._items = list() if items is None else items
 
     def mirror(self, other):
@@ -268,7 +267,7 @@ def maintain_selection(sel, avail):
     sel[:] = range(len(avail))
 
 
-class Cache(Object):
+class Cache:
 
     """
     Cached state that can be invalidated. Invalidation triggers recomputation
@@ -280,7 +279,6 @@ class Cache(Object):
     invalid = False         # prevents invalidation during callback()
 
     def __init__(self, callback):
-        super().__init__()
         self.data = None
         self.timer = QtCore.QTimer()
         self.timer.setSingleShot(True)
@@ -290,7 +288,7 @@ class Cache(Object):
     def invalidate(self):
         if not self.invalid:
             self.invalid = True
-            if self.receivers(self.updated) > 0:
+            if len(self.updated.handlers) > 0:
                 self.timer.start()
             self.invalidated.emit()
 

@@ -10,7 +10,7 @@ import numpy as np
 
 from madgui.qt import QtCore
 
-from madgui.core.signal import Object, Signal
+from madgui.util.signal import Signal
 from madgui.util.misc import SingleWindow
 from madgui.util.collections import Bool, CachedList
 
@@ -210,7 +210,7 @@ class Control:
         return self.backend.read_param(name)
 
 
-class BeamSampler(Object):
+class BeamSampler:
 
     """
     Beam surveillance utility.
@@ -218,10 +218,9 @@ class BeamSampler(Object):
     Keeps track of BPMs and broadcasts new readouts.
     """
 
-    updated = Signal(int, dict)
+    updated = Signal([int, dict])
 
     def __init__(self, control, monitors=()):
-        super().__init__()
         self.monitors = monitors
         self._control = control
         self._timer = QtCore.QTimer()

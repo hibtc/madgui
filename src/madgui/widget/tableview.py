@@ -12,7 +12,7 @@ from inspect import getmro
 from functools import partial
 
 from madgui.qt import QtCore, QtGui, Qt
-from madgui.core.signal import Signal
+from madgui.util.signal import Signal
 from madgui.util.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
 from madgui.util.misc import rw_property, ranges, cachedproperty
@@ -430,7 +430,7 @@ class ItemView:
             update()
         if clear:
             self.allow_delete = True
-            update = lambda: clear.setEnabled(bool(self.rows))
+            update = lambda *_: clear.setEnabled(bool(self.rows))
             clear.clicked.connect(self.rows.clear)
             self.selectionChangedSignal.connect(update)
             self.rows.update_after.connect(update)

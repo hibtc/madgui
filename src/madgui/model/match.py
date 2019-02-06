@@ -5,14 +5,14 @@ Implementation of the matching system.
 import logging
 from collections import namedtuple
 
-from madgui.core.signal import Object, Signal
+from madgui.util.signal import Signal
 from madgui.util.collections import List
 
 
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
 
 
-class Matcher(Object):
+class Matcher:
 
     """
     Responsible for managing a MATCH operation.
@@ -23,7 +23,6 @@ class Matcher(Object):
 
     def __init__(self, model, rules):
         """Create empty matcher."""
-        super().__init__()
         self.model = model
         self.rules = rules
         self.knobs = model.get_knobs()
