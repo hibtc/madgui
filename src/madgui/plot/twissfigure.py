@@ -15,7 +15,7 @@ from collections import namedtuple
 
 import numpy as np
 
-from madgui.qt import QtGui, Qt
+from madgui.qt import QtGui, QtCore, Qt
 from madgui.core.signal import Object, Signal
 
 from madgui.util.qt import load_icon_resource
@@ -128,7 +128,7 @@ class TwissFigure(Object):
         self.x_unit = ui_units.get('s')
         self.element_style = self.config['element_style']
         # slots
-        self.model.twiss.updated.connect(self.update, Qt.QueuedConnection)
+        self.model.twiss.updated.connect(self.on_twiss_updated)
 
     def attach(self, plot):
         self.plot = plot
@@ -268,7 +268,7 @@ class TwissFigure(Object):
         self.scene_graph.on_remove()
 
     def destroy(self):
-        self.model.twiss.updated.disconnect(self.update)
+        self.model.twiss.updated.disconnect(self.on_twiss_updated)
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
@@ -308,6 +308,9 @@ class TwissFigure(Object):
                     and x2pix(elems[index+1].length) <= 3:
                 return elems[index+1]
         return elem
+
+    def on_twiss_updated(self):
+        QtCore.QTimer.singleShot(0, self.update)
 
     def update(self):
         """Update existing plot after TWISS recomputation."""
