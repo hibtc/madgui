@@ -16,7 +16,7 @@ from collections import namedtuple
 import numpy as np
 
 from madgui.qt import QtGui, QtCore, Qt
-from madgui.core.signal import Object, Signal
+from madgui.core.signal import Signal
 
 from madgui.util.qt import load_icon_resource
 from madgui.util.misc import memoize, strip_suffix, SingleWindow, cachedproperty
@@ -74,7 +74,7 @@ class PlotSelector(QtGui.QComboBox):
         self.setCurrentIndex(self.findData(self.scene.graph_name))
 
 
-class TwissFigure(Object):
+class TwissFigure:
 
     """A figure containing some X/Y twiss parameters."""
 
@@ -89,7 +89,6 @@ class TwissFigure(Object):
     keyPress = Signal(KeyboardEvent)
 
     def __init__(self, figure, session, matcher):
-        super().__init__()
         self.figure = figure
         self.share_axes = False
         self.session = session

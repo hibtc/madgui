@@ -5,7 +5,7 @@ Config serialization utilities.
 import os
 from importlib_resources import read_binary
 
-from madgui.core.signal import Object, Signal
+from madgui.core.signal import Signal
 from madgui.util import yaml
 
 
@@ -70,7 +70,7 @@ def load(*config_files, isolated=False):
     return ConfigSection(config)
 
 
-class ConfigSection(Object):
+class ConfigSection:
 
     """
     Wrapper class for a config section (dict-like structure in YAML) that
@@ -93,8 +93,7 @@ class ConfigSection(Object):
     changed = Signal()
 
     def __init__(self, value, parent=None, name=''):
-        super().__init__(parent)
-        self.setObjectName(name)
+        self._name = name
         self._value = value
         if isinstance(value, dict):
             self._subsections = {
@@ -136,4 +135,4 @@ class ConfigSection(Object):
 
     def __repr__(self):
         return "<{} {}({!r})>".format(
-            self.__class__.__name__, self.objectName(), self._value)
+            self.__class__.__name__, self._name, self._value)

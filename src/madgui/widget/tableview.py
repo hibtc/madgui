@@ -430,7 +430,7 @@ class ItemView:
             update()
         if clear:
             self.allow_delete = True
-            update = lambda: clear.setEnabled(bool(self.rows))
+            update = lambda *_: clear.setEnabled(bool(self.rows))
             clear.clicked.connect(self.rows.clear)
             self.selectionChangedSignal.connect(update)
             self.rows.update_after.connect(update)
