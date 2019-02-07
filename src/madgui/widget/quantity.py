@@ -11,7 +11,7 @@ from madgui.qt import Qt, QtGui
 
 from madgui.util.unit import units, get_raw_label, get_unit, tounit
 from madgui.util.signal import Signal
-from madgui.util.misc import rw_property
+from madgui.util.misc import cachedproperty
 
 import madgui.core.config as config
 
@@ -356,7 +356,7 @@ class QuantityControlBase(ValueControlBase):
         num_fmt = '{:' + self.fmtspec + '}'
         return num_fmt.format(value)
 
-    @rw_property
+    @cachedproperty
     def fmtspec(self):
         return config.number.fmtspec
 

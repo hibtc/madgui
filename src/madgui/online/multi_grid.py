@@ -11,10 +11,10 @@ from functools import partial
 import numpy as np
 import yaml
 
-from madgui.qt import Qt, QtCore, QtGui, load_ui
+from madgui.qt import Qt, QtGui, load_ui
 
 from madgui.util.unit import change_unit, get_raw_label
-from madgui.util.qt import bold
+from madgui.util.qt import bold, Queued
 from madgui.widget.tableview import TableItem, delegates
 
 from ._common import EditConfigDialog
@@ -155,7 +155,6 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.update_records()
         self.update_setup()
         self.update_ui()
-        QtCore.QTimer.singleShot(0, self.draw)
 
     def update_setup(self):
         if self.corrector.knows_targets_readouts():
@@ -170,7 +169,6 @@ class CorrectorWidget(QtGui.QWidget):
         self.corrector.update_records()
         self.corrector.update_fit()
         self.update_ui()
-        self.draw()
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
@@ -200,9 +198,7 @@ class CorrectorWidget(QtGui.QWidget):
         self.btn_apply.setEnabled(
             self.corrector.cur_results != self.corrector.top_results)
         self.corrector.variables.touch()
-
-        # TODO: do this only after updating readouts…
-        QtCore.QTimer.singleShot(0, self.draw)
+        self.draw_idle()
 
     def edit_config(self):
         dialog = EditConfigDialog(self.corrector.model, self.apply_config)
@@ -240,7 +236,8 @@ class CorrectorWidget(QtGui.QWidget):
 
         return True
 
-    def draw(self):
+    @Queued.method
+    def draw_idle(self):
         corr = self.corrector
         elements = corr.model.elements
         monitor_data = [

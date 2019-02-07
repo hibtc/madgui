@@ -118,10 +118,10 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     def setModel(self, model):
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
         if self.model:
-            self.model.twiss.updated.disconnect(self._updateSurvey)
+            self.model.updated.disconnect(self._updateSurvey)
         self.model = model
         if model:
-            self.model.twiss.updated.connect(self._updateSurvey)
+            self.model.updated.connect(self._updateSurvey)
             self._updateSurvey()
 
     def _updateSurvey(self):

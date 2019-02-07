@@ -8,7 +8,6 @@ import madgui.util.yaml as yaml
 from madgui.util.collections import List
 
 from madgui.model.match import Matcher
-from .control import MonitorReadout
 from .orbit import fit_particle_orbit, add_offsets
 
 
@@ -48,7 +47,7 @@ class Corrector(Matcher):
         # save elements
         self.monitors = List()
         self.targets = List()
-        self.readouts = List()
+        self.readouts = control.sampler.readouts_list
         self.records = List()
         self.fit_range = None
         self.objective_values = {}
@@ -63,14 +62,6 @@ class Corrector(Matcher):
         self.all_monitors = [
             elem.name for elem in self.model.elements
             if elem.base_name.lower().endswith('monitor')]
-
-    def start(self):
-        self.control.sampler.updated.connect(self._update_readouts)
-        super().start()
-
-    def stop(self):
-        self.control.sampler.updated.disconnect(self._update_readouts)
-        super().stop()
 
     def setup(self, config, dirs=None):
         dirs = dirs or self.mode
@@ -190,13 +181,6 @@ class Corrector(Matcher):
             for knob in self.control.get_knobs()
         }
         self.cur_results = self._push_history(self._read_vars())
-
-    def _update_readouts(self, time, changed):
-        readouts = self.control.sampler.readouts
-        self.readouts[:] = [
-            MonitorReadout(monitor, readouts.get(monitor.lower()))
-            for monitor in self.monitors
-        ]
 
     def update_records(self):
         if self.direct:

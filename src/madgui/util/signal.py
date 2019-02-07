@@ -24,8 +24,18 @@ class Signal:
         >>> car.gear_changed.emit(12)
         New gear: 12
 
-    This works similar to pyqtSignal, but always calls handlers immediately
-    (equivalent to ``Qt.DirectConnection``), and does not allow overrides.
+    This works similar to pyqtSignal, but always uses the same connection mode
+    for all connected handlers. This can be either:
+
+    - *direct mode*: immediately calls all handlers
+    - *queued mode*: schedules handlers for another main loop iteration
+
+    Default is *direct mode*.
+
+    Note that direct mode is similar to ``Qt.DirectConnection`` and queued
+    mode similar to ``Qt.QueuedConnection``, but differs in that it merges
+    multiple subsequent signal emissions into one (as long as the event has
+    not been processed).
     """
 
     def __init__(self, doc=''):
@@ -48,19 +58,21 @@ class Signal:
 
 class BoundSignal:
 
-    """
-    Manages a list of callback handlers.
-
-    Usually you won't need to create instances of this class manually.
-    """
+    """Manages a list of callback handlers."""
 
     def __init__(self):
         self.handlers = []
+        self._invoke = invoke_handlers.__get__(self.handlers)
+        self._trigger = self._invoke
 
     def emit(self, *args):
-        """Emit signal. Directly calls all handlers."""
-        for handler in self.handlers:
-            handler(*args)
+        """
+        Emit signal.
+
+        In *direct mode*: immediately calls all handlers.
+        In *queued mode*: schedules handlers for another main loop iteration
+        """
+        self._trigger(*args)
 
     def connect(self, handler):
         """Connect a signal handler."""
@@ -69,3 +81,27 @@ class BoundSignal:
     def disconnect(self, handler):
         """Disconnect a previously connected handler."""
         self.handlers.remove(handler)
+
+    def set_queued(self, queued=True):
+        """
+        Set the signal to *queued mode*, i.e. signal will be emitted in
+        another mainloop iteration.
+
+        Note that queued mode requires at least a ``QCoreApplication``.
+        """
+        is_queued = self.is_queued()
+        if queued and not is_queued:
+            from madgui.util.qt import Queued
+            self._trigger = Queued(self._invoke)
+        elif not queued and is_queued:
+            self._trigger = self._invoke
+
+    def is_queued(self):
+        """Return whether the signal operates in *queued mode*."""
+        return self._trigger is self._invoke
+
+
+def invoke_handlers(handlers, *args):
+    """Call each function in a list with the given arguments."""
+    for handler in handlers:
+        handler(*args)

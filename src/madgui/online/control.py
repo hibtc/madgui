@@ -12,7 +12,7 @@ from madgui.qt import QtCore
 
 from madgui.util.signal import Signal
 from madgui.util.qt import SingleWindow
-from madgui.util.collections import Bool, CachedList
+from madgui.util.collections import Bool, List
 
 # TODO: catch exceptions and display error messages
 # TODO: automate loading DVM parameters via model and/or named hook
@@ -80,9 +80,6 @@ class Control:
             if elem.base_name.lower().endswith('monitor')
             or elem.base_name.lower() == 'instrument'
         ]
-        read_monitor = lambda i, n: MonitorReadout(
-            n, self.sampler.readouts.get(n.lower()))
-        self.readouts = CachedList(read_monitor, self.sampler.monitors)
 
     def export_settings(self):
         if hasattr(self.backend, 'export_settings'):
@@ -230,6 +227,7 @@ class BeamSampler:
         self._candidate = None
         self._confirmed_time = 0
         self._candidate_time = None
+        self.readouts_list = List()
 
     @property
     def readouts(self):
@@ -255,6 +253,10 @@ class BeamSampler:
             self._candidate = None
             self._confirmed = readouts
             self._confirmed_time = self._candidate_time
+            self.readouts_list[:] = [
+                MonitorReadout(name, readouts.get(name.lower()))
+                for name in self.monitors
+            ]
             self.updated.emit(self._candidate_time, activity)
         elif readouts != self._confirmed:
             self._candidate = readouts

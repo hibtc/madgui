@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 
 from madgui.qt import QtGui
+from madgui.util.misc import invalidate
 
 
 class UndoCommand(QtGui.QUndoCommand):
@@ -48,8 +49,7 @@ class UndoStack(QtGui.QUndoStack):
     @contextmanager
     def rollback(self, text="temporary change", hidden=False, transient=False):
         if transient:
-            table = self.model.twiss.data
-            invalid = self.model.twiss.invalid  # TODO: model member variable…
+            old = getattr(self.model, '_twiss', None)
         self.beginMacro(text)
         try:
             yield None
@@ -63,5 +63,7 @@ class UndoStack(QtGui.QUndoStack):
                     pass
             self.undo()
             if transient:
-                self.model.twiss.data = table
-                self.model.twiss.invalid = invalid
+                if old is None:
+                    invalidate(self.model, 'twiss')
+                else:
+                    self.model._twiss = old

@@ -7,12 +7,11 @@ __all__ = [
     'Selection'
 ]
 
-from collections.abc import MutableSequence, Sequence
+from collections.abc import MutableSequence
 from contextlib import contextmanager
-from functools import wraps, partial
+from functools import wraps
 import operator
 
-from madgui.qt import QtCore
 from madgui.util.signal import Signal
 
 
@@ -265,121 +264,3 @@ def maintain_selection(sel, avail):
     avail.insert_notify.connect(insert)
     avail.delete_notify.connect(delete)
     sel[:] = range(len(avail))
-
-
-class Cache:
-
-    """
-    Cached state that can be invalidated. Invalidation triggers recomputation
-    in the main loop at the next idle time.
-    """
-
-    invalidated = Signal()
-    updated = Signal()      # emitted after update
-    invalid = False         # prevents invalidation during callback()
-
-    def __init__(self, callback):
-        self.data = None
-        self.timer = QtCore.QTimer()
-        self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self)
-        self.callback = callback
-
-    def invalidate(self):
-        if not self.invalid:
-            self.invalid = True
-            if len(self.updated.handlers) > 0:
-                self.timer.start()
-            self.invalidated.emit()
-
-    def __call__(self, force=False):
-        if force or self.invalid:
-            self.timer.stop()
-            self.invalid = True     # prevent repeated invalidation in callback
-            self.data = self.callback()
-            self.invalid = False    # clear AFTER update
-            self.updated.emit()
-        return self.data
-
-    @classmethod
-    def decorate(cls, fn):
-        # TODO: resolve cyclic dependency!
-        from madgui.util.misc import memoize
-        return property(memoize(wraps(fn)(
-            lambda self: cls(fn.__get__(self)))))
-
-
-class CachedList(Sequence):
-
-    """Immutable collection of named cached items."""
-
-    def __init__(self, cls, keys, transform=None):
-        keys = [self._transform(k) for k in keys]
-        self._indices = {k: i for i, k in enumerate(keys)}
-        self._items = [Cache(partial(cls, i, k)) for i, k in enumerate(keys)]
-        self.invalidate()
-
-    def invalidate(self, item=None):
-        if item is None:
-            for item in self._items:
-                item.invalidate()
-        else:
-            index = self.index(item)
-            self._items[index].invalidate()
-
-    def __contains__(self, item):
-        """
-        Check if sequence contains item with specified name.
-
-        Can be invoked with the item index or name or the item itself.
-        """
-        try:
-            self.index(item)
-            return True
-        except (KeyError, ValueError):
-            return False
-
-    def __getitem__(self, item):
-        """Return item with specified index."""
-        idx = self.index(item)
-        return self._items[idx]()
-
-    def __len__(self):
-        """Get number of item."""
-        return len(self._items)
-
-    def index(self, item):
-        """
-        Find index of item with specified name.
-
-        :raises ValueError: if the item is not found
-        """
-        if isinstance(item, int):
-            if item < 0:
-                return item + len(self)
-            return item
-        try:
-            return self._indices[self._transform(item)]
-        except KeyError:
-            raise ValueError(
-                "Unknown item: {!r} ({})".format(item, type(item)))
-
-    def as_list(self, l=None):
-        if l is None:
-            l = List()
-        l[:] = list(self)
-
-        def update(idx):
-            l[idx] = self[idx]
-        for idx, item in enumerate(self._items):
-            item.updated.connect(partial(update, idx))
-        return l
-
-    def sublist(self, keys):
-        l = self.__class__(None, [])
-        l._items = [self._items[self.index(k)] for k in keys]
-        return l
-
-    def _transform(self, key):
-        if isinstance(key, str):
-            return key.lower()
