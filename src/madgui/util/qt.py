@@ -56,8 +56,7 @@ def load_icon_resource(module, name, format='XPM'):
 
 class Property:
 
-    def __init__(self, obj, construct):
-        self.obj = obj
+    def __init__(self, construct):
         self.construct = construct
         self.holds_value = Bool(False)
 
@@ -65,10 +64,8 @@ class Property:
 
     @classmethod
     def factory(cls, func):
-        @functools.wraps(func)
-        def getter(self):
-            return cls(self, func)
-        return cachedproperty(getter)
+        return cachedproperty(functools.wraps(func)(
+            lambda self: cls(func.__get__(self))))
 
     def create(self):
         if self._has:
@@ -88,7 +85,7 @@ class Property:
             self._new()
 
     def _new(self):
-        val = self.construct(self.obj)
+        val = self.construct()
         self._set(val)
         return val
 
