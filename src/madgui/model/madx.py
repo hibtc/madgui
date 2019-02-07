@@ -18,14 +18,15 @@ from numbers import Number
 
 import numpy as np
 
-from cpymad.madx import Madx, AttrDict, ArrayAttribute, Command, Element, Table
+from cpymad.madx import (
+    Madx, AttrDict, ArrayAttribute, Command, Table, ExpandedElementList)
 from cpymad.util import normalize_range_name
 from cpymad.types import VAR_TYPE_DIRECT, VAR_TYPE_DEFERRED
 
 from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
-from madgui.util.collections import Cache, CachedList
+from madgui.util.collections import Cache
 
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
@@ -226,7 +227,6 @@ class Model:
         else:
             text = "CALL {!r}".format(name)
             self._update(old, new, self._update_globals, text)
-        self.elements.invalidate()
         self.twiss.invalidate()
 
     def load_strengths(self, filename):
@@ -273,24 +273,12 @@ class Model:
 
         # Use `expanded_elements` rather than `elements` to have a one-to-one
         # correspondence with the data points of TWISS/SURVEY:
-        self.el_names = self.sequence.expanded_element_names()
-        self.elements = elems = ElementList(self._get_element, self.el_names)
+        self.elements = elems = ElementList(self.madx, self.seq_name)
         self.positions = self.sequence.expanded_element_positions()
 
         self.start, self.stop = self.parse_range(range)
         self.range = (normalize_range_name(self.start.name, elems),
                       normalize_range_name(self.stop.name, elems))
-
-    def _get_element(self, index, name):
-        """Fetch the ``cpymad.madx.Element`` at the specified index in the
-        current sequence."""
-        elem = self.sequence.expanded_elements[index]
-        if elem.base_name == 'sbend':
-            # MAD-X uses the condition k0=0 to check whether the attribute
-            # should be used (even though that means you can never have a kick
-            # that exactly counteracts the bending angle):
-            elem._attr['kick'] = elem.k0 and elem.k0 * elem.length - elem.angle
-        return elem
 
     def parse_range(self, range):
         """Convert a range str/tuple to a tuple of :class:`Element`."""
@@ -383,7 +371,6 @@ class Model:
                     v = self.madx.globals[k]
                 self.madx.globals[k] = v
         # TODO: invalidate only elements that depend updated variables?
-        self.elements.invalidate()
         self.twiss.invalidate()
 
     def _update_beam(self, beam):
@@ -421,7 +408,6 @@ class Model:
             self.madx.globals[var] = d.pop('kick')
         self.madx.elements[name](**d)
 
-        self.elements.invalidate(elem)
         self.twiss.invalidate()
 
     def get_twiss(self, elem, name, pos):
@@ -762,25 +748,38 @@ class Model:
     write_params = update_globals
 
 
-class ElementList(CachedList):
+class ElementList(ExpandedElementList):
 
-    """
-    Immutable list of beam line elements.
+    def __init__(self, madx, seq_name):
+        super().__init__(madx, seq_name)
+        self.names = madx._libmadx.get_expanded_element_names(seq_name)
+        self._indices = {k: i for i, k in enumerate(self.names)}
 
-    Each element is a dictionary containing its properties.
-    """
+    def __getitem__(self, key):
+        index = self.index(key)
+        elem = super().__getitem__(index)
+        if elem.base_name == 'sbend':
+            # MAD-X uses the condition k0=0 to check whether the attribute
+            # should be used (even though that means you can never have a kick
+            # that exactly counteracts the bending angle):
+            elem._attr['kick'] = elem.k0 and elem.k0 * elem.length - elem.angle
+        return elem
 
-    def index(self, element):
-        if isinstance(element, Element):
-            return element.index
-        if isinstance(element, str):
-            name = element.lower()
+    def index(self, key):
+        if isinstance(key, int):
+            return key + len(self) if key < 0 else key
+        elif isinstance(key, str):
+            name = key.lower()
             if len(self) != 0:
-                if name in ('#s', 'beginning'):
+                if name == '#s':
                     return 0
-                elif name in ('#e', 'end'):
+                elif name == '#e':
                     return len(self) - 1
-        return super().index(element)
+            return self._indices[key.lower()]
+        elif hasattr(key, 'index'):
+            return key.index
+        raise TypeError(
+            "Unknown key: {!r} ({})".format(key, type(key)))
 
 
 # stuff for online control

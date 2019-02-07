@@ -7,9 +7,9 @@ __all__ = [
     'Selection'
 ]
 
-from collections.abc import MutableSequence, Sequence
+from collections.abc import MutableSequence
 from contextlib import contextmanager
-from functools import wraps, partial
+from functools import wraps
 import operator
 
 from madgui.qt import QtCore
@@ -306,63 +306,3 @@ class Cache:
     def decorate(cls, fn):
         return property(memoize(wraps(fn)(
             lambda self: cls(fn.__get__(self)))))
-
-
-class CachedList(Sequence):
-
-    """Immutable collection of named cached items."""
-
-    def __init__(self, cls, keys, transform=None):
-        keys = [self._transform(k) for k in keys]
-        self._indices = {k: i for i, k in enumerate(keys)}
-        self._items = [Cache(partial(cls, i, k)) for i, k in enumerate(keys)]
-        self.invalidate()
-
-    def invalidate(self, item=None):
-        if item is None:
-            for item in self._items:
-                item.invalidate()
-        else:
-            index = self.index(item)
-            self._items[index].invalidate()
-
-    def __contains__(self, item):
-        """
-        Check if sequence contains item with specified name.
-
-        Can be invoked with the item index or name or the item itself.
-        """
-        try:
-            self.index(item)
-            return True
-        except (KeyError, ValueError):
-            return False
-
-    def __getitem__(self, item):
-        """Return item with specified index."""
-        idx = self.index(item)
-        return self._items[idx]()
-
-    def __len__(self):
-        """Get number of item."""
-        return len(self._items)
-
-    def index(self, item):
-        """
-        Find index of item with specified name.
-
-        :raises ValueError: if the item is not found
-        """
-        if isinstance(item, int):
-            if item < 0:
-                return item + len(self)
-            return item
-        try:
-            return self._indices[self._transform(item)]
-        except KeyError:
-            raise ValueError(
-                "Unknown item: {!r} ({})".format(item, type(item)))
-
-    def _transform(self, key):
-        if isinstance(key, str):
-            return key.lower()

@@ -48,7 +48,7 @@ class MatchWidget(QtGui.QWidget):
             for cmdpar in model.madx.command.constraint.cmdpar.values()
             if cmdpar.dtype == PARAM_TYPE_CONSTRAINT
         ]
-        self.elem_enum = make_enum('Elem', model.el_names)
+        self.elem_enum = make_enum('Elem', model.elements.names)
         self.lcon_enum = make_enum('Local', local_constraints, strict=False)
         self.knob_enum = make_enum('Knobs', matcher.knobs, strict=False)
         self.init_controls()
