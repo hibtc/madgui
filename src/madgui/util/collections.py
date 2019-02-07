@@ -363,22 +363,6 @@ class CachedList(Sequence):
             raise ValueError(
                 "Unknown item: {!r} ({})".format(item, type(item)))
 
-    def as_list(self, l=None):
-        if l is None:
-            l = List()
-        l[:] = list(self)
-
-        def update(idx):
-            l[idx] = self[idx]
-        for idx, item in enumerate(self._items):
-            item.updated.connect(partial(update, idx))
-        return l
-
-    def sublist(self, keys):
-        l = self.__class__(None, [])
-        l._items = [self._items[self.index(k)] for k in keys]
-        return l
-
     def _transform(self, key):
         if isinstance(key, str):
             return key.lower()

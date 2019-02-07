@@ -54,7 +54,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.control = session.control
         self.model = session.model()
         self.frame = session.window()
-        self.readouts = self.control.readouts.as_list()
+        self.readouts = self.control.sampler.readouts_list
         # TODO: we should eventually load this from model-specific session
         # file, but it's fine like this for now:
         self._monconf = session.config['online_control']['monitors']
@@ -89,7 +89,6 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def update(self):
-        self.control.readouts.invalidate()
         self.on_update()
         self.draw()
 
