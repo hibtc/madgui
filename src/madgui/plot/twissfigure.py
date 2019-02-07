@@ -20,7 +20,7 @@ from madgui.util.signal import Signal
 
 from madgui.util.qt import load_icon_resource, SingleWindow
 from madgui.util.misc import memoize, strip_suffix, cachedproperty
-from madgui.util.collections import List, maintain_selection, Cache
+from madgui.util.collections import List, maintain_selection, Cached
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SimpleArtist, SceneGraph
@@ -207,7 +207,7 @@ class TwissFigure:
         self.user_curves.renew()
         self.draw()
 
-    @Cache.decorate
+    @Cached.method
     def draw_idle(self):
         """Draw the figure on its canvas."""
         canvas = self.figure.canvas

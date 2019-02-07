@@ -26,7 +26,7 @@ from cpymad.types import VAR_TYPE_DIRECT, VAR_TYPE_DEFERRED
 from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
-from madgui.util.collections import Cache
+from madgui.util.collections import Cached
 
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
@@ -564,7 +564,7 @@ class Model:
     def ey(self):
         return self.summary.ey
 
-    @Cache.decorate
+    @Cached.method
     def twiss(self):
         """Recalculate TWISS parameters."""
         if self.interpolate:
@@ -593,7 +593,7 @@ class Model:
 
         # TODO: update elements
 
-    @Cache.decorate
+    @Cached.method
     def sector(self):
         """Compute sectormaps of all elements."""
         # TODO: Ideally, we should compute sectormaps and twiss during the

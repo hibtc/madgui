@@ -268,7 +268,7 @@ def maintain_selection(sel, avail):
     sel[:] = range(len(avail))
 
 
-class Cache:
+class Cached:
 
     """
     Cached state that can be invalidated. Invalidation triggers recomputation
@@ -303,6 +303,6 @@ class Cache:
         return self.data
 
     @classmethod
-    def decorate(cls, fn):
+    def method(cls, fn):
         return property(memoize(wraps(fn)(
             lambda self: cls(fn.__get__(self)))))
