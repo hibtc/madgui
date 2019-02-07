@@ -545,7 +545,7 @@ class MainWindow(QtGui.QMainWindow):
         self.matcher = Matcher(model, self.config['matching'])
 
         self.user_ns.madx = model.madx
-        self.user_ns.twiss = model.twiss.data
+        self.user_ns.twiss = model.twiss()
         exec(model.data.get('onload', ''), self.user_ns.__dict__)
 
         model.updated.connect(self.update_twiss)
@@ -558,7 +558,7 @@ class MainWindow(QtGui.QMainWindow):
         self.showTwiss()
 
     def update_twiss(self):
-        self.user_ns.twiss = self.model().twiss.data
+        self.user_ns.twiss = self.model().twiss()
 
     def showTwiss(self, name=None):
         import madgui.widget.plot as plt

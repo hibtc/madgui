@@ -23,28 +23,48 @@ def memoize(func):
 
         >>> class Foo:
         ...     @memoize
-        ...     def foo(self):
-        ...         print("executing foo…")
-        ...         return 'foo'
+        ...     def bar(self):
+        ...         print("executing bar…")
+        ...         return 'bar'
 
         >>> foo = Foo()
-        >>> foo.foo
-        executing foo…
-        'foo'
-        >>> foo.foo
-        'foo'
+        >>> foo.bar()
+        executing bar…
+        'bar'
+        >>> foo.bar()
+        'bar'
+
+    The cached result can be cleared using ``invalidate``:
+
+        >>> invalidate(foo, 'bar')
+        >>> foo.bar()
+        executing bar…
+        'bar'
+
+    If arguments are passed, the result is always recomputed.
     """
     key = '_' + func.__name__
 
     @functools.wraps(func)
-    def get(self):
-        try:
-            return getattr(self, key)
-        except AttributeError:
-            val = func(self)
-            setattr(self, key, val)
-            return val
+    def get(self, *args, **kwargs):
+        if not (args or kwargs):
+            try:
+                return getattr(self, key)
+            except AttributeError:
+                pass
+        val = func(self)
+        setattr(self, key, val)
+        return val
     return get
+
+
+def invalidate(obj, func):
+    """Invalidate cache for memoized function."""
+    key = '_' + func
+    try:
+        delattr(obj, key)
+    except AttributeError:
+        pass
 
 
 def cachedproperty(func):

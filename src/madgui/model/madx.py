@@ -26,7 +26,7 @@ from cpymad.types import VAR_TYPE_DIRECT, VAR_TYPE_DEFERRED
 from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
-from madgui.util.collections import Cached
+from madgui.util.misc import memoize, invalidate
 from madgui.util.signal import Signal
 
 
@@ -95,8 +95,8 @@ class Model:
         self.invalidate()
 
     def invalidate(self):
-        self.twiss.invalidate()
-        self.sector.invalidate()
+        invalidate(self, 'twiss')
+        invalidate(self, 'sector')
         self.updated.emit()
 
     @classmethod
@@ -571,7 +571,7 @@ class Model:
     def ey(self):
         return self.summary.ey
 
-    @Cached.method
+    @memoize
     def twiss(self, **kwargs):
         """Recalculate TWISS parameters."""
         if self.interpolate:
@@ -598,7 +598,7 @@ class Model:
         assert len(self.indices) == len(self.elements)
         return results
 
-    @Cached.method
+    @memoize
     def sector(self):
         """Compute sectormaps of all elements."""
         # TODO: Ideally, we should compute sectormaps and twiss during the

@@ -13,7 +13,6 @@ from functools import wraps
 import operator
 
 from madgui.util.signal import Signal
-from madgui.util.misc import memoize
 
 
 def _operator(get):
@@ -265,44 +264,3 @@ def maintain_selection(sel, avail):
     avail.insert_notify.connect(insert)
     avail.delete_notify.connect(delete)
     sel[:] = range(len(avail))
-
-
-class Cached:
-
-    """
-    Cached function that will save the previously computed value. When called
-    it will return the previous value, and only compute a new value if
-    invalidated.
-    """
-
-    def __init__(self, func):
-        self.func = func
-        self.invalidate()
-
-    def invalidate(self):
-        """
-        Invalidate any previously computed results.
-
-        Note that this does not automatically schedule a computation, but
-        only sets up this object to be computed when (or if) next called.
-        """
-        self.invalid = True
-        self.data = None
-
-    def __call__(self, *args, **kwargs):
-        """
-        Return the current result. Compute a new value if the cache was
-        invalidated or if any arguments are provided.
-
-        (This can be interpreted as updating arguments to the function.)
-        """
-        if self.invalid or args or kwargs:
-            self.data = self.func(*args, **kwargs)
-            self.invalid = False    # clear AFTER update
-        return self.data
-
-    @classmethod
-    def method(cls, fn):
-        """Decorator to cache the result of method calls."""
-        return property(memoize(wraps(fn)(
-            lambda self: cls(fn.__get__(self)))))

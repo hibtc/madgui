@@ -372,7 +372,7 @@ class TwissFigure:
             for name, _ in info['curves']
         }
         cols.add('s')
-        cols.update(self.model.twiss.data._cache.keys())
+        cols.update(self.model.twiss()._cache.keys())
         return cols
 
     @property
