@@ -14,6 +14,26 @@ import functools
 # class utils
 
 def memoize(func):
+    """
+    Decorator for cached method that remembers its result from the first
+    execution and returns this in all subsequent calls rather than executing
+    the function again.
+
+    Example:
+
+        >>> class Foo:
+        ...     @memoize
+        ...     def foo(self):
+        ...         print("executing foo…")
+        ...         return 'foo'
+
+        >>> foo = Foo()
+        >>> foo.foo
+        executing foo…
+        'foo'
+        >>> foo.foo
+        'foo'
+    """
     key = '_' + func.__name__
 
     @functools.wraps(func)
@@ -28,7 +48,29 @@ def memoize(func):
 
 
 def cachedproperty(func):
-    """A property decorator for cached, writeable properties."""
+    """
+    Decorator for cached, writeable properties.
+
+        >>> class Foo:
+        ...     @cachedproperty
+        ...     def bar(self):
+        ...         return ['bar']
+
+        >>> foo = Foo()
+        >>> foo.bar
+        ['bar']
+
+        >>> foo.bar is foo.bar
+        True
+
+        >>> foo.bar = 'qux'
+        >>> foo.bar
+        'qux'
+
+        >>> del foo.bar
+        >>> foo.bar
+        ['bar']
+    """
     key = '_' + func.__name__
     get_ = memoize(func)
 
@@ -43,7 +85,8 @@ def cachedproperty(func):
 # dictionary utils
 
 def ranges(nums):
-    """Identify groups of consecutive numbers in a list."""
+    """Identify groups of consecutive numbers in a list. Returns a list of
+    intervals ``[start, end)`` as tuples."""
     nums = sorted(set(nums))
     gaps = [[s, e] for s, e in zip(nums, nums[1:]) if s+1 < e]
     edges = iter(nums[:1] + sum(gaps, []) + nums[-1:])
@@ -51,10 +94,14 @@ def ranges(nums):
 
 
 def strip_suffix(s, suffix):
+    """Strip a suffix from a string, if present."""
     return s[:-len(suffix)] if s.endswith(suffix) else s
 
 
 def relpath(path, start):
+    """Try to make ``path`` relative to ``start`` using ``os.path.relpath``,
+    but returns ``path`` itself if this fails (e.g. if they are on different
+    drives on windows)."""
     try:
         return os.path.relpath(path, start)
     except ValueError:  # e.g. different drive on windows
