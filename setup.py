@@ -55,7 +55,7 @@ def main():
         packages=find_packages('src'),
         package_dir={'': 'src'},
         install_requires=([] if py34 else ['PyQt5']) + [
-            'cpymad>=1.0.11',
+            'cpymad>=1.1.0',
             'docopt',           # command line parsing
             'matplotlib' + mpl_version,
             'numpy',

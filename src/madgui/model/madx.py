@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from functools import partial, reduce
 import itertools
 from bisect import bisect_right
-from contextlib import contextmanager, suppress
+from contextlib import suppress
 import logging
 from numbers import Number
 
@@ -29,36 +29,6 @@ from madgui.util.collections import Cache, CachedList
 
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
-
-
-class Madx(Madx):
-
-    _enter_count = 0
-    _collected_cmds = None
-
-    def __init__(self, *args, **kwargs):
-        self.history = []
-        super().__init__(*args, **kwargs)
-
-    def input(self, text):
-        if self._enter_count > 0:
-            self._collected_cmds.append(text)
-            return True
-        self.history.append(text)
-        return super().input(text)
-
-    @contextmanager
-    def transaction(self):
-        self._enter_count += 1
-        if self._enter_count == 1:
-            self._collected_cmds = []
-        try:
-            yield None
-        finally:
-            self._enter_count -= 1
-            if self._enter_count == 0:
-                self.input("\n".join(self._collected_cmds))
-                self._collected_cmds = None
 
 
 class Model:
@@ -375,7 +345,7 @@ class Model:
             text or "Change element {}: {{}}".format(elem.name))
 
     def _update_globals(self, globals):
-        with self.madx.transaction():
+        with self.madx.batch():
             for k, v in globals.items():
                 if v is None:
                     v = 0
@@ -658,7 +628,7 @@ class Model:
     def backtrack(self, **twiss_init):
         """Backtrack final orbit through the reversed sequence."""
         if self.backseq is None:
-            with self.madx.transaction():
+            with self.madx.batch():
                 self.backseq = self.seq_name + '_backseq'
                 reverse_sequence(self.madx, self.backseq, self.elements)
         self.madx.command.select(flag='interpolate', clear=True)
