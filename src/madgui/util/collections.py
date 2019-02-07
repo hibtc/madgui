@@ -289,11 +289,15 @@ class Cached:
         self.invalid = True
         self.data = None
 
-    def __call__(self, force=False):
-        """Return the current result. Compute a new value if the cache was
-        invalidated."""
-        if force or self.invalid:
-            self.data = self.func()
+    def __call__(self, *args, **kwargs):
+        """
+        Return the current result. Compute a new value if the cache was
+        invalidated or if any arguments are provided.
+
+        (This can be interpreted as updating arguments to the function.)
+        """
+        if self.invalid or args or kwargs:
+            self.data = self.func(*args, **kwargs)
             self.invalid = False    # clear AFTER update
         return self.data
 
