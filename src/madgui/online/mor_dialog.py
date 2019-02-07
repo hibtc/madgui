@@ -13,7 +13,7 @@ from madgui.qt import Qt, QtCore, QtGui, load_ui
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
-from madgui.util.qt import bold
+from madgui.util.qt import bold, Queued
 from madgui.util import yaml
 from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates
@@ -182,7 +182,6 @@ class CorrectorWidget(QtGui.QWidget):
     def update_status(self):
         self.corrector.update_vars()
         self.update_ui()
-        QtCore.QTimer.singleShot(0, self.draw)
 
     def measure_orm(self):
         widget = MeasureWidget(self.corrector)
@@ -264,9 +263,7 @@ class CorrectorWidget(QtGui.QWidget):
 
         self.corrector.match_results = results
         self.corrector._push_history(results)
-
         self.update_ui()
-        self.draw()
 
     def on_change_config(self, index):
         name = self.combo_config.itemText(index)
@@ -300,9 +297,7 @@ class CorrectorWidget(QtGui.QWidget):
             self.hist_index > 0)
         self.btn_next_orm.setEnabled(
             self.hist_index < len(self.hist_stack) - 1)
-
-        # TODO: do this only after updating readouts…
-        QtCore.QTimer.singleShot(0, self.draw)
+        self.draw_idle()
 
     def edit_config(self):
         dialog = EditConfigDialog(self.corrector.model, self.apply_config)
@@ -342,6 +337,7 @@ class CorrectorWidget(QtGui.QWidget):
 
         return True
 
+    @Queued.method
     def draw(self):
         corr = self.corrector
         elements = corr.model.elements

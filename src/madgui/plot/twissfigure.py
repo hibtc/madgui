@@ -15,12 +15,12 @@ from collections import namedtuple
 
 import numpy as np
 
-from madgui.qt import QtGui, QtCore, Qt
+from madgui.qt import QtGui, Qt
 from madgui.util.signal import Signal
 
-from madgui.util.qt import load_icon_resource, SingleWindow
+from madgui.util.qt import load_icon_resource, SingleWindow, Queued
 from madgui.util.misc import memoize, strip_suffix, cachedproperty
-from madgui.util.collections import List, maintain_selection, Cached
+from madgui.util.collections import List, maintain_selection
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SimpleArtist, SceneGraph
@@ -96,8 +96,7 @@ class TwissFigure:
         self.config = session.config.line_view
         self._graph_conf = session.config['graphs']
         self.matcher = matcher
-        self.invalidate = self.draw_idle.invalidate
-        self.draw_idle.updated.connect(lambda: None)    # always update
+        self.invalidate = self.draw_idle
         # scene
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
@@ -127,7 +126,7 @@ class TwissFigure:
         self.x_unit = ui_units.get('s')
         self.element_style = self.config['element_style']
         # slots
-        self.model.twiss.updated.connect(self.on_twiss_updated)
+        self.model.twiss.updated.connect(self.update)
 
     def attach(self, plot):
         self.plot = plot
@@ -207,7 +206,7 @@ class TwissFigure:
         self.user_curves.renew()
         self.draw()
 
-    @Cached.method
+    @Queued.method
     def draw_idle(self):
         """Draw the figure on its canvas."""
         canvas = self.figure.canvas
@@ -267,7 +266,7 @@ class TwissFigure:
         self.scene_graph.on_remove()
 
     def destroy(self):
-        self.model.twiss.updated.disconnect(self.on_twiss_updated)
+        self.model.twiss.updated.disconnect(self.update)
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
@@ -308,9 +307,7 @@ class TwissFigure:
                 return elems[index+1]
         return elem
 
-    def on_twiss_updated(self):
-        QtCore.QTimer.singleShot(0, self.update)
-
+    @Queued.method
     def update(self):
         """Update existing plot after TWISS recomputation."""
         self.update_graph_data()

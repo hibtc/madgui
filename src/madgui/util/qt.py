@@ -5,9 +5,9 @@ Qt utilities.
 import functools
 from importlib_resources import path as resource_filename
 
-from madgui.qt import QtGui
+from madgui.qt import QtGui, QtCore
 from madgui.util.collections import Bool
-from madgui.util.misc import cachedproperty
+from madgui.util.misc import cachedproperty, memoize
 
 
 def notifyCloseEvent(widget, handler):
@@ -130,3 +130,32 @@ class SingleWindow(Property):
 
     def _update(self):
         present(self.val.window())
+
+
+class Queued:
+
+    """
+    A queued trigger. Calling the trigger will invoke the handler function
+    in another mainloop iteration.
+
+    Calling the trigger multiple times before the handler was invoked (e.g.
+    within the same mainloop iteration) will result in only a *single* handler
+    invocation!
+
+    This can only be used with at least a ``QCoreApplication`` instanciated.
+    """
+
+    def __init__(self, func):
+        self.timer = QtCore.QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(func)
+
+    def __call__(self):
+        """Schedule the handler invocation for another mainloop iteration."""
+        self.timer.start()
+
+    @classmethod
+    def method(cls, func):
+        """Decorator for a queued method."""
+        return property(memoize(functools.wraps(func)(
+            lambda self: cls(func.__get__(self)))))
