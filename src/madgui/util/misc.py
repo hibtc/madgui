@@ -28,7 +28,7 @@ def memoize(func):
 
 
 def cachedproperty(func):
-    """A memoize decorator for class properties."""
+    """A property decorator for cached, writeable properties."""
     key = '_' + func.__name__
     get_ = memoize(func)
 
@@ -37,21 +37,6 @@ def cachedproperty(func):
 
     def del_(self):
         delattr(self, key)
-    return property(get_, set_, del_)
-
-
-def rw_property(func, name=None):
-    """A property that allows overwriting the value."""
-    key = '_' + (name or func.__name__)
-
-    def get_(self):
-        return getattr(self, key, None) or func(self)
-
-    def set_(self, val):
-        setattr(self, key, val)
-
-    def del_(self):
-        setattr(self, key, None)
     return property(get_, set_, del_)
 
 

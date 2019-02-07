@@ -15,7 +15,7 @@ from madgui.qt import QtCore, QtGui, Qt
 from madgui.util.signal import Signal
 from madgui.util.unit import to_ui, from_ui, ui_units
 from madgui.util.layout import HBoxLayout
-from madgui.util.misc import rw_property, ranges, cachedproperty
+from madgui.util.misc import ranges, cachedproperty
 from madgui.util.collections import List
 from madgui.util.qt import monospace
 from madgui.util.enum import Enum
@@ -611,7 +611,7 @@ class QuantityDelegate(ItemDelegate):
     default = 0.0
     textAlignment = Qt.AlignRight | Qt.AlignVCenter
 
-    @rw_property
+    @cachedproperty
     def fmtspec(self):
         return config.number.fmtspec
 
