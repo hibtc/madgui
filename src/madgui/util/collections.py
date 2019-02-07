@@ -14,6 +14,7 @@ import operator
 
 from madgui.qt import QtCore
 from madgui.util.signal import Signal
+from madgui.util.misc import memoize
 
 
 def _operator(get):
@@ -303,8 +304,6 @@ class Cache:
 
     @classmethod
     def decorate(cls, fn):
-        # TODO: resolve cyclic dependency!
-        from madgui.util.misc import memoize
         return property(memoize(wraps(fn)(
             lambda self: cls(fn.__get__(self)))))
 
