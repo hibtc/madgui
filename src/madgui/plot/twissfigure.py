@@ -126,7 +126,7 @@ class TwissFigure:
         self.x_unit = ui_units.get('s')
         self.element_style = self.config['element_style']
         # slots
-        self.model.twiss.updated.connect(self.update)
+        self.model.updated.connect(self.update)
 
     def attach(self, plot):
         self.plot = plot
@@ -266,7 +266,7 @@ class TwissFigure:
         self.scene_graph.on_remove()
 
     def destroy(self):
-        self.model.twiss.updated.disconnect(self.update)
+        self.model.updated.disconnect(self.update)
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):

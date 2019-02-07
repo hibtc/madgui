@@ -27,6 +27,7 @@ from madgui.util.undo import UndoCommand, UndoStack
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
 from madgui.util.collections import Cached
+from madgui.util.signal import Signal
 
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
@@ -73,6 +74,8 @@ class Model:
     :ivar str path: base folder
     """
 
+    updated = Signal()
+
     def __init__(self, madx, data, *, filename=None, undo_stack=None,
                  interpolate=0):
         super().__init__()
@@ -89,8 +92,12 @@ class Model:
             twiss_args=data['twiss'],
         )
         self.interpolate = interpolate
-        self.twiss.invalidated.connect(self.sector.invalidate)
+        self.invalidate()
+
+    def invalidate(self):
         self.twiss.invalidate()
+        self.sector.invalidate()
+        self.updated.emit()
 
     @classmethod
     def load_file(cls, filename, madx=None, *,
@@ -227,7 +234,7 @@ class Model:
         else:
             text = "CALL {!r}".format(name)
             self._update(old, new, self._update_globals, text)
-        self.twiss.invalidate()
+        self.invalidate()
 
     def load_strengths(self, filename):
         try:
@@ -371,7 +378,7 @@ class Model:
                     v = self.madx.globals[k]
                 self.madx.globals[k] = v
         # TODO: invalidate only elements that depend updated variables?
-        self.twiss.invalidate()
+        self.invalidate()
 
     def _update_beam(self, beam):
         new_beam = self.beam.copy()
@@ -385,13 +392,13 @@ class Model:
         new_beam['sequence'] = self.seq_name
         self._beam = new_beam
         self.madx.command.beam(**new_beam)
-        self.twiss.invalidate()
+        self.invalidate()
 
     def _update_twiss_args(self, twiss):
         new_twiss = self.twiss_args.copy()
         new_twiss.update((k.lower(), v) for k, v in twiss.items())
         self._twiss_args = new_twiss
-        self.twiss.invalidate()
+        self.invalidate()
 
     def _update_element(self, data, elem_index):
         # TODO: this crashes for many parameters
@@ -408,7 +415,7 @@ class Model:
             self.madx.globals[var] = d.pop('kick')
         self.madx.elements[name](**d)
 
-        self.twiss.invalidate()
+        self.invalidate()
 
     def get_twiss(self, elem, name, pos):
         """Return beam envelope at element."""
@@ -591,8 +598,6 @@ class Model:
         assert len(self.indices) == len(self.elements)
         return results
 
-        # TODO: update elements
-
     @Cached.method
     def sector(self):
         """Compute sectormaps of all elements."""
@@ -653,7 +658,7 @@ class Model:
         twiss_init.setdefault('table', 'backtrack')
         tw = self.madx.twiss(sequence=self.backseq, **twiss_init)
         tw = self.madx.table.backtrack
-        self.twiss.invalidate()
+        self.invalidate()
         return tw
 
     def reverse(self):

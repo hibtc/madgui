@@ -12,7 +12,6 @@ from contextlib import contextmanager
 from functools import wraps
 import operator
 
-from madgui.qt import QtCore
 from madgui.util.signal import Signal
 from madgui.util.misc import memoize
 
@@ -271,38 +270,35 @@ def maintain_selection(sel, avail):
 class Cached:
 
     """
-    Cached state that can be invalidated. Invalidation triggers recomputation
-    in the main loop at the next idle time.
+    Cached function that will save the previously computed value. When called
+    it will return the previous value, and only compute a new value if
+    invalidated.
     """
 
-    invalidated = Signal()
-    updated = Signal()      # emitted after update
-    invalid = False         # prevents invalidation during callback()
-
-    def __init__(self, callback):
-        self.data = None
-        self.timer = QtCore.QTimer()
-        self.timer.setSingleShot(True)
-        self.timer.timeout.connect(self)
-        self.callback = callback
+    def __init__(self, func):
+        self.func = func
+        self.invalidate()
 
     def invalidate(self):
-        if not self.invalid:
-            self.invalid = True
-            if len(self.updated.handlers) > 0:
-                self.timer.start()
-            self.invalidated.emit()
+        """
+        Invalidate any previously computed results.
+
+        Note that this does not automatically schedule a computation, but
+        only sets up this object to be computed when (or if) next called.
+        """
+        self.invalid = True
+        self.data = None
 
     def __call__(self, force=False):
+        """Return the current result. Compute a new value if the cache was
+        invalidated."""
         if force or self.invalid:
-            self.timer.stop()
-            self.invalid = True     # prevent repeated invalidation in callback
-            self.data = self.callback()
+            self.data = self.func()
             self.invalid = False    # clear AFTER update
-            self.updated.emit()
         return self.data
 
     @classmethod
     def method(cls, fn):
+        """Decorator to cache the result of method calls."""
         return property(memoize(wraps(fn)(
             lambda self: cls(fn.__get__(self)))))

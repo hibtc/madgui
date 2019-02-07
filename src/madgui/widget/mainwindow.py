@@ -422,7 +422,7 @@ class MainWindow(QtGui.QMainWindow):
         # (rather than after twiss), but changing initial conditions usually
         # implies also updating twiss, so this is a good enough approximation
         # for now:
-        model.twiss.updated.connect(widget.update)
+        model.updated.connect(widget.update)
 
         dialog = Dialog(self)
         dialog.setSimpleExportWidget(widget, self.folder)
@@ -526,7 +526,7 @@ class MainWindow(QtGui.QMainWindow):
     def _on_model_changed(self, old_model, model):
 
         if old_model is not None:
-            old_model.twiss.updated.disconnect(self.update_twiss)
+            old_model.updated.disconnect(self.update_twiss)
             del old_model.selection.elements[:]
 
         if model is None:
@@ -535,6 +535,8 @@ class MainWindow(QtGui.QMainWindow):
             self.user_ns.twiss = None
             self.setWindowTitle("madgui")
             return
+
+        model.updated.set_queued(True)
 
         self.session.folder = os.path.split(model.filename)[0]
         logging.info('Loading {}'.format(model.filename))
@@ -546,7 +548,7 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns.twiss = model.twiss.data
         exec(model.data.get('onload', ''), self.user_ns.__dict__)
 
-        model.twiss.updated.connect(self.update_twiss)
+        model.updated.connect(self.update_twiss)
 
         from madgui.widget.elementinfo import InfoBoxGroup
         model.selection = Selection()
@@ -563,10 +565,6 @@ class MainWindow(QtGui.QMainWindow):
         import madgui.plot.twissfigure as twissfigure
 
         model = self.model()
-
-        # update twiss *before* creating the figure to avoid immediate
-        # unnecessary redraws:
-        model.twiss()
 
         # NOTE: using the plot_windows list as a stack with its top at 0:
         settings = (self.config.plot_windows and

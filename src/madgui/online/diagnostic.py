@@ -264,7 +264,6 @@ class OffsetsWidget(MonitorWidgetBase):
             f.write(data)
 
     def save_offsets(self):
-        self.model.twiss()
         for m in self.readouts:
             tw = self.model.get_elem_twiss(m.name)
             if self.selected(m):

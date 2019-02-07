@@ -54,7 +54,7 @@ class ElementInfoBox(QtGui.QWidget):
 
         self.model = model
         self.el_id = el_id
-        self.model.twiss.updated.connect(self.notebook.update)
+        self.model.updated.connect(self.notebook.update)
 
         button_left = QtGui.QToolButton()
         button_right = QtGui.QToolButton()
@@ -70,7 +70,7 @@ class ElementInfoBox(QtGui.QWidget):
         ], tight=True))
 
     def closeEvent(self, event):
-        self.model.twiss.updated.disconnect(self.notebook.update)
+        self.model.updated.disconnect(self.notebook.update)
         event.accept()
 
     def advance(self, step):
