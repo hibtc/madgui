@@ -238,22 +238,8 @@ class CorrectorWidget(QtGui.QWidget):
 
     @Queued.method
     def draw_idle(self):
-        corr = self.corrector
-        elements = corr.model.elements
-        monitor_data = [
-            {'s': elements[r.name].position,
-             'x': r.posx + dx,
-             'y': r.posy + dy}
-            for r in self.corrector.readouts
-            for dx, dy in [self.corrector._offsets.get(r.name.lower(), (0, 0))]
-            if r.posx is not None and r.posy is not None
-        ]
-        curve_data = {
-            name: np.array([d[name] for d in monitor_data])
-            for name in ['s', 'x', 'y']
-        }
-        style = self.frame.config['line_view']['monitor_style']
-        self.frame.add_curve("monitors", curve_data, style)
+        self.frame.show_monitor_readouts(
+            self.corrector.monitors[:])
 
     @property
     def frame(self):

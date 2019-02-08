@@ -12,6 +12,8 @@ import subprocess
 import time
 from functools import partial
 
+import numpy as np
+
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.util.signal import Signal
 from madgui.util.collections import Selection
@@ -667,7 +669,34 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self.showTwiss(name)
 
+    def show_monitor_readouts(self, monitors):
+        monitors = [m.lower() for m in monitors]
+        elements = self.model().elements
+        offsets = self.session.config['online_control']['offsets']
+        style = self.session.config['line_view']['monitor_style']
+        monitor_data = [
+            {'s': elements[r.name].position,
+             'x': (r.posx + dx) if r.posx is not None else None,
+             'y': (r.posy + dy) if r.posy is not None else None,
+             'envx': r.envx,
+             'envy': r.envy,
+             }
+            for r in self.control.sampler.readouts_list
+            for dx, dy in [offsets.get(r.name.lower(), (0, 0))]
+            if r.name.lower() in monitors
+        ]
+        curve_data = {
+            name: np.array([d[name] for d in monitor_data])
+            for name in ['s', 'envx', 'envy', 'x', 'y']
+        }
+        self.add_curve('monitors', curve_data, style)
+
     def add_curve(self, name, data, style):
+        # FIXME: Our way of adding ourselves to existing and to-be-opened
+        # figures is tedious and error-prone. We should really rework the
+        # plotting system to separate the artist from the scene element. We
+        # could then simply register a generic artist to plot the content into
+        # all potential scenes.
         from madgui.plot.twissfigure import TwissFigure
         for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
             if n == name:

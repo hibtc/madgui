@@ -96,32 +96,13 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.frame.del_curve("monitors")
 
     def draw(self):
-
-        # FIXME: Our way of adding ourselves to existing and to-be-opened
-        # figures is tedious and error-prone. We should really rework the
-        # plotting system to separate the artist from the scene element. We
-        # could then simply register a generic artist to plot the content into
-        # all potential scenes.
-
-        for mon in self.readouts:
-            mon.s = self.model.elements[mon.name].position
-            dx, dy = self._offsets.get(mon.name.lower(), (0, 0))
-            mon.x = (mon.posx + dx) if mon.posx is not None else None
-            mon.y = (mon.posy + dy) if mon.posy is not None else None
-
-        name = "monitors"
-
         shown = self._monconf['show']
-        data = {
-            name: np.array([getattr(mon, name)
-                            for mon in self.readouts
-                            if self.selected(mon)
-                            or shown.get(mon.name)])
-            for name in ['s', 'envx', 'envy', 'x', 'y']
-        }
-        style = self.session.config['line_view']['monitor_style']
-
-        self.frame.add_curve(name, data, style)
+        self.frame.show_monitor_readouts([
+            mon.name
+            for mon in self.readouts
+            if self.selected(mon)
+            or shown.get(mon.name)
+        ])
 
     exportFilters = [
         ("YAML file", "*.yml"),
