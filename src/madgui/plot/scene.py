@@ -91,6 +91,12 @@ class SimpleArtist(SceneNode):
     destroy = on_remove
 
 
+class RedrawArtist(SimpleArtist):
+
+    def update(self):
+        self.redraw()
+
+
 class SceneGraph(SceneNode):
 
     """A scene element that is composed of multiple elements."""
