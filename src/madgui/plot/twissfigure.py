@@ -17,6 +17,7 @@ import numpy as np
 
 from madgui.qt import QtGui, Qt
 from madgui.util.signal import Signal
+from madgui.util.yaml import load_resource
 
 from madgui.util.qt import load_icon_resource, SingleWindow, Queued
 from madgui.util.misc import memoize, strip_suffix, cachedproperty
@@ -29,6 +30,9 @@ from madgui.widget.dialog import Dialog
 import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
 from matplotlib.ticker import AutoMinorLocator
+
+
+CONFIG = load_resource(__package__, 'twissfigure.yml')
 
 
 PlotInfo = namedtuple('PlotInfo', [
@@ -93,8 +97,7 @@ class TwissFigure:
         self.share_axes = False
         self.session = session
         self.model = session.model()
-        self.config = session.config.line_view
-        self._graph_conf = session.config['graphs']
+        self.config = dict(CONFIG, **session.config.get('twissfigure', {}))
         self.matcher = matcher
         self.invalidate = self.draw_idle
         # scene
@@ -163,7 +166,7 @@ class TwissFigure:
     graph_name = None
 
     def set_graph(self, graph_name):
-        graph_name = graph_name or self.config.default_graph
+        graph_name = graph_name or self.config['default_graph']
         if graph_name == self.graph_name:
             return
         self.graph_name = graph_name
@@ -338,7 +341,7 @@ class TwissFigure:
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
 
-        conf = self._graph_conf[name]
+        conf = self.config['graphs'][name]
         info = PlotInfo(
             name=name,
             title=conf['title'],
@@ -362,13 +365,13 @@ class TwissFigure:
     def get_graphs(self):
         """Get a list of graph names."""
         return {name: info['title']
-                for name, info in self._graph_conf.items()}
+                for name, info in self.config['graphs'].items()}
 
     def get_graph_columns(self):
         """Get a set of all columns used in any graph."""
         cols = {
             name
-            for info in self._graph_conf.values()
+            for info in self.config['graphs'].values()
             for name, _ in info['curves']
         }
         cols.add('s')
@@ -885,7 +888,8 @@ def make_user_curve(scene, idx):
             ax,
             partial(_get_curve_data, data, x_name),
             partial(_get_curve_data, data, y_name),
-            style, label=name,
+            scene.config[style] if isinstance(style, str) else style,
+            label=name,
         )
         for ax in scene.figure.axes
         for x_name, y_name in zip(ax.x_name, ax.y_name)

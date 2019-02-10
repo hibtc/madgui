@@ -329,8 +329,7 @@ class OrbitWidget(_FitWidget):
         range_start = records[0].name
         ret, curve = fit_particle_orbit(
             self.model, add_offsets(records, self._offsets), secmaps, range_start)
-        style = self.frame.config['line_view']['backtrack_style']
-        self.frame.add_curve("backtrack", curve, style)
+        self.frame.add_curve("backtrack", curve, 'backtrack_style')
         return ret
 
 

@@ -673,7 +673,6 @@ class MainWindow(QtGui.QMainWindow):
         monitors = [m.lower() for m in monitors]
         elements = self.model().elements
         offsets = self.session.config['online_control']['offsets']
-        style = self.session.config['line_view']['monitor_style']
         monitor_data = [
             {'s': elements[r.name].position,
              'x': (r.posx + dx) if r.posx is not None else None,
@@ -689,7 +688,7 @@ class MainWindow(QtGui.QMainWindow):
             name: np.array([d[name] for d in monitor_data])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
-        self.add_curve('monitors', curve_data, style)
+        self.add_curve('monitors', curve_data, 'monitor_style')
 
     def add_curve(self, name, data, style):
         # FIXME: Our way of adding ourselves to existing and to-be-opened
