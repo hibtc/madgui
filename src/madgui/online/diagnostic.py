@@ -93,35 +93,16 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def remove(self):
-        self.frame.del_curve("monitors")
+        self.view.del_curve("readouts")
 
     def draw(self):
-
-        # FIXME: Our way of adding ourselves to existing and to-be-opened
-        # figures is tedious and error-prone. We should really rework the
-        # plotting system to separate the artist from the scene element. We
-        # could then simply register a generic artist to plot the content into
-        # all potential scenes.
-
-        for mon in self.readouts:
-            mon.s = self.model.elements[mon.name].position
-            dx, dy = self._offsets.get(mon.name.lower(), (0, 0))
-            mon.x = (mon.posx + dx) if mon.posx is not None else None
-            mon.y = (mon.posy + dy) if mon.posy is not None else None
-
-        name = "monitors"
-
         shown = self._monconf['show']
-        data = {
-            name: np.array([getattr(mon, name)
-                            for mon in self.readouts
-                            if self.selected(mon)
-                            or shown.get(mon.name)])
-            for name in ['s', 'envx', 'envy', 'x', 'y']
-        }
-        style = self.session.config['line_view']['monitor_style']
-
-        self.frame.add_curve(name, data, style)
+        self.view.show_monitor_readouts([
+            mon.name
+            for mon in self.readouts
+            if self.selected(mon)
+            or shown.get(mon.name)
+        ])
 
     exportFilters = [
         ("YAML file", "*.yml"),
@@ -165,8 +146,8 @@ class PlotMonitorWidget(MonitorWidgetBase):
         self._selected = self._monconf.setdefault('show', {})
 
     def showEvent(self, event):
-        if not self.frame.graphs('envelope'):
-            self.frame.open_graph('orbit')
+        self.view = self.frame.open_graph(
+            'envelope' if self.frame.graphs('envelope') else 'orbit')
         self.update()
 
     exportFilters = [
@@ -232,7 +213,7 @@ class OffsetsWidget(MonitorWidgetBase):
         self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
-        self.frame.open_graph('orbit')
+        self.view = self.frame.open_graph('orbit')
         self.update()
 
     def on_update(self):
@@ -315,7 +296,7 @@ class OrbitWidget(_FitWidget):
         self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
-        self.frame.open_graph('orbit')
+        self.view = self.frame.open_graph('orbit')
         self.update()
 
     def export_to(self, filename):
@@ -348,8 +329,7 @@ class OrbitWidget(_FitWidget):
         range_start = records[0].name
         ret, curve = fit_particle_orbit(
             self.model, add_offsets(records, self._offsets), secmaps, range_start)
-        style = self.frame.config['line_view']['backtrack_style']
-        self.frame.add_curve("backtrack", curve, style)
+        self.view.add_curve("backtrack", curve, 'backtrack_style')
         return ret
 
 
@@ -367,7 +347,7 @@ class EmittanceDialog(_FitWidget):
         self._selected = self._monconf.setdefault('optics', {})
 
     def showEvent(self, event):
-        self.frame.open_graph('envelope')
+        self.view = self.frame.open_graph('envelope')
         self.update()
 
     def apply(self):

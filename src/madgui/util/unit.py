@@ -13,11 +13,11 @@ __all__ = [
 ]
 
 from numbers import Number
-from importlib_resources import read_binary
 
 import numpy as np
 import pint
-import yaml
+
+import madgui.util.yaml as yaml
 
 
 units = pint.UnitRegistry(on_redefinition='ignore')
@@ -218,11 +218,11 @@ class UnitConverter:
         return obj.__class__((k, self.strip_unit(k, obj[k])) for k in obj)
 
 
-madx_units = UnitConverter.from_config_dict(yaml.safe_load(
-    read_binary('madgui.data', 'madx_units.yml')))
+madx_units = UnitConverter.from_config_dict(yaml.load_resource(
+    'madgui.data', 'madx_units.yml'))
 
-ui_units = UnitConverter.from_config_dict(yaml.safe_load(
-    read_binary('madgui.data', 'ui_units.yml')))
+ui_units = UnitConverter.from_config_dict(yaml.load_resource(
+    'madgui.data', 'ui_units.yml'))
 
 
 def convert(from_, to, *args):

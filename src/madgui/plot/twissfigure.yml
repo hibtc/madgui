@@ -1,0 +1,115 @@
+# Plot style for the element indicators. Supports common keyword arguments
+# for ``matplotlib.axes.Axes.axvspan`` and ``matplotlib.axes.Axes.axvline``:
+element_style:
+  quadrupole:   {                  ymin: 0.3, ymax: 0.7}
+  sbend:        {color: "#ccccaa", ymin: 0.25, ymax: 0.75}
+  solenoid:     {color: "#555555", ymin: 0.1, ymax: 0.9}
+  multipole:    {color: "#00aa00", ymin: 0.1, ymax: 0.9}
+  hkicker:      {color: "#bb0088", ymin: 0.2, ymax: 0.8}
+  vkicker:      {color: "#8800bb", ymin: 0.2, ymax: 0.8}
+  monitor:      {color: "#00bb00", ymin: 0.0, ymax: 1.0,
+                 linestyle: dashed, linewidth: 1}
+  hmonitor:     {color: "#00bb00", ymin: 0.0, ymax: 1.0,
+                 linestyle: dashed, linewidth: 1}
+  vmonitor:     {color: "#00bb00", ymin: 0.0, ymax: 1.0,
+                 linestyle: dashed, linewidth: 1}
+
+# Style for the constraint markers. Can contain any keyword arguments to
+# ``matplotlib.axes.Axes.plot()``:
+constraint_style:
+  marker: "o"
+  fillstyle: "full"
+  markersize: 12
+  color: "yellow"
+  zorder: 1
+
+# Style for the selected element markers. Can contain any keyword
+# arguments to ``matplotlib.axes.axvline()``:
+select_style:
+  color: "#000000"
+  ymin: 0
+  ymax: 1
+
+# Style for the reference curve. Can contain any keyword arguments to
+# ``motplotlib.axes.Axes.plot()``
+reference_style:
+  linestyle: "-"
+  color: "black"
+
+# Style for monitor markers:
+readouts_style:
+  marker: +
+  fillstyle: full
+  markersize: 12
+  markeredgewidth: 1.5
+  color: orange
+  zorder: 2
+  linestyle: none
+
+curve_style:
+  - &base_style
+    color: "#8b1a0e"
+    linestyle: "-"
+  - <<: *base_style
+    color: "#005000"
+
+backtrack_style:
+  linestyle: "-"
+  marker: o
+  zorder: 1
+  markersize: 3
+
+default_graph: envelope
+
+
+graphs:
+  beta:
+    title: Beta function
+    curves:
+      - [betx, '$\beta x$']
+      - [bety, '$\beta y$']
+  envelope:
+    title: Beam envelope
+    curves:
+      - [envx, '$\Delta x$']
+      - [envy, '$\Delta y$']
+  alpha:
+    title: Alpha function
+    curves:
+      - [alfx, '$\alpha x$']
+      - [alfy, '$\alpha y$']
+  gamma:
+    title: Gamma function
+    curves:
+      - [gamx, '$\gamma x$']
+      - [gamy, '$\gamma y$']
+  orbit:
+    title: Particle orbit
+    curves:
+      - [x, '$x$']
+      - [y, '$y$']
+  momentum:
+    title: Particle momentum
+    curves:
+      - [px, '$px$']
+      - [py, '$py$']
+  dispersion:
+    title: Dispersion
+    curves:
+      - [dx, '$dx$']
+      - [dy, '$dy$']
+  momentum_dispersion:
+    title: Momentum dispersion
+    curves:
+      - [dpx, '$dpx$']
+      - [dpy, '$dpy$']
+  phase:
+    title: Phase advance
+    curves:
+      - [mux, '$\mu x$']
+      - [muy, '$\mu y$']
+  emittance:
+    title: Emittanz
+    curves:
+      - [ex, '$\epsilon x$']
+      - [ey, '$\epsilon y$']

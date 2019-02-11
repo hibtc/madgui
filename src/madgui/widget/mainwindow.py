@@ -542,7 +542,7 @@ class MainWindow(QtGui.QMainWindow):
         logging.info('Loading {}'.format(model.filename))
 
         from madgui.model.match import Matcher
-        self.matcher = Matcher(model, self.config['matching'])
+        self.matcher = Matcher(model, self.config.get('matching'))
 
         self.user_ns.madx = model.madx
         self.user_ns.twiss = model.twiss()
@@ -666,25 +666,7 @@ class MainWindow(QtGui.QMainWindow):
             self.views[-1].set_graph(name)
         else:
             self.showTwiss(name)
-
-    def add_curve(self, name, data, style):
-        from madgui.plot.twissfigure import TwissFigure
-        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
-            if n == name:
-                TwissFigure.loaded_curves[i][1].update(data)
-                for scene in self.views:
-                    if i in scene.shown_curves:
-                        j = scene.shown_curves.index(i)
-                        scene.user_curves.items[j].update()
-                break
-        else:
-            TwissFigure.loaded_curves.append((name, data, style))
-
-    def del_curve(self, name):
-        from madgui.plot.twissfigure import TwissFigure
-        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
-            if n == name:
-                del TwissFigure.loaded_curves[i]
+        return self.views[-1]
 
     def _createShell(self):
         """Create a python shell widget."""

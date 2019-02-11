@@ -89,13 +89,12 @@ class List:
     """A list-like class that can be observed for changes."""
 
     # parameters: (slice, old_values, new_values)
-    update_before = Signal([object, object, object])
-    update_after = Signal([object, object, object])
+    update_started = Signal([object, object, object])
+    update_finished = Signal([object, object, object])
 
-    insert_notify = Signal([int, object])
-    delete_notify = Signal([int])
-    remove_notify = Signal([int, object])
-    modify_notify = Signal([int, object])
+    inserted = Signal([int, object])
+    removed = Signal([int])
+    changed = Signal([int, object])
 
     def __init__(self, items=None):
         """Use the items object by reference."""
@@ -103,9 +102,9 @@ class List:
 
     def mirror(self, other):
         """Connect another list to be mirror of oneself."""
-        self.insert_notify.connect(other.insert)
-        self.delete_notify.connect(other.__delitem__)
-        self.modify_notify.connect(other.__setitem__)
+        self.inserted.connect(other.insert)
+        self.removed.connect(other.__delitem__)
+        self.changed.connect(other.__setitem__)
 
     def touch(self):
         self[:] = self
@@ -121,12 +120,12 @@ class List:
             raise ValueError(
                 "attempt to assign sequence of size {} to slice of size {}"
                 .format(num_ins, num_del))
-        self.update_before.emit(slice, old_values, new_values)
+        self.update_started.emit(slice, old_values, new_values)
         try:
             yield None
         finally:
             self._emit_single_notify(slice, old_values, new_values)
-            self.update_after.emit(slice, old_values, new_values)
+            self.update_finished.emit(slice, old_values, new_values)
 
     def _emit_single_notify(self, slice, old_values, new_values):
         num_old = len(old_values)
@@ -136,15 +135,14 @@ class List:
         indices = list(range(old_len))[slice]
         # TODO: verify correctness...:
         for idx, old, new in zip(indices, old_values, new_values):
-            self.modify_notify.emit(idx, new)
+            self.changed.emit(idx, new)
         if num_old > num_new:
             for val in old_values[num_new:]:
-                self.delete_notify.emit(indices[0])
-                self.remove_notify.emit(indices[0], val)
+                self.removed.emit(indices[0])
         elif num_new > num_old:
             start = (slice.start or 0) + num_old
             for idx, val in enumerate(new_values[num_old:]):
-                self.insert_notify.emit(start+idx, val)
+                self.inserted.emit(start+idx, val)
 
     # Sized
 
@@ -261,6 +259,6 @@ def maintain_selection(sel, avail):
         for i, v in enumerate(sel):
             if v >= index:
                 sel[i] -= 1
-    avail.insert_notify.connect(insert)
-    avail.delete_notify.connect(delete)
+    avail.inserted.connect(insert)
+    avail.removed.connect(delete)
     sel[:] = range(len(avail))

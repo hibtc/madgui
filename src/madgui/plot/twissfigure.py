@@ -17,18 +17,23 @@ import numpy as np
 
 from madgui.qt import QtGui, Qt
 from madgui.util.signal import Signal
+from madgui.util.yaml import load_resource
 
 from madgui.util.qt import load_icon_resource, SingleWindow, Queued
 from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List, maintain_selection
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import SimpleArtist, SceneGraph
+from madgui.plot.scene import SimpleArtist, RedrawArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
 from matplotlib.ticker import AutoMinorLocator
+
+
+CONFIG = load_resource(__package__, 'twissfigure.yml')
+ELEM_STYLES = CONFIG['element_style']
 
 
 PlotInfo = namedtuple('PlotInfo', [
@@ -80,7 +85,6 @@ class TwissFigure:
 
     xlim = None
     snapshot_num = 0
-    loaded_curves = List()
 
     graph_changed = Signal()
 
@@ -93,18 +97,17 @@ class TwissFigure:
         self.share_axes = False
         self.session = session
         self.model = session.model()
-        self.config = session.config.line_view
-        self._graph_conf = session.config['graphs']
+        self.config = dict(CONFIG, **session.config.get('twissfigure', {}))
         self.matcher = matcher
-        self.invalidate = self.draw_idle
         # scene
+        self.loaded_curves = List()
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
         self.twiss_curves = SceneGraph()
         self.user_curves = ListView(
             partial(make_user_curve, self),
             self.shown_curves)
-        self.indicators = IndicatorManager()
+        self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
         self.constr_markers = ListView(
@@ -119,7 +122,7 @@ class TwissFigure:
             self.user_curves,
             self.hover_marker,
         ])
-        self.scene_graph.parent = self      # for invalidation
+        self.scene_graph.invalidate = self.draw_idle
         # style
         self.x_name = 's'
         self.x_label = 's'
@@ -163,7 +166,7 @@ class TwissFigure:
     graph_name = None
 
     def set_graph(self, graph_name):
-        graph_name = graph_name or self.config.default_graph
+        graph_name = graph_name or self.config['default_graph']
         if graph_name == self.graph_name:
             return
         self.graph_name = graph_name
@@ -177,11 +180,18 @@ class TwissFigure:
         num_curves = len(self.graph_info.curves)
         self.set_num_curves(num_curves)
         self.indicators.destroy()
-        self.indicators.create(self.figure.axes, self, self.element_style)
+        self.indicators.clear([
+            RedrawArtist(
+                plot_element_indicators, ax, self.model.elements,
+                elem_styles=self.element_style)
+            for ax in self.figure.axes
+        ])
         self.select_markers.destroy()
         self.select_markers.clear([
-            ListView(partial(draw_selection_marker, ax, self),
-                     self.model.selection.elements)
+            ListView(
+                partial(SimpleArtist, plot_selection_marker, ax, self.model,
+                        elem_styles=self.element_style),
+                self.model.selection.elements)
             for ax in self.figure.axes
         ])
         self.twiss_curves.destroy()
@@ -338,7 +348,7 @@ class TwissFigure:
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
 
-        conf = self._graph_conf[name]
+        conf = self.config['graphs'][name]
         info = PlotInfo(
             name=name,
             title=conf['title'],
@@ -362,13 +372,13 @@ class TwissFigure:
     def get_graphs(self):
         """Get a list of graph names."""
         return {name: info['title']
-                for name, info in self._graph_conf.items()}
+                for name, info in self.config['graphs'].items()}
 
     def get_graph_columns(self):
         """Get a set of all columns used in any graph."""
         cols = {
             name
-            for info in self._graph_conf.values()
+            for info in self.config['graphs'].values()
             for name, _ in info['curves']
         }
         cols.add('s')
@@ -392,6 +402,43 @@ class TwissFigure:
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Curve manager")
         return dialog
+
+    def show_monitor_readouts(self, monitors):
+        monitors = [m.lower() for m in monitors]
+        elements = self.model.elements
+        offsets = self.session.config['online_control']['offsets']
+        monitor_data = [
+            {'s': elements[r.name].position,
+             'x': (r.posx + dx) if r.posx is not None else None,
+             'y': (r.posy + dy) if r.posy is not None else None,
+             'envx': r.envx,
+             'envy': r.envy,
+             }
+            for r in self.session.control.sampler.readouts_list
+            for dx, dy in [offsets.get(r.name.lower(), (0, 0))]
+            if r.name.lower() in monitors
+        ]
+        curve_data = {
+            name: np.array([d[name] for d in monitor_data])
+            for name in ['s', 'envx', 'envy', 'x', 'y']
+        }
+        self.add_curve('readouts', curve_data, 'readouts_style')
+
+    def add_curve(self, name, data, style):
+        for i, (n, d, s) in enumerate(self.loaded_curves):
+            if n == name:
+                self.loaded_curves[i][1].update(data)
+                j = self.shown_curves.index(i)
+                self.user_curves.items[j].update()
+                break
+        else:
+            self.loaded_curves.append((name, data, style))
+
+    def del_curve(self, name):
+        for i, (n, d, s) in enumerate(self.loaded_curves):
+            if n == name:
+                del self.loaded_curves[i]
+                break
 
 
 class Curve(SimpleArtist):
@@ -438,9 +485,9 @@ class ListView(SceneGraph):
         self.fn = fn
         self.model = model
         self.renew()
-        model.insert_notify.connect(self._add)
-        model.delete_notify.connect(self._rm)
-        model.modify_notify.connect(self._chg)
+        model.inserted.connect(self._add)
+        model.removed.connect(self._rm)
+        model.changed.connect(self._chg)
 
     def renew(self):
         self.items.clear()
@@ -458,103 +505,81 @@ class ListView(SceneGraph):
         self._add(idx, val)
 
     def destroy(self):
-        self.model.insert_notify.disconnect(self._add)
-        self.model.delete_notify.disconnect(self._rm)
-        self.model.modify_notify.disconnect(self._chg)
+        self.model.inserted.disconnect(self._add)
+        self.model.removed.disconnect(self._rm)
+        self.model.changed.disconnect(self._chg)
         super().destroy()
 
 
-class IndicatorManager(SceneGraph):
-
-    def create(self, axes, scene, style):
-        self.scene = scene
-        self.axes = axes
-        self.style = style
-        self.clear()
-        self.update()
-
-    def update(self):
-        # TODO: update indicators rather than recreate all of them anew:
-        scene, style = self.scene, self.style
-        self.clear([
-            SceneGraph([
-                ElementIndicator(ax, scene, style, elem)
-                for elem in self.scene.model.elements
-                if elem.base_name.lower() in style
-            ])
-            for ax in self.axes
-        ])
-
-    def remove(self):
-        super().remove()
+def plot_element_indicators(ax, elements, elem_styles=ELEM_STYLES,
+                            default_style=None, effects=None):
+    """Plot element indicators, i.e. create lattice layout plot."""
+    return [
+        line
+        for elem in elements
+        for line in plot_element_indicator(
+                ax, elem, elem_styles, default_style, effects)
+    ]
 
 
-class ElementIndicator(SimpleArtist):
+def draw_patch(ax, position, length, style):
+    at = to_ui('s', position)
+    if length != 0:
+        patch_w = to_ui('l', length)
+        return ax.axvspan(at, at + patch_w, **style)
+    else:
+        return ax.axvline(at, **style)
 
-    def __init__(self, axes, scene, style, elem, default=None, effects=None):
-        super().__init__(self._draw)
-        self.axes = axes
-        self.scene = scene
-        self.style = style
-        self.elem = elem
-        self.default = default
-        self.effects = effects or (lambda x: x)
 
-    def draw_patch(self, position, length, style):
-        at = to_ui('s', position)
-        if length != 0:
-            patch_w = to_ui('l', length)
-            return self.axes.axvspan(at, at + patch_w, **style)
-        else:
-            return self.axes.axvline(at, **style)
+def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
+                           default_style=None, effects=None):
+    """Return the element type name used for properties like coloring."""
+    type_name = elem.base_name.lower()
+    style = elem_styles.get(type_name, default_style)
+    if style is None:
+        return []
 
-    def _draw(self):
-        """Return the element type name used for properties like coloring."""
-        elem = self.elem
-        axes_dirs = {n[-1] for n in self.axes.y_name} & set("xy")
-        type_name = elem.base_name.lower()
-        # sigmoid flavor with convenient output domain [-1,+1]:
-        sigmoid = math.tanh
-        style = self.style.get(type_name, self.default)
-        if style is None:
-            return []
+    axes_dirs = {n[-1] for n in ax.y_name} & set("xy")
+    # sigmoid flavor with convenient output domain [-1,+1]:
+    sigmoid = math.tanh
 
-        style = dict(style, zorder=0)
-        styles = [(style, elem.position, elem.length)]
+    style = dict(style, zorder=0)
+    styles = [(style, elem.position, elem.length)]
 
-        if type_name == 'quadrupole':
-            invert = self.axes.y_name[0].endswith('y')
-            k1 = float(elem.k1) * 100                   # scale = 0.1/m²
-            scale = sigmoid(k1) * (1-2*invert)
-            style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
-        elif type_name == 'sbend':
-            angle = float(elem.angle) * 180/math.pi     # scale = 1 degree
-            ydis = sigmoid(angle) * (-0.15)
-            style['ymin'] += ydis
-            style['ymax'] += ydis
-            # MAD-X uses the condition k0=0 to check whether the attribute
-            # should be used (against my recommendations, and even though that
-            # means you can never have a kick that exactlycounteracts the
-            # bending angle):
-            if elem.k0 != 0:
-                style = dict(self.style.get('hkicker'),
-                             ymin=style['ymin'], ymax=style['ymax'])
-                styles.append((style, elem.position+elem.length/2, 0))
-                type_name = 'hkicker'
+    if type_name == 'quadrupole':
+        invert = ax.y_name[0].endswith('y')
+        k1 = float(elem.k1) * 100                   # scale = 0.1/m²
+        scale = sigmoid(k1) * (1-2*invert)
+        style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
+    elif type_name == 'sbend':
+        angle = float(elem.angle) * 180/math.pi     # scale = 1 degree
+        ydis = sigmoid(angle) * (-0.15)
+        style['ymin'] += ydis
+        style['ymax'] += ydis
+        # MAD-X uses the condition k0=0 to check whether the attribute
+        # should be used (against my recommendations, and even though that
+        # means you can never have a kick that exactlycounteracts the
+        # bending angle):
+        if elem.k0 != 0:
+            style = dict(elem_styles.get('hkicker'),
+                         ymin=style['ymin'], ymax=style['ymax'])
+            styles.append((style, elem.position+elem.length/2, 0))
+            type_name = 'hkicker'
 
-        if type_name in ('hkicker', 'vkicker'):
-            axis = "xy"[type_name.startswith('v')]
-            kick = float(elem.kick) * 10000         # scale = 0.1 mrad
-            ydis = sigmoid(kick) * 0.1
-            style['ymin'] += ydis
-            style['ymax'] += ydis
-            if axis not in axes_dirs:
-                style['alpha'] = 0.2
+    if type_name in ('hkicker', 'vkicker'):
+        axis = "xy"[type_name.startswith('v')]
+        kick = float(elem.kick) * 10000         # scale = 0.1 mrad
+        ydis = sigmoid(kick) * 0.1
+        style['ymin'] += ydis
+        style['ymax'] += ydis
+        if axis not in axes_dirs:
+            style['alpha'] = 0.2
 
-        return [
-            self.draw_patch(position, length, self.effects(style))
-            for style, position, length in styles
-        ]
+    effects = effects or (lambda x: x)
+    return [
+        draw_patch(ax, position, length, effects(style))
+        for style, position, length in styles
+    ]
 
 
 class CaptureTool:
@@ -740,6 +765,7 @@ class InfoTool(CaptureTool):
         self.scene = scene
         self.model = scene.model
         self.selection = self.model.selection
+        self._hovered = None
 
     def activate(self):
         """Start select mode."""
@@ -783,10 +809,17 @@ class InfoTool(CaptureTool):
         self.plot.canvas.setFocus()
 
     def onMotion(self, event):
-        scene = self.scene
         el_idx = event.elem.index
+        if self._hovered != el_idx:
+            self._hovered = el_idx
+            self._highlight_hovered_element()
+
+    def _highlight_hovered_element(self):
+        scene = self.scene
+        el_idx = self._hovered
         scene.hover_marker.clear([
-            draw_selection_marker(ax, scene, el_idx, _hover_effects, '#ffffff')
+            SimpleArtist(plot_selection_marker, ax, self.scene.model, el_idx,
+                         scene.element_style, _hover_effects, '#ffffff')
             for ax in scene.figure.axes
         ])
 
@@ -809,14 +842,13 @@ class InfoTool(CaptureTool):
         selected[top] = new_el_id
 
 
-def draw_selection_marker(axes, scene, el_idx, _effects=None,
-                          drift_color='#eeeeee'):
+def plot_selection_marker(ax, model, el_idx, elem_styles=ELEM_STYLES,
+                          _effects=None, drift_color='#eeeeee'):
     """In-figure markers for active/selected elements."""
-    style = scene.config['element_style']
-    elem = scene.model.elements[el_idx]
+    elem = model.elements[el_idx]
     default = dict(ymin=0, ymax=1, color=drift_color)
-    return ElementIndicator(
-        axes, scene, style, elem, default, _effects or _selection_effects)
+    return plot_element_indicator(
+        ax, elem, elem_styles, default, _effects or _selection_effects)
 
 
 def _selection_effects(style):
@@ -885,7 +917,8 @@ def make_user_curve(scene, idx):
             ax,
             partial(_get_curve_data, data, x_name),
             partial(_get_curve_data, data, y_name),
-            style, label=name,
+            scene.config[style] if isinstance(style, str) else style,
+            label=name,
         )
         for ax in scene.figure.axes
         for x_name, y_name in zip(ax.x_name, ax.y_name)

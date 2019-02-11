@@ -253,7 +253,7 @@ class TableModel(QtCore.QAbstractItemModel):
         super().__init__()
         self.titles = titles
         self._rows = rows = List() if data is None else data
-        self._rows.update_after.connect(self._refresh)
+        self._rows.update_finished.connect(self._refresh)
         self.parent = None
         self.root = TreeNode(NodeItem(rows=rows, rowitems=rowitems))
 
@@ -433,7 +433,7 @@ class ItemView:
             update = lambda *_: clear.setEnabled(bool(self.rows))
             clear.clicked.connect(self.rows.clear)
             self.selectionChangedSignal.connect(update)
-            self.rows.update_after.connect(update)
+            self.rows.update_finished.connect(update)
             update()
 
     def _columnContentWidth(self, column):

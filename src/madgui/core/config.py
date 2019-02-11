@@ -3,7 +3,6 @@ Config serialization utilities.
 """
 
 import os
-from importlib_resources import read_binary
 
 from madgui.util.signal import Signal
 from madgui.util import yaml
@@ -34,10 +33,6 @@ def update_recursive(a, b):
     return a
 
 
-def _loads(text):
-    return yaml.safe_load(text) if text else None
-
-
 def _load_file(path):
     try:
         return yaml.load_file(path or '')
@@ -48,7 +43,7 @@ def _load_file(path):
 def load(*config_files, isolated=False):
     """Read config file and recursively merge it with a base config file."""
     resources = [
-        _loads(read_binary('madgui.data', 'config.yml')),   # package default
+        yaml.load_resource('madgui.data', 'config.yml'),    # package default
     ] + ([] if isolated else [
         _load_file(get_default_user_config_path()),         # user folder
         _load_file('madgui.yml'),                           # current directory

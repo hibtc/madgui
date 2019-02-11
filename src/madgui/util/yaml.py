@@ -1,6 +1,8 @@
 import sys
 from collections import OrderedDict
 
+from importlib_resources import read_binary
+
 import numpy as np
 import yaml
 
@@ -28,6 +30,11 @@ def load_file(filename):
     """Load yaml document from filename."""
     with open(filename, 'rb') as f:
         return safe_load(f)
+
+
+def load_resource(package, resource):
+    """Load yaml document from package resource."""
+    return safe_load(read_binary(package, resource))
 
 
 if sys.version_info >= (3, 6):

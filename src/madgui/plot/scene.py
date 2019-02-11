@@ -26,8 +26,8 @@ class SceneNode:
 
     # private, should be called via the scene tree only:
 
-    def render(self, show=None):
-        show = self.enabled and (True if show is None else show)
+    def render(self, show=True):
+        show = self.enabled and show
         shown = self.shown
         if show and not shown:
             self.draw()
@@ -89,6 +89,12 @@ class SimpleArtist(SceneNode):
         super().on_remove()
 
     destroy = on_remove
+
+
+class RedrawArtist(SimpleArtist):
+
+    def update(self):
+        self.redraw()
 
 
 class SceneGraph(SceneNode):

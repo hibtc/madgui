@@ -213,9 +213,9 @@ class InfoBoxGroup:
         self.selection = selection
         self.boxes = [self.create_info_box(elem)
                       for elem in selection.elements]
-        selection.elements.insert_notify.connect(self._insert)
-        selection.elements.delete_notify.connect(self._delete)
-        selection.elements.modify_notify.connect(self._modify)
+        selection.elements.inserted.connect(self._insert)
+        selection.elements.removed.connect(self._delete)
+        selection.elements.changed.connect(self._modify)
 
     # keep info boxes in sync with current selection
 
