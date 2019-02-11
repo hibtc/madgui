@@ -143,7 +143,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.scene().addItem(self.coordinate_axes)
         self.scene().addItem(self.scale_indicator)
         self.setViewRect(self._sceneRect())
-        selection.elements.update_after.connect(self._update_selection)
+        selection.elements.update_finished.connect(self._update_selection)
 
     def _sceneRect(self):
         rect = self.scene().sceneRect()

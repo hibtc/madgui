@@ -96,7 +96,7 @@ class LogWindow(QtGui.QFrame):
         self.setLayout(HBoxLayout([
             self.infobar, self.linumbar, self.textctrl], tight=True))
         self.records = List()
-        self.records.insert_notify.connect(self._insert_record)
+        self.records.inserted.connect(self._insert_record)
         self.formats = {}
         self._enabled = {}
         self._domains = set()

@@ -448,9 +448,9 @@ class ListView(SceneGraph):
         self.fn = fn
         self.model = model
         self.renew()
-        model.insert_notify.connect(self._add)
-        model.delete_notify.connect(self._rm)
-        model.modify_notify.connect(self._chg)
+        model.inserted.connect(self._add)
+        model.removed.connect(self._rm)
+        model.changed.connect(self._chg)
 
     def renew(self):
         self.items.clear()
@@ -468,9 +468,9 @@ class ListView(SceneGraph):
         self._add(idx, val)
 
     def destroy(self):
-        self.model.insert_notify.disconnect(self._add)
-        self.model.delete_notify.disconnect(self._rm)
-        self.model.modify_notify.disconnect(self._chg)
+        self.model.inserted.disconnect(self._add)
+        self.model.removed.disconnect(self._rm)
+        self.model.changed.disconnect(self._chg)
         super().destroy()
 
 
