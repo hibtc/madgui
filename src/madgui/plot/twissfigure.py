@@ -100,7 +100,6 @@ class TwissFigure:
         self.model = session.model()
         self.config = dict(CONFIG, **session.config.get('twissfigure', {}))
         self.matcher = matcher
-        self.invalidate = self.draw_idle
         # scene
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
@@ -123,7 +122,7 @@ class TwissFigure:
             self.user_curves,
             self.hover_marker,
         ])
-        self.scene_graph.parent = self      # for invalidation
+        self.scene_graph.invalidate = self.draw_idle
         # style
         self.x_name = 's'
         self.x_label = 's'
