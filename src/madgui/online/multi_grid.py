@@ -96,7 +96,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def closeEvent(self, event):
         self.corrector.stop()
-        self.frame.del_curve("monitors")
+        self.frame.del_curve("readouts")
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""

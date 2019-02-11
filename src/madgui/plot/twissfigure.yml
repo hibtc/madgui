@@ -37,7 +37,7 @@ reference_style:
   color: "black"
 
 # Style for monitor markers:
-monitor_style:
+readouts_style:
   marker: +
   fillstyle: full
   markersize: 12

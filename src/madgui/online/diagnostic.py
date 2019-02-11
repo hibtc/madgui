@@ -93,7 +93,7 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def remove(self):
-        self.frame.del_curve("monitors")
+        self.frame.del_curve("readouts")
 
     def draw(self):
         shown = self._monconf['show']

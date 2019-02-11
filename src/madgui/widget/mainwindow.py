@@ -688,7 +688,7 @@ class MainWindow(QtGui.QMainWindow):
             name: np.array([d[name] for d in monitor_data])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
-        self.add_curve('monitors', curve_data, 'monitor_style')
+        self.add_curve('readouts', curve_data, 'readouts_style')
 
     def add_curve(self, name, data, style):
         # FIXME: Our way of adding ourselves to existing and to-be-opened
