@@ -93,11 +93,11 @@ class MonitorWidgetBase(QtGui.QWidget):
         self.draw()
 
     def remove(self):
-        self.frame.del_curve("readouts")
+        self.view.del_curve("readouts")
 
     def draw(self):
         shown = self._monconf['show']
-        self.frame.show_monitor_readouts([
+        self.view.show_monitor_readouts([
             mon.name
             for mon in self.readouts
             if self.selected(mon)
@@ -146,8 +146,8 @@ class PlotMonitorWidget(MonitorWidgetBase):
         self._selected = self._monconf.setdefault('show', {})
 
     def showEvent(self, event):
-        if not self.frame.graphs('envelope'):
-            self.frame.open_graph('orbit')
+        self.view = self.frame.open_graph(
+            'envelope' if self.frame.graphs('envelope') else 'orbit')
         self.update()
 
     exportFilters = [
@@ -213,7 +213,7 @@ class OffsetsWidget(MonitorWidgetBase):
         self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
-        self.frame.open_graph('orbit')
+        self.view = self.frame.open_graph('orbit')
         self.update()
 
     def on_update(self):
@@ -296,7 +296,7 @@ class OrbitWidget(_FitWidget):
         self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
-        self.frame.open_graph('orbit')
+        self.view = self.frame.open_graph('orbit')
         self.update()
 
     def export_to(self, filename):
@@ -329,7 +329,7 @@ class OrbitWidget(_FitWidget):
         range_start = records[0].name
         ret, curve = fit_particle_orbit(
             self.model, add_offsets(records, self._offsets), secmaps, range_start)
-        self.frame.add_curve("backtrack", curve, 'backtrack_style')
+        self.view.add_curve("backtrack", curve, 'backtrack_style')
         return ret
 
 
@@ -347,7 +347,7 @@ class EmittanceDialog(_FitWidget):
         self._selected = self._monconf.setdefault('optics', {})
 
     def showEvent(self, event):
-        self.frame.open_graph('envelope')
+        self.view = self.frame.open_graph('envelope')
         self.update()
 
     def apply(self):

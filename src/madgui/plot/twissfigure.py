@@ -85,7 +85,6 @@ class TwissFigure:
 
     xlim = None
     snapshot_num = 0
-    loaded_curves = List()
 
     graph_changed = Signal()
 
@@ -101,6 +100,7 @@ class TwissFigure:
         self.config = dict(CONFIG, **session.config.get('twissfigure', {}))
         self.matcher = matcher
         # scene
+        self.loaded_curves = List()
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
         self.twiss_curves = SceneGraph()
@@ -402,6 +402,43 @@ class TwissFigure:
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Curve manager")
         return dialog
+
+    def show_monitor_readouts(self, monitors):
+        monitors = [m.lower() for m in monitors]
+        elements = self.model.elements
+        offsets = self.session.config['online_control']['offsets']
+        monitor_data = [
+            {'s': elements[r.name].position,
+             'x': (r.posx + dx) if r.posx is not None else None,
+             'y': (r.posy + dy) if r.posy is not None else None,
+             'envx': r.envx,
+             'envy': r.envy,
+             }
+            for r in self.session.control.sampler.readouts_list
+            for dx, dy in [offsets.get(r.name.lower(), (0, 0))]
+            if r.name.lower() in monitors
+        ]
+        curve_data = {
+            name: np.array([d[name] for d in monitor_data])
+            for name in ['s', 'envx', 'envy', 'x', 'y']
+        }
+        self.add_curve('readouts', curve_data, 'readouts_style')
+
+    def add_curve(self, name, data, style):
+        for i, (n, d, s) in enumerate(self.loaded_curves):
+            if n == name:
+                self.loaded_curves[i][1].update(data)
+                j = self.shown_curves.index(i)
+                self.user_curves.items[j].update()
+                break
+        else:
+            self.loaded_curves.append((name, data, style))
+
+    def del_curve(self, name):
+        for i, (n, d, s) in enumerate(self.loaded_curves):
+            if n == name:
+                del self.loaded_curves[i]
+                break
 
 
 class Curve(SimpleArtist):

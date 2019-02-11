@@ -96,7 +96,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     def closeEvent(self, event):
         self.corrector.stop()
-        self.frame.del_curve("readouts")
+        self.view.del_curve("readouts")
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""
@@ -114,7 +114,7 @@ class CorrectorWidget(QtGui.QWidget):
             self.get_steerer_row, corr.variables)
         self.tab_targets.set_viewmodel(
             self.get_cons_row, corr.targets, unit=True)
-        self.corrector.session.window().open_graph('orbit')
+        self.view = self.corrector.session.window().open_graph('orbit')
 
     def set_initial_values(self):
         self.btn_fit.setFocus()
@@ -238,7 +238,7 @@ class CorrectorWidget(QtGui.QWidget):
 
     @Queued.method
     def draw_idle(self):
-        self.frame.show_monitor_readouts(
+        self.view.show_monitor_readouts(
             self.corrector.monitors[:])
 
     @property

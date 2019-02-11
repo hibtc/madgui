@@ -12,8 +12,6 @@ import subprocess
 import time
 from functools import partial
 
-import numpy as np
-
 from madgui.qt import Qt, QtGui, load_ui
 from madgui.util.signal import Signal
 from madgui.util.collections import Selection
@@ -668,51 +666,7 @@ class MainWindow(QtGui.QMainWindow):
             self.views[-1].set_graph(name)
         else:
             self.showTwiss(name)
-
-    def show_monitor_readouts(self, monitors):
-        monitors = [m.lower() for m in monitors]
-        elements = self.model().elements
-        offsets = self.session.config['online_control']['offsets']
-        monitor_data = [
-            {'s': elements[r.name].position,
-             'x': (r.posx + dx) if r.posx is not None else None,
-             'y': (r.posy + dy) if r.posy is not None else None,
-             'envx': r.envx,
-             'envy': r.envy,
-             }
-            for r in self.control.sampler.readouts_list
-            for dx, dy in [offsets.get(r.name.lower(), (0, 0))]
-            if r.name.lower() in monitors
-        ]
-        curve_data = {
-            name: np.array([d[name] for d in monitor_data])
-            for name in ['s', 'envx', 'envy', 'x', 'y']
-        }
-        self.add_curve('readouts', curve_data, 'readouts_style')
-
-    def add_curve(self, name, data, style):
-        # FIXME: Our way of adding ourselves to existing and to-be-opened
-        # figures is tedious and error-prone. We should really rework the
-        # plotting system to separate the artist from the scene element. We
-        # could then simply register a generic artist to plot the content into
-        # all potential scenes.
-        from madgui.plot.twissfigure import TwissFigure
-        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
-            if n == name:
-                TwissFigure.loaded_curves[i][1].update(data)
-                for scene in self.views:
-                    if i in scene.shown_curves:
-                        j = scene.shown_curves.index(i)
-                        scene.user_curves.items[j].update()
-                break
-        else:
-            TwissFigure.loaded_curves.append((name, data, style))
-
-    def del_curve(self, name):
-        from madgui.plot.twissfigure import TwissFigure
-        for i, (n, d, s) in enumerate(TwissFigure.loaded_curves):
-            if n == name:
-                del TwissFigure.loaded_curves[i]
+        return self.views[-1]
 
     def _createShell(self):
         """Create a python shell widget."""
