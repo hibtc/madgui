@@ -12,6 +12,26 @@ from madgui.util.collections import List
 Constraint = namedtuple('Constraint', ['elem', 'pos', 'axis', 'value'])
 
 
+# Select which element paramters can be varied when matching a TWISS function:
+# TODO: fill in more rules
+MATCH_RULES = {
+    'betx':     ['quadrupole'],
+    'bety':     ['quadrupole'],
+    'alfx':     ['quadrupole'],
+    'alfy':     ['quadrupole'],
+    'sig11':    ['quadrupole'],
+    'sig33':    ['quadrupole'],
+    'sig12':    ['quadrupole'],
+    'sig22':    ['quadrupole'],
+    'sig34':    ['quadrupole'],
+    'sig43':    ['quadrupole'],
+    'x':        ['quadrupole', 'sbend', 'kicker', 'hkicker'],
+    'y':        ['quadrupole', 'sbend', 'kicker', 'vkicker'],
+    'px':       ['quadrupole', 'sbend', 'kicker', 'hkicker'],
+    'py':       ['quadrupole', 'sbend', 'kicker', 'vkicker'],
+}
+
+
 class Matcher:
 
     """
@@ -21,10 +41,10 @@ class Matcher:
     matched = Signal()
     finished = Signal()
 
-    def __init__(self, model, rules):
+    def __init__(self, model, rules=None):
         """Create empty matcher."""
         self.model = model
-        self.rules = rules
+        self.rules = rules = rules or MATCH_RULES
         self.knobs = model.get_knobs()
         self.constraints = List()
         self.variables = List()

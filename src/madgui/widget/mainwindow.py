@@ -544,7 +544,7 @@ class MainWindow(QtGui.QMainWindow):
         logging.info('Loading {}'.format(model.filename))
 
         from madgui.model.match import Matcher
-        self.matcher = Matcher(model, self.config['matching'])
+        self.matcher = Matcher(model, self.config.get('matching'))
 
         self.user_ns.madx = model.madx
         self.user_ns.twiss = model.twiss()

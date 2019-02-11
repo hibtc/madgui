@@ -37,7 +37,7 @@ class Corrector(Matcher):
     mode = 'xy'
 
     def __init__(self, session, direct=True):
-        super().__init__(session.model(), session.config['matching'])
+        super().__init__(session.model())
         self.session = session
         self.control = control = session.control
         self.direct = direct

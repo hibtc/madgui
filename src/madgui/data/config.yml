@@ -50,25 +50,6 @@ str_folder: ""
 monitors: {}
 
 
-# Select which element paramters can be varied when matching a TWISS function:
-matching:
-  # TODO: fill in more rules
-  betx:     [quadrupole]
-  bety:     [quadrupole]
-  alfx:     [quadrupole]
-  alfy:     [quadrupole]
-  sig11:    [quadrupole]
-  sig33:    [quadrupole]
-  sig12:    [quadrupole]
-  sig22:    [quadrupole]
-  sig34:    [quadrupole]
-  sig43:    [quadrupole]
-  x:        [quadrupole,sbend,kicker,hkicker]
-  y:        [quadrupole,sbend,kicker,vkicker]
-  px:       [quadrupole,sbend,kicker,hkicker]
-  py:       [quadrupole,sbend,kicker,vkicker]
-
-
 summary_attrs:
   common:       [name, base_name, index, position, length]
   srotation:    [angle]
