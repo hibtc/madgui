@@ -729,6 +729,7 @@ class InfoTool(CaptureTool):
         self.scene = scene
         self.model = scene.model
         self.selection = self.model.selection
+        self._hovered = None
 
     def activate(self):
         """Start select mode."""
@@ -772,8 +773,14 @@ class InfoTool(CaptureTool):
         self.plot.canvas.setFocus()
 
     def onMotion(self, event):
-        scene = self.scene
         el_idx = event.elem.index
+        if self._hovered != el_idx:
+            self._hovered = el_idx
+            self._highlight_hovered_element()
+
+    def _highlight_hovered_element(self):
+        scene = self.scene
+        el_idx = self._hovered
         scene.hover_marker.clear([
             SimpleArtist(plot_selection_marker, ax, self.scene.model, el_idx,
                          scene.element_style, _hover_effects, '#ffffff')
