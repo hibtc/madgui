@@ -197,10 +197,12 @@ class ListView(SceneGraph):
         model.changed.connect(self._chg)
 
     def _add(self, idx, item):
-        name = (getattr(item, 'name', None) or
-                getattr(item, 'elem', None))
+        # This handles items with `name` or `elem` attributes and allows
+        # `item.elem` to be either a name string or `Element` object:
+        elem = getattr(item, 'elem', item)
+        name = getattr(elem, 'name', elem)
         args = self.args + (item,)
-        node = SimpleArtist(name, self.fn, *args, **self.kwargs)
+        node = SimpleArtist(str(name), self.fn, *args, **self.kwargs)
         self.insert(idx, node)
 
     def _rm(self, idx):
