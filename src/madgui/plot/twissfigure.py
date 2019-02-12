@@ -37,15 +37,14 @@ ELEM_STYLES = CONFIG['element_style']
 
 
 PlotInfo = namedtuple('PlotInfo', [
-    'name',     # internal graph id (e.g. 'beta.g')
+    'name',     # internal graph name (e.g. 'beta')
     'title',    # long display name ('Beta function')
     'curves',   # [CurveInfo]
 ])
 
 CurveInfo = namedtuple('CurveInfo', [
-    'name',     # internal curve id (e.g. 'beta.g.a')
-    'short',    # display name for statusbar ('beta_a')
-    'label',    # y-axis/legend label ('$\beta_a$')
+    'name',     # curve name (e.g. 'betx')
+    'label',    # y-axis/legend label ('$\beta_x$')
     'style',    # **kwargs for ax.plot
 ])
 
@@ -211,10 +210,10 @@ class TwissFigure:
         axes = figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.graph_info.curves):
             ax.x_name.append(self.x_name)
-            ax.y_name.append(info.short)
+            ax.y_name.append(info.name)
             # assuming all curves have the same y units (as they should!!):
             ax.x_unit = self.x_unit
-            ax.y_unit = ui_units.get(info.short)
+            ax.y_unit = ui_units.get(info.name)
         self.twiss_curves.clear([
             Curve(
                 ax,
@@ -235,7 +234,7 @@ class TwissFigure:
             ax.format_coord = partial(self.format_coord, ax)
             # set axes properties for convenient access:
             curve.x_name = self.x_name
-            curve.y_name = curve.info.short
+            curve.y_name = curve.info.name
         self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
         if self.share_axes:
@@ -334,18 +333,14 @@ class TwissFigure:
             name=name,
             title=conf['title'],
             curves=[
-                CurveInfo(
-                    name=name,
-                    short=name,
-                    label=label,
-                    style=style)
+                CurveInfo(name, label, style)
                 for (name, label, style) in conf['curves']
             ])
 
         twiss = self.model.twiss()
         xdata = twiss.s + self.model.start.position
         data = {
-            curve.short: twiss[curve.name]
+            curve.name: twiss[curve.name]
             for curve in info.curves
         }
         data['s'] = xdata
