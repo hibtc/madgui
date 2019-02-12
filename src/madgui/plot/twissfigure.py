@@ -103,9 +103,7 @@ class TwissFigure:
         self.shown_curves = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
         self.twiss_curves = SceneGraph()
-        self.user_curves = ListView(
-            partial(make_user_curve, self),
-            self.shown_curves)
+        self.user_curves = SceneGraph()
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
@@ -189,6 +187,13 @@ class TwissFigure:
             ax.y_name = []
             ax.get_xaxis().set_minor_locator(AutoMinorLocator())
             ax.get_yaxis().set_minor_locator(AutoMinorLocator())
+        self.user_curves.destroy()
+        self.user_curves.clear([
+            ListView(
+                partial(SimpleArtist, plot_user_curve, ax, self),
+                self.shown_curves)
+            for ax in figure.axes
+        ])
         self.indicators.destroy()
         self.indicators.clear([
             RedrawArtist(
@@ -231,7 +236,6 @@ class TwissFigure:
                 label=ax_label(curve_info.label, ui_units.get(curve_info.name)))
             for ax, curve_info in zip(axes, self.graph_info.curves)
         ])
-        self.user_curves.renew()
         self.scene_graph.render()
         if self.share_axes:
             ax = figure.axes[0]
@@ -406,15 +410,11 @@ class ListView(SceneGraph):
         super().__init__()
         self.fn = fn
         self.model = model
-        self.renew()
+        for idx, item in enumerate(model):
+            self._add(idx, item)
         model.inserted.connect(self._add)
         model.removed.connect(self._rm)
         model.changed.connect(self._chg)
-
-    def renew(self):
-        self.items.clear()
-        for idx, item in enumerate(self.model):
-            self._add(idx, item)
 
     def _add(self, idx, item):
         self.insert(idx, self.fn(item))
@@ -830,16 +830,16 @@ class CompareTool:
         self.scene._curveManager.create()
 
 
-def make_user_curve(scene, idx):
+def plot_user_curve(ax, scene, idx):
     name, data, style = scene.loaded_curves[idx]
-    return SceneGraph([
-        SimpleArtist(
-            plot_curve, ax, data, x_name, y_name,
+    return [
+        line
+        for x_name, y_name in zip(ax.x_name, ax.y_name)
+        for line in plot_curve(
+            ax, data, x_name, y_name,
             scene.config[style] if isinstance(style, str) else style,
             label=name)
-        for ax in scene.figure.axes
-        for x_name, y_name in zip(ax.x_name, ax.y_name)
-    ])
+    ]
 
 
 def _get_curve_data(data, name):
