@@ -19,7 +19,7 @@ from madgui.qt import QtGui, Qt
 from madgui.util.signal import Signal
 from madgui.util.yaml import load_resource
 
-from madgui.util.qt import load_icon_resource, SingleWindow, Queued
+from madgui.util.qt import load_icon_resource, SingleWindow
 from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List
 from madgui.util.unit import (
@@ -223,13 +223,11 @@ class TwissFigure:
                                shadow=True, ncol=4)
             legend.draggable()
 
-    @Queued.method
     def draw_idle(self):
         """Draw the figure on its canvas."""
         canvas = self.figure.canvas
         if canvas:
-            canvas.draw()
-            canvas.updateGeometry()
+            canvas.draw_idle()
 
     def destroy(self):
         self.model.updated.disconnect(self.update)
