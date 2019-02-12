@@ -106,6 +106,13 @@ class List:
         self.removed.connect(other.__delitem__)
         self.changed.connect(other.__setitem__)
 
+    def map(self, fn):
+        l = List([fn(x) for x in self])
+        self.inserted.connect(lambda i, x: l.insert(i, fn(x)))
+        self.changed.connect(lambda i, x: l.__setitem__(i, fn(x)))
+        self.removed.connect(l.__delitem__)
+        return l
+
     def touch(self):
         self[:] = self
 
