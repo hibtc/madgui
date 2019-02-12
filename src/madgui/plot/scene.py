@@ -27,8 +27,10 @@ class SceneNode:
 
     def enable(self, enabled=True):
         """Enable/disable the element individually."""
-        self._enabled = enabled
-        self.render()
+        if self._enabled != enabled:
+            self._enabled = enabled
+            self.render()
+            self.draw_idle()
 
     def enabled(self):
         """Check whether this element should be drawn."""
@@ -54,10 +56,8 @@ class SceneNode:
         shown = self.shown
         if show and not shown:
             self._draw()
-            self.draw_idle()
         elif not show and shown:
             self._erase()
-            self.draw_idle()
         self.shown = show
 
     def on_clear_figure(self):
@@ -157,17 +157,20 @@ class SceneGraph(SceneNode):
         self._adopt(items)
         for item in items:
             item.render(self.shown)
+        self.draw_idle()
 
     def insert(self, index, item):
         self.items.insert(index, item)
         self._adopt((item,))
         item.render(self.shown)
+        self.draw_idle()
 
     def pop(self, item):
         """Remove and hide one item (by value)."""
         item.render(False)
         item.destroy()
         self.items.remove(item)
+        self.draw_idle()
 
     def on_clear_figure(self):
         for item in self.items:
