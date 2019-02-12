@@ -109,9 +109,7 @@ class TwissFigure:
         self.indicators = SceneGraph()
         self.indicators.enable(False)
         self.select_markers = SceneGraph()
-        self.constr_markers = ListView(
-            partial(SimpleArtist, draw_constraint, self),
-            self.matcher.constraints)
+        self.constr_markers = SceneGraph()
         self.hover_marker = SceneGraph()
         self.scene_graph = SceneGraph([
             self.indicators,
@@ -168,14 +166,14 @@ class TwissFigure:
         graph_name = graph_name or self.config['default_graph']
         if graph_name == self.graph_name:
             return
-        self.graph_name = graph_name
+        self.graph_info = self.get_graph_info(graph_name, self.xlim)
+        self.graph_name = self.graph_info.name
         self.reset()
         self.graph_changed.emit()
 
     def reset(self):
         """Reset figure and plot."""
         self.remove()
-        self.update_graph_data()
         figure = self.figure
         figure.clear()
         num_curves = len(self.graph_info.curves)
@@ -206,6 +204,13 @@ class TwissFigure:
                 self.model.selection.elements)
             for ax in figure.axes
         ])
+        self.constr_markers.destroy()
+        self.constr_markers.clear([
+            ListView(
+                partial(SimpleArtist, plot_constraint, ax, self),
+                self.matcher.constraints)
+            for ax in figure.axes
+        ])
         self.twiss_curves.destroy()
         axes = figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.graph_info.curves):
@@ -214,28 +219,19 @@ class TwissFigure:
             # assuming all curves have the same y units (as they should!!):
             ax.x_unit = self.x_unit
             ax.y_unit = ui_units.get(info.name)
+            if not self.share_axes:
+                ax.set_ylabel(info.label)
+            # replace formatter method for mouse status:
+            ax.format_coord = partial(self.format_coord, ax)
+        self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))
         self.twiss_curves.clear([
-            Curve(
-                ax,
-                partial(self.get_float_data, self.x_name),
-                partial(self.get_float_data, curve_info.name),
+            RedrawArtist(
+                plot_curve, ax, self.model.twiss, self.x_name, curve_info.name,
                 with_outline(curve_info.style),
-                label=ax_label(curve_info.label, ui_units.get(curve_info.name)),
-                info=curve_info,
-            )
+                label=ax_label(curve_info.label, ui_units.get(curve_info.name)))
             for ax, curve_info in zip(axes, self.graph_info.curves)
         ])
         self.user_curves.renew()
-        for curve in self.twiss_curves.items:
-            ax = curve.axes
-            if not self.share_axes:
-                ax.set_ylabel(curve.label)
-            # replace formatter method for mouse status:
-            ax.format_coord = partial(self.format_coord, ax)
-            # set axes properties for convenient access:
-            curve.x_name = self.x_name
-            curve.y_name = curve.info.name
-        self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.render()
         if self.share_axes:
             ax = figure.axes[0]
@@ -302,49 +298,25 @@ class TwissFigure:
     @Queued.method
     def update(self):
         """Update existing plot after TWISS recomputation."""
-        self.update_graph_data()
         self.scene_graph.update()
 
-    def update_graph_data(self):
-        self.graph_info, graph_data = \
-            self.get_graph_data(self.graph_name, self.xlim)
-        self.graph_data = {
-            name: to_ui(name, values)
-            for name, values in graph_data.items()
-        }
-        self.graph_name = self.graph_info.name
-
-    def get_float_data(self, name):
-        """Get data for the given parameter from model."""
-        return self.graph_data[name]
-
     def get_curve_by_name(self, name):
-        return next((c for c in self.twiss_curves.items if c.y_name == name),
+        return next((c for c in self.graph_info.curves if c.name == name),
                     None)
 
     # curves
 
-    def get_graph_data(self, name, xlim):
+    def get_graph_info(self, name, xlim):
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
-
         conf = self.config['graphs'][name]
-        info = PlotInfo(
+        return PlotInfo(
             name=name,
             title=conf['title'],
             curves=[
                 CurveInfo(name, label, style)
                 for (name, label, style) in conf['curves']
             ])
-
-        twiss = self.model.twiss()
-        xdata = twiss.s + self.model.start.position
-        data = {
-            curve.name: twiss[curve.name]
-            for curve in info.curves
-        }
-        data['s'] = xdata
-        return info, data
 
     def get_graphs(self):
         """Get a list of graph names."""
@@ -418,41 +390,14 @@ class TwissFigure:
                 break
 
 
-class Curve(SimpleArtist):
-
+def plot_curve(axes, data, x_name, y_name, style, label=None):
     """Plot a TWISS parameter curve model into a 2D figure."""
-
-    def __init__(self, axes, get_xdata, get_ydata, style,
-                 label=None, info=None):
-        """Store meta data."""
-        self.axes = axes
-        self.get_xdata = get_xdata
-        self.get_ydata = get_ydata
-        self.style = style
-        self.label = label
-        self.lines = ()
-        self.info = info
-
-    def _get_data(self):
-        xdata = self.get_xdata()
-        ydata = self.get_ydata()
-        if xdata is None or ydata is None:
-            return (), ()
-        return xdata, ydata
-
-    def draw(self):
-        """Make one subplot."""
-        xdata, ydata = self._get_data()
-        self.lines = self.axes.plot(
-            xdata, ydata, label=self.label, **self.style)
-        self.line, = self.lines
-
-    def update(self):
-        """Update the y values for one subplot."""
-        xdata, ydata = self._get_data()
-        self.line.set_xdata(self.get_xdata())
-        self.line.set_ydata(self.get_ydata())
-        self.invalidate()
+    table = data() if callable(data) else data
+    xdata = _get_curve_data(table, x_name)
+    ydata = _get_curve_data(table, y_name)
+    if xdata is None or ydata is None:
+        xdata, ydata = (), ()
+    return axes.plot(xdata, ydata, label=label, **style)
 
 
 class ListView(SceneGraph):
@@ -637,28 +582,27 @@ class MatchTool(CaptureTool):
         """Handle clicks into the figure in matching mode."""
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
-        curves = self.scene.twiss_curves.items
+        curves = self.scene.graph_info.curves
         index = int(bool(self.scene.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
                          len(curves) > 1))
-        curve = [c for c in curves if c.axes is event.axes][index]
-        name = curve.y_name
+        name = event.axes.y_name[index]
         if event.button == 1:
-            return self.on_left_click(event, curves, name)
+            return self.add_constraint(event, name)
         if event.button == 2:
-            return self.on_middle_click(event, curves, name)
+            return self.remove_constraint(event, name)
 
-    def on_middle_click(self, event, curves, name):
+    def remove_constraint(self, event, name):
         """Remove constraint nearest to cursor location."""
         constraints = [c for c in self.matcher.constraints
                        if c.axis == name]
         if constraints:
             cons = min(constraints, key=lambda c: abs(c.pos-event.x))
             elem = cons.elem
-            for c in curves:
-                self.removeConstraint(elem, c.y_name)
+            for c in self.scene.graph_info.curves:
+                self.removeConstraint(elem, c.name)
 
-    def on_left_click(self, event, curves, name):
+    def add_constraint(self, event, name):
         """Add constraint at cursor location."""
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
@@ -677,10 +621,10 @@ class MatchTool(CaptureTool):
             # add another constraint to hold the orthogonal axis constant
             # TODO: should do this only once for each yname!
             constraints.extend([
-                Constraint(elem, pos, c.y_name,
-                           self.model.get_twiss(elem.node_name, c.y_name, pos))
-                for c in curves
-                if c.y_name != name
+                Constraint(elem, pos, c.name,
+                           self.model.get_twiss(elem.node_name, c.name, pos))
+                for c in self.scene.graph_info.curves
+                if c.name != name
             ])
 
         constraints = sorted(constraints, key=lambda c: (c.pos, c.axis))
@@ -712,15 +656,14 @@ class MatchTool(CaptureTool):
         del self.matcher.variables[:]
 
 
-def draw_constraint(scene, constraint):
+def plot_constraint(ax, scene, constraint):
     """Draw one constraint representation in the graph."""
     elem, pos, axis, val = constraint
-    curve = scene.get_curve_by_name(axis)
     style = scene.config['constraint_style']
-    return curve and curve.axes.plot(
-        to_ui(curve.x_name, pos),
-        to_ui(curve.y_name, val),
-        **style) or ()
+    return ax.plot(
+        to_ui('s', pos),
+        to_ui(axis, val),
+        **style) if axis in ax.y_name else ()
 
 
 # Toolbar item for info boxes
@@ -890,13 +833,10 @@ class CompareTool:
 def make_user_curve(scene, idx):
     name, data, style = scene.loaded_curves[idx]
     return SceneGraph([
-        Curve(
-            ax,
-            partial(_get_curve_data, data, x_name),
-            partial(_get_curve_data, data, y_name),
+        SimpleArtist(
+            plot_curve, ax, data, x_name, y_name,
             scene.config[style] if isinstance(style, str) else style,
-            label=name,
-        )
+            label=name)
         for ax in scene.figure.axes
         for x_name, y_name in zip(ax.x_name, ax.y_name)
     ])
