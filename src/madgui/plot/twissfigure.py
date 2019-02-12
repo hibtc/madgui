@@ -24,7 +24,7 @@ from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List, maintain_selection
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import SimpleArtist, SceneGraph
+from madgui.plot.scene import SimpleArtist, SceneGraph, ListView
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
@@ -384,35 +384,6 @@ def plot_curve(axes, data, x_name, y_name, style, label=None):
     if xdata is None or ydata is None:
         xdata, ydata = (), ()
     return axes.plot(xdata, ydata, label=label, **style)
-
-
-class ListView(SceneGraph):
-
-    def __init__(self, model, fn, *args, **kwargs):
-        super().__init__()
-        self.fn = partial(SimpleArtist, fn, *args, **kwargs)
-        self.model = model
-        for idx, item in enumerate(model):
-            self._add(idx, item)
-        model.inserted.connect(self._add)
-        model.removed.connect(self._rm)
-        model.changed.connect(self._chg)
-
-    def _add(self, idx, item):
-        self.insert(idx, self.fn(item))
-
-    def _rm(self, idx):
-        self.pop(self.items[idx])
-
-    def _chg(self, idx, val):
-        self._rm(idx)
-        self._add(idx, val)
-
-    def destroy(self):
-        self.model.inserted.disconnect(self._add)
-        self.model.removed.disconnect(self._rm)
-        self.model.changed.disconnect(self._chg)
-        super().destroy()
 
 
 def plot_element_indicators(ax, elements, elem_styles=ELEM_STYLES,

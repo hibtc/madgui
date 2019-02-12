@@ -8,6 +8,8 @@ __all__ = [
     'SceneGraph',
 ]
 
+from functools import partial
+
 
 class SceneNode:
 
@@ -165,3 +167,32 @@ class SceneGraph(SceneNode):
         for item in self.items:
             item.destroy()
         self.items.clear()
+
+
+class ListView(SceneGraph):
+
+    def __init__(self, model, fn, *args, **kwargs):
+        super().__init__()
+        self.fn = partial(SimpleArtist, fn, *args, **kwargs)
+        self.model = model
+        for idx, item in enumerate(model):
+            self._add(idx, item)
+        model.inserted.connect(self._add)
+        model.removed.connect(self._rm)
+        model.changed.connect(self._chg)
+
+    def _add(self, idx, item):
+        self.insert(idx, self.fn(item))
+
+    def _rm(self, idx):
+        self.pop(self.items[idx])
+
+    def _chg(self, idx, val):
+        self._rm(idx)
+        self._add(idx, val)
+
+    def destroy(self):
+        self.model.inserted.disconnect(self._add)
+        self.model.removed.disconnect(self._rm)
+        self.model.changed.disconnect(self._chg)
+        super().destroy()
