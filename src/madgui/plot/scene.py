@@ -16,6 +16,7 @@ class SceneNode:
     parent = None
     shown = False       # if this element is currently drawn
     enabled = True      # whether this element (+children) should be drawn
+    figure = None
 
     # public API:
 
@@ -77,7 +78,11 @@ class SimpleArtist(SceneNode):
         self.kwargs = kwargs
 
     def draw(self):
-        self.lines = self.artist(*self.args, **self.kwargs)
+        self.lines = [
+            line
+            for ax in self.figure.axes
+            for line in self.artist(ax, *self.args, **self.kwargs)
+        ]
 
     def remove(self):
         for line in self.lines:
@@ -91,24 +96,20 @@ class SimpleArtist(SceneNode):
     destroy = on_remove
 
 
-class RedrawArtist(SimpleArtist):
-
-    def update(self):
-        self.redraw()
-
-
 class SceneGraph(SceneNode):
 
     """A scene element that is composed of multiple elements."""
 
-    def __init__(self, items=()):
+    def __init__(self, items=(), figure=None):
         super().__init__()
         self.items = list(items)
+        self.figure = figure
         self._adopt(items)
 
     def _adopt(self, items):
         for item in items:
             item.parent = self
+            item.figure = self.figure
 
     # overrides
 

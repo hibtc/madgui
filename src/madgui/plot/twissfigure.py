@@ -24,7 +24,7 @@ from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List, maintain_selection
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import SimpleArtist, RedrawArtist, SceneGraph
+from madgui.plot.scene import SimpleArtist, SceneGraph
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
@@ -98,17 +98,31 @@ class TwissFigure:
         self.model = session.model()
         self.config = dict(CONFIG, **session.config.get('twissfigure', {}))
         self.matcher = matcher
+        self.element_style = self.config['element_style']
         # scene
         self.loaded_curves = List()
         self.shown_curves = List()
+        self.curve_info = List()
+        self.hovered_elements = List()
         maintain_selection(self.shown_curves, self.loaded_curves)
-        self.twiss_curves = SceneGraph()
-        self.user_curves = SceneGraph()
-        self.indicators = SceneGraph()
+        self.twiss_curves = ListView(self.curve_info, self.plot_twiss_curve)
+        self.user_curves = ListView(self.shown_curves, self.plot_user_curve)
+        self.indicators = SimpleArtist(
+            plot_element_indicators, self.model.elements,
+            elem_styles=self.element_style)
         self.indicators.enable(False)
-        self.select_markers = SceneGraph()
-        self.constr_markers = SceneGraph()
-        self.hover_marker = SceneGraph()
+        self.select_markers = ListView(
+            self.model.selection.elements,
+            plot_selection_marker, self.model,
+            elem_styles=self.element_style)
+        self.constr_markers = ListView(
+            self.matcher.constraints,
+            plot_constraint, self)
+        self.hover_marker = ListView(
+            self.hovered_elements,
+            plot_selection_marker, self.model,
+            elem_styles=self.element_style,
+            _effects=_hover_effects, drift_color='#ffffff')
         self.scene_graph = SceneGraph([
             self.indicators,
             self.select_markers,
@@ -116,13 +130,12 @@ class TwissFigure:
             self.twiss_curves,
             self.user_curves,
             self.hover_marker,
-        ])
+        ], figure)
         self.scene_graph.invalidate = self.draw_idle
         # style
         self.x_name = 's'
         self.x_label = 's'
         self.x_unit = ui_units.get('s')
-        self.element_style = self.config['element_style']
         # slots
         self.model.updated.connect(self.update)
 
@@ -171,10 +184,11 @@ class TwissFigure:
 
     def reset(self):
         """Reset figure and plot."""
-        self.remove()
         figure = self.figure
         figure.clear()
-        num_curves = len(self.graph_info.curves)
+        self.scene_graph.on_remove()
+        self.curve_info[:] = self.graph_info.curves
+        num_curves = len(self.curve_info)
         if num_curves == 0:
             return
         num_axes = 1 if self.share_axes else num_curves
@@ -187,38 +201,8 @@ class TwissFigure:
             ax.y_name = []
             ax.get_xaxis().set_minor_locator(AutoMinorLocator())
             ax.get_yaxis().set_minor_locator(AutoMinorLocator())
-        self.user_curves.destroy()
-        self.user_curves.clear([
-            ListView(
-                partial(SimpleArtist, plot_user_curve, ax, self),
-                self.shown_curves)
-            for ax in figure.axes
-        ])
-        self.indicators.destroy()
-        self.indicators.clear([
-            RedrawArtist(
-                plot_element_indicators, ax, self.model.elements,
-                elem_styles=self.element_style)
-            for ax in figure.axes
-        ])
-        self.select_markers.destroy()
-        self.select_markers.clear([
-            ListView(
-                partial(SimpleArtist, plot_selection_marker, ax, self.model,
-                        elem_styles=self.element_style),
-                self.model.selection.elements)
-            for ax in figure.axes
-        ])
-        self.constr_markers.destroy()
-        self.constr_markers.clear([
-            ListView(
-                partial(SimpleArtist, plot_constraint, ax, self),
-                self.matcher.constraints)
-            for ax in figure.axes
-        ])
-        self.twiss_curves.destroy()
         axes = figure.axes * (num_curves if self.share_axes else 1)
-        for ax, info in zip(axes, self.graph_info.curves):
+        for ax, info in zip(axes, self.curve_info):
             ax.x_name.append(self.x_name)
             ax.y_name.append(info.name)
             # assuming all curves have the same y units (as they should!!):
@@ -229,13 +213,6 @@ class TwissFigure:
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
         self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))
-        self.twiss_curves.clear([
-            RedrawArtist(
-                plot_curve, ax, self.model.twiss, self.x_name, curve_info.name,
-                with_outline(curve_info.style),
-                label=ax_label(curve_info.label, ui_units.get(curve_info.name)))
-            for ax, curve_info in zip(axes, self.graph_info.curves)
-        ])
         self.scene_graph.render()
         if self.share_axes:
             ax = figure.axes[0]
@@ -251,11 +228,6 @@ class TwissFigure:
         if canvas:
             canvas.draw()
             canvas.updateGeometry()
-
-    def remove(self):
-        for ax in self.figure.axes:
-            ax.cla()
-        self.scene_graph.on_remove()
 
     def destroy(self):
         self.model.updated.disconnect(self.update)
@@ -302,11 +274,11 @@ class TwissFigure:
     @Queued.method
     def update(self):
         """Update existing plot after TWISS recomputation."""
-        self.scene_graph.update()
+        self.twiss_curves.redraw()
+        self.scene_graph.render()
 
     def get_curve_by_name(self, name):
-        return next((c for c in self.graph_info.curves if c.name == name),
-                    None)
+        return next((c for c in self.curve_info if c.name == name), None)
 
     # curves
 
@@ -393,6 +365,16 @@ class TwissFigure:
                 del self.loaded_curves[i]
                 break
 
+    def plot_twiss_curve(self, ax, info):
+        style = with_outline(info.style)
+        label = ax_label(info.label, ui_units.get(info.name))
+        return plot_curves(ax, self.model.twiss, style, label)
+
+    def plot_user_curve(self, ax, idx):
+        name, data, style = self.loaded_curves[idx]
+        style = self.config[style] if isinstance(style, str) else style
+        return plot_curves(ax, data, style, name)
+
 
 def plot_curve(axes, data, x_name, y_name, style, label=None):
     """Plot a TWISS parameter curve model into a 2D figure."""
@@ -406,9 +388,9 @@ def plot_curve(axes, data, x_name, y_name, style, label=None):
 
 class ListView(SceneGraph):
 
-    def __init__(self, fn, model):
+    def __init__(self, model, fn, *args, **kwargs):
         super().__init__()
-        self.fn = fn
+        self.fn = partial(SimpleArtist, fn, *args, **kwargs)
         self.model = model
         for idx, item in enumerate(model):
             self._add(idx, item)
@@ -582,10 +564,9 @@ class MatchTool(CaptureTool):
         """Handle clicks into the figure in matching mode."""
         # If the selected plot has two curves, select the primary/alternative
         # (i.e. first/second) curve according to whether the user pressed ALT:
-        curves = self.scene.graph_info.curves
         index = int(bool(self.scene.share_axes and
                          event.guiEvent.modifiers() & Qt.AltModifier and
-                         len(curves) > 1))
+                         len(self.scene.curve_info) > 1))
         name = event.axes.y_name[index]
         if event.button == 1:
             return self.add_constraint(event, name)
@@ -599,7 +580,7 @@ class MatchTool(CaptureTool):
         if constraints:
             cons = min(constraints, key=lambda c: abs(c.pos-event.x))
             elem = cons.elem
-            for c in self.scene.graph_info.curves:
+            for c in self.scene.curve_info:
                 self.removeConstraint(elem, c.name)
 
     def add_constraint(self, event, name):
@@ -623,7 +604,7 @@ class MatchTool(CaptureTool):
             constraints.extend([
                 Constraint(elem, pos, c.name,
                            self.model.get_twiss(elem.node_name, c.name, pos))
-                for c in self.scene.graph_info.curves
+                for c in self.scene.curve_info
                 if c.name != name
             ])
 
@@ -701,7 +682,7 @@ class InfoTool(CaptureTool):
         self.scene.mouseMotion.disconnect(self.onMotion)
         self.scene.keyPress.disconnect(self.onKey)
         self.plot.endCapture(self.mode)
-        self.scene.hover_marker.clear()
+        self.scene.hovered_elements.clear()
 
     def onClick(self, event):
         """Display a popup window with info about the selected element."""
@@ -732,16 +713,8 @@ class InfoTool(CaptureTool):
         el_idx = event.elem.index
         if self._hovered != el_idx:
             self._hovered = el_idx
-            self._highlight_hovered_element()
-
-    def _highlight_hovered_element(self):
-        scene = self.scene
-        el_idx = self._hovered
-        scene.hover_marker.clear([
-            SimpleArtist(plot_selection_marker, ax, self.scene.model, el_idx,
-                         scene.element_style, _hover_effects, '#ffffff')
-            for ax in scene.figure.axes
-        ])
+            self.scene.hovered_elements[:] = [el_idx]
+            self.scene.hover_marker.redraw()
 
     def onKey(self, event):
         if 'left' in event.key:
@@ -830,15 +803,11 @@ class CompareTool:
         self.scene._curveManager.create()
 
 
-def plot_user_curve(ax, scene, idx):
-    name, data, style = scene.loaded_curves[idx]
+def plot_curves(ax, data, style, label):
     return [
         line
         for x_name, y_name in zip(ax.x_name, ax.y_name)
-        for line in plot_curve(
-            ax, data, x_name, y_name,
-            scene.config[style] if isinstance(style, str) else style,
-            label=name)
+        for line in plot_curve(ax, data, x_name, y_name, style, label=label)
     ]
 
 
