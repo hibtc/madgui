@@ -62,10 +62,10 @@ class CurveManager(QtGui.QWidget):
         scene = self.scene
         twiss = scene.model.twiss()
         data = {name: twiss[name] for name in scene.get_graph_columns()}
-        style = self.scene.config['reference_style']
-        self.scene.snapshot_num += 1
-        name = "snapshot {}".format(self.scene.snapshot_num)
-        self.available.append(UserData(name, data, style))
+        style = scene.config['reference_style']
+        scene.snapshot_num += 1
+        name = "snapshot {}".format(scene.snapshot_num)
+        scene.add_curve(name, data, style)
         self.tab.edit(self.tab.model().index(len(self.available)-1, 0))
 
     def on_btn_load(self):
@@ -76,7 +76,7 @@ class CurveManager(QtGui.QWidget):
             self.folder, basename = os.path.split(filename)
             data = self.load_file(filename)
             style = self.scene.config['reference_style']
-            self.available.append(UserData(basename, data, style))
+            self.scene.add_curve(basename, data, style)
 
     dataFileFilters = [
         ("Text files", "*.txt", "*.dat"),
