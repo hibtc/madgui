@@ -308,8 +308,7 @@ class TwissFigure:
 
     def update_graph_data(self):
         self.graph_info, graph_data = \
-            self.get_graph_data(self.graph_name, self.xlim,
-                                self.config['curve_style'])
+            self.get_graph_data(self.graph_name, self.xlim)
         self.graph_data = {
             name: to_ui(name, values)
             for name, values in graph_data.items()
@@ -326,7 +325,7 @@ class TwissFigure:
 
     # curves
 
-    def get_graph_data(self, name, xlim, styles):
+    def get_graph_data(self, name, xlim):
         """Get the data for a particular graph."""
         # TODO: use xlim for interpolate
 
@@ -340,7 +339,7 @@ class TwissFigure:
                     short=name,
                     label=label,
                     style=style)
-                for (name, label), style in zip(conf['curves'], styles)
+                for (name, label, style) in conf['curves']
             ])
 
         twiss = self.model.twiss()
@@ -362,7 +361,7 @@ class TwissFigure:
         cols = {
             name
             for info in self.config['graphs'].values()
-            for name, _ in info['curves']
+            for (name, label, style) in info['curves']
         }
         cols.add('s')
         cols.update(self.model.twiss()._cache.keys())

@@ -47,11 +47,12 @@ readouts_style:
   linestyle: none
 
 curve_style:
-  - &base_style
+  - &X
     color: "#8b1a0e"
     linestyle: "-"
-  - <<: *base_style
+  - &Y
     color: "#005000"
+    linestyle: "-"
 
 backtrack_style:
   linestyle: "-"
@@ -66,50 +67,50 @@ graphs:
   beta:
     title: Beta function
     curves:
-      - [betx, '$\beta x$']
-      - [bety, '$\beta y$']
+      - [betx, '$\beta x$', *X]
+      - [bety, '$\beta y$', *Y]
   envelope:
     title: Beam envelope
     curves:
-      - [envx, '$\Delta x$']
-      - [envy, '$\Delta y$']
+      - [envx, '$\Delta x$', *X]
+      - [envy, '$\Delta y$', *Y]
   alpha:
     title: Alpha function
     curves:
-      - [alfx, '$\alpha x$']
-      - [alfy, '$\alpha y$']
+      - [alfx, '$\alpha x$', *X]
+      - [alfy, '$\alpha y$', *Y]
   gamma:
     title: Gamma function
     curves:
-      - [gamx, '$\gamma x$']
-      - [gamy, '$\gamma y$']
+      - [gamx, '$\gamma x$', *X]
+      - [gamy, '$\gamma y$', *Y]
   orbit:
     title: Particle orbit
     curves:
-      - [x, '$x$']
-      - [y, '$y$']
+      - [x, '$x$', *X]
+      - [y, '$y$', *Y]
   momentum:
     title: Particle momentum
     curves:
-      - [px, '$px$']
-      - [py, '$py$']
+      - [px, '$px$', *X]
+      - [py, '$py$', *Y]
   dispersion:
     title: Dispersion
     curves:
-      - [dx, '$dx$']
-      - [dy, '$dy$']
+      - [dx, '$dx$', *X]
+      - [dy, '$dy$', *Y]
   momentum_dispersion:
     title: Momentum dispersion
     curves:
-      - [dpx, '$dpx$']
-      - [dpy, '$dpy$']
+      - [dpx, '$dpx$', *X]
+      - [dpy, '$dpy$', *Y]
   phase:
     title: Phase advance
     curves:
-      - [mux, '$\mu x$']
-      - [muy, '$\mu y$']
+      - [mux, '$\mu x$', *X]
+      - [muy, '$\mu y$', *Y]
   emittance:
     title: Emittanz
     curves:
-      - [ex, '$\epsilon x$']
-      - [ey, '$\epsilon y$']
+      - [ex, '$\epsilon x$', *X]
+      - [ey, '$\epsilon y$', *Y]
