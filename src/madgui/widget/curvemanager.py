@@ -19,7 +19,8 @@ class CurveManager(QtGui.QWidget):
 
     def show_curve(self, i, c) -> ("curves",):
         def set_name(i, c, name):
-            self.available[i] = UserData(name, c.data, c.style)
+            if not self.plotted.node(name):
+                self.available[i] = UserData(name, c.data, c.style)
 
         def set_checked(i, c, show):
             self.plotted.node(c.name).enable(show)
