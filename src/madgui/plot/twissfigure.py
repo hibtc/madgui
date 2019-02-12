@@ -190,6 +190,8 @@ class TwissFigure:
             ax.grid(True, axis='y')
             ax.x_name = []
             ax.y_name = []
+            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
+            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
         self.indicators.destroy()
         self.indicators.clear([
             RedrawArtist(
@@ -250,14 +252,6 @@ class TwissFigure:
         if canvas:
             canvas.draw()
             canvas.updateGeometry()
-
-    def clear(self):
-        """Start a fresh plot."""
-        for ax in self.figure.axes:
-            ax.cla()
-            ax.grid(True)
-            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
-            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
 
     def remove(self):
         for ax in self.figure.axes:
