@@ -10,25 +10,21 @@ from madgui.qt import QtGui, load_ui
 from madgui.widget.tableview import TableItem, delegates
 from madgui.widget.filedialog import getOpenFileName
 
+from madgui.plot.twissfigure import UserData
+
 
 class CurveManager(QtGui.QWidget):
 
     ui_file = 'curvemanager.ui'
 
     def show_curve(self, i, c) -> ("curves",):
-        name, data, style = c
-
         def set_name(i, c, name):
-            self.available[i] = (name, data, style)
+            self.available[i] = UserData(name, c.data, c.style)
 
         def set_checked(i, c, show):
-            shown = i in self.selected
-            if show and not shown:
-                self.selected.append(i)
-            elif not show and shown:
-                self.selected.remove(i)
+            self.plotted.node(c.name).enable(show)
         return [
-            TableItem(name, checked=i in self.selected,
+            TableItem(c.name, checked=self.plotted.node(c.name).enabled,
                       checkable=True, delegate=delegates[str],
                       set_value=set_name, set_checked=set_checked),
         ]
@@ -36,8 +32,8 @@ class CurveManager(QtGui.QWidget):
     def __init__(self, scene):
         super().__init__()
         self.scene = scene
-        self.available = scene.loaded_curves
-        self.selected = scene.shown_curves
+        self.available = scene.user_tables
+        self.plotted = scene.scene_graph.node('user_curves')
         self.folder = scene.model.path
         load_ui(self, __package__, self.ui_file)
         self.init_controls()
@@ -69,7 +65,7 @@ class CurveManager(QtGui.QWidget):
         style = self.scene.config['reference_style']
         self.scene.snapshot_num += 1
         name = "snapshot {}".format(self.scene.snapshot_num)
-        self.available.append((name, data, style))
+        self.available.append(UserData(name, data, style))
         self.tab.edit(self.tab.model().index(len(self.available)-1, 0))
 
     def on_btn_load(self):
@@ -80,7 +76,7 @@ class CurveManager(QtGui.QWidget):
             self.folder, basename = os.path.split(filename)
             data = self.load_file(filename)
             style = self.scene.config['reference_style']
-            self.available.append((basename, data, style))
+            self.available.append(UserData(basename, data, style))
 
     dataFileFilters = [
         ("Text files", "*.txt", "*.dat"),

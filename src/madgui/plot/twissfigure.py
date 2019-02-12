@@ -21,7 +21,7 @@ from madgui.util.yaml import load_resource
 
 from madgui.util.qt import load_icon_resource, SingleWindow, Queued
 from madgui.util.misc import memoize, strip_suffix, cachedproperty
-from madgui.util.collections import List, maintain_selection
+from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SimpleArtist, SceneGraph, ListView
@@ -46,6 +46,12 @@ CurveInfo = namedtuple('CurveInfo', [
     'name',     # curve name (e.g. 'betx')
     'label',    # y-axis/legend label ('$\beta_x$')
     'style',    # **kwargs for ax.plot
+])
+
+UserData = namedtuple('UserData', [
+    'name',
+    'data',
+    'style',
 ])
 
 MouseEvent = namedtuple('MouseEvent', [
@@ -100,36 +106,32 @@ class TwissFigure:
         self.matcher = matcher
         self.element_style = self.config['element_style']
         # scene
-        self.loaded_curves = List()
-        self.shown_curves = List()
+        self.user_tables = List()
         self.curve_info = List()
         self.hovered_elements = List()
-        maintain_selection(self.shown_curves, self.loaded_curves)
-        self.twiss_curves = ListView(self.curve_info, self.plot_twiss_curve)
-        self.user_curves = ListView(self.shown_curves, self.plot_user_curve)
-        self.indicators = SimpleArtist(
-            plot_element_indicators, self.model.elements,
-            elem_styles=self.element_style)
-        self.indicators.enable(False)
-        self.select_markers = ListView(
-            self.model.selection.elements,
-            plot_selection_marker, self.model,
-            elem_styles=self.element_style)
-        self.constr_markers = ListView(
-            self.matcher.constraints,
-            plot_constraint, self)
-        self.hover_marker = ListView(
-            self.hovered_elements,
-            plot_selection_marker, self.model,
-            elem_styles=self.element_style,
-            _effects=_hover_effects, drift_color='#ffffff')
-        self.scene_graph = SceneGraph([
-            self.indicators,
-            self.select_markers,
-            self.constr_markers,
-            self.twiss_curves,
-            self.user_curves,
-            self.hover_marker,
+        get_element = self.model.elements.__getitem__
+        self.scene_graph = SceneGraph('', [
+            SimpleArtist(
+                'lattice_elements',
+                plot_element_indicators, self.model.elements,
+                elem_styles=self.element_style),
+            ListView(
+                'selected_elements',
+                self.model.selection.elements.map(get_element),
+                plot_selection_marker, self.model,
+                elem_styles=self.element_style),
+            ListView(
+                'hovered_elements',
+                self.hovered_elements.map(get_element),
+                plot_selection_marker, self.model,
+                elem_styles=self.element_style,
+                _effects=_hover_effects, drift_color='#ffffff'),
+            ListView(
+                'match_constraints',
+                self.matcher.constraints,
+                plot_constraint, self),
+            ListView('twiss_curves', self.curve_info, self.plot_twiss_curve),
+            ListView('user_curves', self.user_tables, self.plot_user_curve),
         ], figure)
         self.scene_graph.invalidate = self.draw_idle
         # style
@@ -274,7 +276,7 @@ class TwissFigure:
     @Queued.method
     def update(self):
         """Update existing plot after TWISS recomputation."""
-        self.twiss_curves.redraw()
+        self.scene_graph.node('twiss_curves').redraw()
         self.scene_graph.render()
 
     def get_curve_by_name(self, name):
@@ -312,12 +314,12 @@ class TwissFigure:
 
     @property
     def show_indicators(self):
-        return self.indicators.enabled
+        return self.scene_graph.node('lattice_elements').enabled
 
     @show_indicators.setter
     def show_indicators(self, show):
         if self.show_indicators != show:
-            self.indicators.enable(show)
+            self.scene_graph.node('lattice_elements').enable(show)
 
     @SingleWindow.factory
     def _curveManager(self):
@@ -350,19 +352,18 @@ class TwissFigure:
         self.add_curve('readouts', curve_data, 'readouts_style')
 
     def add_curve(self, name, data, style):
-        for i, (n, d, s) in enumerate(self.loaded_curves):
-            if n == name:
-                self.loaded_curves[i][1].update(data)
-                j = self.shown_curves.index(i)
-                self.user_curves.items[j].update()
+        item = UserData(name, data, style)
+        for i, c in enumerate(self.user_tables):
+            if c.name == name:
+                self.user_tables[i] = item
                 break
         else:
-            self.loaded_curves.append((name, data, style))
+            self.user_tables.append(item)
 
     def del_curve(self, name):
-        for i, (n, d, s) in enumerate(self.loaded_curves):
-            if n == name:
-                del self.loaded_curves[i]
+        for i, c in enumerate(self.user_tables):
+            if c.name == name:
+                del self.user_tables[i]
                 break
 
     def plot_twiss_curve(self, ax, info):
@@ -370,8 +371,8 @@ class TwissFigure:
         label = ax_label(info.label, ui_units.get(info.name))
         return plot_curves(ax, self.model.twiss, style, label)
 
-    def plot_user_curve(self, ax, idx):
-        name, data, style = self.loaded_curves[idx]
+    def plot_user_curve(self, ax, info):
+        name, data, style = info
         style = self.config[style] if isinstance(style, str) else style
         return plot_curves(ax, data, style, name)
 
@@ -685,7 +686,7 @@ class InfoTool(CaptureTool):
         if self._hovered != el_idx:
             self._hovered = el_idx
             self.scene.hovered_elements[:] = [el_idx]
-            self.scene.hover_marker.redraw()
+            self.scene.scene_graph.node('hovered_elements').redraw()
 
     def onKey(self, event):
         if 'left' in event.key:

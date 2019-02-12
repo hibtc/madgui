@@ -8,17 +8,17 @@ __all__ = [
     'SceneGraph',
 ]
 
-from functools import partial
-
 
 class SceneNode:
 
     """An element of a figure."""
 
+    name = None
     parent = None
     shown = False       # if this element is currently drawn
     enabled = True      # whether this element (+children) should be drawn
     figure = None
+    items = ()
 
     # public API:
 
@@ -26,6 +26,11 @@ class SceneNode:
         """Enable/disable the element individually."""
         self.enabled = enabled
         self.render()
+
+    def node(self, name):
+        for item in self.items:
+            if item.name == name:
+                return item
 
     # private, should be called via the scene tree only:
 
@@ -72,8 +77,8 @@ class SimpleArtist(SceneNode):
 
     """Delegates to draw function that returns a list of matplotlib artists."""
 
-    def __init__(self, artist, *args, **kwargs):
-        super().__init__()
+    def __init__(self, name, artist, *args, **kwargs):
+        self.name = name
         self.lines = ()
         self.artist = artist
         self.args = args
@@ -102,8 +107,8 @@ class SceneGraph(SceneNode):
 
     """A scene element that is composed of multiple elements."""
 
-    def __init__(self, items=(), figure=None):
-        super().__init__()
+    def __init__(self, name, items=(), figure=None):
+        self.name = name
         self.items = list(items)
         self.figure = figure
         self._adopt(items)
@@ -171,10 +176,12 @@ class SceneGraph(SceneNode):
 
 class ListView(SceneGraph):
 
-    def __init__(self, model, fn, *args, **kwargs):
-        super().__init__()
-        self.fn = partial(SimpleArtist, fn, *args, **kwargs)
+    def __init__(self, name, model, fn, *args, **kwargs):
+        super().__init__(name)
         self.model = model
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
         for idx, item in enumerate(model):
             self._add(idx, item)
         model.inserted.connect(self._add)
@@ -182,7 +189,11 @@ class ListView(SceneGraph):
         model.changed.connect(self._chg)
 
     def _add(self, idx, item):
-        self.insert(idx, self.fn(item))
+        name = (getattr(item, 'name', None) or
+                getattr(item, 'elem', None))
+        args = self.args + (item,)
+        node = SimpleArtist(name, self.fn, *args, **self.kwargs)
+        self.insert(idx, node)
 
     def _rm(self, idx):
         self.pop(self.items[idx])
