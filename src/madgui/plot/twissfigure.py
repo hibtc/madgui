@@ -133,7 +133,7 @@ class TwissFigure:
             ListView('twiss_curves', self.curve_info, self.plot_twiss_curve),
             ListView('user_curves', self.user_tables, self.plot_user_curve),
         ], figure)
-        self.scene_graph.invalidate = self.draw_idle
+        self.scene_graph.draw_idle = self.draw_idle
         # style
         self.x_name = 's'
         self.x_label = 's'
@@ -188,7 +188,7 @@ class TwissFigure:
         """Reset figure and plot."""
         figure = self.figure
         figure.clear()
-        self.scene_graph.on_remove()
+        self.scene_graph.on_clear_figure()
         self.curve_info[:] = self.graph_info.curves
         num_curves = len(self.curve_info)
         if num_curves == 0:
@@ -276,8 +276,9 @@ class TwissFigure:
     @Queued.method
     def update(self):
         """Update existing plot after TWISS recomputation."""
-        self.scene_graph.node('twiss_curves').redraw()
-        self.scene_graph.render()
+        self.scene_graph.node('lattice_elements').invalidate()
+        self.scene_graph.node('twiss_curves').invalidate()
+        self.draw_idle()
 
     def get_curve_by_name(self, name):
         return next((c for c in self.curve_info if c.name == name), None)
@@ -686,7 +687,6 @@ class InfoTool(CaptureTool):
         if self._hovered != el_idx:
             self._hovered = el_idx
             self.scene.hovered_elements[:] = [el_idx]
-            self.scene.scene_graph.node('hovered_elements').redraw()
 
     def onKey(self, event):
         if 'left' in event.key:

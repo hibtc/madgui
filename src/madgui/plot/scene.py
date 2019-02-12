@@ -13,11 +13,13 @@ class SceneNode:
 
     """An element of a figure."""
 
+    # member variables (will be overriden per instance if deviating):
+
     name = None
     parent = None
     shown = False       # if this element is currently drawn
     enabled = True      # whether this element (+children) should be drawn
-    figure = None
+    figure = None       # the matplotlib figure we should draw on
     items = ()
 
     # public API:
@@ -28,49 +30,59 @@ class SceneNode:
         self.render()
 
     def node(self, name):
+        """Find and return child node by name."""
         for item in self.items:
             if item.name == name:
                 return item
 
+    def invalidate(self):
+        """Mark drawn state as stale and redraw if needed."""
+        if self.enabled and self.shown:
+            self._update()
+
     # private, should be called via the scene tree only:
 
     def render(self, show=True):
+        """Draw or remove this node (and all children) from the figure."""
         show = self.enabled and show
         shown = self.shown
         if show and not shown:
-            self.draw()
-            self.invalidate()
+            self._draw()
+            self.draw_idle()
         elif not show and shown:
-            self.remove()
-            self.invalidate()
+            self._erase()
+            self.draw_idle()
         self.shown = show
 
-    # overrides, private, must only be called from `render`:
-
-    def draw(self):
-        """Plot the element in a newly created scene."""
-
-    def remove(self):
-        """Remove the element from the scene."""
-
-    def update(self):
-        """Update existing plot."""
-
-    def redraw(self):
-        self.render(False)
-        self.render()
-
-    def on_remove(self):
-        """Notification when the entire graph was hidden."""
+    def on_clear_figure(self):
+        """
+        cleanup references to drawn state. Called when the figure was cleared,
+        but the SceneNode is still part of the SceneGraph for next redraw.
+        """
         self.shown = False
 
     def destroy(self):
-        """Cleanup existing resources."""
+        """
+        Cleanup all allocated ressources and disconnect signals. Called when
+        the SceneNode is removed from the graph and not needed anymore.
+        """
+        self.on_clear_figure()
 
-    def invalidate(self):
-        """Mark the canvas to be stale."""
-        # Must override in root node!
-        self.parent.invalidate()
+    # overrides, private, must only be called from `render`:
+
+    def _draw(self):
+        """Plot the element in a newly created scene."""
+
+    def _erase(self):
+        """Remove the element from the scene."""
+
+    def _update(self):
+        """Update existing plot."""
+
+    # Used internally, must override in root node!
+    def draw_idle(self):
+        """Let the canvas know that it has to redraw."""
+        self.parent.draw_idle()
 
 
 class SimpleArtist(SceneNode):
@@ -84,23 +96,25 @@ class SimpleArtist(SceneNode):
         self.args = args
         self.kwargs = kwargs
 
-    def draw(self):
+    def _draw(self):
         self.lines = [
             line
             for ax in self.figure.axes
             for line in self.artist(ax, *self.args, **self.kwargs)
         ]
 
-    def remove(self):
+    def _erase(self):
         for line in self.lines:
             line.remove()
         self.lines = ()
 
-    def on_remove(self):
-        self.lines = ()
-        super().on_remove()
+    def _update(self):
+        self._erase()
+        self._draw()
 
-    destroy = on_remove
+    def on_clear_figure(self):
+        self.lines = ()
+        self.shown = False
 
 
 class SceneGraph(SceneNode):
@@ -120,17 +134,17 @@ class SceneGraph(SceneNode):
 
     # overrides
 
-    def draw(self):
+    def _draw(self):
         for item in self.items:
             item.render(True)
 
-    def remove(self):
+    def _erase(self):
         for item in self.items:
             item.render(False)
 
-    def update(self):
+    def _update(self):
         for item in self.items:
-            item.update()
+            item.invalidate()
 
     # manage items:
 
@@ -156,22 +170,16 @@ class SceneGraph(SceneNode):
         item.destroy()
         self.items.remove(item)
 
-    def clear(self, items=()):
-        """Remove and hide all items, and replace with new items."""
-        self.remove()
-        self.items.clear()
-        self.extend(items)
-
-    def on_remove(self):
+    def on_clear_figure(self):
         for item in self.items:
-            item.on_remove()
-        super().on_remove()
+            item.on_clear_figure()
+        self.shown = False
 
     def destroy(self):
-        self.remove()
         for item in self.items:
             item.destroy()
-        self.items.clear()
+        self.items = None
+        self.shown = False
 
 
 class ListView(SceneGraph):
