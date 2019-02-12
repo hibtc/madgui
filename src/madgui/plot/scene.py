@@ -20,7 +20,8 @@ class SceneNode:
     shown = False       # if this element is currently drawn
     enabled = True      # whether this element (+children) should be drawn
     figure = None       # the matplotlib figure we should draw on
-    items = ()
+    items = ()          # child nodes
+    lines = None        # drawn matplotlib figure elements
 
     # public API:
 
@@ -60,6 +61,7 @@ class SceneNode:
         but the SceneNode is still part of the SceneGraph for next redraw.
         """
         self.shown = False
+        self.lines = None
 
     def destroy(self):
         """
@@ -91,30 +93,22 @@ class SimpleArtist(SceneNode):
 
     def __init__(self, name, artist, *args, **kwargs):
         self.name = name
-        self.lines = ()
         self.artist = artist
         self.args = args
         self.kwargs = kwargs
 
     def _draw(self):
-        self.lines = [
-            line
+        self.lines = LineBundle([
+            self.artist(ax, *self.args, **self.kwargs)
             for ax in self.figure.axes
-            for line in self.artist(ax, *self.args, **self.kwargs)
-        ]
+        ])
 
     def _erase(self):
-        for line in self.lines:
-            line.remove()
-        self.lines = ()
+        self.lines.remove()
 
     def _update(self):
         self._erase()
         self._draw()
-
-    def on_clear_figure(self):
-        self.lines = ()
-        self.shown = False
 
 
 class SceneGraph(SceneNode):
@@ -217,3 +211,13 @@ class ListView(SceneGraph):
         self.model.removed.disconnect(self._rm)
         self.model.changed.disconnect(self._chg)
         super().destroy()
+
+
+class LineBundle(list):
+
+    __slots__ = ()
+
+    def remove(self):
+        for line in self:
+            line.remove()
+        self.clear()

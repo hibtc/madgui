@@ -24,7 +24,7 @@ from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import SimpleArtist, SceneGraph, ListView
+from madgui.plot.scene import SimpleArtist, SceneGraph, ListView, LineBundle
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
@@ -385,18 +385,16 @@ def plot_curve(axes, data, x_name, y_name, style, label=None):
     ydata = _get_curve_data(table, y_name)
     if xdata is None or ydata is None:
         xdata, ydata = (), ()
-    return axes.plot(xdata, ydata, label=label, **style)
+    return LineBundle(axes.plot(xdata, ydata, label=label, **style))
 
 
 def plot_element_indicators(ax, elements, elem_styles=ELEM_STYLES,
                             default_style=None, effects=None):
     """Plot element indicators, i.e. create lattice layout plot."""
-    return [
-        line
+    return LineBundle([
+        plot_element_indicator(ax, elem, elem_styles, default_style, effects)
         for elem in elements
-        for line in plot_element_indicator(
-                ax, elem, elem_styles, default_style, effects)
-    ]
+    ])
 
 
 def draw_patch(ax, position, length, style):
@@ -414,7 +412,7 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
     type_name = elem.base_name.lower()
     style = elem_styles.get(type_name, default_style)
     if style is None:
-        return []
+        return LineBundle()
 
     axes_dirs = {n[-1] for n in ax.y_name} & set("xy")
     # sigmoid flavor with convenient output domain [-1,+1]:
@@ -453,10 +451,10 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
             style['alpha'] = 0.2
 
     effects = effects or (lambda x: x)
-    return [
+    return LineBundle([
         draw_patch(ax, position, length, effects(style))
         for style, position, length in styles
-    ]
+    ])
 
 
 class CaptureTool:
@@ -614,10 +612,10 @@ def plot_constraint(ax, scene, constraint):
     """Draw one constraint representation in the graph."""
     elem, pos, axis, val = constraint
     style = scene.config['constraint_style']
-    return ax.plot(
+    return LineBundle(ax.plot(
         to_ui('s', pos),
         to_ui(axis, val),
-        **style) if axis in ax.y_name else ()
+        **style) if axis in ax.y_name else ())
 
 
 # Toolbar item for info boxes
@@ -776,11 +774,10 @@ class CompareTool:
 
 
 def plot_curves(ax, data, style, label):
-    return [
-        line
+    return LineBundle([
+        plot_curve(ax, data, x_name, y_name, style, label=label)
         for x_name, y_name in zip(ax.x_name, ax.y_name)
-        for line in plot_curve(ax, data, x_name, y_name, style, label=label)
-    ]
+    ])
 
 
 def _get_curve_data(data, name):
