@@ -139,7 +139,7 @@ class TwissFigure:
         self.x_label = 's'
         self.x_unit = ui_units.get('s')
         # slots
-        self.model.updated.connect(self.update)
+        self.model.updated.connect(self.on_model_updated)
 
     def attach(self, plot):
         self.plot = plot
@@ -230,7 +230,7 @@ class TwissFigure:
             canvas.draw_idle()
 
     def destroy(self):
-        self.model.updated.disconnect(self.update)
+        self.model.updated.disconnect(self.on_model_updated)
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
@@ -271,7 +271,7 @@ class TwissFigure:
                 return elems[index+1]
         return elem
 
-    def update(self):
+    def on_model_updated(self):
         """Update existing plot after TWISS recomputation."""
         self.scene_graph.node('lattice_elements').invalidate()
         self.scene_graph.node('twiss_curves').invalidate()
