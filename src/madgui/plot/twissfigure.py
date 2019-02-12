@@ -218,8 +218,8 @@ class TwissFigure:
         self.twiss_curves.clear([
             Curve(
                 ax,
-                partial(self.get_float_data, curve_info.name, 0),
-                partial(self.get_float_data, curve_info.name, 1),
+                partial(self.get_float_data, self.x_name),
+                partial(self.get_float_data, curve_info.name),
                 with_outline(curve_info.style),
                 label=ax_label(curve_info.label, ui_units.get(curve_info.name)),
                 info=curve_info,
@@ -311,15 +311,14 @@ class TwissFigure:
             self.get_graph_data(self.graph_name, self.xlim,
                                 self.config['curve_style'])
         self.graph_data = {
-            name: np.vstack((to_ui('s', x),
-                             to_ui(name, y))).T
-            for name, (x, y) in graph_data.items()
+            name: to_ui(name, values)
+            for name, values in graph_data.items()
         }
         self.graph_name = self.graph_info.name
 
-    def get_float_data(self, name, column):
+    def get_float_data(self, name):
         """Get data for the given parameter from model."""
-        return self.graph_data[name][:, column]
+        return self.graph_data[name]
 
     def get_curve_by_name(self, name):
         return next((c for c in self.twiss_curves.items if c.y_name == name),
@@ -347,9 +346,10 @@ class TwissFigure:
         twiss = self.model.twiss()
         xdata = twiss.s + self.model.start.position
         data = {
-            curve.short: (xdata, twiss[curve.name])
+            curve.short: twiss[curve.name]
             for curve in info.curves
         }
+        data['s'] = xdata
         return info, data
 
     def get_graphs(self):
