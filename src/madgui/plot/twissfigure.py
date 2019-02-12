@@ -189,6 +189,7 @@ class TwissFigure:
         figure = self.figure
         figure.clear()
         self.scene_graph.on_clear_figure()
+        self.scene_graph.enable(False)
         self.curve_info[:] = self.graph_info.curves
         num_curves = len(self.curve_info)
         if num_curves == 0:
@@ -215,6 +216,7 @@ class TwissFigure:
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
         self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))
+        self.scene_graph.enable(True)
         self.scene_graph.render()
         if self.share_axes:
             ax = figure.axes[0]
@@ -312,7 +314,7 @@ class TwissFigure:
 
     @property
     def show_indicators(self):
-        return self.scene_graph.node('lattice_elements').enabled
+        return self.scene_graph.node('lattice_elements').enabled()
 
     @show_indicators.setter
     def show_indicators(self, show):

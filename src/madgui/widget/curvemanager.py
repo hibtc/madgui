@@ -24,7 +24,7 @@ class CurveManager(QtGui.QWidget):
         def set_checked(i, c, show):
             self.plotted.node(c.name).enable(show)
         return [
-            TableItem(c.name, checked=self.plotted.node(c.name).enabled,
+            TableItem(c.name, checked=self.plotted.node(c.name).enabled(),
                       checkable=True, delegate=delegates[str],
                       set_value=set_name, set_checked=set_checked),
         ]

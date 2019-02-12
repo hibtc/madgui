@@ -18,7 +18,7 @@ class SceneNode:
     name = None
     parent = None
     shown = False       # if this element is currently drawn
-    enabled = True      # whether this element (+children) should be drawn
+    _enabled = True     # whether this element (+children) should be drawn
     figure = None       # the matplotlib figure we should draw on
     items = ()          # child nodes
     lines = None        # drawn matplotlib figure elements
@@ -27,8 +27,13 @@ class SceneNode:
 
     def enable(self, enabled=True):
         """Enable/disable the element individually."""
-        self.enabled = enabled
+        self._enabled = enabled
         self.render()
+
+    def enabled(self):
+        """Check whether this element should be drawn."""
+        return self._enabled and (
+            self.parent is None or self.parent.enabled())
 
     def node(self, name):
         """Find and return child node by name."""
@@ -38,14 +43,14 @@ class SceneNode:
 
     def invalidate(self):
         """Mark drawn state as stale and redraw if needed."""
-        if self.enabled and self.shown:
+        if self.enabled() and self.shown:
             self._update()
 
     # private, should be called via the scene tree only:
 
     def render(self, show=True):
         """Draw or remove this node (and all children) from the figure."""
-        show = self.enabled and show
+        show = self.enabled() and show
         shown = self.shown
         if show and not shown:
             self._draw()
