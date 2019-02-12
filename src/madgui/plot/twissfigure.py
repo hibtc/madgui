@@ -170,21 +170,32 @@ class TwissFigure:
         if graph_name == self.graph_name:
             return
         self.graph_name = graph_name
-        self.relayout()
+        self.reset()
         self.graph_changed.emit()
 
-    def relayout(self):
-        """Called to change the number of axes, etc."""
+    def reset(self):
+        """Reset figure and plot."""
         self.remove()
         self.update_graph_data()
+        figure = self.figure
+        figure.clear()
         num_curves = len(self.graph_info.curves)
-        self.set_num_curves(num_curves)
+        if num_curves == 0:
+            return
+        num_axes = 1 if self.share_axes else num_curves
+        top_ax = figure.add_subplot(num_axes, 1, 1)
+        for i in range(1, num_axes):
+            figure.add_subplot(num_axes, 1, i+1, sharex=top_ax)
+        for ax in figure.axes:
+            ax.grid(True, axis='y')
+            ax.x_name = []
+            ax.y_name = []
         self.indicators.destroy()
         self.indicators.clear([
             RedrawArtist(
                 plot_element_indicators, ax, self.model.elements,
                 elem_styles=self.element_style)
-            for ax in self.figure.axes
+            for ax in figure.axes
         ])
         self.select_markers.destroy()
         self.select_markers.clear([
@@ -192,10 +203,10 @@ class TwissFigure:
                 partial(SimpleArtist, plot_selection_marker, ax, self.model,
                         elem_styles=self.element_style),
                 self.model.selection.elements)
-            for ax in self.figure.axes
+            for ax in figure.axes
         ])
         self.twiss_curves.destroy()
-        axes = self.figure.axes * (num_curves if self.share_axes else 1)
+        axes = figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.graph_info.curves):
             ax.x_name.append(self.x_name)
             ax.y_name.append(info.short)
@@ -214,7 +225,23 @@ class TwissFigure:
             for ax, curve_info in zip(axes, self.graph_info.curves)
         ])
         self.user_curves.renew()
-        self.draw()
+        for curve in self.twiss_curves.items:
+            ax = curve.axes
+            if not self.share_axes:
+                ax.set_ylabel(curve.label)
+            # replace formatter method for mouse status:
+            ax.format_coord = partial(self.format_coord, ax)
+            # set axes properties for convenient access:
+            curve.x_name = self.x_name
+            curve.y_name = curve.info.short
+        self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))
+        self.scene_graph.render()
+        if self.share_axes:
+            ax = figure.axes[0]
+            # TODO: move legend on the outside
+            legend = ax.legend(loc='upper center', fancybox=True,
+                               shadow=True, ncol=4)
+            legend.draggable()
 
     @Queued.method
     def draw_idle(self):
@@ -231,44 +258,6 @@ class TwissFigure:
             ax.grid(True)
             ax.get_xaxis().set_minor_locator(AutoMinorLocator())
             ax.get_yaxis().set_minor_locator(AutoMinorLocator())
-
-    def set_num_curves(self, num_curves):
-        figure = self.figure
-        figure.clear()
-        if num_curves == 0:
-            return
-        num_axes = 1 if self.share_axes else num_curves
-        top_ax = figure.add_subplot(num_axes, 1, 1)
-        for i in range(1, num_axes):
-            figure.add_subplot(num_axes, 1, i+1, sharex=top_ax)
-        for ax in self.figure.axes:
-            ax.grid(True, axis='y')
-            ax.x_name = []
-            ax.y_name = []
-
-    def set_xlabel(self, label):
-        """Set label on the s axis."""
-        self.figure.axes[-1].set_xlabel(label)
-
-    def draw(self):
-        """Replot from clean state."""
-        for curve in self.twiss_curves.items:
-            ax = curve.axes
-            if not self.share_axes:
-                ax.set_ylabel(curve.label)
-            # replace formatter method for mouse status:
-            ax.format_coord = partial(self.format_coord, ax)
-            # set axes properties for convenient access:
-            curve.x_name = self.x_name
-            curve.y_name = curve.info.short
-        self.set_xlabel(ax_label(self.x_label, self.x_unit))
-        self.scene_graph.render()
-        if self.share_axes:
-            ax = self.figure.axes[0]
-            # TODO: move legend on the outside
-            legend = ax.legend(loc='upper center', fancybox=True,
-                               shadow=True, ncol=4)
-            legend.draggable()
 
     def remove(self):
         for ax in self.figure.axes:

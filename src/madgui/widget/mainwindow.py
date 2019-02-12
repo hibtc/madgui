@@ -623,7 +623,7 @@ class MainWindow(QtGui.QMainWindow):
 
         def toggleShareAxes():
             scene.share_axes = not scene.share_axes
-            scene.relayout()
+            scene.reset()
 
         def toggleIndicators():
             scene.show_indicators = not scene.show_indicators
