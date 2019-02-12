@@ -273,7 +273,6 @@ class TwissFigure:
                 return elems[index+1]
         return elem
 
-    @Queued.method
     def update(self):
         """Update existing plot after TWISS recomputation."""
         self.scene_graph.node('lattice_elements').invalidate()
