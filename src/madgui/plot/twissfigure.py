@@ -192,9 +192,7 @@ class TwissFigure:
         self.scene_graph.on_clear_figure()
         self.scene_graph.enable(False)
         self.curve_info[:] = self.graph_info.curves
-        self.layout_elems[:] = [
-            elem for elem in self.model.elements
-            if elem.base_name in self.element_style]
+        self.layout_elems[:], self.layout_params = self._layout_elems()
         num_curves = len(self.curve_info)
         if num_curves == 0:
             return
@@ -279,11 +277,21 @@ class TwissFigure:
 
     def on_model_updated(self):
         """Update existing plot after TWISS recomputation."""
-        self.layout_elems[:] = [
+        self.scene_graph.node('twiss_curves').invalidate()
+        # Redraw changed elements:
+        new_elems, new_params = self._layout_elems()
+        for i, (old, new) in enumerate(zip(self.layout_params, new_params)):
+            if old != new:
+                self.layout_elems[i] = new_elems[i]
+        self.layout_params = new_params
+        self.draw_idle()
+
+    def _layout_elems(self):
+        layout_elems = [
             elem for elem in self.model.elements
             if elem.base_name in self.element_style]
-        self.scene_graph.node('twiss_curves').invalidate()
-        self.draw_idle()
+        layout_params = [indicator_params(elem) for elem in layout_elems]
+        return layout_elems, layout_params
 
     def get_curve_by_name(self, name):
         return next((c for c in self.curve_info if c.name == name), None)
@@ -462,6 +470,15 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
         draw_patch(ax, position, length, effects(style))
         for style, position, length in styles
     ])
+
+
+def indicator_params(elem):
+    base_name = elem.base_name
+    return (elem.position, elem.length,
+            (elem.angle, elem.k0) if base_name == 'sbend' else
+            (elem.k1) if base_name == 'quadrupole' else
+            (elem.kick) if base_name.endswith('kicker') else
+            None)
 
 
 class CaptureTool:
