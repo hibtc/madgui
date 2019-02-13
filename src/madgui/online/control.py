@@ -161,7 +161,7 @@ class Control:
     def orm_measure_widget(self):
         """Measure ORM for later analysis."""
         from madgui.widget.dialog import Dialog
-        from madgui.online.orm_analysis import MeasureWidget
+        from madgui.online.orm_measure import MeasureWidget
         widget = MeasureWidget(self.session)
         dialog = Dialog(self.session.window())
         dialog.setWidget(widget)

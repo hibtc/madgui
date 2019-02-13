@@ -22,7 +22,7 @@ from .multi_grid import CorrectorWidget as _Widget
 
 class CorrectorWidget(_Widget):
 
-    ui_file = 'ovm_dialog.ui'
+    ui_file = 'optic_variation.ui'
     data_key = 'optic_variation'
     multi_step = True
 

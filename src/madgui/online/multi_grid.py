@@ -23,7 +23,7 @@ from .procedure import Corrector, Target
 
 class CorrectorWidget(QtGui.QWidget):
 
-    ui_file = 'mgm_dialog.ui'
+    ui_file = 'multi_grid.ui'
     data_key = 'multi_grid'
     multi_step = False
 
