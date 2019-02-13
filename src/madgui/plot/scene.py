@@ -241,29 +241,16 @@ class plot_line:
 
     """Plot a single line using an fetch function."""
 
-    line = None
-
     def __init__(self, ax, get_xydata, **style):
-        self._ax = ax
         self._get_xydata = get_xydata
-        self._style = style
-        self.redraw()
+        self.line, = ax.plot(*get_xydata(), **style)
 
     def redraw(self):
-        data = self._get_xydata()
-        if data:
-            if self.line is None:
-                self.line, = self._ax.plot(*data, **self._style)
-            else:
-                self.line.set_data(*data)
-        else:
-            self.remove()
+        self.line.set_data(*self._get_xydata())
         return self
 
     def remove(self):
-        if self.line is not None:
-            self.line.remove()
-            self.line = None
+        self.line.remove()
 
 
 class auto_replot:
