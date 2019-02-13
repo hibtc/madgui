@@ -19,7 +19,7 @@ class SceneNode:
     parent = None
     shown = False       # if this element is currently drawn
     _enabled = True     # whether this element (+children) should be drawn
-    figure = None       # the matplotlib figure we should draw on
+    _figure = None      # the matplotlib figure we should draw on
     items = ()          # child nodes
     lines = None        # drawn matplotlib figure elements
 
@@ -47,6 +47,10 @@ class SceneNode:
         """Mark drawn state as stale and redraw if needed."""
         if self.enabled() and self.shown:
             self._update()
+
+    @property
+    def figure(self):
+        return self._figure or self.parent.figure
 
     # private, should be called via the scene tree only:
 
@@ -112,8 +116,7 @@ class SimpleArtist(SceneNode):
         self.lines.remove()
 
     def _update(self):
-        self._erase()
-        self._draw()
+        self.lines = self.lines.redraw()
 
 
 class SceneGraph(SceneNode):
@@ -123,13 +126,12 @@ class SceneGraph(SceneNode):
     def __init__(self, name, items=(), figure=None):
         self.name = name
         self.items = list(items)
-        self.figure = figure
+        self._figure = figure
         self._adopt(items)
 
     def _adopt(self, items):
         for item in items:
             item.parent = self
-            item.figure = self.figure
 
     # overrides
 
@@ -155,15 +157,17 @@ class SceneGraph(SceneNode):
         """Extend by several children."""
         self.items.extend(items)
         self._adopt(items)
-        for item in items:
-            item.render(self.shown)
-        self.draw_idle()
+        if self.shown:
+            for item in items:
+                item.render(True)
+            self.draw_idle()
 
     def insert(self, index, item):
         self.items.insert(index, item)
         self._adopt((item,))
-        item.render(self.shown)
-        self.draw_idle()
+        if self.shown:
+            item.render(True)
+            self.draw_idle()
 
     def pop(self, item):
         """Remove and hide one item (by value)."""
@@ -229,3 +233,26 @@ class LineBundle(list):
         for line in self:
             line.remove()
         self.clear()
+
+    def redraw(self):
+        self[:] = [
+            line.redraw() if hasattr(line, 'redraw') else line
+            for line in self
+        ]
+        return self
+
+
+class plot_line:
+
+    """Plot a single line using an fetch function."""
+
+    def __init__(self, ax, get_xydata, **style):
+        self._get_xydata = get_xydata
+        self.line, = ax.plot(*get_xydata(), **style)
+
+    def redraw(self):
+        self.line.set_data(*self._get_xydata())
+        return self
+
+    def remove(self):
+        self.line.remove()

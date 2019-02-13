@@ -24,12 +24,11 @@ from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import SimpleArtist, SceneGraph, ListView, LineBundle
+from madgui.plot.scene import SceneGraph, ListView, LineBundle, plot_line
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
-from matplotlib.ticker import AutoMinorLocator
 
 
 CONFIG = load_resource(__package__, 'twissfigure.yml')
@@ -106,14 +105,19 @@ class TwissFigure:
         self.matcher = matcher
         self.element_style = self.config['element_style']
         # scene
+        self.layout_el_names = [
+            elem.name for elem in self.model.elements
+            if elem.base_name in self.element_style]
+        self.layout_elems = List()
         self.user_tables = List()
         self.curve_info = List()
         self.hovered_elements = List()
         get_element = self.model.elements.__getitem__
         self.scene_graph = SceneGraph('', [
-            SimpleArtist(
+            ListView(
                 'lattice_elements',
-                plot_element_indicators, self.model.elements,
+                self.layout_elems,
+                plot_element_indicator,
                 elem_styles=self.element_style),
             ListView(
                 'selected_elements',
@@ -191,6 +195,7 @@ class TwissFigure:
         self.scene_graph.on_clear_figure()
         self.scene_graph.enable(False)
         self.curve_info[:] = self.graph_info.curves
+        self.layout_elems[:], self.layout_params = self._layout_elems()
         num_curves = len(self.curve_info)
         if num_curves == 0:
             return
@@ -202,8 +207,6 @@ class TwissFigure:
             ax.grid(True, axis='y')
             ax.x_name = []
             ax.y_name = []
-            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
-            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
         axes = figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.curve_info):
             ax.x_name.append(self.x_name)
@@ -224,6 +227,8 @@ class TwissFigure:
             legend = ax.legend(loc='upper center', fancybox=True,
                                shadow=True, ncol=4)
             legend.draggable()
+        for ax in self.figure.axes:
+            ax.set_autoscale_on(False)
 
     def draw_idle(self):
         """Draw the figure on its canvas."""
@@ -275,9 +280,20 @@ class TwissFigure:
 
     def on_model_updated(self):
         """Update existing plot after TWISS recomputation."""
-        self.scene_graph.node('lattice_elements').invalidate()
         self.scene_graph.node('twiss_curves').invalidate()
+        # Redraw changed elements:
+        new_elems, new_params = self._layout_elems()
+        for i, (old, new) in enumerate(zip(self.layout_params, new_params)):
+            if old != new:
+                self.layout_elems[i] = new_elems[i]
+        self.layout_params = new_params
         self.draw_idle()
+
+    def _layout_elems(self):
+        elems = self.model.elements
+        layout_elems = [elems[elem] for elem in self.layout_el_names]
+        layout_params = [indicator_params(elem) for elem in layout_elems]
+        return layout_elems, layout_params
 
     def get_curve_by_name(self, name):
         return next((c for c in self.curve_info if c.name == name), None)
@@ -369,22 +385,24 @@ class TwissFigure:
     def plot_twiss_curve(self, ax, info):
         style = with_outline(info.style)
         label = ax_label(info.label, ui_units.get(info.name))
-        return plot_curves(ax, self.model.twiss, style, label)
+        return plot_curves(ax, self.model.twiss, style, label, [info.name])
 
     def plot_user_curve(self, ax, info):
         name, data, style = info
         style = self.config[style] if isinstance(style, str) else style
-        return plot_curves(ax, data, style, name)
+        return plot_curves(ax, data, style, name, ax.y_name)
 
 
 def plot_curve(axes, data, x_name, y_name, style, label=None):
     """Plot a TWISS parameter curve model into a 2D figure."""
-    table = data() if callable(data) else data
-    xdata = _get_curve_data(table, x_name)
-    ydata = _get_curve_data(table, y_name)
-    if xdata is None or ydata is None:
-        xdata, ydata = (), ()
-    return LineBundle(axes.plot(xdata, ydata, label=label, **style))
+    def get_xydata():
+        table = data() if callable(data) else data
+        xdata = _get_curve_data(table, x_name)
+        ydata = _get_curve_data(table, y_name)
+        if xdata is None or ydata is None:
+            return (), ()
+        return xdata, ydata
+    return plot_line(axes, get_xydata, label=label, **style)
 
 
 def plot_element_indicators(ax, elements, elem_styles=ELEM_STYLES,
@@ -454,6 +472,15 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
         draw_patch(ax, position, length, effects(style))
         for style, position, length in styles
     ])
+
+
+def indicator_params(elem):
+    base_name = elem.base_name
+    return (elem.position, elem.length,
+            (elem.angle, elem.k0) if base_name == 'sbend' else
+            (elem.k1) if base_name == 'quadrupole' else
+            (elem.kick) if base_name.endswith('kicker') else
+            None)
 
 
 class CaptureTool:
@@ -772,10 +799,11 @@ class CompareTool:
         self.scene._curveManager.create()
 
 
-def plot_curves(ax, data, style, label):
+def plot_curves(ax, data, style, label, y_names):
     return LineBundle([
         plot_curve(ax, data, x_name, y_name, style, label=label)
         for x_name, y_name in zip(ax.x_name, ax.y_name)
+        if y_name in y_names
     ])
 
 
