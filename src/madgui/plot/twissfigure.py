@@ -60,6 +60,25 @@ KeyboardEvent = namedtuple('KeyboardEvent', [
     'key', 'guiEvent'])
 
 
+from contextlib import contextmanager
+from madgui.util.qt import Queued
+from time import perf_counter
+
+@contextmanager
+def clockit(text):
+    start = perf_counter()
+    try:
+        yield None
+    finally:
+        stop = perf_counter()
+        print("{}: {:.6f}".format(text, stop - start))
+
+def clocked(func):
+    def wrapper(*args, **kwargs):
+        with clockit(func.__name__):
+            return func(*args, **kwargs)
+    return wrapper
+
 # basic twiss figure
 
 class PlotSelector(QtGui.QComboBox):
@@ -230,11 +249,13 @@ class TwissFigure:
         for ax in self.figure.axes:
             ax.set_autoscale_on(False)
 
+    @Queued.method
+    @clocked
     def draw_idle(self):
         """Draw the figure on its canvas."""
         canvas = self.figure.canvas
         if canvas:
-            canvas.draw_idle()
+            canvas.draw()
 
     def destroy(self):
         self.model.updated.disconnect(self.on_model_updated)
@@ -278,6 +299,7 @@ class TwissFigure:
                 return elems[index+1]
         return elem
 
+    @clocked
     def on_model_updated(self):
         """Update existing plot after TWISS recomputation."""
         self.scene_graph.node('twiss_curves').invalidate()
