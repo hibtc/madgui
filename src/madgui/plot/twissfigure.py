@@ -24,8 +24,7 @@ from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import (
-    SimpleArtist, SceneGraph, ListView, LineBundle, plot_line)
+from madgui.plot.scene import SceneGraph, ListView, LineBundle, plot_line
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
@@ -106,14 +105,16 @@ class TwissFigure:
         self.matcher = matcher
         self.element_style = self.config['element_style']
         # scene
+        self.layout_elems = List()
         self.user_tables = List()
         self.curve_info = List()
         self.hovered_elements = List()
         get_element = self.model.elements.__getitem__
         self.scene_graph = SceneGraph('', [
-            SimpleArtist(
+            ListView(
                 'lattice_elements',
-                plot_element_indicators, self.model.elements,
+                self.layout_elems,
+                plot_element_indicator,
                 elem_styles=self.element_style),
             ListView(
                 'selected_elements',
@@ -191,6 +192,9 @@ class TwissFigure:
         self.scene_graph.on_clear_figure()
         self.scene_graph.enable(False)
         self.curve_info[:] = self.graph_info.curves
+        self.layout_elems[:] = [
+            elem for elem in self.model.elements
+            if elem.base_name in self.element_style]
         num_curves = len(self.curve_info)
         if num_curves == 0:
             return
@@ -275,7 +279,9 @@ class TwissFigure:
 
     def on_model_updated(self):
         """Update existing plot after TWISS recomputation."""
-        self.scene_graph.node('lattice_elements').invalidate()
+        self.layout_elems[:] = [
+            elem for elem in self.model.elements
+            if elem.base_name in self.element_style]
         self.scene_graph.node('twiss_curves').invalidate()
         self.draw_idle()
 
