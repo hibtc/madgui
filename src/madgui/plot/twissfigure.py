@@ -225,6 +225,8 @@ class TwissFigure:
             legend = ax.legend(loc='upper center', fancybox=True,
                                shadow=True, ncol=4)
             legend.draggable()
+        for ax in self.figure.axes:
+            ax.set_autoscale_on(False)
 
     def draw_idle(self):
         """Draw the figure on its canvas."""
