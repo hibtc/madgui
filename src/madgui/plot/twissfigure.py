@@ -30,7 +30,6 @@ from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
-from matplotlib.ticker import AutoMinorLocator
 
 
 CONFIG = load_resource(__package__, 'twissfigure.yml')
@@ -203,8 +202,6 @@ class TwissFigure:
             ax.grid(True, axis='y')
             ax.x_name = []
             ax.y_name = []
-            ax.get_xaxis().set_minor_locator(AutoMinorLocator())
-            ax.get_yaxis().set_minor_locator(AutoMinorLocator())
         axes = figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.curve_info):
             ax.x_name.append(self.x_name)
