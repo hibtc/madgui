@@ -39,11 +39,11 @@ class Signal:
     """
 
     def __init__(self, doc=''):
-        self._doc = 'Signal<{}>'.format(doc)
+        self.__doc__ = 'Signal<{}>'.format(doc)
         self._attr = '__signal_' + str(id(self))
 
     def __repr__(self):
-        return self._doc
+        return self.__doc__
 
     def __get__(self, instance, owner):
         if instance is None:    # access via class
