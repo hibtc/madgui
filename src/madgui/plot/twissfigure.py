@@ -105,6 +105,9 @@ class TwissFigure:
         self.matcher = matcher
         self.element_style = self.config['element_style']
         # scene
+        self.layout_el_names = [
+            elem.name for elem in self.model.elements
+            if elem.base_name in self.element_style]
         self.layout_elems = List()
         self.user_tables = List()
         self.curve_info = List()
@@ -287,9 +290,8 @@ class TwissFigure:
         self.draw_idle()
 
     def _layout_elems(self):
-        layout_elems = [
-            elem for elem in self.model.elements
-            if elem.base_name in self.element_style]
+        elems = self.model.elements
+        layout_elems = [elems[elem] for elem in self.layout_el_names]
         layout_params = [indicator_params(elem) for elem in layout_elems]
         return layout_elems, layout_params
 
