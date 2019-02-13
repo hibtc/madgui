@@ -384,9 +384,7 @@ def plot_curve(axes, data, x_name, y_name, style, label=None):
         table = data() if callable(data) else data
         xdata = _get_curve_data(table, x_name)
         ydata = _get_curve_data(table, y_name)
-        if xdata is None or ydata is None:
-            return (), ()
-        return xdata, ydata
+        return None if xdata is None or ydata is None else (xdata, ydata)
     return plot_line(axes, get_xydata, label=label, **style)
 
 
