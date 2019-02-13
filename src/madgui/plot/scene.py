@@ -112,8 +112,7 @@ class SimpleArtist(SceneNode):
         self.lines.remove()
 
     def _update(self):
-        self._erase()
-        self._draw()
+        self.lines = self.lines.redraw()
 
 
 class SceneGraph(SceneNode):
@@ -229,3 +228,26 @@ class LineBundle(list):
         for line in self:
             line.remove()
         self.clear()
+
+    def redraw(self):
+        self[:] = [
+            line.redraw() if hasattr(line, 'redraw') else line
+            for line in self
+        ]
+        return self
+
+
+class plot_line:
+
+    """Plot a single line using an fetch function."""
+
+    def __init__(self, ax, get_xydata, **style):
+        self._get_xydata = get_xydata
+        self.line, = ax.plot(*get_xydata(), **style)
+
+    def redraw(self):
+        self.line.set_data(*self._get_xydata())
+        return self
+
+    def remove(self):
+        self.line.remove()

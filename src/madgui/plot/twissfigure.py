@@ -24,7 +24,8 @@ from madgui.util.misc import memoize, strip_suffix, cachedproperty
 from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import SimpleArtist, SceneGraph, ListView, LineBundle
+from madgui.plot.scene import (
+    SimpleArtist, SceneGraph, ListView, LineBundle, plot_line)
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
@@ -379,12 +380,14 @@ class TwissFigure:
 
 def plot_curve(axes, data, x_name, y_name, style, label=None):
     """Plot a TWISS parameter curve model into a 2D figure."""
-    table = data() if callable(data) else data
-    xdata = _get_curve_data(table, x_name)
-    ydata = _get_curve_data(table, y_name)
-    if xdata is None or ydata is None:
-        xdata, ydata = (), ()
-    return LineBundle(axes.plot(xdata, ydata, label=label, **style))
+    def get_xydata():
+        table = data() if callable(data) else data
+        xdata = _get_curve_data(table, x_name)
+        ydata = _get_curve_data(table, y_name)
+        if xdata is None or ydata is None:
+            return (), ()
+        return xdata, ydata
+    return plot_line(axes, get_xydata, label=label, **style)
 
 
 def plot_element_indicators(ax, elements, elem_styles=ELEM_STYLES,
