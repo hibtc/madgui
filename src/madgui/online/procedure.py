@@ -238,10 +238,10 @@ class Corrector(Matcher):
         secmaps = model.get_transfer_maps([start] + list(self.monitors))
         secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
         optics = {k: model.globals[k] for k in self._knobs}
+        readouts = {r.name: r for r in self.readouts}
         return [
-            OrbitRecord(monitor, readout, optics, secmap)
-            for monitor, readout, secmap in zip(
-                    self.monitors, self.readouts, secmaps)
+            OrbitRecord(monitor, readouts[monitor.lower()], optics, secmap)
+            for monitor, secmap in zip(self.monitors, secmaps)
         ]
 
     def compute_steerer_corrections(self):
