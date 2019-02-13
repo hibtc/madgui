@@ -154,15 +154,17 @@ class SceneGraph(SceneNode):
         """Extend by several children."""
         self.items.extend(items)
         self._adopt(items)
-        for item in items:
-            item.render(self.shown)
-        self.draw_idle()
+        if self.shown:
+            for item in items:
+                item.render(True)
+            self.draw_idle()
 
     def insert(self, index, item):
         self.items.insert(index, item)
         self._adopt((item,))
-        item.render(self.shown)
-        self.draw_idle()
+        if self.shown:
+            item.render(True)
+            self.draw_idle()
 
     def pop(self, item):
         """Remove and hide one item (by value)."""
