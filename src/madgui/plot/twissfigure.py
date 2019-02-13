@@ -424,29 +424,19 @@ def plot_element_indicator(ax, model, elem_name, elem_styles=ELEM_STYLES,
     # sigmoid flavor with convenient output domain [-1,+1]:
     sigmoid = math.tanh
 
-    def elem_params():
+    def get_patch_styles():
         elem = model.elements[elem_name]
-        return (elem.base_name, elem.position, elem.length,
-                getattr(elem, 'angle', None),
-                getattr(elem, 'k0', None),
-                getattr(elem, 'k1', None),
-                getattr(elem, 'kick', None))
-
-    def plot_patches(elem_params):
-
-        type_name, position, length, angle, k0, k1, kick = elem_params
-
         style = dict(base_style, zorder=0)
-        styles = [(position, length, style)]
+        styles = [(elem.position, elem.length, style)]
         type_name = base_name
 
         if type_name == 'quadrupole':
             invert = ax.y_name[0].endswith('y')
-            k1 = float(k1) * 100                   # scale = 0.1/m²
+            k1 = float(elem.k1) * 100                   # scale = 0.1/m²
             scale = sigmoid(k1) * (1-2*invert)
             style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
         elif type_name == 'sbend':
-            angle = float(angle) * 180/math.pi     # scale = 1 degree
+            angle = float(elem.angle) * 180/math.pi     # scale = 1 degree
             ydis = sigmoid(angle) * (-0.15)
             style['ymin'] += ydis
             style['ymax'] += ydis
@@ -454,27 +444,30 @@ def plot_element_indicator(ax, model, elem_name, elem_styles=ELEM_STYLES,
             # should be used (against my recommendations, and even though that
             # means you can never have a kick that exactlycounteracts the
             # bending angle):
-            if k0 != 0:
+            if elem.k0 != 0:
                 style = dict(elem_styles.get('hkicker'),
                              ymin=style['ymin'], ymax=style['ymax'])
-                styles.append((position+length/2, 0, style))
+                styles.append((elem.position+elem.length/2, 0, style))
                 type_name = 'hkicker'
 
         if type_name in ('hkicker', 'vkicker'):
             axis = "xy"[type_name.startswith('v')]
-            kick = float(kick) * 10000         # scale = 0.1 mrad
+            kick = float(elem.kick) * 10000         # scale = 0.1 mrad
             ydis = sigmoid(kick) * 0.1
             style['ymin'] += ydis
             style['ymax'] += ydis
             if axis not in axes_dirs:
                 style['alpha'] = 0.2
 
+        return styles
+
+    def plot_patches(styles):
         return LineBundle([
             draw_patch(ax, position, length, effects(style))
             for position, length, style in styles
         ])
 
-    return auto_replot(plot_patches, elem_params)
+    return auto_replot(plot_patches, get_patch_styles)
 
 
 class CaptureTool:
