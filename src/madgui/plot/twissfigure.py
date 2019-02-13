@@ -370,12 +370,12 @@ class TwissFigure:
     def plot_twiss_curve(self, ax, info):
         style = with_outline(info.style)
         label = ax_label(info.label, ui_units.get(info.name))
-        return plot_curves(ax, self.model.twiss, style, label)
+        return plot_curves(ax, self.model.twiss, style, label, [info.name])
 
     def plot_user_curve(self, ax, info):
         name, data, style = info
         style = self.config[style] if isinstance(style, str) else style
-        return plot_curves(ax, data, style, name)
+        return plot_curves(ax, data, style, name, ax.y_name)
 
 
 def plot_curve(axes, data, x_name, y_name, style, label=None):
@@ -793,10 +793,11 @@ class CompareTool:
         self.scene._curveManager.create()
 
 
-def plot_curves(ax, data, style, label):
+def plot_curves(ax, data, style, label, y_names):
     return LineBundle([
         plot_curve(ax, data, x_name, y_name, style, label=label)
         for x_name, y_name in zip(ax.x_name, ax.y_name)
+        if y_name in y_names
     ])
 
 
