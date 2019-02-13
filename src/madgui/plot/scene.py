@@ -251,26 +251,3 @@ class plot_line:
 
     def remove(self):
         self.line.remove()
-
-
-class auto_replot:
-
-    """Plot using arbitrary plotting function. Updates the plot only if the
-    data has changed."""
-
-    def __init__(self, plot_func, arg_func):
-        self._plot_func = plot_func
-        self._arg_func = arg_func
-        self._arg = arg_func()
-        self.lines = plot_func(self._arg)
-
-    def redraw(self):
-        arg = self._arg_func()
-        if self._arg != arg:
-            self._arg = arg
-            self.remove()
-            self.lines = self._plot_func(arg)
-        return self
-
-    def remove(self):
-        self.lines.remove()

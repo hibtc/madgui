@@ -25,7 +25,7 @@ from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import (
-    SimpleArtist, SceneGraph, ListView, LineBundle, plot_line, auto_replot)
+    SimpleArtist, SceneGraph, ListView, LineBundle, plot_line)
 from madgui.widget.dialog import Dialog
 
 import matplotlib.patheffects as pe
@@ -113,7 +113,7 @@ class TwissFigure:
         self.scene_graph = SceneGraph('', [
             SimpleArtist(
                 'lattice_elements',
-                plot_element_indicators, self.model,
+                plot_element_indicators, self.model.elements,
                 elem_styles=self.element_style),
             ListView(
                 'selected_elements',
@@ -389,13 +389,12 @@ def plot_curve(axes, data, x_name, y_name, style, label=None):
     return plot_line(axes, get_xydata, label=label, **style)
 
 
-def plot_element_indicators(ax, model, elem_styles=ELEM_STYLES,
+def plot_element_indicators(ax, elements, elem_styles=ELEM_STYLES,
                             default_style=None, effects=None):
     """Plot element indicators, i.e. create lattice layout plot."""
     return LineBundle([
-        plot_element_indicator(
-            ax, model, elem.name, elem_styles, default_style, effects)
-        for elem in model.elements
+        plot_element_indicator(ax, elem, elem_styles, default_style, effects)
+        for elem in elements
     ])
 
 
@@ -408,66 +407,55 @@ def draw_patch(ax, position, length, style):
         return ax.axvline(at, **style)
 
 
-def plot_element_indicator(ax, model, elem_name, elem_styles=ELEM_STYLES,
+def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
                            default_style=None, effects=None):
     """Return the element type name used for properties like coloring."""
-    try:
-        base_name = model.elements[elem_name].base_name.lower()
-        base_style = elem_styles.get(base_name, default_style)
-        if base_style is None:
-            return LineBundle()
-    except KeyError:
+    type_name = elem.base_name.lower()
+    style = elem_styles.get(type_name, default_style)
+    if style is None:
         return LineBundle()
 
-    effects = effects or (lambda x: x)
     axes_dirs = {n[-1] for n in ax.y_name} & set("xy")
     # sigmoid flavor with convenient output domain [-1,+1]:
     sigmoid = math.tanh
 
-    def get_patch_styles():
-        elem = model.elements[elem_name]
-        style = dict(base_style, zorder=0)
-        styles = [(elem.position, elem.length, style)]
-        type_name = base_name
+    style = dict(style, zorder=0)
+    styles = [(style, elem.position, elem.length)]
 
-        if type_name == 'quadrupole':
-            invert = ax.y_name[0].endswith('y')
-            k1 = float(elem.k1) * 100                   # scale = 0.1/m²
-            scale = sigmoid(k1) * (1-2*invert)
-            style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
-        elif type_name == 'sbend':
-            angle = float(elem.angle) * 180/math.pi     # scale = 1 degree
-            ydis = sigmoid(angle) * (-0.15)
-            style['ymin'] += ydis
-            style['ymax'] += ydis
-            # MAD-X uses the condition k0=0 to check whether the attribute
-            # should be used (against my recommendations, and even though that
-            # means you can never have a kick that exactlycounteracts the
-            # bending angle):
-            if elem.k0 != 0:
-                style = dict(elem_styles.get('hkicker'),
-                             ymin=style['ymin'], ymax=style['ymax'])
-                styles.append((elem.position+elem.length/2, 0, style))
-                type_name = 'hkicker'
+    if type_name == 'quadrupole':
+        invert = ax.y_name[0].endswith('y')
+        k1 = float(elem.k1) * 100                   # scale = 0.1/m²
+        scale = sigmoid(k1) * (1-2*invert)
+        style['color'] = ((1+scale)/2, (1-abs(scale))/2, (1-scale)/2)
+    elif type_name == 'sbend':
+        angle = float(elem.angle) * 180/math.pi     # scale = 1 degree
+        ydis = sigmoid(angle) * (-0.15)
+        style['ymin'] += ydis
+        style['ymax'] += ydis
+        # MAD-X uses the condition k0=0 to check whether the attribute
+        # should be used (against my recommendations, and even though that
+        # means you can never have a kick that exactlycounteracts the
+        # bending angle):
+        if elem.k0 != 0:
+            style = dict(elem_styles.get('hkicker'),
+                         ymin=style['ymin'], ymax=style['ymax'])
+            styles.append((style, elem.position+elem.length/2, 0))
+            type_name = 'hkicker'
 
-        if type_name in ('hkicker', 'vkicker'):
-            axis = "xy"[type_name.startswith('v')]
-            kick = float(elem.kick) * 10000         # scale = 0.1 mrad
-            ydis = sigmoid(kick) * 0.1
-            style['ymin'] += ydis
-            style['ymax'] += ydis
-            if axis not in axes_dirs:
-                style['alpha'] = 0.2
+    if type_name in ('hkicker', 'vkicker'):
+        axis = "xy"[type_name.startswith('v')]
+        kick = float(elem.kick) * 10000         # scale = 0.1 mrad
+        ydis = sigmoid(kick) * 0.1
+        style['ymin'] += ydis
+        style['ymax'] += ydis
+        if axis not in axes_dirs:
+            style['alpha'] = 0.2
 
-        return styles
-
-    def plot_patches(styles):
-        return LineBundle([
-            draw_patch(ax, position, length, effects(style))
-            for position, length, style in styles
-        ])
-
-    return auto_replot(plot_patches, get_patch_styles)
+    effects = effects or (lambda x: x)
+    return LineBundle([
+        draw_patch(ax, position, length, effects(style))
+        for style, position, length in styles
+    ])
 
 
 class CaptureTool:
@@ -724,8 +712,7 @@ def plot_selection_marker(ax, model, el_idx, elem_styles=ELEM_STYLES,
     elem = model.elements[el_idx]
     default = dict(ymin=0, ymax=1, color=drift_color)
     return plot_element_indicator(
-        ax, model, elem.name, elem_styles,
-        default, _effects or _selection_effects)
+        ax, elem, elem_styles, default, _effects or _selection_effects)
 
 
 def _selection_effects(style):
