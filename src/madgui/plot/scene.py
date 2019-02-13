@@ -19,7 +19,7 @@ class SceneNode:
     parent = None
     shown = False       # if this element is currently drawn
     _enabled = True     # whether this element (+children) should be drawn
-    figure = None       # the matplotlib figure we should draw on
+    _figure = None      # the matplotlib figure we should draw on
     items = ()          # child nodes
     lines = None        # drawn matplotlib figure elements
 
@@ -47,6 +47,10 @@ class SceneNode:
         """Mark drawn state as stale and redraw if needed."""
         if self.enabled() and self.shown:
             self._update()
+
+    @property
+    def figure(self):
+        return self._figure or self.parent.figure
 
     # private, should be called via the scene tree only:
 
@@ -122,13 +126,12 @@ class SceneGraph(SceneNode):
     def __init__(self, name, items=(), figure=None):
         self.name = name
         self.items = list(items)
-        self.figure = figure
+        self._figure = figure
         self._adopt(items)
 
     def _adopt(self, items):
         for item in items:
             item.parent = self
-            item.figure = self.figure
 
     # overrides
 
