@@ -49,6 +49,9 @@ jobs:
     - stage: deploy
       name: Upload Documentation
       install:
+        # At the time of writing PyQt5 must be installed using pip rather than
+        # `setup.py` to avoid ImportErrors 'No module named PyQt5.sip' later:
+        - pip install pyqt5
         - pip install sphinx sphinx_rtd_theme
         - python setup.py develop
       script:
