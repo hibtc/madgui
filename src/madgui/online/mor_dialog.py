@@ -13,6 +13,7 @@ from madgui.qt import Qt, QtCore, QtGui, load_ui
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
+from madgui.util.history import History
 from madgui.util.qt import bold, Queued
 from madgui.util import yaml
 from madgui.widget.dialog import Dialog
@@ -62,8 +63,8 @@ class CorrectorWidget(QtGui.QWidget):
         ]
 
     def get_steerer_row(self, i, v) -> ("Steerer", "Now", "To Be", "Unit"):
-        initial = self.corrector.cur_results.get(v.lower())
-        matched = self.corrector.top_results.get(v.lower())
+        initial = self.corrector.online_optic.get(v.lower())
+        matched = self.corrector.saved_optics().get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {
             # 'foreground': QtGui.QColor(Qt.red),
@@ -88,7 +89,7 @@ class CorrectorWidget(QtGui.QWidget):
     def set_steerer_value(self, i, v, value):
         info = self.corrector._knobs[v.lower()]
         value = change_unit(value, info.ui_unit, info.unit)
-        results = self.corrector.top_results.copy()
+        results = self.corrector.saved_optics().copy()
         if results[v.lower()] != value:
             results[v.lower()] = value
             self.corrector._push_history(results)
@@ -98,8 +99,7 @@ class CorrectorWidget(QtGui.QWidget):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
         self.orm = List()
-        self.hist_stack = []
-        self.hist_index = -1
+        self.saved_orms = History()
         self.configs = session.model().data.get(self.data_key, {})
         self.active = active or next(iter(self.configs))
         self.corrector = Corrector(session)
@@ -140,15 +140,13 @@ class CorrectorWidget(QtGui.QWidget):
         self.update_ui()
 
     def prev_orm(self):
-        if self.hist_index >= 1:
-            self.hist_index -= 1
-            self.orm[:] = self.hist_stack[self.hist_index]
+        if self.saved_orms.undo():
+            self.orm[:] = self.saved_orms()
             self.update_ui()
 
     def next_orm(self):
-        if self.hist_index < len(self.hist_stack) - 1:
-            self.hist_index += 1
-            self.orm[:] = self.hist_stack[self.hist_index]
+        if self.saved_orms.redo():
+            self.orm[:] = self.saved_orms()
             self.update_ui()
 
     def set_initial_values(self):
@@ -261,8 +259,7 @@ class CorrectorWidget(QtGui.QWidget):
             (2*len(self.corrector.monitors), len(self.corrector.variables)))
         results = self.corrector._compute_steerer_corrections_orm(orm)
 
-        self.corrector.match_results = results
-        self.corrector._push_history(results)
+        self.corrector.saved_optics.push(results)
         self.update_ui()
 
     def on_change_config(self, index):
@@ -278,25 +275,22 @@ class CorrectorWidget(QtGui.QWidget):
         #       self.btn_apply.setEnabled according to its values
 
     def prev_vals(self):
-        self.corrector.history_move(-1)
+        self.corrector.saved_optics.undo()
         self.update_ui()
 
     def next_vals(self):
-        self.corrector.history_move(+1)
+        self.corrector.saved_optics.redo()
         self.update_ui()
 
     def update_ui(self):
-        hist_idx = self.corrector.hist_idx
-        hist_len = len(self.corrector.hist_stack)
-        self.btn_prev.setEnabled(hist_idx > 0)
-        self.btn_next.setEnabled(hist_idx+1 < hist_len)
+        saved_optics = self.corrector.saved_optics
+        self.btn_prev.setEnabled(saved_optics.can_undo())
+        self.btn_next.setEnabled(saved_optics.can_redo())
         self.btn_apply.setEnabled(
-            self.corrector.cur_results != self.corrector.top_results)
+            self.corrector.online_optic != saved_optics())
         self.corrector.variables.touch()
-        self.btn_prev_orm.setEnabled(
-            self.hist_index > 0)
-        self.btn_next_orm.setEnabled(
-            self.hist_index < len(self.hist_stack) - 1)
+        self.btn_prev_orm.setEnabled(self.saved_orms.can_undo())
+        self.btn_next_orm.setEnabled(self.saved_orms.can_redo())
         self.draw_idle()
 
     def edit_config(self):

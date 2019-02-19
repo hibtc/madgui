@@ -6,6 +6,7 @@ import numpy as np
 
 import madgui.util.yaml as yaml
 from madgui.util.collections import List
+from madgui.util.history import History
 
 from madgui.model.match import Matcher
 from .orbit import fit_particle_orbit, add_offsets
@@ -55,6 +56,8 @@ class Corrector(Matcher):
         self._offsets = session.config['online_control']['offsets']
         self.optics = List()
         self.strategy = 'match'
+        self.saved_optics = History()
+        self.online_optic = {}
         # for ORM
         kick_elements = ('hkicker', 'vkicker', 'kicker', 'sbend')
         self.all_kickers = [
@@ -70,7 +73,7 @@ class Corrector(Matcher):
     def setup(self, config, dirs=None):
         dirs = dirs or self.mode
 
-        self._clr_history()
+        self.saved_optics.clear()
 
         elements = self.model.elements
         self.selected = config
@@ -162,30 +165,13 @@ class Corrector(Matcher):
             if knob.lower() in self._knobs
         }
 
-    def _clr_history(self):
-        self.hist_stack = []
-        self.hist_idx = -1
-        self.cur_results = {}
-        self.top_results = {}
-
-    def _push_history(self, results):
-        if results != self.top_results:
-            self.top_results = results
-            self.hist_idx += 1
-            self.hist_stack[self.hist_idx:] = [results]
-        return results
-
-    def history_move(self, move):
-        self.hist_idx += move
-        self.top_results = self.hist_stack[self.hist_idx]
-
     def update_vars(self):
         self.control.read_all()
         self.base_optics = {
             knob: self.model.read_param(knob)
             for knob in self.control.get_knobs()
         }
-        self.cur_results = self._push_history(self._read_vars())
+        self.online_optic = self.saved_optics.push(self._read_vars())
 
     def update_records(self):
         if self.direct:
@@ -205,8 +191,9 @@ class Corrector(Matcher):
         self.compute_steerer_corrections()
 
     def apply(self):
-        self.model.write_params(self.top_results.items())
-        self.control.write_params(self.top_results.items())
+        optic = self.saved_optics()
+        self.model.write_params(optic.items())
+        self.control.write_params(optic.items())
         super().apply()
 
     active_optic = None
@@ -255,9 +242,7 @@ class Corrector(Matcher):
             'orm': self._compute_steerer_corrections_orm_ndiff1,
             'tm': self._compute_steerer_corrections_orm_sectormap,
         }
-        self.match_results = results = strats[self.strategy]()
-        self._push_history(results)
-        return results
+        return self.saved_optics.push(strats[self.strategy]())
 
     def _compute_steerer_corrections_match(self):
         """
