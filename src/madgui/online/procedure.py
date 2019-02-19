@@ -47,7 +47,8 @@ class Corrector(Matcher):
         # save elements
         self.monitors = List()
         self.targets = List()
-        self.readouts = control.sampler.readouts_list
+        self.readouts = List()
+        control.sampler.updated.connect(self._update_readouts)
         self.records = List()
         self.fit_range = None
         self.objective_values = {}
@@ -62,6 +63,9 @@ class Corrector(Matcher):
         self.all_monitors = [
             elem.name for elem in self.model.elements
             if elem.base_name.lower().endswith('monitor')]
+
+    def _update_readouts(self, *_):
+        self.readouts[:] = self.control.sampler.fetch(self.monitors)
 
     def setup(self, config, dirs=None):
         dirs = dirs or self.mode
@@ -135,6 +139,7 @@ class Corrector(Matcher):
             for knob in self.match_names + list(self.assign)
             if knob.lower() in self._knobs
         ]
+        self._update_readouts()
 
     def set_optics_delta(self, deltas, default):
         self.base_optics = {
@@ -238,7 +243,7 @@ class Corrector(Matcher):
         secmaps = model.get_transfer_maps([start] + list(self.monitors))
         secmaps = list(accumulate(secmaps, lambda a, b: np.dot(b, a)))
         optics = {k: model.globals[k] for k in self._knobs}
-        readouts = {r.name: r for r in self.readouts}
+        readouts = {r.name.lower(): r for r in self.readouts}
         return [
             OrbitRecord(monitor, readouts[monitor.lower()], optics, secmap)
             for monitor, secmap in zip(self.monitors, secmaps)

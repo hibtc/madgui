@@ -253,14 +253,18 @@ class BeamSampler:
             self._candidate = None
             self._confirmed = readouts
             self._confirmed_time = self._candidate_time
-            self.readouts_list[:] = [
-                MonitorReadout(name, readouts.get(name.lower()))
-                for name in self.monitors
-            ]
+            self.readouts_list[:] = self.fetch(self.monitors)
             self.updated.emit(self._candidate_time, activity)
         elif readouts != self._confirmed:
             self._candidate = readouts
             self._candidate_time = time.time()
+
+    def fetch(self, monitors):
+        readouts = self.readouts
+        return [
+            MonitorReadout(mon, readouts.get(mon.lower(), {}))
+            for mon in monitors
+        ]
 
 
 class MonitorReadout:
