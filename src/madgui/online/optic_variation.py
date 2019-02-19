@@ -145,7 +145,7 @@ class CorrectorWidget(_Widget):
         super().update_ui()
 
         running = self.bot.running
-        has_fit = len(self.corrector.match_results) > 0     # FIXME
+        has_fit = bool(self.corrector.saved_optics())
         self.btn_proc_start.setEnabled(not running)
         self.btn_proc_abort.setEnabled(running)
         self.btn_apply.setEnabled(not running and has_fit)
