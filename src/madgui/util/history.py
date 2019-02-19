@@ -22,10 +22,16 @@ class History:
         self._index = -1        # index of "current" value
 
     def push(self, value):
-        """Add a value at our history position and clear anything behind."""
+        """Add a value at our history position and clear anything behind.
+        Keeps the value unique in the stack by removing previous appearance of
+        it in the stack."""
+        # check is so that we don't delete the history only by going back and
+        # repushing the same value:
         if self() != value:
             self._index += 1
-            self._stack[self._index:] = [value]
+            del self._stack[self._index:]
+            self._remove(value)
+            self._stack.append(value)
         return value
 
     def undo(self):
@@ -55,3 +61,13 @@ class History:
     def __len__(self):
         """Total number of items in the history."""
         return len(self._stack)
+
+    def _remove(self, value):
+        """Remove ``value`` from history."""
+        try:
+            index = self._stack.index(value)
+        except ValueError:
+            return
+        del self._stack[index]
+        if self._index > index:
+            self._index -= 1
