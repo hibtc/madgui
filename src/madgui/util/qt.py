@@ -27,7 +27,7 @@ def notifyEvent(widget, name, handler):
 
     def new_handler(event):
         handler(event)
-        old_handler(event)
+        return old_handler(event)
     setattr(widget, name, new_handler)
 
 
