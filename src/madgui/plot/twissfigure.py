@@ -694,13 +694,10 @@ class InfoTool(CaptureTool):
         # By default, show info in an existing dialog. The shift/ctrl keys
         # are used to open more dialogs:
         selected = self.selection.elements
-        if selected and not shift and not control:
-            selected[self.selection.top] = el_id
-        elif shift:
-            # stack box
+        if shift or control or len(selected) == 0:
             selected.append(el_id)
         else:
-            selected.insert(0, el_id)
+            selected[self.selection.top] = el_id
 
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
