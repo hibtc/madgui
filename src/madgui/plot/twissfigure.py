@@ -121,7 +121,7 @@ class TwissFigure:
                 elem_styles=self.element_style),
             ListView(
                 'selected_elements',
-                self.model.selection.elements.map(get_element),
+                self.model.selection.items.map(get_element),
                 plot_selection_marker, self.model,
                 elem_styles=self.element_style),
             ListView(
@@ -693,11 +693,11 @@ class InfoTool(CaptureTool):
 
         # By default, show info in an existing dialog. The shift/ctrl keys
         # are used to open more dialogs:
-        selected = self.selection.elements
+        selected = self.selection.items
         if shift or control or len(selected) == 0:
             selected.append(el_id)
         else:
-            selected[self.selection.top] = el_id
+            selected[self.selection.cursor] = el_id
 
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
@@ -716,10 +716,10 @@ class InfoTool(CaptureTool):
             self.advance_selection(+1)
 
     def advance_selection(self, move_step):
-        selected = self.selection.elements
+        selected = self.selection.items
         if not selected:
             return
-        top = self.selection.top
+        top = self.selection.cursor
         elements = self.model.elements
         old_el_id = selected[top]
         old_index = self.model.elements.index(old_el_id)

@@ -226,20 +226,20 @@ MutableSequence.register(List)
 
 class Selection:
 
-    """List of elements with the additional notion of an *active* element
+    """List of items with the additional notion of an *active* element
     (determined by last activity)."""
 
-    def __init__(self, elements=None):
-        self.elements = List() if elements is None else elements
-        self.top = 0
+    def __init__(self, items=None):
+        self.items = List() if items is None else items
+        self.cursor = 0
         # activity changes the "active" element:
-        self.elements.inserted.connect(self._on_changed)
-        self.elements.changed.connect(self._on_changed)
-        self.elements.removed.connect(self._on_removed)
+        self.items.inserted.connect(self._on_changed)
+        self.items.changed.connect(self._on_changed)
+        self.items.removed.connect(self._on_removed)
 
     def _on_changed(self, index, *_):
-        self.top = index
+        self.cursor = index
 
     def _on_removed(self, index):
-        if self.top > index or self.top == index > 0:
-            self.top -= 1
+        if self.cursor > index or self.cursor == index > 0:
+            self.cursor -= 1

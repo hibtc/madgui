@@ -212,10 +212,10 @@ class InfoBoxGroup(QtCore.QObject):
         self.model = mainwindow.model
         self.selection = selection
         self.boxes = [self.create_info_box(elem)
-                      for elem in selection.elements]
-        selection.elements.inserted.connect(self._insert)
-        selection.elements.removed.connect(self._delete)
-        selection.elements.changed.connect(self._modify)
+                      for elem in selection.items]
+        selection.items.inserted.connect(self._insert)
+        selection.items.removed.connect(self._delete)
+        selection.items.changed.connect(self._modify)
 
     # keep info boxes in sync with current selection
 
@@ -236,11 +236,11 @@ class InfoBoxGroup(QtCore.QObject):
 
     def _on_close_box(self, box):
         el_id = box.el_id
-        if el_id in self.selection.elements:
-            self.selection.elements.remove(el_id)
+        if el_id in self.selection.items:
+            self.selection.items.remove(el_id)
 
     def set_active_box(self, box):
-        self.selection.top = self.boxes.index(box)
+        self.selection.cursor = self.boxes.index(box)
         box.raise_()
 
     def create_info_box(self, el_id):
@@ -266,8 +266,8 @@ class InfoBoxGroup(QtCore.QObject):
     def _changed_box_element(self, box):
         box_index = self.boxes.index(box)
         new_el_id = box.el_id
-        old_el_id = self.selection.elements[box_index]
+        old_el_id = self.selection.items[box_index]
         if new_el_id != old_el_id:
-            self.selection.elements[box_index] = new_el_id
+            self.selection.items[box_index] = new_el_id
         box.window().setWindowTitle(
             "Element details: " + self.model().elements[new_el_id].node_name)

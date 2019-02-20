@@ -143,7 +143,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
         self.scene().addItem(self.coordinate_axes)
         self.scene().addItem(self.scale_indicator)
         self.setViewRect(self._sceneRect())
-        selection.elements.update_finished.connect(self._update_selection)
+        selection.items.update_finished.connect(self._update_selection)
 
     def _sceneRect(self):
         rect = self.scene().sceneRect()
@@ -244,7 +244,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
 
-        self.setSelected(self.el_id in selection.elements)
+        self.setSelected(self.el_id in selection.items)
 
     @property
     def el_id(self):
@@ -256,12 +256,12 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         return value
 
     def _on_select(self, select):
-        is_selected = self.el_id in self.selection.elements
+        is_selected = self.el_id in self.selection.items
         if select and not is_selected:
             # TODO: incorporate whether shift is clicked
-            self.selection.elements.append(self.el_id)
+            self.selection.items.append(self.el_id)
         elif is_selected and not select:
-            self.selection.elements.remove(self.el_id)
+            self.selection.items.remove(self.el_id)
 
     def shape(self):
         return self._outline
