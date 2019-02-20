@@ -226,46 +226,20 @@ MutableSequence.register(List)
 
 class Selection:
 
-    """
-    List of elements with the additional notion of an *active* element
-    (determined by insertion order).
-
-    For simplicity, the track-record of insertion order is implemented as a
-    reordering of a list of elements - even though a selection of elements may
-    be represented somewhat more appropriately by an `OrderedSet`
-    (=`Set`+`List`).
-    """
+    """List of elements with the additional notion of an *active* element
+    (determined by last activity)."""
 
     def __init__(self, elements=None):
         self.elements = List() if elements is None else elements
-        self.ordering = list(range(len(self.elements)))
-        maintain_selection(self.ordering, self.elements)
+        self.top = 0
+        # activity changes the "active" element:
+        self.elements.inserted.connect(self._on_changed)
+        self.elements.changed.connect(self._on_changed)
+        self.elements.removed.connect(self._on_removed)
 
-    def get_top(self):
-        """Get index of top element."""
-        return self.ordering[-1]
+    def _on_changed(self, index, *_):
+        self.top = index
 
-    def set_top(self, index):
-        """Move element with specified index to top of the list."""
-        self.ordering.remove(index)
-        self.ordering.append(index)
-
-    top = property(get_top, set_top)
-
-
-def maintain_selection(sel, avail):
-    def insert(index, value):
-        for i, v in enumerate(sel):
-            if v >= index:
-                sel[i] += 1
-        sel.append(index)
-
-    def delete(index):
-        if index in sel:
-            sel.remove(index)
-        for i, v in enumerate(sel):
-            if v >= index:
-                sel[i] -= 1
-    avail.inserted.connect(insert)
-    avail.removed.connect(delete)
-    sel[:] = range(len(avail))
+    def _on_removed(self, index):
+        if self.top > index or self.top == index > 0:
+            self.top -= 1
