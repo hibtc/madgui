@@ -19,7 +19,7 @@ from madgui.qt import Qt, QtCore, QtGui
 from madgui.util.signal import Signal
 from madgui.util.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.util.qt import notifyCloseEvent, notifyEvent
+from madgui.util.qt import notifyCloseEvent
 from madgui.widget.dialog import Dialog
 from madgui.widget.params import (
     TabParamTables, ParamTable, CommandEdit, ParamInfo, MatrixTable)
@@ -203,7 +203,7 @@ class EllipseWidget(QtGui.QWidget):
         self.canvas.draw()
 
 
-class InfoBoxGroup:
+class InfoBoxGroup(QtCore.QObject):
 
     def __init__(self, mainwindow, selection):
         """Add toolbar tool to panel and subscribe to capture events."""
@@ -247,19 +247,21 @@ class InfoBoxGroup:
         model = self.model()
         config = self.mainwindow.config
         info = ElementInfoBox(model, el_id, config.summary_attrs)
+        info.changed_element.connect(partial(self._changed_box_element, info))
         dock = Dialog(self.mainwindow)
         dock.setSimpleExportWidget(info, None)
         dock.setWindowTitle(
             "Element details: " + model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
-        notifyEvent(info, 'focusInEvent',
-                    lambda event: self.set_active_box(info))
-
+        info.installEventFilter(self)
         dock.show()
         dock.raise_()
-
-        info.changed_element.connect(partial(self._changed_box_element, info))
         return info
+
+    def eventFilter(self, box, event):
+        if event.type() == QtCore.QEvent.WindowActivate:
+            self.set_active_box(box)
+        return False
 
     def _changed_box_element(self, box):
         box_index = self.boxes.index(box)
