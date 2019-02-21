@@ -54,10 +54,10 @@ class Boxed:
     def __call__(self, *value):
         return self._value
 
-    def set(self, value):
+    def set(self, value, force=False):
         new = self._dtype(value)
         old = self._value
-        if new != old:
+        if force or new != old:
             self._value = new
             self.changed.emit(new)
             self.changed2.emit(old, new)
@@ -237,9 +237,8 @@ class Selection(List):
 
     def __init__(self):
         super().__init__()
-        self.cursor = 0
+        self.cursor = Boxed(0)
         # activity changes the "active" element:
-        self.inserted.connect(self._on_changed)
         self.changed.connect(self._on_changed)
         self.removed.connect(self._on_removed)
 
@@ -250,19 +249,25 @@ class Selection(List):
         if item in self:
             self[self.index(item)] = item
         elif replace and len(self) > 0:
-            self[self.cursor] = item
+            self[self.cursor()] = item
         else:
             self.append(item)
+            # When inserting elements, we can't use the `self.inserted` signal
+            # to adjust the cursor, because this triggers too early for other
+            # viewers to have realized that a new element was inserted
+            # already (which is I guess the downside of using DirectConnection
+            # signals, i.e. depth-first evaluation):
+            self.cursor.set(len(self) - 1)
 
     def cursor_item(self):
         """Return the currently active item."""
-        return self[self.cursor] if len(self) > 0 else None
+        return self[self.cursor()] if len(self) > 0 else None
 
     # internal methods
 
     def _on_changed(self, index, *_):
-        self.cursor = index
+        self.cursor.set(index, force=True)
 
     def _on_removed(self, index):
-        if self.cursor > index or self.cursor == index > 0:
-            self.cursor -= 1
+        if self.cursor() > index or self.cursor() == index > 0:
+            self.cursor.set(self.cursor() - 1)

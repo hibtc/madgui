@@ -215,6 +215,7 @@ class InfoBoxGroup(QtCore.QObject):
         selection.inserted.connect(self._insert)
         selection.removed.connect(self._delete)
         selection.changed.connect(self._modify)
+        selection.cursor.changed.connect(self._cursor_changed)
 
     # keep info boxes in sync with current selection
 
@@ -232,6 +233,9 @@ class InfoBoxGroup(QtCore.QObject):
         self.boxes[index].setWindowTitle(
             self.model().elements[el_id].node_name)
 
+    def _cursor_changed(self, index):
+        self.boxes[index].window().present()
+
     # utility methods
 
     def _on_close_box(self, box):
@@ -239,8 +243,7 @@ class InfoBoxGroup(QtCore.QObject):
             self.selection.remove(box.el_id)
 
     def set_active_box(self, box):
-        self.selection.cursor = self.boxes.index(box)
-        box.raise_()
+        self.selection.cursor.set(self.boxes.index(box), force=True)
 
     def create_info_box(self, el_id):
         model = self.model()
@@ -253,8 +256,7 @@ class InfoBoxGroup(QtCore.QObject):
             "Element details: " + model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
         info.installEventFilter(self)
-        dock.show()
-        dock.raise_()
+        dock.present()
         return info
 
     def eventFilter(self, box, event):
@@ -263,7 +265,7 @@ class InfoBoxGroup(QtCore.QObject):
         return False
 
     def _changed_box_element(self, box):
-        self.selection.cursor = self.boxes.index(box)
+        self.selection.cursor.set(self.boxes.index(box))
         self.selection.add(box.el_id, replace=True)
         box.window().setWindowTitle(
             "Element details: " + self.model().elements[box.el_id].node_name)

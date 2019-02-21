@@ -11,6 +11,7 @@ import os
 from madgui.qt import Qt, QtGui
 
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch
+from madgui.util.qt import present
 
 
 # short-hand for accessing QDialogButtonBox.StandardButtons identifiers:
@@ -131,3 +132,5 @@ class Dialog(QtGui.QDialog):
     def setSimpleExportWidget(self, widget, folder):
         self.serious = SerializeButtons(widget, folder, Qt.Horizontal)
         self.setWidget(VBoxLayout([widget, self.serious]))
+
+    present = present
