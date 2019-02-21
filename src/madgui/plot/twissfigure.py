@@ -21,11 +21,14 @@ from madgui.util.yaml import load_resource
 
 from madgui.util.qt import load_icon_resource, SingleWindow
 from madgui.util.misc import memoize, strip_suffix, cachedproperty
+from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
 from madgui.plot.scene import SceneGraph, ListView, LineBundle, plot_line
 from madgui.widget.dialog import Dialog
+import madgui.widget.plot as plt
+import madgui.util.menu as menu
 
 import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
@@ -59,6 +62,106 @@ MouseEvent = namedtuple('MouseEvent', [
 KeyboardEvent = namedtuple('KeyboardEvent', [
     'key', 'guiEvent'])
 
+
+class TwissWidget(QtGui.QWidget):
+
+    @classmethod
+    def from_session(cls, session, name):
+        model = session.model()
+        config = session.config
+
+        # NOTE: using the plot_windows list as a stack with its top at 0:
+        settings = (config.plot_windows and
+                    config.plot_windows.pop(0) or {})
+
+        # indicators require retrieving data for all elements which can be too
+        # time consuming for large lattices:
+        show_indicators = len(model.elements) < 500
+
+        parent = session.window()
+        dialog = Dialog(parent)
+        widget = cls(
+            session, model, name=name,
+            show_indicators=show_indicators,
+            settings=settings)
+        dialog.setWidget(widget, tight=True)
+        dialog.layout().setMenuBar(QtGui.QMenuBar())
+        widget.create_menu(dialog.layout().menuBar())
+
+        size = settings.get('size')
+        pos = settings.get('pos')
+        if not size:
+            size = (parent.size().width(), dialog.sizeHint().height())
+        dialog.resize(*size)
+        if pos:
+            dialog.move(*pos)
+        dialog.show()
+
+        widget.update_window_title()
+        session.model.changed_singleshot(dialog.close)
+        return widget
+
+    def __init__(self, session, model, name=None,
+                 show_indicators=True, settings={}):
+
+        super().__init__()
+
+        self.session = session
+        self.model = model
+        self.settings = settings
+
+        figure = plt.Figure(tight_layout=True)
+        plot = plt.PlotWidget(figure)
+
+        scene = self.scene = TwissFigure(
+            figure, session, session.window().matcher)
+        scene.show_indicators = show_indicators
+        scene.set_graph(name or settings.get('graph'))
+        scene.attach(plot)
+
+        # for convenience when debugging:
+        session.user_ns.__dict__.update({
+            'plot': plot,
+            'figure': figure,
+            'canvas': plot.canvas,
+            'scene': scene,
+        })
+
+        select = PlotSelector(scene)
+        self.setLayout(VBoxLayout([select, plot], tight=True))
+        scene.graph_changed.connect(self.update_window_title)
+
+    def create_menu(self, menubar):
+        Menu, Item = menu.Menu, menu.Item
+        menu.extend(self.window(), menubar, [
+            Menu('&View', [
+                # TODO: dynamic checked state
+                Item('&Shared plot', 'Ctrl+M',
+                     'Plot all curves into the same axes.',
+                     self.toggleShareAxes, checked=False),
+                # TODO: dynamic checked state
+                Item('Element &indicators', None,
+                     'Show element indicators',
+                     self.toggleIndicators, checked=self.scene.show_indicators),
+                Item('Manage curves', None,
+                     'Select which data sets are shown',
+                     self.scene._curveManager.toggle,
+                     checked=self.scene._curveManager.holds_value),
+            ]),
+        ])
+
+    def toggleShareAxes(self):
+        scene = self.scene
+        scene.share_axes = not scene.share_axes
+        scene.reset()
+
+    def toggleIndicators(self):
+        scene = self.scene
+        scene.show_indicators = not scene.show_indicators
+
+    def update_window_title(self):
+        self.window().setWindowTitle("{1} ({0})".format(
+            self.model.name, self.scene.graph_name))
 
 # basic twiss figure
 
