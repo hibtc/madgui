@@ -244,7 +244,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
 
-        self.setSelected(self.el_id in selection.items)
+        self.setSelected(self.el_id in selection)
 
     @property
     def el_id(self):
@@ -256,12 +256,12 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         return value
 
     def _on_select(self, select):
-        is_selected = self.el_id in self.selection.items
+        is_selected = self.el_id in self.selection
         if select and not is_selected:
             # TODO: incorporate whether shift is clicked
-            self.selection.items.append(self.el_id)
+            self.selection.add(self.el_id)
         elif is_selected and not select:
-            self.selection.items.remove(self.el_id)
+            self.selection.remove(self.el_id)
 
     def shape(self):
         return self._outline

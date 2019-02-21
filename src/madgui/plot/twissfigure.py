@@ -691,13 +691,8 @@ class InfoTool(CaptureTool):
         shift = bool(event.guiEvent.modifiers() & Qt.ShiftModifier)
         control = bool(event.guiEvent.modifiers() & Qt.ControlModifier)
 
-        # By default, show info in an existing dialog. The shift/ctrl keys
-        # are used to open more dialogs:
-        selected = self.selection.items
-        if shift or control or len(selected) == 0:
-            selected.append(el_id)
-        else:
-            selected[self.selection.cursor] = el_id
+        append = shift or control
+        self.selection.add(el_id, replace=not append)
 
         # Set focus to parent window, so left/right cursor buttons can be
         # used immediately.
@@ -716,16 +711,11 @@ class InfoTool(CaptureTool):
             self.advance_selection(+1)
 
     def advance_selection(self, move_step):
-        selected = self.selection.items
-        if not selected:
-            return
-        top = self.selection.cursor
-        elements = self.model.elements
-        old_el_id = selected[top]
-        old_index = self.model.elements.index(old_el_id)
-        new_index = old_index + move_step
-        new_el_id = self.model.elements[new_index % len(elements)].index
-        selected[top] = new_el_id
+        selected = self.selection
+        if selected:
+            old_el_id = selected.cursor_item
+            new_el_id = (old_el_id + move_step) % len(self.model.elements)
+            selected.add(new_el_id, replace=True)
 
 
 def plot_selection_marker(ax, model, el_idx, elem_styles=ELEM_STYLES,
