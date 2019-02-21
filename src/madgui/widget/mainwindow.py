@@ -295,7 +295,7 @@ class MainWindow(QtGui.QMainWindow):
         dialog = Dialog(self)
         dialog.setWidget(widget)
         dialog.setWindowTitle("Change history")
-        return widget
+        return dialog
 
     # Menu actions
 
@@ -427,7 +427,7 @@ class MainWindow(QtGui.QMainWindow):
         dialog = Dialog(self)
         dialog.setSimpleExportWidget(widget, self.folder)
         dialog.setWindowTitle("Initial conditions")
-        return widget
+        return dialog
 
     @SingleWindow.factory
     def viewShell(self):

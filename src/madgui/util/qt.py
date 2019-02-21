@@ -159,7 +159,7 @@ class Property:
 class SingleWindow(Property):
 
     def _del(self):
-        self.val.window().close()
+        self.val.close()
 
     def _closed(self):
         super()._del()
