@@ -121,7 +121,7 @@ class TwissFigure:
                 elem_styles=self.element_style),
             ListView(
                 'selected_elements',
-                self.model.selection.items.map(get_element),
+                self.model.selection.map(get_element),
                 plot_selection_marker, self.model,
                 elem_styles=self.element_style),
             ListView(

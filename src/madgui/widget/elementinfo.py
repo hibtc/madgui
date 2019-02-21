@@ -212,9 +212,9 @@ class InfoBoxGroup(QtCore.QObject):
         self.model = mainwindow.model
         self.selection = selection
         self.boxes = [self.create_info_box(elem) for elem in selection]
-        selection.items.inserted.connect(self._insert)
-        selection.items.removed.connect(self._delete)
-        selection.items.changed.connect(self._modify)
+        selection.inserted.connect(self._insert)
+        selection.removed.connect(self._delete)
+        selection.changed.connect(self._modify)
 
     # keep info boxes in sync with current selection
 
@@ -223,6 +223,7 @@ class InfoBoxGroup(QtCore.QObject):
 
     def _delete(self, index):
         if self.boxes[index].isVisible():
+            self.boxes[index]._el_id = None
             self.boxes[index].window().close()
         del self.boxes[index]
 
@@ -234,7 +235,8 @@ class InfoBoxGroup(QtCore.QObject):
     # utility methods
 
     def _on_close_box(self, box):
-        self.selection.remove(box.el_id)
+        if box.el_id is not None:
+            self.selection.remove(box.el_id)
 
     def set_active_box(self, box):
         self.selection.cursor = self.boxes.index(box)

@@ -224,55 +224,39 @@ class List:
 MutableSequence.register(List)
 
 
-class Selection:
+class Selection(List):
 
     """Set of items with the additional notion of a cursor to the least
-    recently *active*element. Each item can occur only once in the set."""
+    recently *active*element. Each item can occur only once in the set.
 
-    def __init__(self, items=None):
-        self.items = List() if items is None else items
+    Note that the inherited ``List`` methods and signals can be used to listen
+    for selection changes, and to query or delete items. However, for
+    *inserting* or *modifying* elements, only use the methods defined in the
+    ``Selection`` class can be used to ensure that items stay unique.
+    """
+
+    def __init__(self):
+        super().__init__()
         self.cursor = 0
         # activity changes the "active" element:
-        self.items.inserted.connect(self._on_changed)
-        self.items.changed.connect(self._on_changed)
-        self.items.removed.connect(self._on_removed)
-
-    def clear(self):
-        """Clear the selection."""
-        self.items.clear()
+        self.inserted.connect(self._on_changed)
+        self.changed.connect(self._on_changed)
+        self.removed.connect(self._on_removed)
 
     def add(self, item, replace=False):
         """Add the item to the set if not already present. If ``replace`` is
         true, the currently active item will be replaced by the new item. In
         each case, set the active element to ``item``."""
-        items = self.items
-        if item in items:
-            items[items.index(item)] = item
-        elif replace and len(items) > 0:
-            items[self.cursor] = item
+        if item in self:
+            self[self.index(item)] = item
+        elif replace and len(self) > 0:
+            self[self.cursor] = item
         else:
-            items.append(item)
-
-    def remove(self, item):
-        """Remove the item from the set if present."""
-        if item in self.items:
-            self.items.remove(item)
+            self.append(item)
 
     def cursor_item(self):
         """Return the currently active item."""
-        return self.items[self.cursor] if len(self.items) > 0 else None
-
-    def __iter__(self):
-        return iter(self.items)
-
-    def __getitem__(self, index):
-        return self.items[index]
-
-    def __len__(self):
-        return len(self.items)
-
-    def __contains__(self, item):
-        return item in self.items
+        return self[self.cursor] if len(self) > 0 else None
 
     # internal methods
 
