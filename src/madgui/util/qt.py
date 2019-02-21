@@ -31,6 +31,48 @@ def notifyEvent(widget, name, handler):
     setattr(widget, name, new_handler)
 
 
+def eventFilter(object, events):
+    """
+    Subscribe to events from ``object`` and dispatch via ``events`` lookup
+    table. Callbacks are invoked with two parameters ``(object, event)`` and
+    should return a false-ish value. A true-ish value will stop the event from
+    being processed further.
+
+    Example usage:
+
+    >>> self.event_filter = eventFilter(window, {
+    ...     'WindowActivate': self._on_window_activate,
+    ...     'Close': self._on_window_close))
+    ... })
+
+    (Note that it is important to store the reference to the event filter
+    somewhere - otherwise it may be garbage collected.)
+
+    See ``QtCore.QEvent`` for possible events.
+    """
+    filter = EventFilter(events)
+    object.installEventFilter(filter)
+    return filter
+
+
+class EventFilter(QtCore.QObject):
+
+    """Implements an event filter from a lookup table. It is preferred to use
+    the :func:`eventFilter` function rather than instanciating this class
+    directly."""
+
+    def __init__(self, events):
+        super().__init__()
+        self.event_table = {
+            getattr(QtCore.QEvent, k): v
+            for k, v in events.items()
+        }
+
+    def eventFilter(self, object, event):
+        dispatch = self.event_table.get(event.type())
+        return bool(dispatch and dispatch(object, event))
+
+
 def present(window, raise_=False):
     """Activate window."""
     window.show()

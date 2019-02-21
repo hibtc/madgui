@@ -19,7 +19,7 @@ from madgui.qt import Qt, QtCore, QtGui
 from madgui.util.signal import Signal
 from madgui.util.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.util.qt import notifyCloseEvent
+from madgui.util.qt import notifyCloseEvent, EventFilter
 from madgui.widget.dialog import Dialog
 from madgui.widget.params import (
     TabParamTables, ParamTable, CommandEdit, ParamInfo, MatrixTable)
@@ -203,11 +203,10 @@ class EllipseWidget(QtGui.QWidget):
         self.canvas.draw()
 
 
-class InfoBoxGroup(QtCore.QObject):
+class InfoBoxGroup:
 
     def __init__(self, mainwindow, selection):
         """Add toolbar tool to panel and subscribe to capture events."""
-        super().__init__()
         self.mainwindow = mainwindow
         self.model = mainwindow.model
         self.selection = selection
@@ -216,6 +215,9 @@ class InfoBoxGroup(QtCore.QObject):
         selection.removed.connect(self._delete)
         selection.changed.connect(self._modify)
         selection.cursor.changed.connect(self._cursor_changed)
+        self.event_filter = EventFilter({
+            'WindowActivate': self.set_active_box,
+        })
 
     # keep info boxes in sync with current selection
 
@@ -242,7 +244,7 @@ class InfoBoxGroup(QtCore.QObject):
         if box.el_id is not None:
             self.selection.remove(box.el_id)
 
-    def set_active_box(self, box):
+    def set_active_box(self, box, *_):
         self.selection.cursor.set(self.boxes.index(box), force=True)
 
     def create_info_box(self, el_id):
@@ -255,14 +257,9 @@ class InfoBoxGroup(QtCore.QObject):
         dock.setWindowTitle(
             "Element details: " + model.elements[el_id].node_name)
         notifyCloseEvent(dock, lambda: self._on_close_box(info))
-        info.installEventFilter(self)
+        info.installEventFilter(self.event_filter)
         dock.present()
         return info
-
-    def eventFilter(self, box, event):
-        if event.type() == QtCore.QEvent.WindowActivate:
-            self.set_active_box(box)
-        return False
 
     def _changed_box_element(self, box):
         self.selection.cursor.set(self.boxes.index(box))
