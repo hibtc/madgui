@@ -4,7 +4,7 @@ s-axis.
 """
 
 __all__ = [
-    'PlotSelector',
+    'TwissWidget',
     'TwissFigure',
 ]
 
@@ -127,9 +127,15 @@ class TwissWidget(QtGui.QWidget):
             'scene': scene,
         })
 
-        select = PlotSelector(scene)
-        self.setLayout(VBoxLayout([select, plot], tight=True))
+        selector = self.selector = QtGui.QComboBox()
+        self.setLayout(VBoxLayout([selector, plot], tight=True))
         scene.graph_changed.connect(self.update_window_title)
+
+        items = [(l, n) for n, l in scene.get_graphs().items()]
+        for label, name in sorted(items):
+            selector.addItem(label, name)
+
+        selector.currentIndexChanged.connect(self.change_figure)
 
     def create_menu(self, menubar):
         Menu, Item = menu.Menu, menu.Item
@@ -162,28 +168,11 @@ class TwissWidget(QtGui.QWidget):
     def update_window_title(self):
         self.window().setWindowTitle("{1} ({0})".format(
             self.model.name, self.scene.graph_name))
-
-# basic twiss figure
-
-class PlotSelector(QtGui.QComboBox):
-
-    """Widget to choose the displayed graph in a TwissFigure."""
-
-    def __init__(self, scene, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.scene = scene
-        self.scene.graph_changed.connect(self.update_index)
-        items = [(l, n) for n, l in scene.get_graphs().items()]
-        for label, name in sorted(items):
-            self.addItem(label, name)
-        self.update_index()
-        self.currentIndexChanged.connect(self.change_figure)
+        self.selector.setCurrentIndex(
+            self.selector.findData(self.scene.graph_name))
 
     def change_figure(self, index):
-        self.scene.set_graph(self.itemData(index))
-
-    def update_index(self):
-        self.setCurrentIndex(self.findData(self.scene.graph_name))
+        self.scene.set_graph(self.selector.itemData(index))
 
 
 class TwissFigure:
