@@ -54,10 +54,10 @@ class Boxed:
     def __call__(self, *value):
         return self._value
 
-    def set(self, value):
+    def set(self, value, force=False):
         new = self._dtype(value)
         old = self._value
-        if new != old:
+        if force or new != old:
             self._value = new
             self.changed.emit(new)
             self.changed2.emit(old, new)
@@ -224,48 +224,50 @@ class List:
 MutableSequence.register(List)
 
 
-class Selection:
+class Selection(List):
 
+    """Set of items with the additional notion of a cursor to the least
+    recently *active*element. Each item can occur only once in the set.
+
+    Note that the inherited ``List`` methods and signals can be used to listen
+    for selection changes, and to query or delete items. However, for
+    *inserting* or *modifying* elements, only use the methods defined in the
+    ``Selection`` class can be used to ensure that items stay unique.
     """
-    List of elements with the additional notion of an *active* element
-    (determined by insertion order).
 
-    For simplicity, the track-record of insertion order is implemented as a
-    reordering of a list of elements - even though a selection of elements may
-    be represented somewhat more appropriately by an `OrderedSet`
-    (=`Set`+`List`).
-    """
+    def __init__(self):
+        super().__init__()
+        self.cursor = Boxed(0)
+        # activity changes the "active" element:
+        self.changed.connect(self._on_changed)
+        self.removed.connect(self._on_removed)
 
-    def __init__(self, elements=None):
-        self.elements = List() if elements is None else elements
-        self.ordering = list(range(len(self.elements)))
-        maintain_selection(self.ordering, self.elements)
+    def add(self, item, replace=False):
+        """Add the item to the set if not already present. If ``replace`` is
+        true, the currently active item will be replaced by the new item. In
+        each case, set the active element to ``item``."""
+        if item in self:
+            self[self.index(item)] = item
+        elif replace and len(self) > 0:
+            self[self.cursor()] = item
+        else:
+            self.append(item)
+            # When inserting elements, we can't use the `self.inserted` signal
+            # to adjust the cursor, because this triggers too early for other
+            # viewers to have realized that a new element was inserted
+            # already (which is I guess the downside of using DirectConnection
+            # signals, i.e. depth-first evaluation):
+            self.cursor.set(len(self) - 1)
 
-    def get_top(self):
-        """Get index of top element."""
-        return self.ordering[-1]
+    def cursor_item(self):
+        """Return the currently active item."""
+        return self[self.cursor()] if len(self) > 0 else None
 
-    def set_top(self, index):
-        """Move element with specified index to top of the list."""
-        self.ordering.remove(index)
-        self.ordering.append(index)
+    # internal methods
 
-    top = property(get_top, set_top)
+    def _on_changed(self, index, *_):
+        self.cursor.set(index, force=True)
 
-
-def maintain_selection(sel, avail):
-    def insert(index, value):
-        for i, v in enumerate(sel):
-            if v >= index:
-                sel[i] += 1
-        sel.append(index)
-
-    def delete(index):
-        if index in sel:
-            sel.remove(index)
-        for i, v in enumerate(sel):
-            if v >= index:
-                sel[i] -= 1
-    avail.inserted.connect(insert)
-    avail.removed.connect(delete)
-    sel[:] = range(len(avail))
+    def _on_removed(self, index):
+        if self.cursor() > index or self.cursor() == index > 0:
+            self.cursor.set(self.cursor() - 1)
