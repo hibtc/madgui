@@ -11,7 +11,10 @@ __all__ = [
 from inspect import getmro
 from functools import partial
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QAbstractItemModel, QModelIndex, QSize, Qt
+from PyQt5.QtWidgets import (
+    QAbstractItemView, QComboBox, QLabel, QLineEdit, QSpinBox,
+    QStyledItemDelegate, QTableView, QTreeView, QWidget)
 
 from madgui.util.signal import Signal
 from madgui.util.unit import to_ui, from_ui, ui_units
@@ -24,8 +27,6 @@ from madgui.widget.spinbox import QuantitySpinBox, ExpressionSpinBox
 
 import madgui.util.unit as unit
 import madgui.core.config as config
-
-Qt = QtCore.Qt
 
 # TODO: more consistent behaviour/feel of controls: Quantity vs Bare
 
@@ -242,7 +243,7 @@ class TreeNode:
         return False
 
 
-class TableModel(QtCore.QAbstractItemModel):
+class TableModel(QAbstractItemModel):
 
     """
     Table data model.
@@ -282,7 +283,7 @@ class TableModel(QtCore.QAbstractItemModel):
     # QAbstractItemModel overrides
 
     # TODO: add/implement TreeNode.children
-    def index(self, row, col, parent=QtCore.QModelIndex()):
+    def index(self, row, col, parent=QModelIndex()):
         return self.createIndex(
             row, col, self.cell(parent).children[row].children[col])
 
@@ -291,13 +292,13 @@ class TableModel(QtCore.QAbstractItemModel):
         # the parent *cell*, we need in fact its grandparent:
         parent = self.cell(index).granny
         if parent is None or parent.granny is None:
-            return QtCore.QModelIndex()
+            return QModelIndex()
         return self.createIndex(parent.row, parent.col, parent)
 
-    def columnCount(self, parent=QtCore.QModelIndex()):
+    def columnCount(self, parent=QModelIndex()):
         return len(self.titles)
 
-    def rowCount(self, parent=QtCore.QModelIndex()):
+    def rowCount(self, parent=QModelIndex()):
         return len(self.cell(parent).children or ())
 
     def data(self, index, role=Qt.DisplayRole):
@@ -415,7 +416,7 @@ class ItemView:
             del self.model().rows[a:b]
 
     def keyPressEvent(self, event):
-        if self.state() == QtWidgets.QAbstractItemView.NoState:
+        if self.state() == QAbstractItemView.NoState:
             if event.key() in (Qt.Key_Delete, Qt.Key_Backspace) \
                     and self.allow_delete:
                 self.removeSelectedRows()
@@ -452,14 +453,14 @@ class ItemView:
                        content_width +
                        scrollbar_width)
         height = super().sizeHint().height()
-        return QtCore.QSize(total_width, height)
+        return QSize(total_width, height)
 
     def sizeHintForColumn(self, column):
         return (super().sizeHintForColumn(column) +
                 self.padding.get(column, 40))
 
 
-class TableView(ItemView, QtWidgets.QTableView):
+class TableView(ItemView, QTableView):
 
     """
     A table widget based on Qt's QTableView for our :class:`TableModel`.
@@ -479,7 +480,7 @@ class TableView(ItemView, QtWidgets.QTableView):
         return self.horizontalHeader()
 
 
-class TreeView(ItemView, QtWidgets.QTreeView):
+class TreeView(ItemView, QTreeView):
 
     """
     A tree widget based on Qt's QTableView for our :class:`TableModel`.
@@ -507,7 +508,7 @@ class TreeView(ItemView, QtWidgets.QTreeView):
         self.expandAll()
 
 
-class ItemViewDelegate(QtWidgets.QStyledItemDelegate):
+class ItemViewDelegate(QStyledItemDelegate):
 
     def delegate(self, index):
         cell = index.model().cell(index).item
@@ -533,7 +534,7 @@ class ItemViewDelegate(QtWidgets.QStyledItemDelegate):
 
 # Value types
 
-class ItemDelegate(QtWidgets.QStyledItemDelegate):
+class ItemDelegate(QStyledItemDelegate):
 
     """Wrap a value of a specific type for string rendering and editting."""
 
@@ -581,7 +582,7 @@ class IntDelegate(ItemDelegate):
     # still shown, partially covered by the spin buttons.
 
     def createEditor(self, parent, option, index):
-        editor = QtWidgets.QSpinBox(parent)
+        editor = QSpinBox(parent)
         editor.setRange(-(1 << 30), +(1 << 30))
         editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor
@@ -708,7 +709,7 @@ class EnumDelegate(StringDelegate):
 
     def createEditor(self, parent, option, index):
         enum = type(index.data(Qt.EditRole))
-        editor = QtWidgets.QComboBox(parent)
+        editor = QComboBox(parent)
         editor.setEditable(not enum._strict)
         return editor
 
@@ -752,10 +753,10 @@ def _get_best_base(cls, bases):
 
 # Editors
 
-class ReadOnlyDelegate(QtWidgets.QStyledItemDelegate):
+class ReadOnlyDelegate(QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
-        editor = QtWidgets.QLineEdit(parent)
+        editor = QLineEdit(parent)
         editor.setReadOnly(True)
         editor.setAlignment(Qt.Alignment(index.data(Qt.TextAlignmentRole)))
         return editor
@@ -768,15 +769,15 @@ class ReadOnlyDelegate(QtWidgets.QStyledItemDelegate):
         pass
 
 
-class AffixLineEdit(QtWidgets.QWidget):
+class AffixLineEdit(QWidget):
 
     """Single-line edit control with prefix/suffix text."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.prefix = QtWidgets.QLabel()
-        self.suffix = QtWidgets.QLabel()
-        self.edit = QtWidgets.QLineEdit()
+        self.prefix = QLabel()
+        self.suffix = QLabel()
+        self.edit = QLineEdit()
         self.edit.setFrame(False)
         layout = HBoxLayout([
             self.prefix,

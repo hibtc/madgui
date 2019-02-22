@@ -5,7 +5,7 @@ Dialog for managing shown curves.
 import os
 
 import numpy as np
-from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QAbstractItemView, QDialogButtonBox, QWidget
 
 from madgui.util.qt import load_ui
 from madgui.widget.tableview import TableItem, delegates
@@ -14,7 +14,7 @@ from madgui.widget.filedialog import getOpenFileName
 from madgui.plot.twissfigure import UserData
 
 
-class CurveManager(QtWidgets.QWidget):
+class CurveManager(QWidget):
 
     ui_file = 'curvemanager.ui'
 
@@ -42,12 +42,12 @@ class CurveManager(QtWidgets.QWidget):
         self.connect_signals()
 
     def init_controls(self):
-        self.tab.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.tab.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.tab.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.tab.set_viewmodel(self.show_curve, self.available)
 
     def connect_signals(self):
-        Button = QtWidgets.QDialogButtonBox
+        Button = QDialogButtonBox
         self.btn_save.clicked.connect(self.on_btn_save)
         self.btn_load.clicked.connect(self.on_btn_load)
         self.btn_box.button(Button.Ok).clicked.connect(self.accept)

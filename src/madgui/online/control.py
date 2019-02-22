@@ -7,7 +7,7 @@ from importlib import import_module
 import time
 
 import numpy as np
-from PyQt5 import QtCore
+from PyQt5.QtCore import QTimer
 
 from madgui.util.signal import Signal
 from madgui.util.qt import SingleWindow
@@ -219,7 +219,7 @@ class BeamSampler:
     def __init__(self, control, monitors=()):
         self.monitors = monitors
         self._control = control
-        self._timer = QtCore.QTimer()
+        self._timer = QTimer()
         self._timer.timeout.connect(self._poll)
         self._timer.start(500)
         self._confirmed = {}

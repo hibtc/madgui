@@ -1,7 +1,9 @@
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtGui import QPainter
+from PyQt5.QtWidgets import QWidget
 
 
-class LineNumberBar(QtWidgets.QWidget):
+class LineNumberBar(QWidget):
 
     """Widget that displays line numbers for a QPlainTextEdit."""
 
@@ -20,7 +22,7 @@ class LineNumberBar(QtWidgets.QWidget):
         font_metrics = edit.fontMetrics()
         block = edit.firstVisibleBlock()
         count = block.blockNumber()
-        painter = QtGui.QPainter(self)
+        painter = QPainter(self)
         painter.fillRect(event.rect(), edit.palette().base())
         first = True
         while block.isValid():
@@ -29,7 +31,7 @@ class LineNumberBar(QtWidgets.QWidget):
                 edit.contentOffset()).top()
             if not block.isVisible() or block_top > event.rect().bottom():
                 break
-            rect = QtCore.QRect(
+            rect = QRect(
                 0, block_top, self.width(), font_metrics.height())
             self.draw_block(painter, rect, block, first)
             first = False
@@ -51,7 +53,7 @@ class LineNumberBar(QtWidgets.QWidget):
     def draw_block(self, painter, rect, block, first):
         count = block.blockNumber()+1
         if count != block.document().blockCount() or block.text():
-            painter.drawText(rect, QtCore.Qt.AlignRight, str(count))
+            painter.drawText(rect, Qt.AlignRight, str(count))
 
     def calc_width(self, count):
         return self.fontMetrics().width(str(count))

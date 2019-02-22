@@ -7,7 +7,9 @@ __all__ = [
     'HBoxLayout',
 ]
 
-from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import (
+    QBoxLayout, QHBoxLayout, QLayout, QLayoutItem, QSpacerItem,
+    QVBoxLayout, QWidget)
 
 
 class Spacing(int):
@@ -23,10 +25,10 @@ class Strut(int):
 
 
 transposed_direction = {
-    QtWidgets.QBoxLayout.LeftToRight: QtWidgets.QBoxLayout.TopToBottom,
-    QtWidgets.QBoxLayout.RightToLeft: QtWidgets.QBoxLayout.BottomToTop,
-    QtWidgets.QBoxLayout.TopToBottom: QtWidgets.QBoxLayout.LeftToRight,
-    QtWidgets.QBoxLayout.BottomToTop: QtWidgets.QBoxLayout.RightToLeft,
+    QBoxLayout.LeftToRight: QBoxLayout.TopToBottom,
+    QBoxLayout.RightToLeft: QBoxLayout.BottomToTop,
+    QBoxLayout.TopToBottom: QBoxLayout.LeftToRight,
+    QBoxLayout.BottomToTop: QBoxLayout.RightToLeft,
 }
 
 
@@ -35,13 +37,13 @@ def addItem(layout, item):
         item, args = item[0], item[1:]
     else:
         args = ()
-    if isinstance(item, QtWidgets.QWidget):
+    if isinstance(item, QWidget):
         layout.addWidget(item, *args)
-    elif isinstance(item, QtWidgets.QLayout):
+    elif isinstance(item, QLayout):
         layout.addLayout(item)
-    elif isinstance(item, QtWidgets.QSpacerItem):
+    elif isinstance(item, QSpacerItem):
         layout.addSpacerItem(item)
-    elif isinstance(item, QtWidgets.QLayoutItem):
+    elif isinstance(item, QLayoutItem):
         layout.addItem(item)
     elif isinstance(item, Spacing):
         layout.addSpacing(item)
@@ -51,7 +53,7 @@ def addItem(layout, item):
         layout.addStrut(item)
     elif isinstance(item, list):
         direction = transposed_direction[layout.direction()]
-        sublayout = addItems(QtWidgets.QBoxLayout(direction), item)
+        sublayout = addItems(QBoxLayout(direction), item)
         layout.addLayout(sublayout)
     else:
         raise NotImplementedError("Unsupported layout item: {!r}"
@@ -67,8 +69,8 @@ def addItems(layout, items, tight=False):
 
 
 def VBoxLayout(items, tight=False):
-    return addItems(QtWidgets.QVBoxLayout(), items, tight=tight)
+    return addItems(QVBoxLayout(), items, tight=tight)
 
 
 def HBoxLayout(items, tight=False):
-    return addItems(QtWidgets.QHBoxLayout(), items, tight=tight)
+    return addItems(QHBoxLayout(), items, tight=tight)

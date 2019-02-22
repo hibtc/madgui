@@ -10,12 +10,11 @@ __all__ = [
 
 import os
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QFileDialog, QLineEdit
 
 from madgui.util.signal import Signal
 
-
-Qt = QtCore.Qt
 
 MODE_OPEN = 0
 MODE_SAVE = 1
@@ -43,19 +42,19 @@ def _fileDialog(acceptMode, fileMode,
 
     nameFilters = make_filters(filters)
 
-    dialog = QtWidgets.QFileDialog(parent, caption, directory)
+    dialog = QFileDialog(parent, caption, directory)
     dialog.setNameFilters(nameFilters)
     dialog.setAcceptMode(acceptMode)
     dialog.setFileMode(fileMode)
-    dialog.setOptions(QtWidgets.QFileDialog.Options(options))
+    dialog.setOptions(QFileDialog.Options(options))
     if selectedFilter is not None:
         dialog.selectNameFilter(nameFilters[selectedFilter])
 
-    if dialog.exec_() != QtWidgets.QDialog.Accepted:
+    if dialog.exec_() != QDialog.Accepted:
         return None
 
     filename = dialog.selectedFiles()[0]
-    if fileMode != QtWidgets.QFileDialog.Directory:
+    if fileMode != QFileDialog.Directory:
         selectedFilter = nameFilters.index(dialog.selectedNameFilter())
 
         _, ext = os.path.splitext(filename)
@@ -69,24 +68,24 @@ def _fileDialog(acceptMode, fileMode,
 
 def getOpenFileName(*args, **kwargs):
     """
-    Imitates ``QtWidgets.QFileDialog.getOpenFileName``, except that ``filter``
+    Imitates ``QFileDialog.getOpenFileName``, except that ``filter``
     is now ``filters`` that must be specified as a list.
     """
-    return _fileDialog(QtWidgets.QFileDialog.AcceptOpen,
-                       QtWidgets.QFileDialog.ExistingFile,
+    return _fileDialog(QFileDialog.AcceptOpen,
+                       QFileDialog.ExistingFile,
                        *args, **kwargs)
 
 
 def getSaveFileName(*args, **kwargs):
-    return _fileDialog(QtWidgets.QFileDialog.AcceptSave,
-                       QtWidgets.QFileDialog.AnyFile,
+    return _fileDialog(QFileDialog.AcceptSave,
+                       QFileDialog.AnyFile,
                        *args, **kwargs)
 
 
 def getSaveFolderName(*args, **kwargs):
-    return _fileDialog(QtWidgets.QFileDialog.AcceptSave,
-                       QtWidgets.QFileDialog.Directory,
-                       *args, options=QtWidgets.QFileDialog.ShowDirsOnly,
+    return _fileDialog(QFileDialog.AcceptSave,
+                       QFileDialog.Directory,
+                       *args, options=QFileDialog.ShowDirsOnly,
                        **kwargs)
 
 
@@ -97,7 +96,7 @@ def getFileName(mode, *args, **kwargs):
         return getSaveFileName(*args, **kwargs)
 
 
-class FileWidget(QtWidgets.QLineEdit):
+class FileWidget(QLineEdit):
 
     mode = MODE_OPEN
     title = 'Open file'

@@ -14,7 +14,8 @@ from math import sqrt, pi, atan2
 from madgui.widget.plot import mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import QComboBox, QToolButton, QWidget
 
 from madgui.util.signal import Signal
 from madgui.util.unit import ui_units, to_ui
@@ -25,7 +26,7 @@ from madgui.widget.params import (
     TabParamTables, ParamTable, CommandEdit, ParamInfo, MatrixTable)
 
 
-class ElementInfoBox(QtWidgets.QWidget):
+class ElementInfoBox(QWidget):
 
     changed_element = Signal()
     _el_id = None
@@ -48,7 +49,7 @@ class ElementInfoBox(QtWidgets.QWidget):
         ])
 
         # navigation
-        self.select = QtWidgets.QComboBox()
+        self.select = QComboBox()
         self.select.addItems([elem.node_name for elem in model.elements])
         self.select.currentIndexChanged.connect(self.set_element)
 
@@ -56,13 +57,13 @@ class ElementInfoBox(QtWidgets.QWidget):
         self.el_id = el_id
         self.model.updated.connect(self.notebook.update)
 
-        button_left = QtWidgets.QToolButton()
-        button_right = QtWidgets.QToolButton()
+        button_left = QToolButton()
+        button_right = QToolButton()
         button_left.clicked.connect(lambda: self.advance(-1))
         button_right.clicked.connect(lambda: self.advance(+1))
 
-        button_left.setArrowType(QtCore.Qt.LeftArrow)
-        button_right.setArrowType(QtCore.Qt.RightArrow)
+        button_left.setArrowType(Qt.LeftArrow)
+        button_right.setArrowType(Qt.RightArrow)
 
         self.setLayout(VBoxLayout([
             HBoxLayout([button_left, self.select, button_right]),
@@ -141,7 +142,7 @@ def secmap_title(i, j):
     return ('R{}{}' if j < 7 else 'K{}').format(i, j)
 
 
-class EllipseWidget(QtWidgets.QWidget):
+class EllipseWidget(QWidget):
 
     def __init__(self, model):
         super().__init__()
@@ -155,8 +156,8 @@ class EllipseWidget(QtWidgets.QWidget):
         self.setLayout(layout)
         # Needed on PyQt5 with tight_layout=True to prevent crash due to
         # singular matrix if size=0:
-        canvas.setMinimumSize(QtCore.QSize(100, 100))
-        canvas.resize(QtCore.QSize(100, 100))
+        canvas.setMinimumSize(QSize(100, 100))
+        canvas.resize(QSize(100, 100))
 
     def update(self, elem_index):
         self.figure.clf()

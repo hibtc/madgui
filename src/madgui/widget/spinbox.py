@@ -4,17 +4,17 @@ Custom spin box widgets.
 
 import math
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import (
+    QAbstractSpinBox, QApplication, QSizePolicy, QStyle, QStyleOptionSpinBox)
 
 from madgui.widget.quantity import (
     ValueControlBase, QuantityControlBase, ExpressionValidator)
 from madgui.util.signal import Signal
 import madgui.core.config as config
 
-Qt = QtCore.Qt
 
-
-class AbstractSpinBox(ValueControlBase, QtWidgets.QAbstractSpinBox):
+class AbstractSpinBox(ValueControlBase, QAbstractSpinBox):
 
     """
     Base class for custom spinbox controls.
@@ -40,15 +40,13 @@ class AbstractSpinBox(ValueControlBase, QtWidgets.QAbstractSpinBox):
         super().__init__(*args, **kwargs)
         self.editingFinished.connect(self.updateEdit)
         self.setSizePolicy(
-            QtWidgets.QSizePolicy.Preferred,
-            QtWidgets.QSizePolicy.Preferred)
+            QSizePolicy.Preferred,
+            QSizePolicy.Preferred)
 
     # QWidget overrides
 
     def sizeHint(self):
         # copied from the Qt4 C implementation
-        QStyle = QtWidgets.QStyle
-
         self.ensurePolished()
         fm = self.fontMetrics()
         edit = self.lineEdit()
@@ -63,10 +61,10 @@ class AbstractSpinBox(ValueControlBase, QtWidgets.QAbstractSpinBox):
 
         width += 2  # cursor blinking space
 
-        hint = QtCore.QSize(width, height)
-        extra = QtCore.QSize(35, 6)
+        hint = QSize(width, height)
+        extra = QSize(35, 6)
 
-        opt = QtWidgets.QStyleOptionSpinBox()
+        opt = QStyleOptionSpinBox()
         self.initStyleOption(opt)
 
         opt.rect.setSize(hint + extra)
@@ -84,7 +82,7 @@ class AbstractSpinBox(ValueControlBase, QtWidgets.QAbstractSpinBox):
         opt.rect = self.rect()
         return (
             self.style().sizeFromContents(QStyle.CT_SpinBox, opt, hint, self)
-            .expandedTo(QtWidgets.QApplication.globalStrut()))
+            .expandedTo(QApplication.globalStrut()))
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Tab:
@@ -123,20 +121,20 @@ class AbstractSpinBox(ValueControlBase, QtWidgets.QAbstractSpinBox):
 
     def stepEnabled(self):
         if self.isReadOnly():
-            return QtWidgets.QAbstractSpinBox.StepNone
+            return QAbstractSpinBox.StepNone
         minimum, maximum, value = self.minimum, self.maximum, self.value
-        enabled = QtWidgets.QAbstractSpinBox.StepNone
+        enabled = QAbstractSpinBox.StepNone
         if value is None:
             if minimum is not None:
-                enabled |= QtWidgets.QAbstractSpinBox.StepUpEnabled
+                enabled |= QAbstractSpinBox.StepUpEnabled
             if maximum is not None:
-                enabled |= QtWidgets.QAbstractSpinBox.StepDownEnabled
+                enabled |= QAbstractSpinBox.StepDownEnabled
         else:
             wrapping = self.wrapping()
             if wrapping or minimum is None or value > minimum:
-                enabled |= QtWidgets.QAbstractSpinBox.StepDownEnabled
+                enabled |= QAbstractSpinBox.StepDownEnabled
             if wrapping or maximum is None or value > maximum:
-                enabled |= QtWidgets.QAbstractSpinBox.StepUpEnabled
+                enabled |= QAbstractSpinBox.StepUpEnabled
         return enabled
 
 
@@ -162,8 +160,8 @@ class QuantitySpinBox(QuantityControlBase, AbstractSpinBox):
         return self.lineEdit()
 
     def updateEdit(self):
-        buttons = [QtWidgets.QAbstractSpinBox.NoButtons,
-                   QtWidgets.QAbstractSpinBox.UpDownArrows]
+        buttons = [QAbstractSpinBox.NoButtons,
+                   QAbstractSpinBox.UpDownArrows]
         self.setButtonSymbols(buttons[
             isinstance(self.value, float) and bool(config.number.spinbox)])
         super().updateEdit()
@@ -178,7 +176,7 @@ class ExpressionSpinBox(QuantitySpinBox):
     def stepEnabled(self):
         if isinstance(self.value, float):
             return super().stepEnabled()
-        return QtWidgets.QAbstractSpinBox.StepNone
+        return QAbstractSpinBox.StepNone
 
     def parse(self, text):
         try:

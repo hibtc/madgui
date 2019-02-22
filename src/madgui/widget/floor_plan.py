@@ -14,12 +14,16 @@ __all__ = [
 from math import cos, sin, sqrt, pi, atan2, floor, log10
 
 import numpy as np
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtCore import QMarginsF, QPointF, QRectF, Qt
+from PyQt5.QtGui import (
+    QBrush, QColor, QFont, QFontMetrics, QPainter, QPainterPath,
+    QPen, QPolygonF)
+from PyQt5.QtWidgets import (
+    QGraphicsItem, QGraphicsScene, QGraphicsView, QHBoxLayout,
+    QPushButton, QWidget)
 
 from madgui.model.madx import FloorCoords
 
-
-Qt = QtCore.Qt
 
 ELEMENT_COLOR = {
     'E_GUN':       'purple',
@@ -75,23 +79,23 @@ def normalize(vec):
     return vec / sqrt(np.dot(vec, vec))
 
 
-class Selector(QtWidgets.QWidget):
+class Selector(QWidget):
 
     def __init__(self, floorplan):
         super().__init__()
         self.floorplan = floorplan
-        self.setLayout(QtWidgets.QHBoxLayout())
+        self.setLayout(QHBoxLayout())
         self._addItem("Z|X", -pi/2, pi/2)
         self._addItem("X|Y",     0,    0)
         self._addItem("Z|Y", -pi/2,    0)
 
     def _addItem(self, label, *args):
-        button = QtWidgets.QPushButton(label)
+        button = QPushButton(label)
         button.clicked.connect(lambda: self.floorplan.setProjection(*args))
         self.layout().addWidget(button)
 
 
-class LatticeFloorPlan(QtWidgets.QGraphicsView):
+class LatticeFloorPlan(QGraphicsView):
 
     """
     Graphics widget to draw 2D floor plan of given lattice.
@@ -100,8 +104,8 @@ class LatticeFloorPlan(QtWidgets.QGraphicsView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setInteractive(True)
-        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
-        self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
+        self.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.setBackgroundBrush(QBrush(Qt.white, Qt.SolidPattern))
         self.setProjection(-pi/2, pi/2)
 
     def setProjection(self, theta, phi, psi=0):
@@ -135,7 +139,7 @@ class LatticeFloorPlan(QtWidgets.QGraphicsView):
 
     def setElements(self, elements, survey, selection):
         self.replay = elements, survey, selection
-        self.setScene(QtWidgets.QGraphicsScene(self))
+        self.setScene(QGraphicsScene(self))
         survey = [FloorCoords(0, 0, 0, 0, 0, 0)] + survey
         for element, coords in zip(elements, zip(survey, survey[1:])):
             self.scene().addItem(
@@ -149,7 +153,7 @@ class LatticeFloorPlan(QtWidgets.QGraphicsView):
 
     def _sceneRect(self):
         rect = self.scene().sceneRect()
-        return rect.marginsAdded(QtCore.QMarginsF(
+        return rect.marginsAdded(QMarginsF(
             0.05*rect.width(), 0.05*rect.height(),
             0.05*rect.width(), 0.05*rect.height(),
         ))
@@ -165,7 +169,7 @@ class LatticeFloorPlan(QtWidgets.QGraphicsView):
 
         This assumes there is no rotation/shearing.
         """
-        return QtCore.QRectF(
+        return QRectF(
             self.mapToScene(rect.topLeft()),
             self.mapToScene(rect.bottomRight()))
 
@@ -218,7 +222,7 @@ class LatticeFloorPlan(QtWidgets.QGraphicsView):
                 item.setSelected(False)
 
 
-class ElementGraphicsItem(QtWidgets.QGraphicsItem):
+class ElementGraphicsItem(QGraphicsItem):
 
     """Base class for element graphics items."""
 
@@ -244,7 +248,7 @@ class ElementGraphicsItem(QtWidgets.QGraphicsItem):
         self._outline = self.outline()
         self._orbit = self.orbit()
 
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
 
         self.setSelected(self.el_id in selection)
 
@@ -253,7 +257,7 @@ class ElementGraphicsItem(QtWidgets.QGraphicsItem):
         return self.element.index
 
     def itemChange(self, change, value):
-        if change == QtWidgets.QGraphicsItem.ItemSelectedHasChanged:
+        if change == QGraphicsItem.ItemSelectedHasChanged:
             self._on_select(value)
         return value
 
@@ -273,7 +277,7 @@ class ElementGraphicsItem(QtWidgets.QGraphicsItem):
 
     def paint(self, painter, option, widget):
         """Paint element + orbit + selection frame."""
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.Antialiasing)
         painter.setBrush(Qt.NoBrush)
         # draw element outline:
         painter.setPen(createPen(**self.outline_pen))
@@ -300,7 +304,7 @@ class ElementGraphicsItem(QtWidgets.QGraphicsItem):
         proj2D = self.plan.projection.dot
         vec0 = normalize(np.dot(rot90, proj2D(list(self.rotate[0](0, 0, 1)))))
         vec1 = normalize(np.dot(rot90, proj2D(list(self.rotate[1](0, 0, 1)))))
-        path = QtGui.QPainterPath()
+        path = QPainterPath()
         path.moveTo(*(p0 - r2*vec0))
         path.lineTo(*(p1 - r2*vec1))
         path.lineTo(*(p1 + r1*vec1))
@@ -311,14 +315,14 @@ class ElementGraphicsItem(QtWidgets.QGraphicsItem):
     def orbit(self):
         """Return a QPainterPath that shows the beam orbit."""
         a, b = self.endpoints()
-        path = QtGui.QPainterPath()
+        path = QPainterPath()
         path.moveTo(*a)
         path.lineTo(*b)
         return path
 
 
 def getElementColor(element, default='black'):
-    return QtGui.QColor(ELEMENT_COLOR.get(element.base_name.upper(), default))
+    return QColor(ELEMENT_COLOR.get(element.base_name.upper(), default))
 
 
 def getElementWidth(element, default=0.2):
@@ -335,8 +339,8 @@ def createPen(style=Qt.SolidLine, color='black', width=1):
     This is particularly important on PyQt5 where the default pen blacks out
     large areas of the figure if not being careful.
     """
-    pen = QtGui.QPen(style)
-    pen.setColor(QtGui.QColor(color))
+    pen = QPen(style)
+    pen.setColor(QColor(color))
     if isinstance(width, int):
         pen.setWidth(width)
         pen.setCosmetic(True)
@@ -346,7 +350,7 @@ def createPen(style=Qt.SolidLine, color='black', width=1):
     return pen
 
 
-class CoordinateAxes(QtWidgets.QGraphicsItem):
+class CoordinateAxes(QGraphicsItem):
 
     """Display axes of coordinates."""
 
@@ -358,7 +362,7 @@ class CoordinateAxes(QtWidgets.QGraphicsItem):
     def __init__(self, plan):
         super().__init__()
         self.plan = plan
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations, True)
+        self.setFlag(QGraphicsItem.ItemIgnoresTransformations, True)
 
     def update(self):
         self._path = self.draw_path()
@@ -368,30 +372,30 @@ class CoordinateAxes(QtWidgets.QGraphicsItem):
 
     def boundingRect(self):
         # Ignore this item when calculating the scene rect:
-        return QtCore.QRectF()
+        return QRectF()
 
     def paint(self, painter, option, widget):
         pen = createPen(**self.pen)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
-        painter.setBrush(QtGui.QBrush(pen.color(), Qt.SolidPattern))
+        painter.setBrush(QBrush(pen.color(), Qt.SolidPattern))
         painter.drawPath(self._path)
 
     def draw_path(self):
         l, s, d = 45, 10, 10
         proj = self.plan.projection.dot
         orig = np.array([0, 0])
-        axes = QtGui.QPainterPath()
+        axes = QPainterPath()
         axes.addPath(self.axis_arrow("x", orig, orig+l*proj([1, 0, 0]), s))
         axes.addPath(self.axis_arrow("y", orig, orig+l*proj([0, 1, 0]), s))
         axes.addPath(self.axis_arrow("z", orig, orig+l*proj([0, 0, 1]), s))
 
         tran = self.deviceTransform(self.plan.viewportTransform()).inverted()[0]
-        view = tran.mapRect(QtCore.QRectF(self.plan.viewport().rect()))
+        view = tran.mapRect(QRectF(self.plan.viewport().rect()))
         rect = axes.boundingRect()
         axes.translate(view.left() + view.width()/15 - rect.left(),
                        view.bottom() - view.height()/15 - rect.bottom())
-        path = QtGui.QPainterPath()
+        path = QPainterPath()
         path.addPath(axes)
         path.addEllipse(-d/2, -d/2, d, d)
         return path
@@ -399,19 +403,19 @@ class CoordinateAxes(QtWidgets.QGraphicsItem):
     def axis_arrow(self, label, x0, x1, arrow_size):
         path = arrow(x0, x1, arrow_size)
         if not path:
-            return QtGui.QPainterPath()
+            return QPainterPath()
         plan = self.plan
-        font = QtGui.QFont(plan.font())
+        font = QFont(plan.font())
         font.setPointSize(14)
-        metr = QtGui.QFontMetrics(font)
+        metr = QFontMetrics(font)
         rect = metr.boundingRect(label)
         rect.setHeight(metr.xHeight())
         tran = self.deviceTransform(self.plan.viewportTransform()).inverted()[0]
-        size = tran.mapRect(QtCore.QRectF(rect)).size()
+        size = tran.mapRect(QRectF(rect)).size()
         w, h = size.width(), size.height()
         dir_ = (x1 - x0) / np.linalg.norm(x1 - x0)
         offs = [-w/2, +h/2] + dir_ * max(w, h)
-        path.addText(QtCore.QPointF(*(x1 + offs)), font, label)
+        path.addText(QPointF(*(x1 + offs)), font, label)
         return path
 
 
@@ -419,7 +423,7 @@ def arrow(x0, x1, arrow_size=0.3, arrow_angle=pi/5):
     dx, dy = x1 - x0
     if dy**2 + dx**2 < arrow_size**2:
         return None
-    path = QtGui.QPainterPath()
+    path = QPainterPath()
     path.moveTo(*x0)
     path.lineTo(*x1)
     angle = atan2(dy, dx)
@@ -427,16 +431,16 @@ def arrow(x0, x1, arrow_size=0.3, arrow_angle=pi/5):
                sin(angle + pi + arrow_angle) * arrow_size]
     p2 = x1 + [cos(angle + pi - arrow_angle) * arrow_size,
                sin(angle + pi - arrow_angle) * arrow_size]
-    path.addPolygon(QtGui.QPolygonF([
-        QtCore.QPointF(*x1),
-        QtCore.QPointF(*p1),
-        QtCore.QPointF(*p2),
-        QtCore.QPointF(*x1),
+    path.addPolygon(QPolygonF([
+        QPointF(*x1),
+        QPointF(*p1),
+        QPointF(*p2),
+        QPointF(*x1),
     ]))
     return path
 
 
-class ScaleIndicator(QtWidgets.QGraphicsItem):
+class ScaleIndicator(QGraphicsItem):
 
     """Display small scale indicator."""
 
@@ -448,7 +452,7 @@ class ScaleIndicator(QtWidgets.QGraphicsItem):
     def __init__(self, plan):
         super().__init__()
         self.plan = plan
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations, True)
+        self.setFlag(QGraphicsItem.ItemIgnoresTransformations, True)
 
     def update(self):
         self._path = self.draw_path()
@@ -458,11 +462,11 @@ class ScaleIndicator(QtWidgets.QGraphicsItem):
 
     def boundingRect(self):
         # Ignore this item when calculating the scene rect:
-        return QtCore.QRectF()
+        return QRectF()
 
     def paint(self, painter, option, widget):
         pen = createPen(**self.pen)
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
+        painter.setRenderHint(QPainter.Antialiasing)
         painter.setPen(pen)
         painter.setBrush(Qt.NoBrush)
         painter.drawPath(self._path)
@@ -474,17 +478,17 @@ class ScaleIndicator(QtWidgets.QGraphicsItem):
         text = "{} m".format(round(rect.width()))
 
         tran = self.deviceTransform(plan.viewportTransform()).inverted()[0]
-        width = tran.mapRect(QtCore.QRectF(
+        width = tran.mapRect(QRectF(
             plan.mapFromScene(rect.topLeft()),
             plan.mapFromScene(rect.bottomRight()))).width()
 
         view = tran.mapRect(plan.viewport().rect())
-        x0 = QtCore.QPointF(view.right() - view.width()/15,
-                            view.bottom() - view.height()/15)
-        x1 = x0 - QtCore.QPointF(width, 0)
+        x0 = QPointF(view.right() - view.width()/15,
+                     view.bottom() - view.height()/15)
+        x1 = x0 - QPointF(width, 0)
 
-        head = QtCore.QPointF(0, 8)
-        path = QtGui.QPainterPath()
+        head = QPointF(0, 8)
+        path = QPainterPath()
         path.moveTo(x0)
         path.lineTo(x1)
         path.moveTo(x0 + head)
@@ -493,11 +497,11 @@ class ScaleIndicator(QtWidgets.QGraphicsItem):
         path.lineTo(x1 - head)
 
         # add label
-        font = QtGui.QFont(plan.font())
+        font = QFont(plan.font())
         font.setPointSize(14)
-        rect = QtGui.QFontMetrics(font).boundingRect(text)
-        size = tran.mapRect(QtCore.QRectF(rect)).size()
+        rect = QFontMetrics(font).boundingRect(text)
+        size = tran.mapRect(QRectF(rect)).size()
         w, h = size.width(), size.height()
         offs = [-w/2, -h/2]
-        path.addText((x0+x1)/2 + QtCore.QPointF(*offs), font, text)
+        path.addText((x0+x1)/2 + QPointF(*offs), font, text)
         return path

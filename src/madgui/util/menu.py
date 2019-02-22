@@ -9,7 +9,8 @@ __all__ = [
     'extend',
 ]
 
-from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction, QStyle
 
 
 class Item:
@@ -28,7 +29,7 @@ class Item:
 
     def action(self, parent):
         checkable = self.checked is not None
-        action = QtWidgets.QAction(self.label, parent, checkable=checkable)
+        action = QAction(self.label, parent, checkable=checkable)
         if self.shortcut is not None:
             action.setShortcut(self.shortcut)
         if self.description is not None:
@@ -36,10 +37,10 @@ class Item:
         if self.callback is not None:
             action.triggered.connect(self.callback)
         if self.icon is not None:
-            if isinstance(self.icon, QtWidgets.QStyle.StandardPixmap):
+            if isinstance(self.icon, QStyle.StandardPixmap):
                 icon = parent.style().standardIcon(self.icon)
             elif isinstance(self.icon, str):
-                icon = QtGui.QIcon.fromTheme(self.icon)
+                icon = QIcon.fromTheme(self.icon)
             else:
                 icon = self.icon
             action.setIcon(icon)

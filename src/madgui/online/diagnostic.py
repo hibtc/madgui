@@ -5,7 +5,10 @@ from itertools import accumulate
 import logging
 
 import numpy as np
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import (
+    QAbstractItemView, QDialog, QDialogButtonBox, QTabWidget, QWidget)
 
 from madgui.util.qt import load_ui
 from madgui.util.unit import ui_units
@@ -16,14 +19,12 @@ from madgui.widget.tableview import TableItem
 
 from madgui.online.orbit import fit_particle_orbit, add_offsets
 
-Qt = QtCore.Qt
 
-
-class MonitorWidget(QtWidgets.QDialog):
+class MonitorWidget(QDialog):
 
     def __init__(self, session):
         super().__init__(session.window())
-        self.tabs = QtWidgets.QTabWidget()
+        self.tabs = QTabWidget()
         self.tabs.addTab(PlotMonitorWidget(session), "Plot")
         self.tabs.addTab(OrbitWidget(session), "Orbit")
         self.tabs.addTab(EmittanceDialog(session), "Optics")
@@ -36,10 +37,10 @@ ResultItem = namedtuple('ResultItem', ['name', 'fit', 'model'])
 
 
 def get_monitor_textcolor(mon):
-    return QtGui.QColor(Qt.black if mon.valid else Qt.darkGray)
+    return QColor(Qt.black if mon.valid else Qt.darkGray)
 
 
-class MonitorWidgetBase(QtWidgets.QWidget):
+class MonitorWidgetBase(QWidget):
 
     """
     Dialog for selecting SD monitor values to be imported.
@@ -64,10 +65,10 @@ class MonitorWidgetBase(QtWidgets.QWidget):
         self._offsets = session.config['online_control']['offsets']
 
         self.mtab.set_viewmodel(self.get_monitor_row, self.readouts, unit=True)
-        self.mtab.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.mtab.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.mtab.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.mtab.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        Buttons = QtWidgets.QDialogButtonBox
+        Buttons = QDialogButtonBox
         self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
         self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
         self.btn_update.clicked.connect(self.update)
@@ -206,7 +207,7 @@ class OffsetsWidget(MonitorWidgetBase):
         super().__init__(*args)
         self.btn_offsets.clicked.connect(self.save_offsets)
         self.btn_calibrate.clicked.connect(self.calibrate_offsets)
-        Buttons = QtWidgets.QDialogButtonBox
+        Buttons = QDialogButtonBox
         self.std_buttons.button(Buttons.Open).clicked.connect(self.load)
         self.std_buttons.button(Buttons.Discard).clicked.connect(self.discard)
         self._selected = self._monconf.setdefault('backtrack', {})
@@ -278,8 +279,8 @@ class _FitWidget(MonitorWidgetBase):
         self.btn_apply.clicked.connect(self.apply)
         self.results = List()
 
-        self.rtab.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.rtab.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.rtab.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.rtab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.rtab.set_viewmodel(self.get_result_row, self.results)
 
 

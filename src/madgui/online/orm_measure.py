@@ -3,7 +3,8 @@ import re
 import time
 import logging
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QWidget
 
 from madgui.util.qt import load_ui
 from madgui.widget.tableview import TableItem, delegates
@@ -11,7 +12,7 @@ from madgui.widget.tableview import TableItem, delegates
 from madgui.online.procedure import Corrector, ProcBot
 
 
-class MeasureWidget(QtWidgets.QWidget):
+class MeasureWidget(QWidget):
 
     ui_file = 'orm_measure.ui'
     extension = '.orm_measurement.yml'
@@ -33,7 +34,7 @@ class MeasureWidget(QtWidgets.QWidget):
         self.connect_signals()
 
     def sizeHint(self):
-        return QtCore.QSize(600, 400)
+        return QSize(600, 400)
 
     def init_controls(self):
         self.ctrl_correctors.set_viewmodel(self.get_corrector_row)

@@ -10,7 +10,8 @@ __all__ = [
 
 import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.figure import Figure
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QWidget
 
 from madgui.util.signal import Signal
 from madgui.util.layout import VBoxLayout
@@ -30,7 +31,7 @@ class Toolbar(mpl_backend.NavigationToolbar2QT):
         self._update_view()
 
 
-class PlotWidget(QtWidgets.QWidget):
+class PlotWidget(QWidget):
 
     """
     Widget containing a matplotlib figure and toolbar. It fixes the annoying
@@ -60,7 +61,7 @@ class PlotWidget(QtWidgets.QWidget):
         self.setLayout(layout)
         # Needed on PyQt5 with tight_layout=True to prevent crash due to
         # singular matrix if size=0:
-        canvas.setMinimumSize(QtCore.QSize(100, 100))
+        canvas.setMinimumSize(QSize(100, 100))
         # Prevent annoying busy cursor due to MPL redraws, see:
         # https://github.com/matplotlib/matplotlib/issues/9546
         canvas.set_cursor = lambda cursor: None

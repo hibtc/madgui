@@ -2,7 +2,7 @@
 Open an ipython shell in a widget
 """
 
-from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager
 
@@ -25,7 +25,7 @@ def create(context):
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication([])
+    app = QApplication([])
     widget = create({})
     widget.show()
     app.exec_()

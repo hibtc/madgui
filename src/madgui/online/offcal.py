@@ -2,7 +2,8 @@ import os
 from collections import namedtuple
 
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtCore import QItemSelectionModel
+from PyQt5.QtWidgets import QDialogButtonBox, QWidget
 
 from madgui.util import yaml
 from madgui.util.qt import monospace, load_ui
@@ -11,10 +12,10 @@ from madgui.widget.tableview import TableItem
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'x', 'y'])
-Buttons = QtWidgets.QDialogButtonBox
+Buttons = QDialogButtonBox
 
 
-class OffsetCalibrationWidget(QtWidgets.QWidget):
+class OffsetCalibrationWidget(QWidget):
 
     ui_file = 'offcal.ui'
     running = False
@@ -50,10 +51,10 @@ class OffsetCalibrationWidget(QtWidgets.QWidget):
         self.ctrl_quads.addItems(list(quads))
         self.ctrl_quads.setCurrentItem(
             self.ctrl_quads.item(len(quads)-1),
-            QtCore.QItemSelectionModel.SelectCurrent)
+            QItemSelectionModel.SelectCurrent)
         self.ctrl_quads.setCurrentItem(
             self.ctrl_quads.item(len(quads)-2),
-            QtCore.QItemSelectionModel.Select)
+            QItemSelectionModel.Select)
         self.btn_start = self.btns.button(Buttons.Ok)
         self.btn_abort = self.btns.button(Buttons.Abort)
         self.btn_close = self.btns.button(Buttons.Close)
