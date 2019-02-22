@@ -5,7 +5,8 @@ Miscellaneous utilities for programming with the Qt framework.
 import functools
 from importlib_resources import path as resource_filename
 
-from madgui.qt import QtGui, QtCore, uic
+from PyQt5 import QtCore, QtGui, uic
+
 from madgui.util.collections import Bool
 from madgui.util.misc import cachedproperty, memoize
 

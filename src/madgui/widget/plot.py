@@ -10,8 +10,8 @@ __all__ = [
 
 import matplotlib.backends.backend_qt5agg as mpl_backend
 from matplotlib.figure import Figure
+from PyQt5 import QtCore, QtWidgets
 
-from madgui.qt import QtCore, QtGui
 from madgui.util.signal import Signal
 from madgui.util.layout import VBoxLayout
 
@@ -30,7 +30,7 @@ class Toolbar(mpl_backend.NavigationToolbar2QT):
         self._update_view()
 
 
-class PlotWidget(QtGui.QWidget):
+class PlotWidget(QtWidgets.QWidget):
 
     """
     Widget containing a matplotlib figure and toolbar. It fixes the annoying

@@ -3,14 +3,15 @@ import re
 import time
 import logging
 
-from madgui.qt import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 from madgui.util.qt import load_ui
 from madgui.widget.tableview import TableItem, delegates
 
 from madgui.online.procedure import Corrector, ProcBot
 
 
-class MeasureWidget(QtGui.QWidget):
+class MeasureWidget(QtWidgets.QWidget):
 
     ui_file = 'orm_measure.ui'
     extension = '.orm_measurement.yml'

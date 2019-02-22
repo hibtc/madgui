@@ -14,12 +14,15 @@ import logging
 import time
 from collections import namedtuple
 
-from madgui.qt import Qt, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
+
 from madgui.util.collections import List
 from madgui.util.qt import monospace
 from madgui.util.layout import HBoxLayout
 from madgui.widget.edit import LineNumberBar
 
+
+Qt = QtCore.Qt
 
 LOGLEVELS = [None, 'CRITICAL', 'ERROR', 'WARNING',  'INFO', 'DEBUG']
 
@@ -73,7 +76,7 @@ class RecordInfoBar(LineNumberBar):
         return width_time * bool(self.show_time) + width_kind + width_base
 
 
-class LogWindow(QtGui.QFrame):
+class LogWindow(QtWidgets.QFrame):
 
     """
     Simple log window based on QPlainTextEdit using ExtraSelection to
@@ -89,7 +92,7 @@ class LogWindow(QtGui.QFrame):
     def __init__(self, *args):
         super().__init__(*args)
         self.setFont(monospace())
-        self.textctrl = QtGui.QPlainTextEdit()
+        self.textctrl = QtWidgets.QPlainTextEdit()
         self.textctrl.setReadOnly(True)
         self.infobar = RecordInfoBar(self.textctrl, {}, set())
         self.linumbar = LineNumberBar(self.textctrl)
@@ -198,7 +201,7 @@ class LogWindow(QtGui.QFrame):
         cursor.setPosition(pos0)
         cursor.setPosition(pos1, QTextCursor.KeepAnchor)
 
-        selection = QtGui.QTextEdit.ExtraSelection()
+        selection = QtWidgets.QTextEdit.ExtraSelection()
         selection.format = self.formats[record.domain]
         selection.cursor = cursor
 

@@ -14,10 +14,12 @@ __all__ = [
 from math import cos, sin, sqrt, pi, atan2, floor, log10
 
 import numpy as np
+from PyQt5 import QtCore, QtWidgets, QtGui
 
-from madgui.qt import Qt, QtCore, QtGui
 from madgui.model.madx import FloorCoords
 
+
+Qt = QtCore.Qt
 
 ELEMENT_COLOR = {
     'E_GUN':       'purple',
@@ -73,23 +75,23 @@ def normalize(vec):
     return vec / sqrt(np.dot(vec, vec))
 
 
-class Selector(QtGui.QWidget):
+class Selector(QtWidgets.QWidget):
 
     def __init__(self, floorplan):
         super().__init__()
         self.floorplan = floorplan
-        self.setLayout(QtGui.QHBoxLayout())
+        self.setLayout(QtWidgets.QHBoxLayout())
         self._addItem("Z|X", -pi/2, pi/2)
         self._addItem("X|Y",     0,    0)
         self._addItem("Z|Y", -pi/2,    0)
 
     def _addItem(self, label, *args):
-        button = QtGui.QPushButton(label)
+        button = QtWidgets.QPushButton(label)
         button.clicked.connect(lambda: self.floorplan.setProjection(*args))
         self.layout().addWidget(button)
 
 
-class LatticeFloorPlan(QtGui.QGraphicsView):
+class LatticeFloorPlan(QtWidgets.QGraphicsView):
 
     """
     Graphics widget to draw 2D floor plan of given lattice.
@@ -98,7 +100,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setInteractive(True)
-        self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QtGui.QBrush(Qt.white, Qt.SolidPattern))
         self.setProjection(-pi/2, pi/2)
 
@@ -133,7 +135,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
 
     def setElements(self, elements, survey, selection):
         self.replay = elements, survey, selection
-        self.setScene(QtGui.QGraphicsScene(self))
+        self.setScene(QtWidgets.QGraphicsScene(self))
         survey = [FloorCoords(0, 0, 0, 0, 0, 0)] + survey
         for element, coords in zip(elements, zip(survey, survey[1:])):
             self.scene().addItem(
@@ -216,7 +218,7 @@ class LatticeFloorPlan(QtGui.QGraphicsView):
                 item.setSelected(False)
 
 
-class ElementGraphicsItem(QtGui.QGraphicsItem):
+class ElementGraphicsItem(QtWidgets.QGraphicsItem):
 
     """Base class for element graphics items."""
 
@@ -242,7 +244,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         self._outline = self.outline()
         self._orbit = self.orbit()
 
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
 
         self.setSelected(self.el_id in selection)
 
@@ -251,7 +253,7 @@ class ElementGraphicsItem(QtGui.QGraphicsItem):
         return self.element.index
 
     def itemChange(self, change, value):
-        if change == QtGui.QGraphicsItem.ItemSelectedHasChanged:
+        if change == QtWidgets.QGraphicsItem.ItemSelectedHasChanged:
             self._on_select(value)
         return value
 
@@ -344,7 +346,7 @@ def createPen(style=Qt.SolidLine, color='black', width=1):
     return pen
 
 
-class CoordinateAxes(QtGui.QGraphicsItem):
+class CoordinateAxes(QtWidgets.QGraphicsItem):
 
     """Display axes of coordinates."""
 
@@ -356,7 +358,7 @@ class CoordinateAxes(QtGui.QGraphicsItem):
     def __init__(self, plan):
         super().__init__()
         self.plan = plan
-        self.setFlag(QtGui.QGraphicsItem.ItemIgnoresTransformations, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations, True)
 
     def update(self):
         self._path = self.draw_path()
@@ -434,7 +436,7 @@ def arrow(x0, x1, arrow_size=0.3, arrow_angle=pi/5):
     return path
 
 
-class ScaleIndicator(QtGui.QGraphicsItem):
+class ScaleIndicator(QtWidgets.QGraphicsItem):
 
     """Display small scale indicator."""
 
@@ -446,7 +448,7 @@ class ScaleIndicator(QtGui.QGraphicsItem):
     def __init__(self, plan):
         super().__init__()
         self.plan = plan
-        self.setFlag(QtGui.QGraphicsItem.ItemIgnoresTransformations, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIgnoresTransformations, True)
 
     def update(self):
         self._path = self.draw_path()

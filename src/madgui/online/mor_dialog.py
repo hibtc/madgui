@@ -8,8 +8,7 @@ import os
 import time
 
 import numpy as np
-
-from madgui.qt import Qt, QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
@@ -23,10 +22,12 @@ from ._common import EditConfigDialog
 from .procedure import Corrector, Target, ProcBot
 
 
+Qt = QtCore.Qt
+
 ORM_Entry = namedtuple('ORM_Entry', ['monitor', 'knob', 'x', 'y'])
 
 
-class CorrectorWidget(QtGui.QWidget):
+class CorrectorWidget(QtWidgets.QWidget):
 
     ui_file = 'mor_dialog.ui'
     data_key = 'multi_grid'     # can reuse the multi grid configuration
@@ -120,8 +121,8 @@ class CorrectorWidget(QtGui.QWidget):
 
     def init_controls(self):
         for tab in (self.tab_readouts, self.tab_targets, self.tab_corrections):
-            tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-            tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+            tab.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+            tab.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         corr = self.corrector
         self.tab_orm.set_viewmodel(
             self.get_orm_row, self.orm)
@@ -299,7 +300,7 @@ class CorrectorWidget(QtGui.QWidget):
         try:
             data = yaml.safe_load(text)
         except yaml.YAMLError:
-            QtGui.QMessageBox.critical(
+            QtWidgets.QMessageBox.critical(
                 self,
                 'Syntax error in YAML document',
                 'There is a syntax error in the YAML document, please edit.')
@@ -307,7 +308,7 @@ class CorrectorWidget(QtGui.QWidget):
 
         configs = data.get(self.data_key)
         if not configs:
-            QtGui.QMessageBox.critical(
+            QtWidgets.QMessageBox.critical(
                 self,
                 'No config defined',
                 'No configuration for this method defined.')
@@ -338,7 +339,7 @@ class CorrectorWidget(QtGui.QWidget):
         return self.corrector.session.window()
 
 
-class MeasureWidget(QtGui.QWidget):
+class MeasureWidget(QtWidgets.QWidget):
 
     ui_file = 'mor_measure.ui'
     extension = '.orm_measurement.yml'

@@ -14,8 +14,8 @@ from math import sqrt, pi, atan2
 from madgui.widget.plot import mpl_backend
 from matplotlib.figure import Figure
 from matplotlib.patches import Ellipse
+from PyQt5 import QtCore, QtWidgets
 
-from madgui.qt import Qt, QtCore, QtGui
 from madgui.util.signal import Signal
 from madgui.util.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
@@ -25,7 +25,7 @@ from madgui.widget.params import (
     TabParamTables, ParamTable, CommandEdit, ParamInfo, MatrixTable)
 
 
-class ElementInfoBox(QtGui.QWidget):
+class ElementInfoBox(QtWidgets.QWidget):
 
     changed_element = Signal()
     _el_id = None
@@ -48,7 +48,7 @@ class ElementInfoBox(QtGui.QWidget):
         ])
 
         # navigation
-        self.select = QtGui.QComboBox()
+        self.select = QtWidgets.QComboBox()
         self.select.addItems([elem.node_name for elem in model.elements])
         self.select.currentIndexChanged.connect(self.set_element)
 
@@ -56,13 +56,13 @@ class ElementInfoBox(QtGui.QWidget):
         self.el_id = el_id
         self.model.updated.connect(self.notebook.update)
 
-        button_left = QtGui.QToolButton()
-        button_right = QtGui.QToolButton()
+        button_left = QtWidgets.QToolButton()
+        button_right = QtWidgets.QToolButton()
         button_left.clicked.connect(lambda: self.advance(-1))
         button_right.clicked.connect(lambda: self.advance(+1))
 
-        button_left.setArrowType(Qt.LeftArrow)
-        button_right.setArrowType(Qt.RightArrow)
+        button_left.setArrowType(QtCore.Qt.LeftArrow)
+        button_right.setArrowType(QtCore.Qt.RightArrow)
 
         self.setLayout(VBoxLayout([
             HBoxLayout([button_left, self.select, button_right]),
@@ -141,7 +141,7 @@ def secmap_title(i, j):
     return ('R{}{}' if j < 7 else 'K{}').format(i, j)
 
 
-class EllipseWidget(QtGui.QWidget):
+class EllipseWidget(QtWidgets.QWidget):
 
     def __init__(self, model):
         super().__init__()

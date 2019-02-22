@@ -2,9 +2,8 @@ import os
 from collections import namedtuple
 
 import numpy as np
+from PyQt5 import QtCore, QtWidgets
 
-
-from madgui.qt import QtCore, QtGui
 from madgui.util import yaml
 from madgui.util.qt import monospace, load_ui
 from madgui.util.collections import List
@@ -12,10 +11,10 @@ from madgui.widget.tableview import TableItem
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'x', 'y'])
-Buttons = QtGui.QDialogButtonBox
+Buttons = QtWidgets.QDialogButtonBox
 
 
-class OffsetCalibrationWidget(QtGui.QWidget):
+class OffsetCalibrationWidget(QtWidgets.QWidget):
 
     ui_file = 'offcal.ui'
     running = False

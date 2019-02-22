@@ -32,8 +32,8 @@ class Signal:
 
     Default is *direct mode*.
 
-    Note that direct mode is similar to ``Qt.DirectConnection`` and queued
-    mode similar to ``Qt.QueuedConnection``, but differs in that it merges
+    Note that direct mode is similar to ``QtCore.Qt.DirectConnection`` and queued
+    mode similar to ``QtCore.Qt.QueuedConnection``, but differs in that it merges
     multiple subsequent signal emissions into one (as long as the event has
     not been processed).
     """

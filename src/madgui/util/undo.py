@@ -1,10 +1,11 @@
 from contextlib import contextmanager
 
-from madgui.qt import QtGui
+from PyQt5 import QtWidgets
+
 from madgui.util.misc import invalidate
 
 
-class UndoCommand(QtGui.QUndoCommand):
+class UndoCommand(QtWidgets.QUndoCommand):
 
     def __init__(self, old, new, write, text):
         super().__init__()
@@ -19,12 +20,12 @@ class UndoCommand(QtGui.QUndoCommand):
     def redo(self):
         self._set(self._new)
 
-    if not hasattr(QtGui.QUndoCommand, 'setObsolete'):  # requires Qt 5.9
+    if not hasattr(QtWidgets.QUndoCommand, 'setObsolete'):  # requires Qt 5.9
         def setObsolete(self, obsolete):
             pass
 
 
-class UndoStack(QtGui.QUndoStack):
+class UndoStack(QtWidgets.QUndoStack):
 
     # FIXME: `macro` and `rollback` are not reentrant because `command(...)`
     # won't with nested macros. In order to fix this, we would need to

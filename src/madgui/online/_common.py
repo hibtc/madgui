@@ -1,20 +1,21 @@
 
-from madgui.qt import QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets
+
 from madgui.util.qt import monospace
 from madgui.util.layout import VBoxLayout, HBoxLayout
 from madgui.widget.edit import LineNumberBar
 
 
-class EditConfigDialog(QtGui.QDialog):
+class EditConfigDialog(QtWidgets.QDialog):
 
     def __init__(self, model, apply_callback):
         super().__init__()
         self.model = model
         self.apply_callback = apply_callback
-        self.textbox = QtGui.QPlainTextEdit()
+        self.textbox = QtWidgets.QPlainTextEdit()
         self.textbox.setFont(monospace())
         self.linenos = LineNumberBar(self.textbox)
-        buttons = QtGui.QDialogButtonBox()
+        buttons = QtWidgets.QDialogButtonBox()
         buttons.addButton(buttons.Ok).clicked.connect(self.accept)
         self.setLayout(VBoxLayout([
             HBoxLayout([self.linenos, self.textbox], tight=True),

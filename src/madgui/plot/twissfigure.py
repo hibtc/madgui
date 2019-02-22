@@ -14,8 +14,8 @@ from functools import partial
 from collections import namedtuple
 
 import numpy as np
+from PyQt5 import QtCore, QtWidgets
 
-from madgui.qt import QtGui, Qt
 from madgui.util.signal import Signal
 from madgui.util.yaml import load_resource
 
@@ -33,6 +33,8 @@ import madgui.util.menu as menu
 import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
 
+
+Qt = QtCore.Qt
 
 CONFIG = load_resource(__package__, 'twissfigure.yml')
 ELEM_STYLES = CONFIG['element_style']
@@ -63,7 +65,7 @@ KeyboardEvent = namedtuple('KeyboardEvent', [
     'key', 'guiEvent'])
 
 
-class TwissWidget(QtGui.QWidget):
+class TwissWidget(QtWidgets.QWidget):
 
     @classmethod
     def from_session(cls, session, name):
@@ -85,7 +87,7 @@ class TwissWidget(QtGui.QWidget):
             show_indicators=show_indicators,
             settings=settings)
         dialog.setWidget(widget, tight=True)
-        dialog.layout().setMenuBar(QtGui.QMenuBar())
+        dialog.layout().setMenuBar(QtWidgets.QMenuBar())
         widget.create_menu(dialog.layout().menuBar())
 
         size = settings.get('size')
@@ -127,7 +129,7 @@ class TwissWidget(QtGui.QWidget):
             'scene': scene,
         })
 
-        selector = self.selector = QtGui.QComboBox()
+        selector = self.selector = QtWidgets.QComboBox()
         self.setLayout(VBoxLayout([selector, plot], tight=True))
         scene.graph_changed.connect(self.update_window_title)
 
@@ -600,9 +602,9 @@ class CaptureTool:
     @memoize
     def action(self):
         icon = self.icon
-        if isinstance(icon, QtGui.QStyle.StandardPixmap):
+        if isinstance(icon, QtWidgets.QStyle.StandardPixmap):
             icon = self.plot.style().standardIcon(icon)
-        action = QtGui.QAction(icon, self.text, self.plot)
+        action = QtWidgets.QAction(icon, self.text, self.plot)
         action.setCheckable(True)
         action.toggled.connect(self.onToggle)
         self.plot.addCapture(self.mode, action.setChecked)
@@ -746,7 +748,7 @@ class InfoTool(CaptureTool):
 
     mode = 'INFO'
     short = 'element info'
-    icon = QtGui.QStyle.SP_MessageBoxInformation
+    icon = QtWidgets.QStyle.SP_MessageBoxInformation
     text = 'Show element info boxes'
 
     def __init__(self, plot, scene):
@@ -858,7 +860,7 @@ class CompareTool:
     """
 
     short = 'Show reference curve'
-    icon = QtGui.QStyle.SP_DirLinkIcon
+    icon = QtWidgets.QStyle.SP_DirLinkIcon
     text = 'Load data file for comparison.'
 
     def __init__(self, plot, scene):
@@ -868,9 +870,9 @@ class CompareTool:
     @memoize
     def action(self):
         icon = self.icon
-        if isinstance(icon, QtGui.QStyle.StandardPixmap):
+        if isinstance(icon, QtWidgets.QStyle.StandardPixmap):
             icon = self.plot.style().standardIcon(icon)
-        action = QtGui.QAction(icon, self.text, self.plot)
+        action = QtWidgets.QAction(icon, self.text, self.plot)
         action.triggered.connect(self.activate)
         return action
 

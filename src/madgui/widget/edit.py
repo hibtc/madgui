@@ -1,7 +1,7 @@
-from madgui.qt import Qt, QtCore, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 
-class LineNumberBar(QtGui.QWidget):
+class LineNumberBar(QtWidgets.QWidget):
 
     """Widget that displays line numbers for a QPlainTextEdit."""
 
@@ -51,7 +51,7 @@ class LineNumberBar(QtGui.QWidget):
     def draw_block(self, painter, rect, block, first):
         count = block.blockNumber()+1
         if count != block.document().blockCount() or block.text():
-            painter.drawText(rect, Qt.AlignRight, str(count))
+            painter.drawText(rect, QtCore.Qt.AlignRight, str(count))
 
     def calc_width(self, count):
         return self.fontMetrics().width(str(count))

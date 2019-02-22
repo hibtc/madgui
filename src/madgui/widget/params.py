@@ -11,15 +11,18 @@ __all__ = [
 
 from functools import partial
 
+from PyQt5 import QtCore, QtWidgets, QtGui
+
 from cpymad.types import dtype_to_native
 
-from madgui.qt import QtGui, Qt
 from madgui.util.unit import ui_units, get_raw_label
 from madgui.util.qt import bold
 from madgui.util.export import export_params, import_params
 
 from madgui.widget.tableview import (
     TreeView, TableItem, ExpressionDelegate, delegates)
+
+Qt = QtCore.Qt
 
 
 class ParamInfo:
@@ -62,11 +65,11 @@ class ParamTable(TreeView):
         super().__init__(**kwargs)
         self.set_viewmodel(self.get_param_row, titles=self.sections)
         self.header().hide()
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
 
-        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                           QtGui.QSizePolicy.Preferred)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Preferred,
+                           QtWidgets.QSizePolicy.Preferred)
 
     @property
     def sections(self):
@@ -117,7 +120,7 @@ class ParamTable(TreeView):
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
-        if self.state() == QtGui.QAbstractItemView.NoState:
+        if self.state() == QtWidgets.QAbstractItemView.NoState:
             # TODO: deletion does not work currently.
             if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
                 self.setRowValue(self.curRow(), None)
@@ -313,7 +316,7 @@ class MatrixTable(ParamTable):
         ]
 
 
-class TabParamTables(QtGui.QTabWidget):
+class TabParamTables(QtWidgets.QTabWidget):
 
     """
     TabWidget that manages multiple ParamTables inside.

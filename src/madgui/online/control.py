@@ -7,8 +7,7 @@ from importlib import import_module
 import time
 
 import numpy as np
-
-from madgui.qt import QtCore
+from PyQt5 import QtCore
 
 from madgui.util.signal import Signal
 from madgui.util.qt import SingleWindow

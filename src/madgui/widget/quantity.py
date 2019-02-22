@@ -6,8 +6,9 @@ from abc import abstractmethod
 import string
 import re
 
+from PyQt5 import QtCore, QtWidgets, QtGui
+
 from cpymad.util import check_expression
-from madgui.qt import Qt, QtGui
 
 from madgui.util.unit import units, get_raw_label, get_unit, tounit
 from madgui.util.signal import Signal
@@ -16,6 +17,7 @@ from madgui.util.misc import cachedproperty
 import madgui.core.config as config
 
 
+Qt = QtCore.Qt
 Acceptable = QtGui.QValidator.Acceptable
 Intermediate = QtGui.QValidator.Intermediate
 Invalid = QtGui.QValidator.Invalid
@@ -187,7 +189,7 @@ class AffixControlBase:
             self.line_edit().event(event)
             # skip QAbstractSpinBox::focusInEvent (which would call the
             # non-virtual selectAll)
-            QtGui.QWidget.focusInEvent(self, event)
+            QtWidgets.QWidget.focusInEvent(self, event)
 
         if event.reason() in (Qt.TabFocusReason, Qt.BacktabFocusReason):
             self.selectAll()
@@ -399,7 +401,7 @@ class QuantityControlBase(ValueControlBase):
         self.set_magnitude(scaled.magnitude)
 
 
-class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
+class QuantityDisplay(QuantityControlBase, QtWidgets.QLineEdit):
 
     """
     Readonly line-edit showing a quantity.
