@@ -10,18 +10,19 @@ from functools import partial
 
 import numpy as np
 import yaml
-
-from madgui.qt import Qt, QtGui, load_ui
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QAbstractItemView, QMessageBox, QWidget
 
 from madgui.util.unit import change_unit, get_raw_label
-from madgui.util.qt import bold, Queued
+from madgui.util.qt import bold, Queued, load_ui
 from madgui.widget.tableview import TableItem, delegates
 
 from ._common import EditConfigDialog
 from .procedure import Corrector, Target
 
 
-class CorrectorWidget(QtGui.QWidget):
+class CorrectorWidget(QWidget):
 
     ui_file = 'multi_grid.ui'
     data_key = 'multi_grid'
@@ -38,7 +39,7 @@ class CorrectorWidget(QtGui.QWidget):
         mode = self.corrector.mode
         active_x = 'x' in mode
         active_y = 'y' in mode
-        textcolor = QtGui.QColor(Qt.darkGray), QtGui.QColor(Qt.black)
+        textcolor = QColor(Qt.darkGray), QColor(Qt.black)
         return [
             TableItem(t.elem),
             TableItem(t.x, name='x', set_value=self.set_x_value,
@@ -54,7 +55,7 @@ class CorrectorWidget(QtGui.QWidget):
         matched = self.corrector.saved_optics().get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {
-            # 'foreground': QtGui.QColor(Qt.red),
+            # 'foreground': QColor(Qt.red),
             'font': bold(),
         } if changed else {}
         info = self.corrector._knobs[v.lower()]
@@ -105,8 +106,8 @@ class CorrectorWidget(QtGui.QWidget):
 
     def init_controls(self):
         for tab in (self.tab_readouts, self.tab_targets, self.tab_corrections):
-            tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-            tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+            tab.setSelectionBehavior(QAbstractItemView.SelectRows)
+            tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         corr = self.corrector
         self.tab_readouts.set_viewmodel(
             self.get_readout_row, corr.readouts, unit=True)
@@ -207,7 +208,7 @@ class CorrectorWidget(QtGui.QWidget):
         try:
             data = yaml.safe_load(text)
         except yaml.error.YAMLError:
-            QtGui.QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 'Syntax error in YAML document',
                 'There is a syntax error in the YAML document, please edit.')
@@ -215,7 +216,7 @@ class CorrectorWidget(QtGui.QWidget):
 
         configs = data.get(self.data_key)
         if not configs:
-            QtGui.QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 'No config defined',
                 'No configuration for this method defined.')

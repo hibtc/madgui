@@ -11,9 +11,12 @@ __all__ = [
 
 from functools import partial
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QAbstractItemView, QSizePolicy, QTabWidget
+
 from cpymad.types import dtype_to_native
 
-from madgui.qt import QtGui, Qt
 from madgui.util.unit import ui_units, get_raw_label
 from madgui.util.qt import bold
 from madgui.util.export import export_params, import_params
@@ -62,11 +65,11 @@ class ParamTable(TreeView):
         super().__init__(**kwargs)
         self.set_viewmodel(self.get_param_row, titles=self.sections)
         self.header().hide()
-        self.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setSelectionMode(QAbstractItemView.SingleSelection)
 
-        self.setSizePolicy(QtGui.QSizePolicy.Preferred,
-                           QtGui.QSizePolicy.Preferred)
+        self.setSizePolicy(QSizePolicy.Preferred,
+                           QSizePolicy.Preferred)
 
     @property
     def sections(self):
@@ -76,7 +79,7 @@ class ParamTable(TreeView):
     def get_param_row(self, i, p) -> ("Parameter", "Value", "Unit"):
         font = bold() if p.inform else None
         mutable = p.mutable and not self.readonly
-        textcolor = QtGui.QColor(Qt.black if mutable else Qt.darkGray)
+        textcolor = QColor(Qt.black if mutable else Qt.darkGray)
         delegate = delegates.get(dtype_to_native.get(p.dtype))
         extra_args = {'delegate': delegate} if delegate else {}
         return [
@@ -117,7 +120,7 @@ class ParamTable(TreeView):
 
     def keyPressEvent(self, event):
         """<Enter>: open editor; <Delete>/<Backspace>: remove value."""
-        if self.state() == QtGui.QAbstractItemView.NoState:
+        if self.state() == QAbstractItemView.NoState:
             # TODO: deletion does not work currently.
             if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
                 self.setRowValue(self.curRow(), None)
@@ -313,7 +316,7 @@ class MatrixTable(ParamTable):
         ]
 
 
-class TabParamTables(QtGui.QTabWidget):
+class TabParamTables(QTabWidget):
 
     """
     TabWidget that manages multiple ParamTables inside.

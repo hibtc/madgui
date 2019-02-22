@@ -12,10 +12,15 @@ import subprocess
 import time
 from functools import partial
 
-from madgui.qt import Qt, QtGui, load_ui
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QKeySequence
+from PyQt5.QtWidgets import (
+    QAction, QDockWidget, QInputDialog, QMainWindow, QMessageBox, QStyle,
+    QUndoView)
+
 from madgui.util.signal import Signal
 from madgui.util.collections import Selection
-from madgui.util.qt import notifyCloseEvent, SingleWindow
+from madgui.util.qt import notifyCloseEvent, SingleWindow, load_ui
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord
@@ -23,7 +28,7 @@ from madgui.widget.log import LogRecord
 import madgui.util.menu as menu
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QMainWindow):
 
     ui_file = 'mainwindow.ui'
 
@@ -89,7 +94,7 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Open', 'Ctrl+O',
                      'Load model or open new model from a MAD-X file.',
                      self.fileOpen,
-                     QtGui.QStyle.SP_DialogOpenButton),
+                     QStyle.SP_DialogOpenButton),
                 Separator,
                 Item('&Initial conditions', 'Ctrl+I',
                      'Modify the initial conditions, beam, and parameters.',
@@ -102,7 +107,7 @@ class MainWindow(QtGui.QMainWindow):
                 Item('&Quit', 'Ctrl+Q',
                      'Close window.',
                      self.close,
-                     QtGui.QStyle.SP_DialogCloseButton),
+                     QStyle.SP_DialogCloseButton),
             ]),
             Menu('&View', [
                 Item('Plo&t window', 'Ctrl+T',
@@ -228,7 +233,6 @@ class MainWindow(QtGui.QMainWindow):
     dataReceived = Signal(object)
 
     def createControls(self):
-        QColor = QtGui.QColor
         self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
         self.log_window.highlight('MADX',     QColor(Qt.lightGray))
 
@@ -271,12 +275,12 @@ class MainWindow(QtGui.QMainWindow):
         self.undo_stack = undo_stack = UndoStack()
         self.undo_action = undo_stack.createUndoAction(self)
         self.redo_action = undo_stack.createRedoAction(self)
-        self.undo_action.setShortcut(QtGui.QKeySequence.Undo)
-        self.redo_action.setShortcut(QtGui.QKeySequence.Redo)
-        self.undo_action.setIcon(style.standardIcon(QtGui.QStyle.SP_ArrowBack))
-        self.redo_action.setIcon(style.standardIcon(QtGui.QStyle.SP_ArrowForward))
-        undo_history_action = QtGui.QAction(
-            style.standardIcon(QtGui.QStyle.SP_ToolBarVerticalExtensionButton),
+        self.undo_action.setShortcut(QKeySequence.Undo)
+        self.redo_action.setShortcut(QKeySequence.Redo)
+        self.undo_action.setIcon(style.standardIcon(QStyle.SP_ArrowBack))
+        self.redo_action.setIcon(style.standardIcon(QStyle.SP_ArrowForward))
+        undo_history_action = QAction(
+            style.standardIcon(QStyle.SP_ToolBarVerticalExtensionButton),
             "List", self)
         undo_history_action.triggered.connect(self.createUndoView.create)
         self.toolbar.addAction(self.undo_action)
@@ -290,7 +294,7 @@ class MainWindow(QtGui.QMainWindow):
 
     @SingleWindow.factory
     def createUndoView(self):
-        widget = QtGui.QUndoView(self.undo_stack, self)
+        widget = QUndoView(self.undo_stack, self)
         widget.setEmptyLabel("<Unmodified>")
         dialog = Dialog(self)
         dialog.setWidget(widget)
@@ -454,7 +458,7 @@ class MainWindow(QtGui.QMainWindow):
         return dialog
 
     def setNumberFormat(self):
-        fmtspec, ok = QtGui.QInputDialog.getText(
+        fmtspec, ok = QInputDialog.getText(
             self, "Set number format", "Number format:",
             text=self.config.number.fmtspec)
         if not ok:
@@ -506,7 +510,7 @@ class MainWindow(QtGui.QMainWindow):
         return self._showAboutDialog(About)
 
     def helpAboutQt(self):
-        QtGui.QMessageBox.aboutQt(self)
+        QMessageBox.aboutQt(self)
 
     def _showAboutDialog(self, module):
         import madgui.widget.about as about
@@ -599,7 +603,7 @@ class MainWindow(QtGui.QMainWindow):
         """Create a python shell widget."""
         import madgui.widget.pyshell as pyshell
         self.shell = pyshell.create(self.user_ns.__dict__)
-        dock = QtGui.QDockWidget()
+        dock = QDockWidget()
         dock.setWidget(self.shell)
         dock.setWindowTitle("python shell")
         self.addDockWidget(Qt.BottomDockWidgetArea, dock)

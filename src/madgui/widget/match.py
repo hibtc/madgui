@@ -2,7 +2,9 @@
 UI for matching.
 """
 
-from madgui.qt import QtGui, load_ui
+from PyQt5.QtWidgets import QAbstractItemView, QDialogButtonBox, QWidget
+
+from madgui.util.qt import load_ui
 from madgui.util.unit import ui_units
 from madgui.widget.tableview import TableItem, delegates
 from madgui.model.match import Constraint
@@ -11,7 +13,7 @@ from madgui.util.enum import make_enum
 from cpymad.util import PARAM_TYPE_CONSTRAINT
 
 
-Button = QtGui.QDialogButtonBox
+Button = QDialogButtonBox
 
 
 def parse_knob(model, text):
@@ -34,7 +36,7 @@ def parse_knob(model, text):
     return None         # TODO: logging
 
 
-class MatchWidget(QtGui.QWidget):
+class MatchWidget(QWidget):
 
     ui_file = 'match.ui'
 
@@ -101,10 +103,10 @@ class MatchWidget(QtGui.QWidget):
     # The three steps of UI initialization
 
     def init_controls(self):
-        self.ctab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.vtab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        self.ctab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.vtab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.ctab.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.vtab.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.ctab.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.vtab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.ctab.set_viewmodel(self.cons_items, self.matcher.constraints)
         self.vtab.set_viewmodel(self.var_items, self.matcher.variables)
 

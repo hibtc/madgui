@@ -8,14 +8,15 @@ __all__ = [
 
 import os
 
-from madgui.qt import Qt, QtGui
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QDialog, QDialogButtonBox, QLayout, QSizePolicy, QWidget)
 
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch
 from madgui.util.qt import present
 
-
-# short-hand for accessing QDialogButtonBox.StandardButtons identifiers:
-Button = QtGui.QDialogButtonBox
+# short-hands:
+Button = QDialogButtonBox
 
 
 def perpendicular(orientation):
@@ -27,13 +28,13 @@ def expand(widget, orientation):
     """Expand widget in specified direction."""
     policy = widget.sizePolicy()
     if orientation == Qt.Horizontal:
-        policy.setHorizontalPolicy(QtGui.QSizePolicy.Minimum)
+        policy.setHorizontalPolicy(QSizePolicy.Minimum)
     else:
-        policy.setVerticalPolicy(QtGui.QSizePolicy.Minimum)
+        policy.setVerticalPolicy(QSizePolicy.Minimum)
     widget.setSizePolicy(policy)
 
 
-class SerializeButtons(QtGui.QDialogButtonBox):
+class SerializeButtons(QDialogButtonBox):
 
     """
     :ivar QWidget widget: the content area widget
@@ -87,7 +88,7 @@ class SerializeButtons(QtGui.QDialogButtonBox):
         self.window().accept()
 
 
-class Dialog(QtGui.QDialog):
+class Dialog(QDialog):
 
     # TODO: reset button
 
@@ -100,9 +101,9 @@ class Dialog(QtGui.QDialog):
         self._widget = widget
         if isinstance(widget, list):
             layout = VBoxLayout(widget)
-        elif isinstance(widget, QtGui.QLayout):
+        elif isinstance(widget, QLayout):
             layout = widget
-        elif isinstance(widget, QtGui.QWidget):
+        elif isinstance(widget, QWidget):
             layout = VBoxLayout([widget])
         else:
             raise NotImplementedError
@@ -117,7 +118,7 @@ class Dialog(QtGui.QDialog):
 
     def closeEvent(self, event):
         # send closeEvent to children!
-        if isinstance(self.widget(), QtGui.QWidget):
+        if isinstance(self.widget(), QWidget):
             self.widget().close()
         super().close()
 

@@ -2,7 +2,10 @@
 Dialog for selecting DVM parameters to be synchronized.
 """
 
-from madgui.qt import QtGui, Qt
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QLabel, QWidget
+
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
 from madgui.util.qt import bold
@@ -20,7 +23,7 @@ class SyncParamItem:
         self.mad_value = change_unit(mad_value, param.unit, param.ui_unit)
 
 
-class SyncParamWidget(QtGui.QWidget):
+class SyncParamWidget(QWidget):
 
     """
     Dialog for selecting DVM parameters to be synchronized.
@@ -32,7 +35,7 @@ class SyncParamWidget(QtGui.QWidget):
     def get_row(self, i, p) -> ("Param", "DVM value", "MAD-X value", "Unit"):
         style = [{}, {
             'font': bold(),
-            'backgroundColor': QtGui.QColor(Qt.gray),
+            'backgroundColor': QColor(Qt.gray),
         } if p.dvm_value != p.mad_value else {}]
         return [
             TableItem(p.name),
@@ -48,7 +51,7 @@ class SyncParamWidget(QtGui.QWidget):
         self.grid.set_viewmodel(self.get_row)
         self.highlight = highlight
         self.title = title
-        label = QtGui.QLabel(headline)
+        label = QLabel(headline)
         self.setLayout(VBoxLayout([label, self.grid]))
 
     @property

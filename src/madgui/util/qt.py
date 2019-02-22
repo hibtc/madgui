@@ -5,7 +5,10 @@ Miscellaneous utilities for programming with the Qt framework.
 import functools
 from importlib_resources import path as resource_filename
 
-from madgui.qt import QtGui, QtCore
+from PyQt5.QtCore import QEvent, QObject, QTimer
+from PyQt5.QtGui import QFont, QFontDatabase, QIcon, QPixmap
+from PyQt5 import uic
+
 from madgui.util.collections import Bool
 from madgui.util.misc import cachedproperty, memoize
 
@@ -53,14 +56,14 @@ def eventFilter(object, events):
     (Note that it is important to store the reference to the event filter
     somewhere - otherwise it may be garbage collected.)
 
-    See ``QtCore.QEvent`` for possible events.
+    See ``QEvent`` for possible events.
     """
     filter = EventFilter(events)
     object.installEventFilter(filter)
     return filter
 
 
-class EventFilter(QtCore.QObject):
+class EventFilter(QObject):
 
     """Implements an event filter from a lookup table. It is preferred to use
     the :func:`eventFilter` function rather than instanciating this class
@@ -69,7 +72,7 @@ class EventFilter(QtCore.QObject):
     def __init__(self, events):
         super().__init__()
         self.event_table = {
-            getattr(QtCore.QEvent, k): v
+            getattr(QEvent, k): v
             for k, v in events.items()
         }
 
@@ -88,21 +91,43 @@ def present(window, raise_=False):
 
 def monospace():
     """Return a fixed-space ``QFont``."""
-    return QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
+    return QFontDatabase.systemFont(QFontDatabase.FixedFont)
 
 
 def bold():
     """Return a bold ``QFont``."""
-    font = QtGui.QFont()
+    font = QFont()
     font.setBold(True)
     return font
 
 
+def load_ui(widget, package, filename):
+    """
+    Initialize widget from ``.uic`` file loaded from the given package.
+
+    This function is for loading GUIs that were developed using the qt-designer
+    rapid development tool which creates ``.uic`` description files. These can
+    be saved in the same package alongside the corresponding python code. Now,
+    in the class that implements the widget, use this function as follows:
+
+    .. code-block::
+
+        class MyWidget(QWidget):
+
+            def __init__(self):
+                super().__init__()
+                load_ui(self, __package__, 'mywidget.uic')
+    """
+    from importlib_resources import open_binary
+    with open_binary(package, filename) as f:
+        uic.loadUi(f, widget)
+
+
 def load_icon_resource(module, name, format='XPM'):
     """Load an icon distributed with the given python package. Returns a
-     ``QtGui.QPixmap``."""
+     ``QPixmap``."""
     with resource_filename(module, name) as filename:
-        return QtGui.QIcon(QtGui.QPixmap(str(filename), format))
+        return QIcon(QPixmap(str(filename), format))
 
 
 class Property:
@@ -206,7 +231,7 @@ class Queued:
     """
 
     def __init__(self, func):
-        self.timer = QtCore.QTimer()
+        self.timer = QTimer()
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(func)
 

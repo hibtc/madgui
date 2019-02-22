@@ -6,8 +6,11 @@ from abc import abstractmethod
 import string
 import re
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QKeySequence, QValidator
+from PyQt5.QtWidgets import QLineEdit, QWidget
+
 from cpymad.util import check_expression
-from madgui.qt import Qt, QtGui
 
 from madgui.util.unit import units, get_raw_label, get_unit, tounit
 from madgui.util.signal import Signal
@@ -16,9 +19,9 @@ from madgui.util.misc import cachedproperty
 import madgui.core.config as config
 
 
-Acceptable = QtGui.QValidator.Acceptable
-Intermediate = QtGui.QValidator.Intermediate
-Invalid = QtGui.QValidator.Invalid
+Acceptable = QValidator.Acceptable
+Intermediate = QValidator.Intermediate
+Invalid = QValidator.Invalid
 
 
 def asb_property(name):
@@ -187,7 +190,7 @@ class AffixControlBase:
             self.line_edit().event(event)
             # skip QAbstractSpinBox::focusInEvent (which would call the
             # non-virtual selectAll)
-            QtGui.QWidget.focusInEvent(self, event)
+            QWidget.focusInEvent(self, event)
 
         if event.reason() in (Qt.TabFocusReason, Qt.BacktabFocusReason):
             self.selectAll()
@@ -214,7 +217,7 @@ class AffixControlBase:
             event.accept()
             return
 
-        if event == QtGui.QKeySequence.SelectAll:
+        if event == QKeySequence.SelectAll:
             self.selectAll()
             event.accept()
             return
@@ -222,10 +225,10 @@ class AffixControlBase:
         super().keyPressEvent(event)
 
 
-class DoubleValidator(QtGui.QValidator):
+class DoubleValidator(QValidator):
 
     """
-    Use this validator instead of QtGui.QDoubleValidator to avoid allowing
+    Use this validator instead of QDoubleValidator to avoid allowing
     numbers in the current locale…
     """
 
@@ -263,7 +266,7 @@ class DoubleValidator(QtGui.QValidator):
         return Invalid, text, pos
 
 
-class ExpressionValidator(QtGui.QValidator):
+class ExpressionValidator(QValidator):
 
     _ALLOWED_CHARS = set("+-/*^()->._ " + string.ascii_letters + string.digits)
 
@@ -399,7 +402,7 @@ class QuantityControlBase(ValueControlBase):
         self.set_magnitude(scaled.magnitude)
 
 
-class QuantityDisplay(QuantityControlBase, QtGui.QLineEdit):
+class QuantityDisplay(QuantityControlBase, QLineEdit):
 
     """
     Readonly line-edit showing a quantity.

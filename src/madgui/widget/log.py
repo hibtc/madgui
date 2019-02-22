@@ -14,7 +14,10 @@ import logging
 import time
 from collections import namedtuple
 
-from madgui.qt import Qt, QtGui
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QTextCharFormat, QTextCursor, QTextFormat
+from PyQt5.QtWidgets import QFrame, QPlainTextEdit, QTextEdit
+
 from madgui.util.collections import List
 from madgui.util.qt import monospace
 from madgui.util.layout import HBoxLayout
@@ -51,9 +54,9 @@ class RecordInfoBar(LineNumberBar):
     def draw_block(self, painter, rect, block, first):
         count = block.blockNumber()+1
         if count in self.records:
-            painter.setPen(QtGui.QColor(Qt.black))
+            painter.setPen(QColor(Qt.black))
         elif first:
-            painter.setPen(QtGui.QColor(Qt.gray))
+            painter.setPen(QColor(Qt.gray))
             count = max([c for c in self.records if c <= count], default=None)
         if count in self.records:
             record = self.records[count]
@@ -73,7 +76,7 @@ class RecordInfoBar(LineNumberBar):
         return width_time * bool(self.show_time) + width_kind + width_base
 
 
-class LogWindow(QtGui.QFrame):
+class LogWindow(QFrame):
 
     """
     Simple log window based on QPlainTextEdit using ExtraSelection to
@@ -89,7 +92,7 @@ class LogWindow(QtGui.QFrame):
     def __init__(self, *args):
         super().__init__(*args)
         self.setFont(monospace())
-        self.textctrl = QtGui.QPlainTextEdit()
+        self.textctrl = QPlainTextEdit()
         self.textctrl.setReadOnly(True)
         self.infobar = RecordInfoBar(self.textctrl, {}, set())
         self.linumbar = LineNumberBar(self.textctrl)
@@ -103,8 +106,8 @@ class LogWindow(QtGui.QFrame):
         self.loglevel = 'INFO'
 
     def highlight(self, domain, color):
-        format = QtGui.QTextCharFormat()
-        format.setProperty(QtGui.QTextFormat.FullWidthSelection, True)
+        format = QTextCharFormat()
+        format.setProperty(QTextFormat.FullWidthSelection, True)
         format.setBackground(color)
         self.formats[domain] = format
 
@@ -180,8 +183,6 @@ class LogWindow(QtGui.QFrame):
             self.textctrl.appendPlainText(record.text)
             return
 
-        QTextCursor = QtGui.QTextCursor
-
         # NOTE: For some reason, we must use `setPosition` in order to
         # guarantee a absolute, fixed selection (at least on linux). It seems
         # almost if `movePosition(End)` will be re-evaluated at any time the
@@ -198,7 +199,7 @@ class LogWindow(QtGui.QFrame):
         cursor.setPosition(pos0)
         cursor.setPosition(pos1, QTextCursor.KeepAnchor)
 
-        selection = QtGui.QTextEdit.ExtraSelection()
+        selection = QTextEdit.ExtraSelection()
         selection.format = self.formats[record.domain]
         selection.cursor = cursor
 

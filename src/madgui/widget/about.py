@@ -7,8 +7,8 @@ __all__ = [
 ]
 
 import docutils.core
+from PyQt5.QtWidgets import QFrame, QPushButton, QTextBrowser
 
-from madgui.qt import QtGui
 from madgui.widget.dialog import Dialog
 
 
@@ -51,18 +51,18 @@ def _section(level, title, content, level_chr='=~'):
 
 def HLine():
     """Create horizontal line widget (as divider between stacked widgets)."""
-    line = QtGui.QFrame()
-    line.setFrameShape(QtGui.QFrame.HLine)
-    line.setFrameShadow(QtGui.QFrame.Sunken)
+    line = QFrame()
+    line.setFrameShape(QFrame.HLine)
+    line.setFrameShadow(QFrame.Sunken)
     return line
 
 
 def AboutWidget(version_info, *args, **kwargs):
     """A panel showing information about one software component."""
     # QTextBrowser is good enough for our purposes. For a comparison of
-    # QtGui.QTextBrowser and QWebKit.QWebView, see:
+    # QTextBrowser and QWebKit.QWebView, see:
     # See http://www.mimec.org/node/383
-    widget = QtGui.QTextBrowser(*args, **kwargs)
+    widget = QTextBrowser(*args, **kwargs)
     widget.setOpenExternalLinks(True)
     widget.setHtml(version_info.to_html())
     widget.setMinimumSize(600, 400)
@@ -72,7 +72,7 @@ def AboutWidget(version_info, *args, **kwargs):
 def AboutDialog(version_info, *args, **kwargs):
     main = AboutWidget(version_info)
     line = HLine()
-    button = QtGui.QPushButton("&OK")
+    button = QPushButton("&OK")
     button.setDefault(True)
     dialog = Dialog(*args, **kwargs)
     dialog.setWidget([main, line, button])

@@ -1,7 +1,9 @@
-from madgui.qt import Qt, QtCore, QtGui
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtGui import QPainter
+from PyQt5.QtWidgets import QWidget
 
 
-class LineNumberBar(QtGui.QWidget):
+class LineNumberBar(QWidget):
 
     """Widget that displays line numbers for a QPlainTextEdit."""
 
@@ -20,7 +22,7 @@ class LineNumberBar(QtGui.QWidget):
         font_metrics = edit.fontMetrics()
         block = edit.firstVisibleBlock()
         count = block.blockNumber()
-        painter = QtGui.QPainter(self)
+        painter = QPainter(self)
         painter.fillRect(event.rect(), edit.palette().base())
         first = True
         while block.isValid():
@@ -29,7 +31,7 @@ class LineNumberBar(QtGui.QWidget):
                 edit.contentOffset()).top()
             if not block.isVisible() or block_top > event.rect().bottom():
                 break
-            rect = QtCore.QRect(
+            rect = QRect(
                 0, block_top, self.width(), font_metrics.height())
             self.draw_block(painter, rect, block, first)
             first = False

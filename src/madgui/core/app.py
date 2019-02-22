@@ -36,7 +36,7 @@ from importlib_resources import read_binary
 
 from docopt import docopt
 
-from madgui.qt import QtCore, QtGui     # import Qt *before* matplotlib!
+from PyQt5 import QtCore, QtWidgets     # import Qt *before* matplotlib!
 import matplotlib                       # import matplotlib *after* Qt!
 
 from madgui import __version__
@@ -59,11 +59,11 @@ def init_app(argv=None, gui=True):
     if argv is None:
         argv = sys.argv
     if gui:
-        app = QtGui.qApp = QtGui.QApplication(argv)
+        app = QtWidgets.qApp = QtWidgets.QApplication(argv)
         app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
         app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
     else:
-        app = QtCore.qApp = QtCore.QCoreApplication(argv)
+        app = QtWidgets.qApp = QtCore.QCoreApplication(argv)
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
     # where an uncaught exception would usually cause the program to abort.
     sys.excepthook = traceback.print_exception
@@ -115,7 +115,7 @@ def setup_interrupt_handling(app):
 
 def interrupt_handler(signum, frame):
     """Handle KeyboardInterrupt: quit application."""
-    QtGui.QApplication.quit()
+    QtWidgets.QApplication.quit()
 
 
 def safe_timer(timeout, func, *args, **kwargs):

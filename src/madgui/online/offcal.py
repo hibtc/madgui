@@ -2,20 +2,20 @@ import os
 from collections import namedtuple
 
 import numpy as np
+from PyQt5.QtCore import QItemSelectionModel
+from PyQt5.QtWidgets import QDialogButtonBox, QWidget
 
-
-from madgui.qt import QtCore, QtGui, load_ui
 from madgui.util import yaml
-from madgui.util.qt import monospace
+from madgui.util.qt import monospace, load_ui
 from madgui.util.collections import List
 from madgui.widget.tableview import TableItem
 
 
 ResultItem = namedtuple('ResultItem', ['name', 'x', 'y'])
-Buttons = QtGui.QDialogButtonBox
+Button = QDialogButtonBox
 
 
-class OffsetCalibrationWidget(QtGui.QWidget):
+class OffsetCalibrationWidget(QWidget):
 
     ui_file = 'offcal.ui'
     running = False
@@ -51,22 +51,22 @@ class OffsetCalibrationWidget(QtGui.QWidget):
         self.ctrl_quads.addItems(list(quads))
         self.ctrl_quads.setCurrentItem(
             self.ctrl_quads.item(len(quads)-1),
-            QtCore.QItemSelectionModel.SelectCurrent)
+            QItemSelectionModel.SelectCurrent)
         self.ctrl_quads.setCurrentItem(
             self.ctrl_quads.item(len(quads)-2),
-            QtCore.QItemSelectionModel.Select)
-        self.btn_start = self.btns.button(Buttons.Ok)
-        self.btn_abort = self.btns.button(Buttons.Abort)
-        self.btn_close = self.btns.button(Buttons.Close)
-        self.btn_reset = self.btns.button(Buttons.Reset)
-        self.btn_apply = self.btns.button(Buttons.Apply)
+            QItemSelectionModel.Select)
+        self.btn_start = self.btns.button(Button.Ok)
+        self.btn_abort = self.btns.button(Button.Abort)
+        self.btn_close = self.btns.button(Button.Close)
+        self.btn_reset = self.btns.button(Button.Reset)
+        self.btn_apply = self.btns.button(Button.Apply)
         self.btn_start.clicked.connect(self.start)
         self.btn_abort.clicked.connect(self.cancel)
         self.btn_close.clicked.connect(self._close)
         self.btn_reset.clicked.connect(self.reset)
         self.btn_apply.clicked.connect(self.apply)
-        self.btn_load = self.btns_io.button(Buttons.Open)
-        self.btn_save = self.btns_io.button(Buttons.Save)
+        self.btn_load = self.btns_io.button(Button.Open)
+        self.btn_save = self.btns_io.button(Button.Save)
         self.btn_load.clicked.connect(self.load_optics)
         self.btn_save.clicked.connect(self.save_optics)
         self.btn_focus.clicked.connect(self.read_focus)

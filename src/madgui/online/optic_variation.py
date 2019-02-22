@@ -11,8 +11,8 @@ from functools import partial
 import logging
 
 import numpy as np
+from PyQt5.QtWidgets import QAbstractItemView
 
-from madgui.qt import QtGui
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.widget.tableview import TableItem, delegates
 
@@ -73,8 +73,8 @@ class CorrectorWidget(_Widget):
         self.tab_optics.set_viewmodel(self.get_optic_row, corr.optics)
         self.tab_records.set_viewmodel(self.get_record_row, corr.records, unit=True)
         for tab in (self.tab_optics, self.tab_records):
-            tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-            tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+            tab.setSelectionBehavior(QAbstractItemView.SelectRows)
+            tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         super().init_controls()
 
     def set_initial_values(self):

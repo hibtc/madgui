@@ -8,13 +8,14 @@ import os
 import time
 
 import numpy as np
-
-from madgui.qt import Qt, QtCore, QtGui, load_ui
+from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QAbstractItemView, QMessageBox, QWidget
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.history import History
-from madgui.util.qt import bold, Queued
+from madgui.util.qt import bold, Queued, load_ui
 from madgui.util import yaml
 from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates
@@ -26,7 +27,7 @@ from .procedure import Corrector, Target, ProcBot
 ORM_Entry = namedtuple('ORM_Entry', ['monitor', 'knob', 'x', 'y'])
 
 
-class CorrectorWidget(QtGui.QWidget):
+class CorrectorWidget(QWidget):
 
     ui_file = 'mor_dialog.ui'
     data_key = 'multi_grid'     # can reuse the multi grid configuration
@@ -51,7 +52,7 @@ class CorrectorWidget(QtGui.QWidget):
         mode = self.corrector.mode
         active_x = 'x' in mode
         active_y = 'y' in mode
-        textcolor = QtGui.QColor(Qt.darkGray), QtGui.QColor(Qt.black)
+        textcolor = QColor(Qt.darkGray), QColor(Qt.black)
         return [
             TableItem(t.elem),
             TableItem(t.x, name='x', set_value=self.set_x_value,
@@ -67,7 +68,7 @@ class CorrectorWidget(QtGui.QWidget):
         matched = self.corrector.saved_optics().get(v.lower())
         changed = matched is not None and not np.isclose(initial, matched)
         style = {
-            # 'foreground': QtGui.QColor(Qt.red),
+            # 'foreground': QColor(Qt.red),
             'font': bold(),
         } if changed else {}
         info = self.corrector._knobs[v.lower()]
@@ -120,8 +121,8 @@ class CorrectorWidget(QtGui.QWidget):
 
     def init_controls(self):
         for tab in (self.tab_readouts, self.tab_targets, self.tab_corrections):
-            tab.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-            tab.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+            tab.setSelectionBehavior(QAbstractItemView.SelectRows)
+            tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         corr = self.corrector
         self.tab_orm.set_viewmodel(
             self.get_orm_row, self.orm)
@@ -299,7 +300,7 @@ class CorrectorWidget(QtGui.QWidget):
         try:
             data = yaml.safe_load(text)
         except yaml.YAMLError:
-            QtGui.QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 'Syntax error in YAML document',
                 'There is a syntax error in the YAML document, please edit.')
@@ -307,7 +308,7 @@ class CorrectorWidget(QtGui.QWidget):
 
         configs = data.get(self.data_key)
         if not configs:
-            QtGui.QMessageBox.critical(
+            QMessageBox.critical(
                 self,
                 'No config defined',
                 'No configuration for this method defined.')
@@ -338,7 +339,7 @@ class CorrectorWidget(QtGui.QWidget):
         return self.corrector.session.window()
 
 
-class MeasureWidget(QtGui.QWidget):
+class MeasureWidget(QWidget):
 
     ui_file = 'mor_measure.ui'
     extension = '.orm_measurement.yml'
@@ -383,7 +384,7 @@ class MeasureWidget(QtGui.QWidget):
         })
 
     def sizeHint(self):
-        return QtCore.QSize(600, 400)
+        return QSize(600, 400)
 
     def init_controls(self):
         self.ctrl_correctors.set_viewmodel(
