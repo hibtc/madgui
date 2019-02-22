@@ -561,56 +561,10 @@ class MainWindow(QtGui.QMainWindow):
         self.user_ns.twiss = self.model().twiss()
 
     def showTwiss(self, name=None):
-        import madgui.widget.plot as plt
-        import madgui.plot.twissfigure as twissfigure
-
-        model = self.model()
-
-        # NOTE: using the plot_windows list as a stack with its top at 0:
-        settings = (self.config.plot_windows and
-                    self.config.plot_windows.pop(0) or {})
-
-        # indicators require retrieving data for all elements which can be too
-        # time consuming for large lattices:
-        show_indicators = len(model.elements) < 500
-
-        figure = plt.Figure(tight_layout=True)
-        plot = plt.PlotWidget(figure)
-
-        scene = twissfigure.TwissFigure(figure, self.session, self.matcher)
-        scene.show_indicators = show_indicators
-        scene.set_graph(name or settings.get('graph'))
-        scene.attach(plot)
-
-        # for convenience when debugging:
-        self.user_ns.__dict__.update({
-            'plot': plot,
-            'figure': figure,
-            'canvas': plot.canvas,
-            'scene': scene,
-        })
-
-        menubar = QtGui.QMenuBar()
-        select = twissfigure.PlotSelector(scene)
-        widget = Dialog(self)
-        widget.setWidget([select, plot], tight=True)
-        widget.layout().setMenuBar(menubar)
-        size = settings.get('size')
-        pos = settings.get('pos')
-        if not size:
-            size = (self.size().width(), widget.sizeHint().height())
-        widget.resize(*size)
-        if pos:
-            widget.move(*pos)
-        widget.show()
-
-        def update_window_title():
-            widget.setWindowTitle("{1} ({0})".format(
-                self.model().name, scene.graph_name))
-        scene.graph_changed.connect(update_window_title)
-        update_window_title()
-
-        self.model.changed_singleshot(widget.close)
+        from madgui.plot.twissfigure import TwissWidget
+        widget = TwissWidget.from_session(self.session, name)
+        scene = widget.scene
+        self.views.append(scene)
 
         def destroyed():
             if scene in self.views:
@@ -619,34 +573,7 @@ class MainWindow(QtGui.QMainWindow):
                 scene.destroy()
                 self.views.remove(scene)
 
-        notifyCloseEvent(widget, destroyed)
-
-        def toggleShareAxes():
-            scene.share_axes = not scene.share_axes
-            scene.reset()
-
-        def toggleIndicators():
-            scene.show_indicators = not scene.show_indicators
-
-        Menu, Item = menu.Menu, menu.Item
-        menu.extend(widget, menubar, [
-            Menu('&View', [
-                # TODO: dynamic checked state
-                Item('&Shared plot', 'Ctrl+M',
-                     'Plot all curves into the same axes.',
-                     toggleShareAxes, checked=False),
-                # TODO: dynamic checked state
-                Item('Element &indicators', None,
-                     'Show element indicators',
-                     toggleIndicators, checked=show_indicators),
-                Item('Manage curves', None,
-                     'Select which data sets are shown',
-                     scene._curveManager.toggle,
-                     checked=scene._curveManager.holds_value),
-            ]),
-        ])
-        self.views.append(scene)
-        return scene
+        notifyCloseEvent(widget.window(), destroyed)
 
     def _save_plot_window(self, scene):
         widget = scene.figure.canvas.window()
