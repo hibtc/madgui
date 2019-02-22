@@ -19,6 +19,8 @@ from madgui.widget.tableview import TableItem
 
 from madgui.online.orbit import fit_particle_orbit, add_offsets
 
+Button = QDialogButtonBox
+
 
 class MonitorWidget(QDialog):
 
@@ -68,9 +70,8 @@ class MonitorWidgetBase(QWidget):
         self.mtab.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.mtab.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        Buttons = QDialogButtonBox
-        self.std_buttons.button(Buttons.Ok).clicked.connect(self.accept)
-        self.std_buttons.button(Buttons.Save).clicked.connect(self.export)
+        self.std_buttons.button(Button.Ok).clicked.connect(self.accept)
+        self.std_buttons.button(Button.Save).clicked.connect(self.export)
         self.btn_update.clicked.connect(self.update)
 
     def accept(self):
@@ -207,9 +208,8 @@ class OffsetsWidget(MonitorWidgetBase):
         super().__init__(*args)
         self.btn_offsets.clicked.connect(self.save_offsets)
         self.btn_calibrate.clicked.connect(self.calibrate_offsets)
-        Buttons = QDialogButtonBox
-        self.std_buttons.button(Buttons.Open).clicked.connect(self.load)
-        self.std_buttons.button(Buttons.Discard).clicked.connect(self.discard)
+        self.std_buttons.button(Button.Open).clicked.connect(self.load)
+        self.std_buttons.button(Button.Discard).clicked.connect(self.discard)
         self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):

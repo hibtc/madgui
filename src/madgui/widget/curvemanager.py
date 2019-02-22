@@ -13,6 +13,8 @@ from madgui.widget.filedialog import getOpenFileName
 
 from madgui.plot.twissfigure import UserData
 
+Button = QDialogButtonBox
+
 
 class CurveManager(QWidget):
 
@@ -47,7 +49,6 @@ class CurveManager(QWidget):
         self.tab.set_viewmodel(self.show_curve, self.available)
 
     def connect_signals(self):
-        Button = QDialogButtonBox
         self.btn_save.clicked.connect(self.on_btn_save)
         self.btn_load.clicked.connect(self.on_btn_load)
         self.btn_box.button(Button.Ok).clicked.connect(self.accept)
