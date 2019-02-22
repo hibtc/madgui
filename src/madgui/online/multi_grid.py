@@ -11,10 +11,10 @@ from functools import partial
 import numpy as np
 import yaml
 
-from madgui.qt import Qt, QtGui, load_ui
+from madgui.qt import Qt, QtGui
 
 from madgui.util.unit import change_unit, get_raw_label
-from madgui.util.qt import bold, Queued
+from madgui.util.qt import bold, Queued, load_ui
 from madgui.widget.tableview import TableItem, delegates
 
 from ._common import EditConfigDialog

@@ -5,7 +5,7 @@ Miscellaneous utilities for programming with the Qt framework.
 import functools
 from importlib_resources import path as resource_filename
 
-from madgui.qt import QtGui, QtCore
+from madgui.qt import QtGui, QtCore, uic
 from madgui.util.collections import Bool
 from madgui.util.misc import cachedproperty, memoize
 
@@ -96,6 +96,28 @@ def bold():
     font = QtGui.QFont()
     font.setBold(True)
     return font
+
+
+def load_ui(widget, package, filename):
+    """
+    Initialize widget from ``.uic`` file loaded from the given package.
+
+    This function is for loading GUIs that were developed using the qt-designer
+    rapid development tool which creates ``.uic`` description files. These can
+    be saved in the same package alongside the corresponding python code. Now,
+    in the class that implements the widget, use this function as follows:
+
+    .. code-block::
+
+        class MyWidget(QtWidgets.QWidget):
+
+            def __init__(self):
+                super().__init__()
+                load_ui(self, __package__, 'mywidget.uic')
+    """
+    from importlib_resources import open_binary
+    with open_binary(package, filename) as f:
+        uic.loadUi(f, widget)
 
 
 def load_icon_resource(module, name, format='XPM'):

@@ -3,7 +3,8 @@ import re
 import time
 import logging
 
-from madgui.qt import QtCore, QtGui, load_ui
+from madgui.qt import QtCore, QtGui
+from madgui.util.qt import load_ui
 from madgui.widget.tableview import TableItem, delegates
 
 from madgui.online.procedure import Corrector, ProcBot

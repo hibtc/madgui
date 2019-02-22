@@ -12,10 +12,10 @@ import subprocess
 import time
 from functools import partial
 
-from madgui.qt import Qt, QtGui, load_ui
+from madgui.qt import Qt, QtGui
 from madgui.util.signal import Signal
 from madgui.util.collections import Selection
-from madgui.util.qt import notifyCloseEvent, SingleWindow
+from madgui.util.qt import notifyCloseEvent, SingleWindow, load_ui
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord

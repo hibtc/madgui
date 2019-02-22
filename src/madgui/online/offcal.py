@@ -4,9 +4,9 @@ from collections import namedtuple
 import numpy as np
 
 
-from madgui.qt import QtCore, QtGui, load_ui
+from madgui.qt import QtCore, QtGui
 from madgui.util import yaml
-from madgui.util.qt import monospace
+from madgui.util.qt import monospace, load_ui
 from madgui.util.collections import List
 from madgui.widget.tableview import TableItem
 

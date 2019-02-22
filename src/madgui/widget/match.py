@@ -2,7 +2,8 @@
 UI for matching.
 """
 
-from madgui.qt import QtGui, load_ui
+from madgui.qt import QtGui
+from madgui.util.qt import load_ui
 from madgui.util.unit import ui_units
 from madgui.widget.tableview import TableItem, delegates
 from madgui.model.match import Constraint

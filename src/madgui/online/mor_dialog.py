@@ -9,12 +9,12 @@ import time
 
 import numpy as np
 
-from madgui.qt import Qt, QtCore, QtGui, load_ui
+from madgui.qt import Qt, QtCore, QtGui
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.collections import List
 from madgui.util.history import History
-from madgui.util.qt import bold, Queued
+from madgui.util.qt import bold, Queued, load_ui
 from madgui.util import yaml
 from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates

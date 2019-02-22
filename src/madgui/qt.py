@@ -1,9 +1,13 @@
 """
-This module was historically used as compatibility layer for PyQt4/5.
+This module was historically used as compatibility layer for PyQt4/5. It
+contains import aliases for PyQt modules.
 
 It was kept after dropping PyQt4 compatibility - in order to spare me
 the necessity to replace most of the ``QtGui`` occurences inside the existing
 code with ``QtWidgets``.
+
+This module adds no actual functionality whatsoever. Please keep it that way
+and add all functions in other modules, such as :mod:`madgui.util.qt`.
 """
 
 __all__ = [
@@ -27,9 +31,3 @@ Qt = QtCore.Qt
 
 del types, QtGuiCompat
 del QtWidgets, QtPrintSupport
-
-
-def load_ui(widget, package, filename):
-    from importlib_resources import open_binary
-    with open_binary(package, filename) as f:
-        uic.loadUi(f, widget)

@@ -6,7 +6,8 @@ import os
 
 import numpy as np
 
-from madgui.qt import QtGui, load_ui
+from madgui.qt import QtGui
+from madgui.util.qt import load_ui
 from madgui.widget.tableview import TableItem, delegates
 from madgui.widget.filedialog import getOpenFileName
 
