@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" columnstretch="1,1">
    <item row="3" column="0" colspan="2">
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Calculated steerer corrections</string>
      </property>
@@ -71,7 +71,7 @@
    <item row="0" column="0" colspan="2">
     <layout class="QHBoxLayout" stretch="0,1,0,0,0,0,0,0">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel">
        <property name="text">
         <string>Configuration:</string>
        </property>
@@ -108,7 +108,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QLabel">
        <property name="text">
         <string>Mode:</string>
        </property>
@@ -147,7 +147,7 @@
     </layout>
    </item>
    <item row="2" column="0">
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Monitor readouts:</string>
      </property>
@@ -159,7 +159,7 @@
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Target values:</string>
      </property>
@@ -171,7 +171,7 @@
     </widget>
    </item>
    <item row="1" column="0" colspan="2">
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox">
      <property name="title">
       <string>Orbit Response</string>
      </property>
