@@ -26,12 +26,12 @@ class MonitorWidget(QDialog):
 
     def __init__(self, session):
         super().__init__(session.window())
-        self.tabs = QTabWidget()
-        self.tabs.addTab(PlotMonitorWidget(session), "Plot")
-        self.tabs.addTab(OrbitWidget(session), "Orbit")
-        self.tabs.addTab(EmittanceDialog(session), "Optics")
-        self.tabs.addTab(OffsetsWidget(session), "Offsets")
-        self.setLayout(VBoxLayout([self.tabs], tight=True))
+        self.tabWidget = QTabWidget()
+        self.tabWidget.addTab(PlotMonitorWidget(session), "Plot")
+        self.tabWidget.addTab(OrbitWidget(session), "Orbit")
+        self.tabWidget.addTab(EmittanceDialog(session), "Optics")
+        self.tabWidget.addTab(OffsetsWidget(session), "Offsets")
+        self.setLayout(VBoxLayout([self.tabWidget], tight=True))
         self.setSizeGripEnabled(True)
 
 
@@ -66,13 +66,14 @@ class MonitorWidgetBase(QWidget):
         self._monconf = session.config['online_control']['monitors']
         self._offsets = session.config['online_control']['offsets']
 
-        self.mtab.set_viewmodel(self.get_monitor_row, self.readouts, unit=True)
-        self.mtab.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.mtab.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.monitorTable.set_viewmodel(
+            self.get_monitor_row, self.readouts, unit=True)
+        self.monitorTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.monitorTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        self.std_buttons.button(Button.Ok).clicked.connect(self.accept)
-        self.std_buttons.button(Button.Save).clicked.connect(self.export)
-        self.btn_update.clicked.connect(self.update)
+        self.buttonBox.button(Button.Ok).clicked.connect(self.accept)
+        self.buttonBox.button(Button.Save).clicked.connect(self.export)
+        self.updateButton.clicked.connect(self.update)
 
     def accept(self):
         self.window().accept()
@@ -171,7 +172,7 @@ class PlotMonitorWidget(MonitorWidgetBase):
             yaml.save_file(filename, {'monitor': {
                 m.name: {'x': m.posx, 'y': m.posy,
                          'envx': m.envx, 'envy': m.envy}
-                for m in self.mtab.rows
+                for m in self.monitorTable.rows
                 if self.selected(m)
             }})
         elif ext == '.txt':
@@ -179,7 +180,7 @@ class PlotMonitorWidget(MonitorWidgetBase):
                 return self.model.elements[m.name].position
             data = np.array([
                 [pos(m), m.posx, m.posy, m.envx, m.envy]
-                for m in self.mtab.rows
+                for m in self.monitorTable.rows
                 if m.selected(m)
             ])
             np.savetxt(filename, data, header='s x y envx envy')
@@ -206,10 +207,10 @@ class OffsetsWidget(MonitorWidgetBase):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.btn_offsets.clicked.connect(self.save_offsets)
-        self.btn_calibrate.clicked.connect(self.calibrate_offsets)
-        self.std_buttons.button(Button.Open).clicked.connect(self.load)
-        self.std_buttons.button(Button.Discard).clicked.connect(self.discard)
+        self.offsetsButton.clicked.connect(self.save_offsets)
+        self.calibrateButton.clicked.connect(self.calibrate_offsets)
+        self.buttonBox.button(Button.Open).clicked.connect(self.load)
+        self.buttonBox.button(Button.Discard).clicked.connect(self.discard)
         self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
@@ -276,21 +277,21 @@ class _FitWidget(MonitorWidgetBase):
 
     def __init__(self, session):
         super().__init__(session)
-        self.btn_apply.clicked.connect(self.apply)
+        self.applyButton.clicked.connect(self.apply)
         self.results = List()
 
-        self.rtab.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.rtab.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.rtab.set_viewmodel(self.get_result_row, self.results)
+        self.resultsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.resultsTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.resultsTable.set_viewmodel(self.get_result_row, self.results)
 
 
 class OrbitWidget(_FitWidget):
 
     def __init__(self, session):
         super().__init__(session)
-        self.options_box.hide()
-        self.mtab.hideColumn(3)
-        self.mtab.hideColumn(4)
+        self.optionsWidget.hide()
+        self.monitorTable.hideColumn(3)
+        self.monitorTable.hideColumn(4)
         self._selected = self._monconf.setdefault('backtrack', {})
 
     def showEvent(self, event):
@@ -335,11 +336,11 @@ class EmittanceDialog(_FitWidget):
 
     def __init__(self, session):
         super().__init__(session)
-        self.long_transfer.clicked.connect(self.match_values)
-        self.use_dispersion.clicked.connect(self.match_values)
-        self.respect_coupling.clicked.connect(self.match_values)
-        self.mtab.hideColumn(1)
-        self.mtab.hideColumn(2)
+        self.longCheckBox.clicked.connect(self.match_values)
+        self.dispersionCheckBox.clicked.connect(self.match_values)
+        self.couplingCheckBox.clicked.connect(self.match_values)
+        self.monitorTable.hideColumn(1)
+        self.monitorTable.hideColumn(2)
         self._selected = self._monconf.setdefault('optics', {})
 
     def showEvent(self, event):
@@ -373,11 +374,11 @@ class EmittanceDialog(_FitWidget):
 
     def match_values(self):
 
-        long_transfer = self.long_transfer.isChecked()
-        use_dispersion = self.use_dispersion.isChecked()
-        respect_coupling = self.respect_coupling.isChecked()
+        longCheckBox = self.longCheckBox.isChecked()
+        dispersionCheckBox = self.dispersionCheckBox.isChecked()
+        couplingCheckBox = self.couplingCheckBox.isChecked()
 
-        min_monitors = 6 if use_dispersion else 3
+        min_monitors = 6 if dispersionCheckBox else 3
         if self.num_selected() < min_monitors:
             self.results[:] = []
             return
@@ -388,7 +389,7 @@ class EmittanceDialog(_FitWidget):
         readouts = sorted(readouts, key=lambda m: model.elements.index(m.name))
 
         tms = model.get_transfer_maps([0] + [m.name for m in readouts])
-        if not long_transfer:
+        if not longCheckBox:
             tms[0] = np.eye(7)
         tms = list(accumulate(tms, lambda a, b: np.dot(b, a)))
         # keep X,PX,Y,PY,PT:
@@ -415,15 +416,15 @@ class EmittanceDialog(_FitWidget):
         # TODO: do we need to add dpt*D to sig11 in online control?
 
         def calc_sigma(tms, xcs, dispersive):
-            if dispersive and not use_dispersion:
+            if dispersive and not dispersionCheckBox:
                 logging.warning("Dispersive lattice!")
-            if not use_dispersion:
+            if not dispersionCheckBox:
                 tms = tms[:, :-1, :-1]
             sigma, residuals, singular = solve_emit_sys(tms, xcs)
             return sigma
 
         # TODO: assert no dispersion / or use 6 monitors...
-        if not respect_coupling:
+        if not couplingCheckBox:
             if coupled:
                 logging.warning("Coupled lattice!")
             tmx = np.delete(np.delete(tms, [2, 3], axis=1), [2, 3], axis=2)
@@ -452,13 +453,13 @@ class EmittanceDialog(_FitWidget):
         ]
         results += [
             ResultItem('pt',   pt,   beam.et),
-        ] if use_dispersion else []
+        ] if dispersionCheckBox else []
         results += [
             ResultItem('betx', betx, twiss_args.get('betx')),
             ResultItem('bety', bety, twiss_args.get('bety')),
             ResultItem('alfx', alfx, twiss_args.get('alfx')),
             ResultItem('alfy', alfy, twiss_args.get('alfy')),
-        ] if long_transfer else []
+        ] if longCheckBox else []
 
         self.results[:] = results
 

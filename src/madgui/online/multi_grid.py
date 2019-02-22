@@ -105,43 +105,46 @@ class CorrectorWidget(QWidget):
         self.update_status()
 
     def init_controls(self):
-        for tab in (self.tab_readouts, self.tab_targets, self.tab_corrections):
+        for tab in (self.monitorTable, self.targetsTable, self.resultsTable):
             tab.setSelectionBehavior(QAbstractItemView.SelectRows)
             tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.tab_readouts.set_viewmodel(
+        self.monitorTable.set_viewmodel(
             self.get_readout_row, corr.readouts, unit=True)
-        self.tab_corrections.set_viewmodel(
+        self.resultsTable.set_viewmodel(
             self.get_steerer_row, corr.variables)
-        self.tab_targets.set_viewmodel(
+        self.targetsTable.set_viewmodel(
             self.get_cons_row, corr.targets, unit=True)
         self.view = self.corrector.session.window().open_graph('orbit')
 
     def set_initial_values(self):
-        self.btn_fit.setFocus()
-        self.radio_mode_xy.setChecked(True)
+        self.fitButton.setFocus()
+        self.modeXYButton.setChecked(True)
         self.update_config()
         self.update_status()
 
     def update_config(self):
-        self.combo_config.clear()
-        self.combo_config.addItems(list(self.configs))
-        self.combo_config.setCurrentText(self.active)
+        self.configComboBox.clear()
+        self.configComboBox.addItems(list(self.configs))
+        self.configComboBox.setCurrentText(self.active)
 
     def connect_signals(self):
-        self.btn_fit.clicked.connect(self.update_fit)
-        self.btn_apply.clicked.connect(self.on_execute_corrections)
-        self.combo_config.activated.connect(self.on_change_config)
-        self.btn_edit_conf.clicked.connect(self.edit_config)
-        self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
-        self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
-        self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
-        self.btn_prev.clicked.connect(self.prev_vals)
-        self.btn_next.clicked.connect(self.next_vals)
-        self.radio_meth_match.clicked.connect(partial(self.on_change_meth, 'match'))
-        self.radio_meth_orm.clicked.connect(partial(self.on_change_meth, 'orm'))
-        self.radio_meth_tm.clicked.connect(partial(self.on_change_meth, 'tm'))
-        self.check_backtrack.clicked.connect(self.on_check_backtracking)
+        self.fitButton.clicked.connect(self.update_fit)
+        self.applyButton.clicked.connect(self.on_execute_corrections)
+        self.configComboBox.activated.connect(self.on_change_config)
+        self.editConfigButton.clicked.connect(self.edit_config)
+        self.modeXButton.clicked.connect(partial(self.on_change_mode, 'x'))
+        self.modeYButton.clicked.connect(partial(self.on_change_mode, 'y'))
+        self.modeXYButton.clicked.connect(partial(self.on_change_mode, 'xy'))
+        self.prevButton.clicked.connect(self.prev_vals)
+        self.nextButton.clicked.connect(self.next_vals)
+        self.methodMatchButton.clicked.connect(
+            partial(self.on_change_meth, 'match'))
+        self.methodORMButton.clicked.connect(
+            partial(self.on_change_meth, 'orm'))
+        self.methodSectormapButton.clicked.connect(
+            partial(self.on_change_meth, 'tm'))
+        self.backtrackCheckBox.clicked.connect(self.on_check_backtracking)
 
     def on_change_meth(self, strategy):
         self.corrector.strategy = strategy
@@ -159,10 +162,10 @@ class CorrectorWidget(QWidget):
 
     def update_setup(self):
         if self.corrector.knows_targets_readouts():
-            self.check_backtrack.setEnabled(True)
+            self.backtrackCheckBox.setEnabled(True)
         else:
-            self.check_backtrack.setEnabled(False)
-            self.check_backtrack.setChecked(True)
+            self.backtrackCheckBox.setEnabled(False)
+            self.backtrackCheckBox.setChecked(True)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""
@@ -172,7 +175,7 @@ class CorrectorWidget(QWidget):
         self.update_ui()
 
     def on_change_config(self, index):
-        name = self.combo_config.itemText(index)
+        name = self.configComboBox.itemText(index)
         self.corrector.setup(self.configs[name], self.corrector.mode)
         self.update_status()
 
@@ -180,8 +183,8 @@ class CorrectorWidget(QWidget):
         self.corrector.setup(self.configs[self.active], dirs)
         self.update_status()
 
-        # TODO: make 'optimal'-column in tab_corrections editable and update
-        #       self.btn_apply.setEnabled according to its values
+        # TODO: make 'optimal'-column in resultsTable editable and update
+        #       self.applyButton.setEnabled according to its values
 
     def prev_vals(self):
         self.corrector.saved_optics.undo()
@@ -193,9 +196,9 @@ class CorrectorWidget(QWidget):
 
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
-        self.btn_prev.setEnabled(saved_optics.can_undo())
-        self.btn_next.setEnabled(saved_optics.can_redo())
-        self.btn_apply.setEnabled(
+        self.prevButton.setEnabled(saved_optics.can_undo())
+        self.nextButton.setEnabled(saved_optics.can_redo())
+        self.applyButton.setEnabled(
             self.corrector.online_optic != saved_optics())
         self.corrector.variables.touch()
         self.draw_idle()

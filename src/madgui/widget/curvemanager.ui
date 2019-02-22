@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>CurveManagerWidget</class>
+ <widget class="QWidget" name="CurveManagerWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,26 +15,26 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <widget class="TableView" name="tab"/>
+    <widget class="TableView" name="curveTable"/>
    </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QPushButton" name="btn_load">
+      <widget class="QPushButton" name="loadButton">
        <property name="text">
         <string>File..</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btn_save">
+      <widget class="QPushButton" name="saveButton">
        <property name="text">
         <string>Snapshot</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="btn_remove">
+      <widget class="QPushButton" name="removeButton">
        <property name="text">
         <string>Remove</string>
        </property>
@@ -54,7 +54,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QDialogButtonBox" name="btn_box">
+      <widget class="QDialogButtonBox" name="buttonBox">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>

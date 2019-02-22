@@ -32,7 +32,7 @@
       <property name="tabBarAutoHide">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="log_tab">
+      <widget class="QWidget" name="logTabWidget">
        <attribute name="title">
         <string>Log</string>
        </attribute>
@@ -50,7 +50,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="LogWindow" name="log_window">
+         <widget class="LogWindow" name="logWidget">
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -69,7 +69,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkbox_time">
+           <widget class="QCheckBox" name="timeCheckBox">
             <property name="text">
              <string>Time</string>
             </property>
@@ -112,14 +112,14 @@
            </spacer>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkbox_logging">
+           <widget class="QCheckBox" name="loggingCheckBox">
             <property name="text">
              <string>Log level:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="combobox_loglevel">
+           <widget class="QComboBox" name="loglevelComboBox">
             <item>
              <property name="text">
               <string>DEBUG</string>
@@ -171,14 +171,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkbox_madx_input">
+           <widget class="QCheckBox" name="madxInputCheckBox">
             <property name="text">
              <string>input</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="checkbox_madx_output">
+           <widget class="QCheckBox" name="madxOutputCheckBox">
             <property name="text">
              <string>output</string>
             </property>
@@ -216,9 +216,9 @@
  <resources/>
  <connections>
   <connection>
-   <sender>checkbox_logging</sender>
+   <sender>loggingCheckBox</sender>
    <signal>clicked(bool)</signal>
-   <receiver>combobox_loglevel</receiver>
+   <receiver>loglevelComboBox</receiver>
    <slot>setEnabled(bool)</slot>
   </connection>
  </connections>

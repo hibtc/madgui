@@ -62,15 +62,15 @@ class MainWindow(QMainWindow):
                 'init_pos': [self.pos().x(), self.pos().y()],
             },
             'logging': {
-                'enable': self.log_window.logging_enabled,
-                'level': self.log_window.loglevel,
+                'enable': self.logWidget.logging_enabled,
+                'level': self.logWidget.loglevel,
                 'times': {
-                    'enable': self.log_window.infobar.show_time,
-                    'format': self.log_window.infobar.time_format,
+                    'enable': self.logWidget.infobar.show_time,
+                    'format': self.logWidget.infobar.time_format,
                 },
                 'madx': {
-                    'in': self.log_window.enabled('SEND'),
-                    'out': self.log_window.enabled('MADX'),
+                    'in': self.logWidget.enabled('SEND'),
+                    'out': self.logWidget.enabled('MADX'),
                 }
             },
             'exec_folder': self.exec_folder,
@@ -233,43 +233,43 @@ class MainWindow(QMainWindow):
     dataReceived = Signal(object)
 
     def createControls(self):
-        self.log_window.highlight('SEND',     QColor(Qt.yellow).lighter(160))
-        self.log_window.highlight('MADX',     QColor(Qt.lightGray))
+        self.logWidget.highlight('SEND',     QColor(Qt.yellow).lighter(160))
+        self.logWidget.highlight('MADX',     QColor(Qt.lightGray))
 
-        self.log_window.highlight('DEBUG',    QColor(Qt.blue).lighter(180))
-        self.log_window.highlight('INFO',     QColor(Qt.green).lighter(150))
-        self.log_window.highlight('WARNING',  QColor(Qt.yellow))
-        self.log_window.highlight('ERROR',    QColor(Qt.red))
-        self.log_window.highlight('CRITICAL', QColor(Qt.red))
+        self.logWidget.highlight('DEBUG',    QColor(Qt.blue).lighter(180))
+        self.logWidget.highlight('INFO',     QColor(Qt.green).lighter(150))
+        self.logWidget.highlight('WARNING',  QColor(Qt.yellow))
+        self.logWidget.highlight('ERROR',    QColor(Qt.red))
+        self.logWidget.highlight('CRITICAL', QColor(Qt.red))
 
         log_conf = self.config.logging
-        self.log_window.setup_logging(logging.DEBUG)
-        self.log_window.infobar.enable_timestamps(log_conf.times.enable)
-        self.log_window.infobar.set_timeformat(log_conf.times.format)
-        self.log_window.enable_logging(log_conf.enable)
-        self.log_window.set_loglevel(log_conf.level)
-        self.log_window.enable('SEND', log_conf.madx['in'])
-        self.log_window.enable('MADX', log_conf.madx['out'])
+        self.logWidget.setup_logging(logging.DEBUG)
+        self.logWidget.infobar.enable_timestamps(log_conf.times.enable)
+        self.logWidget.infobar.set_timeformat(log_conf.times.format)
+        self.logWidget.enable_logging(log_conf.enable)
+        self.logWidget.set_loglevel(log_conf.level)
+        self.logWidget.enable('SEND', log_conf.madx['in'])
+        self.logWidget.enable('MADX', log_conf.madx['out'])
 
-        self.dataReceived.connect(partial(self.log_window.recv_log, 'MADX'))
+        self.dataReceived.connect(partial(self.logWidget.recv_log, 'MADX'))
 
-        self.checkbox_time.setChecked(self.log_window.infobar.show_time)
-        self.checkbox_logging.setChecked(self.log_window.logging_enabled)
-        self.combobox_loglevel.setEnabled(self.log_window.logging_enabled)
-        self.combobox_loglevel.setCurrentText(self.log_window.loglevel)
-        self.checkbox_madx_input.setChecked(self.log_window.enabled('SEND'))
-        self.checkbox_madx_output.setChecked(self.log_window.enabled('MADX'))
+        self.timeCheckBox.setChecked(self.logWidget.infobar.show_time)
+        self.loggingCheckBox.setChecked(self.logWidget.logging_enabled)
+        self.loglevelComboBox.setEnabled(self.logWidget.logging_enabled)
+        self.loglevelComboBox.setCurrentText(self.logWidget.loglevel)
+        self.madxInputCheckBox.setChecked(self.logWidget.enabled('SEND'))
+        self.madxOutputCheckBox.setChecked(self.logWidget.enabled('MADX'))
 
-        self.checkbox_time.clicked.connect(
-            self.log_window.infobar.enable_timestamps)
-        self.checkbox_logging.clicked.connect(
-            self.log_window.enable_logging)
-        self.combobox_loglevel.currentTextChanged.connect(
-            self.log_window.set_loglevel)
-        self.checkbox_madx_input.clicked.connect(
-            partial(self.log_window.enable, 'SEND'))
-        self.checkbox_madx_output.clicked.connect(
-            partial(self.log_window.enable, 'MADX'))
+        self.timeCheckBox.clicked.connect(
+            self.logWidget.infobar.enable_timestamps)
+        self.loggingCheckBox.clicked.connect(
+            self.logWidget.enable_logging)
+        self.loglevelComboBox.currentTextChanged.connect(
+            self.logWidget.set_loglevel)
+        self.madxInputCheckBox.clicked.connect(
+            partial(self.logWidget.enable, 'SEND'))
+        self.madxOutputCheckBox.clicked.connect(
+            partial(self.logWidget.enable, 'MADX'))
 
         style = self.style()
         self.undo_stack = undo_stack = UndoStack()
@@ -289,7 +289,7 @@ class MainWindow(QMainWindow):
 
     def log_command(self, text):
         text = text.rstrip()
-        self.log_window.records.append(LogRecord(
+        self.logWidget.records.append(LogRecord(
             time.time(), 'SEND', text))
 
     @SingleWindow.factory

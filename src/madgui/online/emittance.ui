@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QWidget" name="Dialog">
+ <class>EmittanceWidget</class>
+ <widget class="QWidget" name="EmittanceWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -21,7 +21,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="mtab"/>
+       <widget class="TableView" name="monitorTable"/>
       </item>
       <item>
        <layout class="QHBoxLayout">
@@ -39,14 +39,14 @@
          </spacer>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_update">
+         <widget class="QPushButton" name="updateButton">
           <property name="text">
            <string>Update</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_apply">
+         <widget class="QPushButton" name="applyButton">
           <property name="text">
            <string>Apply</string>
           </property>
@@ -64,13 +64,13 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="rtab"/>
+       <widget class="TableView" name="resultsTable"/>
       </item>
       <item>
-       <widget class="QWidget" name="options_box" native="true">
+       <widget class="QWidget" name="optionsWidget" native="true">
         <layout class="QHBoxLayout">
          <item>
-          <widget class="QCheckBox" name="long_transfer">
+          <widget class="QCheckBox" name="longCheckBox">
            <property name="text">
             <string>Match from start</string>
            </property>
@@ -80,14 +80,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="use_dispersion">
+          <widget class="QCheckBox" name="dispersionCheckBox">
            <property name="text">
             <string>Dispersion</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QCheckBox" name="respect_coupling">
+          <widget class="QCheckBox" name="couplingCheckBox">
            <property name="text">
             <string>4D</string>
            </property>
@@ -113,7 +113,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QDialogButtonBox" name="std_buttons">
+       <widget class="QDialogButtonBox" name="buttonBox">
         <property name="standardButtons">
          <set>QDialogButtonBox::Ok|QDialogButtonBox::Save</set>
         </property>

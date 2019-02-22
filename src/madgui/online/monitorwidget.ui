@@ -15,12 +15,12 @@
   </property>
   <layout class="QHBoxLayout">
    <item>
-    <widget class="TableView" name="mtab"/>
+    <widget class="TableView" name="monitorTable"/>
    </item>
    <item>
     <layout class="QVBoxLayout">
      <item>
-      <widget class="QPushButton" name="btn_update">
+      <widget class="QPushButton" name="updateButton">
        <property name="text">
         <string>Update</string>
        </property>
@@ -40,7 +40,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QDialogButtonBox" name="std_buttons">
+      <widget class="QDialogButtonBox" name="buttonBox">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>

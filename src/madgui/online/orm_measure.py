@@ -37,28 +37,28 @@ class MeasureWidget(QWidget):
         return QSize(600, 400)
 
     def init_controls(self):
-        self.ctrl_correctors.set_viewmodel(self.get_corrector_row)
-        self.ctrl_monitors.set_viewmodel(self.get_monitor_row)
+        self.opticsTable.set_viewmodel(self.get_corrector_row)
+        self.monitorTable.set_viewmodel(self.get_monitor_row)
         self.view = self.corrector.session.window().open_graph('orbit')
 
     def set_initial_values(self):
         self.set_folder('.')    # FIXME
-        self.ctrl_file.setText(
+        self.fileEdit.setText(
             "{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.d_phi = {}
-        self.ctrl_correctors.rows[:] = []
-        self.ctrl_monitors.rows[:] = self.corrector.all_monitors
+        self.opticsTable.rows[:] = []
+        self.monitorTable.rows[:] = self.corrector.all_monitors
         self.update_ui()
 
     def connect_signals(self):
-        self.btn_dir.clicked.connect(self.change_output_file)
-        self.btn_start.clicked.connect(self.start_bot)
-        self.btn_cancel.clicked.connect(self.bot.cancel)
-        self.ctrl_monitors.selectionModel().selectionChanged.connect(
+        self.folderButton.clicked.connect(self.change_output_file)
+        self.startButton.clicked.connect(self.start_bot)
+        self.cancelButton.clicked.connect(self.bot.cancel)
+        self.monitorTable.selectionModel().selectionChanged.connect(
             self.monitor_selection_changed)
-        self.ctrl_filter.textChanged.connect(lambda _: self._update_knobs())
-        self.ctrl_default.valueChanged.connect(
-            lambda _: self.ctrl_correctors.rows.touch())
+        self.filterEdit.textChanged.connect(lambda _: self._update_knobs())
+        self.defaultSpinBox.valueChanged.connect(
+            lambda _: self.opticsTable.rows.touch())
 
     def get_monitor_row(self, i, m) -> ("Monitor",):
         return [
@@ -66,7 +66,7 @@ class MeasureWidget(QWidget):
         ]
 
     def get_corrector_row(self, i, c) -> ("Param", "Δ"):
-        default = self.ctrl_default.value() or None
+        default = self.defaultSpinBox.value() or None
         return [
             TableItem(c.name),
             TableItem(
@@ -82,7 +82,7 @@ class MeasureWidget(QWidget):
         self.corrector.setup({
             'monitors': [
                 self.corrector.all_monitors[idx.row()]
-                for idx in self.ctrl_monitors.selectedIndexes()
+                for idx in self.monitorTable.selectedIndexes()
             ],
         })
         self._update_knobs()
@@ -94,7 +94,7 @@ class MeasureWidget(QWidget):
             return
         elements = self.model.elements
         last_mon = elements.index(self.corrector.monitors[-1])
-        self.ctrl_correctors.rows = [
+        self.opticsTable.rows = [
             self.corrector._knobs[knob.lower()]
             for elem in elements
             if elem.index < last_mon
@@ -104,7 +104,7 @@ class MeasureWidget(QWidget):
         ]
 
     def _get_filter(self):
-        text = self.ctrl_filter.text()
+        text = self.filterEdit.text()
         text = text.replace(' ', '')
         try:
             return re.compile(text, re.ASCII | re.IGNORECASE)
@@ -120,7 +120,7 @@ class MeasureWidget(QWidget):
 
     def set_folder(self, folder):
         self.folder = os.path.abspath(folder)
-        self.ctrl_dir.setText(self.folder)
+        self.folderEdit.setText(self.folder)
 
     @property
     def running(self):
@@ -132,20 +132,20 @@ class MeasureWidget(QWidget):
 
     def update_ui(self):
         running = self.running
-        valid = bool(self.ctrl_correctors.rows and self._get_filter())
-        self.btn_cancel.setEnabled(running)
-        self.btn_start.setEnabled(not running and valid)
-        self.btn_dir.setEnabled(not running)
-        self.num_shots_wait.setEnabled(not running)
-        self.num_shots_use.setEnabled(not running)
-        self.ctrl_monitors.setEnabled(not running)
-        self.ctrl_correctors.setEnabled(not running)
-        self.ctrl_progress.setEnabled(running)
-        self.ctrl_progress.setRange(0, self.bot.totalops)
-        self.ctrl_progress.setValue(self.bot.progress)
+        valid = bool(self.opticsTable.rows and self._get_filter())
+        self.cancelButton.setEnabled(running)
+        self.startButton.setEnabled(not running and valid)
+        self.folderButton.setEnabled(not running)
+        self.numIgnoredSpinBox.setEnabled(not running)
+        self.numUsedSpinBox.setEnabled(not running)
+        self.monitorTable.setEnabled(not running)
+        self.opticsTable.setEnabled(not running)
+        self.progressBar.setEnabled(running)
+        self.progressBar.setRange(0, self.bot.totalops)
+        self.progressBar.setValue(self.bot.progress)
 
     def set_progress(self, progress):
-        self.ctrl_progress.setValue(progress)
+        self.progressBar.setValue(progress)
 
     def update_fit(self):
         """Called when procedure finishes succesfully."""
@@ -153,16 +153,16 @@ class MeasureWidget(QWidget):
 
     def start_bot(self):
         self.control.read_all()
-        self.corrector.set_optics_delta(self.d_phi, self.ctrl_default.value())
+        self.corrector.set_optics_delta(self.d_phi, self.defaultSpinBox.value())
 
         self.bot.start(
-            self.num_shots_wait.value(),
-            self.num_shots_use.value())
+            self.numIgnoredSpinBox.value(),
+            self.numUsedSpinBox.value())
 
         now = time.localtime(time.time())
         fname = os.path.join(
-            self.ctrl_dir.text(),
-            self.ctrl_file.text().format(
+            self.folderEdit.text(),
+            self.fileEdit.text().format(
                 date=time.strftime("%Y-%m-%d", now),
                 time=time.strftime("%H-%M-%S", now),
                 sequence=self.model.seq_name,
@@ -174,4 +174,4 @@ class MeasureWidget(QWidget):
     def log(self, text, *args, **kwargs):
         formatted = text.format(*args, **kwargs)
         logging.info(formatted)
-        self.status_log.appendPlainText(formatted)
+        self.logEdit.appendPlainText(formatted)

@@ -44,22 +44,22 @@ class CurveManager(QWidget):
         self.connect_signals()
 
     def init_controls(self):
-        self.tab.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.tab.set_viewmodel(self.show_curve, self.available)
+        self.curveTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.curveTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.curveTable.set_viewmodel(self.show_curve, self.available)
 
     def connect_signals(self):
-        self.btn_save.clicked.connect(self.on_btn_save)
-        self.btn_load.clicked.connect(self.on_btn_load)
-        self.btn_box.button(Button.Ok).clicked.connect(self.accept)
-        self.tab.connectButtons(self.btn_remove)
+        self.saveButton.clicked.connect(self.on_btn_save)
+        self.loadButton.clicked.connect(self.on_btn_load)
+        self.buttonBox.button(Button.Ok).clicked.connect(self.accept)
+        self.curveTable.connectButtons(self.removeButton)
 
     def accept(self):
         self.window().accept()
 
     @property
     def data(self):
-        return self.tab.rows
+        return self.curveTable.rows
 
     def on_btn_save(self):
         scene = self.scene
@@ -69,7 +69,8 @@ class CurveManager(QWidget):
         scene.snapshot_num += 1
         name = "snapshot {}".format(scene.snapshot_num)
         scene.add_curve(name, data, style)
-        self.tab.edit(self.tab.model().index(len(self.available)-1, 0))
+        self.curveTable.edit(
+            self.curveTable.model().index(len(self.available)-1, 0))
 
     def on_btn_load(self):
         filename = getOpenFileName(

@@ -73,8 +73,8 @@ follow these rules:
 - class names are in ``CamelCase``
 - for method, member and variable names, stick to ``names_with_underscores`` as
   recommended by PEP8_
-- only PyQt class method overrides and their parameters shall be written in
-  ``lowerCamelCase``
+- PyQt class method overrides and their parameters, as well as child objects
+  of widgets are in ``lowerCamelCase``
 
 **Version control:**
 
