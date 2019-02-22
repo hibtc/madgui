@@ -24,7 +24,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="combo_config">
+      <widget class="QComboBox" name="configComboBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>1</horstretch>
@@ -34,7 +34,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="btn_edit_conf">
+      <widget class="QToolButton" name="editConfigButton">
        <property name="text">
         <string>...</string>
        </property>
@@ -61,7 +61,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radio_mode_x">
+      <widget class="QRadioButton" name="modeXButton">
        <property name="text">
         <string>x</string>
        </property>
@@ -71,7 +71,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radio_mode_y">
+      <widget class="QRadioButton" name="modeYButton">
        <property name="text">
         <string>y</string>
        </property>
@@ -81,7 +81,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radio_mode_xy">
+      <widget class="QRadioButton" name="modeXYButton">
        <property name="text">
         <string>x/y</string>
        </property>
@@ -104,7 +104,7 @@
       <item>
        <layout class="QHBoxLayout">
         <item>
-         <widget class="QCheckBox" name="check_backtrack">
+         <widget class="QCheckBox" name="backtrackCheckBox">
           <property name="text">
            <string>Backtrack</string>
           </property>
@@ -131,7 +131,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="radio_meth_match">
+         <widget class="QRadioButton" name="methodMatchButton">
           <property name="text">
            <string>MATCH</string>
           </property>
@@ -144,7 +144,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="radio_meth_orm">
+         <widget class="QRadioButton" name="methodORMButton">
           <property name="text">
            <string>ORM</string>
           </property>
@@ -154,7 +154,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="radio_meth_tm">
+         <widget class="QRadioButton" name="methodSectormapButton">
           <property name="text">
            <string>sectormap</string>
           </property>
@@ -179,7 +179,7 @@
        </layout>
       </item>
       <item>
-       <widget class="TableView" name="tab_corrections">
+       <widget class="TableView" name="resultsTable">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>
@@ -188,14 +188,14 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="QPushButton" name="btn_apply">
+         <widget class="QPushButton" name="applyButton">
           <property name="text">
            <string>Apply</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="btn_prev">
+         <widget class="QToolButton" name="prevButton">
           <property name="text">
            <string>...</string>
           </property>
@@ -205,7 +205,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="btn_next">
+         <widget class="QToolButton" name="nextButton">
           <property name="text">
            <string>...</string>
           </property>
@@ -220,7 +220,7 @@
     </widget>
    </item>
    <item row="6" column="0">
-    <widget class="QTabWidget" name="tabs">
+    <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -230,7 +230,7 @@
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="1" column="0">
-        <widget class="QPlainTextEdit" name="status_log">
+        <widget class="QPlainTextEdit" name="logEdit">
          <property name="tabChangesFocus">
           <bool>true</bool>
          </property>
@@ -242,14 +242,14 @@
        <item row="3" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QPushButton" name="btn_proc_start">
+          <widget class="QPushButton" name="startProcedureButton">
            <property name="text">
             <string>Start</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_proc_abort">
+          <widget class="QPushButton" name="abortProcedureButton">
            <property name="text">
             <string>Cancel</string>
            </property>
@@ -258,7 +258,7 @@
         </layout>
        </item>
        <item row="2" column="0">
-        <widget class="QProgressBar" name="ctrl_progress">
+        <widget class="QProgressBar" name="progressBar">
          <property name="value">
           <number>0</number>
          </property>
@@ -274,7 +274,7 @@
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QSpinBox" name="num_shots_wait">
+          <widget class="QSpinBox" name="numIgnoredSpinBox">
            <property name="value">
             <number>1</number>
            </property>
@@ -288,7 +288,7 @@
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QSpinBox" name="num_shots_use">
+          <widget class="QSpinBox" name="numUsedSpinBox">
            <property name="minimum">
             <number>1</number>
            </property>
@@ -298,7 +298,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_manual">
+     <widget class="QWidget" name="manualTabWidget">
       <attribute name="title">
        <string>Manual</string>
       </attribute>
@@ -306,10 +306,10 @@
        <item row="0" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
-          <widget class="QComboBox" name="combo_set_optic"/>
+          <widget class="QComboBox" name="opticComboBox"/>
          </item>
          <item>
-          <widget class="QPushButton" name="btn_set_optic">
+          <widget class="QPushButton" name="setOpticButton">
            <property name="text">
             <string>Set optic</string>
            </property>
@@ -320,21 +320,21 @@
        <item row="1" column="0">
         <layout class="QGridLayout" name="gridLayout">
          <item row="1" column="0">
-          <widget class="QPushButton" name="btn_update">
+          <widget class="QPushButton" name="updateButton">
            <property name="text">
             <string>Update</string>
            </property>
           </widget>
          </item>
          <item row="1" column="2">
-          <widget class="QPushButton" name="btn_fit">
+          <widget class="QPushButton" name="fitButton">
            <property name="text">
             <string>Fit</string>
            </property>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QPushButton" name="btn_record">
+          <widget class="QPushButton" name="recordButton">
            <property name="text">
             <string>Record</string>
            </property>
@@ -353,21 +353,21 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_6">
       <item row="1" column="0">
-       <widget class="QPushButton" name="btn_rec_clear">
+       <widget class="QPushButton" name="clearRecordsButton">
         <property name="text">
          <string>Clear</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QPushButton" name="btn_rec_remove">
+       <widget class="QPushButton" name="removeRecordsButton">
         <property name="text">
          <string>Remove</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
-       <widget class="QPushButton" name="btn_rec_export">
+       <widget class="QPushButton" name="exportRecordsButton">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -377,7 +377,7 @@
        </widget>
       </item>
       <item row="0" column="0" colspan="3">
-       <widget class="TableView" name="tab_records">
+       <widget class="TableView" name="recordsTable">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>
@@ -387,13 +387,13 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QGroupBox" name="group_target">
+    <widget class="QGroupBox" name="targetsGroupBox">
      <property name="title">
       <string>Targets</string>
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="tab_targets">
+       <widget class="TableView" name="targetsTable">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>
@@ -431,7 +431,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QComboBox" name="read_focus1"/>
+         <widget class="QComboBox" name="read1stFocusComboBox"/>
         </item>
         <item>
          <widget class="QLabel" name="label_9">
@@ -441,19 +441,19 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="read_focus2"/>
+         <widget class="QComboBox" name="read2ndFocusComboBox"/>
         </item>
        </layout>
       </item>
       <item row="1" column="2">
-       <widget class="QPushButton" name="btn_read_focus">
+       <widget class="QPushButton" name="readFocusButton">
         <property name="text">
          <string>Read</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1" colspan="2">
-       <widget class="TableView" name="tab_optics"/>
+       <widget class="TableView" name="opticsTable"/>
       </item>
      </layout>
     </widget>
@@ -465,7 +465,7 @@
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
-       <widget class="TableView" name="tab_readouts"/>
+       <widget class="TableView" name="monitorTable"/>
       </item>
      </layout>
     </widget>

@@ -120,17 +120,17 @@ class CorrectorWidget(QWidget):
         self.update_status()
 
     def init_controls(self):
-        for tab in (self.tab_readouts, self.tab_targets, self.tab_corrections):
+        for tab in (self.monitorTable, self.targetsTable, self.resultsTable):
             tab.setSelectionBehavior(QAbstractItemView.SelectRows)
             tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         corr = self.corrector
-        self.tab_orm.set_viewmodel(
+        self.ormTable.set_viewmodel(
             self.get_orm_row, self.orm)
-        self.tab_readouts.set_viewmodel(
+        self.monitorTable.set_viewmodel(
             self.get_readout_row, corr.readouts, unit=True)
-        self.tab_corrections.set_viewmodel(
+        self.resultsTable.set_viewmodel(
             self.get_steerer_row, corr.variables)
-        self.tab_targets.set_viewmodel(
+        self.targetsTable.set_viewmodel(
             self.get_cons_row, corr.targets, unit=True)
         self.view = self.corrector.session.window().open_graph('orbit')
 
@@ -151,32 +151,32 @@ class CorrectorWidget(QWidget):
             self.update_ui()
 
     def set_initial_values(self):
-        self.btn_fit.setFocus()
-        self.radio_mode_xy.setChecked(True)
+        self.fitButton.setFocus()
+        self.modeXYButton.setChecked(True)
         self.update_config()
         self.update_status()
 
     def update_config(self):
-        self.combo_config.clear()
-        self.combo_config.addItems(list(self.configs))
-        self.combo_config.setCurrentText(self.active)
+        self.configComboBox.clear()
+        self.configComboBox.addItems(list(self.configs))
+        self.configComboBox.setCurrentText(self.active)
 
     def connect_signals(self):
-        self.btn_compute.clicked.connect(self.compute_orm)
-        self.btn_measure.clicked.connect(self.measure_orm)
-        self.btn_load.clicked.connect(self.load_orm)
-        self.btn_save.clicked.connect(self.save_orm)
-        self.btn_fit.clicked.connect(self.update_fit)
-        self.btn_apply.clicked.connect(self.on_execute_corrections)
-        self.combo_config.activated.connect(self.on_change_config)
-        self.btn_edit_conf.clicked.connect(self.edit_config)
-        self.radio_mode_x.clicked.connect(partial(self.on_change_mode, 'x'))
-        self.radio_mode_y.clicked.connect(partial(self.on_change_mode, 'y'))
-        self.radio_mode_xy.clicked.connect(partial(self.on_change_mode, 'xy'))
-        self.btn_prev.clicked.connect(self.prev_vals)
-        self.btn_next.clicked.connect(self.next_vals)
-        self.btn_prev_orm.clicked.connect(self.prev_orm)
-        self.btn_next_orm.clicked.connect(self.next_orm)
+        self.computeButton.clicked.connect(self.compute_orm)
+        self.measureButton.clicked.connect(self.measure_orm)
+        self.loadButton.clicked.connect(self.load_orm)
+        self.saveButton.clicked.connect(self.save_orm)
+        self.fitButton.clicked.connect(self.update_fit)
+        self.applyButton.clicked.connect(self.on_execute_corrections)
+        self.configComboBox.activated.connect(self.on_change_config)
+        self.editConfigButton.clicked.connect(self.edit_config)
+        self.modeXButton.clicked.connect(partial(self.on_change_mode, 'x'))
+        self.modeYButton.clicked.connect(partial(self.on_change_mode, 'y'))
+        self.modeXYButton.clicked.connect(partial(self.on_change_mode, 'xy'))
+        self.prevButton.clicked.connect(self.prev_vals)
+        self.nextButton.clicked.connect(self.next_vals)
+        self.prevORMButton.clicked.connect(self.prev_orm)
+        self.nextORMButton.clicked.connect(self.next_orm)
 
     def update_status(self):
         self.corrector.update_vars()
@@ -262,7 +262,7 @@ class CorrectorWidget(QWidget):
         self.update_ui()
 
     def on_change_config(self, index):
-        name = self.combo_config.itemText(index)
+        name = self.configComboBox.itemText(index)
         self.corrector.setup(self.configs[name], self.corrector.mode)
         self.update_status()
 
@@ -270,8 +270,8 @@ class CorrectorWidget(QWidget):
         self.corrector.setup(self.configs[self.active], dirs)
         self.update_status()
 
-        # TODO: make 'optimal'-column in tab_corrections editable and update
-        #       self.btn_apply.setEnabled according to its values
+        # TODO: make 'optimal'-column in resultsTable editable and update
+        #       self.applyButton.setEnabled according to its values
 
     def prev_vals(self):
         self.corrector.saved_optics.undo()
@@ -283,13 +283,13 @@ class CorrectorWidget(QWidget):
 
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
-        self.btn_prev.setEnabled(saved_optics.can_undo())
-        self.btn_next.setEnabled(saved_optics.can_redo())
-        self.btn_apply.setEnabled(
+        self.prevButton.setEnabled(saved_optics.can_undo())
+        self.nextButton.setEnabled(saved_optics.can_redo())
+        self.applyButton.setEnabled(
             self.corrector.online_optic != saved_optics())
         self.corrector.variables.touch()
-        self.btn_prev_orm.setEnabled(self.saved_orms.can_undo())
-        self.btn_next_orm.setEnabled(self.saved_orms.can_redo())
+        self.prevORMButton.setEnabled(self.saved_orms.can_undo())
+        self.nextORMButton.setEnabled(self.saved_orms.can_redo())
         self.draw_idle()
 
     def edit_config(self):
@@ -387,20 +387,20 @@ class MeasureWidget(QWidget):
         return QSize(600, 400)
 
     def init_controls(self):
-        self.ctrl_correctors.set_viewmodel(
+        self.opticsTable.set_viewmodel(
             self.get_corrector_row, unit=(None, 'kick'))
 
     def set_initial_values(self):
         self.d_phi = {}
         self.default_dphi = 2e-4
-        self.ctrl_correctors.rows[:] = self.steerers
-        self.ctrl_file.setText(
+        self.opticsTable.rows[:] = self.steerers
+        self.fileEdit.setText(
             "{date}_{time}_{sequence}_{monitor}"+self.extension)
         self.update_ui()
 
     def connect_signals(self):
-        self.btn_start.clicked.connect(self.start_bot)
-        self.btn_cancel.clicked.connect(self.cancel)
+        self.startButton.clicked.connect(self.start_bot)
+        self.cancelButton.clicked.connect(self.cancel)
 
     def get_corrector_row(self, i, c) -> ("Kicker", "ΔΦ"):
         return [
@@ -424,17 +424,17 @@ class MeasureWidget(QWidget):
     def update_ui(self):
         running = self.running
         valid = bool(self.corrector.optic_params)
-        self.btn_cancel.setEnabled(running)
-        self.btn_start.setEnabled(not running and valid)
-        self.num_shots_wait.setEnabled(not running)
-        self.num_shots_use.setEnabled(not running)
-        self.ctrl_correctors.setEnabled(not running)
-        self.ctrl_progress.setEnabled(running)
-        self.ctrl_progress.setRange(0, self.bot.totalops)
-        self.ctrl_progress.setValue(self.bot.progress)
+        self.cancelButton.setEnabled(running)
+        self.startButton.setEnabled(not running and valid)
+        self.numIgnoredSpinBox.setEnabled(not running)
+        self.numUsedSpinBox.setEnabled(not running)
+        self.opticsTable.setEnabled(not running)
+        self.progressBar.setEnabled(running)
+        self.progressBar.setRange(0, self.bot.totalops)
+        self.progressBar.setValue(self.bot.progress)
 
     def set_progress(self, progress):
-        self.ctrl_progress.setValue(progress)
+        self.progressBar.setValue(progress)
 
     def update_fit(self):
         """Called when procedure finishes succesfully."""
@@ -464,13 +464,13 @@ class MeasureWidget(QWidget):
     def start_bot(self):
         self.corrector.set_optics_delta(self.d_phi, self.default_dphi)
         self.bot.start(
-            self.num_shots_wait.value(),
-            self.num_shots_use.value())
+            self.numIgnoredSpinBox.value(),
+            self.numUsedSpinBox.value())
 
         now = time.localtime(time.time())
         fname = os.path.join(
             '.',
-            self.ctrl_file.text().format(
+            self.fileEdit.text().format(
                 date=time.strftime("%Y-%m-%d", now),
                 time=time.strftime("%H-%M-%S", now),
                 sequence=self.corrector.model.seq_name,
@@ -485,4 +485,4 @@ class MeasureWidget(QWidget):
 
     def log(self, text, *args, **kwargs):
         formatted = text.format(*args, **kwargs)
-        self.status_log.appendPlainText(formatted)
+        self.logEdit.appendPlainText(formatted)

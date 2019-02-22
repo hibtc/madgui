@@ -64,15 +64,16 @@ class CorrectorWidget(_Widget):
     def init_controls(self):
         focus_choices = ["F{}".format(i+1)
                          for i in range(self.num_focus_levels)]
-        self.read_focus1.addItems(focus_choices)
-        self.read_focus2.addItems(focus_choices)
-        self.read_focus1.setCurrentText("F1")
-        self.read_focus2.setCurrentText("F4")
+        self.read1stFocusComboBox.addItems(focus_choices)
+        self.read2ndFocusComboBox.addItems(focus_choices)
+        self.read1stFocusComboBox.setCurrentText("F1")
+        self.read2ndFocusComboBox.setCurrentText("F4")
 
         corr = self.corrector
-        self.tab_optics.set_viewmodel(self.get_optic_row, corr.optics)
-        self.tab_records.set_viewmodel(self.get_record_row, corr.records, unit=True)
-        for tab in (self.tab_optics, self.tab_records):
+        self.opticsTable.set_viewmodel(self.get_optic_row, corr.optics)
+        self.recordsTable.set_viewmodel(
+            self.get_record_row, corr.records, unit=True)
+        for tab in (self.opticsTable, self.recordsTable):
             tab.setSelectionBehavior(QAbstractItemView.SelectRows)
             tab.setSelectionMode(QAbstractItemView.ExtendedSelection)
         super().init_controls()
@@ -80,11 +81,11 @@ class CorrectorWidget(_Widget):
     def set_initial_values(self):
         self.bot = ProcBot(self, self.corrector)
         self.read_focus()
-        self.radio_mode_xy.setChecked(True)
+        self.modeXYButton.setChecked(True)
         self.update_status()
 
     def update_setup(self):
-        self.tab_optics.model().titles[1:] = [
+        self.opticsTable.model().titles[1:] = [
             "{}/{}".format(info.name, get_raw_label(info.ui_unit))
             for info in self.corrector.optic_params
         ]
@@ -92,21 +93,22 @@ class CorrectorWidget(_Widget):
         super().update_setup()
 
     def _on_update_optics(self):
-        self.combo_set_optic.clear()
-        self.combo_set_optic.addItems([
+        self.opticComboBox.clear()
+        self.opticComboBox.addItems([
             "Optic {}".format(i+1)
             for i in range(len(self.corrector.optics))
         ])
-        self.btn_set_optic.setEnabled(len(self.corrector.optics) > 0)
+        self.setOpticButton.setEnabled(len(self.corrector.optics) > 0)
 
     def connect_signals(self):
         super().connect_signals()
-        self.btn_read_focus.clicked.connect(self.read_focus)
-        self.btn_record.clicked.connect(self.corrector.add_record)
-        self.btn_set_optic.clicked.connect(self.set_optic)
-        self.tab_records.connectButtons(self.btn_rec_remove, self.btn_rec_clear)
-        self.btn_proc_start.clicked.connect(self.start_bot)
-        self.btn_proc_abort.clicked.connect(self.bot.cancel)
+        self.readFocusButton.clicked.connect(self.read_focus)
+        self.recordButton.clicked.connect(self.corrector.add_record)
+        self.setOpticButton.clicked.connect(self.set_optic)
+        self.recordsTable.connectButtons(
+            self.removeRecordsButton, self.clearRecordsButton)
+        self.startProcedureButton.clicked.connect(self.start_bot)
+        self.abortProcedureButton.clicked.connect(self.bot.cancel)
         # TODO: after add_record: disable "record" button until monitor
         # readouts updated (or maybe until "update" clicked as simpler
         # alternative)
@@ -114,12 +116,12 @@ class CorrectorWidget(_Widget):
     def set_optic(self):
         # TODO: disable "write" button until another optic has been selected
         # or the optic has changed in the DVM
-        self.corrector.set_optic(self.combo_set_optic.currentIndex())
+        self.corrector.set_optic(self.opticComboBox.currentIndex())
 
     def read_focus(self):
         """Update focus level and automatically load QP values."""
-        foci = [self.read_focus1.currentIndex()+1,
-                self.read_focus2.currentIndex()+1]
+        foci = [self.read1stFocusComboBox.currentIndex()+1,
+                self.read2ndFocusComboBox.currentIndex()+1]
 
         corr = self.corrector
         ctrl = corr.control
@@ -146,33 +148,33 @@ class CorrectorWidget(_Widget):
 
         running = self.bot.running
         has_fit = bool(self.corrector.saved_optics())
-        self.btn_proc_start.setEnabled(not running)
-        self.btn_proc_abort.setEnabled(running)
-        self.btn_apply.setEnabled(not running and has_fit)
+        self.startProcedureButton.setEnabled(not running)
+        self.abortProcedureButton.setEnabled(running)
+        self.applyButton.setEnabled(not running and has_fit)
 
-        self.read_focus1.setEnabled(not running)
-        self.read_focus2.setEnabled(not running)
-        self.btn_read_focus.setEnabled(not running)
-        self.num_shots_wait.setEnabled(not running)
-        self.num_shots_use.setEnabled(not running)
-        self.radio_mode_x.setEnabled(not running)
-        self.radio_mode_y.setEnabled(not running)
-        self.radio_mode_xy.setEnabled(not running)
-        self.btn_edit_conf.setEnabled(not running)
-        self.combo_config.setEnabled(not running)
-        self.tab_manual.setEnabled(not running)
-        self.ctrl_progress.setRange(0, self.bot.totalops)
-        self.ctrl_progress.setValue(self.bot.progress)
+        self.read1stFocusComboBox.setEnabled(not running)
+        self.read2ndFocusComboBox.setEnabled(not running)
+        self.readFocusButton.setEnabled(not running)
+        self.numIgnoredSpinBox.setEnabled(not running)
+        self.numUsedSpinBox.setEnabled(not running)
+        self.modeXButton.setEnabled(not running)
+        self.modeYButton.setEnabled(not running)
+        self.modeXYButton.setEnabled(not running)
+        self.editConfigButton.setEnabled(not running)
+        self.configComboBox.setEnabled(not running)
+        self.manualTabWidget.setEnabled(not running)
+        self.progressBar.setRange(0, self.bot.totalops)
+        self.progressBar.setValue(self.bot.progress)
 
     def set_progress(self, progress):
-        self.ctrl_progress.setValue(progress)
+        self.progressBar.setValue(progress)
 
     def start_bot(self):
         self.bot.start(
-            self.num_shots_wait.value(),
-            self.num_shots_use.value())
+            self.numIgnoredSpinBox.value(),
+            self.numUsedSpinBox.value())
 
     def log(self, text, *args, **kwargs):
         formatted = text.format(*args, **kwargs)
         logging.info(formatted)
-        self.status_log.appendPlainText(formatted)
+        self.logEdit.appendPlainText(formatted)

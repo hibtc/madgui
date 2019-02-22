@@ -15,11 +15,11 @@
   </property>
   <layout class="QVBoxLayout">
    <item>
-    <widget class="QTabWidget" name="ctrl_tab">
+    <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_settings">
+     <widget class="QWidget" name="settingsTabWidget">
       <attribute name="title">
        <string>Scan</string>
       </attribute>
@@ -31,7 +31,7 @@
          </property>
          <layout class="QFormLayout">
           <item row="0" column="0">
-           <widget class="QListWidget" name="ctrl_quads">
+           <widget class="QListWidget" name="quadsListWidget">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -44,7 +44,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QPlainTextEdit" name="ctrl_optics">
+           <widget class="QPlainTextEdit" name="opticsEdit">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>1</horstretch>
@@ -61,7 +61,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QDialogButtonBox" name="btns_io">
+           <widget class="QDialogButtonBox" name="saveButtonBox">
             <property name="standardButtons">
              <set>QDialogButtonBox::Open|QDialogButtonBox::Save</set>
             </property>
@@ -79,14 +79,14 @@
             <item row="1" column="1">
              <layout class="QHBoxLayout">
               <item>
-               <widget class="QLineEdit" name="ctrl_focus">
+               <widget class="QLineEdit" name="focusEdit">
                 <property name="text">
                  <string>1,2,3,4</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="btn_focus">
+               <widget class="QPushButton" name="focusButton">
                 <property name="text">
                  <string>Read</string>
                 </property>
@@ -107,7 +107,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QSpinBox" name="ctrl_numshots">
+        <widget class="QSpinBox" name="numUsedSpinBox">
          <property name="minimum">
           <number>1</number>
          </property>
@@ -126,14 +126,14 @@
        <item row="2" column="1">
         <layout class="QHBoxLayout">
          <item>
-          <widget class="QLineEdit" name="ctrl_file">
+          <widget class="QLineEdit" name="fileEdit">
            <property name="readOnly">
             <bool>true</bool>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="btn_file">
+          <widget class="QToolButton" name="fileButton">
            <property name="text">
             <string>...</string>
            </property>
@@ -143,20 +143,20 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_status">
+     <widget class="QWidget" name="statusTabWidget">
       <attribute name="title">
        <string>Status</string>
       </attribute>
       <layout class="QVBoxLayout">
        <item>
-        <widget class="QPlainTextEdit" name="ctrl_log">
+        <widget class="QPlainTextEdit" name="logEdit">
          <property name="readOnly">
           <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QProgressBar" name="ctrl_progress">
+        <widget class="QProgressBar" name="progressBar">
          <property name="value">
           <number>0</number>
          </property>
@@ -164,13 +164,13 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_results">
+     <widget class="QWidget" name="resultsTabWidget">
       <attribute name="title">
        <string>Results</string>
       </attribute>
       <layout class="QHBoxLayout">
        <item>
-        <widget class="TableView" name="ctrl_results">
+        <widget class="TableView" name="resultsTable">
          <property name="alternatingRowColors">
           <bool>true</bool>
          </property>
@@ -181,7 +181,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QDialogButtonBox" name="btns">
+    <widget class="QDialogButtonBox" name="dialogButtonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox::Abort|QDialogButtonBox::Apply|QDialogButtonBox::Close|QDialogButtonBox::Ok|QDialogButtonBox::Reset</set>
      </property>

@@ -322,11 +322,11 @@ class TabParamTables(QTabWidget):
     TabWidget that manages multiple ParamTables inside.
     """
 
-    def __init__(self, tabs=()):
+    def __init__(self, tabWidget=()):
         super().__init__()
         self.kw = {}
         self.setTabsClosable(False)
-        for name, page in tabs:
+        for name, page in tabWidget:
             self.addTab(page, name)
         self.currentChanged.connect(self.update)
 

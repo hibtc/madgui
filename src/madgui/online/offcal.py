@@ -33,7 +33,7 @@ class OffsetCalibrationWidget(QWidget):
     def __init__(self, parent, monitors):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
-        self.ctrl_optics.setFont(monospace())
+        self.opticsEdit.setFont(monospace())
         self.control = parent.control
         self.model = parent.model
         self.monitors = monitors
@@ -48,34 +48,34 @@ class OffsetCalibrationWidget(QWidget):
             for name in quads
             for knob in self.model._get_knobs(self.model.elements[name], 'k1')
         }
-        self.ctrl_quads.addItems(list(quads))
-        self.ctrl_quads.setCurrentItem(
-            self.ctrl_quads.item(len(quads)-1),
+        self.quadsListWidget.addItems(list(quads))
+        self.quadsListWidget.setCurrentItem(
+            self.quadsListWidget.item(len(quads)-1),
             QItemSelectionModel.SelectCurrent)
-        self.ctrl_quads.setCurrentItem(
-            self.ctrl_quads.item(len(quads)-2),
+        self.quadsListWidget.setCurrentItem(
+            self.quadsListWidget.item(len(quads)-2),
             QItemSelectionModel.Select)
-        self.btn_start = self.btns.button(Button.Ok)
-        self.btn_abort = self.btns.button(Button.Abort)
-        self.btn_close = self.btns.button(Button.Close)
-        self.btn_reset = self.btns.button(Button.Reset)
-        self.btn_apply = self.btns.button(Button.Apply)
-        self.btn_start.clicked.connect(self.start)
+        self.startButton = self.dialogButtonBox.button(Button.Ok)
+        self.btn_abort = self.dialogButtonBox.button(Button.Abort)
+        self.btn_close = self.dialogButtonBox.button(Button.Close)
+        self.btn_reset = self.dialogButtonBox.button(Button.Reset)
+        self.applyButton = self.dialogButtonBox.button(Button.Apply)
+        self.startButton.clicked.connect(self.start)
         self.btn_abort.clicked.connect(self.cancel)
         self.btn_close.clicked.connect(self._close)
         self.btn_reset.clicked.connect(self.reset)
-        self.btn_apply.clicked.connect(self.apply)
-        self.btn_load = self.btns_io.button(Button.Open)
-        self.btn_save = self.btns_io.button(Button.Save)
-        self.btn_load.clicked.connect(self.load_optics)
-        self.btn_save.clicked.connect(self.save_optics)
-        self.btn_focus.clicked.connect(self.read_focus)
-        self.ctrl_optics.textChanged.connect(self.update_ui)
-        self.ctrl_quads.itemSelectionChanged.connect(self.update_ui)
-        self.ctrl_results.set_viewmodel(
+        self.applyButton.clicked.connect(self.apply)
+        self.loadButton = self.saveButtonBox.button(Button.Open)
+        self.saveButton = self.saveButtonBox.button(Button.Save)
+        self.loadButton.clicked.connect(self.load_optics)
+        self.saveButton.clicked.connect(self.save_optics)
+        self.focusButton.clicked.connect(self.read_focus)
+        self.opticsEdit.textChanged.connect(self.update_ui)
+        self.quadsListWidget.itemSelectionChanged.connect(self.update_ui)
+        self.resultsTable.set_viewmodel(
             self.get_result_row, self.fit_results, unit=True)
         self.update_filename()
-        self.btn_file.clicked.connect(self.change_output_file)
+        self.fileButton.clicked.connect(self.change_output_file)
         self.update_ui()
 
     def _close(self):
@@ -90,7 +90,7 @@ class OffsetCalibrationWidget(QWidget):
         self.optics = self.get_optics()
 
         self.numsteps = len(self.optics)
-        self.numshots = self.ctrl_numshots.value()
+        self.numshots = self.numUsedSpinBox.value()
         self.totalops = self.numsteps * self.numshots
         self.control.read_all()
         self.base_optics = {knob: self.model.read_param(knob)
@@ -112,7 +112,7 @@ class OffsetCalibrationWidget(QWidget):
         self.output_file.write('records:\n')
         self.readouts = []
         self.running = True
-        self.ctrl_tab.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(1)
         self.control.sampler.updated.connect(self._feed)
         self._advance()
         self.update_ui()
@@ -140,7 +140,7 @@ class OffsetCalibrationWidget(QWidget):
             self, 'Open file', self.folder, self.filename_filters)
         if filename:
             with open(filename) as f:
-                self.ctrl_optics.setPlainText(f.read())
+                self.opticsEdit.setPlainText(f.read())
 
     def save_optics(self):
         from madgui.widget.filedialog import getSaveFileName
@@ -148,10 +148,10 @@ class OffsetCalibrationWidget(QWidget):
             self, 'Open file', self.folder, self.filename_filters)
         if filename:
             with open(filename, 'wt') as f:
-                f.write(self.ctrl_optics.toPlainText())
+                f.write(self.opticsEdit.toPlainText())
 
     def read_focus(self):
-        focus_levels = parse_ints(self.ctrl_focus.text())
+        focus_levels = parse_ints(self.focusEdit.text())
 
         # TODO: this should be done with a more generic API
         # TODO: do this without beamoptikdll to decrease the waiting time
@@ -172,7 +172,7 @@ class OffsetCalibrationWidget(QWidget):
 
         dll.SelectMEFI(vacc, *channels)
 
-        self.ctrl_optics.setPlainText(yaml.safe_dump(
+        self.opticsEdit.setPlainText(yaml.safe_dump(
             optics, default_flow_style=False))
 
     def update_filename(self):
@@ -189,27 +189,27 @@ class OffsetCalibrationWidget(QWidget):
     def set_filename(self, filename):
         filename = os.path.abspath(filename)
         self.folder, basename = os.path.split(filename)
-        self.ctrl_file.setText(basename)
+        self.fileEdit.setText(basename)
         self.filename = filename
 
     def update_ui(self):
         running = self.running
         valid_optics = self.is_optics_valid()
-        self.btn_start.setEnabled(not running and len(self.fit_results) == 0
-                                  and valid_optics)
+        self.startButton.setEnabled(
+            not running and len(self.fit_results) == 0 and valid_optics)
         self.btn_close.setEnabled(not running)
         self.btn_abort.setEnabled(running)
         self.btn_reset.setEnabled(not running and len(self.fit_results) > 0)
-        self.btn_apply.setEnabled(not running and len(self.fit_results) > 0)
-        self.btn_focus.setEnabled(not running)
-        self.btn_load.setEnabled(not running)
-        self.btn_save.setEnabled(not running)
-        self.ctrl_quads.setEnabled(not running)
-        self.ctrl_optics.setReadOnly(running)
-        self.ctrl_focus.setReadOnly(running)
-        self.ctrl_numshots.setReadOnly(running)
-        self.ctrl_progress.setRange(0, self.totalops)
-        self.ctrl_progress.setValue(self.progress)
+        self.applyButton.setEnabled(not running and len(self.fit_results) > 0)
+        self.focusButton.setEnabled(not running)
+        self.loadButton.setEnabled(not running)
+        self.saveButton.setEnabled(not running)
+        self.quadsListWidget.setEnabled(not running)
+        self.opticsEdit.setReadOnly(running)
+        self.focusEdit.setReadOnly(running)
+        self.numUsedSpinBox.setReadOnly(running)
+        self.progressBar.setRange(0, self.totalops)
+        self.progressBar.setValue(self.progress)
 
     def restore(self):
         if self.backup:
@@ -218,10 +218,10 @@ class OffsetCalibrationWidget(QWidget):
             self.backup = None
 
     def get_quads(self):
-        return [item.text() for item in self.ctrl_quads.selectedItems()]
+        return [item.text() for item in self.quadsListWidget.selectedItems()]
 
     def get_optics(self):
-        parsed = yaml.safe_load(self.ctrl_optics.toPlainText())
+        parsed = yaml.safe_load(self.opticsEdit.toPlainText())
         if not isinstance(parsed, list):
             raise TypeError
         if any(not isinstance(item, dict) for item in parsed):
@@ -287,7 +287,7 @@ class OffsetCalibrationWidget(QWidget):
         print(progress, self.totalops)
         step = progress // self.numshots % self.numsteps
         shot = progress % self.numshots
-        self.ctrl_progress.setValue(progress)
+        self.progressBar.setValue(progress)
 
         if progress == self.totalops:
             self.finish()
@@ -312,7 +312,7 @@ class OffsetCalibrationWidget(QWidget):
     def finish(self):
         self.stop()
         self.log("Finished\n")
-        self.ctrl_tab.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(2)
 
     def round(self, value):
         return round(value*10000)/10000
@@ -320,7 +320,7 @@ class OffsetCalibrationWidget(QWidget):
     def reset(self):
         self.fit_results[:] = []
         self.update_filename()
-        self.ctrl_tab.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(0)
         self.update_ui()
 
     def apply(self):
@@ -329,7 +329,7 @@ class OffsetCalibrationWidget(QWidget):
             for m in self.fit_results
         })
         self._parent.update()
-        self.btn_apply.setEnabled(False)
+        self.applyButton.setEnabled(False)
 
     def update_results(self):
 
@@ -352,7 +352,7 @@ class OffsetCalibrationWidget(QWidget):
         self.fit_results[:] = fit_results
 
     def log(self, text, *args, **kwargs):
-        self.ctrl_log.appendPlainText(text.format(*args, **kwargs))
+        self.logEdit.appendPlainText(text.format(*args, **kwargs))
 
 
 def parse_ints(text):

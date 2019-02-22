@@ -18,19 +18,19 @@
      </property>
      <layout class="QHBoxLayout">
       <item>
-       <widget class="TableView" name="ctab"/>
+       <widget class="TableView" name="targetsTable"/>
       </item>
       <item>
        <layout class="QVBoxLayout">
         <item>
-         <widget class="QPushButton" name="button_add_constraint">
+         <widget class="QPushButton" name="addConstraintButton">
           <property name="text">
            <string>Add</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="button_remove_constraint">
+         <widget class="QPushButton" name="removeConstraintButton">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -40,7 +40,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="button_clear_constraint">
+         <widget class="QPushButton" name="clearConstraintsButton">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -74,19 +74,19 @@
      </property>
      <layout class="QHBoxLayout">
       <item>
-       <widget class="TableView" name="vtab"/>
+       <widget class="TableView" name="resultsTable"/>
       </item>
       <item>
        <layout class="QVBoxLayout">
         <item>
-         <widget class="QPushButton" name="button_add_variable">
+         <widget class="QPushButton" name="addKnobButton">
           <property name="text">
            <string>Add</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="button_remove_variable">
+         <widget class="QPushButton" name="removeKnobButton">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -96,7 +96,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="button_clear_variable">
+         <widget class="QPushButton" name="clearKnobsButton">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -137,7 +137,7 @@
      </property>
      <layout class="QGridLayout">
       <item row="0" column="0">
-       <widget class="QCheckBox" name="check_mirror">
+       <widget class="QCheckBox" name="mirrorConstraintsCheckBox">
         <property name="text">
          <string>Mirror constraints</string>
         </property>
@@ -164,7 +164,7 @@
        </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QComboBox" name="combo_method"/>
+       <widget class="QComboBox" name="methodComboBox"/>
       </item>
      </layout>
     </widget>
@@ -172,7 +172,7 @@
    <item>
     <layout class="QHBoxLayout">
      <item>
-      <widget class="QPushButton" name="button_match">
+      <widget class="QPushButton" name="matchButton">
        <property name="text">
         <string>Match!</string>
        </property>

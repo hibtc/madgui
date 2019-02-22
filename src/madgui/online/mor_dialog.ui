@@ -21,7 +21,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="tab_corrections">
+       <widget class="TableView" name="resultsTable">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>
@@ -30,21 +30,21 @@
       <item>
        <layout class="QHBoxLayout">
         <item>
-         <widget class="QPushButton" name="btn_fit">
+         <widget class="QPushButton" name="fitButton">
           <property name="text">
            <string>Update</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_apply">
+         <widget class="QPushButton" name="applyButton">
           <property name="text">
            <string>Execute</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="btn_prev">
+         <widget class="QToolButton" name="prevButton">
           <property name="text">
            <string>...</string>
           </property>
@@ -54,7 +54,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="btn_next">
+         <widget class="QToolButton" name="nextButton">
           <property name="text">
            <string>...</string>
           </property>
@@ -78,7 +78,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="combo_config">
+      <widget class="QComboBox" name="configComboBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>1</horstretch>
@@ -88,7 +88,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="btn_edit_conf">
+      <widget class="QToolButton" name="editConfigButton">
        <property name="text">
         <string>...</string>
        </property>
@@ -115,7 +115,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radio_mode_x">
+      <widget class="QRadioButton" name="modeXButton">
        <property name="text">
         <string>x</string>
        </property>
@@ -125,7 +125,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radio_mode_y">
+      <widget class="QRadioButton" name="modeYButton">
        <property name="text">
         <string>y</string>
        </property>
@@ -135,7 +135,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="radio_mode_xy">
+      <widget class="QRadioButton" name="modeXYButton">
        <property name="text">
         <string>x/y</string>
        </property>
@@ -153,7 +153,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="tab_readouts"/>
+       <widget class="TableView" name="monitorTable"/>
       </item>
      </layout>
     </widget>
@@ -165,7 +165,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="tab_targets"/>
+       <widget class="TableView" name="targetsTable"/>
       </item>
      </layout>
     </widget>
@@ -179,33 +179,33 @@
       <item>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="1" column="0">
-         <widget class="TableView" name="tab_orm"/>
+         <widget class="TableView" name="ormTable"/>
         </item>
         <item row="1" column="1">
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QPushButton" name="btn_measure">
+           <widget class="QPushButton" name="measureButton">
             <property name="text">
              <string>Calibrate...</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btn_compute">
+           <widget class="QPushButton" name="computeButton">
             <property name="text">
              <string>Compute...</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btn_load">
+           <widget class="QPushButton" name="loadButton">
             <property name="text">
              <string>Load</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="btn_save">
+           <widget class="QPushButton" name="saveButton">
             <property name="text">
              <string>Save</string>
             </property>
@@ -214,7 +214,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QToolButton" name="btn_prev_orm">
+             <widget class="QToolButton" name="prevORMButton">
               <property name="enabled">
                <bool>false</bool>
               </property>
@@ -233,7 +233,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="btn_next_orm">
+             <widget class="QToolButton" name="nextORMButton">
               <property name="enabled">
                <bool>false</bool>
               </property>

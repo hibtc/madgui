@@ -103,42 +103,42 @@ class MatchWidget(QWidget):
     # The three steps of UI initialization
 
     def init_controls(self):
-        self.ctab.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.vtab.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.ctab.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.vtab.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.ctab.set_viewmodel(self.cons_items, self.matcher.constraints)
-        self.vtab.set_viewmodel(self.var_items, self.matcher.variables)
+        self.targetsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.resultsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.targetsTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.resultsTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.targetsTable.set_viewmodel(self.cons_items, self.matcher.constraints)
+        self.resultsTable.set_viewmodel(self.var_items, self.matcher.variables)
 
     def set_initial_values(self):
-        self.check_mirror.setChecked(self.matcher.mirror_mode)
+        self.mirrorConstraintsCheckBox.setChecked(self.matcher.mirror_mode)
         self.update_buttons()
 
     def connect_signals(self):
-        self.ctab.connectButtons(
-            self.button_remove_constraint,
-            self.button_clear_constraint)
-        self.vtab.connectButtons(
-            self.button_remove_variable,
-            self.button_clear_variable)
-        self.button_add_constraint.clicked.connect(self.add_constraint)
-        self.button_add_variable.clicked.connect(self.add_variable)
+        self.targetsTable.connectButtons(
+            self.removeConstraintButton,
+            self.clearConstraintsButton)
+        self.resultsTable.connectButtons(
+            self.removeKnobButton,
+            self.clearKnobsButton)
+        self.addConstraintButton.clicked.connect(self.add_constraint)
+        self.addKnobButton.clicked.connect(self.add_variable)
         self.matcher.constraints.update_finished.connect(self.on_update_constraints)
         self.matcher.variables.update_finished.connect(self.on_update_variables)
         self.buttonBox.button(Button.Ok).clicked.connect(self.accept)
         self.buttonBox.button(Button.Reset).clicked.connect(self.matcher.reset)
-        self.button_match.clicked.connect(self.matcher.match)
-        self.check_mirror.clicked.connect(self.on_change_mirror)
+        self.matchButton.clicked.connect(self.matcher.match)
+        self.mirrorConstraintsCheckBox.clicked.connect(self.on_change_mirror)
         # TODO: connect self.matcher.finished?
 
     def on_update_constraints(self, *args):
-        self.ctab.resizeColumnToContents(1)
-        self.ctab.resizeColumnToContents(2)
+        self.targetsTable.resizeColumnToContents(1)
+        self.targetsTable.resizeColumnToContents(2)
         self.update_buttons()
 
     def on_update_variables(self, *args):
-        self.vtab.resizeColumnToContents(1)
-        self.vtab.resizeColumnToContents(2)
+        self.resultsTable.resizeColumnToContents(1)
+        self.resultsTable.resizeColumnToContents(2)
         self.update_buttons()
 
     def update_buttons(self):
@@ -146,7 +146,7 @@ class MatchWidget(QWidget):
         num_cons = len(self.matcher.constraints)
         # TODO: the last condition should be relaxed when we support methods
         # other than LMDIF:
-        self.button_match.setEnabled(
+        self.matchButton.setEnabled(
             num_vars > 0 and
             num_cons > 0 and
             num_vars == num_cons)
