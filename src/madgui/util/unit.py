@@ -1,5 +1,33 @@
 """
-Provides unit conversion.
+Utilities for converting between units of physical quantities, e.g. meters to
+millimeters, etc. This is done using the Pint_ library.
+
+Note that we do not use pint to wrap quantities that are passed around within
+madgui internally, as it would be the idiomatic approach: add units on input,
+internally work with quantities with units attached, remove units on output.
+
+Instead, we convert units usually only on input and then assume everything is
+in `MAD-X units`_. The reason is that using quantities internally infects the
+whole applications and requires unpack/repack operations in hundreds of
+places. This amount of book-keeping is not justified in a space, where we can
+almost exclusively rely on MAD-X units being used anyway.
+
+Furthermore, we pass around strings internally and not ``Unit`` objects. This
+simplifies interoperability with external packages and the performance cost
+for parsing the unit multiple times is negligible (since it rarely needs to be
+done now anyway).
+
+The most frequent usage of this module is to convert a number between internal
+(MAD-X) and UI display units. This works as follows:
+
+.. code-block:: python
+
+    in_madx_units = from_ui({'energy': textcontrol_energy.text()})
+
+    in_ui_units = to_ui({'energy': 450})
+
+.. _Pint: https://pint.readthedocs.io/
+.. _MAD-X units: https://mad.web.cern.ch/mad/webguide/manual.html#Ch1.S8
 """
 
 __all__ = [
@@ -20,6 +48,7 @@ import pint
 import madgui.util.yaml as yaml
 
 
+# Global registry of units known to us:
 units = pint.UnitRegistry(on_redefinition='ignore')
 units.default_format = 'P~'     # make `str(quantity)` slightly nicer
 units.define('ratio = []')
@@ -29,16 +58,17 @@ units.define('degree = pi / 180 * radian = °'
              '= deg = arcdeg = arcdegree = angular_degree')
 
 
-number_types = (int, float, units.Quantity)
-
-
 def get_unit(quantity):
+    """Return a ``Quantity`` object with the same unit as ``quantity``, but
+    magnitude 1 (one). Returns ``None`` if ``quantity`` does not have a unit."""
     if isinstance(quantity, units.Quantity):
         return units.Quantity(1, quantity.units)
     return None
 
 
 def add_unit(quantity, unit):
+    """Add a unit to the number ``quantity``. If ``quantity`` already has a
+    unit, it will perform unit conversion."""
     if quantity is None or unit is None:
         return quantity
     if isinstance(quantity, units.Quantity):
