@@ -231,14 +231,12 @@ class CorrectorWidget(QtGui.QWidget):
         ])
 
     def export_to(self, filename):
-        data = yaml.safe_dump({
+        yaml.save_file(filename, {
             'orm': [
                 [entry.monitor, entry.knob, entry.x, entry.y]
                 for entry in self.orm
             ]
-        })
-        with open(filename, 'wt') as f:
-            f.write(data)
+        }, default_flow_style=True)
 
     def update_fit(self):
         """Calculate initial positions / corrections."""

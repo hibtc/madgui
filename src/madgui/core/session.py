@@ -99,10 +99,7 @@ class Session:
 
     def save(self, filename):
         """Save session state to file."""
-        data = self.session_data()
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, 'wt') as f:
-            yaml.safe_dump(data, f, default_flow_style=False)
+        yaml.save_file(filename, self.session_data())
 
     def session_data(self):
         folder = self.config.model_path or self.folder

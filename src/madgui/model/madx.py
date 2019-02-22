@@ -219,10 +219,7 @@ class Model:
     # TODO: save reproducible state of workspace?
     def save(self, filename):
         """Save model to file."""
-        data = self.model_data()
-        text = yaml.safe_dump(data, default_flow_style=False)
-        with open(filename, 'wt') as f:
-            f.write(text)
+        yaml.save_file(filename, self.model_data())
 
     def model_data(self):
         """Return model data as dictionary."""

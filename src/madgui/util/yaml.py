@@ -1,3 +1,4 @@
+import os
 import sys
 from collections import OrderedDict
 
@@ -30,6 +31,24 @@ def load_file(filename):
     """Load yaml document from filename."""
     with open(filename, 'rb') as f:
         return safe_load(f)
+
+
+def save_file(filename, data, **kwargs):
+    """
+    Write yaml document to file. This creates parent folders where necessary.
+    Note that this function deliberately serializes the data *before* opening
+    the file. This prevents accidentally truncating a useful file or leaving
+    the output in an inconsistent state if an error occurs during
+    serialization.
+    """
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    kwargs.setdefault('default_flow_style', False)
+    # Always serialize data to string first, before opening the file! If the
+    # serialization raises an exception, we will at least not accidentally
+    # have truncated an existing file!
+    text = safe_dump(data, **kwargs)
+    with open(filename, 'wt') as f:
+        f.write(text)
 
 
 def load_resource(package, resource):
