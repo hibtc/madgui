@@ -163,15 +163,12 @@ class PlotMonitorWidget(MonitorWidgetBase):
 
         # TODO: add '.tfs' output format?
         if ext == '.yml':
-            data = {'monitor': {
+            yaml.save_file(filename, {'monitor': {
                 m.name: {'x': m.posx, 'y': m.posy,
                          'envx': m.envx, 'envy': m.envy}
                 for m in self.mtab.rows
                 if self.selected(m)
-            }}
-            with open(filename, 'wt') as f:
-                yaml.safe_dump(data, f, default_flow_style=False)
-            return
+            }})
         elif ext == '.txt':
             def pos(m):
                 return self.model.elements[m.name].position
@@ -181,11 +178,10 @@ class PlotMonitorWidget(MonitorWidgetBase):
                 if m.selected(m)
             ])
             np.savetxt(filename, data, header='s x y envx envy')
-            return
-
-        raise NotImplementedError(
-            "Don't know how to serialize to {!r} format."
-            .format(ext))
+        else:
+            raise NotImplementedError(
+                "Don't know how to serialize to {!r} format."
+                .format(ext))
 
 
 class OffsetsWidget(MonitorWidgetBase):
@@ -238,11 +234,9 @@ class OffsetsWidget(MonitorWidgetBase):
         self.update()
 
     def export_to(self, filename):
-        data = yaml.safe_dump({
+        yaml.save_file(filename, {
             'offsets': self._offsets,
-        }, default_flow_style=False)
-        with open(filename, 'wt') as f:
-            f.write(data)
+        })
 
     def save_offsets(self):
         for m in self.readouts:
@@ -300,11 +294,9 @@ class OrbitWidget(_FitWidget):
         self.update()
 
     def export_to(self, filename):
-        data = yaml.safe_dump({
+        yaml.save_file(filename, {
             'twiss': self.init_orbit,
-        }, default_flow_style=False)
-        with open(filename, 'wt') as f:
-            f.write(data)
+        })
 
     def apply(self):
         if not self.singular:
@@ -367,12 +359,10 @@ class EmittanceDialog(_FitWidget):
         results = [(r.name.lower(), r.fit)
                    for r in self.results
                    if not isnan(r.fit)]
-        data = yaml.safe_dump({
+        yaml.save_file(filename, {
             'twiss': {k: v for k, v in results if k not in beam_params},
             'beam': {k: v for k, v in results if k in beam_params},
-        }, default_flow_style=False)
-        with open(filename, 'wt') as f:
-            f.write(data)
+        })
 
     def on_update(self):
         self.match_values()

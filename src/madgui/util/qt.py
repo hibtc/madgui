@@ -1,5 +1,5 @@
 """
-Qt utilities.
+Miscellaneous utilities for programming with the Qt framework.
 """
 
 import functools
@@ -11,7 +11,7 @@ from madgui.util.misc import cachedproperty, memoize
 
 
 def notifyCloseEvent(widget, handler):
-    """Connect a closeEvent observer."""
+    """Notify ``handler`` about ``closeEvent`` on the ``widget``."""
     # There are three basic ways to get notified when a window is closed:
     #   - set the WA_DeleteOnClose attribute and connect to the
     #     QWidget.destroyed signal
@@ -22,7 +22,12 @@ def notifyCloseEvent(widget, handler):
 
 
 def notifyEvent(widget, name, handler):
-    """Connect an event listener."""
+    """Connect the handler function to be called when the event ``name`` fires
+    for the given widget. This works by overriding the method with the given
+    name on the widget object (e.g. ``closeEvent()``). However, this does not
+    work for all event handlers. For example the ``event()`` method seems to
+    be unimpressed by attempts to change it on the object. For a more reliable
+    way, see :func:`eventFilter`, or :class:`EventFilter`."""
     old_handler = getattr(widget, name)
 
     def new_handler(event):
@@ -74,7 +79,7 @@ class EventFilter(QtCore.QObject):
 
 
 def present(window, raise_=False):
-    """Activate window."""
+    """Activate window and bring to front."""
     window.show()
     window.activateWindow()
     if raise_:
@@ -82,21 +87,29 @@ def present(window, raise_=False):
 
 
 def monospace():
+    """Return a fixed-space ``QFont``."""
     return QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
 
 
 def bold():
+    """Return a bold ``QFont``."""
     font = QtGui.QFont()
     font.setBold(True)
     return font
 
 
 def load_icon_resource(module, name, format='XPM'):
+    """Load an icon distributed with the given python package. Returns a
+     ``QtGui.QPixmap``."""
     with resource_filename(module, name) as filename:
         return QtGui.QIcon(QtGui.QPixmap(str(filename), format))
 
 
 class Property:
+
+    """Internal class for cached properties. Should be simplified and
+    rewritten. Currently only used as base class for ``SingleWindow``. Do not
+    use for new code."""
 
     def __init__(self, construct):
         self.construct = construct
@@ -158,6 +171,11 @@ class Property:
 
 class SingleWindow(Property):
 
+    """
+    Decorator for widget constructor methods. It manages the lifetime of the
+    widget to ensure that only one is active at the same time.
+    """
+
     def _del(self):
         self.val.close()
 
@@ -198,6 +216,7 @@ class Queued:
 
     @classmethod
     def method(cls, func):
-        """Decorator for a queued method."""
+        """Decorator for a queued method, i.e. a method that when called,
+        actually runs at a later time."""
         return property(memoize(functools.wraps(func)(
             lambda self: cls(func.__get__(self)))))

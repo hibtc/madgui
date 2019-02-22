@@ -1,7 +1,7 @@
 """
 This module was historically used as compatibility layer for PyQt4/5.
 
-It was kept after the removal of PyQt4 compatibility - in order to spare me
+It was kept after dropping PyQt4 compatibility - in order to spare me
 the necessity to replace most of the ``QtGui`` occurences inside the existing
 code with ``QtWidgets``.
 """
