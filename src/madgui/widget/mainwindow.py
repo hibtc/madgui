@@ -60,6 +60,7 @@ class MainWindow(QMainWindow):
             'mainwindow': {
                 'init_size': [self.size().width(), self.size().height()],
                 'init_pos': [self.pos().x(), self.pos().y()],
+                'font_size': self.font().pointSize(),
             },
             'logging': {
                 'enable': self.logWidget.logging_enabled,
@@ -84,6 +85,8 @@ class MainWindow(QMainWindow):
         self.createControls()
         self.resize(*self.config.mainwindow.init_size)
         self.move(*self.config.mainwindow.init_pos)
+        if self.config.mainwindow.get('font_size'):
+            self.setFontSize(self.config.mainwindow.font_size)
 
     def createMenu(self):
         control = self.control
