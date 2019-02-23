@@ -154,6 +154,13 @@ class MainWindow(QMainWindow):
                 Item('&Spin box', None,
                      'Display spinboxes for number input controls',
                      self.toggleSpinBox, checked=self.config.number.spinbox),
+                Separator,
+                Item('&Increase font size', QKeySequence.ZoomIn,
+                     'Increase font size',
+                     self.increaseFontSize),
+                Item('&Decrease font size', QKeySequence.ZoomOut,
+                     'Decrease font size',
+                     self.decreaseFontSize),
             ]),
             Menu('&Online control', [
                 Item('&Connect', None,
@@ -473,6 +480,15 @@ class MainWindow(QMainWindow):
     def toggleSpinBox(self):
         # TODO: sync with menu state
         self.config.number.spinbox = not self.config.number.spinbox
+
+    def increaseFontSize(self):
+        self.setFontSize(self.font().pointSize() + 1)
+
+    def decreaseFontSize(self):
+        self.setFontSize(self.font().pointSize() - 1)
+
+    def setFontSize(self, size):
+        self.setStyleSheet("font-size:{}pt;".format(max(size, 6)))
 
     @SingleWindow.factory
     def helpAboutMadGUI(self):
