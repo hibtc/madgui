@@ -17,8 +17,8 @@ from PyQt5.QtWidgets import QAbstractItemView, QMessageBox, QWidget
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.qt import bold, Queued, load_ui
 from madgui.widget.tableview import TableItem, delegates
+from madgui.widget.edit import TextEditDialog
 
-from ._common import EditConfigDialog
 from .procedure import Corrector, Target
 
 
@@ -204,7 +204,11 @@ class CorrectorWidget(QWidget):
         self.draw_idle()
 
     def edit_config(self):
-        dialog = EditConfigDialog(self.corrector.model, self.apply_config)
+        model = self.corrector.model
+        with open(model.filename) as f:
+            text = f.read()
+        dialog = TextEditDialog(text, self.apply_config)
+        dialog.setWindowTitle(model.filename)
         dialog.exec_()
 
     def apply_config(self, text):
