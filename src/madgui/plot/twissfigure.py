@@ -319,7 +319,7 @@ class TwissFigure:
             # TODO: move legend on the outside
             legend = ax.legend(loc='upper center', fancybox=True,
                                shadow=True, ncol=4)
-            legend.draggable()
+            legend.set_draggable()
         for ax in self.figure.axes:
             ax.set_autoscale_on(False)
 

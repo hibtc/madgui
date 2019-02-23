@@ -1,6 +1,9 @@
-from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtCore import QRect, Qt, QSize
 from PyQt5.QtGui import QPainter
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QDialog, QDialogButtonBox, QPlainTextEdit
+
+from madgui.util.qt import monospace
+from madgui.util.layout import VBoxLayout, HBoxLayout
 
 
 class LineNumberBar(QWidget):
@@ -57,3 +60,30 @@ class LineNumberBar(QWidget):
 
     def calc_width(self, count):
         return self.fontMetrics().width(str(count))
+
+
+class TextEditDialog(QDialog):
+
+    def __init__(self, text, apply_callback):
+        super().__init__()
+        self.apply_callback = apply_callback
+        self.textbox = QPlainTextEdit()
+        self.textbox.setFont(monospace())
+        self.linenos = LineNumberBar(self.textbox)
+        buttons = QDialogButtonBox()
+        buttons.addButton(buttons.Ok).clicked.connect(self.accept)
+        self.setLayout(VBoxLayout([
+            HBoxLayout([self.linenos, self.textbox], tight=True),
+            buttons,
+        ]))
+        self.setSizeGripEnabled(True)
+        self.resize(QSize(600, 400))
+        self.textbox.appendPlainText(text)
+
+    def accept(self):
+        if self.apply():
+            super().accept()
+
+    def apply(self):
+        text = self.textbox.toPlainText()
+        return self.apply_callback(text)

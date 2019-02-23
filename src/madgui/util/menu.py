@@ -9,6 +9,7 @@ __all__ = [
     'extend',
 ]
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QAction, QStyle
 
@@ -32,6 +33,7 @@ class Item:
         action = QAction(self.label, parent, checkable=checkable)
         if self.shortcut is not None:
             action.setShortcut(self.shortcut)
+            action.setShortcutContext(Qt.ApplicationShortcut)
         if self.description is not None:
             action.setStatusTip(self.description)
         if self.callback is not None:
