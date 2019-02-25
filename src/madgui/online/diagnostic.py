@@ -73,7 +73,6 @@ class MonitorWidgetBase(QWidget):
 
         self.buttonBox.button(Button.Ok).clicked.connect(self.accept)
         self.buttonBox.button(Button.Save).clicked.connect(self.export)
-        self.updateButton.clicked.connect(self.update)
 
     def accept(self):
         self.window().accept()
@@ -86,16 +85,13 @@ class MonitorWidgetBase(QWidget):
 
     def select(self, index):
         self._selected[self.readouts[index].name] = True
-        self.on_update()
         self.draw()
 
     def deselect(self, index):
         self._selected[self.readouts[index].name] = False
-        self.on_update()
         self.draw()
 
     def update(self):
-        self.on_update()
         self.draw()
 
     def remove(self):
@@ -154,15 +150,12 @@ class PlotMonitorWidget(MonitorWidgetBase):
     def showEvent(self, event):
         self.view = self.frame.open_graph(
             'envelope' if self.frame.graphs('envelope') else 'orbit')
-        self.update()
+        self.draw()
 
     exportFilters = [
         ("YAML file", "*.yml"),
         ("TEXT file (numpy compatible)", "*.txt"),
     ]
-
-    def on_update(self):
-        pass
 
     def export_to(self, filename):
         ext = os.path.splitext(filename)[1].lower()
@@ -216,9 +209,6 @@ class OffsetsWidget(MonitorWidgetBase):
     def showEvent(self, event):
         self.view = self.frame.open_graph('orbit')
         self.update()
-
-    def on_update(self):
-        pass
 
     def discard(self):
         self._offsets.clear()
@@ -283,6 +273,11 @@ class _FitWidget(MonitorWidgetBase):
         self.resultsTable.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.resultsTable.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.resultsTable.set_viewmodel(self.get_result_row, self.results)
+        self.updateButton.clicked.connect(self.update)
+
+    def draw(self):
+        self.on_update()
+        super().draw()
 
 
 class OrbitWidget(_FitWidget):
