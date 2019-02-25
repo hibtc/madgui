@@ -335,7 +335,7 @@ class CorrectorWidget(QWidget):
         return True
 
     @Queued.method
-    def draw(self):
+    def draw_idle(self):
         self.view.show_monitor_readouts(self.corrector.monitors[:])
 
     @property
