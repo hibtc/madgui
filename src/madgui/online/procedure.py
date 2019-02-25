@@ -137,6 +137,7 @@ class Corrector(Matcher):
         fit_elements = targets + list(self.monitors) + list(self.optic_elems)
         self.fit_range = (min(fit_elements, key=elements.index, default=0),
                           max(fit_elements, key=elements.index, default=0))
+        self.update_vars()
         self.variables[:] = [
             knob
             for knob in self.match_names + list(self.assign)
