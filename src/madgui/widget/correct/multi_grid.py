@@ -30,7 +30,7 @@ class CorrectorWidget(QWidget):
 
     def closeEvent(self, event):
         self.corrector.stop()
-        self.view.del_curve("readouts")
+        self.view.hide_monitor_readouts()
 
     def on_execute_corrections(self):
         """Apply calculated corrections."""

@@ -99,7 +99,7 @@ class MonitorWidgetBase(QWidget):
         self.draw()
 
     def remove(self):
-        self.view.del_curve("readouts")
+        self.view.hide_monitor_readouts()
 
     def draw(self):
         shown = self._monconf['show']
