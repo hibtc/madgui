@@ -68,7 +68,7 @@ class ConfigSelect(QWidget):
     def apply_config(self, text):
         try:
             data = yaml.safe_load(text)
-        except yaml.error.YAMLError:
+        except yaml.YAMLError:
             QMessageBox.critical(
                 self,
                 'Syntax error in YAML document',
