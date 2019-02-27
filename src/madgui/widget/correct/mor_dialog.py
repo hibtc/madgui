@@ -80,18 +80,11 @@ class CorrectorWidget(QWidget):
 
         self.corrector.saved_optics.push(results)
 
+    @Queued.method
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
         self.applyButton.setEnabled(
             self.corrector.online_optic != saved_optics())
         if saved_optics() is not None:
             self.corrector.variables.touch()
-        self.draw_idle()
-
-    @Queued.method
-    def draw_idle(self):
         self.view.show_monitor_readouts(self.corrector.monitors[:])
-
-    @property
-    def frame(self):
-        return self.corrector.session.window()
