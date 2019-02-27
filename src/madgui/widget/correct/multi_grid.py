@@ -6,8 +6,6 @@ Multi grid correction method.
 # - use CORRECT command from MAD-X rather than custom numpy method?
 # - combine with optic variation method
 
-from functools import partial
-
 from PyQt5.QtWidgets import QWidget
 
 from madgui.util.qt import Queued, load_ui
@@ -41,6 +39,7 @@ class CorrectorWidget(QWidget):
 
     def init_controls(self):
         self.configSelect.set_corrector(self.corrector, self.data_key)
+        self.fitSettingsWidget.set_corrector(self.corrector)
         self.monitorTable.set_corrector(self.corrector)
         self.targetsTable.set_corrector(self.corrector)
         self.resultsTable.set_corrector(self.corrector)
@@ -53,42 +52,21 @@ class CorrectorWidget(QWidget):
     def connect_signals(self):
         self.corrector.setup_changed.connect(self.update_status)
         self.corrector.saved_optics.changed.connect(self.update_ui)
+        self.corrector.strategy.changed.connect(self.update_fit)
+        self.corrector.use_backtracking.changed.connect(self.update_fit)
         self.fitButton.clicked.connect(self.update_fit)
         self.applyButton.clicked.connect(self.on_execute_corrections)
         self.prevButton.setDefaultAction(
             self.corrector.saved_optics.create_undo_action(self))
         self.nextButton.setDefaultAction(
             self.corrector.saved_optics.create_redo_action(self))
-        self.methodMatchButton.clicked.connect(
-            partial(self.on_change_meth, 'match'))
-        self.methodORMButton.clicked.connect(
-            partial(self.on_change_meth, 'orm'))
-        self.methodSectormapButton.clicked.connect(
-            partial(self.on_change_meth, 'tm'))
-        self.backtrackCheckBox.clicked.connect(self.on_check_backtracking)
-
-    def on_change_meth(self, strategy):
-        self.corrector.strategy = strategy
-        self.update_fit()
-
-    def on_check_backtracking(self, checked):
-        self.corrector.use_backtracking = checked
-        self.update_fit()
 
     def update_status(self):
         self.corrector.update_vars()
         self.corrector.update_records()
-        self.update_setup()
         self.update_ui()
 
-    def update_setup(self):
-        if self.corrector.knows_targets_readouts():
-            self.backtrackCheckBox.setEnabled(True)
-        else:
-            self.backtrackCheckBox.setEnabled(False)
-            self.backtrackCheckBox.setChecked(True)
-
-    def update_fit(self):
+    def update_fit(self, *_):
         """Calculate initial positions / corrections."""
         self.corrector.update_vars()
         self.corrector.update_records()

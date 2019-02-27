@@ -5,7 +5,7 @@ import textwrap
 import numpy as np
 
 import madgui.util.yaml as yaml
-from madgui.util.collections import List
+from madgui.util.collections import List, Boxed
 from madgui.util.history import History
 from madgui.util.misc import invalidate
 from madgui.util.signal import Signal
@@ -47,7 +47,7 @@ class Corrector(Matcher):
         self.direct = direct
         self._knobs = control.get_knobs()
         self.file = None
-        self.use_backtracking = True
+        self.use_backtracking = Boxed(True)
         # save elements
         self.monitors = List()
         self.targets = List()
@@ -58,7 +58,7 @@ class Corrector(Matcher):
         self.objective_values = {}
         self._offsets = session.config['online_control']['offsets']
         self.optics = List()
-        self.strategy = 'match'
+        self.strategy = Boxed('match')
         self.saved_optics = History()
         self.online_optic = {}
         # for ORM
@@ -186,7 +186,7 @@ class Corrector(Matcher):
         if len(self.records) < 2 or len(self.variables) < 1:
             return
 
-        if self.use_backtracking:
+        if self.use_backtracking():
             init_orbit, chi_squared, singular = \
                 self.fit_particle_orbit(self.records)
             if singular or not init_orbit:
@@ -247,7 +247,7 @@ class Corrector(Matcher):
             'orm': self._compute_steerer_corrections_orm_ndiff1,
             'tm': self._compute_steerer_corrections_orm_sectormap,
         }
-        return self.saved_optics.push(strats[self.strategy]())
+        return self.saved_optics.push(strats[self.strategy()]())
 
     def _compute_steerer_corrections_match(self):
         """

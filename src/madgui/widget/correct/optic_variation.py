@@ -83,13 +83,15 @@ class CorrectorWidget(_Widget):
         self.read_focus()
         self.update_status()
 
-    def update_setup(self):
+    def update_status(self):
+        self.corrector.update_vars()
+        self.corrector.update_records()
         self.opticsTable.model().titles[1:] = [
             "{}/{}".format(info.name, get_raw_label(info.ui_unit))
             for info in self.corrector.optic_params
         ]
         self._on_update_optics()
-        super().update_setup()
+        self.update_ui()
 
     def _on_update_optics(self):
         self.opticComboBox.clear()
