@@ -99,7 +99,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="monitorTable"/>
+       <widget class="MonitorTable" name="monitorTable"/>
       </item>
      </layout>
     </widget>
@@ -111,7 +111,7 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <widget class="TableView" name="targetsTable"/>
+       <widget class="TargetTable" name="targetsTable"/>
       </item>
      </layout>
     </widget>
@@ -203,7 +203,7 @@
        </layout>
       </item>
       <item>
-       <widget class="TableView" name="resultsTable">
+       <widget class="ResultTable" name="resultsTable">
         <property name="focusPolicy">
          <enum>Qt::ClickFocus</enum>
         </property>
@@ -254,9 +254,19 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>TableView</class>
+   <class>MonitorTable</class>
    <extends>QTableView</extends>
-   <header>madgui/widget/tableview.h</header>
+   <header>madgui/widget/correct/core.h</header>
+  </customwidget>
+  <customwidget>
+   <class>TargetTable</class>
+   <extends>QTableView</extends>
+   <header>madgui/widget/correct/core.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ResultTable</class>
+   <extends>QTableView</extends>
+   <header>madgui/widget/correct/core.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
