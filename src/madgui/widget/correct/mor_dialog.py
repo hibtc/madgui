@@ -3,35 +3,14 @@ Multi grid correction method.
 """
 
 import numpy as np
-from PyQt5.QtWidgets import QWidget
 
-from madgui.util.qt import Queued, load_ui
-
-from .procedure import Corrector
+from .multi_grid import CorrectorWidget as _Widget
 
 
-class CorrectorWidget(QWidget):
+class CorrectorWidget(_Widget):
 
     ui_file = 'mor_dialog.ui'
     data_key = 'multi_grid'     # can reuse the multi grid configuration
-
-    def __init__(self, session):
-        super().__init__()
-        load_ui(self, __package__, self.ui_file)
-        self.corrector = Corrector(session)
-        self.corrector.start()
-        self.init_controls()
-        self.set_initial_values()
-        self.connect_signals()
-
-    def closeEvent(self, event):
-        self.corrector.stop()
-        self.view.del_curve("readouts")
-
-    def on_execute_corrections(self):
-        """Apply calculated corrections."""
-        self.corrector.apply()
-        self.update_status()
 
     def init_controls(self):
         self.configSelect.set_corrector(self.corrector, self.data_key)
@@ -40,10 +19,6 @@ class CorrectorWidget(QWidget):
         self.targetsTable.set_corrector(self.corrector)
         self.resultsTable.set_corrector(self.corrector)
         self.view = self.corrector.session.window().open_graph('orbit')
-
-    def set_initial_values(self):
-        self.fitButton.setFocus()
-        self.update_status()
 
     def connect_signals(self):
         self.corrector.setup_changed.connect(self.update_status)
@@ -79,12 +54,3 @@ class CorrectorWidget(QWidget):
         results = self.corrector._compute_steerer_corrections_orm(orm)
 
         self.corrector.saved_optics.push(results)
-
-    @Queued.method
-    def update_ui(self):
-        saved_optics = self.corrector.saved_optics
-        self.applyButton.setEnabled(
-            self.corrector.online_optic != saved_optics())
-        if saved_optics() is not None:
-            self.corrector.variables.touch()
-        self.view.show_monitor_readouts(self.corrector.monitors[:])
