@@ -21,7 +21,7 @@ from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates
 from madgui.widget.edit import TextEditDialog
 
-from .procedure import Corrector, Target, ProcBot
+from madgui.online.procedure import Corrector, Target, ProcBot
 
 
 ORM_Entry = namedtuple('ORM_Entry', ['monitor', 'knob', 'x', 'y'])

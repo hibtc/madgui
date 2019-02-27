@@ -19,7 +19,7 @@ from madgui.util.qt import bold, Queued, load_ui
 from madgui.widget.tableview import TableItem, delegates
 from madgui.widget.edit import TextEditDialog
 
-from .procedure import Corrector, Target
+from madgui.online.procedure import Corrector, Target
 
 
 class CorrectorWidget(QWidget):

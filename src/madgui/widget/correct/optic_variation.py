@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QAbstractItemView
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.widget.tableview import TableItem, delegates
 
-from .procedure import ProcBot
+from madgui.online.procedure import ProcBot
 from .multi_grid import CorrectorWidget as _Widget
 
 
