@@ -80,3 +80,29 @@ class History:
         del self._stack[index]
         if self._index > index:
             self._index -= 1
+
+    def create_undo_action(self, parent):
+        """Create a :class:`~PyQt5.QtWidgets.QAction` for an "Undo" button."""
+        from PyQt5.QtWidgets import QAction, QStyle
+        from PyQt5.QtGui import QKeySequence
+        icon = parent.style().standardIcon(QStyle.SP_ArrowBack)
+        action = QAction(icon, "Undo", parent)
+        action.setShortcut(QKeySequence.Undo)
+        action.setStatusTip("Undo")
+        action.triggered.connect(self.undo)
+        action.setEnabled(self.can_undo())
+        self.changed.connect(lambda: action.setEnabled(self.can_undo()))
+        return action
+
+    def create_redo_action(self, parent):
+        """Create a :class:`~PyQt5.QtWidgets.QAction` for a "Redo" button."""
+        from PyQt5.QtWidgets import QAction, QStyle
+        from PyQt5.QtGui import QKeySequence
+        icon = parent.style().standardIcon(QStyle.SP_ArrowForward)
+        action = QAction(icon, "Redo", parent)
+        action.setShortcut(QKeySequence.Redo)
+        action.setStatusTip("Redo")
+        action.triggered.connect(self.redo)
+        action.setEnabled(self.can_redo())
+        self.changed.connect(lambda: action.setEnabled(self.can_redo()))
+        return action

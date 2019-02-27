@@ -136,8 +136,10 @@ class CorrectorWidget(QWidget):
         self.modeXButton.clicked.connect(partial(self.on_change_mode, 'x'))
         self.modeYButton.clicked.connect(partial(self.on_change_mode, 'y'))
         self.modeXYButton.clicked.connect(partial(self.on_change_mode, 'xy'))
-        self.prevButton.clicked.connect(self.corrector.saved_optics.undo)
-        self.nextButton.clicked.connect(self.corrector.saved_optics.redo)
+        self.prevButton.setDefaultAction(
+            self.corrector.saved_optics.create_undo_action(self))
+        self.nextButton.setDefaultAction(
+            self.corrector.saved_optics.create_redo_action(self))
         self.methodMatchButton.clicked.connect(
             partial(self.on_change_meth, 'match'))
         self.methodORMButton.clicked.connect(
@@ -188,8 +190,6 @@ class CorrectorWidget(QWidget):
 
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
-        self.prevButton.setEnabled(saved_optics.can_undo())
-        self.nextButton.setEnabled(saved_optics.can_redo())
         self.applyButton.setEnabled(
             self.corrector.online_optic != saved_optics())
         if saved_optics() is not None:

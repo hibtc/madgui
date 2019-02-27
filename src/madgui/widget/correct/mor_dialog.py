@@ -133,21 +133,6 @@ class CorrectorWidget(QWidget):
             self.get_cons_row, corr.targets, unit=True)
         self.view = self.corrector.session.window().open_graph('orbit')
 
-    def set_orm(self, orm):
-        self.saved_orms.push(orm)
-        self.orm[:] = orm
-        self.update_ui()
-
-    def prev_orm(self):
-        if self.saved_orms.undo():
-            self.orm[:] = self.saved_orms()
-            self.update_ui()
-
-    def next_orm(self):
-        if self.saved_orms.redo():
-            self.orm[:] = self.saved_orms()
-            self.update_ui()
-
     def set_initial_values(self):
         self.fitButton.setFocus()
         self.modeXYButton.setChecked(True)
@@ -161,6 +146,7 @@ class CorrectorWidget(QWidget):
 
     def connect_signals(self):
         self.corrector.saved_optics.changed.connect(self.update_ui)
+        self.saved_orms.changed.connect(self.update_ui)
         self.computeButton.clicked.connect(self.compute_orm)
         self.measureButton.clicked.connect(self.measure_orm)
         self.loadButton.clicked.connect(self.load_orm)
@@ -172,10 +158,14 @@ class CorrectorWidget(QWidget):
         self.modeXButton.clicked.connect(partial(self.on_change_mode, 'x'))
         self.modeYButton.clicked.connect(partial(self.on_change_mode, 'y'))
         self.modeXYButton.clicked.connect(partial(self.on_change_mode, 'xy'))
-        self.prevButton.clicked.connect(self.corrector.saved_optics.undo)
-        self.nextButton.clicked.connect(self.corrector.saved_optics.redo)
-        self.prevORMButton.clicked.connect(self.prev_orm)
-        self.nextORMButton.clicked.connect(self.next_orm)
+        self.prevButton.setDefaultAction(
+            self.corrector.saved_optics.create_undo_action(self))
+        self.nextButton.setDefaultAction(
+            self.corrector.saved_optics.create_redo_action(self))
+        self.prevORMButton.setDefaultAction(
+            self.saved_orms.create_undo_action(self))
+        self.nextORMButton.setDefaultAction(
+            self.saved_orms.create_redo_action(self))
 
     def update_status(self):
         self.corrector.update_vars()
@@ -187,7 +177,7 @@ class CorrectorWidget(QWidget):
         dialog.setWidget(widget)
         dialog.setWindowTitle("ORM scan")
         if dialog.exec_():
-            self.set_orm(widget.final_orm)
+            self.saved_orms.push(widget.final_orm)
 
     def compute_orm(self):
         # TODO: for generic knobs (anything other than hkicker/vkicker->kick)
@@ -195,7 +185,7 @@ class CorrectorWidget(QWidget):
         corrector = self.corrector
         sectormap = corrector.compute_sectormap().reshape((
             len(corrector.monitors), 2, len(corrector.variables)))
-        self.set_orm([
+        self.saved_orms.push([
             ORM_Entry(mon, var, *sectormap[i_mon, :, i_var])
             for i_var, var in enumerate(corrector.variables)
             for i_mon, mon in enumerate(corrector.monitors)
@@ -225,7 +215,7 @@ class CorrectorWidget(QWidget):
 
     def load_from(self, filename):
         data = yaml.load_file(filename)['orm']
-        self.set_orm([
+        self.saved_orms.push([
             ORM_Entry(*entry)
             for entry in data
         ])
@@ -273,14 +263,12 @@ class CorrectorWidget(QWidget):
 
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
-        self.prevButton.setEnabled(saved_optics.can_undo())
-        self.nextButton.setEnabled(saved_optics.can_redo())
         self.applyButton.setEnabled(
             self.corrector.online_optic != saved_optics())
         if saved_optics() is not None:
             self.corrector.variables.touch()
-        self.prevORMButton.setEnabled(self.saved_orms.can_undo())
-        self.nextORMButton.setEnabled(self.saved_orms.can_redo())
+        if self.saved_orms() is not None:
+            self.orm[:] = self.saved_orms()
         self.draw_idle()
 
     def edit_config(self):
