@@ -135,8 +135,7 @@ class CorrectorWidget(QWidget):
         self.view = self.corrector.session.window().open_graph('orbit')
 
     def set_orm(self, orm):
-        self.hist_index += 1
-        self.hist_stack[self.hist_index:] = [orm]
+        self.saved_orms.push(orm)
         self.orm[:] = orm
         self.update_ui()
 
