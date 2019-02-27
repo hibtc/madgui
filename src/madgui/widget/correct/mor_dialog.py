@@ -94,7 +94,6 @@ class CorrectorWidget(QWidget):
         if results[v.lower()] != value:
             results[v.lower()] = value
             self.corrector._push_history(results)
-            self.update_ui()
 
     def __init__(self, session, active=None):
         super().__init__()
@@ -161,6 +160,7 @@ class CorrectorWidget(QWidget):
         self.configComboBox.setCurrentText(self.active)
 
     def connect_signals(self):
+        self.corrector.saved_optics.changed.connect(self.update_ui)
         self.computeButton.clicked.connect(self.compute_orm)
         self.measureButton.clicked.connect(self.measure_orm)
         self.loadButton.clicked.connect(self.load_orm)
@@ -172,8 +172,8 @@ class CorrectorWidget(QWidget):
         self.modeXButton.clicked.connect(partial(self.on_change_mode, 'x'))
         self.modeYButton.clicked.connect(partial(self.on_change_mode, 'y'))
         self.modeXYButton.clicked.connect(partial(self.on_change_mode, 'xy'))
-        self.prevButton.clicked.connect(self.prev_vals)
-        self.nextButton.clicked.connect(self.next_vals)
+        self.prevButton.clicked.connect(self.corrector.saved_optics.undo)
+        self.nextButton.clicked.connect(self.corrector.saved_optics.redo)
         self.prevORMButton.clicked.connect(self.prev_orm)
         self.nextORMButton.clicked.connect(self.next_orm)
 
@@ -258,7 +258,6 @@ class CorrectorWidget(QWidget):
         results = self.corrector._compute_steerer_corrections_orm(orm)
 
         self.corrector.saved_optics.push(results)
-        self.update_ui()
 
     def on_change_config(self, index):
         name = self.configComboBox.itemText(index)
@@ -272,21 +271,14 @@ class CorrectorWidget(QWidget):
         # TODO: make 'optimal'-column in resultsTable editable and update
         #       self.applyButton.setEnabled according to its values
 
-    def prev_vals(self):
-        self.corrector.saved_optics.undo()
-        self.update_ui()
-
-    def next_vals(self):
-        self.corrector.saved_optics.redo()
-        self.update_ui()
-
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
         self.prevButton.setEnabled(saved_optics.can_undo())
         self.nextButton.setEnabled(saved_optics.can_redo())
         self.applyButton.setEnabled(
             self.corrector.online_optic != saved_optics())
-        self.corrector.variables.touch()
+        if saved_optics() is not None:
+            self.corrector.variables.touch()
         self.prevORMButton.setEnabled(self.saved_orms.can_undo())
         self.nextORMButton.setEnabled(self.saved_orms.can_redo())
         self.draw_idle()

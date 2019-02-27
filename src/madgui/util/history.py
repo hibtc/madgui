@@ -3,6 +3,9 @@ Utility for managing a simple history.
 """
 
 
+from madgui.util.signal import Signal
+
+
 class History:
 
     """
@@ -13,6 +16,8 @@ class History:
     "redoing".
     """
 
+    changed = Signal()
+
     def __init__(self):
         self.clear()
 
@@ -20,6 +25,7 @@ class History:
         """Clear history."""
         self._stack = []        # recorded revisions
         self._index = -1        # index of "current" value
+        self.changed.emit()
 
     def push(self, value):
         """Add a value at our history position and clear anything behind.
@@ -32,18 +38,21 @@ class History:
             del self._stack[self._index:]
             self._remove(value)
             self._stack.append(value)
+            self.changed.emit()
         return value
 
     def undo(self):
         """Move backward in history."""
         if self.can_undo():
             self._index -= 1
+            self.changed.emit()
             return True
 
     def redo(self):
         """Move forward in history."""
         if self.can_redo():
             self._index += 1
+            self.changed.emit()
             return True
 
     def can_undo(self):

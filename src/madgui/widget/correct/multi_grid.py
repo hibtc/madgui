@@ -81,7 +81,6 @@ class CorrectorWidget(QWidget):
         if results[v.lower()] != value:
             results[v.lower()] = value
             self.corrector.saved_optics.push(results)
-            self.update_ui()
 
     def __init__(self, session, active=None):
         super().__init__()
@@ -129,6 +128,7 @@ class CorrectorWidget(QWidget):
         self.configComboBox.setCurrentText(self.active)
 
     def connect_signals(self):
+        self.corrector.saved_optics.changed.connect(self.update_ui)
         self.fitButton.clicked.connect(self.update_fit)
         self.applyButton.clicked.connect(self.on_execute_corrections)
         self.configComboBox.activated.connect(self.on_change_config)
@@ -136,8 +136,8 @@ class CorrectorWidget(QWidget):
         self.modeXButton.clicked.connect(partial(self.on_change_mode, 'x'))
         self.modeYButton.clicked.connect(partial(self.on_change_mode, 'y'))
         self.modeXYButton.clicked.connect(partial(self.on_change_mode, 'xy'))
-        self.prevButton.clicked.connect(self.prev_vals)
-        self.nextButton.clicked.connect(self.next_vals)
+        self.prevButton.clicked.connect(self.corrector.saved_optics.undo)
+        self.nextButton.clicked.connect(self.corrector.saved_optics.redo)
         self.methodMatchButton.clicked.connect(
             partial(self.on_change_meth, 'match'))
         self.methodORMButton.clicked.connect(
@@ -186,21 +186,14 @@ class CorrectorWidget(QWidget):
         # TODO: make 'optimal'-column in resultsTable editable and update
         #       self.applyButton.setEnabled according to its values
 
-    def prev_vals(self):
-        self.corrector.saved_optics.undo()
-        self.update_ui()
-
-    def next_vals(self):
-        self.corrector.saved_optics.redo()
-        self.update_ui()
-
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
         self.prevButton.setEnabled(saved_optics.can_undo())
         self.nextButton.setEnabled(saved_optics.can_redo())
         self.applyButton.setEnabled(
             self.corrector.online_optic != saved_optics())
-        self.corrector.variables.touch()
+        if saved_optics() is not None:
+            self.corrector.variables.touch()
         self.draw_idle()
 
     def edit_config(self):
