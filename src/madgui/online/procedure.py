@@ -8,6 +8,7 @@ import madgui.util.yaml as yaml
 from madgui.util.collections import List
 from madgui.util.history import History
 from madgui.util.misc import invalidate
+from madgui.util.signal import Signal
 
 from madgui.model.match import Matcher
 from .orbit import fit_particle_orbit, add_offsets
@@ -37,6 +38,7 @@ class Corrector(Matcher):
     """
 
     mode = 'xy'
+    setup_changed = Signal()
 
     def __init__(self, session, direct=True):
         super().__init__(session.model())
@@ -145,6 +147,7 @@ class Corrector(Matcher):
             if knob.lower() in self._knobs
         ]
         self._update_readouts()
+        self.setup_changed.emit()
 
     def set_optics_delta(self, deltas, default):
         self.base_optics = {

@@ -81,7 +81,6 @@ class CorrectorWidget(_Widget):
     def set_initial_values(self):
         self.bot = ProcBot(self, self.corrector)
         self.read_focus()
-        self.modeXYButton.setChecked(True)
         self.update_status()
 
     def update_setup(self):
@@ -157,11 +156,7 @@ class CorrectorWidget(_Widget):
         self.readFocusButton.setEnabled(not running)
         self.numIgnoredSpinBox.setEnabled(not running)
         self.numUsedSpinBox.setEnabled(not running)
-        self.modeXButton.setEnabled(not running)
-        self.modeYButton.setEnabled(not running)
-        self.modeXYButton.setEnabled(not running)
-        self.editConfigButton.setEnabled(not running)
-        self.configComboBox.setEnabled(not running)
+        self.configSelect.setEnabled(not running)
         self.manualTabWidget.setEnabled(not running)
         self.progressBar.setRange(0, self.bot.totalops)
         self.progressBar.setValue(self.bot.progress)

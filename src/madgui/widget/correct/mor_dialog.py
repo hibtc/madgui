@@ -3,13 +3,12 @@ Multi grid correction method.
 """
 
 from collections import namedtuple
-from functools import partial
 import os
 import time
 
 import numpy as np
 from PyQt5.QtCore import QSize
-from PyQt5.QtWidgets import QMessageBox, QWidget
+from PyQt5.QtWidgets import QWidget
 
 from madgui.util.collections import List
 from madgui.util.history import History
@@ -17,7 +16,6 @@ from madgui.util.qt import Queued, load_ui
 from madgui.util import yaml
 from madgui.widget.dialog import Dialog
 from madgui.widget.tableview import TableItem, delegates
-from madgui.widget.edit import TextEditDialog
 
 from madgui.online.procedure import Corrector, ProcBot
 
@@ -39,16 +37,13 @@ class CorrectorWidget(QWidget):
             TableItem(r.y),
         ]
 
-    def __init__(self, session, active=None):
+    def __init__(self, session):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
         self.orm = List()
         self.saved_orms = History()
-        self.configs = session.model().data.get(self.data_key, {})
-        self.active = active or next(iter(self.configs))
         self.corrector = Corrector(session)
         self.corrector.start()
-        self.corrector.setup(self.configs[self.active])
         self.init_controls()
         self.set_initial_values()
         self.connect_signals()
@@ -63,6 +58,7 @@ class CorrectorWidget(QWidget):
         self.update_status()
 
     def init_controls(self):
+        self.configSelect.set_corrector(self.corrector, self.data_key)
         self.monitorTable.set_corrector(self.corrector)
         self.targetsTable.set_corrector(self.corrector)
         self.resultsTable.set_corrector(self.corrector)
@@ -71,16 +67,10 @@ class CorrectorWidget(QWidget):
 
     def set_initial_values(self):
         self.fitButton.setFocus()
-        self.modeXYButton.setChecked(True)
-        self.update_config()
         self.update_status()
 
-    def update_config(self):
-        self.configComboBox.clear()
-        self.configComboBox.addItems(list(self.configs))
-        self.configComboBox.setCurrentText(self.active)
-
     def connect_signals(self):
+        self.corrector.setup_changed.connect(self.update_status)
         self.corrector.saved_optics.changed.connect(self.update_ui)
         self.saved_orms.changed.connect(self.update_ui)
         self.computeButton.clicked.connect(self.compute_orm)
@@ -89,11 +79,6 @@ class CorrectorWidget(QWidget):
         self.saveButton.clicked.connect(self.save_orm)
         self.fitButton.clicked.connect(self.update_fit)
         self.applyButton.clicked.connect(self.on_execute_corrections)
-        self.configComboBox.activated.connect(self.on_change_config)
-        self.editConfigButton.clicked.connect(self.edit_config)
-        self.modeXButton.clicked.connect(partial(self.on_change_mode, 'x'))
-        self.modeYButton.clicked.connect(partial(self.on_change_mode, 'y'))
-        self.modeXYButton.clicked.connect(partial(self.on_change_mode, 'xy'))
         self.prevButton.setDefaultAction(
             self.corrector.saved_optics.create_undo_action(self))
         self.nextButton.setDefaultAction(
@@ -185,18 +170,6 @@ class CorrectorWidget(QWidget):
 
         self.corrector.saved_optics.push(results)
 
-    def on_change_config(self, index):
-        name = self.configComboBox.itemText(index)
-        self.corrector.setup(self.configs[name], self.corrector.mode)
-        self.update_status()
-
-    def on_change_mode(self, dirs):
-        self.corrector.setup(self.configs[self.active], dirs)
-        self.update_status()
-
-        # TODO: make 'optimal'-column in resultsTable editable and update
-        #       self.applyButton.setEnabled according to its values
-
     def update_ui(self):
         saved_optics = self.corrector.saved_optics
         self.applyButton.setEnabled(
@@ -206,48 +179,6 @@ class CorrectorWidget(QWidget):
         if self.saved_orms() is not None:
             self.orm[:] = self.saved_orms()
         self.draw_idle()
-
-    def edit_config(self):
-        model = self.corrector.model
-        with open(model.filename) as f:
-            text = f.read()
-        dialog = TextEditDialog(text, self.apply_config)
-        dialog.setWindowTitle(model.filename)
-        dialog.exec_()
-
-    def apply_config(self, text):
-        try:
-            data = yaml.safe_load(text)
-        except yaml.YAMLError:
-            QMessageBox.critical(
-                self,
-                'Syntax error in YAML document',
-                'There is a syntax error in the YAML document, please edit.')
-            return False
-
-        configs = data.get(self.data_key)
-        if not configs:
-            QMessageBox.critical(
-                self,
-                'No config defined',
-                'No configuration for this method defined.')
-            return False
-
-        model = self.corrector.model
-        with open(model.filename, 'w') as f:
-            f.write(text)
-
-        self.configs = configs
-        model.data[self.data_key] = configs
-        conf = self.active
-        if conf not in configs:
-            conf = next(iter(configs))
-
-        self.corrector.setup(conf)
-        self.update_config()
-        self.update_status()
-
-        return True
 
     @Queued.method
     def draw_idle(self):
