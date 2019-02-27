@@ -7,6 +7,7 @@ import numpy as np
 import madgui.util.yaml as yaml
 from madgui.util.collections import List
 from madgui.util.history import History
+from madgui.util.misc import invalidate
 
 from madgui.model.match import Matcher
 from .orbit import fit_particle_orbit, add_offsets
@@ -336,7 +337,7 @@ class Corrector(Matcher):
         model = self.model
         elems = model.elements
         with model.undo_stack.rollback("Orbit correction", transient=True):
-            model.sector.invalidate()
+            invalidate(model, 'sector')
 
             elem_by_knob = {}
             for elem in elems:
