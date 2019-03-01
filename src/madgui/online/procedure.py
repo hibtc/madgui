@@ -422,6 +422,8 @@ class ProcBot:
         self.progress = 0
 
     def start(self, num_ignore, num_average, gui=True):
+        if self.running:
+            return
         self.corrector.records.clear()
         self.numsteps = len(self.corrector.optics)
         self.numshots = num_average + num_ignore
