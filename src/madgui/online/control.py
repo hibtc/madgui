@@ -168,7 +168,7 @@ class Control:
         return dialog
 
     def on_correct_multi_grid_method(self):
-        from .multi_grid import CorrectorWidget
+        from madgui.widget.correct.multi_grid import CorrectorWidget
         from madgui.widget.dialog import Dialog
         self.read_all()
         widget = CorrectorWidget(self.session)
@@ -177,7 +177,7 @@ class Control:
         dialog.show()
 
     def on_correct_optic_variation_method(self):
-        from .optic_variation import CorrectorWidget
+        from madgui.widget.correct.optic_variation import CorrectorWidget
         from madgui.widget.dialog import Dialog
         self.read_all()
         widget = CorrectorWidget(self.session)
@@ -186,7 +186,7 @@ class Control:
         dialog.show()
 
     def on_correct_measured_response_method(self):
-        from .mor_dialog import CorrectorWidget
+        from madgui.widget.correct.mor_dialog import CorrectorWidget
         from madgui.widget.dialog import Dialog
         self.read_all()
         widget = CorrectorWidget(self.session)

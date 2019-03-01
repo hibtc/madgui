@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OpticVariationWidget</class>
+ <widget class="QWidget" name="OpticVariationWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>821</width>
+    <height>733</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Optic variation method (orbit flattening)</string>
+  </property>
+  <layout class="QGridLayout" columnstretch="1,1">
+   <item row="0" column="0" colspan="2">
+    <widget class="ConfigSelect" name="configSelect"/>
+   </item>
+   <item row="6" column="1">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Steerer corrections</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="FitSettingsWidget" name="fitSettingsWidget"/>
+      </item>
+      <item>
+       <widget class="ResultTable" name="resultsTable">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout">
+        <item>
+         <widget class="QPushButton" name="fitButton">
+          <property name="text">
+           <string>Fit</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="applyButton">
+          <property name="text">
+           <string>Apply</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="prevButton">
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="arrowType">
+           <enum>Qt::LeftArrow</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="nextButton">
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="arrowType">
+           <enum>Qt::RightArrow</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="autoTab">
+      <attribute name="title">
+       <string>Automatic</string>
+      </attribute>
+      <layout class="QVBoxLayout">
+       <item>
+        <widget class="AutoProcWidget" name="autoProcWidget"/>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="manTab">
+      <attribute name="title">
+       <string>Manual</string>
+      </attribute>
+      <layout class="QVBoxLayout">
+       <item>
+        <widget class="ManProcWidget" name="manProcWidget"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Records</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="RecordsTable" name="recordsTable"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Targets</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="TargetTable" name="targetsTable">
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Optics</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="OpticsTable" name="opticsTable"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox">
+     <property name="title">
+      <string>Monitor readouts</string>
+     </property>
+     <layout class="QVBoxLayout">
+      <item>
+       <widget class="MonitorTable" name="monitorTable"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MonitorTable</class>
+   <extends>QTableView</extends>
+   <header>madgui/widget/correct/core.h</header>
+  </customwidget>
+  <customwidget>
+   <class>TargetTable</class>
+   <extends>QTableView</extends>
+   <header>madgui/widget/correct/core.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ResultTable</class>
+   <extends>QTableView</extends>
+   <header>madgui/widget/correct/core.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ConfigSelect</class>
+   <extends>QWidget</extends>
+   <header>madgui/widget/correct/configselect.h</header>
+  </customwidget>
+  <customwidget>
+   <class>FitSettingsWidget</class>
+   <extends>QWidget</extends>
+   <header>madgui/widget/correct/fitsettings.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OpticsTable</class>
+   <extends>QWidget</extends>
+   <header>madgui/widget/correct/opticstable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>RecordsTable</class>
+   <extends>QWidget</extends>
+   <header>madgui/widget/correct/recordstable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>AutoProcWidget</class>
+   <extends>QWidget</extends>
+   <header>madgui/widget/correct/autoproc.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ManProcWidget</class>
+   <extends>QWidget</extends>
+   <header>madgui/widget/correct/manproc.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
