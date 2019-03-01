@@ -28,7 +28,8 @@ class ManProcWidget(QWidget):
         self.setOpticButton.setEnabled(num_optics > 0)
 
     def on_recordButton_clicked(self):
-        self.corrector.add_record()
+        self.corrector.add_record(
+            self.opticComboBox.currentIndex(), None)
 
     def on_setOpticButton_clicked(self):
         # TODO: disable "write" button until another optic has been selected
