@@ -2,18 +2,22 @@
 <ui version="4.0">
  <class>MultiGridWidget</class>
  <widget class="QWidget" name="MultiGridWidget">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>595</width>
-    <height>401</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>Multi grid method (orbit flattening)</string>
   </property>
   <layout class="QGridLayout" columnstretch="1,1">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item row="0" column="0" colspan="2">
     <widget class="ConfigSelect" name="configSelect"/>
    </item>
