@@ -1,0 +1,275 @@
+Note that https://bastibe.de/2013-05-30-speeding-up-matplotlib.html
+suggests using ax.draw_artist and canvas.update() instead of canvas.draw.
+However, this might yield visual artifacts if we don't take extra care.
+
+
+Fetch and diff only relevant elements!
+======================================
+on_model_updated: 0.043530	draw_idle: 0.109694
+on_model_updated: 0.049303	draw_idle: 0.108800
+on_model_updated: 0.047974	draw_idle: 0.109082
+on_model_updated: 0.049053	draw_idle: 0.108793
+on_model_updated: 0.046495	draw_idle: 0.111129
+on_model_updated: 0.056589	draw_idle: 0.109872
+on_model_updated: 0.044555	draw_idle: 0.110416
+on_model_updated: 0.048902	draw_idle: 0.110514
+on_model_updated: 0.050104	draw_idle: 0.113260
+on_model_updated: 0.040944	draw_idle: 0.112608
+on_model_updated: 0.050055	draw_idle: 0.110628
+
+on_model_updated: 0.048617	draw_idle: 0.107370
+on_model_updated: 0.055552	draw_idle: 0.111238
+on_model_updated: 0.046866	draw_idle: 0.109133
+on_model_updated: 0.050269	draw_idle: 0.108518
+on_model_updated: 0.044291	draw_idle: 0.106743
+on_model_updated: 0.046285	draw_idle: 0.108566
+on_model_updated: 0.049881	draw_idle: 0.108976
+on_model_updated: 0.041957	draw_idle: 0.114655
+
+
+Diff each element only once during an update cycle
+==================================================
+on_model_updated: 0.094116	draw_idle: 0.120777
+on_model_updated: 0.087674	draw_idle: 0.113853
+on_model_updated: 0.095728	draw_idle: 0.113547
+on_model_updated: 0.082782	draw_idle: 0.110566
+on_model_updated: 0.094746	draw_idle: 0.108484
+on_model_updated: 0.087285	draw_idle: 0.112087
+on_model_updated: 0.100271	draw_idle: 0.116328
+on_model_updated: 0.096180	draw_idle: 0.115522
+on_model_updated: 0.095208	draw_idle: 0.117179
+
+on_model_updated: 0.105479	draw_idle: 0.110220
+on_model_updated: 0.086915	draw_idle: 0.113814
+on_model_updated: 0.096326	draw_idle: 0.111187
+on_model_updated: 0.094247	draw_idle: 0.109739
+on_model_updated: 0.098969	draw_idle: 0.110821
+on_model_updated: 0.083872	draw_idle: 0.110752
+on_model_updated: 0.083644	draw_idle: 0.108923
+on_model_updated: 0.089529	draw_idle: 0.111295
+on_model_updated: 0.085821	draw_idle: 0.110889
+
+
+Create a SceneNode for each lattice element
+===========================================
+on_model_updated: 0.100539	draw_idle: 0.106602
+on_model_updated: 0.080183	draw_idle: 0.106034
+on_model_updated: 0.090877	draw_idle: 0.106811
+on_model_updated: 0.091361	draw_idle: 0.110295
+on_model_updated: 0.099895	draw_idle: 0.108601
+on_model_updated: 0.091656	draw_idle: 0.110508
+on_model_updated: 0.095170	draw_idle: 0.109785
+on_model_updated: 0.079514	draw_idle: 0.115999
+on_model_updated: 0.093272	draw_idle: 0.110592
+
+on_model_updated: 0.167917	draw_idle: 0.121716
+on_model_updated: 0.166798	draw_idle: 0.121851
+on_model_updated: 0.181144	draw_idle: 0.120257
+on_model_updated: 0.173571	draw_idle: 0.116532
+on_model_updated: 0.170936	draw_idle: 0.120186
+on_model_updated: 0.176289	draw_idle: 0.118193
+on_model_updated: 0.172099	draw_idle: 0.117914
+on_model_updated: 0.162531	draw_idle: 0.120356
+on_model_updated: 0.183823	draw_idle: 0.121654
+
+
+
+Check each element diff only once for all plots
+===============================================
+on_model_updated: 0.097969	draw_idle: 0.108096
+on_model_updated: 0.092920	draw_idle: 0.111460
+on_model_updated: 0.083148	draw_idle: 0.110030
+on_model_updated: 0.087639	draw_idle: 0.114377
+on_model_updated: 0.092120	draw_idle: 0.112252
+on_model_updated: 0.083766	draw_idle: 0.117161
+on_model_updated: 0.102178	draw_idle: 0.116968
+on_model_updated: 0.084006	draw_idle: 0.115346
+on_model_updated: 0.079447	draw_idle: 0.106828
+
+Revert "Try to optimize"
+========================
+on_model_updated: 0.095994	draw_idle: 0.110389
+on_model_updated: 0.094536	draw_idle: 0.108740
+on_model_updated: 0.096113	draw_idle: 0.110969
+on_model_updated: 0.084627	draw_idle: 0.111496
+on_model_updated: 0.090839	draw_idle: 0.118467
+on_model_updated: 0.093774	draw_idle: 0.109703
+on_model_updated: 0.076912	draw_idle: 0.109351
+
+Disable AutoMinorLocator for performance
+========================================
+on_model_updated: 0.090425	draw_idle: 0.107408
+on_model_updated: 0.099992	draw_idle: 0.110896
+on_model_updated: 0.101225	draw_idle: 0.110089
+on_model_updated: 0.095590	draw_idle: 0.108785
+on_model_updated: 0.090347	draw_idle: 0.113960
+on_model_updated: 0.098561	draw_idle: 0.109086
+on_model_updated: 0.096229	draw_idle: 0.111578
+on_model_updated: 0.091566	draw_idle: 0.115366
+
+Disable autoscale from the start
+================================
+on_model_updated: 0.104410	draw_idle: 0.180116
+on_model_updated: 0.098591	draw_idle: 0.195597
+on_model_updated: 0.104163	draw_idle: 0.186774
+on_model_updated: 0.093961	draw_idle: 0.185644
+on_model_updated: 0.090649	draw_idle: 0.187888
+on_model_updated: 0.108671	draw_idle: 0.182089
+on_model_updated: 0.092858	draw_idle: 0.192449
+
+Fix accidentally drawing twiss curves twice
+===========================================
+on_model_updated: 0.099869	draw_idle: 0.188196
+on_model_updated: 0.121386	draw_idle: 0.190063
+on_model_updated: 0.103047	draw_idle: 0.181810
+on_model_updated: 0.113481	draw_idle: 0.193927
+on_model_updated: 0.102663	draw_idle: 0.189220
+on_model_updated: 0.097715	draw_idle: 0.183745
+on_model_updated: 0.102475	draw_idle: 0.189568
+on_model_updated: 0.101688	draw_idle: 0.189433
+on_model_updated: 0.109584	draw_idle: 0.190251
+on_model_updated: 0.115811	draw_idle: 0.198534
+on_model_updated: 0.113486	draw_idle: 0.187082
+on_model_updated: 0.106061	draw_idle: 0.185724
+on_model_updated: 0.114078	draw_idle: 0.195729
+on_model_updated: 0.098475	draw_idle: 0.192669
+on_model_updated: 0.093411	draw_idle: 0.188353
+on_model_updated: 0.104500	draw_idle: 0.189717
+
+Plot curves only if needed
+==========================
+on_model_updated: 0.111785	draw_idle: 0.188574
+on_model_updated: 0.102159	draw_idle: 0.201602
+on_model_updated: 0.098987	draw_idle: 0.188967
+on_model_updated: 0.109297	draw_idle: 0.185382
+on_model_updated: 0.107343	draw_idle: 0.190762
+on_model_updated: 0.109611	draw_idle: 0.183159
+on_model_updated: 0.105489	draw_idle: 0.195662
+on_model_updated: 0.092817	draw_idle: 0.192302
+on_model_updated: 0.094033	draw_idle: 0.186334
+on_model_updated: 0.100222	draw_idle: 0.185586
+on_model_updated: 0.116386	draw_idle: 0.188946
+on_model_updated: 0.114841	draw_idle: 0.184383
+on_model_updated: 0.102763	draw_idle: 0.193374
+on_model_updated: 0.110505	draw_idle: 0.189234
+
+Try to optimize
+===============
+on_model_updated: 0.094745	draw_idle: 0.183713
+on_model_updated: 0.106809	draw_idle: 0.196676
+on_model_updated: 0.098054	draw_idle: 0.183752
+on_model_updated: 0.099823	draw_idle: 0.185555
+on_model_updated: 0.095224	draw_idle: 0.190985
+on_model_updated: 0.104921	draw_idle: 0.192215
+on_model_updated: 0.102565	draw_idle: 0.193968
+on_model_updated: 0.107945	draw_idle: 0.187519
+on_model_updated: 0.107799	draw_idle: 0.185994
+on_model_updated: 0.094272	draw_idle: 0.186654
+on_model_updated: 0.098771	draw_idle: 0.186122
+on_model_updated: 0.102264	draw_idle: 0.188450
+on_model_updated: 0.108938	draw_idle: 0.195345
+
+Auto update element indicators as well
+======================================
+on_model_updated: 0.083422	draw_idle: 0.261720
+on_model_updated: 0.092701	draw_idle: 0.192675
+on_model_updated: 0.093844	draw_idle: 0.185334
+on_model_updated: 0.082930	draw_idle: 0.189124
+on_model_updated: 0.085030	draw_idle: 0.181907
+on_model_updated: 0.083336	draw_idle: 0.189825
+on_model_updated: 0.085012	draw_idle: 0.189729
+on_model_updated: 0.097219	draw_idle: 0.188143
+on_model_updated: 0.086278	draw_idle: 0.184692
+on_model_updated: 0.078446	draw_idle: 0.195845
+on_model_updated: 0.084423	draw_idle: 0.188764
+on_model_updated: 0.088349	draw_idle: 0.198931
+on_model_updated: 0.084175	draw_idle: 0.189987
+on_model_updated: 0.095193	draw_idle: 0.188525
+on_model_updated: 0.111326	draw_idle: 0.202744
+
+Re-introduce curve update mechanism (cheat: not updating elements)
+===================================
+on_model_updated: 0.002009	draw_idle: 0.194920
+on_model_updated: 0.002034	draw_idle: 0.199147
+on_model_updated: 0.001871	draw_idle: 0.187129
+on_model_updated: 0.001746	draw_idle: 0.186144
+on_model_updated: 0.002553	draw_idle: 0.189385
+on_model_updated: 0.001413	draw_idle: 0.190863
+on_model_updated: 0.002190	draw_idle: 0.203880
+on_model_updated: 0.001381	draw_idle: 0.197348
+on_model_updated: 0.001299	draw_idle: 0.183326
+on_model_updated: 0.001366	draw_idle: 0.186078
+on_model_updated: 0.001452	draw_idle: 0.190536
+on_model_updated: 0.001562	draw_idle: 0.184998
+on_model_updated: 0.002688	draw_idle: 0.187316
+on_model_updated: 0.001594	draw_idle: 0.190497
+on_model_updated: 0.001478	draw_idle: 0.186568
+on_model_updated: 0.001858	draw_idle: 0.193660
+on_model_updated: 0.001762	draw_idle: 0.195078
+on_model_updated: 0.001513	draw_idle: 0.192719
+on_model_updated: 0.002512	draw_idle: 0.189175
+on_model_updated: 0.002162	draw_idle: 0.192605
+on_model_updated: 0.001505	draw_idle: 0.193896
+on_model_updated: 0.002221	draw_idle: 0.194789
+
+Protect against duplicate names (unoptimized)
+===============================
+on_model_updated: 0.401327	draw_idle: 0.202266
+on_model_updated: 0.422967	draw_idle: 0.193197
+on_model_updated: 0.426421	draw_idle: 0.198541
+on_model_updated: 0.404850	draw_idle: 0.211210
+on_model_updated: 0.410841	draw_idle: 0.198430
+on_model_updated: 0.431346	draw_idle: 0.200357
+on_model_updated: 0.425572	draw_idle: 0.210288
+on_model_updated: 0.412647	draw_idle: 0.213531
+on_model_updated: 0.437659	draw_idle: 0.214629
+on_model_updated: 0.392859	draw_idle: 0.207388
+on_model_updated: 0.397769	draw_idle: 0.215103
+on_model_updated: 0.439671	draw_idle: 0.206407
+on_model_updated: 0.426148	draw_idle: 0.203378
+on_model_updated: 0.403912	draw_idle: 0.207768
+on_model_updated: 0.384240	draw_idle: 0.205782
+on_model_updated: 0.399510	draw_idle: 0.203454
+on_model_updated: 0.405828	draw_idle: 0.201579
+on_model_updated: 0.408814	draw_idle: 0.210898
+on_model_updated: 0.421981	draw_idle: 0.213772
+on_model_updated: 0.403432	draw_idle: 0.207352
+
+Make curves specific to a TwissFigure
+=====================================
+update: 0.370692	draw_idle: 0.119978
+update: 0.358643	draw_idle: 0.123304
+update: 0.407837	draw_idle: 0.119424
+update: 0.421449	draw_idle: 0.117982
+update: 0.381002	draw_idle: 0.120084
+update: 0.395143	draw_idle: 0.123939
+update: 0.381381	draw_idle: 0.119046
+update: 0.413707	draw_idle: 0.121214
+update: 0.378475	draw_idle: 0.119055
+update: 0.390237	draw_idle: 0.115956
+update: 0.421004	draw_idle: 0.117666
+update: 0.392690	draw_idle: 0.115570
+update: 0.373509	draw_idle: 0.123776
+update: 0.407202	draw_idle: 0.115833
+update: 0.384786	draw_idle: 0.118936
+update: 0.389806	draw_idle: 0.119144
+update: 0.407970	draw_idle: 0.117102
+
+Merge branch 'simplify-caching-classes'
+=======================================
+update: 0.289207	draw_idle: 0.120535
+update: 0.309134	draw_idle: 0.118054
+update: 0.325368	draw_idle: 0.122794
+update: 0.324593	draw_idle: 0.121943
+update: 0.310579	draw_idle: 0.121284
+update: 0.311981	draw_idle: 0.122179
+update: 0.337532	draw_idle: 0.117542
+update: 0.309614	draw_idle: 0.121657
+update: 0.304220	draw_idle: 0.122419
+update: 0.295409	draw_idle: 0.119822
+update: 0.354893	draw_idle: 0.123405
+update: 0.311939	draw_idle: 0.118574
+update: 0.312407	draw_idle: 0.126189
+update: 0.317888	draw_idle: 0.119018
+update: 0.351395	draw_idle: 0.118337
+update: 0.331859	draw_idle: 0.124596
