@@ -115,12 +115,10 @@ class MatchWidget(QWidget):
         self.update_buttons()
 
     def connect_signals(self):
-        self.targetsTable.connectButtons(
-            self.removeConstraintButton,
-            self.clearConstraintsButton)
-        self.resultsTable.connectButtons(
-            self.removeKnobButton,
-            self.clearKnobsButton)
+        self.targetsTable.connectRemoveButton(self.removeConstraintButton)
+        self.targetsTable.connectClearButton(self.clearConstraintsButton)
+        self.resultsTable.connectRemoveButton(self.removeKnobButton)
+        self.resultsTable.connectClearButton(self.clearKnobsButton)
         self.addConstraintButton.clicked.connect(self.add_constraint)
         self.addKnobButton.clicked.connect(self.add_variable)
         self.matcher.constraints.update_finished.connect(self.on_update_constraints)

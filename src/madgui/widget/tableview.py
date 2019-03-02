@@ -424,26 +424,30 @@ class ItemView:
                 return
         super().keyPressEvent(event)
 
-    def connectButtons(self, remove, clear=None):
-        if remove:
-            self.allow_delete = True
-            update = lambda: remove.setEnabled(bool(self.selectedIndexes()))
-            remove.clicked.connect(self.removeSelectedRows)
-            self.selectionChangedSignal.connect(update)
-            update()
-        if clear:
-            self.allow_delete = True
-            update = lambda *_: clear.setEnabled(bool(self.rows))
-            clear.clicked.connect(self.rows.clear)
-            self.selectionChangedSignal.connect(update)
-            self.rows.update_finished.connect(update)
-            update()
+    def connectRemoveButton(self, button):
+        self.allow_delete = True
+        update = lambda *_: button.setEnabled(bool(self.selectedIndexes()))
+        button.clicked.connect(self.removeSelectedRows)
+        self.selectionChangedSignal.connect(update)
+        self.rows.update_finished.connect(update)
+        update()
+
+    def connectClearButton(self, button):
+        self.allow_delete = True
+        update = lambda *_: button.setEnabled(bool(self.rows))
+        button.clicked.connect(self.rows.clear)
+        self.rows.update_finished.connect(update)
+        update()
 
     def _columnContentWidth(self, column):
         return max(self.sizeHintForColumn(column),
                    self.header().sectionSizeHint(column))
 
     def sizeHint(self):
+        # If you are not careful to immediately call set_viewmodel, it is
+        # possible that we do not yet have a TableModel:
+        if not hasattr(self.model(), 'titles'):
+            return super().sizeHint()
         content_width = sum(map(self._columnContentWidth,
                                 range(len(self.model().titles))))
         margins_width = (self.contentsMargins().left() +

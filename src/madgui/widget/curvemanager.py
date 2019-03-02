@@ -52,7 +52,7 @@ class CurveManager(QWidget):
         self.saveButton.clicked.connect(self.on_btn_save)
         self.loadButton.clicked.connect(self.on_btn_load)
         self.buttonBox.button(Button.Ok).clicked.connect(self.accept)
-        self.curveTable.connectButtons(self.removeButton)
+        self.curveTable.connectRemoveButton(self.removeButton)
 
     def accept(self):
         self.window().accept()
