@@ -17,8 +17,8 @@ class RecordsTable(QWidget):
         self.corrector = corrector
         self.recordsTable.set_viewmodel(
             self.get_record_row, corrector.records, unit=True)
-        self.recordsTable.connectButtons(
-            self.removeRecordsButton, self.clearRecordsButton)
+        self.recordsTable.connectRemoveButton(self.removeRecordsButton)
+        self.recordsTable.connectClearButton(self.clearRecordsButton)
 
     def get_record_row(self, i, r) -> ("Optic", "Monitor", "X", "Y"):
         return [
