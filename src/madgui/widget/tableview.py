@@ -444,6 +444,10 @@ class ItemView:
                    self.header().sectionSizeHint(column))
 
     def sizeHint(self):
+        # If you are not careful to immediately call set_viewmodel, it is
+        # possible that we do not yet have a TableModel:
+        if not hasattr(self.model(), 'titles'):
+            return super().sizeHint()
         content_width = sum(map(self._columnContentWidth,
                                 range(len(self.model().titles))))
         margins_width = (self.contentsMargins().left() +
