@@ -427,15 +427,15 @@ class ItemView:
     def connectButtons(self, remove, clear=None):
         if remove:
             self.allow_delete = True
-            update = lambda: remove.setEnabled(bool(self.selectedIndexes()))
+            update = lambda *_: remove.setEnabled(bool(self.selectedIndexes()))
             remove.clicked.connect(self.removeSelectedRows)
             self.selectionChangedSignal.connect(update)
+            self.rows.update_finished.connect(update)
             update()
         if clear:
             self.allow_delete = True
             update = lambda *_: clear.setEnabled(bool(self.rows))
             clear.clicked.connect(self.rows.clear)
-            self.selectionChangedSignal.connect(update)
             self.rows.update_finished.connect(update)
             update()
 
