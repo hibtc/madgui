@@ -6,7 +6,6 @@ Usage:
     python setup.py install
 """
 
-import sys
 from setuptools import setup, find_packages
 from distutils.util import convert_path
 
@@ -40,8 +39,6 @@ def main():
     """Execute setup."""
     long_description = get_long_description()
     meta = exec_file('src/madgui/__init__.py')
-    py34 = sys.version_info < (3, 5)
-    mpl_version = '==2' if py34 else ''
     setup(
         name='madgui',
         version=meta['__version__'],
@@ -54,13 +51,14 @@ def main():
         classifiers=meta['__classifiers__'],
         packages=find_packages('src'),
         package_dir={'': 'src'},
-        install_requires=([] if py34 else ['PyQt5']) + [
+        install_requires=[
             'cpymad>=1.1.0',
             'docopt',           # command line parsing
-            'matplotlib' + mpl_version,
+            'matplotlib',
             'numpy',
             'scipy',
             'PyYAML',           # config/model files
+            'PyQt5',
             'Pint==0.8.1',
             'docutils',         # about dialogs
             'importlib_resources>=0.3',     # = importlib.resources in 3.7!
