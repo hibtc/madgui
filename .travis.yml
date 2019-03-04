@@ -1,5 +1,6 @@
 language: python
 python: "3.5"
+dist: xenial
 
 env:
   global:
@@ -34,17 +35,15 @@ script:
 
 jobs:
   include:
-    - python: "3.4"
-      dist: trusty
+    - python: "3.5"
       virtualenv:
         system_site_packages: true
       addons:
         apt:
           update: true
           packages: [python3-pyqt5]
-    - {python: "3.5", dist: xenial}
-    - {python: "3.6", dist: xenial}
-    - {python: "3.7", dist: xenial}
+    - python: "3.6"
+    - python: "3.7"
 
     - stage: deploy
       name: Upload Documentation
