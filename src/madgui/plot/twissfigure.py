@@ -232,7 +232,8 @@ class TwissFigure:
             ListView('twiss_curves', self.curve_info, self.plot_twiss_curve),
             ListView('user_curves', self.user_tables, self.plot_user_curve),
             SimpleArtist('monitor_readouts', self.plot_user_curve, (
-                'monitor_readouts', self._get_monitor_curve_data, 'readouts_style')),
+                'monitor_readouts', self._get_monitor_curve_data,
+                'readouts_style')),
         ], figure)
         self.scene_graph.draw_idle = self.draw_idle
         # style
