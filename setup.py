@@ -35,44 +35,38 @@ def get_long_description():
     return long_description
 
 
-def main():
-    """Execute setup."""
-    long_description = get_long_description()
-    meta = exec_file('src/madgui/__init__.py')
-    setup(
-        name='madgui',
-        version=meta['__version__'],
-        description=meta['__summary__'],
-        long_description=long_description,
-        author=meta['__author__'],
-        author_email=meta['__email__'],
-        url=meta['__uri__'],
-        license=meta['__license__'],
-        classifiers=meta['__classifiers__'],
-        packages=find_packages('src'),
-        package_dir={'': 'src'},
-        install_requires=[
-            'cpymad>=1.1.0',
-            'docopt',           # command line parsing
-            'matplotlib',
-            'numpy',
-            'scipy',
-            'PyYAML',           # config/model files
-            'PyQt5',
-            'Pint==0.8.1',
-            'docutils',         # about dialogs
-            'importlib_resources>=0.3',     # = importlib.resources in 3.7!
-            # inprocess python shell:
-            'ipython',
-            'qtconsole',
-        ],
-        entry_points="""
-            [console_scripts]
-            madgui = madgui.core.app:main
-        """,
-        include_package_data=True,  # install files matched by MANIFEST.in
-    )
-
-
-if __name__ == '__main__':
-    main()
+long_description = get_long_description()
+meta = exec_file('src/madgui/__init__.py')
+setup(
+    name='madgui',
+    version=meta['__version__'],
+    description=meta['__summary__'],
+    long_description=long_description,
+    author=meta['__author__'],
+    author_email=meta['__email__'],
+    url=meta['__uri__'],
+    license=meta['__license__'],
+    classifiers=meta['__classifiers__'],
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    install_requires=[
+        'cpymad>=1.1.0',
+        'docopt',           # command line parsing
+        'matplotlib',
+        'numpy',
+        'scipy',
+        'PyYAML',           # config/model files
+        'PyQt5',
+        'Pint==0.8.1',
+        'docutils',         # about dialogs
+        'importlib_resources>=0.3',     # = importlib.resources in 3.7!
+        # inprocess python shell:
+        'ipython',
+        'qtconsole',
+    ],
+    entry_points="""
+    [console_scripts]
+    madgui = madgui.core.app:main
+    """,
+    include_package_data=True,  # install files matched by MANIFEST.in
+)
