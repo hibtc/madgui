@@ -126,3 +126,8 @@ def relpath(path, start):
         return os.path.relpath(path, start)
     except ValueError:  # e.g. different drive on windows
         return path
+
+
+def userpath(path):
+    """Expand '~' and environment variables in a user-given path string."""
+    return os.path.abspath(os.path.expandvars(os.path.expanduser(path)))
