@@ -22,9 +22,12 @@ In general, follow the style of the surrounding code.
 Altough the current code base is not entirely consistent, all new code should
 follow these rules:
 
-- class names are in ``CamelCase``
-- for method, member and variable names, stick to ``names_with_underscores`` as
-  recommended by PEP8_
+- ``ClassNames``
+- ``function_names`` and methods
+- ``variable_names`` and properties
+- ``_private_variables`` and methods
+- ``__special_methods__``
+- ``GLOBAL_CONSTANTS`` (only constants!)
 - PyQt class method overrides and their parameters, as well as child objects
   of widgets are in ``lowerCamelCase``
 
