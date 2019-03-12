@@ -16,6 +16,7 @@ Contents
 
    installation
    getting-started
+   devguide
    api/madgui
 
 
