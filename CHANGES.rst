@@ -1,6 +1,16 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.3.1
+~~~~~~
+Date: 12.03.2019
+
+- add missing file ``twissfigure.yml``
+- add ``import_path`` config entry for adding plugin folders to ``sys.path``
+- expand '~' and environment variable in config: ``run_path``, ``model_path``,
+  ``import_path``, ``session_file``
+
+
 19.3.0
 ~~~~~~
 Date: 12.03.2019
