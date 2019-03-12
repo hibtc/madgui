@@ -26,7 +26,7 @@ with the commit, you can tag it and upload:
 If your commit is fine, this will take care of uploading an installable wheel
 to PyPI.
 
-Note that madgui version numbers follow a calendaric version scheme
+Note that madgui version numbers follow a calendaric version scheme (calver_)
 ``YY.MM.P``, i.e. two-digit year and month followed by a patch number that can
 be increased when releasing multiple versions in the same month. This is well
 suited for the application nature of this package with frequent releases.
@@ -36,4 +36,5 @@ version numbers indicate backwards compatibility. This is better suited for
 the library nature of this package.
 
 .. _test.pypi.org: https://test.pypi.org/
+.. _calver: https://calver.org/
 .. _semver: https://semver.org/
