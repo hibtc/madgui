@@ -44,9 +44,9 @@ class Session:
         return self
 
     def configure(self):
-        runtime = self.config.get('runtime_path', [])
-        runtime = [runtime] if isinstance(runtime, str) else runtime
-        for path in runtime:
+        paths = self.config.get('run_path', [])
+        paths = [paths] if isinstance(paths, str) else paths
+        for path in paths:
             os.environ['PATH'] += os.pathsep + userpath(path)
         np.set_printoptions(**self.config['printoptions'])
         exec(self.config.onload, self.user_ns.__dict__)
