@@ -1,5 +1,6 @@
 import glob
 import os
+import sys
 from types import SimpleNamespace
 
 import numpy as np
@@ -48,6 +49,10 @@ class Session:
         paths = [paths] if isinstance(paths, str) else paths
         for path in paths:
             os.environ['PATH'] += os.pathsep + userpath(path)
+        paths = self.config.get('import_path', [])
+        paths = [paths] if isinstance(paths, str) else paths
+        for path in paths:
+            sys.path.append(userpath(path))
         np.set_printoptions(**self.config['printoptions'])
         exec(self.config.onload, self.user_ns.__dict__)
 
