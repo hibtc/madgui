@@ -1,6 +1,57 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.3.1
+~~~~~~
+Date: 12.03.2019
+
+- add missing file ``twissfigure.yml``
+- add ``import_path`` config entry for adding plugin folders to ``sys.path``
+- expand '~' and environment variable in config: ``run_path``, ``model_path``,
+  ``import_path``, ``session_file``
+
+
+19.3.0
+~~~~~~
+Date: 12.03.2019
+
+- drop python 3.4 support
+- remove the "by delta" checkbox in orbit correction dialogs, always use the
+  measured monitor position if possible
+- depend on cpymad 1.1.0
+- auto-update plotted monitor markers
+- fix Ctrl+P closing mainwindow
+- handle menu hotkeys within all application windows
+- add menu options and hotkeys to increase or decrease font size
+- remember font size setting
+- some bugfixes
+- remove obsolute "Update" buttons from diagnostic dialogs
+
+internal:
+
+- move ORM analysis code its own independent package
+- add PyQt5 as regular dependency (can automatically installed via pip)
+- add tests on py35
+- refactor modules in ``madgui.plot``
+- remove context-managing ability from ``Session``
+- replace ``pyqtSignal`` by our own lightweight solution (in preparation for
+  letting models etc be instanciated without GUI)
+- not subclassing ``cpymad.madx.Madx`` anymore, moved functionality directly
+  to cpymad
+- refactor/simplify caching classes
+- make ``twissfigure`` module more independent from mainwindow/session and
+  simplify plotting API (standalone functions that can be used without madgui)
+- refactor scene graphs, prepare for fully consistent management of all scene
+  elements via curvemanager dialog
+- optimize performance when updating plot
+- fix error while building the documentation
+- start a developer's guide documentation section
+- introduce a lightweight history type to manage history in several components
+- use PyQt5 imports directly, remove the ``madgui.qt`` compatibilty module
+- split up the correction dialogs into components, in preparation for a great
+  unification
+
+
 19.01.0
 ~~~~~~~
 Date: 19.01.2019

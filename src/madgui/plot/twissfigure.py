@@ -26,7 +26,8 @@ from madgui.util.layout import VBoxLayout
 from madgui.util.collections import List
 from madgui.util.unit import (
     to_ui, from_ui, get_raw_label, ui_units)
-from madgui.plot.scene import SceneGraph, ListView, LineBundle, plot_line
+from madgui.plot.scene import (
+    SceneGraph, ListView, LineBundle, plot_line, SimpleArtist)
 from madgui.widget.dialog import Dialog
 import madgui.widget.plot as plt
 import madgui.util.menu as menu
@@ -197,6 +198,7 @@ class TwissFigure:
         self.config = dict(CONFIG, **session.config.get('twissfigure', {}))
         self.matcher = matcher
         self.element_style = self.config['element_style']
+        self.monitors = []
         # scene
         self.layout_el_names = [
             elem.name for elem in self.model.elements
@@ -229,6 +231,9 @@ class TwissFigure:
                 plot_constraint, self),
             ListView('twiss_curves', self.curve_info, self.plot_twiss_curve),
             ListView('user_curves', self.user_tables, self.plot_user_curve),
+            SimpleArtist('monitor_readouts', self.plot_user_curve, (
+                'monitor_readouts', self._get_monitor_curve_data,
+                'readouts_style')),
         ], figure)
         self.scene_graph.draw_idle = self.draw_idle
         # style
@@ -237,6 +242,7 @@ class TwissFigure:
         self.x_unit = ui_units.get('s')
         # slots
         self.model.updated.connect(self.on_model_updated)
+        self.session.control.sampler.updated.connect(self.on_readouts_updated)
 
     def attach(self, plot):
         self.plot = plot
@@ -331,6 +337,7 @@ class TwissFigure:
 
     def destroy(self):
         self.model.updated.disconnect(self.on_model_updated)
+        self.session.control.sampler.updated.disconnect(self.on_readouts_updated)
         self.scene_graph.destroy()
 
     def format_coord(self, ax, x, y):
@@ -381,6 +388,12 @@ class TwissFigure:
                 self.layout_elems[i] = new_elems[i]
         self.layout_params = new_params
         self.draw_idle()
+
+    def on_readouts_updated(self, *_):
+        node = self.scene_graph.node('monitor_readouts')
+        if node.enabled():
+            node.invalidate()
+            self.draw_idle()
 
     def _layout_elems(self):
         elems = self.model.elements
@@ -440,7 +453,14 @@ class TwissFigure:
         return dialog
 
     def show_monitor_readouts(self, monitors):
-        monitors = [m.lower() for m in monitors]
+        self.monitors = [m.lower() for m in monitors]
+        self.scene_graph.node('monitor_readouts').enable(True)
+        self.scene_graph.node('monitor_readouts').invalidate()
+
+    def hide_monitor_readouts(self):
+        self.scene_graph.node('monitor_readouts').enable(False)
+
+    def _get_monitor_curve_data(self):
         elements = self.model.elements
         offsets = self.session.config['online_control']['offsets']
         monitor_data = [
@@ -452,13 +472,12 @@ class TwissFigure:
              }
             for r in self.session.control.sampler.readouts_list
             for dx, dy in [offsets.get(r.name.lower(), (0, 0))]
-            if r.name.lower() in monitors
+            if r.name.lower() in self.monitors
         ]
-        curve_data = {
+        return {
             name: np.array([d[name] for d in monitor_data])
             for name in ['s', 'envx', 'envy', 'x', 'y']
         }
-        self.add_curve('readouts', curve_data, 'readouts_style')
 
     def add_curve(self, name, data, style):
         item = UserData(name, data, style)

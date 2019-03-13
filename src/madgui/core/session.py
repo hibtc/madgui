@@ -1,11 +1,12 @@
 import glob
 import os
+import sys
 from types import SimpleNamespace
 
 import numpy as np
 
 from madgui.util.collections import Boxed
-from madgui.util.misc import relpath
+from madgui.util.misc import relpath, userpath
 from madgui.online.control import Control
 from madgui.core.config import load as load_config
 import madgui.util.yaml as yaml
@@ -29,8 +30,8 @@ class Session:
         self.model = Boxed(None)
         self.control = Control(self)
         self.user_ns = user_ns = SimpleNamespace()
-        self.session_file = config.session_file
-        self.folder = config.model_path
+        self.session_file = userpath(config.session_file)
+        self.folder = userpath(config.model_path)
         self.model.changed2.connect(
             lambda old, new: old and old.destroy())
         # Maintain these members into the namespace
@@ -44,10 +45,14 @@ class Session:
         return self
 
     def configure(self):
-        runtime = self.config.get('runtime_path', [])
-        runtime = [runtime] if isinstance(runtime, str) else runtime
-        for path in runtime:
-            os.environ['PATH'] += os.pathsep + os.path.abspath(path)
+        paths = self.config.get('run_path', [])
+        paths = [paths] if isinstance(paths, str) else paths
+        for path in paths:
+            os.environ['PATH'] += os.pathsep + userpath(path)
+        paths = self.config.get('import_path', [])
+        paths = [paths] if isinstance(paths, str) else paths
+        for path in paths:
+            sys.path.append(userpath(path))
         np.set_printoptions(**self.config['printoptions'])
         exec(self.config.onload, self.user_ns.__dict__)
 
