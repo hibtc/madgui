@@ -1,7 +1,7 @@
 Installation
 ############
 
-In order to install madgui, it is just necessary to have installed both cpymad_ and MAD-X_. Depending on the platform you are working with, the requirements to run madgui are more or less different. Note that the installation has only been tried on Windows and Linux.
+In order to install madgui, it is just necessary to have installed cpymad_, which has a direct dependency on MAD-X_ and cython_. Depending on the platform you are working with, the requirements to run madgui are more or less different. Note that the installation has only been tried on Windows and Linux. The following installation instructions might be imposible to follow, if you are working behind a firewall. To set the proxy settings look at Prox Settings.
 
 .. _MAD-X: http://mad.web.cern.ch/mad/
 
@@ -43,7 +43,8 @@ You can now run the command::
 
   pip install cpymad
 
-or download and build manually with::
+In this variant of the installation an unofficial precompiled version of MAD-X is used to avoid rebuilding. (See libmadx-dev_).
+You can also download and build manually with::
 
   git clone git@github.com:hibtc/cpymad.git
 
@@ -51,9 +52,11 @@ and finally::
 
   python setup.py install
 
-In this variant of the installation an unofficial precompiled version of MAD-X is used to avoid rebuilding. (See libmadx-dev_)
+Note that for this you must have cython_ installed in your environment. For more information on building manually cpymad, see cpymad-installation_
 
 .. _libmadx-dev: https://github.com/hibtc/madx-debian
+.. _cpymad-installation: http://hibtc.github.io/cpymad/installation/index.html
+.. _cython: https://cython.org/
 
 To check if everything is fine run the following code line in the terminal::
 
