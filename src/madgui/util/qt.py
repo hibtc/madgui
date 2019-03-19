@@ -3,7 +3,7 @@ Miscellaneous utilities for programming with the Qt framework.
 """
 
 import functools
-from importlib_resources import path as resource_filename
+from importlib_resources import path as resource_filename, open_binary
 
 from PyQt5.QtCore import QEvent, QObject, QTimer
 from PyQt5.QtGui import QFont, QFontDatabase, QIcon, QPixmap
@@ -118,7 +118,6 @@ def load_ui(widget, package, filename):
                 super().__init__()
                 load_ui(self, __package__, 'mywidget.uic')
     """
-    from importlib_resources import open_binary
     with open_binary(package, filename) as f:
         uic.loadUi(f, widget)
 
