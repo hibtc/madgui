@@ -49,6 +49,7 @@ setup(
     classifiers=meta['__classifiers__'],
     packages=find_packages('src'),
     package_dir={'': 'src'},
+    python_requires='>=3.5',
     install_requires=[
         'cpymad>=1.1.0',
         'docopt',           # command line parsing
