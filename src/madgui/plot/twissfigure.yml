@@ -67,23 +67,23 @@ graphs:
   beta:
     title: Beta function
     curves:
-      - [betx, '$\beta x$', *X]
-      - [bety, '$\beta y$', *Y]
+      - [betx, '$\beta_x$', *X]
+      - [bety, '$\beta_y$', *Y]
   envelope:
     title: Beam envelope
     curves:
-      - [envx, '$\Delta x$', *X]
-      - [envy, '$\Delta y$', *Y]
+      - [envx, '$\sigma_x$', *X]
+      - [envy, '$\sigma_y$', *Y]
   alpha:
     title: Alpha function
     curves:
-      - [alfx, '$\alpha x$', *X]
-      - [alfy, '$\alpha y$', *Y]
+      - [alfx, '$\alpha_x$', *X]
+      - [alfy, '$\alpha_y$', *Y]
   gamma:
     title: Gamma function
     curves:
-      - [gamx, '$\gamma x$', *X]
-      - [gamy, '$\gamma y$', *Y]
+      - [gamx, '$\gamma_x$', *X]
+      - [gamy, '$\gamma_y$', *Y]
   orbit:
     title: Particle orbit
     curves:
@@ -92,25 +92,25 @@ graphs:
   momentum:
     title: Particle momentum
     curves:
-      - [px, '$px$', *X]
-      - [py, '$py$', *Y]
+      - [px, '$p_x$', *X]
+      - [py, '$p_y$', *Y]
   dispersion:
     title: Dispersion
     curves:
-      - [dx, '$dx$', *X]
-      - [dy, '$dy$', *Y]
+      - [dx, '$D_x$', *X]
+      - [dy, '$D_y$', *Y]
   momentum_dispersion:
     title: Momentum dispersion
     curves:
-      - [dpx, '$dpx$', *X]
-      - [dpy, '$dpy$', *Y]
+      - [dpx, '$D_{px}$', *X]
+      - [dpy, '$D_{py}$', *Y]
   phase:
     title: Phase advance
     curves:
-      - [mux, '$\mu x$', *X]
-      - [muy, '$\mu y$', *Y]
+      - [mux, '$\mu_x$', *X]
+      - [muy, '$\mu_y$', *Y]
   emittance:
     title: Emittanz
     curves:
-      - [ex, '$\epsilon x$', *X]
-      - [ey, '$\epsilon y$', *Y]
+      - [ex, '$\varepsilon_x$', *X]
+      - [ey, '$\varepsilon_y$', *Y]
