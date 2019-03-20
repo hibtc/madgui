@@ -314,8 +314,7 @@ class TwissFigure:
             ax.x_unit = self.x_unit
             ax.y_unit = ui_units.get(info.name)
             if not self.share_axes:
-                ax.set_ylabel(
-                    ax_label(info.label, ui_units.get(info.name)))
+                ax.set_ylabel(ax_label(info.label, ax.y_unit))
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
         self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))

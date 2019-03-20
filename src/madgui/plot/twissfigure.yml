@@ -68,7 +68,7 @@ graphs:
     title: Beta function
     curves:
       - [betx, '$\beta_x$', *X]
-      - [bety, '$\beta_y$' , *Y]
+      - [bety, '$\beta_y$', *Y]
   envelope:
     title: Beam envelope
     curves:
