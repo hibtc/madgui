@@ -68,11 +68,11 @@ jobs:
       install:
         - pip install twine
       script:
-        - python setup.py sdist
+        - python setup.py sdist bdist_wheel
         - if [[ -z $TRAVIS_TAG ]]; then
             ENDPOINT=( --repository-url https://test.pypi.org/legacy/ ) ;
           fi
-        - twine upload dist/*.tar.gz
+        - twine upload dist/*.tar.gz dist/*.whl
               -u hibtc-deploy -p "$PYPI_PASSWORD" "${ENDPOINT[@]}"
 
 cache:
