@@ -16,8 +16,8 @@ following commands in the terminal::
 
     pip config --user set global.proxy "PROXYSERVER"
 
-    conda config --set proxy.http  "PROXYSERVER"
-    conda config --set proxy.https "PROXYSERVER"
+    conda config --set proxy_servers.http  "PROXYSERVER"
+    conda config --set proxy_servers.https "PROXYSERVER"
 
     git config --global http.proxy  "PROXYSERVER"
     git config --global https.proxy "PROXYSERVER"
@@ -28,7 +28,7 @@ with ``PROXYSERVER`` taking the format::
 
 Specifically at HIT, the value must be as follows::
 
-    http://USERNAME:PASSWORD@krz.uni-heidelberg.de:8080
+    http://USERNAME:PASSWORD@proxy.krz.uni-heidelberg.de:8080
 
 with your windows login credentials. Note that you have to specify the server
 with ``http://`` (not https) for both config entries, even in
@@ -36,6 +36,14 @@ with ``http://`` (not https) for both config entries, even in
 Note that at HIT the correct protocol is ``http://`` (not https) for both the
 http and the https config entries. Both entries should be assigned identical
 values.
+
+Verify that your configuration is correct by looking at the output of::
+
+    conda config --show
+
+    pip config --user list
+
+    git config --global --list
 
 If the above command lines do not work with your version of git/pip/conda,
 make yourself a favor and update! If you cannot, see below for manual
