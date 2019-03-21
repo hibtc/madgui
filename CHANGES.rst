@@ -1,6 +1,15 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.3.3
+~~~~~~
+Date: 21.03.2019
+
+- install as gui script
+- fix ``ValueError: fallback required but not specified`` in pyqtconsole due
+  to missing stdout when called as gui script
+
+
 19.3.2
 ~~~~~~
 Date: 21.03.2019
