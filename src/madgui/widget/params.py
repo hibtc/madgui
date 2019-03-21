@@ -344,3 +344,33 @@ class TabParamTables(QTabWidget):
     @property
     def exporter(self):
         return self.currentWidget()
+
+
+def model_params_dialog(model, parent=None, folder='.'):
+    """Create a dialog to edit parameters of a given Model."""
+    from madgui.widget.elementinfo import EllipseWidget
+    from madgui.widget.dialog import Dialog
+
+    class InitEllipseWidget(EllipseWidget):
+        def update(self):
+            super().update(0)
+
+    widget = TabParamTables([
+        ('Twiss', ParamTable(model.fetch_twiss, model.update_twiss_args,
+                             data_key='twiss')),
+        ('Beam', ParamTable(model.fetch_beam, model.update_beam,
+                            data_key='beam')),
+        ('Globals', GlobalsEdit(model, data_key='globals')),
+        ('Ellipse', InitEllipseWidget(model)),
+    ])
+    widget.update()
+    # NOTE: Ideally, we'd like to update after changing initial conditions
+    # (rather than after twiss), but changing initial conditions usually
+    # implies also updating twiss, so this is a good enough approximation
+    # for now:
+    model.updated.connect(widget.update)
+
+    dialog = Dialog(parent)
+    dialog.setSimpleExportWidget(widget, folder)
+    dialog.setWindowTitle("Initial conditions")
+    return dialog

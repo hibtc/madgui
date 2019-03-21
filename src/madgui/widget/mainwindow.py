@@ -414,34 +414,9 @@ class MainWindow(QMainWindow):
 
     @SingleWindow.factory
     def editInitialConditions(self):
-        from madgui.widget.params import (
-            TabParamTables, ParamTable, GlobalsEdit)
-        from madgui.widget.elementinfo import EllipseWidget
-
-        class InitEllipseWidget(EllipseWidget):
-            def update(self):
-                super().update(0)
-
-        model = self.model()
-        widget = TabParamTables([
-            ('Twiss', ParamTable(model.fetch_twiss, model.update_twiss_args,
-                                 data_key='twiss')),
-            ('Beam', ParamTable(model.fetch_beam, model.update_beam,
-                                data_key='beam')),
-            ('Globals', GlobalsEdit(model, data_key='globals')),
-            ('Ellipse', InitEllipseWidget(model)),
-        ])
-        widget.update()
-        # NOTE: Ideally, we'd like to update after changing initial conditions
-        # (rather than after twiss), but changing initial conditions usually
-        # implies also updating twiss, so this is a good enough approximation
-        # for now:
-        model.updated.connect(widget.update)
-
-        dialog = Dialog(self)
-        dialog.setSimpleExportWidget(widget, self.folder)
-        dialog.setWindowTitle("Initial conditions")
-        return dialog
+        from madgui.widget.params import model_params_dialog
+        return model_params_dialog(
+            self.model(), parent=self, folder=self.folder)
 
     @SingleWindow.factory
     def viewShell(self):
