@@ -50,11 +50,7 @@ def init_app(argv=None, gui=True):
     warnings.filterwarnings(
         "default", module='(madgui|cpymad|minrpc|pydicti).*')
     set_app_id('hit.madgui')
-    # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
-    # Note that sys.stdout can be ``None`` if starting as console_script:
-    if sys.stdout and sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
-        import io
-        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    init_stdio()
     # QApplication needs a valid argument list:
     if argv is None:
         argv = sys.argv
@@ -69,6 +65,19 @@ def init_app(argv=None, gui=True):
     sys.excepthook = traceback.print_exception
     setup_interrupt_handling(app)
     return app
+
+
+def init_stdio():
+    # If started as GUI script, there is usually no stdout. Some packages
+    # don't like this and raise exceptions, e.g. pyqtconsole. Let's keep them
+    # satisfied:
+    sys.stdout = sys.stdout or open('madgui.log', 'at', encoding='utf-8')
+    sys.stderr = sys.stderr or sys.stdout
+    # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
+    # Note that sys.stdout can be ``None`` if starting as console_script:
+    if sys.stdout and sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 
 def main(argv=None):

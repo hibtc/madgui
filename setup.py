@@ -66,7 +66,7 @@ setup(
         'qtconsole',
     ],
     entry_points="""
-    [console_scripts]
+    [gui_scripts]
     madgui = madgui.core.app:main
     """,
     include_package_data=True,  # install files matched by MANIFEST.in
