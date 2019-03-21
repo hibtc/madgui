@@ -6,8 +6,9 @@ env:
   global:
     # GITHUB_TOKEN:
     - secure: "Pdt8rdFHAwQ20jFF0Q3p0SWxbx+B0R5p55Yh3ujDF6UvWdMyTRKzOQs3giLkva5nZBmt9fb0mDa0fUSFCThgJRqd9E2ZCfU2QhD2DlCBJ+wA3EweaNosoiBWQwfeKFcJxtL6SkIsZxgZEx6XZrd3lVsqnFRX3W7fI0X6fIfBj4x+kPR/9AyUtsb2ls+6GJUk9OZxIpgsHhlBoXRJQ1KiS2o2mdBZGYt+Fl+K2RQzThqkFpc3WsubLeGszllUtvIzB3v1PzZGhLOeBVmH/ut6LT7QQJOwMT4YXKcE/0fIBzm33hHj5pphgnTZoX22/kFoLDD9N7vNs8zh3QoUj8f+obLOFNRZQk48MzBaukDwkObANE4tlVhh8Vr1wsX0UaVFrXoFLhMuTQ1BX4706UmEYLaUYxl4e607Lp9PTWStuFxdYnxoHRyHEFuCH9cjwin/YWZ9CoOIKUy0qwPR6YUU4VWd1LKbY6nisuHB541LSc9BoFZ144zz5+vVkZP9hkBSwFWI7FvOW7oBlDZniw5Ri37PmQOP4ikqlFEm9lut4LjXUEV0Cn3482mmPY3GT2uw2teHi6OlXq0LugNK7XD5DE0I67VdEj0pcNHFJ4jBVjlpHKJqWfoMHIs4jsW4XSJwQyz1SBcE3xJTcVb2mG9+FtJcwHmEeTt/hmoiWdg7REA="
-    # PYPI_PASSWORD:
-    - secure: "SbZ2REqlEyEfumRt/2DLVkvapZS702GP99yli6y9tEf80WobNcP5KDsqOyPvNlz+qn6v1NnmEVokjyeRbDrZGECNLeNRrMOjvAqy2ZVF91QOfbxMrfIIh5hNK5p8wd+7AMJ0xEw+EN3YQ2xOWINpmtOgRT9exU7QxR+bEYChgh/9fHl4B9NJ9N2T/M31mFYmhKpIUjq8kLgaN6ExeQeo4rqCYSC8oKGPb+I29e1u/wVSjjt01iZKK+pvpkcxfluFuBfi1WaStyr+65mfPtcKojKCldIqYJ9SEeTluFZMqVbcyB1ArT/CR3XNVOXpOYTqhIrrYFFQJk0slzEd0WxkkTOobs5wugq4KXfbkUFLv/WBcwnIQ5N8mZPFC7dfj2gR/XqOYqLVSfBcTDgOyn69HijYyLrA1ztV387quUSnGEXIuFTzwYSkH43zHDgaJcnof8ITbuEHpJwZtVd7zANhVaYq7wnYXZC7c8hLPj2cuo/v9iAKIKUsk2YfmD5u5bhkeWyZBHQnU1HjmdJff0FBPBZYPl0SDiT+MkJCJydyHcoZRQCCCWvzAcQPP6oiWYjqGf+ewPq6f9w1XT+Mela9PZqPY2k5SXLt4OrLz1vyNgWprOLD36a1C3V7leQXUZu7G/G58DHrI1mdzTiHB8xWEh2BdKcVLYlfeRLRDQ3hD3g="
+    - TWINE_USERNAME=hibtc-deploy
+    # TWINE_PASSWORD:
+    - secure: "bmJ65gwbUZVJ8xpVPWGQXZK0cuOQWrF/zQQSFsFBoL4ZZMePWFFbXMMajPqgzdw8dA3KDKrJEWzQjfw6HE4Pdhne0CJMW0cODgBEEjZ+iRnMhHRaZAKiP+Jih8O3jgzC7sKWkW0BbSQOH3ml1i3oUAEoydxtVSpqgIgH4H+R0h1kh0aFoQ2WG5sLw+k+2CLGfcnYLyFHp+PfGvsEU0ADO1SX2BRTGrqi5/vup3rcovP8cFTWrgS/SpvNO7JdWMN3HMe63HmuY4HGx9YQerI0oczqCrJevplmkromW0qwkfZXmCt3pLnk+OS8qJ9v+m3PQuNql8AODGZNbdxuJJQKchKo7J15LMA5pUDvqR0GhSMeL7tPnI1zW6GOGrJtKFrC1hRMOc7hH+lprv8DS6IFMabK/4o6bOB+MFAxWge3dszJw9AZwzIXgSjkUWJe2zCXQBgXGXev0QnFUJRUe6eVsr2lOxCQxLc3Kirgfj4oqvlOGibCdCTnXiq1FPe87wiPiAxTP8pCbIhbpJcfi60JecnhW0WoWp1fJJoVj/LNi5oCzEcHtetvOS+GeqLr4EUSXbvco3djGP0YnOTL+eSuGOdvCMF2o/Q71spC3zk7M8QUzf0DyMaEuxQlYY5uWH0fCi5HMJr6UryIhmwnj4kKagHU/oY/OfjQEnvDRaHp6V8="
 
 before_install:
   - lsb_release -a
@@ -70,10 +71,9 @@ jobs:
       script:
         - python setup.py sdist bdist_wheel
         - if [[ -z $TRAVIS_TAG ]]; then
-            ENDPOINT=( --repository-url https://test.pypi.org/legacy/ ) ;
+            export TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/ ;
           fi
         - twine upload dist/*.tar.gz dist/*.whl
-              -u hibtc-deploy -p "$PYPI_PASSWORD" "${ENDPOINT[@]}"
 
 cache:
   pip: true
