@@ -5,6 +5,7 @@ As a new developer, please read through this chapter.
 
 .. toctree::
 
+    setup
     conventions
     related
     infrastructure
