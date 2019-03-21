@@ -30,12 +30,9 @@ Specifically at HIT, the value must be as follows::
 
     http://USERNAME:PASSWORD@proxy.krz.uni-heidelberg.de:8080
 
-with your windows login credentials. Note that you have to specify the server
-with ``http://`` (not https) for both config entries, even in
-
-Note that at HIT the correct protocol is ``http://`` (not https) for both the
-http and the https config entries. Both entries should be assigned identical
-values.
+with your windows login credentials. Note that at HIT the correct protocol is
+``http://`` (not https) for both the http and the https config entries. Both
+entries should be assigned identical values!
 
 Verify that your configuration is correct by looking at the output of::
 
