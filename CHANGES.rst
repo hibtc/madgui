@@ -112,18 +112,18 @@ Date: 31.10.2018
 
 bugfixes:
 
-    - fix undo feature not working because of using the wrong stack
-    - fix exception in Model.twiss when a table is specified
+- fix undo feature not working because of using the wrong stack
+- fix exception in Model.twiss when a table is specified
 
 ORM analysis:
 
-    - share get_orm() implementation with orbit correction
-    - deduplications, several code improvements and simplifications
-    - use base_orbit to backtrack initial conditions
-    - add plot functions to the analysis script
-    - better output
-    - add ability to fit X and Y independently
-    - compacter ealign notation in undocumented spec file
+- share get_orm() implementation with orbit correction
+- deduplications, several code improvements and simplifications
+- use base_orbit to backtrack initial conditions
+- add plot functions to the analysis script
+- better output
+- add ability to fit X and Y independently
+- compacter ealign notation in undocumented spec file
 
 
 18.10.2
@@ -132,28 +132,28 @@ Date: 25.10.2018
 
 bugfixes:
 
-    - fix for missing setObsolete on Qt<5.9 (was previously fixed only partially)
-    - fix empty list of optic elements in output file
-    - fix beamoptikdll not initiating device download due to flooding
-    - fix duplicate value bug in the readout logic
-    - decrease chance of race condition leading to inconsistent readouts
+- fix for missing setObsolete on Qt<5.9 (was previously fixed only partially)
+- fix empty list of optic elements in output file
+- fix beamoptikdll not initiating device download due to flooding
+- fix duplicate value bug in the readout logic
+- decrease chance of race condition leading to inconsistent readouts
 
 UX improvements:
 
-    - log to main logwindow as well
-    - increase logging verbosity during orbit response measurements
-    - flush file after each write
-    - vary steerers in sequence order
-    - avoid one redundant readout
-    - increase default steerer variation to 0.2 mrad
+- log to main logwindow as well
+- increase logging verbosity during orbit response measurements
+- flush file after each write
+- vary steerers in sequence order
+- avoid one redundant readout
+- increase default steerer variation to 0.2 mrad
 
 ORM analysis:
 
-    - handle missing ORM entries as zero
-    - restrict to used knobs
-    - fix empty steerers field in record file
-    - handle accumulated errors in ORM analysis
-    - add simple plotting script
+- handle missing ORM entries as zero
+- restrict to used knobs
+- fix empty steerers field in record file
+- handle accumulated errors in ORM analysis
+- add simple plotting script
 
 
 18.10.1
@@ -403,53 +403,59 @@ Date: 01.06.2018
 Date: 31.05.2018
 
 Miscellaneous:
-    - require cpymad 1.0.0rc3
-    - fix multi grid view not being updated
-    - add units for K0
-    - update floor plan survey after twiss
+
+- require cpymad 1.0.0rc3
+- fix multi grid view not being updated
+- add units for K0
+- update floor plan survey after twiss
 
 Matching:
-    - group multiple matching constraints at the same element and position
-      into one statement
-    - specify weights only for the used quantities
-    - disable matching if the number of constraints is incorrect
-    - don't reset matching when deactivating the match mode
+
+- group multiple matching constraints at the same element and position
+  into one statement
+- specify weights only for the used quantities
+- disable matching if the number of constraints is incorrect
+- don't reset matching when deactivating the match mode
 
 Element/param dialogs:
-    - fix condition for when globals are editable
-    - display element attribute names in title case again
-    - show leading part of variable names in lowercase
-    - make use of cpymad's ``inform`` and ``var_type``
+
+- fix condition for when globals are editable
+- display element attribute names in title case again
+- show leading part of variable names in lowercase
+- make use of cpymad's ``inform`` and ``var_type``
 
 TreeView:
-    - improve/refactor internal tableview API
-    - use tree view
-    - expand vectors in tree view
-    - expand variables occuring in expressions in GlobalsEdit/CommandEdit
+
+- improve/refactor internal tableview API
+- use tree view
+- expand vectors in tree view
+- expand variables occuring in expressions in GlobalsEdit/CommandEdit
 
 Undo:
-    - support undoing simple .str files
-    - remove flawed accept/reject logic, i.e. "Cancel" buttons, leaving only
-      "Ok" buttons for now (the logic required to properly implement "Cancel"
-      is nontrivial, and the behaviour might still be confusing)
-    - move undo utils to their own module
-    - subclass QUndoStack
-    - never show empty macros (QUndoCommand.setObsolete)
+
+- support undoing simple .str files
+- remove flawed accept/reject logic, i.e. "Cancel" buttons, leaving only
+  "Ok" buttons for now (the logic required to properly implement "Cancel"
+  is nontrivial, and the behaviour might still be confusing)
+- move undo utils to their own module
+- subclass QUndoStack
+- never show empty macros (QUndoCommand.setObsolete)
 
 Plotting:
-    - share loaded curves between all windows
-    - handle add_curve/del_curve in mainwindow
-    - "snapshot" now saves all available twiss data so that when changing
-      graphs, the snapshot for the other curves will be shown
-    - gracefully deal with missing data in user curves (showed exception very
-      loudly previously, showing debug message now)
-    - invert quadrupole focussing color codes in Y plot
-    - distinguish SBEND/KICKER sign by shifting the indicator position up/down
-    - smaller but more distinct indicators
-    - fade out "off-axis" kickers (e.g. HKICKER in Y plot)
-    - remove grid lines in Y direction
-    - fix missing element name in status bar
-    - update element markers on each draw
+
+- share loaded curves between all windows
+- handle add_curve/del_curve in mainwindow
+- "snapshot" now saves all available twiss data so that when changing
+  graphs, the snapshot for the other curves will be shown
+- gracefully deal with missing data in user curves (showed exception very
+  loudly previously, showing debug message now)
+- invert quadrupole focussing color codes in Y plot
+- distinguish SBEND/KICKER sign by shifting the indicator position up/down
+- smaller but more distinct indicators
+- fade out "off-axis" kickers (e.g. HKICKER in Y plot)
+- remove grid lines in Y direction
+- fix missing element name in status bar
+- update element markers on each draw
 
 
 1.10.1
