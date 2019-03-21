@@ -1,6 +1,17 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.3.2
+~~~~~~
+Date: 21.03.2019
+
+- fix TypeError: set_draggable() missing 1 required positional argument
+  (in shared plot mode)
+- add units in curve y labels
+- change some quantity labels
+- separate function to edit model parameters, for use in plugins etc
+
+
 19.3.1
 ~~~~~~
 Date: 12.03.2019
