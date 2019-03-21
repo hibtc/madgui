@@ -37,6 +37,14 @@ Note that at HIT the correct protocol is ``http://`` (not https) for both the
 http and the https config entries. Both entries should be assigned identical
 values.
 
+Verify that your configuration is correct by looking at the output of::
+
+    conda config --show
+
+    pip config --user list
+
+    git config --global --list
+
 If the above command lines do not work with your version of git/pip/conda,
 make yourself a favor and update! If you cannot, see below for manual
 configuration of these entries.
