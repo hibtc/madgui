@@ -24,16 +24,14 @@ install:
   - python setup.py sdist
   - pip install ./dist/*.tar.gz
 
-  - pip install flake8 docutils pygments pytest
+  - pip install flake8 docutils pygments pytest twine
   - git clone git://github.com/hibtc/hit_models
   - pip install git+https://github.com/hibtc/hit_acs@master
 
 script:
-  - python setup.py check -rs
+  - twine check dist/*.tar.gz
   - flake8
-
   - pytest tests
-
 
 jobs:
   include:
