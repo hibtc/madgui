@@ -6,7 +6,6 @@ __all__ = [
     'ElementInfoBox',
 ]
 
-from collections import OrderedDict
 from functools import partial
 
 from math import sqrt, pi, atan2
@@ -116,10 +115,10 @@ class ElementInfoBox(QWidget):
     def _fetch_summary(self, elem_index=0):
         elem = self.model.elements[elem_index]
         show = self.summary
-        data = OrderedDict([
-            (k, getattr(elem, k))
+        data = {
+            k: getattr(elem, k)
             for k in show['common'] + show.get(elem.base_name, [])
-        ])
+        }
         return [ParamInfo(k.title(), v, mutable=k in elem)
                 for k, v in data.items()]
 

@@ -2,7 +2,6 @@
 Utility functions to load numpy tables from files.
 """
 
-from collections import OrderedDict
 from os.path import abspath
 
 import numpy as np
@@ -36,7 +35,7 @@ def read_table(filename):
         1       2       1
         2       1       2
 
-    For which this function returns an ordered dictionary:
+    For which this function returns a dictionary:
 
         's'     -> np.array([0, 1000, 2000])
         'envx'  -> np.array([1000, 2000, 1000])
@@ -46,10 +45,10 @@ def read_table(filename):
         titles = _parse_header(f)
     columns = map(_parse_column_title, titles)
     data = np.genfromtxt(filename, dtype=None, encoding='utf-8')
-    return OrderedDict([
-        (name, from_ui(name, _add_unit(data[col], unit)))
+    return {
+        name: from_ui(name, _add_unit(data[col], unit))
         for col, (name, unit) in zip(data.dtype.names, columns)
-    ])
+    }
 
 
 def _parse_header(lines, comment='#'):

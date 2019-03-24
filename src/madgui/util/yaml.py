@@ -20,7 +20,6 @@ mainly add these features:
 """
 
 import os
-import sys
 from collections import OrderedDict
 
 from importlib_resources import read_binary
@@ -77,26 +76,10 @@ def load_resource(package, resource):
     return safe_load(read_binary(package, resource))
 
 
-if sys.version_info >= (3, 6):
-    def safe_load(stream, Loader=SafeLoader):
-        """Load YAML document from stream, returns dictionaries in the
-        written order within the YAML document."""
-        return yaml.load(stream, Loader)
-
-else:
-    def safe_load(stream, Loader=SafeLoader):
-        """Load YAML document from stream, returns dictionaries in the
-        written order within the YAML document."""
-        class OrderedLoader(Loader):
-            pass
-
-        def construct_mapping(loader, node):
-            loader.flatten_mapping(node)
-            return OrderedDict(loader.construct_pairs(node))
-        OrderedLoader.add_constructor(
-            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-            construct_mapping)
-        return yaml.load(stream, OrderedLoader)
+def safe_load(stream, Loader=SafeLoader):
+    """Load YAML document from stream, returns dictionaries in the
+    written order within the YAML document."""
+    return yaml.load(stream, Loader)
 
 
 def safe_dump(data, stream=None, Dumper=SafeDumper, **kwds):
