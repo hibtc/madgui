@@ -31,7 +31,7 @@ select_style:
   ymax: 1
 
 # Style for the reference curve. Can contain any keyword arguments to
-# ``motplotlib.axes.Axes.plot()``
+# ``matplotlib.axes.Axes.plot()``
 reference_style:
   linestyle: "-"
   color: "black"
