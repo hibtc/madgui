@@ -15,8 +15,7 @@ from functools import partial
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QKeySequence
 from PyQt5.QtWidgets import (
-    QAction, QDockWidget, QInputDialog, QMainWindow, QMessageBox, QStyle,
-    QUndoView)
+    QDockWidget, QInputDialog, QMainWindow, QMessageBox, QStyle)
 
 from madgui.util.signal import Signal
 from madgui.util.collections import Selection
@@ -296,28 +295,13 @@ class MainWindow(QMainWindow):
         self.redo_action.setShortcut(QKeySequence.Redo)
         self.undo_action.setIcon(style.standardIcon(QStyle.SP_ArrowBack))
         self.redo_action.setIcon(style.standardIcon(QStyle.SP_ArrowForward))
-        undo_history_action = QAction(
-            style.standardIcon(QStyle.SP_ToolBarVerticalExtensionButton),
-            "List", self)
-        undo_history_action.triggered.connect(self.createUndoView.create)
-        undo_history_action.setEnabled(False)
         self.toolbar.addAction(self.undo_action)
         self.toolbar.addAction(self.redo_action)
-        self.toolbar.addAction(undo_history_action)
 
     def log_command(self, text):
         text = text.rstrip()
         self.logWidget.append(LogRecord(
             time.time(), 'SEND', text))
-
-    @SingleWindow.factory
-    def createUndoView(self):
-        widget = QUndoView(self.undo_stack, self)
-        widget.setEmptyLabel("<Unmodified>")
-        dialog = Dialog(self)
-        dialog.setWidget(widget)
-        dialog.setWindowTitle("Change history")
-        return dialog
 
     # Menu actions
 
