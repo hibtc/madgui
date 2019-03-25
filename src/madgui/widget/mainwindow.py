@@ -290,8 +290,8 @@ class MainWindow(QMainWindow):
 
         style = self.style()
         self.undo_stack = undo_stack = UndoStack()
-        self.undo_action = undo_stack.createUndoAction(self)
-        self.redo_action = undo_stack.createRedoAction(self)
+        self.undo_action = undo_stack.create_undo_action(self)
+        self.redo_action = undo_stack.create_redo_action(self)
         self.undo_action.setShortcut(QKeySequence.Undo)
         self.redo_action.setShortcut(QKeySequence.Redo)
         self.undo_action.setIcon(style.standardIcon(QStyle.SP_ArrowBack))
@@ -300,6 +300,7 @@ class MainWindow(QMainWindow):
             style.standardIcon(QStyle.SP_ToolBarVerticalExtensionButton),
             "List", self)
         undo_history_action.triggered.connect(self.createUndoView.create)
+        undo_history_action.setEnabled(False)
         self.toolbar.addAction(self.undo_action)
         self.toolbar.addAction(self.redo_action)
         self.toolbar.addAction(undo_history_action)
