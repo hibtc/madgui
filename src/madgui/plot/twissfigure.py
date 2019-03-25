@@ -326,7 +326,10 @@ class TwissFigure:
                                shadow=True, ncol=4)
             legend.set_draggable(True)
         for ax in self.figure.axes:
-            ax.axhline(color='black', alpha=0)
+            # prevent matplotlib from using an offset and displaying
+            # near-constant quantities in a weird way, see #32:
+            ax.axhline(alpha=0)
+            ax.set_autoscale_on(False)
 
     def draw_idle(self):
         """Draw the figure on its canvas."""
