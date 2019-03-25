@@ -541,9 +541,9 @@ class Model:
     @memoize
     def twiss(self, **kwargs):
         """Recalculate TWISS parameters."""
+        self.madx.command.select(flag='interpolate', clear=True)
         if self.interpolate:
             step = self.sequence.elements[-1].position/self.interpolate
-            self.madx.command.select(flag='interpolate', clear=True)
             self.madx.command.select(flag='interpolate', step=step)
         results = self.madx.twiss(**self._get_twiss_args(**kwargs))
         results = TwissTable(results._name, results._libmadx, _check=False)

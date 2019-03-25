@@ -123,6 +123,9 @@ class MainWindow(QMainWindow):
                 Item('&Floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
                      self.viewFloorPlan),
+                Item('&Interpolation points', None,
+                     'Set number of data points.',
+                     self.setInterpolate),
             ]),
             Menu('&Export', [
                 Item('&Strengths', None,
@@ -441,6 +444,18 @@ class MainWindow(QMainWindow):
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Matching constraints.")
         return dialog
+
+    def setInterpolate(self):
+        model = self.model()
+        if not model:
+            return
+        text = "Number of points (0 to disable):"
+        number, ok = QInputDialog.getInt(
+            self, "Set number of data points", text,
+            value=model.interpolate, min=0)
+        if ok:
+            model.interpolate = number
+            model.invalidate()
 
     def setNumberFormat(self):
         fmtspec, ok = QInputDialog.getText(
