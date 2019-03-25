@@ -35,7 +35,6 @@ import madgui.util.menu as menu
 import matplotlib.patheffects as pe
 import matplotlib.colors as mpl_colors
 
-
 CONFIG = load_resource(__package__, 'twissfigure.yml')
 ELEM_STYLES = CONFIG['element_style']
 
@@ -327,7 +326,7 @@ class TwissFigure:
                                shadow=True, ncol=4)
             legend.set_draggable(True)
         for ax in self.figure.axes:
-            ax.set_autoscale_on(False)
+            ax.axhline(color='black', alpha=0)
 
     def draw_idle(self):
         """Draw the figure on its canvas."""
