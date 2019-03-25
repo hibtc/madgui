@@ -427,7 +427,7 @@ class Model:
     def get_elem_sigma(self, elem):
         ix = self.elements.index(elem)
         i0 = self.indices[ix].stop
-        tw = self.twiss()[i0]
+        tw = self.twiss().row(i0, 'all')
         return [
             [tw['sig{}{}'.format(i+1, j+1)]
              for j in range(6)]
