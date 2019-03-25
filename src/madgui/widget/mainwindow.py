@@ -126,6 +126,10 @@ class MainWindow(QMainWindow):
                 Item('&Interpolation points', None,
                      'Set number of data points.',
                      self.setInterpolate),
+                Separator,
+                Item('&Refresh', 'F5',
+                     'Redo TWISS and refresh plot.',
+                     self.refreshTwiss),
             ]),
             Menu('&Export', [
                 Item('&Strengths', None,
@@ -456,6 +460,10 @@ class MainWindow(QMainWindow):
         if ok:
             model.interpolate = number
             model.invalidate()
+
+    def refreshTwiss(self):
+        """Redo twiss and redraw plot."""
+        self.model().invalidate()
 
     def setNumberFormat(self):
         fmtspec, ok = QInputDialog.getText(
