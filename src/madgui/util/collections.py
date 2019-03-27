@@ -227,7 +227,7 @@ MutableSequence.register(List)
 class Selection(List):
 
     """Set of items with the additional notion of a cursor to the least
-    recently *active*element. Each item can occur only once in the set.
+    recently *active* element. Each item can occur only once in the set.
 
     Note that the inherited ``List`` methods and signals can be used to listen
     for selection changes, and to query or delete items. However, for

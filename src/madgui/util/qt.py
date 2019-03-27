@@ -108,9 +108,7 @@ def load_ui(widget, package, filename):
     This function is for loading GUIs that were developed using the qt-designer
     rapid development tool which creates ``.uic`` description files. These can
     be saved in the same package alongside the corresponding python code. Now,
-    in the class that implements the widget, use this function as follows:
-
-    .. code-block::
+    in the class that implements the widget, use this function as follows::
 
         class MyWidget(QWidget):
 

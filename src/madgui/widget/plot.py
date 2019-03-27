@@ -3,8 +3,7 @@ Utilities to create plots using matplotlib via the Qt5Agg backend.
 """
 
 __all__ = [
-    'mpl_backend',
-    'Figure',
+    'Toolbar',
     'PlotWidget',
 ]
 

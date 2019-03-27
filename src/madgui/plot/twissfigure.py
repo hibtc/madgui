@@ -6,6 +6,19 @@ s-axis.
 __all__ = [
     'TwissWidget',
     'TwissFigure',
+    'plot_curve',
+    'plot_element_indicators',
+    'plot_element_indicator',
+    'plot_constraint',
+    'plot_selection_marker',
+    'plot_curves',
+    'CaptureTool',
+    'MatchTool',
+    'InfoTool',
+    'CompareTool',
+    'draw_patch',
+    'ax_label',
+    'indicator_params',
 ]
 
 import math

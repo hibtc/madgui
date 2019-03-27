@@ -35,7 +35,6 @@ Contents
    getting-started
    devguide/index
    api/madgui
-   proxysettings
 
 
 Links
