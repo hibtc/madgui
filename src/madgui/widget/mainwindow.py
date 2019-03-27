@@ -306,7 +306,7 @@ class MainWindow(QMainWindow):
 
     def log_command(self, text):
         text = text.rstrip()
-        self.logWidget.records.append(LogRecord(
+        self.logWidget.append(LogRecord(
             time.time(), 'SEND', text))
 
     @SingleWindow.factory

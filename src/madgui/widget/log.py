@@ -18,7 +18,6 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QTextCharFormat, QTextCursor, QTextFormat
 from PyQt5.QtWidgets import QFrame, QPlainTextEdit, QTextEdit
 
-from madgui.util.collections import List
 from madgui.util.qt import monospace
 from madgui.util.layout import HBoxLayout
 from madgui.widget.edit import LineNumberBar
@@ -98,8 +97,7 @@ class LogWindow(QFrame):
         self.linumbar = LineNumberBar(self.textctrl)
         self.setLayout(HBoxLayout([
             self.infobar, self.linumbar, self.textctrl], tight=True))
-        self.records = List()
-        self.records.inserted.connect(self._insert_record)
+        self.records = []
         self.formats = {}
         self._enabled = {}
         self._domains = set()
@@ -118,7 +116,7 @@ class LogWindow(QFrame):
         root = logging.getLogger('')
         manager = logging.Manager(root)
         formatter = logging.Formatter(fmt)
-        handler = RecordHandler(self.records)
+        handler = RecordHandler(self)
         handler.setFormatter(formatter)
         root.addHandler(handler)
         root.level = level
@@ -155,7 +153,7 @@ class LogWindow(QFrame):
 
     def recv_log(self, domain, text):
         if text:
-            self.records.append(LogRecord(
+            self.append(LogRecord(
                 time.time(), domain, text.decode('utf-8', 'replace').rstrip()))
 
     def excepthook(self, *args, **kwargs):
@@ -169,7 +167,7 @@ class LogWindow(QFrame):
         for record in self.records:
             self._append_log(record)
 
-    def _insert_record(self, index, record):
+    def append(self, record):
         self._domains.add(record.domain)
         self._append_log(record)
 
