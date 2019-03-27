@@ -4,32 +4,21 @@ python:
   - "3.7"
 dist: xenial
 
-env:
-  global:
-    # GITHUB_TOKEN:
-    - secure: "Pdt8rdFHAwQ20jFF0Q3p0SWxbx+B0R5p55Yh3ujDF6UvWdMyTRKzOQs3giLkva5nZBmt9fb0mDa0fUSFCThgJRqd9E2ZCfU2QhD2DlCBJ+wA3EweaNosoiBWQwfeKFcJxtL6SkIsZxgZEx6XZrd3lVsqnFRX3W7fI0X6fIfBj4x+kPR/9AyUtsb2ls+6GJUk9OZxIpgsHhlBoXRJQ1KiS2o2mdBZGYt+Fl+K2RQzThqkFpc3WsubLeGszllUtvIzB3v1PzZGhLOeBVmH/ut6LT7QQJOwMT4YXKcE/0fIBzm33hHj5pphgnTZoX22/kFoLDD9N7vNs8zh3QoUj8f+obLOFNRZQk48MzBaukDwkObANE4tlVhh8Vr1wsX0UaVFrXoFLhMuTQ1BX4706UmEYLaUYxl4e607Lp9PTWStuFxdYnxoHRyHEFuCH9cjwin/YWZ9CoOIKUy0qwPR6YUU4VWd1LKbY6nisuHB541LSc9BoFZ144zz5+vVkZP9hkBSwFWI7FvOW7oBlDZniw5Ri37PmQOP4ikqlFEm9lut4LjXUEV0Cn3482mmPY3GT2uw2teHi6OlXq0LugNK7XD5DE0I67VdEj0pcNHFJ4jBVjlpHKJqWfoMHIs4jsW4XSJwQyz1SBcE3xJTcVb2mG9+FtJcwHmEeTt/hmoiWdg7REA="
-    - TWINE_USERNAME=hibtc-deploy
-    # TWINE_PASSWORD:
-    - secure: "bmJ65gwbUZVJ8xpVPWGQXZK0cuOQWrF/zQQSFsFBoL4ZZMePWFFbXMMajPqgzdw8dA3KDKrJEWzQjfw6HE4Pdhne0CJMW0cODgBEEjZ+iRnMhHRaZAKiP+Jih8O3jgzC7sKWkW0BbSQOH3ml1i3oUAEoydxtVSpqgIgH4H+R0h1kh0aFoQ2WG5sLw+k+2CLGfcnYLyFHp+PfGvsEU0ADO1SX2BRTGrqi5/vup3rcovP8cFTWrgS/SpvNO7JdWMN3HMe63HmuY4HGx9YQerI0oczqCrJevplmkromW0qwkfZXmCt3pLnk+OS8qJ9v+m3PQuNql8AODGZNbdxuJJQKchKo7J15LMA5pUDvqR0GhSMeL7tPnI1zW6GOGrJtKFrC1hRMOc7hH+lprv8DS6IFMabK/4o6bOB+MFAxWge3dszJw9AZwzIXgSjkUWJe2zCXQBgXGXev0QnFUJRUe6eVsr2lOxCQxLc3Kirgfj4oqvlOGibCdCTnXiq1FPe87wiPiAxTP8pCbIhbpJcfi60JecnhW0WoWp1fJJoVj/LNi5oCzEcHtetvOS+GeqLr4EUSXbvco3djGP0YnOTL+eSuGOdvCMF2o/Q71spC3zk7M8QUzf0DyMaEuxQlYY5uWH0fCi5HMJr6UryIhmwnj4kKagHU/oY/OfjQEnvDRaHp6V8="
-
 before_install:
   - lsb_release -a
   - env | sort
-  - if [[ -z $TRAVIS_TAG ]]; then
-      echo -e "\n[egg_info]\ntag-build = dev$TRAVIS_BUILD_NUMBER" >> setup.cfg ;
-    fi
 
 install:
-  # Use [test!] the source distribution as installation medium:
-  - python setup.py sdist
-  - pip install ./dist/*.tar.gz
+  # Use [test!] the generated wheel as installation medium:
+  - python setup.py egg_info sdist bdist_wheel
+  - pip install ./dist/*.whl
 
   - pip install flake8 docutils pygments pytest twine
   - git clone git://github.com/hibtc/hit_models
   - pip install git+https://github.com/hibtc/hit_acs@master
 
 script:
-  - twine check dist/*.tar.gz
+  - twine check dist/*.tar.gz dist/*.whl
   - flake8
   - pytest tests
 
@@ -37,14 +26,8 @@ jobs:
   include:
     - stage: deploy
       name: Upload Documentation
-      install:
-        # At the time of writing PyQt5 must be installed using pip rather than
-        # `setup.py` to avoid ImportErrors 'No module named PyQt5.sip' later:
-        - pip install pyqt5
-        - pip install sphinx sphinx_rtd_theme
-        - python setup.py develop
-      script:
-        - make -C docs html
+      install: pip install . sphinx sphinx_rtd_theme
+      script: make -C docs html
       deploy:
         - provider: pages
           local-dir: docs/_build/html
@@ -52,18 +35,24 @@ jobs:
           github-token: $GITHUB_TOKEN
           on:
             branch: master
+      env:
+        # GITHUB_TOKEN
+        - secure: "Pdt8rdFHAwQ20jFF0Q3p0SWxbx+B0R5p55Yh3ujDF6UvWdMyTRKzOQs3giLkva5nZBmt9fb0mDa0fUSFCThgJRqd9E2ZCfU2QhD2DlCBJ+wA3EweaNosoiBWQwfeKFcJxtL6SkIsZxgZEx6XZrd3lVsqnFRX3W7fI0X6fIfBj4x+kPR/9AyUtsb2ls+6GJUk9OZxIpgsHhlBoXRJQ1KiS2o2mdBZGYt+Fl+K2RQzThqkFpc3WsubLeGszllUtvIzB3v1PzZGhLOeBVmH/ut6LT7QQJOwMT4YXKcE/0fIBzm33hHj5pphgnTZoX22/kFoLDD9N7vNs8zh3QoUj8f+obLOFNRZQk48MzBaukDwkObANE4tlVhh8Vr1wsX0UaVFrXoFLhMuTQ1BX4706UmEYLaUYxl4e607Lp9PTWStuFxdYnxoHRyHEFuCH9cjwin/YWZ9CoOIKUy0qwPR6YUU4VWd1LKbY6nisuHB541LSc9BoFZ144zz5+vVkZP9hkBSwFWI7FvOW7oBlDZniw5Ri37PmQOP4ikqlFEm9lut4LjXUEV0Cn3482mmPY3GT2uw2teHi6OlXq0LugNK7XD5DE0I67VdEj0pcNHFJ4jBVjlpHKJqWfoMHIs4jsW4XSJwQyz1SBcE3xJTcVb2mG9+FtJcwHmEeTt/hmoiWdg7REA="
 
     - stage: deploy
       name: Upload release to PyPI
       if: branch = test-release OR tag IS present
       install:
-        - pip install twine
-      script:
-        - python setup.py sdist bdist_wheel
-        - if [[ -z $TRAVIS_TAG ]]; then
-            export TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/ ;
-          fi
-        - twine upload dist/*.tar.gz dist/*.whl
+        - if [[ -n $TRAVIS_TAG ]]; then unset BUILD_TAG TWINE_REPOSITORY_URL; fi
+        - pip install twine wheel
+        - python setup.py egg_info -b "$BUILD_TAG" sdist bdist_wheel
+      script: twine upload dist/*.tar.gz dist/*.whl
+      env:
+        - TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
+        - TWINE_USERNAME=hibtc-deploy
+        # TWINE_PASSWORD:
+        - secure: "bmJ65gwbUZVJ8xpVPWGQXZK0cuOQWrF/zQQSFsFBoL4ZZMePWFFbXMMajPqgzdw8dA3KDKrJEWzQjfw6HE4Pdhne0CJMW0cODgBEEjZ+iRnMhHRaZAKiP+Jih8O3jgzC7sKWkW0BbSQOH3ml1i3oUAEoydxtVSpqgIgH4H+R0h1kh0aFoQ2WG5sLw+k+2CLGfcnYLyFHp+PfGvsEU0ADO1SX2BRTGrqi5/vup3rcovP8cFTWrgS/SpvNO7JdWMN3HMe63HmuY4HGx9YQerI0oczqCrJevplmkromW0qwkfZXmCt3pLnk+OS8qJ9v+m3PQuNql8AODGZNbdxuJJQKchKo7J15LMA5pUDvqR0GhSMeL7tPnI1zW6GOGrJtKFrC1hRMOc7hH+lprv8DS6IFMabK/4o6bOB+MFAxWge3dszJw9AZwzIXgSjkUWJe2zCXQBgXGXev0QnFUJRUe6eVsr2lOxCQxLc3Kirgfj4oqvlOGibCdCTnXiq1FPe87wiPiAxTP8pCbIhbpJcfi60JecnhW0WoWp1fJJoVj/LNi5oCzEcHtetvOS+GeqLr4EUSXbvco3djGP0YnOTL+eSuGOdvCMF2o/Q71spC3zk7M8QUzf0DyMaEuxQlYY5uWH0fCi5HMJr6UryIhmwnj4kKagHU/oY/OfjQEnvDRaHp6V8="
+        - BUILD_TAG=dev$TRAVIS_BUILD_NUMBER
 
 cache:
   pip: true
