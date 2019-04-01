@@ -32,7 +32,7 @@ import signal
 import sys
 from functools import partial
 
-from importlib_resources import read_binary
+from importlib_resources import read_text
 
 from docopt import docopt
 
@@ -57,7 +57,7 @@ def init_app(argv=None, gui=True):
     if gui:
         app = QtWidgets.qApp = QtWidgets.QApplication(argv)
         app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
-        app.setStyleSheet(read_binary('madgui.data', 'style.css').decode('utf-8'))
+        app.setStyleSheet(read_text('madgui.data', 'style.css'))
     else:
         app = QtWidgets.qApp = QtCore.QCoreApplication(argv)
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
