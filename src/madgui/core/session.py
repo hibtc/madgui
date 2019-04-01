@@ -41,9 +41,6 @@ class Session:
         user_ns.context = self
         user_ns.control = self.control
 
-    def __enter__(self):
-        return self
-
     def configure(self):
         paths = self.config.get('run_path', [])
         paths = [paths] if isinstance(paths, str) else paths
