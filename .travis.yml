@@ -4,21 +4,25 @@ python:
   - "3.7"
 dist: xenial
 
+env:
+  global:
+    - TAG_BUILD=dev$TRAVIS_BUILD_NUMBER
+
 before_install:
+  - if [[ -n $TRAVIS_TAG ]]; then unset TAG_BUILD TWINE_REPOSITORY_URL; fi
   - lsb_release -a
   - env | sort
 
 install:
-  # Use [test!] the generated wheel as installation medium:
-  - python setup.py egg_info sdist bdist_wheel
-  - pip install ./dist/*.whl
+  - python setup.py egg_info -b "$TAG_BUILD" sdist bdist_wheel
+  - pip install dist/*.whl
 
   - pip install flake8 docutils pygments pytest twine
-  - git clone git://github.com/hibtc/hit_models
   - pip install git+https://github.com/hibtc/hit_acs@master
+  - git clone git://github.com/hibtc/hit_models
 
 script:
-  - twine check dist/*.tar.gz dist/*.whl
+  - twine check dist/*
   - flake8
   - pytest tests
 
@@ -42,17 +46,12 @@ jobs:
     - stage: deploy
       name: Upload release to PyPI
       if: branch = test-release OR tag IS present
-      install:
-        - if [[ -n $TRAVIS_TAG ]]; then unset BUILD_TAG TWINE_REPOSITORY_URL; fi
-        - pip install twine wheel
-        - python setup.py egg_info -b "$BUILD_TAG" sdist bdist_wheel
-      script: twine upload dist/*.tar.gz dist/*.whl
+      script: twine upload dist/*
       env:
         - TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
         - TWINE_USERNAME=hibtc-deploy
         # TWINE_PASSWORD:
         - secure: "bmJ65gwbUZVJ8xpVPWGQXZK0cuOQWrF/zQQSFsFBoL4ZZMePWFFbXMMajPqgzdw8dA3KDKrJEWzQjfw6HE4Pdhne0CJMW0cODgBEEjZ+iRnMhHRaZAKiP+Jih8O3jgzC7sKWkW0BbSQOH3ml1i3oUAEoydxtVSpqgIgH4H+R0h1kh0aFoQ2WG5sLw+k+2CLGfcnYLyFHp+PfGvsEU0ADO1SX2BRTGrqi5/vup3rcovP8cFTWrgS/SpvNO7JdWMN3HMe63HmuY4HGx9YQerI0oczqCrJevplmkromW0qwkfZXmCt3pLnk+OS8qJ9v+m3PQuNql8AODGZNbdxuJJQKchKo7J15LMA5pUDvqR0GhSMeL7tPnI1zW6GOGrJtKFrC1hRMOc7hH+lprv8DS6IFMabK/4o6bOB+MFAxWge3dszJw9AZwzIXgSjkUWJe2zCXQBgXGXev0QnFUJRUe6eVsr2lOxCQxLc3Kirgfj4oqvlOGibCdCTnXiq1FPe87wiPiAxTP8pCbIhbpJcfi60JecnhW0WoWp1fJJoVj/LNi5oCzEcHtetvOS+GeqLr4EUSXbvco3djGP0YnOTL+eSuGOdvCMF2o/Q71spC3zk7M8QUzf0DyMaEuxQlYY5uWH0fCi5HMJr6UryIhmwnj4kKagHU/oY/OfjQEnvDRaHp6V8="
-        - BUILD_TAG=dev$TRAVIS_BUILD_NUMBER
 
 cache:
   pip: true
