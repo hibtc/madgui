@@ -29,5 +29,5 @@ Special thanks to my supervisors for their help and support:
 
 
 def get_copyright_notice():
-    from importlib_resources import read_binary
-    return read_binary('madgui.data', 'COPYING.txt').decode('utf-8')
+    from importlib_resources import read_text
+    return read_text('madgui.data', 'COPYING.txt')
