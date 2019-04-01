@@ -23,7 +23,7 @@ from cpymad.madx import (
 from cpymad.util import normalize_range_name
 from cpymad.types import VAR_TYPE_DIRECT, VAR_TYPE_DEFERRED
 
-from madgui.util.undo import UndoCommand, UndoStack
+from madgui.util.undo import UndoCommand
 from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
 from madgui.util.misc import memoize, invalidate
@@ -53,8 +53,9 @@ class Model:
         self.data = data
         self.filename = filename and os.path.abspath(filename)
         self.path, self.name = filename and os.path.split(filename)
-        self.undo_stack = UndoStack() if undo_stack is None else undo_stack
-        self.undo_stack.model = self
+        self.undo_stack = undo_stack
+        if undo_stack:
+            self.undo_stack.model = self
         self._init_segment(
             sequence=data['sequence'],
             range=data['range'],
@@ -196,14 +197,15 @@ class Model:
     def call(self, name):
         old = self.globals.defs
         new = _call(self.madx, self.path, name)
-        if new is None:
-            # Have to clear the stack because general MAD-X commands are not
-            # necessarily reversible (sequence definition, makethin, loading
-            # tables, etc)!
-            self.undo_stack.clear()
-        else:
-            text = "CALL {!r}".format(name)
-            self._update(old, new, self._update_globals, text)
+        if self.undo_stack:
+            if new is None:
+                # Have to clear the stack because general MAD-X commands are not
+                # necessarily reversible (sequence definition, makethin, loading
+                # tables, etc)!
+                self.undo_stack.clear()
+            else:
+                text = "CALL {!r}".format(name)
+                self._update(old, new, self._update_globals, text)
         self.invalidate()
 
     def load_strengths(self, filename):
@@ -314,7 +316,10 @@ class Model:
                 new, old, write, text.format(", ".join(_new))))
 
     def _exec(self, action):
-        self.undo_stack.push(action)
+        if self.undo_stack:
+            self.undo_stack.push(action)
+        else:
+            action.redo()
         return action
 
     def update_globals(self, globals, text="Change knobs: {}"):
