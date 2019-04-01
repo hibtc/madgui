@@ -76,6 +76,7 @@ class MainWindow(QMainWindow):
             'exec_folder': self.exec_folder,
             'str_folder': self.str_folder,
             'plot_windows': open_plot_windows + self.config.plot_windows,
+            'interpolate': self.config.interpolate,
         }
 
     def initUI(self):
@@ -435,16 +436,12 @@ class MainWindow(QMainWindow):
         return dialog
 
     def setInterpolate(self):
-        model = self.model()
-        if not model:
-            return
         text = "Number of points (0 to disable):"
         number, ok = QInputDialog.getInt(
             self, "Set number of data points", text,
-            value=model.interpolate, min=0)
+            value=self.config.interpolate, min=0)
         if ok:
-            model.interpolate = number
-            model.invalidate()
+            self.config.interpolate = number
 
     def refreshTwiss(self):
         """Redo twiss and redraw plot."""
@@ -527,7 +524,7 @@ class MainWindow(QMainWindow):
             stdout=self.dataReceived.emit,
             stderr=subprocess.STDOUT,
             undo_stack=self.undo_stack,
-            interpolate=400)
+            interpolate=self.config.interpolate)
 
     def _on_model_changed(self, old_model, model):
 

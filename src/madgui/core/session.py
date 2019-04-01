@@ -41,6 +41,13 @@ class Session:
         user_ns.context = self
         user_ns.control = self.control
 
+    def set_interpolate(self, points_per_meter):
+        self.config.interpolate = points_per_meter
+        model = self.model()
+        if model:
+            model.interpolate = points_per_meter
+            model.invalidate()
+
     def configure(self):
         paths = self.config.get('run_path', [])
         paths = [paths] if isinstance(paths, str) else paths
@@ -97,7 +104,7 @@ class Session:
 
     def model_args(self, filename):
         """Please OVERRIDE to provide custom model arguments."""
-        return {}
+        return {'interpolate': self.config.interpolate}
 
     def save(self, filename):
         """Save session state to file."""

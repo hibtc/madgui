@@ -46,6 +46,7 @@ model_path: ""
 load_default: ""
 exec_folder: ""
 str_folder: ""
+interpolate: 400
 
 monitors: {}
 
