@@ -3,6 +3,12 @@ This module provides a lightweight alternative for the ``QUndoStack`` that
 can be used in the absence of Qt and without initializing a ``QApplication``.
 """
 
+__all__ = [
+    'Command',
+    'UndoCommand',
+    'UndoStack',
+]
+
 from contextlib import contextmanager
 
 from madgui.util.misc import invalidate

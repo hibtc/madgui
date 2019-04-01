@@ -6,6 +6,9 @@ __all__ = [
     'SceneNode',
     'SimpleArtist',
     'SceneGraph',
+    'ListView',
+    'LineBundle',
+    'plot_line',
 ]
 
 

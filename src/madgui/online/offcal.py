@@ -1,3 +1,14 @@
+"""
+Defines a widget that can be used to estimate monitor offsets from online
+measurements (flawed approach).
+"""
+
+__all__ = [
+    'ResultItem',
+    'OffsetCalibrationWidget',
+    'fit_monitor_offsets',
+]
+
 import os
 from collections import namedtuple
 

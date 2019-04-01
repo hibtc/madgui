@@ -5,8 +5,13 @@ Parameter input dialog.
 # TODO: combobox for unit?
 
 __all__ = [
+    'ParamInfo',
     'ParamTable',
+    'CommandEdit',
+    'GlobalsEdit',
+    'MatrixTable',
     'TabParamTables',
+    'model_params_dialog',
 ]
 
 from functools import partial

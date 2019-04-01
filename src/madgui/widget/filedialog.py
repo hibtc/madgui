@@ -5,6 +5,8 @@ Utility functions for use with QFileDialog.
 __all__ = [
     'getOpenFileName',
     'getSaveFileName',
+    'getSaveFolderName',
+    'getFileName',
     'FileWidget',
 ]
 

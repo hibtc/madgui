@@ -2,6 +2,14 @@
 Config serialization utilities.
 """
 
+__all__ = [
+    'load',
+    'ConfigSection',
+    'user_home',
+    'user_config_path',
+    'user_session_path',
+]
+
 import os
 
 from madgui.util.signal import Signal

@@ -6,6 +6,22 @@ __all__ = [
     'TableItem',
     'TableModel',
     'TableView',
+    'TreeView',
+    'lookupDelegate',
+    'NodeItem',
+    'TreeNode',
+    'ItemView',
+    'ItemViewDelegate',
+    'ItemDelegate',
+    'StringDelegate',
+    'IntDelegate',
+    'BoolDelegate',
+    'QuantityDelegate',
+    'ExpressionDelegate',
+    'ListDelegate',
+    'EnumDelegate',
+    'ReadOnlyDelegate',
+    'AffixLineEdit',
 ]
 
 from inspect import getmro

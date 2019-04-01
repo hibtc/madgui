@@ -1,3 +1,19 @@
+"""
+Widgets for online beam diagnostic tasks, such as emittance estimation,
+adding monitor readouts to plot.
+"""
+
+__all__ = [
+    'MonitorWidget',
+    'MonitorWidgetBase',
+    'PlotMonitorWidget',
+    'OffsetsWidget',
+    'OrbitWidget',
+    'EmittanceDialog',
+    'solve_emit_sys',
+    'twiss_from_sigma',
+]
+
 import os
 from math import sqrt, isnan
 from collections import namedtuple

@@ -2,6 +2,11 @@
 UI for matching.
 """
 
+__all__ = [
+    'parse_knob',
+    'MatchWidget',
+]
+
 from PyQt5.QtWidgets import QAbstractItemView, QDialogButtonBox, QWidget
 
 from madgui.util.qt import load_ui

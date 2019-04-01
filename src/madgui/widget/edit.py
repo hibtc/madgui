@@ -1,3 +1,12 @@
+"""
+Provides an editor control with line numbers.
+"""
+
+__all__ = [
+    'LineNumberBar',
+    'TextEditDialog',
+]
+
 from PyQt5.QtCore import QRect, Qt, QSize
 from PyQt5.QtGui import QPainter
 from PyQt5.QtWidgets import QWidget, QDialog, QDialogButtonBox, QPlainTextEdit
@@ -63,6 +72,8 @@ class LineNumberBar(QWidget):
 
 
 class TextEditDialog(QDialog):
+
+    """Text edit dialog with line numbers."""
 
     def __init__(self, text, apply_callback):
         super().__init__()

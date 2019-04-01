@@ -2,6 +2,11 @@
 Utility functions to load numpy tables from files.
 """
 
+__all__ = [
+    'read_tfsfile',
+    'read_table',
+]
+
 from os.path import abspath
 
 import numpy as np

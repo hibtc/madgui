@@ -2,6 +2,10 @@
 Open an ipython shell in a widget
 """
 
+__all__ = [
+    'create',
+]
+
 from PyQt5.QtWidgets import QApplication
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.inprocess import QtInProcessKernelManager

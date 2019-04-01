@@ -2,6 +2,11 @@
 Simple enum type.
 """
 
+__all__ = [
+    'Enum',
+    'make_enum',
+]
+
 
 # Metaclass for creating enum classes:
 class EnumMeta(type):

@@ -3,6 +3,7 @@ About dialog that provides version and license information for the user.
 """
 
 __all__ = [
+    'VersionInfo',
     'AboutDialog',
 ]
 

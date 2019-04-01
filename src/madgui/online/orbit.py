@@ -1,3 +1,16 @@
+"""
+Contains functions to deduce initial particle coordinates from given
+measurements.
+"""
+
+__all__ = [
+    'Readout',
+    'add_offsets',
+    'fit_particle_readouts',
+    'fit_particle_orbit',
+    'fit_initial_orbit',
+]
+
 import numpy as np
 
 

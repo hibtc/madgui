@@ -1,3 +1,12 @@
+"""
+Contains a widget for measuring orbit response matrix in an online
+environment.
+"""
+
+__all__ = [
+    'MeasureWidget',
+]
+
 import os
 import re
 import time

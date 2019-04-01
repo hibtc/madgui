@@ -2,6 +2,15 @@
 Utility classes for creating widgets holding physical quantities.
 """
 
+__all__ = [
+    'AffixControlBase',
+    'DoubleValidator',
+    'ExpressionValidator',
+    'ValueControlBase',
+    'QuantityControlBase',
+    'QuantityDisplay',
+]
+
 from abc import abstractmethod
 import string
 import re

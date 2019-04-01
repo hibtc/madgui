@@ -8,6 +8,13 @@ Logging utils.
 # ? single line ListView overview over all log events ("quick jump")
 # ? deselect on single click
 
+__all__ = [
+    'LogRecord',
+    'RecordInfoBar',
+    'LogWindow',
+    'RecordHandler',
+]
+
 import sys
 import traceback
 import logging

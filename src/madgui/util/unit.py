@@ -32,12 +32,21 @@ The most frequent usage of this module is to convert a number between internal
 
 __all__ = [
     'units',
+    'get_unit',
+    'add_unit',
     'strip_unit',
+    'change_unit',
+    'toquantity',
     'tounit',
     'format_quantity',
     'get_raw_label',
     'from_config',
     'UnitConverter',
+    'madx_units',
+    'ui_units',
+    'convert',
+    'from_ui',
+    'to_ui',
 ]
 
 from numbers import Number
