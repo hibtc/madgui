@@ -8,7 +8,7 @@ or simply:
     madgui
 """
 
-__version__ = '19.3.3'
+__version__ = '19.4.0'
 
 __title__ = 'madgui'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'

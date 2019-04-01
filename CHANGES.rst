@@ -1,6 +1,25 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.4.0
+~~~~~~
+Date: 01.04.2019
+
+- drop python 3.5 compatibility, require at least 3.6
+- fix exception when trying to show plots if loading a madx file that includes
+  a ``SELECT, flag=TWISS`` command
+- fix weird matplotlib offset behaviour when showing a nearly constant quantity
+  (by plotting an invisible horizontal line at y=0)
+- add menuitem to redo twiss and refresh plot
+- add menuitem to set number of interpolation points
+- add config entry for number of interpolation points
+- fix some warnings/errors in documentation
+- replace QUndoStack by our own implementation to simplify using Model in
+  non-GUI contexts
+- remove QUndoView for now (limitation due to replacing QUndoStack)
+- simplify setup.py using static metadata and rework travis scripts
+
+
 19.3.3
 ~~~~~~
 Date: 21.03.2019
