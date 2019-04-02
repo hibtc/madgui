@@ -100,7 +100,7 @@ class CurveManager(QWidget):
 
     def _load_table(self, filename):
         from madgui.util.table import read_table, read_tfsfile
-        if filename.lower().rsplit('.')[-1] not in ('tfs', 'twiss'):
+        if not filename.lower().endswith(('.tfs', '.twiss')):
             return read_table(filename)
         model = self.scene.model
         table = read_tfsfile(filename)
