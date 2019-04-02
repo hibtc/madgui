@@ -115,7 +115,7 @@ def ranges(nums):
 
 def strip_suffix(s, suffix):
     """Strip a suffix from a string, if present."""
-    return s[:-len(suffix)] if s.endswith(suffix) else s
+    return s[:-len(suffix)] if s.endswith(suffix) and suffix else s
 
 
 def relpath(path, start):
