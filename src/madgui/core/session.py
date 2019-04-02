@@ -81,7 +81,7 @@ class Session:
     def load_model(self, name, **madx_args):
         filename = self.find_model(name)
         exts = ('.cpymad.yml', '.madx', '.str', '.seq')
-        if not any(map(filename.endswith, exts)):
+        if not filename.endswith(exts):
             raise NotImplementedError("Unsupported file format: {}"
                                       .format(filename))
         from madgui.model.madx import Model
