@@ -211,6 +211,13 @@ class LogWindow(QFrame):
         selection.cursor = cursor
 
         selections = self.textctrl.extraSelections()
+        if selections:
+            # Force the previous selection to end at the current block.
+            # Without this, all previous selections are be updated to span
+            # over the rest of the document, which dramatically impacts
+            # performance because it means that all selections need to be
+            # considered even if showing only the end of the document.
+            selections[-1].cursor.setPosition(pos0, QTextCursor.KeepAnchor)
         selections.append(selection)
         self.textctrl.setExtraSelections(selections)
         self.textctrl.ensureCursorVisible()
