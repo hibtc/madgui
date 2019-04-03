@@ -4,6 +4,8 @@ Info boxes to display element detail.
 
 __all__ = [
     'ElementInfoBox',
+    'EllipseWidget',
+    'InfoBoxGroup',
 ]
 
 from functools import partial

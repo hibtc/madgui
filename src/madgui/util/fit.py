@@ -2,6 +2,19 @@
 Utilities for fitting objective functions.
 """
 
+__all__ = [
+    'fit',
+    'supported_optimizers',
+    'reduced_chisq',
+    'fit_basinhopping',
+    'fit_diffevo',
+    'fit_minimize',
+    'fit_svd',
+    'fit_lstsq',
+    'fit_lstsq_oneshot',
+    'jac_twopoint',
+]
+
 from itertools import count
 from functools import partial
 

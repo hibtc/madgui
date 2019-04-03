@@ -1,3 +1,12 @@
+"""
+This module defines the toplevel context that is used in madgui to keep track
+of current model, config, online control, and mainwindow.
+"""
+
+__all__ = [
+    'Session',
+]
+
 import glob
 import os
 import sys
@@ -131,12 +140,15 @@ class Session:
 
 
 def subscribe(ns, key, boxed):
+    """Update ``ns[key]`` with the current value of a ``Boxed``."""
     setter = lambda val: setattr(ns, key, val)
     setter(boxed())
     boxed.changed.connect(setter)
 
 
 def expand_ext(path, *exts):
+    """Add the first of the given file extensions ``exts`` to ``path`` that
+    refers to an existing file."""
     for ext in exts:
         if os.path.isfile(path+ext):
             return path+ext

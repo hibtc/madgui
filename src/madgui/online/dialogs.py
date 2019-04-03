@@ -2,6 +2,13 @@
 Dialog for selecting DVM parameters to be synchronized.
 """
 
+__all__ = [
+    'SyncParamItem',
+    'SyncParamWidget',
+    'ImportParamWidget',
+    'ExportParamWidget',
+]
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QLabel, QWidget

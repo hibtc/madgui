@@ -1,3 +1,16 @@
+"""
+Contains classes to work with an automated measurement procedure that changes
+element parameters and records values whenever a new set of monitor readouts
+is received.
+"""
+
+__all__ = [
+    'OrbitRecord',
+    'Target',
+    'Corrector',
+    'ProcBot',
+]
+
 from itertools import accumulate, product
 import logging
 import textwrap

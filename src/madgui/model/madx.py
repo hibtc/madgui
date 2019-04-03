@@ -3,7 +3,14 @@ MAD-X backend for madgui.
 """
 
 __all__ = [
+    'FloorCoords',
     'Model',
+    'reverse_sequence',
+    'reverse_sequence_inplace',
+    'TwissTable',
+    '_guess_main_sequence',
+    '_get_seq_model',
+    '_get_twiss',
 ]
 
 import os
@@ -66,6 +73,8 @@ class Model:
         self.invalidate()
 
     def invalidate(self):
+        """Invalidate twiss and sectormap computations. Initiate
+        recomputation."""
         invalidate(self, 'twiss')
         invalidate(self, 'sector')
         self.updated.emit()
@@ -73,6 +82,8 @@ class Model:
     @classmethod
     def load_file(cls, filename, madx=None, *,
                   undo_stack=None, interpolate=0, **madx_kwargs):
+        """Load model from .madx or .yml file and pass additional arguments
+        to the Model constructor."""
         madx = madx or Madx(**madx_kwargs)
         madx.option(echo=False)
         filename = os.path.abspath(filename)
@@ -111,16 +122,18 @@ class Model:
         self.madx = None
 
     @property
-    def twiss_args(self):
+    def twiss_args(self) -> dict:
+        """Return the dictionary of parameters for the MAD-X TWISS command."""
         return self._twiss_args
 
     @property
-    def beam(self):
+    def beam(self) -> dict:
         """Get the beam parameter dictionary."""
         return self._beam
 
     @property
-    def globals(self):
+    def globals(self) -> dict:
+        """Return dict-like global variables."""
         return self.madx.globals
 
     def get_element_by_position(self, pos):
@@ -885,6 +898,16 @@ def negate_expr(value):
 
 
 class TwissTable(Table):
+
+    """
+    Provide the following features on top of :class:`cpymad.madx.Table`:
+
+    - add columns for one-sigma beam envelopes: envx, envy
+    - add columns for gamma optical function: gamx, gamy
+    - add aliases for beam position: posx, posy
+    - override twiss alfa/beta parameters and emittances from the sigma matrix,
+      i.e. in the local reference rather than normal coordinates.
+    """
 
     _transform = {
         'alfx': lambda self: -self.sig12 / self.ex,

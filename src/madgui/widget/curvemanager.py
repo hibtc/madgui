@@ -2,6 +2,10 @@
 Dialog for managing shown curves.
 """
 
+__all__ = [
+    'CurveManager',
+]
+
 import os
 
 import numpy as np

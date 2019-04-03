@@ -2,6 +2,12 @@
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
 
+__all__ = [
+    'Control',
+    'BeamSampler',
+    'MonitorReadout',
+]
+
 import logging
 from importlib import import_module
 import time

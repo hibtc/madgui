@@ -4,7 +4,12 @@ Misc programming toolbox.
 
 __all__ = [
     'memoize',
+    'invalidate',
     'cachedproperty',
+    'ranges',
+    'strip_suffix',
+    'relpath',
+    'userpath',
 ]
 
 import os

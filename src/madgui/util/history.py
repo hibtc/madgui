@@ -2,6 +2,10 @@
 Utility for managing a simple history.
 """
 
+__all__ = [
+    'History',
+]
+
 
 from madgui.util.signal import Signal
 

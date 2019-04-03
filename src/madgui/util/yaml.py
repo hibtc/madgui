@@ -19,15 +19,6 @@ mainly add these features:
 .. _YAML: https://en.wikipedia.org/wiki/YAML
 """
 
-import os
-from collections import OrderedDict
-
-from importlib_resources import read_binary
-
-import numpy as np
-import yaml
-
-
 # Let's not define bare `load`, `safe` for now:
 __all__ = [
     'load_file',
@@ -37,6 +28,15 @@ __all__ = [
     'ParserError',
     'ScannerError',
 ]
+
+import os
+from collections import OrderedDict
+
+from importlib_resources import read_binary
+
+import numpy as np
+import yaml
+
 
 # For speed:
 SafeLoader = getattr(yaml, 'CSafeLoader', yaml.SafeLoader)

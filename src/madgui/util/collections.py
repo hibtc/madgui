@@ -3,6 +3,8 @@ Observable collection classes.
 """
 
 __all__ = [
+    'Boxed',
+    'Bool',
     'List',
     'Selection'
 ]

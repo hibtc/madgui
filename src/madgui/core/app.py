@@ -24,6 +24,7 @@ Website:
 
 __all__ = [
     'main',
+    'init_app',
 ]
 
 import warnings
@@ -47,6 +48,11 @@ import madgui.core.config as config
 
 
 def init_app(argv=None, gui=True):
+    """
+    Initialize qt runtime, deal with common issues (such as installing an
+    exception handler), and return a ``QApplication`` object. If ``gui`` is
+    false, return a ``QCoreApplication`` instead.
+    """
     warnings.filterwarnings(
         "default", module='(madgui|cpymad|minrpc|pydicti).*')
     set_app_id('hit.madgui')
@@ -68,6 +74,7 @@ def init_app(argv=None, gui=True):
 
 
 def init_stdio():
+    """Prepare sys.stdout according to requirements in madgui's dependencies."""
     # If started as GUI script, there is usually no stdout. Some packages
     # don't like this and raise exceptions, e.g. pyqtconsole. Let's keep them
     # satisfied:

@@ -10,6 +10,11 @@ The user must add their derived :class:`Backend` to the madgui config as:
       backend: 'hit_acs.plugin:HitACS'
 """
 
+__all__ = [
+    'Backend',
+    'ParamInfo',
+]
+
 from abc import ABCMeta, abstractmethod
 from collections import namedtuple
 

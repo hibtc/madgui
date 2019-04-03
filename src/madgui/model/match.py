@@ -2,6 +2,13 @@
 Implementation of the matching system.
 """
 
+__all__ = [
+    'Constraint',
+    'MATCH_RULES',
+    'Matcher',
+    'MatchTransform',
+]
+
 import logging
 from collections import namedtuple
 

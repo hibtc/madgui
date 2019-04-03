@@ -5,6 +5,10 @@ Utility functions to deal with layouts.
 __all__ = [
     'VBoxLayout',
     'HBoxLayout',
+    'Spacing',
+    'Stretch',
+    'Strut',
+
 ]
 
 from PyQt5.QtWidgets import (
