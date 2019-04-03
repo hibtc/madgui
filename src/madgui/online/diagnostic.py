@@ -64,7 +64,7 @@ class MonitorWidgetBase(QWidget):
     Dialog for selecting SD monitor values to be imported.
     """
 
-    title = 'Set values in DVM from current sequence'
+    title = 'Set values in ACS from current sequence'
     headline = "Select for which monitors to plot measurements:"
     folder = None
 

@@ -33,5 +33,5 @@ class ManProcWidget(QWidget):
 
     def on_setOpticButton_clicked(self):
         # TODO: disable "write" button until another optic has been selected
-        # or the optic has changed in the DVM
+        # or the optic has changed in the ACS
         self.corrector.set_optic(self.opticComboBox.currentIndex())

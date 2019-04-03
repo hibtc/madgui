@@ -61,20 +61,20 @@ class OpticsTable(QWidget):
         ctrl = corr.control
         # TODO: this should be done with a more generic API
         # TODO: do this without beamoptikdll to decrease the waiting time
-        dvm = ctrl.backend.beamoptikdll
-        values, channels = dvm.GetMEFIValue()
-        vacc = dvm.GetSelectedVAcc()
+        acs = ctrl.backend.beamoptikdll
+        values, channels = acs.GetMEFIValue()
+        vacc = acs.GetSelectedVAcc()
         try:
             optics = []
             for focus in foci:
-                dvm.SelectMEFI(vacc, *channels._replace(focus=focus))
+                acs.SelectMEFI(vacc, *channels._replace(focus=focus))
                 optics.append({
                     par.lower(): ctrl.read_param(par)
                     for par in corr.selected['optics']
                 })
             corr.optics[:] = optics
         finally:
-            dvm.SelectMEFI(vacc, *channels)
+            acs.SelectMEFI(vacc, *channels)
 
     def on_optics_updated(self, *_):
         self.opticsTable.model().titles[1:] = [

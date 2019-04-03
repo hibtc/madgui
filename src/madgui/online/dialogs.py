@@ -1,5 +1,5 @@
 """
-Dialog for selecting DVM parameters to be synchronized.
+Dialog for selecting ACS parameters to be synchronized.
 """
 
 __all__ = [
@@ -22,31 +22,31 @@ from madgui.widget.params import export_params
 
 class SyncParamItem:
 
-    def __init__(self, param, dvm_value, mad_value):
+    def __init__(self, param, acs_value, mad_value):
         self.param = param
         self.name = param.name
         self.unit = get_raw_label(param.ui_unit)
-        self.dvm_value = change_unit(dvm_value, param.unit, param.ui_unit)
+        self.acs_value = change_unit(acs_value, param.unit, param.ui_unit)
         self.mad_value = change_unit(mad_value, param.unit, param.ui_unit)
 
 
 class SyncParamWidget(QWidget):
 
     """
-    Dialog for selecting DVM parameters to be synchronized.
+    Dialog for selecting ACS parameters to be synchronized.
     """
 
     # TODO: use CheckedStringValue to let user select which items to
     # import/export.
 
-    def get_row(self, i, p) -> ("Param", "DVM value", "MAD-X value", "Unit"):
+    def get_row(self, i, p) -> ("Param", "ACS value", "MAD-X value", "Unit"):
         style = [{}, {
             'font': bold(),
             'backgroundColor': QColor(Qt.gray),
-        } if p.dvm_value != p.mad_value else {}]
+        } if p.acs_value != p.mad_value else {}]
         return [
             TableItem(p.name),
-            TableItem(p.dvm_value, **style['dvm' in self.highlight]),
+            TableItem(p.acs_value, **style['acs' in self.highlight]),
             TableItem(p.mad_value, **style['mad' in self.highlight]),
             TableItem(p.unit),
         ]
@@ -84,11 +84,11 @@ class SyncParamWidget(QWidget):
 
 def ImportParamWidget():
     return SyncParamWidget(
-        'Import parameters from DVM',
-        'Import selected DVM parameters.', 'dvm')
+        'Import parameters from ACS',
+        'Import selected ACS parameters.', 'acs')
 
 
 def ExportParamWidget():
     return SyncParamWidget(
-        'Set values in DVM from current sequence',
-        'Overwrite selected DVM parameters.', 'mad')
+        'Set values in ACS from current sequence',
+        'Overwrite selected ACS parameters.', 'mad')

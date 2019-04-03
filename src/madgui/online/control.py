@@ -20,7 +20,7 @@ from madgui.util.qt import SingleWindow
 from madgui.util.collections import Bool, List
 
 # TODO: catch exceptions and display error messages
-# TODO: automate loading DVM parameters via model and/or named hook
+# TODO: automate loading ACS parameters via model and/or named hook
 
 
 class Control:
@@ -123,7 +123,7 @@ class Control:
             SyncParamItem(info, live.read_param(name), model.read_param(name))
             for name, info in self.get_knobs().items()
         ]
-        widget.data_key = 'dvm_parameters'
+        widget.data_key = 'acs_parameters'
         dialog = Dialog(self.session.window())
         dialog.setExportWidget(widget, self.session.folder)
         dialog.serious.updateButtons()
