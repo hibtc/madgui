@@ -100,6 +100,7 @@ class LogWindow(QFrame):
         self.setFont(monospace())
         self.textctrl = QPlainTextEdit()
         self.textctrl.setReadOnly(True)
+        self.textctrl.setUndoRedoEnabled(False)
         self.infobar = RecordInfoBar(self.textctrl, {}, set())
         self.linumbar = LineNumberBar(self.textctrl)
         self.setLayout(HBoxLayout([
