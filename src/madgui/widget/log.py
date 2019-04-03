@@ -125,6 +125,7 @@ class LogWindow(QFrame):
         self.loglevel = 'INFO'
         self._maxlen = 0
         self._rec_lines = deque()
+        self.default_format = QTextCharFormat()
 
     def set_maxlen(self, maxlen):
         maxlen = maxlen or 0
@@ -209,10 +210,6 @@ class LogWindow(QFrame):
     def _append_log(self, record):
         self.infobar.add_record(record)
         self._rec_lines.append(record.text.count('\n') + 1)
-        if record.domain not in self.formats:
-            self.textctrl.appendPlainText(record.text)
-            self.clip_text()
-            return
 
         # NOTE: For some reason, we must use `setPosition` in order to
         # guarantee a absolute, fixed selection (at least on linux). It seems
@@ -231,7 +228,7 @@ class LogWindow(QFrame):
         cursor.setPosition(pos1, QTextCursor.KeepAnchor)
 
         selection = QTextEdit.ExtraSelection()
-        selection.format = self.formats[record.domain]
+        selection.format = self.formats.get(record.domain, self.default_format)
         selection.cursor = cursor
 
         selections = self.textctrl.extraSelections()
@@ -245,9 +242,7 @@ class LogWindow(QFrame):
         selections.append(selection)
         self.textctrl.setExtraSelections(selections[-self.maxlen():])
         self.textctrl.ensureCursorVisible()
-        self.clip_text()
 
-    def clip_text(self):
         if self.maxlen():
             # setMaximumBlockCount() must *not* be in effect while inserting
             # the text, because it will mess with the cursor positions and
