@@ -2,7 +2,7 @@ Welcome to madgui's documentation!
 ==================================
 
 madgui_ is a Qt5 graphical user interface (GUI) written in Python, designed as
-an interactive frontent for MAD-X_. Given a MAD-X input file, madgui_ is
+an interactive frontend for MAD-X_. Given a MAD-X input file, madgui_ is
 capable of showing the simulated lattice in an interactive window. Up until
 now it offers a very comfortable graphical representation of relevant
 quantities (e.g. beam envelope, alpha and beta optical functions, emittance,
