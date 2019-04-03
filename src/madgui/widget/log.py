@@ -196,18 +196,17 @@ class LogWindow(QFrame):
     def rebuild_log(self):
         self.textctrl.clear()
         self.infobar.clear()
-        for record in self.records:
+        shown_records = [r for r in self.records if self.enabled(r.domain)]
+        for record in shown_records[-self.maxlen():]:
             self._append_log(record)
 
     def append(self, record):
         self.records.append(record)
         self._domains.add(record.domain)
-        self._append_log(record)
+        if self.enabled(record.domain):
+            self._append_log(record)
 
     def _append_log(self, record):
-        if not self.enabled(record.domain):
-            return
-
         self.infobar.add_record(record)
         self._rec_lines.append(record.text.count('\n') + 1)
         if record.domain not in self.formats:
