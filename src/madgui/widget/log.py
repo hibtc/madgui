@@ -19,7 +19,7 @@ import sys
 import traceback
 import logging
 import time
-from collections import namedtuple
+from collections import namedtuple, deque
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QTextCharFormat, QTextCursor, QTextFormat
@@ -48,6 +48,7 @@ class RecordInfoBar(LineNumberBar):
         font.setBold(True)
         self.setFont(font)
         self.adjustWidth(1)
+        self._curlen = 0
 
     def enable_timestamps(self, enable):
         self.show_time = enable
@@ -58,7 +59,9 @@ class RecordInfoBar(LineNumberBar):
         self.adjustWidth(1)
 
     def draw_block(self, painter, rect, block, first):
-        count = block.blockNumber()+1
+        total = self.edit.document().blockCount()
+        outed = self._curlen - (total-1)
+        count = block.blockNumber() + outed
         if count in self.records:
             painter.setPen(QColor(Qt.black))
         elif first:
@@ -81,6 +84,16 @@ class RecordInfoBar(LineNumberBar):
         width_base = fm.width(": ")
         return width_time * bool(self.show_time) + width_kind + width_base
 
+    def add_record(self, record):
+        self.records[self._curlen] = record
+        self.domains.add(record.domain)
+        self._curlen += record.text.count('\n') + 1
+
+    def clear(self):
+        self._curlen = 0
+        self.records.clear()
+        self.domains.clear()
+
 
 class LogWindow(QFrame):
 
@@ -100,6 +113,7 @@ class LogWindow(QFrame):
         self.setFont(monospace())
         self.textctrl = QPlainTextEdit()
         self.textctrl.setReadOnly(True)
+        self.textctrl.setUndoRedoEnabled(False)
         self.infobar = RecordInfoBar(self.textctrl, {}, set())
         self.linumbar = LineNumberBar(self.textctrl)
         self.setLayout(HBoxLayout([
@@ -109,6 +123,19 @@ class LogWindow(QFrame):
         self._enabled = {}
         self._domains = set()
         self.loglevel = 'INFO'
+        self._maxlen = 0
+        self._rec_lines = deque()
+        self.default_format = QTextCharFormat()
+
+    def set_maxlen(self, maxlen):
+        maxlen = maxlen or 0
+        if self._maxlen != maxlen:
+            self._maxlen = maxlen
+            self._rec_lines = deque(maxlen=maxlen)
+            self.rebuild_log()
+
+    def maxlen(self):
+        return self._maxlen
 
     def highlight(self, domain, color):
         format = QTextCharFormat()
@@ -169,24 +196,20 @@ class LogWindow(QFrame):
 
     def rebuild_log(self):
         self.textctrl.clear()
-        self.infobar.records.clear()
-        self.infobar.domains.clear()
-        for record in self.records:
+        self.infobar.clear()
+        shown_records = [r for r in self.records if self.enabled(r.domain)]
+        for record in shown_records[-self.maxlen():]:
             self._append_log(record)
 
     def append(self, record):
+        self.records.append(record)
         self._domains.add(record.domain)
-        self._append_log(record)
+        if self.enabled(record.domain):
+            self._append_log(record)
 
     def _append_log(self, record):
-        if not self.enabled(record.domain):
-            return
-
-        self.infobar.records[self.textctrl.document().blockCount()] = record
-        self.infobar.domains.add(record.domain)
-        if record.domain not in self.formats:
-            self.textctrl.appendPlainText(record.text)
-            return
+        self.infobar.add_record(record)
+        self._rec_lines.append(record.text.count('\n') + 1)
 
         # NOTE: For some reason, we must use `setPosition` in order to
         # guarantee a absolute, fixed selection (at least on linux). It seems
@@ -205,13 +228,28 @@ class LogWindow(QFrame):
         cursor.setPosition(pos1, QTextCursor.KeepAnchor)
 
         selection = QTextEdit.ExtraSelection()
-        selection.format = self.formats[record.domain]
+        selection.format = self.formats.get(record.domain, self.default_format)
         selection.cursor = cursor
 
         selections = self.textctrl.extraSelections()
+        if selections:
+            # Force the previous selection to end at the current block.
+            # Without this, all previous selections are be updated to span
+            # over the rest of the document, which dramatically impacts
+            # performance because it means that all selections need to be
+            # considered even if showing only the end of the document.
+            selections[-1].cursor.setPosition(pos0, QTextCursor.KeepAnchor)
         selections.append(selection)
-        self.textctrl.setExtraSelections(selections)
+        self.textctrl.setExtraSelections(selections[-self.maxlen():])
         self.textctrl.ensureCursorVisible()
+
+        if self.maxlen():
+            # setMaximumBlockCount() must *not* be in effect while inserting
+            # the text, because it will mess with the cursor positions and
+            # make it nearly impossible to create a proper ExtraSelection!
+            num_lines = sum(self._rec_lines)
+            self.textctrl.setMaximumBlockCount(num_lines + 1)
+            self.textctrl.setMaximumBlockCount(0)
 
 
 class RecordHandler(logging.Handler):
