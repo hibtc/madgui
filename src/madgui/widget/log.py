@@ -19,7 +19,7 @@ import sys
 import traceback
 import logging
 import time
-from collections import namedtuple
+from collections import namedtuple, deque
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QTextCharFormat, QTextCursor, QTextFormat
@@ -124,11 +124,13 @@ class LogWindow(QFrame):
         self._domains = set()
         self.loglevel = 'INFO'
         self._maxlen = 0
+        self._rec_lines = deque()
 
     def set_maxlen(self, maxlen):
         maxlen = maxlen or 0
         if self._maxlen != maxlen:
             self._maxlen = maxlen
+            self._rec_lines = deque(maxlen=maxlen)
             self.rebuild_log()
 
     def maxlen(self):
@@ -207,6 +209,7 @@ class LogWindow(QFrame):
             return
 
         self.infobar.add_record(record)
+        self._rec_lines.append(record.text.count('\n') + 1)
         if record.domain not in self.formats:
             self.textctrl.appendPlainText(record.text)
             self.clip_text()
@@ -240,11 +243,8 @@ class LogWindow(QFrame):
             # performance because it means that all selections need to be
             # considered even if showing only the end of the document.
             selections[-1].cursor.setPosition(pos0, QTextCursor.KeepAnchor)
-        if self.maxlen():
-            # Remove obsolete (empty) selections:
-            selections = [s for s in selections if s.cursor.selectionEnd() > 0]
         selections.append(selection)
-        self.textctrl.setExtraSelections(selections)
+        self.textctrl.setExtraSelections(selections[-self.maxlen():])
         self.textctrl.ensureCursorVisible()
         self.clip_text()
 
@@ -253,7 +253,8 @@ class LogWindow(QFrame):
             # setMaximumBlockCount() must *not* be in effect while inserting
             # the text, because it will mess with the cursor positions and
             # make it nearly impossible to create a proper ExtraSelection!
-            self.textctrl.setMaximumBlockCount(self.maxlen()+1)
+            num_lines = sum(self._rec_lines)
+            self.textctrl.setMaximumBlockCount(num_lines + 1)
             self.textctrl.setMaximumBlockCount(0)
 
 
