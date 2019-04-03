@@ -64,6 +64,7 @@ class MainWindow(QMainWindow):
             'logging': {
                 'enable': self.logWidget.logging_enabled,
                 'level': self.logWidget.loglevel,
+                'maxlen': self.logWidget.maxlen(),
                 'times': {
                     'enable': self.logWidget.infobar.show_time,
                     'format': self.logWidget.infobar.time_format,
@@ -71,7 +72,7 @@ class MainWindow(QMainWindow):
                 'madx': {
                     'in': self.logWidget.enabled('SEND'),
                     'out': self.logWidget.enabled('MADX'),
-                }
+                },
             },
             'exec_folder': self.exec_folder,
             'str_folder': self.str_folder,
@@ -164,6 +165,10 @@ class MainWindow(QMainWindow):
                 Item('&Spin box', None,
                      'Display spinboxes for number input controls',
                      self.toggleSpinBox, checked=self.config.number.spinbox),
+                Separator,
+                Item('&Log size limit', None,
+                     'Set number of log entries.',
+                     self.setLogSize),
                 Separator,
                 Item('&Increase font size', QKeySequence.ZoomIn,
                      'Increase font size',
@@ -261,6 +266,7 @@ class MainWindow(QMainWindow):
 
         log_conf = self.config.logging
         self.logWidget.setup_logging(logging.DEBUG)
+        self.logWidget.set_maxlen(log_conf.maxlen)
         self.logWidget.infobar.enable_timestamps(log_conf.times.enable)
         self.logWidget.infobar.set_timeformat(log_conf.times.format)
         self.logWidget.enable_logging(log_conf.enable)
@@ -434,6 +440,14 @@ class MainWindow(QMainWindow):
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Matching constraints.")
         return dialog
+
+    def setLogSize(self):
+        text = "Maximum log size (0 for infinite):"
+        number, ok = QInputDialog.getInt(
+            self, "Set log size", text,
+            value=self.logWidget.maxlen(), min=0)
+        if ok:
+            self.logWidget.set_maxlen(number)
 
     def setInterpolate(self):
         text = "Number of points (0 to disable):"

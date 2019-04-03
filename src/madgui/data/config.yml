@@ -34,6 +34,7 @@ online_control:
 logging:
   enable: true
   level: info
+  maxlen: 1000
   times:
     enable: false
     format: "%H:%M:%S"

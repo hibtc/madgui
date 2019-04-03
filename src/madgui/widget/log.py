@@ -48,6 +48,7 @@ class RecordInfoBar(LineNumberBar):
         font.setBold(True)
         self.setFont(font)
         self.adjustWidth(1)
+        self._curlen = 0
 
     def enable_timestamps(self, enable):
         self.show_time = enable
@@ -58,7 +59,9 @@ class RecordInfoBar(LineNumberBar):
         self.adjustWidth(1)
 
     def draw_block(self, painter, rect, block, first):
-        count = block.blockNumber()+1
+        total = self.edit.document().blockCount()
+        outed = self._curlen - (total-1)
+        count = block.blockNumber() + outed
         if count in self.records:
             painter.setPen(QColor(Qt.black))
         elif first:
@@ -80,6 +83,16 @@ class RecordInfoBar(LineNumberBar):
         width_kind = max(map(fm.width, self.domains), default=0)
         width_base = fm.width(": ")
         return width_time * bool(self.show_time) + width_kind + width_base
+
+    def add_record(self, record):
+        self.records[self._curlen] = record
+        self.domains.add(record.domain)
+        self._curlen += record.text.count('\n') + 1
+
+    def clear(self):
+        self._curlen = 0
+        self.records.clear()
+        self.domains.clear()
 
 
 class LogWindow(QFrame):
@@ -110,6 +123,16 @@ class LogWindow(QFrame):
         self._enabled = {}
         self._domains = set()
         self.loglevel = 'INFO'
+        self._maxlen = 0
+
+    def set_maxlen(self, maxlen):
+        maxlen = maxlen or 0
+        if self._maxlen != maxlen:
+            self._maxlen = maxlen
+            self.rebuild_log()
+
+    def maxlen(self):
+        return self._maxlen
 
     def highlight(self, domain, color):
         format = QTextCharFormat()
@@ -170,8 +193,7 @@ class LogWindow(QFrame):
 
     def rebuild_log(self):
         self.textctrl.clear()
-        self.infobar.records.clear()
-        self.infobar.domains.clear()
+        self.infobar.clear()
         for record in self.records:
             self._append_log(record)
 
@@ -184,10 +206,10 @@ class LogWindow(QFrame):
         if not self.enabled(record.domain):
             return
 
-        self.infobar.records[self.textctrl.document().blockCount()] = record
-        self.infobar.domains.add(record.domain)
+        self.infobar.add_record(record)
         if record.domain not in self.formats:
             self.textctrl.appendPlainText(record.text)
+            self.clip_text()
             return
 
         # NOTE: For some reason, we must use `setPosition` in order to
@@ -218,9 +240,21 @@ class LogWindow(QFrame):
             # performance because it means that all selections need to be
             # considered even if showing only the end of the document.
             selections[-1].cursor.setPosition(pos0, QTextCursor.KeepAnchor)
+        if self.maxlen():
+            # Remove obsolete (empty) selections:
+            selections = [s for s in selections if s.cursor.selectionEnd() > 0]
         selections.append(selection)
         self.textctrl.setExtraSelections(selections)
         self.textctrl.ensureCursorVisible()
+        self.clip_text()
+
+    def clip_text(self):
+        if self.maxlen():
+            # setMaximumBlockCount() must *not* be in effect while inserting
+            # the text, because it will mess with the cursor positions and
+            # make it nearly impossible to create a proper ExtraSelection!
+            self.textctrl.setMaximumBlockCount(self.maxlen()+1)
+            self.textctrl.setMaximumBlockCount(0)
 
 
 class RecordHandler(logging.Handler):
