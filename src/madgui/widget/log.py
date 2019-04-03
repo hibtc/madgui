@@ -175,6 +175,7 @@ class LogWindow(QFrame):
             self._append_log(record)
 
     def append(self, record):
+        self.records.append(record)
         self._domains.add(record.domain)
         self._append_log(record)
 
