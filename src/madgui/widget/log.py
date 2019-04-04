@@ -1,5 +1,6 @@
 """
-Logging utils.
+This module defines the parts involved in redirecting all logging events to a
+window.
 """
 
 __all__ = [
@@ -31,10 +32,16 @@ LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text'])
 
 class RecordInfoBar(LineNumberBar):
 
-    def __init__(self, edit, records, domains,
-                 time_format='%H:%M:%S', show_time=True):
-        self.records = records
-        self.domains = domains
+    """
+    Widget that shows log domain and time next to the log widget text.
+
+    This class is taylored toward the behaviour of :class:`LogWindow` and
+    should not be instanciated from elsewhere.
+    """
+
+    def __init__(self, edit, time_format='%H:%M:%S', show_time=True):
+        self.records = {}
+        self.domains = set()
         self.show_time = show_time
         self.time_format = time_format
         super().__init__(edit)
@@ -42,17 +49,33 @@ class RecordInfoBar(LineNumberBar):
         font.setBold(True)
         self.setFont(font)
         self.adjustWidth(1)
+        # Keeps track of the total line number of all appended records. This
+        # is needed for looking up previously inserted blocks by line number,
+        # even if line numbers have changed, due to the maxlen feature:
         self._curlen = 0
 
-    def enable_timestamps(self, enable):
+    def enable_timestamps(self, enable: bool):
+        """Turn on display of times, recalculate geometry, and redraw."""
         self.show_time = enable
         self.adjustWidth(1)
 
-    def set_timeformat(self, format):
+    def set_timeformat(self, format: str):
+        """Set a time display format for use with :func:`time.strftime`,
+        recalculate geometry, and redraw."""
         self.time_format = format
         self.adjustWidth(1)
 
     def draw_block(self, painter, rect, block, first):
+        """Draw the info corresponding to a given block (text line) of the text
+        document.
+
+        This overrides :class:`LineNumberBar.draw_block`.
+
+        :param QPainter painter: painter for the current widget
+        :param QRect rect: clipping rect for the text to be drawn
+        :param QTextBlock block: associated text block in the text edit
+        :param bool first: indicates the topmost visible block on screen
+        """
         total = self.edit.document().blockCount()
         outed = self._curlen - (total-1)
         count = block.blockNumber() + outed
@@ -71,19 +94,27 @@ class RecordInfoBar(LineNumberBar):
                 text = ' '.join(parts) + ':' or ''
                 painter.drawText(rect, Qt.AlignLeft, text)
 
-    def calc_width(self, count):
+    def calc_width(self, count: int = 0) -> int:
+        """Calculate the required widget width in pixels.
+
+        :param int count: ignored here
+
+        This overrides :class:`LineNumberBar.calc_width`."""
         fm = self.fontMetrics()
         width_time = fm.width("23:59:59")
         width_kind = max(map(fm.width, self.domains), default=0)
         width_base = fm.width(": ")
         return width_time * bool(self.show_time) + width_kind + width_base
 
-    def add_record(self, record):
+    def add_record(self, record: LogRecord):
+        """Called by :class:`LogWindow` when it adds a visible record."""
         self.records[self._curlen] = record
         self.domains.add(record.domain)
         self._curlen += record.text.count('\n') + 1
 
     def clear(self):
+        """Called by :class:`LogWindow` before rebuilding the list of
+        displayed records."""
         self._curlen = 0
         self.records.clear()
         self.domains.clear()
@@ -103,7 +134,7 @@ class LogWindow(QFrame):
         self.textctrl = QPlainTextEdit()
         self.textctrl.setReadOnly(True)
         self.textctrl.setUndoRedoEnabled(False)
-        self.infobar = RecordInfoBar(self.textctrl, {}, set())
+        self.infobar = RecordInfoBar(self.textctrl)
         self.linumbar = LineNumberBar(self.textctrl)
         self.setLayout(HBoxLayout([
             self.infobar, self.linumbar, self.textctrl], tight=True))
@@ -117,73 +148,96 @@ class LogWindow(QFrame):
         self.default_format = QTextCharFormat()
 
     @property
-    def maxlen(self):
+    def maxlen(self) -> int:
         """Maximum number of displayed log records. Default is ``0`` which
         means infinite."""
         return self._maxlen
 
     @maxlen.setter
-    def maxlen(self, maxlen):
+    def maxlen(self, maxlen: int):
         maxlen = maxlen or 0
         if self._maxlen != maxlen:
             self._maxlen = maxlen
             self._rec_lines = deque(maxlen=maxlen)
             self.rebuild_log()
 
-    def highlight(self, domain, color):
+    def highlight(self, domain: str, color: QColor):
+        """Configure log records with the given *domain* to be colorized in
+        the given color."""
         format = QTextCharFormat()
         format.setProperty(QTextFormat.FullWidthSelection, True)
         format.setBackground(color)
         self.formats[domain] = format
 
-    def setup_logging(self, level=logging.INFO, fmt='%(message)s'):
-        self.loglevel = logging.getLevelName(level)
+    def setup_logging(self, level: str = 'INFO', fmt: str = '%(message)s'):
+        """Redirect exceptions and :mod:`logging` to this widget."""
+        level = (logging.getLevelName(level)
+                 if isinstance(level, int) else level.upper())
+        self.loglevel = level
         self.logging_enabled = True
         root = logging.getLogger('')
         formatter = logging.Formatter(fmt)
         handler = RecordHandler(self)
         handler.setFormatter(formatter)
         root.addHandler(handler)
-        root.level = level
+        root.setLevel(level)
         sys.excepthook = self.excepthook
 
-    def enable_logging(self, enable):
+    def enable_logging(self, enable: bool):
+        """Turn on/off display of :mod:`logging` log events."""
         self.logging_enabled = enable
         self.set_loglevel(self.loglevel)
 
-    def set_loglevel(self, loglevel):
+    def set_loglevel(self, loglevel: str):
+        """Set minimum log level of displayed log events."""
         self.loglevel = loglevel = loglevel.upper()
         index = LOGLEVELS.index(loglevel)
         if any([self._enable(level, i <= index and self.logging_enabled)
                 for i, level in enumerate(LOGLEVELS)]):
             self.rebuild_log()
 
-    def enable(self, domain, enable):
+    def enable(self, domain: str, enable: bool):
+        """Turn on/off log records with the given domain."""
         if self._enable(domain, enable):
             self.rebuild_log()
 
-    def _enable(self, domain, enable):
+    def _enable(self, domain: str, enable: bool) -> bool:
+        """Internal method to turn on/off display of log records with the
+        given domain.
+
+        Returns whether calling :meth:`rebuild_log` is necessary."""
         if self.enabled(domain) != enable:
             self._enabled[domain] = enable
             return self.has_entries(domain)
         return False
 
-    def enabled(self, domain):
+    def enabled(self, domain: str) -> bool:
+        """Return if the given domain is configured to be displayed."""
         return self._enabled.get(domain, True)
 
-    def has_entries(self, domain):
+    def has_entries(self, domain: str) -> bool:
+        """Return if any log records with the given domain have been
+        emitted."""
         return domain in self._domains
 
-    def recv_log(self, domain, text):
+    def append_from_binary_stream(self, domain, text, encoding='utf-8'):
+        """Append a log record from a binary utf-8 text stream."""
+        text = text.strip().decode(encoding, 'replace')
         if text:
-            self.append(LogRecord(
-                time.time(), domain, text.decode('utf-8', 'replace').rstrip()))
+            self.append(LogRecord(time.time(), domain, text))
 
     def excepthook(self, *args, **kwargs):
+        """Exception handler that prints exceptions and appends a log record
+        instead of exiting."""
         traceback.print_exception(*args, **kwargs)
         logging.error("".join(traceback.format_exception(*args, **kwargs)))
 
     def rebuild_log(self):
+        """Clear and reinsert all configured log records into the text
+        control.
+
+        This is used internally if the configuration has changed such that
+        previously invisible log entries become visible or vice versa."""
         self.textctrl.clear()
         self.infobar.clear()
         shown_records = [r for r in self.records if self.enabled(r.domain)]
@@ -191,12 +245,15 @@ class LogWindow(QFrame):
             self._append_log(record)
 
     def append(self, record):
+        """Add a :class:`LogRecord`. This can be called by users!"""
         self.records.append(record)
         self._domains.add(record.domain)
         if self.enabled(record.domain):
             self._append_log(record)
 
     def _append_log(self, record):
+        """Internal method to insert a displayed record into the underlying
+        :class:`QPlainTextEdit`."""
         self.infobar.add_record(record)
         self._rec_lines.append(record.text.count('\n') + 1)
 
@@ -243,14 +300,20 @@ class LogWindow(QFrame):
 
 class RecordHandler(logging.Handler):
 
-    """Handle incoming logging events by adding them to a list."""
+    """Handler class that is needed for forwarding :mod:`logging` log events
+    to :class:`LogWindow`.
 
-    def __init__(self, records):
+    This class is instanciated by :meth:`LogWindow.setup_logging` and there
+    should be no need to instanciate it anywhere else."""
+
+    def __init__(self, log_window: LogWindow):
         super().__init__()
-        self.records = records
+        self.log_window = log_window
 
     def emit(self, record):
-        self.records.append(LogRecord(
+        """Override :meth:`logging.Handler.emit` to append to
+        :class:`LogWindow`."""
+        self.log_window.append(LogRecord(
             record.created,
             record.levelname,
             self.format(record),

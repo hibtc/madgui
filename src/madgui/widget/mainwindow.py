@@ -265,7 +265,7 @@ class MainWindow(QMainWindow):
         self.logWidget.highlight('CRITICAL', QColor(Qt.red))
 
         log_conf = self.config.logging
-        self.logWidget.setup_logging(logging.DEBUG)
+        self.logWidget.setup_logging('DEBUG')
         self.logWidget.maxlen = log_conf.maxlen
         self.logWidget.infobar.enable_timestamps(log_conf.times.enable)
         self.logWidget.infobar.set_timeformat(log_conf.times.format)
@@ -274,7 +274,8 @@ class MainWindow(QMainWindow):
         self.logWidget.enable('SEND', log_conf.madx['in'])
         self.logWidget.enable('MADX', log_conf.madx['out'])
 
-        self.dataReceived.connect(partial(self.logWidget.recv_log, 'MADX'))
+        self.dataReceived.connect(partial(
+            self.logWidget.append_from_binary_stream, 'MADX'))
 
         self.timeCheckBox.setChecked(self.logWidget.infobar.show_time)
         self.loggingCheckBox.setChecked(self.logWidget.logging_enabled)
