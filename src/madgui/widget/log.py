@@ -152,14 +152,11 @@ class LogWindow(QFrame):
         self.loglevel = logging.getLevelName(level)
         self.logging_enabled = True
         root = logging.getLogger('')
-        manager = logging.Manager(root)
         formatter = logging.Formatter(fmt)
         handler = RecordHandler(self)
         handler.setFormatter(formatter)
         root.addHandler(handler)
         root.level = level
-        # store member variables:
-        self._log_manager = manager
         sys.excepthook = self.excepthook
 
     def enable_logging(self, enable):
