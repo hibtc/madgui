@@ -2,12 +2,6 @@
 Logging utils.
 """
 
-# TODO:
-# - filter log according to log message type
-# - right click context menu: copy
-# ? single line ListView overview over all log events ("quick jump")
-# ? deselect on single click
-
 __all__ = [
     'LogRecord',
     'RecordInfoBar',
@@ -103,11 +97,6 @@ class LogWindow(QFrame):
     http://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
     """
 
-    # TODO:
-    # - add toggle buttons to show/hide specific domains, and titles+timestamps
-    # - A more advanced version could use QTextEdit with QSyntaxHighlighter:
-    #   http://doc.qt.io/qt-5/qtwidgets-richtext-syntaxhighlighter-example.html
-
     def __init__(self, *args):
         super().__init__(*args)
         self.setFont(monospace())
@@ -148,7 +137,6 @@ class LogWindow(QFrame):
         self.formats[domain] = format
 
     def setup_logging(self, level=logging.INFO, fmt='%(message)s'):
-        # TODO: MAD-X log should be separate from basic logging
         self.loglevel = logging.getLevelName(level)
         self.logging_enabled = True
         root = logging.getLogger('')
