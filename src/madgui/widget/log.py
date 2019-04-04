@@ -127,15 +127,19 @@ class LogWindow(QFrame):
         self._rec_lines = deque()
         self.default_format = QTextCharFormat()
 
-    def set_maxlen(self, maxlen):
+    @property
+    def maxlen(self):
+        """Maximum number of displayed log records. Default is ``0`` which
+        means infinite."""
+        return self._maxlen
+
+    @maxlen.setter
+    def maxlen(self, maxlen):
         maxlen = maxlen or 0
         if self._maxlen != maxlen:
             self._maxlen = maxlen
             self._rec_lines = deque(maxlen=maxlen)
             self.rebuild_log()
-
-    def maxlen(self):
-        return self._maxlen
 
     def highlight(self, domain, color):
         format = QTextCharFormat()
@@ -198,7 +202,7 @@ class LogWindow(QFrame):
         self.textctrl.clear()
         self.infobar.clear()
         shown_records = [r for r in self.records if self.enabled(r.domain)]
-        for record in shown_records[-self.maxlen():]:
+        for record in shown_records[-self.maxlen:]:
             self._append_log(record)
 
     def append(self, record):
@@ -240,10 +244,10 @@ class LogWindow(QFrame):
             # considered even if showing only the end of the document.
             selections[-1].cursor.setPosition(pos0, QTextCursor.KeepAnchor)
         selections.append(selection)
-        self.textctrl.setExtraSelections(selections[-self.maxlen():])
+        self.textctrl.setExtraSelections(selections[-self.maxlen:])
         self.textctrl.ensureCursorVisible()
 
-        if self.maxlen():
+        if self.maxlen:
             # setMaximumBlockCount() must *not* be in effect while inserting
             # the text, because it will mess with the cursor positions and
             # make it nearly impossible to create a proper ExtraSelection!
