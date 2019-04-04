@@ -14,7 +14,8 @@ import sys
 import traceback
 import logging
 import time
-from collections import namedtuple, deque
+from dataclasses import dataclass
+from collections import deque
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QTextCharFormat, QTextCursor, QTextFormat
@@ -27,7 +28,13 @@ from madgui.widget.edit import LineNumberBar
 
 LOGLEVELS = [None, 'CRITICAL', 'ERROR', 'WARNING',  'INFO', 'DEBUG']
 
-LogRecord = namedtuple('LogRecord', ['time', 'domain', 'text'])
+
+@dataclass
+class LogRecord:
+    """Metadata for a log record."""
+    time: float
+    domain: str
+    text: str
 
 
 class RecordInfoBar(LineNumberBar):
