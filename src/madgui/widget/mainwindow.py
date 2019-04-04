@@ -528,7 +528,7 @@ class MainWindow(QMainWindow):
 
     def _showAboutDialog(self, module):
         import madgui.widget.about as about
-        info = about.VersionInfo(module)
+        info = about.VersionInfo.from_module(module)
         return about.AboutDialog(info, self)
 
     # Update state

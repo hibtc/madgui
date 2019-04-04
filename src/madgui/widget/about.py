@@ -1,11 +1,15 @@
 """
-About dialog that provides version and license information for the user.
+A dialog that displays version and license information about given software
+components.
 """
 
 __all__ = [
     'VersionInfo',
     'AboutDialog',
+    'AboutWidget',
 ]
+
+from dataclasses import dataclass, field
 
 import docutils.core
 from PyQt5.QtWidgets import QFrame, QPushButton, QTextBrowser
@@ -13,19 +17,29 @@ from PyQt5.QtWidgets import QFrame, QPushButton, QTextBrowser
 from madgui.widget.dialog import Dialog
 
 
+@dataclass
 class VersionInfo:
 
-    def __init__(self, module):
+    name: str
+    version: str
+    description: str = field(repr=False)
+    website: str = field(repr=False)
+    license: str = field(repr=False)
+    credits: str = field(repr=False)
+
+    @classmethod
+    def from_module(cls, module):
         """
         Get a :class:`VersionInfo` for a module/package or other object that
         has meta variables similar to :mod:`madgui`.
         """
-        self.name = module.__title__
-        self.version = module.__version__
-        self.description = module.__summary__
-        self.website = module.__uri__
-        self.license = module.get_copyright_notice()
-        self.credits = module.__credits__
+        return cls(
+            name=module.__title__,
+            version=module.__version__,
+            description=module.__summary__,
+            website=module.__uri__,
+            license=module.get_copyright_notice(),
+            credits=module.__credits__)
 
     def to_restructuredtext(self):
         """Compose ReStructuredText document."""
@@ -39,7 +53,6 @@ class VersionInfo:
 
     def to_html(self):
         """Create the HTML for inside the About dialog."""
-        # convert to HTML and display
         text = self.to_restructuredtext()
         html = docutils.core.publish_string(text, writer_name='html4css1')
         return html.decode('utf-8')
@@ -59,10 +72,8 @@ def HLine():
 
 
 def AboutWidget(version_info, *args, **kwargs):
-    """A panel showing information about one software component."""
-    # QTextBrowser is good enough for our purposes. For a comparison of
-    # QTextBrowser and QWebKit.QWebView, see:
-    # See http://www.mimec.org/node/383
+    """Create a widget showing information about one software component."""
+    # QTextBrowser is good enough, no need for the heavier QWebKit.QWebView.
     widget = QTextBrowser(*args, **kwargs)
     widget.setOpenExternalLinks(True)
     widget.setHtml(version_info.to_html())
@@ -70,7 +81,8 @@ def AboutWidget(version_info, *args, **kwargs):
     return widget
 
 
-def AboutDialog(version_info, *args, **kwargs):
+def AboutDialog(version_info: VersionInfo, *args, **kwargs):
+    """Create a dialog showing information about one software component."""
     main = AboutWidget(version_info)
     line = HLine()
     button = QPushButton("&OK")
