@@ -1,5 +1,5 @@
 """
-Dialog for managing shown curves.
+Dialog for managing curves in a :class:`~madgui.plot.twissfigure.TwissFigure`.
 """
 
 __all__ = [

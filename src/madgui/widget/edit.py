@@ -43,8 +43,7 @@ class LineNumberBar(QWidget):
                 edit.contentOffset()).top()
             if not block.isVisible() or block_top > event.rect().bottom():
                 break
-            rect = QRect(
-                0, block_top, self.width(), font_metrics.height())
+            rect = QRect(0, block_top, self.width(), font_metrics.height())
             self.draw_block(painter, rect, block, first)
             first = False
             block = block.next()
@@ -63,11 +62,23 @@ class LineNumberBar(QWidget):
             self.update()
 
     def draw_block(self, painter, rect, block, first):
+        """Draw the info corresponding to a given block (text line) of the text
+        document.
+
+        This method can be overriden by subclasses (with care).
+
+        :param QPainter painter: painter for the current widget
+        :param QRect rect: clipping rect for the text to be drawn
+        :param QTextBlock block: associated text block in the text edit
+        :param bool first: indicates the topmost visible block on screen
+        """
         count = block.blockNumber()+1
         if count != block.document().blockCount() or block.text():
             painter.drawText(rect, Qt.AlignRight, str(count))
 
     def calc_width(self, count):
+        """Calculate the widget width in pixels required to hold line numbers
+        up to the given ``count``."""
         return self.fontMetrics().width(str(count))
 
 
