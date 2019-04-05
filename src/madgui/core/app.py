@@ -37,7 +37,9 @@ from importlib_resources import read_text
 
 from docopt import docopt
 
-from PyQt5 import QtCore, QtWidgets     # import Qt *before* matplotlib!
+# Must import Qt *before* matplotlib!
+from PyQt5.QtCore import QTimer, QCoreApplication
+from PyQt5.QtWidgets import QApplication
 import matplotlib                       # import matplotlib *after* Qt!
 
 from madgui import __version__
@@ -61,13 +63,13 @@ def init_app(argv=None, gui=True):
     if argv is None:
         argv = sys.argv
     if gui:
-        app = QtWidgets.QApplication(argv)
+        app = QApplication(argv)
         app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
         app.setStyleSheet(read_text('madgui.data', 'style.css'))
         # must be selected before importing matplotlib.backends:
         matplotlib.use('Qt5Agg')
     else:
-        app = QtCore.QCoreApplication(argv)
+        app = QCoreApplication(argv)
     app.setApplicationName('madgui')
     app.setApplicationVersion(__version__)
     app.setOrganizationName('HIT Betriebs GmbH')
@@ -112,8 +114,7 @@ def main(argv=None):
         # signal. Without this, if the setup code excepts after creating the
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
-        QtCore.QTimer.singleShot(
-            0, partial(session.load_default, opts['FILE']))
+        QTimer.singleShot(0, partial(session.load_default, opts['FILE']))
         exit_code = app.exec_()
     finally:
         session.terminate()
@@ -136,7 +137,7 @@ def setup_interrupt_handling(app):
 
 def interrupt_handler(signum, frame):
     """Handle KeyboardInterrupt: quit application."""
-    QtCore.QCoreApplication.quit()
+    QCoreApplication.quit()
 
 
 def safe_timer(timeout, func, *args, **kwargs):
@@ -148,8 +149,8 @@ def safe_timer(timeout, func, *args, **kwargs):
         try:
             func(*args, **kwargs)
         finally:
-            QtCore.QTimer.singleShot(timeout, timer_event)
-    QtCore.QTimer.singleShot(timeout, timer_event)
+            QTimer.singleShot(timeout, timer_event)
+    QTimer.singleShot(timeout, timer_event)
 
 
 def set_app_id(appid):
