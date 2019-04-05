@@ -61,13 +61,13 @@ def init_app(argv=None, gui=True):
     if argv is None:
         argv = sys.argv
     if gui:
-        app = QtWidgets.qApp = QtWidgets.QApplication(argv)
+        app = QtWidgets.QApplication(argv)
         app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
         app.setStyleSheet(read_text('madgui.data', 'style.css'))
         # must be selected before importing matplotlib.backends:
         matplotlib.use('Qt5Agg')
     else:
-        app = QtWidgets.qApp = QtCore.QCoreApplication(argv)
+        app = QtCore.QCoreApplication(argv)
     app.setApplicationName('madgui')
     app.setApplicationVersion(__version__)
     app.setOrganizationName('HIT Betriebs GmbH')
