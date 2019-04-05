@@ -33,18 +33,10 @@ import signal
 import sys
 from functools import partial
 
-from importlib_resources import read_text
-
-from docopt import docopt
-
-from PyQt5 import QtCore, QtWidgets     # import Qt *before* matplotlib!
-import matplotlib                       # import matplotlib *after* Qt!
+# Must import Qt *before* matplotlib!
+from PyQt5.QtCore import QTimer, QCoreApplication
 
 from madgui import __version__
-from madgui.core.session import Session
-from madgui.widget.mainwindow import MainWindow
-from madgui.util.qt import load_icon_resource
-import madgui.core.config as config
 
 
 def init_app(argv=None, gui=True):
@@ -61,11 +53,22 @@ def init_app(argv=None, gui=True):
     if argv is None:
         argv = sys.argv
     if gui:
-        app = QtWidgets.qApp = QtWidgets.QApplication(argv)
+        from PyQt5.QtWidgets import QApplication
+        from madgui.util.qt import load_icon_resource
+        from importlib_resources import read_text
+        app = QApplication(argv)
         app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
         app.setStyleSheet(read_text('madgui.data', 'style.css'))
+        # matplotlib must be imported *after* Qt;
+        # must be selected before importing matplotlib.backends:
+        import matplotlib
+        matplotlib.use('Qt5Agg')
     else:
-        app = QtWidgets.qApp = QtCore.QCoreApplication(argv)
+        app = QCoreApplication(argv)
+    app.setApplicationName('madgui')
+    app.setApplicationVersion(__version__)
+    app.setOrganizationName('HIT Betriebs GmbH')
+    app.setOrganizationDomain('https://www.klinikum.uni-heidelberg.de/hit')
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
     # where an uncaught exception would usually cause the program to abort.
     sys.excepthook = traceback.print_exception
@@ -81,21 +84,23 @@ def init_stdio():
     sys.stdout = sys.stdout or open('madgui.log', 'at', encoding='utf-8')
     sys.stderr = sys.stderr or sys.stdout
     # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
-    # Note that sys.stdout can be ``None`` if starting as console_script:
-    if sys.stdout and sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
+    if sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
         import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 
 def main(argv=None):
     """Run madgui mainloop and exit process when finished."""
+    import madgui.core.config as config
+    from madgui.core.session import Session
+    from madgui.widget.mainwindow import MainWindow
+    from docopt import docopt
     app = init_app(argv)
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
     opts = docopt(__doc__, args, version=__version__)
     conf = config.load(opts['--config'])
     config.number = conf.number
-    matplotlib.use('Qt5Agg')        # select importing matplotlib.backends!
     session = Session(conf)
     try:
         window = MainWindow(session)
@@ -107,8 +112,7 @@ def main(argv=None):
         # signal. Without this, if the setup code excepts after creating the
         # thread the main loop will never be entered and thus aboutToQuit
         # never be emitted, even when pressing Ctrl+C.)
-        QtCore.QTimer.singleShot(
-            0, partial(session.load_default, opts['FILE']))
+        QTimer.singleShot(0, partial(session.load_default, opts['FILE']))
         exit_code = app.exec_()
     finally:
         session.terminate()
@@ -131,7 +135,7 @@ def setup_interrupt_handling(app):
 
 def interrupt_handler(signum, frame):
     """Handle KeyboardInterrupt: quit application."""
-    QtWidgets.QApplication.quit()
+    QCoreApplication.quit()
 
 
 def safe_timer(timeout, func, *args, **kwargs):
@@ -143,8 +147,8 @@ def safe_timer(timeout, func, *args, **kwargs):
         try:
             func(*args, **kwargs)
         finally:
-            QtCore.QTimer.singleShot(timeout, timer_event)
-    QtCore.QTimer.singleShot(timeout, timer_event)
+            QTimer.singleShot(timeout, timer_event)
+    QTimer.singleShot(timeout, timer_event)
 
 
 def set_app_id(appid):
