@@ -66,6 +66,10 @@ def init_app(argv=None, gui=True):
         app.setStyleSheet(read_text('madgui.data', 'style.css'))
     else:
         app = QtWidgets.qApp = QtCore.QCoreApplication(argv)
+    app.setApplicationName('madgui')
+    app.setApplicationVersion(__version__)
+    app.setOrganizationName('HIT Betriebs GmbH')
+    app.setOrganizationDomain('https://www.klinikum.uni-heidelberg.de/hit')
     # Print uncaught exceptions. This changes the default behaviour on PyQt5,
     # where an uncaught exception would usually cause the program to abort.
     sys.excepthook = traceback.print_exception
