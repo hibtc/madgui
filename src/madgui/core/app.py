@@ -33,20 +33,10 @@ import signal
 import sys
 from functools import partial
 
-from importlib_resources import read_text
-
-from docopt import docopt
-
 # Must import Qt *before* matplotlib!
 from PyQt5.QtCore import QTimer, QCoreApplication
-from PyQt5.QtWidgets import QApplication
-import matplotlib                       # import matplotlib *after* Qt!
 
 from madgui import __version__
-from madgui.core.session import Session
-from madgui.widget.mainwindow import MainWindow
-from madgui.util.qt import load_icon_resource
-import madgui.core.config as config
 
 
 def init_app(argv=None, gui=True):
@@ -63,10 +53,15 @@ def init_app(argv=None, gui=True):
     if argv is None:
         argv = sys.argv
     if gui:
+        from PyQt5.QtWidgets import QApplication
+        from madgui.util.qt import load_icon_resource
+        from importlib_resources import read_text
         app = QApplication(argv)
         app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
         app.setStyleSheet(read_text('madgui.data', 'style.css'))
+        # matplotlib must be imported *after* Qt;
         # must be selected before importing matplotlib.backends:
+        import matplotlib
         matplotlib.use('Qt5Agg')
     else:
         app = QCoreApplication(argv)
@@ -89,14 +84,17 @@ def init_stdio():
     sys.stdout = sys.stdout or open('madgui.log', 'at', encoding='utf-8')
     sys.stderr = sys.stderr or sys.stdout
     # Fix issue with utf-8 output on STDOUT in non utf-8 terminal.
-    # Note that sys.stdout can be ``None`` if starting as console_script:
-    if sys.stdout and sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
+    if sys.stdout.encoding.lower() not in ('utf-8', 'utf8'):
         import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 
 def main(argv=None):
     """Run madgui mainloop and exit process when finished."""
+    import madgui.core.config as config
+    from madgui.core.session import Session
+    from madgui.widget.mainwindow import MainWindow
+    from docopt import docopt
     app = init_app(argv)
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
