@@ -136,7 +136,7 @@ def setup_interrupt_handling(app):
 
 def interrupt_handler(signum, frame):
     """Handle KeyboardInterrupt: quit application."""
-    QtWidgets.QApplication.quit()
+    QtCore.QCoreApplication.quit()
 
 
 def safe_timer(timeout, func, *args, **kwargs):
