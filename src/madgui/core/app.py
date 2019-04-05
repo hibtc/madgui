@@ -64,6 +64,8 @@ def init_app(argv=None, gui=True):
         app = QtWidgets.qApp = QtWidgets.QApplication(argv)
         app.setWindowIcon(load_icon_resource('madgui.data', 'icon.xpm'))
         app.setStyleSheet(read_text('madgui.data', 'style.css'))
+        # must be selected before importing matplotlib.backends:
+        matplotlib.use('Qt5Agg')
     else:
         app = QtWidgets.qApp = QtCore.QCoreApplication(argv)
     app.setApplicationName('madgui')
@@ -99,7 +101,6 @@ def main(argv=None):
     opts = docopt(__doc__, args, version=__version__)
     conf = config.load(opts['--config'])
     config.number = conf.number
-    matplotlib.use('Qt5Agg')        # select importing matplotlib.backends!
     session = Session(conf)
     try:
         window = MainWindow(session)
