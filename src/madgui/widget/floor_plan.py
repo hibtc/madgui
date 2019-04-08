@@ -107,6 +107,7 @@ class LatticeFloorPlan(QGraphicsView):
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.setBackgroundBrush(QBrush(Qt.white, Qt.SolidPattern))
         self.setProjection(-pi/2, pi/2)
+        self.selection = set()
 
     def setProjection(self, theta, phi, psi=0):
         phi = np.clip(phi, -pi/8, pi/2)
@@ -119,9 +120,16 @@ class LatticeFloorPlan(QGraphicsView):
             self.scene().clear()
             self.setElements(*self.replay)
 
+    session = None
     model = None
 
-    def setModel(self, model):
+    def set_session(self, session):
+        self.selection = session.selected_elements
+        self.session = session
+        self.session.model.changed.connect(self.set_model)
+        self.set_model(session.model())
+
+    def set_model(self, model):
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
         if self.model:
             self.model.updated.disconnect(self._updateSurvey)
@@ -133,7 +141,7 @@ class LatticeFloorPlan(QGraphicsView):
     def _updateSurvey(self):
         self.setElements(self.model.elements,
                          self.model.survey(),
-                         self.model.selection)
+                         self.selection)
 
     replay = None
 
@@ -149,7 +157,8 @@ class LatticeFloorPlan(QGraphicsView):
         self.scene().addItem(self.coordinate_axes)
         self.scene().addItem(self.scale_indicator)
         self.setViewRect(self._sceneRect())
-        selection.update_finished.connect(self._update_selection)
+        if hasattr(selection, 'update_finished'):
+            selection.update_finished.connect(self._update_selection)
 
     def _sceneRect(self):
         rect = self.scene().sceneRect()

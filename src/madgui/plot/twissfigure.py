@@ -233,7 +233,7 @@ class TwissFigure:
                 elem_styles=self.element_style),
             ListView(
                 'selected_elements',
-                self.model.selection.map(get_element),
+                self.session.selected_elements.map(get_element),
                 plot_selection_marker, self.model,
                 elem_styles=self.element_style),
             ListView(
@@ -794,7 +794,7 @@ class InfoTool(CaptureTool):
         self.plot = plot
         self.scene = scene
         self.model = scene.model
-        self.selection = self.model.selection
+        self.selection = scene.session.selected_elements
         self._hovered = None
 
     def activate(self):

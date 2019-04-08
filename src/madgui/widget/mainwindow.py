@@ -18,7 +18,6 @@ from PyQt5.QtWidgets import (
     QDockWidget, QInputDialog, QMainWindow, QMessageBox, QStyle)
 
 from madgui.util.signal import Signal
-from madgui.util.collections import Selection
 from madgui.util.qt import notifyCloseEvent, SingleWindow, load_ui
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
@@ -425,7 +424,7 @@ class MainWindow(QMainWindow):
     def viewFloorPlan(self):
         from madgui.widget.floor_plan import LatticeFloorPlan, Selector
         latview = LatticeFloorPlan()
-        latview.setModel(self.model())
+        latview.set_session(self.session)
         selector = Selector(latview)
         dock = Dialog(self)
         dock.setWidget([latview, selector], tight=True)
@@ -545,7 +544,6 @@ class MainWindow(QMainWindow):
 
         if old_model is not None:
             old_model.updated.disconnect(self.update_twiss)
-            old_model.selection.clear()
 
         if model is None:
             self.matcher = None
@@ -569,8 +567,7 @@ class MainWindow(QMainWindow):
         model.updated.connect(self.update_twiss)
 
         from madgui.widget.elementinfo import InfoBoxGroup
-        model.selection = Selection()
-        model.box_group = InfoBoxGroup(self, model.selection)
+        self.box_group = InfoBoxGroup(self, self.session.selected_elements)
 
         self.setWindowTitle(model.name)
         self.showTwiss()

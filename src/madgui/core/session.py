@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from madgui.util.collections import Boxed
+from madgui.util.collections import Boxed, Selection
 from madgui.util.misc import relpath, userpath
 from madgui.online.control import Control
 from madgui.core.config import load as load_config
@@ -41,8 +41,10 @@ class Session:
         self.user_ns = user_ns = SimpleNamespace()
         self.session_file = userpath(config.session_file)
         self.folder = userpath(config.model_path)
+        self.selected_elements = selected_elements = Selection()
         self.model.changed2.connect(
             lambda old, new: old and old.destroy())
+        self.model.changed.connect(lambda _: selected_elements.clear())
         # Maintain these members into the namespace
         subscribe(user_ns, 'model', self.model)
         subscribe(user_ns, 'window', self.window)
