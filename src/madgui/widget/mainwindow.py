@@ -15,7 +15,7 @@ from functools import partial
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QKeySequence
 from PyQt5.QtWidgets import (
-    QDockWidget, QInputDialog, QMainWindow, QMessageBox, QStyle)
+    QInputDialog, QMainWindow, QMessageBox, QStyle)
 
 from madgui.util.signal import Signal
 from madgui.util.qt import notifyEvent, SingleWindow, load_ui
@@ -608,10 +608,9 @@ class MainWindow(QMainWindow):
     def _createShell(self):
         """Create a python shell widget."""
         import madgui.widget.pyshell as pyshell
-        self.shell = pyshell.create(self.user_ns.__dict__)
-        dock = QDockWidget()
-        dock.setWidget(self.shell)
-        dock.setWindowTitle("python shell")
-        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
-        self.shell.exit_requested.connect(dock.close)
-        return dock
+        shell = pyshell.create(self.user_ns.__dict__)
+        window = Dialog(self)
+        window.setWidget(shell, tight=True)
+        window.setWindowTitle("madgui python shell")
+        shell.exit_requested.connect(window.close)
+        return window
