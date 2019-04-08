@@ -265,7 +265,6 @@ class OffsetsWidget(MonitorWidgetBase):
             m.name for m in self.readouts if self.selected(m)])
         dialog = Dialog(self)
         dialog.setWidget(widget)
-        dialog.setWindowTitle("Offset calibration")
         dialog.show()
 
 

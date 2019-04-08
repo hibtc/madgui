@@ -437,7 +437,6 @@ class MainWindow(QMainWindow):
         widget = MatchWidget(self.session.matcher)
         dialog = Dialog(self)
         dialog.setWidget(widget, tight=True)
-        dialog.setWindowTitle("Matching constraints.")
         return dialog
 
     def setLogSize(self):
@@ -611,6 +610,5 @@ class MainWindow(QMainWindow):
         shell = pyshell.create(self.user_ns.__dict__)
         window = Dialog(self)
         window.setWidget(shell, tight=True)
-        window.setWindowTitle("madgui python shell")
         shell.exit_requested.connect(window.close)
         return window

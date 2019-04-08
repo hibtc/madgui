@@ -76,6 +76,7 @@ def AboutDialog(version_info, *args, **kwargs):
     button = QPushButton("&OK")
     button.setDefault(True)
     dialog = Dialog(*args, **kwargs)
+    dialog.setWindowTitle("About {}".format(version_info.name))
     dialog.setWidget([main, line, button])
     button.clicked.connect(dialog.accept)
     return dialog

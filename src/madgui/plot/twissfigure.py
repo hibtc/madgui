@@ -468,7 +468,6 @@ class TwissFigure:
         widget = CurveManager(self)
         dialog = Dialog(self.plot.window())
         dialog.setWidget(widget, tight=True)
-        dialog.setWindowTitle("Curve manager")
         return dialog
 
     def show_monitor_readouts(self, monitors):

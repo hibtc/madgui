@@ -3,7 +3,7 @@
  <class>ResponseMeasureWidget</class>
  <widget class="QWidget" name="ResponseMeasureWidget">
   <property name="windowTitle">
-   <string>Form</string>
+   <string>ORM scan</string>
   </property>
   <layout class="QVBoxLayout" stretch="2,0,1">
    <property name="leftMargin">

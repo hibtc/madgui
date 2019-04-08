@@ -127,7 +127,6 @@ class Control:
         dialog = Dialog(self.session.window())
         dialog.setExportWidget(widget, self.session.folder)
         dialog.serious.updateButtons()
-        # dialog.setWindowTitle()
         dialog.accepted.connect(apply)
         dialog.show()
         return dialog
@@ -170,7 +169,6 @@ class Control:
         widget = MeasureWidget(self.session)
         dialog = Dialog(self.session.window())
         dialog.setWidget(widget)
-        dialog.setWindowTitle("ORM scan")
         return dialog
 
     def on_correct_multi_grid_method(self):

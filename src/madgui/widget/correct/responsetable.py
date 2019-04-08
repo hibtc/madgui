@@ -98,7 +98,6 @@ class ResponseTable(QWidget):
         widget = MeasureWidget(self.corrector)
         dialog = Dialog(parent=self.window())
         dialog.setWidget(widget)
-        dialog.setWindowTitle("ORM scan")
         if dialog.exec_():
             self.saved_orms.push(widget.final_orm)
 
