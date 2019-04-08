@@ -109,11 +109,14 @@ class Dialog(QDialog):
 
     # TODO: reset button
 
-    def __init__(self, owner=None, *, parent=None, **kwargs):
-        super().__init__(parent, **kwargs)
+    def __init__(self, owner=None, widget=None, *, parent=None, tight=True):
+        super().__init__(parent)
         self.setSizeGripEnabled(True)
         self.finished.connect(self.close)
         self.event_filter = owner and notifyEvent(owner, 'Close', self.close)
+        if widget is not None:
+            self.setWidget(widget, tight=tight)
+            self.show()
 
     def setWidget(self, widget, tight=False):
         self.setTitleFrom(widget)

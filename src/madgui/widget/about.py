@@ -70,13 +70,12 @@ def AboutWidget(version_info, *args, **kwargs):
     return widget
 
 
-def AboutDialog(version_info, *args, **kwargs):
+def AboutDialog(version_info, owner=None, parent=None):
     main = AboutWidget(version_info)
     line = HLine()
     button = QPushButton("&OK")
     button.setDefault(True)
-    dialog = Dialog(*args, **kwargs)
+    dialog = Dialog(owner, [main, line, button], parent=parent, tight=False)
     dialog.setWindowTitle("About {}".format(version_info.name))
-    dialog.setWidget([main, line, button])
     button.clicked.connect(dialog.accept)
     return dialog

@@ -167,36 +167,28 @@ class Control:
         from madgui.widget.dialog import Dialog
         from madgui.online.orm_measure import MeasureWidget
         widget = MeasureWidget(self.session)
-        dialog = Dialog(self.session.window())
-        dialog.setWidget(widget)
-        return dialog
+        return Dialog(self.session.window(), widget)
 
     def on_correct_multi_grid_method(self):
         from madgui.widget.correct.multi_grid import CorrectorWidget
         from madgui.widget.dialog import Dialog
         self.read_all()
         widget = CorrectorWidget(self.session)
-        dialog = Dialog(self.session.window())
-        dialog.setWidget(widget, tight=True)
-        dialog.show()
+        return Dialog(self.session.window(), widget)
 
     def on_correct_optic_variation_method(self):
         from madgui.widget.correct.optic_variation import CorrectorWidget
         from madgui.widget.dialog import Dialog
         self.read_all()
         widget = CorrectorWidget(self.session)
-        dialog = Dialog(self.session.window())
-        dialog.setWidget(widget, tight=True)
-        dialog.show()
+        return Dialog(self.session.window(), widget)
 
     def on_correct_measured_response_method(self):
         from madgui.widget.correct.mor_dialog import CorrectorWidget
         from madgui.widget.dialog import Dialog
         self.read_all()
         widget = CorrectorWidget(self.session)
-        dialog = Dialog(self.session.window())
-        dialog.setWidget(widget, tight=True)
-        dialog.show()
+        return Dialog(self.session.window(), widget)
 
     # helper functions
 

@@ -425,19 +425,15 @@ class MainWindow(QMainWindow):
         latview = LatticeFloorPlan()
         latview.set_session(self.session)
         selector = Selector(latview)
-        dock = Dialog(self)
-        dock.setWidget([latview, selector], tight=True)
+        dock = Dialog(self, [latview, selector])
         dock.setWindowTitle("2D floor plan")
-        dock.show()
         return dock
 
     @SingleWindow.factory
     def viewMatchDialog(self):
         from madgui.widget.match import MatchWidget
         widget = MatchWidget(self.session.matcher)
-        dialog = Dialog(self)
-        dialog.setWidget(widget, tight=True)
-        return dialog
+        return Dialog(self, widget)
 
     def setLogSize(self):
         text = "Maximum log size (0 for infinite):"
@@ -608,7 +604,6 @@ class MainWindow(QMainWindow):
         """Create a python shell widget."""
         import madgui.widget.pyshell as pyshell
         shell = pyshell.create(self.user_ns.__dict__)
-        window = Dialog(self)
-        window.setWidget(shell, tight=True)
+        window = Dialog(self, shell)
         shell.exit_requested.connect(window.close)
         return window
