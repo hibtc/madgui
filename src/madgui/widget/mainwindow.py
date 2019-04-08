@@ -43,7 +43,6 @@ class MainWindow(QMainWindow):
         self.user_ns = session.user_ns
         self.exec_folder = self.config.exec_folder
         self.str_folder = self.config.str_folder
-        self.matcher = None
         self.model.changed2.connect(self._on_model_changed)
         self.initUI()
         logging.info('Welcome to madgui. Type <Ctrl>+O to open a file.')
@@ -435,7 +434,7 @@ class MainWindow(QMainWindow):
     @SingleWindow.factory
     def viewMatchDialog(self):
         from madgui.widget.match import MatchWidget
-        widget = MatchWidget(self.matcher)
+        widget = MatchWidget(self.session.matcher)
         dialog = Dialog(self)
         dialog.setWidget(widget, tight=True)
         dialog.setWindowTitle("Matching constraints.")
@@ -546,7 +545,6 @@ class MainWindow(QMainWindow):
             old_model.updated.disconnect(self.update_twiss)
 
         if model is None:
-            self.matcher = None
             self.user_ns.madx = None
             self.user_ns.twiss = None
             self.setWindowTitle("madgui")
@@ -556,9 +554,6 @@ class MainWindow(QMainWindow):
 
         self.session.folder = os.path.split(model.filename)[0]
         logging.info('Loading {}'.format(model.filename))
-
-        from madgui.model.match import Matcher
-        self.matcher = Matcher(model, self.config.get('matching'))
 
         self.user_ns.madx = model.madx
         self.user_ns.twiss = model.twiss()
