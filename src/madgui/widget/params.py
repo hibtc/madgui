@@ -340,12 +340,6 @@ class TabParamTables(QTabWidget):
         if hasattr(self.window(), 'serious'):
             self.window().serious.updateButtons()
 
-    def activate_tab(self, name):
-        index = next((i for i in range(self.count())
-                      if self.tabText(i).lower() == name.lower()), 0)
-        if index != self.currentIndex():
-            self.setCurrentIndex(index)
-
     @property
     def exporter(self):
         return self.currentWidget()
