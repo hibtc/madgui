@@ -513,9 +513,9 @@ class MainWindow(QMainWindow):
         QMessageBox.aboutQt(self)
 
     def _showAboutDialog(self, module):
-        import madgui.widget.about as about
-        info = about.VersionInfo(module)
-        return about.AboutDialog(info, self)
+        from madgui.widget.about import VersionInfo, AboutWidget
+        info = VersionInfo(module)
+        return Dialog(self, AboutWidget(info))
 
     # Update state
 
