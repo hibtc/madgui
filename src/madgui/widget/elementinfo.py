@@ -244,6 +244,7 @@ class InfoBoxGroup:
     # utility methods
 
     def _on_close_box(self, window, *_):
+        window.removeEventFilter(self.event_filter)
         box = window.widget()
         if box.el_id is not None:
             self.selection.remove(box.el_id)
