@@ -160,7 +160,7 @@ class EllipseWidget(QWidget):
         canvas.setMinimumSize(QSize(100, 100))
         canvas.resize(QSize(100, 100))
 
-    def update(self, elem_index):
+    def update(self, elem_index=0):
         self.figure.clf()
         axx = self.figure.add_subplot(121)
         axy = self.figure.add_subplot(122)
