@@ -96,7 +96,7 @@ class ResponseTable(QWidget):
     def measure_orm(self):
         from .orm_measure import MeasureWidget
         widget = MeasureWidget(self.corrector)
-        dialog = Dialog(self.window())
+        dialog = Dialog(parent=self.window())
         dialog.setWidget(widget)
         dialog.setWindowTitle("ORM scan")
         if dialog.exec_():

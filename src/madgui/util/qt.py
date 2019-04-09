@@ -90,6 +90,9 @@ class EventFilter(QObject):
         dispatch = self.event_table.get(event.type())
         return bool(dispatch and dispatch(object, event))
 
+    def uninstall(self):
+        self.parent().removeEventFilter(self)
+
 
 def present(window, raise_=False):
     """Activate window and bring to front."""
