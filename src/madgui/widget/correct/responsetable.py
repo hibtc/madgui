@@ -96,7 +96,7 @@ class ResponseTable(QWidget):
     def measure_orm(self):
         from .orm_measure import MeasureWidget
         widget = MeasureWidget(self.corrector)
-        dialog = Dialog(widget=widget, parent=self.window(), tight=False)
+        dialog = Dialog(widget=widget, parent=self.window())
         if dialog.exec_():
             self.saved_orms.push(widget.final_orm)
 
