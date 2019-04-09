@@ -154,9 +154,7 @@ class EllipseWidget(QWidget):
         self.figure = Figure()
         self.canvas = canvas = mpl_backend.FigureCanvas(self.figure)
         self.toolbar = toolbar = mpl_backend.NavigationToolbar2QT(canvas, self)
-        layout = VBoxLayout([canvas, toolbar])
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+        self.setLayout(VBoxLayout([canvas, toolbar], tight=True))
         # Needed on PyQt5 with tight_layout=True to prevent crash due to
         # singular matrix if size=0:
         canvas.setMinimumSize(QSize(100, 100))

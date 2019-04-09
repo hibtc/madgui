@@ -122,15 +122,13 @@ class Dialog(QDialog):
         self.setTitleFrom(widget)
         self._widget = widget
         if isinstance(widget, list):
-            layout = VBoxLayout(widget)
+            layout = VBoxLayout(widget, tight=tight)
         elif isinstance(widget, QLayout):
             layout = widget
         elif isinstance(widget, QWidget):
-            layout = VBoxLayout([widget])
+            layout = VBoxLayout([widget], tight=tight)
         else:
             raise NotImplementedError
-        if tight:
-            layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
     def widget(self):

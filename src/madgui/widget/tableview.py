@@ -799,13 +799,11 @@ class AffixLineEdit(QWidget):
         self.suffix = QLabel()
         self.edit = QLineEdit()
         self.edit.setFrame(False)
-        layout = HBoxLayout([
+        self.setLayout(HBoxLayout([
             self.prefix,
             self.edit,
             self.suffix,
-        ])
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+        ], tight=True))
         self.setAutoFillBackground(True)
 
     def focusInEvent(self, event):
