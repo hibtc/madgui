@@ -419,13 +419,8 @@ class MainWindow(QMainWindow):
         return self._createShell()
 
     def viewFloorPlan(self):
-        from madgui.widget.floor_plan import LatticeFloorPlan, Selector
-        latview = LatticeFloorPlan()
-        latview.set_session(self.session)
-        selector = Selector(latview)
-        dock = Dialog(self, [latview, selector])
-        dock.setWindowTitle("2D floor plan")
-        return dock
+        from madgui.widget.floor_plan import FloorPlanWidget
+        return Dialog(self, FloorPlanWidget(self.session))
 
     @SingleWindow.factory
     def viewMatchDialog(self):
