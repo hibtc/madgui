@@ -129,9 +129,11 @@ class Dialog(QDialog):
             Stretch(),
             self.serious,
         ]]))
+        self._widget = widget
 
     def setSimpleExportWidget(self, widget, folder):
         self.serious = SerializeButtons(widget, folder, Qt.Horizontal)
         self.setWidget(VBoxLayout([widget, self.serious]))
+        self._widget = widget
 
     present = present
