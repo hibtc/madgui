@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (
     QDialog, QDialogButtonBox, QLayout, QSizePolicy, QWidget)
 
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch
-from madgui.util.qt import present
+from madgui.util.qt import present, notifyEvent
 
 # short-hands:
 Button = QDialogButtonBox
@@ -90,12 +90,30 @@ class SerializeButtons(QDialogButtonBox):
 
 class Dialog(QDialog):
 
+    """
+    Utility to wrap an application widget into a window with size-grip and
+    optional buttons, and manage their lifetime via an owner.
+
+    We distinguish between an `owner` and `parent` widget as follows:
+
+    - dialogs always stay on top of the parent and share their taskbar entry
+    - dialogs do not stay on top of the owner, nor share their taskbar entry,
+      However: they will be kept alive as long as the owner, and when the
+      owner is closed, will be closed as well.
+
+    The second option is preferrable for most non-modal windows!
+
+    - we want to allow the mainwindow in the foreground when focussed
+    - we want to allow choosing between all windows from the taskbar
+    """
+
     # TODO: reset button
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, owner=None, *, parent=None, **kwargs):
+        super().__init__(parent, **kwargs)
         self.setSizeGripEnabled(True)
         self.finished.connect(self.close)
+        self.event_filter = owner and notifyEvent(owner, 'Close', self.close)
 
     def setWidget(self, widget, tight=False):
         self._widget = widget
@@ -117,6 +135,9 @@ class Dialog(QDialog):
     # TODO: update enabled-state of apply-button?
 
     def closeEvent(self, event):
+        # Prevent errors when closing the parent after the child:
+        if self.event_filter:
+            self.event_filter.uninstall()
         # send closeEvent to children!
         if isinstance(self.widget(), QWidget):
             self.widget().close()
@@ -129,9 +150,11 @@ class Dialog(QDialog):
             Stretch(),
             self.serious,
         ]]))
+        self._widget = widget
 
     def setSimpleExportWidget(self, widget, folder):
         self.serious = SerializeButtons(widget, folder, Qt.Horizontal)
         self.setWidget(VBoxLayout([widget, self.serious]))
+        self._widget = widget
 
     present = present
