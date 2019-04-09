@@ -96,6 +96,8 @@ class ElementInfoBox(QWidget):
             self.select.setCurrentIndex(self.model.elements.index(self.el_id))
             self.notebook.kw['elem_index'] = self.el_id
             self.notebook.update()
+            self.window().setWindowTitle(
+                "Element details: " + self.model.elements[self.el_id].node_name)
             self.changed_element.emit()
 
     @property
@@ -235,8 +237,6 @@ class InfoBoxGroup:
 
     def _modify(self, index, el_id):
         self.boxes[index].el_id = el_id
-        self.boxes[index].setWindowTitle(
-            self.model().elements[el_id].node_name)
 
     def _cursor_changed(self, index):
         self.boxes[index].window().present()
@@ -260,8 +260,6 @@ class InfoBoxGroup:
         info.changed_element.connect(partial(self._changed_box_element, info))
         dock = Dialog(self.mainwindow)
         dock.setSimpleExportWidget(info, None)
-        dock.setWindowTitle(
-            "Element details: " + model.elements[el_id].node_name)
         dock.installEventFilter(self.event_filter)
         dock.present()
         return info
@@ -269,5 +267,3 @@ class InfoBoxGroup:
     def _changed_box_element(self, box):
         self.selection.cursor.set(self.boxes.index(box))
         self.selection.add(box.el_id, replace=True)
-        box.window().setWindowTitle(
-            "Element details: " + self.model().elements[box.el_id].node_name)
