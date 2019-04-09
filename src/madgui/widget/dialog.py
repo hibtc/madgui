@@ -9,8 +9,7 @@ __all__ = [
 import os
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QDialog, QDialogButtonBox, QLayout, QSizePolicy, QWidget)
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QSizePolicy, QWidget
 
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch
 from madgui.util.qt import present, notifyEvent
@@ -115,20 +114,13 @@ class Dialog(QDialog):
         self.finished.connect(self.close)
         self.event_filter = owner and notifyEvent(owner, 'Close', self.close)
         if widget is not None:
-            self.setWidget(widget, tight=tight)
+            self.setWidget(widget, VBoxLayout([widget], tight=tight))
             self.show()
 
-    def setWidget(self, widget, tight=False):
-        self.setTitleFrom(widget)
+    def setWidget(self, widget, layout):
+        if widget.windowTitle():
+            self.setWindowTitle(widget.windowTitle())
         self._widget = widget
-        if isinstance(widget, list):
-            layout = VBoxLayout(widget, tight=tight)
-        elif isinstance(widget, QLayout):
-            layout = widget
-        elif isinstance(widget, QWidget):
-            layout = VBoxLayout([widget], tight=tight)
-        else:
-            raise NotImplementedError
         self.setLayout(layout)
 
     def widget(self):
@@ -146,23 +138,18 @@ class Dialog(QDialog):
         super().close()
 
     def setExportWidget(self, widget, folder):
-        self.setTitleFrom(widget)
         self.serious = SerializeButtons(widget, folder, Qt.Vertical)
         self.serious.addButton(Button.Cancel).clicked.connect(self.reject)
-        self.setWidget(HBoxLayout([widget, [
+        self.setWidget(widget, HBoxLayout([widget, [
             Stretch(),
             self.serious,
         ]]))
-        self._widget = widget
 
     def setSimpleExportWidget(self, widget, folder):
-        self.setTitleFrom(widget)
         self.serious = SerializeButtons(widget, folder, Qt.Horizontal)
-        self.setWidget(VBoxLayout([widget, self.serious]))
-        self._widget = widget
+        self.setWidget(widget, VBoxLayout([
+            widget,
+            self.serious,
+        ]))
 
     present = present
-
-    def setTitleFrom(self, widget):
-        if isinstance(widget, QWidget) and widget.windowTitle():
-            self.setWindowTitle(widget.windowTitle())
