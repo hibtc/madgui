@@ -3,34 +3,31 @@ Open an ipython shell in a widget
 """
 
 __all__ = [
-    'create',
+    'PyShell',
 ]
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
-from qtconsole.rich_jupyter_widget import RichJupyterWidget
-from qtconsole.inprocess import QtInProcessKernelManager
+from pyqtconsole.console import PythonConsole
 
 
-def create(context):
+class PyShell(PythonConsole):
+
     """Create an in-process kernel."""
-    manager = QtInProcessKernelManager()
-    manager.start_kernel(show_banner=False)
-    kernel = manager.kernel
-    kernel.gui = 'qt'
-    kernel.user_ns = context
 
-    client = manager.client()
-    client.start_channels()
+    def __init__(self, context, parent=None):
+        super().__init__(parent, context)
+        self.stdin.write_event.connect(
+            self.repl_nonblock, Qt.ConnectionType.QueuedConnection)
+        self.ctrl_d_exits_console(True)
 
-    widget = RichJupyterWidget()
-    widget.setWindowTitle("madgui python shell")
-    widget.kernel_manager = manager
-    widget.kernel_client = client
-    return widget
+    def _close(self):
+        self.interpreter.exit()
+        self.window().close()
 
 
 if __name__ == "__main__":
     app = QApplication([])
-    widget = create({})
+    widget = PyShell({})
     widget.show()
     app.exec_()

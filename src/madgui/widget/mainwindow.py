@@ -602,8 +602,5 @@ class MainWindow(QMainWindow):
 
     def _createShell(self):
         """Create a python shell widget."""
-        import madgui.widget.pyshell as pyshell
-        shell = pyshell.create(self.user_ns.__dict__)
-        window = Dialog(self, shell)
-        shell.exit_requested.connect(window.close)
-        return window
+        from madgui.widget.pyshell import PyShell
+        return Dialog(self, PyShell(self.user_ns.__dict__))
