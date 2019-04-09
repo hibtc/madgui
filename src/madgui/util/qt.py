@@ -29,31 +29,33 @@ from madgui.util.misc import cachedproperty, memoize
 
 def notifyCloseEvent(widget, handler):
     """Notify ``handler`` about ``closeEvent`` on the ``widget``."""
-    # There are three basic ways to get notified when a window is closed:
-    #   - set the WA_DeleteOnClose attribute and connect to the
-    #     QWidget.destroyed signal
-    #   - use installEventFilter / eventFilter
-    #   - hook into the closeEvent method (see notifyEvent below)
-    # We use the first option here since it is the simplest:
-    notifyEvent(widget, 'closeEvent', lambda event: handler())
+    notifyEvent(widget, 'Close', handler)
 
 
 def notifyEvent(widget, name, handler):
-    """Connect the handler function to be called when the event ``name`` fires
-    for the given widget. This works by overriding the method with the given
-    name on the widget object (e.g. ``closeEvent()``). However, this does not
-    work for all event handlers. For example the ``event()`` method seems to
-    be unimpressed by attempts to change it on the object. For a more reliable
-    way, see :func:`eventFilter`, or :class:`EventFilter`."""
-    old_handler = getattr(widget, name)
+    """Connect the handler function to be called when the widget receives an
+    event specified by the given name."""
+    # This is implemented using `EventFilter`. The alternative would be to
+    #   - either overwrite the xxxEvent method on the object, or
+    #   - for closeEvent specifically, set the WA_DeleteOnClose attribute and
+    #     connect to the QWidget.destroyed signal.
+    # However, either method should be avoided due to their disadvantages:
+    #   - overwriting methods on the object makes it impossible to cleanly
+    #     remove a handler, and may creates unneeded long-lasting reference
+    #     cycles on the python side, deepens the call-stack for handlers,
+    #     and only works with some events. For example the ``event()`` method
+    #     seems to be unimpressed by attempts to change it on the object.
+    #   - WA_DeleteOnClose alters the lifetime of the parent widget and can
+    #     lead to unforseen side-effects, and is of course only available for
+    #     a single event type (Close) anyway
+    # Setting a parent is required to prevent the filter from being garbage
+    # collected immediately:
+    return eventFilter(widget, {
+        name: lambda obj, evt: obj is widget and handler() and False,
+    }, parent=widget)
 
-    def new_handler(event):
-        handler(event)
-        return old_handler(event)
-    setattr(widget, name, new_handler)
 
-
-def eventFilter(object, events):
+def eventFilter(object, events, parent=None):
     """
     Subscribe to events from ``object`` and dispatch via ``events`` lookup
     table. Callbacks are invoked with two parameters ``(object, event)`` and
@@ -72,7 +74,7 @@ def eventFilter(object, events):
 
     See ``QEvent`` for possible events.
     """
-    filter = EventFilter(events)
+    filter = EventFilter(events, parent)
     object.installEventFilter(filter)
     return filter
 
@@ -83,8 +85,8 @@ class EventFilter(QObject):
     the :func:`eventFilter` function rather than instanciating this class
     directly."""
 
-    def __init__(self, events):
-        super().__init__()
+    def __init__(self, events, parent=None):
+        super().__init__(parent)
         self.event_table = {
             getattr(QEvent, k): v
             for k, v in events.items()
