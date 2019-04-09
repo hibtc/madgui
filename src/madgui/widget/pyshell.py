@@ -23,6 +23,7 @@ def create(context):
     client.start_channels()
 
     widget = RichJupyterWidget()
+    widget.setWindowTitle("madgui python shell")
     widget.kernel_manager = manager
     widget.kernel_client = client
     return widget

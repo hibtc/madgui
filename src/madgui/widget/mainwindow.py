@@ -15,7 +15,7 @@ from functools import partial
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QKeySequence
 from PyQt5.QtWidgets import (
-    QDockWidget, QInputDialog, QMainWindow, QMessageBox, QStyle)
+    QInputDialog, QMainWindow, QMessageBox, QStyle)
 
 from madgui.util.signal import Signal
 from madgui.util.qt import notifyEvent, SingleWindow, load_ui
@@ -425,20 +425,15 @@ class MainWindow(QMainWindow):
         latview = LatticeFloorPlan()
         latview.set_session(self.session)
         selector = Selector(latview)
-        dock = Dialog(self)
-        dock.setWidget([latview, selector], tight=True)
+        dock = Dialog(self, [latview, selector])
         dock.setWindowTitle("2D floor plan")
-        dock.show()
         return dock
 
     @SingleWindow.factory
     def viewMatchDialog(self):
         from madgui.widget.match import MatchWidget
         widget = MatchWidget(self.session.matcher)
-        dialog = Dialog(self)
-        dialog.setWidget(widget, tight=True)
-        dialog.setWindowTitle("Matching constraints.")
-        return dialog
+        return Dialog(self, widget)
 
     def setLogSize(self):
         text = "Maximum log size (0 for infinite):"
@@ -608,10 +603,7 @@ class MainWindow(QMainWindow):
     def _createShell(self):
         """Create a python shell widget."""
         import madgui.widget.pyshell as pyshell
-        self.shell = pyshell.create(self.user_ns.__dict__)
-        dock = QDockWidget()
-        dock.setWidget(self.shell)
-        dock.setWindowTitle("python shell")
-        self.addDockWidget(Qt.BottomDockWidgetArea, dock)
-        self.shell.exit_requested.connect(dock.close)
-        return dock
+        shell = pyshell.create(self.user_ns.__dict__)
+        window = Dialog(self, shell)
+        shell.exit_requested.connect(window.close)
+        return window

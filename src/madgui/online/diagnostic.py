@@ -261,12 +261,8 @@ class OffsetsWidget(MonitorWidgetBase):
     def calibrate_offsets(self):
         from .offcal import OffsetCalibrationWidget
         from madgui.widget.dialog import Dialog
-        widget = OffsetCalibrationWidget(self, [
-            m.name for m in self.readouts if self.selected(m)])
-        dialog = Dialog(self)
-        dialog.setWidget(widget)
-        dialog.setWindowTitle("Offset calibration")
-        dialog.show()
+        return Dialog(self, OffsetCalibrationWidget(self, [
+            m.name for m in self.readouts if self.selected(m)]))
 
 
 class _FitWidget(MonitorWidgetBase):

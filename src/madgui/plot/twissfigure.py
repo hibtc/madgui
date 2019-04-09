@@ -465,11 +465,7 @@ class TwissFigure:
     @SingleWindow.factory
     def _curveManager(self):
         from madgui.widget.curvemanager import CurveManager
-        widget = CurveManager(self)
-        dialog = Dialog(self.plot.window())
-        dialog.setWidget(widget, tight=True)
-        dialog.setWindowTitle("Curve manager")
-        return dialog
+        return Dialog(self.plot.window(), CurveManager(self))
 
     def show_monitor_readouts(self, monitors):
         self.monitors = [m.lower() for m in monitors]
