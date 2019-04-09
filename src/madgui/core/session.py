@@ -14,10 +14,11 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from madgui.util.collections import Boxed
+from madgui.util.collections import Boxed, Selection
 from madgui.util.misc import relpath, userpath
 from madgui.online.control import Control
 from madgui.core.config import load as load_config
+from madgui.model.match import Matcher
 import madgui.util.yaml as yaml
 
 
@@ -38,17 +39,26 @@ class Session:
         self.window = Boxed(None)
         self.model = Boxed(None)
         self.control = Control(self)
+        self.matcher = None
         self.user_ns = user_ns = SimpleNamespace()
         self.session_file = userpath(config.session_file)
         self.folder = userpath(config.model_path)
-        self.model.changed2.connect(
-            lambda old, new: old and old.destroy())
+        self.selected_elements = Selection()
+        self.model.changed2.connect(self.on_model_changed)
         # Maintain these members into the namespace
         subscribe(user_ns, 'model', self.model)
         subscribe(user_ns, 'window', self.window)
         user_ns.config = config
         user_ns.context = self
         user_ns.control = self.control
+
+    def on_model_changed(self, old, new):
+        self.selected_elements.clear()
+        if old:
+            self.matcher = None
+            old.destroy()
+        if new:
+            self.matcher = Matcher(new, self.config.get('matching'))
 
     def set_interpolate(self, points_per_meter):
         self.config.interpolate = points_per_meter

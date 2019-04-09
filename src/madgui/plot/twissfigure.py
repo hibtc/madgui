@@ -133,7 +133,7 @@ class TwissWidget(QWidget):
         plot = plt.PlotWidget(figure)
 
         scene = self.scene = TwissFigure(
-            figure, session, session.window().matcher)
+            figure, session, session.matcher)
         scene.show_indicators = show_indicators
         scene.set_graph(name or settings.get('graph'))
         scene.attach(plot)
@@ -213,7 +213,6 @@ class TwissFigure:
         self.session = session
         self.model = session.model()
         self.config = dict(CONFIG, **session.config.get('twissfigure', {}))
-        self.matcher = matcher
         self.element_style = self.config['element_style']
         self.monitors = []
         # scene
@@ -233,7 +232,7 @@ class TwissFigure:
                 elem_styles=self.element_style),
             ListView(
                 'selected_elements',
-                self.model.selection.map(get_element),
+                self.session.selected_elements.map(get_element),
                 plot_selection_marker, self.model,
                 elem_styles=self.element_style),
             ListView(
@@ -244,7 +243,7 @@ class TwissFigure:
                 _effects=_hover_effects, drift_color='#ffffff'),
             ListView(
                 'match_constraints',
-                self.matcher.constraints,
+                self.session.matcher.constraints,
                 plot_constraint, self),
             ListView('twiss_curves', self.curve_info, self.plot_twiss_curve),
             ListView('user_curves', self.user_tables, self.plot_user_curve),
@@ -264,7 +263,7 @@ class TwissFigure:
     def attach(self, plot):
         self.plot = plot
         plot.addTool(InfoTool(plot, self))
-        plot.addTool(MatchTool(plot, self, self.matcher))
+        plot.addTool(MatchTool(plot, self, self.session.matcher))
         plot.addTool(CompareTool(plot, self))
 
         canvas = plot.canvas
@@ -794,7 +793,7 @@ class InfoTool(CaptureTool):
         self.plot = plot
         self.scene = scene
         self.model = scene.model
-        self.selection = self.model.selection
+        self.selection = scene.session.selected_elements
         self._hovered = None
 
     def activate(self):
