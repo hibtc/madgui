@@ -117,8 +117,7 @@ class MainWindow(QMainWindow):
                      self.showTwiss),
                 Item('&Python shell', 'Ctrl+P',
                      'Show a python shell.',
-                     self.viewShell.toggle,
-                     checked=self.viewShell.holds_value),
+                     self.viewShell),
                 Item('&Floor plan', 'Ctrl+F',
                      'Show a 2D floor plan of the lattice.',
                      self.viewFloorPlan),
@@ -416,7 +415,6 @@ class MainWindow(QMainWindow):
         return model_params_dialog(
             self.model(), parent=self, folder=self.folder)
 
-    @SingleWindow.factory
     def viewShell(self):
         return self._createShell()
 
