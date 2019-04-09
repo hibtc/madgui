@@ -3,7 +3,6 @@ Miscellaneous utilities for programming with the Qt framework.
 """
 
 __all__ = [
-    'notifyCloseEvent',
     'notifyEvent',
     'eventFilter',
     'EventFilter',
@@ -25,11 +24,6 @@ from PyQt5 import uic
 
 from madgui.util.collections import Bool
 from madgui.util.misc import cachedproperty, memoize
-
-
-def notifyCloseEvent(widget, handler):
-    """Notify ``handler`` about ``closeEvent`` on the ``widget``."""
-    notifyEvent(widget, 'Close', handler)
 
 
 def notifyEvent(widget, name, handler):
@@ -223,7 +217,7 @@ class SingleWindow(Property):
     def _new(self):
         window = super()._new()
         present(window.window())
-        notifyCloseEvent(window, self._closed)
+        notifyEvent(window, 'Close', self._closed)
         return window
 
     def _update(self):

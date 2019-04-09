@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (
     QDockWidget, QInputDialog, QMainWindow, QMessageBox, QStyle)
 
 from madgui.util.signal import Signal
-from madgui.util.qt import notifyCloseEvent, SingleWindow, load_ui
+from madgui.util.qt import notifyEvent, SingleWindow, load_ui
 from madgui.util.undo import UndoStack
 from madgui.widget.dialog import Dialog
 from madgui.widget.log import LogRecord
@@ -583,7 +583,7 @@ class MainWindow(QMainWindow):
                 scene.destroy()
                 self.views.remove(scene)
 
-        notifyCloseEvent(widget.window(), destroyed)
+        notifyEvent(widget.window(), 'Close', destroyed)
 
     def _save_plot_window(self, scene):
         widget = scene.figure.canvas.window()

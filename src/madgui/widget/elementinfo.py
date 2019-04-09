@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QComboBox, QToolButton, QWidget
 from madgui.util.signal import Signal
 from madgui.util.unit import ui_units, to_ui
 from madgui.util.layout import VBoxLayout, HBoxLayout
-from madgui.util.qt import notifyCloseEvent, EventFilter
+from madgui.util.qt import notifyEvent, EventFilter
 from madgui.widget.dialog import Dialog
 from madgui.widget.params import (
     TabParamTables, ParamTable, CommandEdit, ParamInfo, MatrixTable)
@@ -258,7 +258,7 @@ class InfoBoxGroup:
         dock.setSimpleExportWidget(info, None)
         dock.setWindowTitle(
             "Element details: " + model.elements[el_id].node_name)
-        notifyCloseEvent(dock, lambda: self._on_close_box(info))
+        notifyEvent(dock, 'Close', lambda: self._on_close_box(info))
         info.installEventFilter(self.event_filter)
         dock.present()
         return info
