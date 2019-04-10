@@ -135,7 +135,7 @@ class Dialog(QDialog):
         # send closeEvent to children!
         if hasattr(self.widget(), 'closeEvent'):
             self.widget().closeEvent(event)
-        super().close()
+        super().closeEvent(event)
 
     def setExportWidget(self, widget, folder):
         self.serious = SerializeButtons(widget, folder, Qt.Vertical)

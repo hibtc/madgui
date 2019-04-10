@@ -73,7 +73,7 @@ class ElementInfoBox(QWidget):
 
     def closeEvent(self, event):
         self.model.updated.disconnect(self.notebook.update)
-        event.accept()
+        super().closeEvent(event)
 
     def advance(self, step):
         elements = self.model.elements
