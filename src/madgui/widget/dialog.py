@@ -9,7 +9,7 @@ __all__ = [
 import os
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QSizePolicy, QWidget
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QSizePolicy
 
 from madgui.util.layout import HBoxLayout, VBoxLayout, Stretch
 from madgui.util.qt import present, notifyEvent
@@ -133,8 +133,8 @@ class Dialog(QDialog):
         if self.event_filter:
             self.event_filter.uninstall()
         # send closeEvent to children!
-        if isinstance(self.widget(), QWidget):
-            self.widget().close()
+        if hasattr(self.widget(), 'closeEvent'):
+            self.widget().closeEvent(event)
         super().close()
 
     def setExportWidget(self, widget, folder):
