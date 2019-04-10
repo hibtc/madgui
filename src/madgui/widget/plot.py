@@ -55,9 +55,7 @@ class PlotWidget(QWidget):
         self.figure = figure or Figure(tight_layout=True)
         self.canvas = canvas = mpl_backend.FigureCanvas(figure)
         self.toolbar = toolbar = Toolbar(canvas, self)
-        layout = VBoxLayout([canvas, toolbar])
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+        self.setLayout(VBoxLayout([canvas, toolbar], tight=True))
         # Needed on PyQt5 with tight_layout=True to prevent crash due to
         # singular matrix if size=0:
         canvas.setMinimumSize(QSize(100, 100))

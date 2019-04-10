@@ -8,6 +8,7 @@ Components to draw a 2D floor plan of a given MAD-X lattice.
 # TODO: rotate/place scene according to space requirements
 
 __all__ = [
+    'FloorPlanWidget',
     'LatticeFloorPlan',
 ]
 
@@ -19,9 +20,10 @@ from PyQt5.QtGui import (
     QBrush, QColor, QFont, QFontMetrics, QPainter, QPainterPath,
     QPen, QPolygonF)
 from PyQt5.QtWidgets import (
-    QGraphicsItem, QGraphicsScene, QGraphicsView, QHBoxLayout,
+    QGraphicsItem, QGraphicsScene, QGraphicsView,
     QPushButton, QWidget)
 
+from madgui.util.layout import VBoxLayout
 from madgui.model.madx import FloorCoords
 
 
@@ -79,20 +81,25 @@ def normalize(vec):
     return vec / sqrt(np.dot(vec, vec))
 
 
-class Selector(QWidget):
+class FloorPlanWidget(QWidget):
 
-    def __init__(self, floorplan):
+    def __init__(self, session):
         super().__init__()
-        self.floorplan = floorplan
-        self.setLayout(QHBoxLayout())
-        self._addItem("Z|X", -pi/2, pi/2)
-        self._addItem("X|Y",     0,    0)
-        self._addItem("Z|Y", -pi/2,    0)
+        self.setWindowTitle("2D floor plan")
+        self.floorplan = LatticeFloorPlan()
+        self.floorplan.set_session(session)
+        self.setLayout(VBoxLayout([
+            self.floorplan, [
+                self._button("Z|X", -pi/2, pi/2),
+                self._button("X|Y",     0,    0),
+                self._button("Z|Y", -pi/2,    0),
+            ],
+        ]))
 
-    def _addItem(self, label, *args):
+    def _button(self, label, *args):
         button = QPushButton(label)
         button.clicked.connect(lambda: self.floorplan.setProjection(*args))
-        self.layout().addWidget(button)
+        return button
 
 
 class LatticeFloorPlan(QGraphicsView):

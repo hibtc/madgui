@@ -98,12 +98,11 @@ class TwissWidget(QWidget):
         show_indicators = len(model.elements) < 500
 
         parent = session.window()
-        dialog = Dialog(parent)
         widget = cls(
             session, model, name=name,
             show_indicators=show_indicators,
             settings=settings)
-        dialog.setWidget(widget, tight=True)
+        dialog = Dialog(parent, widget)
         dialog.layout().setMenuBar(QMenuBar())
         widget.create_menu(dialog.layout().menuBar())
 

@@ -215,7 +215,8 @@ class SingleWindow(Property):
         self.val.close()
 
     def _closed(self):
-        super()._del()
+        if self.holds_value():
+            super()._del()
 
     def _new(self):
         window = super()._new()

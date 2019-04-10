@@ -340,12 +340,6 @@ class TabParamTables(QTabWidget):
         if hasattr(self.window(), 'serious'):
             self.window().serious.updateButtons()
 
-    def activate_tab(self, name):
-        index = next((i for i in range(self.count())
-                      if self.tabText(i).lower() == name.lower()), 0)
-        if index != self.currentIndex():
-            self.setCurrentIndex(index)
-
     @property
     def exporter(self):
         return self.currentWidget()
@@ -356,17 +350,13 @@ def model_params_dialog(model, parent=None, folder='.'):
     from madgui.widget.elementinfo import EllipseWidget
     from madgui.widget.dialog import Dialog
 
-    class InitEllipseWidget(EllipseWidget):
-        def update(self):
-            super().update(0)
-
     widget = TabParamTables([
         ('Twiss', ParamTable(model.fetch_twiss, model.update_twiss_args,
                              data_key='twiss')),
         ('Beam', ParamTable(model.fetch_beam, model.update_beam,
                             data_key='beam')),
         ('Globals', GlobalsEdit(model, data_key='globals')),
-        ('Ellipse', InitEllipseWidget(model)),
+        ('Ellipse', EllipseWidget(model)),
     ])
     widget.update()
     # NOTE: Ideally, we'd like to update after changing initial conditions

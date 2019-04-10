@@ -4,13 +4,13 @@ About dialog that provides version and license information for the user.
 
 __all__ = [
     'VersionInfo',
-    'AboutDialog',
+    'AboutWidget',
 ]
 
 import docutils.core
-from PyQt5.QtWidgets import QFrame, QPushButton, QTextBrowser
+from PyQt5.QtWidgets import QWidget
 
-from madgui.widget.dialog import Dialog
+from madgui.util.qt import load_ui
 
 
 class VersionInfo:
@@ -50,32 +50,18 @@ def _section(level, title, content, level_chr='=~'):
     return title + '\n' + level_chr[level] * len(title) + '\n\n' + content
 
 
-def HLine():
-    """Create horizontal line widget (as divider between stacked widgets)."""
-    line = QFrame()
-    line.setFrameShape(QFrame.HLine)
-    line.setFrameShadow(QFrame.Sunken)
-    return line
-
-
-def AboutWidget(version_info, *args, **kwargs):
+class AboutWidget(QWidget):
     """A panel showing information about one software component."""
+
     # QTextBrowser is good enough for our purposes. For a comparison of
     # QTextBrowser and QWebKit.QWebView, see:
     # See http://www.mimec.org/node/383
-    widget = QTextBrowser(*args, **kwargs)
-    widget.setOpenExternalLinks(True)
-    widget.setHtml(version_info.to_html())
-    widget.setMinimumSize(600, 400)
-    return widget
 
+    def __init__(self, version_info, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        load_ui(self, __package__, 'about.ui')
+        self.textBrowser.setHtml(version_info.to_html())
+        self.setWindowTitle("About {}".format(version_info.name))
 
-def AboutDialog(version_info, owner=None, parent=None):
-    main = AboutWidget(version_info)
-    line = HLine()
-    button = QPushButton("&OK")
-    button.setDefault(True)
-    dialog = Dialog(owner, [main, line, button], parent=parent, tight=False)
-    dialog.setWindowTitle("About {}".format(version_info.name))
-    button.clicked.connect(dialog.accept)
-    return dialog
+    def on_okButton_clicked(self):
+        self.window().close()
