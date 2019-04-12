@@ -6,7 +6,6 @@ __all__ = [
     'PyShell',
 ]
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication
 from pyqtconsole.console import PythonConsole
 
@@ -17,13 +16,13 @@ class PyShell(PythonConsole):
 
     def __init__(self, context, parent=None):
         super().__init__(parent, context)
-        self.stdin.write_event.connect(
-            self.repl_nonblock, Qt.ConnectionType.QueuedConnection)
         self.ctrl_d_exits_console(True)
+        self.eval_queued()
 
     def _close(self):
-        self.interpreter.exit()
-        self.window().close()
+        # prevent feedback loop:
+        if self.window().isVisible():
+            self.window().close()
 
 
 if __name__ == "__main__":
