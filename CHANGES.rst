@@ -1,6 +1,35 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.4.1
+~~~~~~
+Date: 13.04.2019
+
+- fix empty log after changing log level
+- improve performance of log widget even after long use (#35)
+- add menu and config entry for setting a maximum log length
+- fix log entries without specified color receiving the color from the
+  previous entry
+- improve non-GUI mode app support
+- make it possible to show the mainwindow on top of other windows, by turning
+  dialogs into top-level windows
+- simplify Dialog instanciation and internal logic
+- fix the "Calibrate" button in "orbit correction -> measured response"
+  widget. It was missing the implementation after an earlier refactoring
+- implement notifyEvent in terms of eventFilter. This makes it possible to
+  these event notifications, and therefore prevent bugs due to calling dead
+  objects.
+- turn shell from dockwidget into a normal dialog
+- allow opening multiple console windows at a time
+- replace qtconsole by the faster and more lightweight pyqtconsole
+- this fixes an "AttributeError" when calling "exit()"
+- also fixes "Execution aborted" error that prevents further statements from
+  being executed in the console after any exception has been raised in a
+  previous command
+- work on improving documentation and cross-referencing
+- use pint 0.9
+
+
 19.4.0
 ~~~~~~
 Date: 01.04.2019
