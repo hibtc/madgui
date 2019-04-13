@@ -434,7 +434,7 @@ class MainWindow(QMainWindow):
             self, "Set log size", text,
             value=self.logWidget.maxlen, min=0)
         if ok:
-            self.logWidget.set_maxlen(number)
+            self.logWidget.maxlen = number
 
     def setInterpolate(self):
         text = "Number of points (0 to disable):"
