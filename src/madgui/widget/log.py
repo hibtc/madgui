@@ -132,6 +132,7 @@ class LogWindow(QFrame):
         super().__init__(*args)
         self.setFont(monospace())
         self.textctrl = QPlainTextEdit()
+        self.textctrl.setFont(monospace())      # not inherited on windows
         self.textctrl.setReadOnly(True)
         self.textctrl.setUndoRedoEnabled(False)
         self.infobar = RecordInfoBar(self.textctrl)
