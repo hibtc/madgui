@@ -13,6 +13,11 @@ class ConfigSelect(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         load_ui(self, __package__, 'configselect.ui')
+        # NOTE: DON'T rename the slot to on_comboConfig_currentIndexChanged!
+        # We connect this signal manually, because `connectSlotsByName` will
+        # pick the `currentIndexChanged(str)` overload for some reason.
+        self.configComboBox.currentIndexChanged.connect(
+            self.on_config_indexChanged)
 
     def set_corrector(self, corrector, data_key):
         self.data_key = data_key
@@ -42,7 +47,7 @@ class ConfigSelect(QWidget):
     def on_modeXYButton_clicked(self):
         self.set_xy_mode('xy')
 
-    def on_configComboBox_activated(self, index):
+    def on_config_indexChanged(self, index):
         name = self.configComboBox.itemText(index)
         self.corrector.setup(self.configs[name], self.corrector.mode)
 
