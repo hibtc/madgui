@@ -183,7 +183,7 @@ class UndoStack:
             self.changed.emit()
 
     @contextmanager
-    def macro(self, text):
+    def macro(self, text=""):
         stack = Stack()
         macro = Macro(text, stack.items)
         backup = self._leaf
@@ -203,7 +203,7 @@ class UndoStack:
         if transient:
             old = getattr(self.model, '_twiss', None)
         try:
-            with self.macro() as macro:
+            with self.macro(text) as macro:
                 yield macro
         finally:
             if self._leaf.top() is macro:
