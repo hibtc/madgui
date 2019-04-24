@@ -1,6 +1,18 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.4.2
+~~~~~~
+Date: 24.04.2019
+
+- fix log widget to have monospace on windows
+- fix exception when setting max log size via menu
+- fix exception in corrector dialog when using MATCH or sectormap methods:
+  "TypeError: macro() missing 1 requried positional argument"
+- fix TypeError in corrector dialog when changing config (combo box):
+  "TypeError: itemText(self, int): argument 1 has unexpected type 'str'"
+
+
 19.4.1
 ~~~~~~
 Date: 13.04.2019
