@@ -187,9 +187,9 @@ class UndoStack:
         stack = Stack()
         macro = Macro(text, stack.items)
         backup = self._leaf
-        self._leaf = stack
         try:
-            self.push(macro)
+            self.push(macro)    # These two lines must be in this order to
+            self._leaf = stack  # avoid an infinite recursion!
             yield macro
         finally:
             self._leaf = backup
