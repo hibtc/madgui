@@ -45,6 +45,9 @@ class SceneNode:
         for item in self.items:
             if item.name == name:
                 return item
+        # Prevent exceptions in code like `graph.node(NAME).enable(True)`
+        # after destruction of the graph:
+        return NullNode()
 
     def invalidate(self):
         """Mark drawn state as stale and redraw if needed."""
@@ -97,6 +100,19 @@ class SceneNode:
     def draw_idle(self):
         """Let the canvas know that it has to redraw."""
         self.parent.draw_idle()
+
+
+class NullNode(SceneNode):
+
+    """Non-existent node."""
+
+    _enabled = False
+
+    def __bool__(self):
+        return False
+
+    def draw_idle(self):
+        pass
 
 
 class SimpleArtist(SceneNode):
@@ -187,7 +203,7 @@ class SceneGraph(SceneNode):
     def destroy(self):
         for item in self.items:
             item.destroy()
-        self.items = None
+        self.items = ()
         self.shown = False
 
 
