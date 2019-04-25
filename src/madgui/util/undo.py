@@ -200,6 +200,7 @@ class UndoStack:
 
     @contextmanager
     def rollback(self, text="temporary change", transient=False):
+        macro = None
         if transient:
             old = getattr(self.model, '_twiss', None)
         try:
