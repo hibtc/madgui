@@ -1,5 +1,6 @@
 import yaml
 
+from PyQt5.QtCore import pyqtSlot as slot
 from PyQt5.QtWidgets import QWidget, QMessageBox
 
 from madgui.util.qt import load_ui
@@ -13,11 +14,6 @@ class ConfigSelect(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         load_ui(self, __package__, 'configselect.ui')
-        # NOTE: DON'T rename the slot to on_comboConfig_currentIndexChanged!
-        # We connect this signal manually, because `connectSlotsByName` will
-        # pick the `currentIndexChanged(str)` overload for some reason.
-        self.configComboBox.currentIndexChanged.connect(
-            self.on_config_indexChanged)
 
     def set_corrector(self, corrector, data_key):
         self.data_key = data_key
@@ -35,22 +31,26 @@ class ConfigSelect(QWidget):
         self.editConfigButton.setEnabled(enabled)
         self.configComboBox.setEnabled(enabled)
 
-    # Button event handling:
-    # (connected in load_ui via QMetaObject.connectSlotsByName)
+    # Event handlers
 
+    @slot()
     def on_modeXButton_clicked(self):
         self.set_xy_mode('x')
 
+    @slot()
     def on_modeYButton_clicked(self):
         self.set_xy_mode('y')
 
+    @slot()
     def on_modeXYButton_clicked(self):
         self.set_xy_mode('xy')
 
-    def on_config_indexChanged(self, index):
+    @slot(int)
+    def on_configComboBox_currentIndexChanged(self, index):
         name = self.configComboBox.itemText(index)
         self.corrector.setup(self.configs[name], self.corrector.mode)
 
+    @slot()
     def on_editConfigButton_clicked(self):
         model = self.corrector.model
         with open(model.filename) as f:

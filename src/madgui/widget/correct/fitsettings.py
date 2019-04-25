@@ -1,3 +1,4 @@
+from PyQt5.QtCore import pyqtSlot as slot
 from PyQt5.QtWidgets import QWidget
 
 from madgui.util.qt import load_ui
@@ -15,15 +16,19 @@ class FitSettingsWidget(QWidget):
 
     # button events
 
+    @slot()
     def on_methodMatchButton_clicked(self):
         self.corrector.strategy.set('match')
 
+    @slot()
     def on_methodORMButton_clicked(self):
         self.corrector.strategy.set('orm')
 
+    @slot()
     def on_methodSectormapButton_clicked(self):
         self.corrector.strategy.set('tm')
 
+    @slot()
     def on_backtrackCheckBox_clicked(self):
         self.corrector.use_backtracking.set(
             self.backtrackCheckBox.isChecked())

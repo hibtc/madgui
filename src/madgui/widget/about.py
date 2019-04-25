@@ -8,6 +8,7 @@ __all__ = [
 ]
 
 import docutils.core
+from PyQt5.QtCore import pyqtSlot as slot
 from PyQt5.QtWidgets import QWidget
 
 from madgui.util.qt import load_ui
@@ -63,5 +64,6 @@ class AboutWidget(QWidget):
         self.textBrowser.setHtml(version_info.to_html())
         self.setWindowTitle("About {}".format(version_info.name))
 
+    @slot()
     def on_okButton_clicked(self):
         self.window().close()

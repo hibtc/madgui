@@ -1,3 +1,4 @@
+from PyQt5.QtCore import pyqtSlot as slot
 from PyQt5.QtWidgets import QWidget
 
 from madgui.util.qt import load_ui
@@ -27,10 +28,12 @@ class ManProcWidget(QWidget):
         self.opticComboBox.setCurrentIndex(min(selected, num_optics-1))
         self.setOpticButton.setEnabled(num_optics > 0)
 
+    @slot()
     def on_recordButton_clicked(self):
         self.corrector.add_record(
             self.opticComboBox.currentIndex(), None)
 
+    @slot()
     def on_setOpticButton_clicked(self):
         # TODO: disable "write" button until another optic has been selected
         # or the optic has changed in the ACS
