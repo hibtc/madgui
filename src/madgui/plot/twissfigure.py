@@ -479,14 +479,16 @@ class TwissFigure:
         offsets = self.session.config['online_control']['offsets']
         monitor_data = [
             {'s': elements[r.name].position,
-             'x': (r.posx + dx) if r.posx is not None else None,
-             'y': (r.posy + dy) if r.posy is not None else None,
+             'x': r.posx + dx,
+             'y': r.posy + dy,
              'envx': r.envx,
              'envy': r.envy,
              }
             for r in self.session.control.sampler.readouts_list
             for dx, dy in [offsets.get(r.name.lower(), (0, 0))]
             if r.name.lower() in self.monitors
+            and r.posx is not None
+            and r.posy is not None
         ]
         return {
             name: np.array([d[name] for d in monitor_data])

@@ -195,8 +195,13 @@ class Corrector(Matcher):
         if self.direct:
             self.records[:] = self.current_orbit_records()
 
+    def can_fit(self):
+        return (len(self.records) >= 2 and
+                len(self.variables) >= 1 and
+                all(r.readout.valid for r in self.records))
+
     def update_fit(self):
-        if len(self.records) < 2 or len(self.variables) < 1:
+        if not self.can_fit():
             return
 
         if self.use_backtracking():
