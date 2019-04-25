@@ -1,6 +1,14 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.4.4
+~~~~~~
+Date: 25.04.2019
+
+- fix several minor exceptions that can occur in corrector dialog under rare
+  circumstances
+
+
 19.4.3
 ~~~~~~
 Date: 25.04.2019
