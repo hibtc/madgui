@@ -47,8 +47,10 @@ class ConfigSelect(QWidget):
 
     @slot(int)
     def on_configComboBox_currentIndexChanged(self, index):
-        name = self.configComboBox.itemText(index)
-        self.corrector.setup(self.configs[name], self.corrector.mode)
+        # index can be `-1` if list is empty, e.g. in update_config_items:
+        if index >= 0:
+            name = self.configComboBox.itemText(index)
+            self.corrector.setup(self.configs[name], self.corrector.mode)
 
     @slot()
     def on_editConfigButton_clicked(self):
