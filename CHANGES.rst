@@ -1,6 +1,17 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.4.3
+~~~~~~
+Date: 25.04.2019
+
+- fix RecursionError in ``UndoStack.macro()``, that occurs e.g. when using
+  the MATCH/sectormap methods of corrector dialog
+- fix potential NameError in ``UndoStack.rollback()``
+- fix unwanted signal connections that can lead to TypeErrors and multiple
+  signal handler executions (e.g. triggering the EditConfigDialog twice)
+
+
 19.4.2
 ~~~~~~
 Date: 24.04.2019
