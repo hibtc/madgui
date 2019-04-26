@@ -76,8 +76,8 @@ class Control:
         self.model.changed.disconnect(self._on_model_changed)
         self._on_model_changed()
 
-    def _on_model_changed(self):
-        model = self.model()
+    def _on_model_changed(self, model=None):
+        model = model or self.model()
         elems = self.is_connected() and model and model.elements or ()
         self.sampler.monitors = [
             elem.name
