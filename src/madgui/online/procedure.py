@@ -14,6 +14,7 @@ __all__ = [
 from itertools import accumulate, product
 import logging
 import textwrap
+from datetime import datetime, timezone
 
 import numpy as np
 
@@ -237,6 +238,11 @@ class Corrector(Matcher):
         self.model.write_params(optic.items())
         self.control.write_params(optic.items())
         self.active_optic = i
+        if i is not None:
+            self.write_data([{
+                'optics': self.optics[i],
+                'time': format_datetime(),
+            }])
 
     # computations
 
@@ -380,26 +386,24 @@ class Corrector(Matcher):
         return self.model.get_orbit_response_matrix(
             self.monitors, self.variables).reshape((-1, len(self.variables)))
 
-    def add_record(self, step, shot):
+    def add_record(self, step, shot, time=None):
         # update_vars breaks ORM procedures because it re-reads base_optics!
         # self.update_vars()
         self.control.read_all()
         records = self.current_orbit_records()
         self.records.extend(records)
-        if self.file:
-            self.write_shot(step, shot, {
-                r.monitor: [r.readout.posx, r.readout.posy,
-                            r.readout.envx, r.readout.envy]
-                for r in records
-            })
+        self.write_shot(step, shot, {
+            r.monitor: [r.readout.posx, r.readout.posy,
+                        r.readout.envx, r.readout.envy]
+            for r in records
+        }, time=time)
 
-    def write_shot(self, step, shot, records):
-        if shot == 0:
-            self.write_data([{
-                'optics': self.optics[step],
-            }])
-            self.file.write('  shots:\n')
-        self.write_data([records], "  ")
+    def write_shot(self, step, shot, records, time=None):
+        if self.file:
+            if shot == 0:
+                self.file.write('  shots:\n')
+            records = {'time': format_datetime(time), **records}
+            self.write_data([records], "  ")
 
     def open_export(self, fname):
         self.file = open(fname, 'wt', encoding='utf-8')
@@ -424,8 +428,9 @@ class Corrector(Matcher):
             self.file = None
 
     def write_data(self, data, indent="", **kwd):
-        self.file.write(textwrap.indent(yaml.safe_dump(data, **kwd), indent))
-        self.file.flush()
+        if self.file:
+            self.file.write(textwrap.indent(yaml.safe_dump(data, **kwd), indent))
+            self.file.flush()
 
 
 class ProcBot:
@@ -480,7 +485,7 @@ class ProcBot:
             self.widget.log('  -> shot {} (ignored)', shot)
         else:
             self.widget.log('  -> shot {}', shot)
-            self.corrector.add_record(step, shot-self.num_ignore)
+            self.corrector.add_record(step, shot-self.num_ignore, time)
         self._advance()
 
     def _advance(self):
@@ -495,3 +500,11 @@ class ProcBot:
                 "optic {} of {}: {}", step, self.numsteps,
                 self.corrector.optics[step])
             self.corrector.set_optic(step)
+
+
+def format_datetime(datime=None):
+    if datime is None:
+        datime = datetime.now(timezone.utc)
+    elif isinstance(datime, (int, float)):
+        datime = datetime.fromtimestamp(datime)
+    return datime.astimezone().strftime('%Y-%m-%d %H:%M:%S %z')

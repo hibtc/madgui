@@ -164,10 +164,6 @@ class MeasureWidget(QWidget):
         self.control.read_all()
         self.corrector.set_optics_delta(self.d_phi, self.defaultSpinBox.value())
 
-        self.bot.start(
-            self.numIgnoredSpinBox.value(),
-            self.numUsedSpinBox.value())
-
         now = time.localtime(time.time())
         fname = os.path.join(
             self.folderEdit.text(),
@@ -179,6 +175,10 @@ class MeasureWidget(QWidget):
             ))
 
         self.corrector.open_export(fname)
+
+        self.bot.start(
+            self.numIgnoredSpinBox.value(),
+            self.numUsedSpinBox.value())
 
     def log(self, text, *args, **kwargs):
         formatted = text.format(*args, **kwargs)
