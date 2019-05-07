@@ -507,4 +507,4 @@ def format_datetime(datime=None):
         datime = datetime.now(timezone.utc)
     elif isinstance(datime, (int, float)):
         datime = datetime.fromtimestamp(datime)
-    return datime.astimezone().strftime('%Y-%m-%d %H:%M:%S %z')
+    return datime.astimezone().strftime('%Y-%m-%d %H:%M:%S.%f %z')
