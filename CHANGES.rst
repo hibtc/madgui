@@ -1,6 +1,14 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.5.0
+~~~~~~
+Date: 07.05.2019
+
+- fix a TypeError when changing the model
+- export time along with BPM values in ORM measurement dialog
+
+
 19.4.4
 ~~~~~~
 Date: 25.04.2019
