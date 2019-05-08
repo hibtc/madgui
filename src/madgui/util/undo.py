@@ -10,6 +10,7 @@ __all__ = [
 ]
 
 from contextlib import contextmanager
+import logging
 
 from madgui.util.misc import invalidate
 from madgui.util.signal import Signal
@@ -184,6 +185,8 @@ class UndoStack:
 
     @contextmanager
     def macro(self, text=""):
+        if text:
+            logging.info(text)
         stack = Stack()
         macro = Macro(text, stack.items)
         backup = self._leaf

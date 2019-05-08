@@ -314,8 +314,6 @@ orbit correction
 - use tablib, e.g. https://github.com/kennethreitz/tablib ?
 - save pandas dataframes instead of cpymad.Table?
 
-- madgui: log macro with name?
-
 - madgui.model:
     - rename to madgui.phys?
     - move emittance maths here
