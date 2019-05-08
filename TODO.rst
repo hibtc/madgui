@@ -1,11 +1,9 @@
 madgui:
-
     import dependency graph + performance analysis
 
 
 pyqtconsole:
 
-    - Shift+character can edit at any cursor position
     - ctrl+Z can revert into inconsistent state
         -> set readonly, handle all events
             - text insertion
@@ -517,7 +515,11 @@ backtracking
 
 - strength mode: click on elements -> change strength
 
-floor plan: true 3D with opengl
+floor plan:
+- true 3D with opengl
+- improve camera movement
+- customize settings via UI (wireframe etc)
+- export to 3D model
 
 undostack:
 - model crash -> restart MAD-X and replay session using undostack (??)
@@ -598,12 +600,13 @@ param dialog:
 - curves: export
 
 plotting:
+    - simplify creating plots for user
     - plot legend outside plot
     - simplify/document defining custom plots in config, i.e. curve names etc
     - plot API in python shell
     - replace matplotlib by pyqtgraph?
     - configure "show element indicators" via model/config + toolbutton
-    - fix "shared plot" when showing monitors
+    - fix "shared plot" when showing monitors: different shapes/colors for X/Y
 
     - encapsulate the envx/envy/etc transformations in model fetch/match
     - plotting differences between revisions, closes #17
@@ -614,8 +617,7 @@ async:
     - use beamoptikdll in background thread?
         -> i believe it must be called in the main thread
 
-- add "frozen" mode to plot widgets
-- simplify creating plots
+- add "frozen" mode to plot widgets (unsubscribe from Model.updated)
 
 
 MatchDialog:
@@ -628,7 +630,7 @@ MatchDialog:
 
 cpymad
 ======
-    - cpymad: log chdir
+    - cpymad: use MAD-X' builtin chdir once MAD-X 5.04.03 (or later) is available
 
     - live query element parameters
     - slice of Elements
@@ -641,21 +643,11 @@ cpymad
     - integrate model again
 
 
-minrpc
-======
-    - Service.atexit handler ?
-    - should LibmadxClient.close call libmadx.quit?
-
-
 hit_models
 ==========
     - handle validity of SD values individually (-> H/V-monitor)
-    - do away with the special role of model files? model -> session ????
 
 
 hit_acs
 =======
     - halbwertsbreiten -> RMS breiten
-
-    stub:
-    - add method to set independent model for SD calculations
