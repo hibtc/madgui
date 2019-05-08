@@ -56,6 +56,10 @@ class Backend(metaclass=ABCMeta):
         """
 
     @abstractmethod
+    def read_params(self, param_names=None):
+        """Read all specified params (by default all). Return dict."""
+
+    @abstractmethod
     def read_param(self, param):
         """Read parameter. Return numeric value."""
 
