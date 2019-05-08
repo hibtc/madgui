@@ -161,7 +161,6 @@ class MeasureWidget(QWidget):
         pass
 
     def start_bot(self):
-        self.control.read_all()
         self.corrector.set_optics_delta(self.d_phi, self.defaultSpinBox.value())
 
         now = time.localtime(time.time())
