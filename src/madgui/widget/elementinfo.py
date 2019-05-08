@@ -110,8 +110,16 @@ class ElementInfoBox(QWidget):
         return self.notebook.currentWidget().exporter
 
     def _fetch_cmdpar(self, elem_index):
-        return list(self.model.sequence.expanded_elements[self.el_id]
-                    .cmdpar.values())
+        elem = self.model.sequence.expanded_elements[elem_index]
+        cmdpars = list(elem.cmdpar.values())
+        # Implicit drifts being shallow clones of the base DRIFT have inform=1
+        # for all attributes (even those that are unchanged from a base drift).
+        # This results in everything being shown in bold style, which is ugly.
+        # We suppress it by setting inform=0 for most attributes:
+        if getattr(elem, 'occ_cnt', None) == 0:
+            for par in cmdpars:
+                par.inform = par.name in ('at', 'l')
+        return cmdpars
 
     def _update_element(self, *args, **kwargs):
         return self.model.update_element(*args, **kwargs)
