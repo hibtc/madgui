@@ -92,7 +92,7 @@ class MainWindow(QMainWindow):
         Menu, Item, Separator = menu.Menu, menu.Item, menu.Separator
         menubar = self.menuBar()
         items = menu.extend(self, menubar, [
-            Menu('&File', [
+            Menu('&Model', [
                 Item('&Open', 'Ctrl+O',
                      'Load model or open new model from a MAD-X file.',
                      self.fileOpen,
@@ -105,6 +105,11 @@ class MainWindow(QMainWindow):
                 Item('&Execute MAD-X file', 'Ctrl+E',
                      'Execute MAD-X file in current context.',
                      self.execFile),
+                Separator,
+                Item('&Revert sequence', None,
+                     'Reverse current sequence from back to front '
+                     '(experimental). Does not work with all element types.',
+                     self.reverseSequence),
                 Separator,
                 Item('&Quit', 'Ctrl+Q',
                      'Close window.',
@@ -408,6 +413,12 @@ class MainWindow(QMainWindow):
             data = fetch_data()
             export(filename, data, **kw)
             self.str_folder = os.path.dirname(filename)
+
+    def reverseSequence(self):
+        """Reverse sequence from back to front. Experimental feature. Not
+        implemented for all element types."""
+        self.model().reverse()
+        self.model().invalidate()
 
     @SingleWindow.factory
     def editInitialConditions(self):

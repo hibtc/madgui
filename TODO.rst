@@ -326,8 +326,6 @@ orbit correction
 
 - menu/toolbar item for displaying monitors
 
-- menuitem for reversing sequence
-
 - export:
     - safeguard against parsing errors, log error
     - export all / import all
