@@ -5,7 +5,6 @@ Components to draw a 3D floor plan of a given MAD-X lattice.
 # TODO: improve camera movement
 # TODO: entry/exit pole faces
 # TODO: load styles from config + UI
-# TODO: improve camera movement: first person vs. panning
 # TODO: add exporters for common 3D data formats (obj+mtl/collada/ply?)
 # TODO: customize settings via UI (wireframe etc)
 # TODO: show thin elements as disks (kicker/monitor)
@@ -90,6 +89,14 @@ def qmatrix_to_numpy(qmatrix):
     return np.array(qmatrix.data(), dtype=np.float32).reshape((4, 4)).T
 
 
+def inverted(matrix):
+    R = np.eye(4, dtype=np.float32)
+    T = np.eye(4, dtype=np.float32)
+    R[:3, :3] = matrix[:3, :3].T
+    T[:3, 3] = -matrix[:3, 3]
+    return R @ T
+
+
 class FloorPlanWidget(QWidget):
 
     def __init__(self, session):
@@ -107,7 +114,7 @@ class FloorPlanWidget(QWidget):
 
     def _button(self, label, *args):
         button = QPushButton(label)
-        button.clicked.connect(lambda: self.floorplan.set_camera(*args))
+        button.clicked.connect(lambda: self.floorplan.look_from(*args))
         return button
 
     def session_data(self):
@@ -123,8 +130,8 @@ class LatticeFloorPlan(QOpenGLWidget):
     model = None
 
     distance = 3
-    theta = -pi/2
-    phi = -pi/2
+    theta = 0
+    phi = 0
     psi = 0
 
     fov = 70.0
@@ -177,7 +184,7 @@ class LatticeFloorPlan(QOpenGLWidget):
         self.create_shader_program()
         # Activate wireframe:
         # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-        self.set_camera(self.theta, self.phi, self.psi)
+        self.look_from(self.theta, self.phi, self.psi)
         self.create_scene()
 
     def paintGL(self):
@@ -213,7 +220,7 @@ class LatticeFloorPlan(QOpenGLWidget):
         self.center = center
         self.distance = np.max(np.linalg.norm(points - center, axis=1)) + 1
 
-        self.set_camera(self.theta, self.phi, self.psi)
+        self.look_from(self.theta, self.phi, self.psi)
 
         self.items[:] = [
             self.create_element_item(element, coords)
@@ -278,16 +285,33 @@ class LatticeFloorPlan(QOpenGLWidget):
         self.fov = np.clip(self.fov - scale/5, 1.0, 180.0)
         self.update()
 
-    def set_camera(self, theta, phi, psi=0):
-        # Prevent from rotating into upside-down camera orientation:
+    def look_from(self, theta, phi, psi=0):
+        """Set camera position by rotating camera around its view target. The
+        angles are the coordinates of the camera relative to the target, at a
+        distance ``self.distance``."""
         phi = np.clip(phi, -pi/2, pi/2)
         rot = rotate(theta, phi, psi)
-        tra0 = translate(*-self.center)
-        tra1 = translate(0, 0, -self.distance)
+        tra0 = translate(*self.center)
+        tra1 = translate(0, 0, self.distance)
+        goto_camera = tra0 @ rot.T @ tra1
+        self.camera_position = (
+            goto_camera @ np.array([0, 0, 0, 1], dtype=np.float32))[:3]
+        self.view = inverted(goto_camera)
         self.theta, self.phi, self.psi = theta, phi, psi
-        self.view = tra1 @ rot @ tra0
-        self.camera_position = \
-            -self.view @ np.array([0, 0, 0, 1], dtype=np.float32)
+        self.update()
+
+    def look_toward(self, theta, phi, psi=0):
+        """Rotate camera at fixed position. The center of view is recalculated
+        to be at distance ``self.distance`` from the camera position in the
+        direction given by the angles."""
+        phi = np.clip(phi, -pi/2, pi/2)
+        rot = rotate(theta, phi, psi)
+        tra0 = translate(*self.camera_position)
+        tra1 = translate(0, 0, -self.distance)
+        self.center = (
+            tra0 @ rot.T @ tra1 @ np.array([0, 0, 0, 1], dtype=np.float32))[:3]
+        self.view = tra1 @ rot @ translate(*-self.center)
+        self.theta, self.phi, self.psi = theta, phi, psi
         self.update()
 
     def wheelEvent(self, event):
@@ -302,9 +326,12 @@ class LatticeFloorPlan(QOpenGLWidget):
     def mouseMoveEvent(self, event):
         delta = event.pos() - self.last_mouse_position
         if event.buttons() == Qt.RightButton:
-            theta = self.theta + delta.x()/100
-            phi = self.phi + delta.y()/100
-            self.set_camera(theta, phi, self.psi)
+            dx = delta.x()/100
+            dy = delta.y()/100
+            if event.modifiers() & Qt.ShiftModifier:
+                self.look_from(self.theta + dx, self.phi + dy, self.psi)
+            else:
+                self.look_toward(self.theta + dx, self.phi - dy, self.psi)
         elif event.buttons() == Qt.RightButton | Qt.LeftButton:
             self.zoom(-delta.y())
         else:
