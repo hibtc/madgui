@@ -414,7 +414,9 @@ class Corrector(Matcher):
         })
         self.write_data({
             'model': self.base_optics,
+            'extra': self.control.backend.read_params(),
         }, default_flow_style=False)
+
         self.file.write(
             '#    posx[m]    posy[m]    envx[m]    envy[m]\n'
             'records:\n')
