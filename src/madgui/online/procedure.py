@@ -164,10 +164,7 @@ class Corrector(Matcher):
         self.setup_changed.emit()
 
     def set_optics_delta(self, deltas, default):
-        self.base_optics = {
-            knob: self.model.read_param(knob)
-            for knob in self.control.get_knobs()
-        }
+        self.update_vars()
         self.optics = [{}] + [
             {knob: self.base_optics[knob] + delta}
             for knob in self.match_names
@@ -417,7 +414,9 @@ class Corrector(Matcher):
         })
         self.write_data({
             'model': self.base_optics,
+            'extra': self.control.backend.read_params(),
         }, default_flow_style=False)
+
         self.file.write(
             '#    posx[m]    posy[m]    envx[m]    envy[m]\n'
             'records:\n')
