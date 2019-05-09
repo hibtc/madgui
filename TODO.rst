@@ -11,11 +11,32 @@ madgui
 
 misc
 ~~~~
-- unify orbit corrector widgets
-
-- unify orbit corrector with beam diagnostic dialog SAME PROCEDURE
 - dispatch events in later mainloop iteration
 
+- use DoubleSpinBox stepType = AdaptiveDecimalStepType (not too useful)
+
+- option to save all log items
+
+- matching: improve defaults element/constraint/variable when adding
+  constraints/variables
+
+- simplify destroy/remove mechanisms
+
+- strength mode: click on elements -> change strength
+
+
+online
+~~~~~~
+- let backend provide control for selecting MEFI -> textedit pattern
+
+- startwerte für temp variablen in assign
+
+- autodetect steerer usability for X/Y based on sectormap / ORM? -> unnecessary
+  at least put out a warning?
+- fit transfermap, show chisq/likelihood
+
+- unify orbit corrector widgets
+- unify orbit corrector with beam diagnostic dialog SAME PROCEDURE
 - unify:
 
     - src/madgui/online/orm_measure.ui
@@ -45,37 +66,6 @@ misc
         - dataseries [time, monitor…]
 
         requires NewValueCallback + MEFI changed notification for useful operation
-
-- use DoubleSpinBox stepType = AdaptiveDecimalStepType (not too useful)
-
-- simplify matcher…, do we really need all that start/stop fuzz?
-
-- let backend provide control for selecting MEFI -> textedit pattern
-
-- option to save all log items
-
-- autodetect steerer usability for X/Y based on sectormap / ORM? -> unnecessary
-  at least put out a warning?
-
-- fit transfermap, show chisq/likelihood
-
-- simplify model loading
-- simplify model.twiss() , should be able to pass twiss_args
-
-- matching: improve defaults element/constraint/variable when adding
-  constraints/variables
-
-- startwerte für temp variablen in assign
-
-- undo: CALLing files by diffing both elements/variables/beam
-
-- proper range support
-
-- simplify destroy/remove mechanisms
-
-- strength mode: click on elements -> change strength
-
-- save pandas dataframes instead of cpymad.Table?
 
 export
 ~~~~~~
@@ -238,39 +228,6 @@ solution for cleaner config lookup?:
 - rework config… simply nested attrdict?
 
 
-ORM analysis
-============
-- monitor errors
-
-- fast mode with sectormap
-  -> quadratic map for more accurate predictions?
-
-- minimize several independent recordings simultaneously
-
-- simplify model.errors module, integrate into Model?
-
-- integrate ORM plot in madgui itself
-
-  - allow to plot sectormap components, and sigma components
-  - make use of twissfigure:
-
-      - element markers
-      - status bar info
-      - click on element -> select for plot
-      - click on element -> show info box?
-      - click on element -> show error box
-
-- parallelize
-  - ORM computation
-  - jacobian
-
-- add code to check effectiveness of different errors for generating ORM
-  deviations
-
-- different orbit correction matching algorithms ORM + SVD (etc…):
-  http://uspas.fnal.gov/materials/05UCB/2_OrbitCorrection.pdf
-
-
 orbit correction
 ~~~~~~~~~~~~~~~~
 
@@ -307,6 +264,14 @@ diagnostic dialogs
 
 model
 ~~~~~
+- simplify model loading
+- simplify model.twiss() , should be able to pass twiss_args
+- proper range support
+- save pandas dataframes instead of cpymad.Table?
+- undo: CALLing files by diffing both elements/variables/beam
+
+- simplify matcher…, do we really need all that start/stop fuzz?
+
 - rename madgui.model to madgui.phys?
 - move emittance maths here
 - rename orm module to orbit_response
@@ -486,10 +451,41 @@ udiskie_.
     -> i believe it must be called in the main thread
 
 
+ORM analysis
+============
+- monitor errors
+
+- fast mode with sectormap
+  -> quadratic map for more accurate predictions?
+
+- minimize several independent recordings simultaneously
+
+- simplify model.errors module, integrate into Model?
+
+- integrate ORM plot in madgui itself
+
+  - allow to plot sectormap components, and sigma components
+  - make use of twissfigure:
+
+      - element markers
+      - status bar info
+      - click on element -> select for plot
+      - click on element -> show info box?
+      - click on element -> show error box
+
+- parallelize
+  - ORM computation
+  - jacobian
+
+- add code to check effectiveness of different errors for generating ORM
+  deviations
+
+- different orbit correction matching algorithms ORM + SVD (etc…):
+  http://uspas.fnal.gov/materials/05UCB/2_OrbitCorrection.pdf
+
+
 cpymad
 ======
-
-- use MAD-X' builtin chdir once MAD-X 5.05.00 is available
 
 - live query element parameters
 - slice of Elements
