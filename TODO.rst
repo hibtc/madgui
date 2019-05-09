@@ -14,8 +14,6 @@ misc
 ~~~~
 - unify orbit corrector widgets
 
-- menu/toolbar item for displaying monitors
-
 - unify orbit corrector with beam diagnostic dialog SAME PROCEDURE
 - dispatch events in later mainloop iteration
 
