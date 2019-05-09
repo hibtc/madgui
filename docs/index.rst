@@ -33,6 +33,7 @@ Contents
 
    installation
    getting-started
+   usrguide/index
    devguide/index
    api/madgui
 

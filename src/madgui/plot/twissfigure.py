@@ -264,6 +264,7 @@ class TwissFigure:
         plot.addTool(InfoTool(plot, self))
         plot.addTool(MatchTool(plot, self, self.session.matcher))
         plot.addTool(CompareTool(plot, self))
+        plot.addTool(BpmTool(plot, self))
 
         canvas = plot.canvas
         canvas.mpl_connect('button_press_event', self._on_button_press)
@@ -912,6 +913,31 @@ class CompareTool:
 
     def activate(self):
         self.scene._curveManager.create()
+
+
+class BpmTool(CaptureTool):
+
+    """Show BPM readouts."""
+
+    short = 'BPMs'
+    text = 'Show indicators for current BPM readouts in plot.'
+
+    def __init__(self, plot, scene):
+        self.plot = plot
+        self.scene = scene
+
+    @memoize
+    def action(self):
+        action = QAction(self.short, self.plot)
+        action.setCheckable(True)
+        action.toggled.connect(self.onToggle)
+        return action
+
+    def activate(self):
+        self.scene.session.control.monitor_widget.create()
+
+    def deactivate(self):
+        self.scene.hide_monitor_readouts()
 
 
 def plot_curves(ax, data, style, label, y_names):

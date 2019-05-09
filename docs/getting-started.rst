@@ -1,9 +1,8 @@
 Getting started
 ###############
 
-The best way to get started is to try right away madgui with an example and
-discover how intuitive it has been designed. You should also try your own
-MAD-X models.
+The best way to get started is to try right away to load an example model. You
+should also try your own MAD-X models.
 
 
 Example 1: HIT Models
