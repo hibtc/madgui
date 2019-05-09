@@ -4,13 +4,7 @@ priority
 - MEFI in output file
 - extend documentation
 - write report on problems with gantry model
-
-
-documentation
-=============
-
 - generate import dependency graph
-- document usage QT_SCALE_FACTOR for scaling the application
 
 
 madgui
