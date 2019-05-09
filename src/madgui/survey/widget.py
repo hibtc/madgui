@@ -2,7 +2,6 @@
 Components to draw a 3D floor plan of a given MAD-X lattice.
 """
 
-# TODO: improve camera movement
 # TODO: entry/exit pole faces
 # TODO: load styles from config + UI
 # TODO: add exporters for common 3D data formats (obj+mtl/collada/ply?)
@@ -20,7 +19,7 @@ import textwrap
 from importlib_resources import read_binary
 
 import numpy as np
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QTimer, QTime
 from PyQt5.QtGui import QColor, QMatrix4x4, QVector3D
 from PyQt5.QtWidgets import QWidget, QPushButton, QOpenGLWidget
 
@@ -150,10 +149,13 @@ class LatticeFloorPlan(QOpenGLWidget):
     object_color = np.array([1.0, 0.5, 0.2], dtype=np.float32)
 
     shader_program = None
+    update_timer = None
 
     def __init__(self, session=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.items = []
+        self._key_state = {}
+        self._update_time = QTime()
         self.resize(800, 600)
         if session is not None:
             self.set_session(session)
@@ -169,6 +171,22 @@ class LatticeFloorPlan(QOpenGLWidget):
     def closeEvent(self, event):
         self.free()
         super().closeEvent(event)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.update_timer is None:
+            self.update_timer = QTimer(self)
+            self.update_timer.setInterval(25)
+            self.update_timer.timeout.connect(self.update_event)
+            self.update_timer.start()
+            self._update_time.start()
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        if self.update_timer is not None:
+            self.update_timer.timeout.disconnect(self.update_event)
+            self.update_timer.stop()
+            self.update_timer = None
 
     def _set_model(self, model):
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
@@ -338,6 +356,16 @@ class LatticeFloorPlan(QOpenGLWidget):
         self.theta, self.phi, self.psi = theta, phi, psi
         self.update()
 
+    def move_camera(self, dx, dy, dz):
+        rot = rotate(self.theta, self.phi, self.psi)
+        tra = translate(dx, dy, dz)
+        move = rot.T @ tra @ rot
+        self.center = (
+            move @ np.array([*self.center, 1], dtype=np.float32))[:3]
+        self.camera_position = (
+            move @ np.array([*self.camera_position, 1], dtype=np.float32))[:3]
+        self.look_toward(self.theta, self.phi, self.psi)
+
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
         delta = event.angleDelta().y()
@@ -364,10 +392,36 @@ class LatticeFloorPlan(QOpenGLWidget):
         event.accept()
 
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Escape, Qt.Key_Q):
+        key = event.key()
+        if key in (Qt.Key_Escape, Qt.Key_Q):
             self.window().close()
-        else:
-            super().keyPressEvent(event)
+        if not event.isAutoRepeat():
+            self._key_state[key] = True
+        super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        if not event.isAutoRepeat():
+            self._key_state[event.key()] = False
+
+    def update_event(self):
+        pressed = lambda k: self._key_state.get(k, 0)
+        upward = pressed(Qt.Key_Space) - pressed(Qt.Key_Control)
+        forward = ((pressed(Qt.Key_Up) or pressed(Qt.Key_W)) -
+                   (pressed(Qt.Key_Down) or pressed(Qt.Key_S)))
+        leftward = ((pressed(Qt.Key_Left) or pressed(Qt.Key_A)) -
+                    (pressed(Qt.Key_Right) or pressed(Qt.Key_D)))
+
+        # we use this "update time" (a.k.a. "game time") to maintain a
+        # somewhat framerate independent movement speed:
+        ms_elapsed = self._update_time.elapsed()
+        self._update_time.start()
+
+        if forward or upward or leftward:
+            speed = 3/1000  # m/ms
+            direction = np.array([-leftward, upward, -forward])
+            direction = direction / np.linalg.norm(direction)
+            move = direction * speed * ms_elapsed
+            self.move_camera(*move)
 
 
 class Object3D:
