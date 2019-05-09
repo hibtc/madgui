@@ -15,7 +15,7 @@ from functools import partial
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor, QKeySequence
 from PyQt5.QtWidgets import (
-    QInputDialog, QMainWindow, QMessageBox, QStyle)
+    QInputDialog, QMainWindow, QMessageBox, QStyle, QApplication)
 
 from madgui.util.signal import Signal
 from madgui.util.qt import notifyEvent, SingleWindow, load_ui
@@ -483,7 +483,11 @@ class MainWindow(QMainWindow):
         self.setFontSize(self.font().pointSize() - 1)
 
     def setFontSize(self, size):
-        self.setStyleSheet("font-size:{}pt;".format(max(size, 6)))
+        delta = size - self.font().pointSize()
+        if delta:
+            for widget in QApplication.topLevelWidgets():
+                size = widget.font().pointSize() + delta
+                widget.setStyleSheet("font-size:{}pt;".format(max(size, 6)))
 
     @SingleWindow.factory
     def helpAboutMadGUI(self):
