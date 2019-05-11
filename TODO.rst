@@ -11,14 +11,10 @@ madgui
 
 misc
 ~~~~
-- dispatch events in later mainloop iteration
 
 - use DoubleSpinBox stepType = AdaptiveDecimalStepType (not too useful)
 
 - option to save all log items
-
-- matching: improve defaults element/constraint/variable when adding
-  constraints/variables
 
 - simplify destroy/remove mechanisms
 
@@ -29,6 +25,8 @@ online
 ~~~~~~
 - let backend provide control for selecting MEFI -> textedit pattern
 
+orbit corrector
+~~~~~~~~~~~~~~~
 - startwerte für temp variablen in assign
 
 - autodetect steerer usability for X/Y based on sectormap / ORM? -> unnecessary
@@ -67,6 +65,85 @@ online
 
         requires NewValueCallback + MEFI changed notification for useful operation
 
+- button "procedure" -> popup dialog
+
+    - none
+    - multi grid
+    - multi optics
+    - measure ORM directly
+    - manual
+
+- button "readouts" -> popup dialog
+
+- choose mode via:
+
+  - Orbit response: "[Show]"
+
+    - numerical orbit response
+    - MATCH
+    - sectormap
+
+  - "Backtrack" / "Estimate model orbit":
+
+    - no shot (use current model)
+    - single shot (multi grid)
+    - multi shot (multiple optics):
+
+          - manual
+          - auto
+
+initialization step:
+- lstsq(tm) backtrack
+
+unify API: take 3 tables (as with MAD-X):
+
+- model       modelled orbits x,y,betx,bety,mux,muy at monitors/steerers
+- measured    measured orbits x,y at monitors
+- target      desired orbits x,y at monitors
+
+  -> is the first parameter enough to fit all the methods? I guess not
+     the dynamic ones…
+
+fit methods:
+
+- match (expensive)
+- kicks = lstsq(orm, dy)
+
+    - orm=numerical     (expensive)
+    - orm=analytical    (uncoupled)     sqrt(β₀β₁)·sin(2π|μ₁-μ₀|)
+    - orm=sectormap     (inaccurate)
+
+- multigrid dialog:
+
+    - improve behaviour of undo mechanism: never add duplicate entries?
+    - weights for constraints?
+
+beam diagnostic dialogs
+~~~~~~~~~~~~~~~~~~~~~~~
+- fix dispersion
+- fix 4D
+- sanitize + unify different procbot widgets, esp. offcal…
+- simplify multi_grid/optic_variation / mor_dialog (!!!)…
+- use procbot in online.offcal
+- join these into the same dialog?
+
+- multi grid method:
+
+    - allow hiding readoutsView
+    - disabling backtracking
+
+- optic variation -> two dialogs
+
+    - monitor dialog -> need "record" function and remove/enable individual
+      records on demand. records should store sectormaps and knob values
+    - matching dialog (as with multi grid dialog)
+
+- emittance dialog:
+
+    - clear distinction x / y / xy
+    - multiple optics
+
+
 export
 ~~~~~~
 simplify export file formats, IDEAS:
@@ -103,36 +180,6 @@ simplify export file formats, IDEAS:
 
     -> add import from .str in GlobalsEdit
 
-orbit corrector
-~~~~~~~~~~~~~~~
-- unify all three modes into one widget
-
-- button "procedure" -> popup dialog
-
-    - none
-    - multi grid
-    - multi optics
-    - measure ORM directly
-    - manual
-
-- button "readouts" -> popup dialog
-
-- choose mode via:
-
-  - Orbit response: "[Show]"
-
-    - numerical orbit response
-    - MATCH
-    - sectormap
-
-  - "Backtrack" / "Estimate model orbit":
-
-    - no shot (use current model)
-    - single shot (multi grid)
-    - multi shot (multiple optics):
-
-          - manual
-          - auto
 
 undo stack
 ~~~~~~~~~~
@@ -190,6 +237,22 @@ plot
 
 - add curvemanager to session?
 
+- simplify creating plots for user
+- simplify/document defining custom plots in config, i.e. curve names etc
+- plot API in python shell
+- replace matplotlib by pyqtgraph?
+- configure "show element indicators" via model/config + toolbutton
+- fix "shared plot" when showing monitors: different shapes/colors for X/Y
+
+- encapsulate the envx/envy/etc transformations in model fetch/match
+- plotting differences between revisions, closes #17
+
+- add "frozen" mode to plot widgets (unsubscribe from Model.updated)
+
+- plot legend outside plot
+
+- curves: export
+
 errors
 ~~~~~~
 - manage list of errors in model
@@ -208,6 +271,7 @@ errors
 
 events
 ~~~~~~
+- dispatch events in later mainloop iteration
 - global event registry / manager? (similar to pydispatcher)
 
 - weakref to func.__self__
@@ -226,41 +290,6 @@ solution for cleaner config lookup?:
 - lookup config via window -> parent (?!)
 - connect to config.number.changed when shown, disconnect on hide
 - rework config… simply nested attrdict?
-
-
-orbit correction
-~~~~~~~~~~~~~~~~
-
-initialization step:
-- lstsq(tm) backtrack
-
-unify API: take 3 tables (as with MAD-X):
-
-- model       modelled orbits x,y,betx,bety,mux,muy at monitors/steerers
-- measured    measured orbits x,y at monitors
-- target      desired orbits x,y at monitors
-
-  -> is the first parameter enough to fit all the methods? I guess not
-     the dynamic ones…
-
-fit methods:
-
-- match (expensive)
-- kicks = lstsq(orm, dy)
-
-    - orm=numerical     (expensive)
-    - orm=analytical    (uncoupled)     sqrt(β₀β₁)·sin(2π|μ₁-μ₀|)
-    - orm=sectormap     (inaccurate)
-
-- multigrid dialog:
-
-    - improve behaviour of undo mechanism: never add duplicate entries?
-    - weights for constraints?
-
-diagnostic dialogs
-~~~~~~~~~~~~~~~~~~
-- fix dispersion
-- fix 4D
 
 model
 ~~~~~
@@ -340,29 +369,6 @@ knobs
     - dependent variables/elements
     - recursive expressions
 
-beam diagnostic
-~~~~~~~~~~~~~~~
-- sanitize + unify different procbot widgets, esp. offcal…
-- simplify multi_grid/optic_variation / mor_dialog (!!!)…
-- use procbot in online.offcal
-- join these into the same dialog?
-
-- multi grid method:
-
-    - allow hiding readoutsView
-    - disabling backtracking
-
-- optic variation -> two dialogs
-
-    - monitor dialog -> need "record" function and remove/enable individual
-      records on demand. records should store sectormaps and knob values
-    - matching dialog (as with multi grid dialog)
-
-- emittance dialog:
-
-    - clear distinction x / y / xy
-    - multiple optics
-
 unit-handling
 ~~~~~~~~~~~~~
 - improve unit handling with TableView…, should be easy/builtin to switch
@@ -405,27 +411,11 @@ element info box: DVM tab
     - associated dvm parameters
     - letzter gitter messwert
 
-plotting
-~~~~~~~~
-- simplify creating plots for user
-- simplify/document defining custom plots in config, i.e. curve names etc
-- plot API in python shell
-- replace matplotlib by pyqtgraph?
-- configure "show element indicators" via model/config + toolbutton
-- fix "shared plot" when showing monitors: different shapes/colors for X/Y
-
-- encapsulate the envx/envy/etc transformations in model fetch/match
-- plotting differences between revisions, closes #17
-
-- add "frozen" mode to plot widgets (unsubscribe from Model.updated)
-
-- plot legend outside plot
-
-- curves: export
-
 MatchDialog
 ~~~~~~~~~~~
 Priority: medium
+
+- improve defaults element/constraint/variable when adding constraints/variables
 
 Add/implement the following features:
 
