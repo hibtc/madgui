@@ -1,6 +1,21 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.5.1
+~~~~~~
+Date: 11.05.2019
+
+- show UndoStack.macro invocations in the logging area
+- add menuitem to reverse current sequence inplace (experimental)
+- show DRIFT attributes as inherited
+- start usrguide (very basic atm), document QT_SCALE_FACTOR
+- add toolbar item to show/hide BPMs
+- add Backend.read_params method to read all/multiple params
+  (requires hit_acs>=19.5.0)
+- export full parameter dump in orm measurement procedure
+- update to cpymad 1.2.0, MAD-X version 5.05.00
+
+
 19.5.0
 ~~~~~~
 Date: 07.05.2019
