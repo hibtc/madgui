@@ -341,9 +341,8 @@ class TwissFigure:
         self.scene_graph.render()
         if self.share_axes:
             ax = figure.axes[0]
-            # TODO: move legend on the outside
-            legend = ax.legend(loc='upper center', fancybox=True,
-                               shadow=True, ncol=4)
+            legend = ax.legend(loc='lower center', fancybox=True,
+                               shadow=True, ncol=4, bbox_to_anchor=(0.5, 1))
             legend.set_draggable(True)
         for ax in self.figure.axes:
             # prevent matplotlib from using an offset and displaying

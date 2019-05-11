@@ -248,9 +248,9 @@ plot
 - encapsulate the envx/envy/etc transformations in model fetch/match
 - plotting differences between revisions, closes #17
 
-- add "frozen" mode to plot widgets (unsubscribe from Model.updated)
+- no (or only a single) label for monitor readouts
 
-- plot legend outside plot
+- add "frozen" mode to plot widgets (unsubscribe from Model.updated)
 
 - curves: export
 
