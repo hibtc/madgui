@@ -53,6 +53,9 @@ curve_style:
   - &Y
     color: "#005000"
     linestyle: "-"
+  - &Z
+    color: "#005050"
+    linestyle: "-"
 
 backtrack_style:
   linestyle: "-"
@@ -65,52 +68,64 @@ default_graph: envelope
 
 graphs:
   beta:
-    title: Beta function
+    title: "Twiss: Beta function"
     curves:
-      - [betx, '$\beta_x$', *X]
-      - [bety, '$\beta_y$', *Y]
+      - [twiss.betx, '$\beta_x$', *X]
+      - [twiss.bety, '$\beta_y$', *Y]
   envelope:
-    title: Beam envelope
+    title: "Twiss: Beam envelope"
     curves:
-      - [envx, '$\sigma_x$', *X]
-      - [envy, '$\sigma_y$', *Y]
+      - [twiss.envx, '$\sigma_x$', *X]
+      - [twiss.envy, '$\sigma_y$', *Y]
   alpha:
-    title: Alpha function
+    title: "Twiss: Alpha function"
     curves:
-      - [alfx, '$\alpha_x$', *X]
-      - [alfy, '$\alpha_y$', *Y]
+      - [twiss.alfx, '$\alpha_x$', *X]
+      - [twiss.alfy, '$\alpha_y$', *Y]
   gamma:
-    title: Gamma function
+    title: "Twiss: Gamma function"
     curves:
-      - [gamx, '$\gamma_x$', *X]
-      - [gamy, '$\gamma_y$', *Y]
+      - [twiss.gamx, '$\gamma_x$', *X]
+      - [twiss.gamy, '$\gamma_y$', *Y]
   orbit:
-    title: Particle orbit
+    title: "Twiss: Particle orbit"
     curves:
-      - [x, '$x$', *X]
-      - [y, '$y$', *Y]
+      - [twiss.x, '$x$', *X]
+      - [twiss.y, '$y$', *Y]
   momentum:
-    title: Particle momentum
+    title: "Twiss: Particle momentum"
     curves:
-      - [px, '$p_x$', *X]
-      - [py, '$p_y$', *Y]
+      - [twiss.px, '$p_x$', *X]
+      - [twiss.py, '$p_y$', *Y]
   dispersion:
-    title: Dispersion
+    title: "Twiss: Dispersion"
     curves:
-      - [dx, '$D_x$', *X]
-      - [dy, '$D_y$', *Y]
+      - [twiss.dx, '$D_x$', *X]
+      - [twiss.dy, '$D_y$', *Y]
   momentum_dispersion:
-    title: Momentum dispersion
+    title: "Twiss: Momentum dispersion"
     curves:
-      - [dpx, '$D_{px}$', *X]
-      - [dpy, '$D_{py}$', *Y]
+      - [twiss.dpx, '$D_{px}$', *X]
+      - [twiss.dpy, '$D_{py}$', *Y]
   phase:
-    title: Phase advance
+    title: "Twiss: Phase advance"
     curves:
-      - [mux, '$\mu_x$', *X]
-      - [muy, '$\mu_y$', *Y]
+      - [twiss.mux, '$\mu_x$', *X]
+      - [twiss.muy, '$\mu_y$', *Y]
   emittance:
-    title: Emittanz
+    title: "Twiss: Emittanz"
     curves:
-      - [ex, '$\varepsilon_x$', *X]
-      - [ey, '$\varepsilon_y$', *Y]
+      - [twiss.ex, '$\varepsilon_x$', *X]
+      - [twiss.ey, '$\varepsilon_y$', *Y]
+  position:
+    title: "Survey: Element Position in global coordinate system"
+    curves:
+      - [survey.x, '$x$', *X]
+      - [survey.y, '$y$', *Y]
+      - [survey.z, '$z$', *Z]
+  rotation:
+    title: "Survey: Rotation angles of local coordinate system "
+    curves:
+      - [survey.theta, '$\theta$', *X]
+      - [survey.phi, '$\phi$', *Y]
+      - [survey.psi, '$\psi$', *Z]

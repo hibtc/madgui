@@ -7,6 +7,7 @@ at:       m
 s:        m
 x:        m
 y:        m
+z:        m
 betx:     m
 bety:     m
 gamx:     1/m
@@ -25,6 +26,10 @@ fintx:    1
 e1:       rad
 e2:       rad
 ks:       1/m
+
+theta:    rad
+phi:      rad
+psi:      rad
 
 sig11:    m^2
 sig12:    m

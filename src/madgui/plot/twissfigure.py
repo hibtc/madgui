@@ -64,6 +64,7 @@ PlotInfo = namedtuple('PlotInfo', [
 ])
 
 CurveInfo = namedtuple('CurveInfo', [
+    'table',    # table name (e.g. 'twiss')
     'name',     # curve name (e.g. 'betx')
     'label',    # y-axis/legend label ('$\beta_x$')
     'style',    # **kwargs for ax.plot
@@ -433,7 +434,7 @@ class TwissFigure:
             name=name,
             title=conf['title'],
             curves=[
-                CurveInfo(name, label, style)
+                CurveInfo(*name.split('.'), label, style)
                 for (name, label, style) in conf['curves']
             ])
 
@@ -514,7 +515,8 @@ class TwissFigure:
     def plot_twiss_curve(self, ax, info):
         style = with_outline(info.style)
         label = ax_label(info.label, ui_units.get(info.name))
-        return plot_curves(ax, self.model.twiss, style, label, [info.name])
+        table = getattr(self.model, info.table)
+        return plot_curves(ax, table, style, label, [info.name])
 
     def plot_user_curve(self, ax, info):
         name, data, style = info
