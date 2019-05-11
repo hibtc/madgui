@@ -1,6 +1,14 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.5.2
+~~~~~~
+Date: 11.05.2019
+
+- add a selection of survey/sectormap plots
+- show legend outside graph by default in shared plot mode
+
+
 19.5.1
 ~~~~~~
 Date: 11.05.2019

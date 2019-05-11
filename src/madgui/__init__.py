@@ -34,7 +34,7 @@ package:
 ==================== =========================================================
 """
 
-__version__ = '19.5.1'
+__version__ = '19.5.2'
 
 __title__ = 'madgui'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
