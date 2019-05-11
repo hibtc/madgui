@@ -65,6 +65,7 @@ PlotInfo = namedtuple('PlotInfo', [
 
 CurveInfo = namedtuple('CurveInfo', [
     'table',    # table name (e.g. 'twiss')
+    'xname',    # x col name (e.g. 's')
     'name',     # curve name (e.g. 'betx')
     'label',    # y-axis/legend label ('$\beta_x$')
     'style',    # **kwargs for ax.plot
@@ -325,15 +326,16 @@ class TwissFigure:
             ax.y_name = []
         axes = figure.axes * (num_curves if self.share_axes else 1)
         for ax, info in zip(axes, self.curve_info):
-            ax.x_name.append(self.x_name)
+            ax.x_name.append(info.xname)
             ax.y_name.append(info.name)
             # assuming all curves have the same y units (as they should!!):
-            ax.x_unit = self.x_unit
+            ax.x_unit = ui_units.get(info.xname)
             ax.y_unit = ui_units.get(info.name)
             if not self.share_axes:
                 ax.set_ylabel(ax_label(info.label, ax.y_unit))
             # replace formatter method for mouse status:
             ax.format_coord = partial(self.format_coord, ax)
+        # TODO: generalize for arbitrary X data:
         self.figure.axes[-1].set_xlabel(ax_label(self.x_label, self.x_unit))
         self.scene_graph.enable(True)
         self.scene_graph.render()
@@ -434,8 +436,8 @@ class TwissFigure:
             name=name,
             title=conf['title'],
             curves=[
-                CurveInfo(*name.split('.'), label, style)
-                for (name, label, style) in conf['curves']
+                CurveInfo(table, xname, name, label, style)
+                for (table, xname, name, label, style) in conf['curves']
             ])
 
     def get_graphs(self):
@@ -516,12 +518,12 @@ class TwissFigure:
         style = with_outline(info.style)
         label = ax_label(info.label, ui_units.get(info.name))
         table = getattr(self.model, info.table)
-        return plot_curves(ax, table, style, label, [info.name])
+        return plot_curves(ax, table, style, label, [(info.xname, info.name)])
 
     def plot_user_curve(self, ax, info):
         name, data, style = info
         style = self.config[style] if isinstance(style, str) else style
-        return plot_curves(ax, data, style, name, ax.y_name)
+        return plot_curves(ax, data, style, name, list(zip(ax.x_name, ax.y_name)))
 
 
 def plot_curve(axes, data, x_name, y_name, style, label=None):
@@ -942,11 +944,11 @@ class BpmTool(CaptureTool):
         self.scene.hide_monitor_readouts()
 
 
-def plot_curves(ax, data, style, label, y_names):
+def plot_curves(ax, data, style, label, names):
     return LineBundle([
         plot_curve(ax, data, x_name, y_name, style, label=label)
         for x_name, y_name in zip(ax.x_name, ax.y_name)
-        if y_name in y_names
+        if (x_name, y_name) in names
     ])
 
 

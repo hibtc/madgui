@@ -497,7 +497,8 @@ class Model:
         - ``interval=(1, 0)``  retrieves ``(e0, e1)`` and ``(e1, e2)``
         - ``interval=(1, 1)``  retrieves ``(e0, e1]`` and ``(e1, e2]``
         """
-        maps = self.sector()
+        table = self.sector()
+        maps = self.madx.sectortable(table._name)
         indices = [self.elements.index(el) for el in elems]
         x0, x1 = interval
         return [
@@ -591,8 +592,9 @@ class Model:
         # currently fetches twiss columns only demand. Therefore, using the
         # same twiss table for both TWISS/SECTORMAP routines would lead to
         # inconsistent table lengths (interpolate vs no-interpolate!).
-        return self.madx.sectormap(
-            (), **self._get_twiss_args(table='sectortwiss'))
+        self.madx.sectormap((), **self._get_twiss_args(
+            table='sectortwiss', sectortable='sectortable'))
+        return self.madx.table['sectortable']
 
     def track_one(self, x=0, px=0, y=0, py=0, range='#s/#e', **kwargs):
         """

@@ -70,62 +70,97 @@ graphs:
   beta:
     title: "Twiss: Beta function"
     curves:
-      - [twiss.betx, '$\beta_x$', *X]
-      - [twiss.bety, '$\beta_y$', *Y]
+      - [twiss, s, betx, '$\beta_x$', *X]
+      - [twiss, s, bety, '$\beta_y$', *Y]
   envelope:
     title: "Twiss: Beam envelope"
     curves:
-      - [twiss.envx, '$\sigma_x$', *X]
-      - [twiss.envy, '$\sigma_y$', *Y]
+      - [twiss, s, envx, '$\sigma_x$', *X]
+      - [twiss, s, envy, '$\sigma_y$', *Y]
   alpha:
     title: "Twiss: Alpha function"
     curves:
-      - [twiss.alfx, '$\alpha_x$', *X]
-      - [twiss.alfy, '$\alpha_y$', *Y]
+      - [twiss, s, alfx, '$\alpha_x$', *X]
+      - [twiss, s, alfy, '$\alpha_y$', *Y]
   gamma:
     title: "Twiss: Gamma function"
     curves:
-      - [twiss.gamx, '$\gamma_x$', *X]
-      - [twiss.gamy, '$\gamma_y$', *Y]
+      - [twiss, s, gamx, '$\gamma_x$', *X]
+      - [twiss, s, gamy, '$\gamma_y$', *Y]
   orbit:
     title: "Twiss: Particle orbit"
     curves:
-      - [twiss.x, '$x$', *X]
-      - [twiss.y, '$y$', *Y]
+      - [twiss, s, x, '$x$', *X]
+      - [twiss, s, y, '$y$', *Y]
   momentum:
     title: "Twiss: Particle momentum"
     curves:
-      - [twiss.px, '$p_x$', *X]
-      - [twiss.py, '$p_y$', *Y]
+      - [twiss, s, px, '$p_x$', *X]
+      - [twiss, s, py, '$p_y$', *Y]
   dispersion:
     title: "Twiss: Dispersion"
     curves:
-      - [twiss.dx, '$D_x$', *X]
-      - [twiss.dy, '$D_y$', *Y]
+      - [twiss, s, dx, '$D_x$', *X]
+      - [twiss, s, dy, '$D_y$', *Y]
   momentum_dispersion:
     title: "Twiss: Momentum dispersion"
     curves:
-      - [twiss.dpx, '$D_{px}$', *X]
-      - [twiss.dpy, '$D_{py}$', *Y]
+      - [twiss, s, dpx, '$D_{px}$', *X]
+      - [twiss, s, dpy, '$D_{py}$', *Y]
   phase:
     title: "Twiss: Phase advance"
     curves:
-      - [twiss.mux, '$\mu_x$', *X]
-      - [twiss.muy, '$\mu_y$', *Y]
+      - [twiss, s, mux, '$\mu_x$', *X]
+      - [twiss, s, muy, '$\mu_y$', *Y]
   emittance:
     title: "Twiss: Emittanz"
     curves:
-      - [twiss.ex, '$\varepsilon_x$', *X]
-      - [twiss.ey, '$\varepsilon_y$', *Y]
-  position:
+      - [twiss, s, ex, '$\varepsilon_x$', *X]
+      - [twiss, s, ey, '$\varepsilon_y$', *Y]
+
+  survey_position:
     title: "Survey: Element Position in global coordinate system"
     curves:
-      - [survey.x, '$x$', *X]
-      - [survey.y, '$y$', *Y]
-      - [survey.z, '$z$', *Z]
-  rotation:
-    title: "Survey: Rotation angles of local coordinate system "
+      - [survey, s, x, '$x$', *X]
+      - [survey, s, y, '$y$', *Y]
+      - [survey, s, z, '$z$', *Z]
+  survey_rotation:
+    title: "Survey: Rotation angles of local coordinate system"
     curves:
-      - [survey.theta, '$\theta$', *X]
-      - [survey.phi, '$\phi$', *Y]
-      - [survey.psi, '$\psi$', *Z]
+      - [survey, s, theta, '$\theta$', *X]
+      - [survey, s, phi, '$\phi$', *Y]
+      - [survey, s, psi, '$\psi$', *Z]
+
+  sector_kick_orbit:
+    title: "Sectormap: Kicks Orbit"
+    curves:
+      - [sector, pos, k1, '$K_1$ (x)', *X]
+      - [sector, pos, k3, '$K_3$ (y)', *Y]
+      - [sector, pos, k5, '$K_3$ (t)', *Y]
+  sector_kick_momentum:
+    title: "Sectormap: Kicks Momentum"
+    curves:
+      - [sector, pos, k2, '$K_2$ (px)', *X]
+      - [sector, pos, k4, '$K_4$ (py)', *Y]
+      - [sector, pos, k6, '$K_6$ (py)', *Z]
+  sector_xx:
+    title: "Sectormap: X|PX"
+    curves:
+      - [sector, pos, r11, '$R_{11}$', *X]
+      - [sector, pos, r12, '$R_{12}$', *Y]
+      - [sector, pos, r21, '$R_{21}$', *Z]
+      - [sector, pos, r22, '$R_{22}$', *Z]
+  sector_xy:
+    title: "Sectormap: X|Y coupling"
+    curves:
+      - [sector, pos, r13, '$R_{13}$', *X]
+      - [sector, pos, r14, '$R_{14}$', *Y]
+      - [sector, pos, r23, '$R_{23}$', *Z]
+      - [sector, pos, r24, '$R_{24}$', {}]
+  sector_xy:
+    title: "Sectormap: Y|X coupling"
+    curves:
+      - [sector, pos, r31, '$R_{31}$', *X]
+      - [sector, pos, r32, '$R_{32}$', *Y]
+      - [sector, pos, r41, '$R_{41}$', *Z]
+      - [sector, pos, r42, '$R_{42}$', {}]

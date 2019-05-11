@@ -229,8 +229,9 @@ plot
   - named nodes (externally or internally)
   - consistent mapping between data and node
 
-- add plots for "Survey position" "Survey angle" "Sectormap.rXX"
-  -> introduce prefixes "survey." "twiss." "sector." for the table to be used
+- show the correct quantity on X
+- from 3 plots onward, use shared plot by default?
+- fix unit for K1 in context of kick
 
 - easier plot customization
 - multiple curves in same figure
