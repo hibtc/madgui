@@ -3,7 +3,6 @@ MAD-X backend for madgui.
 """
 
 __all__ = [
-    'FloorCoords',
     'Model',
     'reverse_sequence',
     'reverse_sequence_inplace',
@@ -14,7 +13,7 @@ __all__ = [
 ]
 
 import os
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 from collections.abc import Mapping
 from functools import partial, reduce
 import itertools
@@ -35,9 +34,6 @@ from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
 from madgui.util.misc import memoize, invalidate
 from madgui.util.signal import Signal
-
-
-FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 class Model:
@@ -77,6 +73,7 @@ class Model:
         recomputation."""
         invalidate(self, 'twiss')
         invalidate(self, 'sector')
+        invalidate(self, 'survey')
         self.updated.emit()
 
     @classmethod
@@ -500,7 +497,8 @@ class Model:
         - ``interval=(1, 0)``  retrieves ``(e0, e1)`` and ``(e1, e2)``
         - ``interval=(1, 1)``  retrieves ``(e0, e1]`` and ``(e1, e2]``
         """
-        maps = self.sector()
+        table = self.sector()
+        maps = self.madx.sectortable(table._name)
         indices = [self.elements.index(el) for el in elems]
         x0, x1 = interval
         return [
@@ -545,10 +543,10 @@ class Model:
             for knob in knobs
         ])
 
+    @memoize
     def survey(self):
-        table = self.madx.survey()
-        array = np.array([table[key] for key in FloorCoords._fields])
-        return [FloorCoords(*row) for row in array.T]
+        """Recalculate survey coordinates."""
+        return self.madx.survey()
 
     def ex(self):
         return self.summary.ex
@@ -594,8 +592,9 @@ class Model:
         # currently fetches twiss columns only demand. Therefore, using the
         # same twiss table for both TWISS/SECTORMAP routines would lead to
         # inconsistent table lengths (interpolate vs no-interpolate!).
-        return self.madx.sectormap(
-            (), **self._get_twiss_args(table='sectortwiss'))
+        self.madx.sectormap((), **self._get_twiss_args(
+            table='sectortwiss', sectortable='sectortable'))
+        return self.madx.table['sectortable']
 
     def track_one(self, x=0, px=0, y=0, py=0, range='#s/#e', **kwargs):
         """
