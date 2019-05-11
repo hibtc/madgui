@@ -8,10 +8,12 @@ Components to draw a 2D floor plan of a given MAD-X lattice.
 # TODO: rotate/place scene according to space requirements
 
 __all__ = [
+    'FloorCoords',
     'FloorPlanWidget',
     'LatticeFloorPlan',
 ]
 
+from collections import namedtuple
 from math import cos, sin, sqrt, pi, atan2, floor, log10
 
 import numpy as np
@@ -24,7 +26,9 @@ from PyQt5.QtWidgets import (
     QPushButton, QWidget)
 
 from madgui.util.layout import VBoxLayout
-from madgui.model.madx import FloorCoords
+
+
+FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 ELEMENT_COLOR = {
@@ -146,9 +150,10 @@ class LatticeFloorPlan(QGraphicsView):
             self._updateSurvey()
 
     def _updateSurvey(self):
-        self.setElements(self.model.elements,
-                         self.model.survey(),
-                         self.selection)
+        survey = self.model.survey()
+        array = np.array([survey[key] for key in FloorCoords._fields])
+        floor = [FloorCoords(*row) for row in array.T]
+        self.setElements(self.model.elements, floor, self.selection)
 
     replay = None
 

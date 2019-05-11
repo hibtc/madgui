@@ -3,7 +3,6 @@ MAD-X backend for madgui.
 """
 
 __all__ = [
-    'FloorCoords',
     'Model',
     'reverse_sequence',
     'reverse_sequence_inplace',
@@ -14,7 +13,7 @@ __all__ = [
 ]
 
 import os
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 from collections.abc import Mapping
 from functools import partial, reduce
 import itertools
@@ -35,9 +34,6 @@ from madgui.util import yaml
 from madgui.util.export import read_str_file, import_params
 from madgui.util.misc import memoize, invalidate
 from madgui.util.signal import Signal
-
-
-FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 class Model:
@@ -77,6 +73,7 @@ class Model:
         recomputation."""
         invalidate(self, 'twiss')
         invalidate(self, 'sector')
+        invalidate(self, 'survey')
         self.updated.emit()
 
     @classmethod
@@ -545,10 +542,10 @@ class Model:
             for knob in knobs
         ])
 
+    @memoize
     def survey(self):
-        table = self.madx.survey()
-        array = np.array([table[key] for key in FloorCoords._fields])
-        return [FloorCoords(*row) for row in array.T]
+        """Recalculate survey coordinates."""
+        return self.madx.survey()
 
     def ex(self):
         return self.summary.ex
