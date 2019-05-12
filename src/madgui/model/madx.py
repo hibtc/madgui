@@ -647,7 +647,8 @@ class Model:
 
     def reverse(self):
         reverse_sequence_inplace(self.madx, self.seq_name)
-        self.undo_stack.clear()
+        if self.undo_stack:
+            self.undo_stack.clear()
         self._init_segment(
             sequence=self.seq_name,
             range='#s/#e',
