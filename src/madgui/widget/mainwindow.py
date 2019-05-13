@@ -189,7 +189,7 @@ class MainWindow(QMainWindow):
                      control.disconnect,
                      enabled=control.is_connected),
                 Separator,
-                Item('&Read strengths', None,
+                Item('&Read strengths', 'F9',
                      'Read magnet strengths from the online database',
                      control.on_read_all,
                      enabled=control.has_sequence),
