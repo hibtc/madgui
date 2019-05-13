@@ -257,8 +257,8 @@ class LatticeFloorPlan(QOpenGLWidget):
 
     def create_shader_program(self):
         self.shader_program = create_shader_program([
-            load_shader(GL.GL_VERTEX_SHADER, 'floor_plan_3d.vert.glsl'),
-            load_shader(GL.GL_FRAGMENT_SHADER, 'floor_plan_3d.frag.glsl'),
+            load_shader(GL.GL_VERTEX_SHADER, 'shader_vertex.glsl'),
+            load_shader(GL.GL_FRAGMENT_SHADER, 'shader_fragment.glsl'),
         ])
 
     def get_perspective_projection(self):

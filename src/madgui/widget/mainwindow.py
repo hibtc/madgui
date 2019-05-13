@@ -438,7 +438,7 @@ class MainWindow(QMainWindow):
         return Dialog(self, FloorPlanWidget(self.session))
 
     def viewLayout3d(self):
-        from madgui.widget.floor_plan_3d import FloorPlanWidget
+        from madgui.survey.widget import FloorPlanWidget
         return Dialog(self, FloorPlanWidget(self.session))
 
     @SingleWindow.factory
