@@ -233,16 +233,29 @@ class LatticeFloorPlan(QOpenGLWidget):
 
         self.look_from(self.theta, self.phi, self.psi)
 
+        # Show continuous drift tubes through all elements:
+        drift_color = QColor(ELEMENT_COLOR['DRIFT'])
+        drift_width = ELEMENT_WIDTH['DRIFT']
         self.items[:] = [
-            self.create_element_item(element, coords)
+            self.create_element_item(
+                element, coords, drift_color, drift_width)
             for element, coords in zip(elements, zip(survey, survey[1:]))
             if element.l > 0
         ]
+        self.items += [
+            self.create_element_item(
+                element, coords,
+                getElementColor(element),
+                getElementWidth(element))
+            for element, coords in zip(elements, zip(survey, survey[1:]))
+            if element.l > 0 and element.base_name != 'drift'
+        ]
 
-    def create_element_item(self, element, coords):
+    def create_element_item(self, element, coords, color, width):
         start, end = coords
-        color = np.array(getElementColor(element).getRgbF(), dtype=np.float32)
-        radius = getElementWidth(element)/2
+
+        color = np.array(color.getRgbF(), dtype=np.float32)
+        radius = width/2
 
         # TODO: sanitize rotation...
         rot = rotate(-start.theta, -start.phi, -start.psi)
