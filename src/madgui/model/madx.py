@@ -410,7 +410,7 @@ class Model:
 
         # shortcut for thin elements:
         if float(self.elements[ix].length) == 0:
-            return y[x]
+            return y[ix]
 
         lo = x.start-1 if x.start > 0 else x.start
         hi = x.stop+1
