@@ -111,14 +111,14 @@ class Session:
 
     def find_model(self, name):
         for path in [name, os.path.join(self.folder or '.', name)]:
+            path = expand_ext(path, '', *self.known_extensions)
+            if os.path.isfile(path):
+                return path
             if os.path.isdir(path):
                 models = (glob.glob(os.path.join(path, '*.cpymad.yml')) +
                           glob.glob(os.path.join(path, '*.madx')))
                 if models:
                     return models[0]
-            path = expand_ext(path, '', *self.known_extensions)
-            if os.path.isfile(path):
-                return path
         raise OSError("File not found: {!r}".format(name))
 
     def model_args(self, filename):
