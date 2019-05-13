@@ -1,6 +1,20 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.5.3
+~~~~~~
+Date: 13.05.2019
+
+- allow negative values in step field (ORM measurement dialog)
+- fix AttributeError if using model without undo stack
+- fix ValueError for "Add" button in match dialog
+- separate "Write strengths" menu item further from "Read strengths"
+- add hotkey for "Read strengths"
+- find models in breadth-first manner, not depth first
+- fix bug that caused incorrect update when changing plot, especially from
+  plots with many curves to plots with less curves
+
+
 19.5.2
 ~~~~~~
 Date: 11.05.2019
