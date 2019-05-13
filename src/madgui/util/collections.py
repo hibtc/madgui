@@ -146,8 +146,8 @@ class List:
         for idx, old, new in zip(indices, old_values, new_values):
             self.changed.emit(idx, new)
         if num_old > num_new:
-            for val in old_values[num_new:]:
-                self.removed.emit(indices[0])
+            for idx in indices[num_new:][::-1]:
+                self.removed.emit(idx)
         elif num_new > num_old:
             start = (slice.start or 0) + num_old
             for idx, val in enumerate(new_values[num_old:]):
