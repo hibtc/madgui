@@ -120,6 +120,10 @@ class FloorPlanWidget(QWidget):
     def session_data(self):
         return {}
 
+    def closeEvent(self, event):
+        self.floorplan.free()
+        super().closeEvent(event)
+
 
 class LatticeFloorPlan(QOpenGLWidget):
 
@@ -157,6 +161,14 @@ class LatticeFloorPlan(QOpenGLWidget):
     def set_session(self, session):
         session.model.changed.connect(self._set_model)
         self._set_model(session.model())
+
+    def free(self):
+        for item in self.items:
+            item.delete()
+
+    def closeEvent(self, event):
+        self.free()
+        super().closeEvent(event)
 
     def _set_model(self, model):
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
@@ -205,8 +217,7 @@ class LatticeFloorPlan(QOpenGLWidget):
             item.draw()
 
     def create_scene(self):
-        for item in self.items:
-            item.delete()
+        self.free()
         self.items.clear()
         if self.shader_program is None or not self.model:
             return
