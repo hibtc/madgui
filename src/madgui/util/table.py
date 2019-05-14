@@ -48,11 +48,12 @@ def read_table(filename):
     """
     with open(filename) as f:
         titles = _parse_header(f)
-    columns = map(_parse_column_title, titles)
-    data = np.genfromtxt(filename, dtype=None, encoding='utf-8')
+    columns = [_parse_column_title(t) for t in titles]
+    names = [name for name, unit in columns]
+    data = np.genfromtxt(filename, dtype=None, encoding='utf-8', names=names)
     return {
-        name: from_ui(name, _add_unit(data[col], unit))
-        for col, (name, unit) in zip(data.dtype.names, columns)
+        name: from_ui(name, _add_unit(data[name], unit))
+        for name, unit in columns
     }
 
 

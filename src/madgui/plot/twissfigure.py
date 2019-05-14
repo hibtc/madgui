@@ -447,9 +447,9 @@ class TwissFigure:
     def get_graph_columns(self):
         """Get a set of all columns used in any graph."""
         cols = {
-            name
+            yname
             for info in self.config['graphs'].values()
-            for (name, label, style) in info['curves']
+            for (table, xname, yname, label, style) in info['curves']
         }
         cols.add('s')
         cols.update(self.model.twiss()._cache.keys())
