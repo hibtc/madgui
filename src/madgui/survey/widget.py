@@ -14,18 +14,22 @@ __all__ = [
 
 from collections import namedtuple
 from math import pi
-import textwrap
-
-from importlib_resources import read_binary
 
 import numpy as np
 from PyQt5.QtCore import Qt, QSize, QTimer, QTime
-from PyQt5.QtGui import QColor, QMatrix4x4, QVector3D
+from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QWidget, QPushButton, QOpenGLWidget
 
 from madgui.util.layout import VBoxLayout
 
 import OpenGL.GL as GL
+
+from .transform import gl_array, rotate, translate
+from .camera import Camera
+from .shapes import cylinder, torus_arc
+from .gl_util import (
+    load_shader, create_shader_program, Object3D,
+    set_uniform_matrix, set_uniform_vector)
 
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
@@ -53,54 +57,6 @@ ELEMENT_WIDTH = {
 }
 
 
-def gl_array(data):
-    """Create a PyOpenGL compatible numpy array from list data."""
-    return np.array(data, dtype=np.float32)
-
-
-def rotate(theta, phi, psi):
-    """Return a rotation matrix for rotation angles as defined in MAD-X."""
-    mat = QMatrix4x4()
-    mat.rotate(180/pi * psi,   0, 0, 1)
-    mat.rotate(180/pi * -phi,  1, 0, 0)
-    mat.rotate(180/pi * theta, 0, 1, 0)
-    return qmatrix_to_numpy(mat)
-
-
-def translate(dx, dy, dz):
-    """Return a translation matrix."""
-    mat = QMatrix4x4()
-    mat.translate(dx, dy, dz)
-    return qmatrix_to_numpy(mat)
-
-
-def perspective_projection(fov, aspect_ratio, near_plane, far_plane):
-    mat = QMatrix4x4()
-    mat.perspective(fov, aspect_ratio, near_plane, far_plane)
-    return qmatrix_to_numpy(mat)
-
-
-def look_at(position, target, up):
-    mat = QMatrix4x4()
-    mat.lookAt(
-        QVector3D(*position[:3]),
-        QVector3D(*target[:3]),
-        QVector3D(*up[:3]))
-    return qmatrix_to_numpy(mat)
-
-
-def qmatrix_to_numpy(qmatrix):
-    return gl_array(qmatrix.data()).reshape((4, 4)).T
-
-
-def inverted(matrix):
-    R = np.eye(4, dtype=np.float32)
-    T = np.eye(4, dtype=np.float32)
-    R[:3, :3] = matrix[:3, :3].T
-    T[:3, 3] = -matrix[:3, 3]
-    return R @ T
-
-
 class FloorPlanWidget(QWidget):
 
     def __init__(self, session):
@@ -118,7 +74,7 @@ class FloorPlanWidget(QWidget):
 
     def _button(self, label, *args):
         button = QPushButton(label)
-        button.clicked.connect(lambda: self.floorplan.look_from(*args))
+        button.clicked.connect(lambda: self.floorplan.camera.look_from(*args))
         return button
 
     def session_data(self):
@@ -137,17 +93,6 @@ class LatticeFloorPlan(QOpenGLWidget):
 
     model = None
 
-    distance = 3
-    theta = 0
-    phi = 0
-    psi = 0
-
-    fov = 70.0
-    near = 0.01
-    far = 1000
-
-    center = gl_array([0, 0, 0])
-
     background_color = gl_array([1, 1, 1]) * 0.6
     ambient_color = gl_array([1, 1, 1]) * 0.1
     diffuse_color = gl_array([1, 1, 1])
@@ -162,6 +107,8 @@ class LatticeFloorPlan(QOpenGLWidget):
         self._key_state = {}
         self._update_time = QTime()
         self.resize(800, 600)
+        self.camera = Camera()
+        self.camera.updated.connect(self.update)
         if session is not None:
             self.set_session(session)
 
@@ -219,19 +166,20 @@ class LatticeFloorPlan(QOpenGLWidget):
         self.create_shader_program()
         # Activate wireframe:
         # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
-        self.look_from(self.theta, self.phi, self.psi)
+        camera = self.camera
+        camera.look_from(camera.theta, camera.phi, camera.psi)
         self.create_scene()
 
     def paintGL(self):
         program = self.shader_program
-        projection = self.get_perspective_projection()
-        set_uniform_matrix(program, "view", self.view)
+        projection = self.camera.projection(self.width(), self.height())
+        set_uniform_matrix(program, "view", self.camera.view_matrix)
         set_uniform_matrix(program, "projection", projection)
 
         set_uniform_vector(program, "ambient_color", self.ambient_color)
         set_uniform_vector(program, "object_color", self.object_color)
         set_uniform_vector(program, "diffuse_color", self.diffuse_color)
-        set_uniform_vector(program, "diffuse_position", self.camera_position)
+        set_uniform_vector(program, "diffuse_position", self.camera.position)
 
         GL.glClearColor(*self.background_color, 0)
         GL.glEnable(GL.GL_DEPTH_TEST)
@@ -251,10 +199,11 @@ class LatticeFloorPlan(QOpenGLWidget):
         points = np.array([[f.x, f.y, f.z] for f in survey])
         bounds = np.array([np.min(points, axis=0), np.max(points, axis=0)])
         center = np.mean(bounds, axis=0)
-        self.center = center
-        self.distance = np.max(np.linalg.norm(points - center, axis=1)) + 1
 
-        self.look_from(self.theta, self.phi, self.psi)
+        camera = self.camera
+        camera.center = center
+        camera.distance = np.max(np.linalg.norm(points - center, axis=1)) + 1
+        camera.look_from(camera.theta, camera.phi, camera.psi)
 
         # Show continuous drift tubes through all elements:
         drift_color = QColor(ELEMENT_COLOR['DRIFT'])
@@ -295,22 +244,20 @@ class LatticeFloorPlan(QOpenGLWidget):
             local_transform = rotate(0, -pi/2, 0) @ translate(-r0, 0, 0)
             return Object3D(
                 self.shader_program, transform @ local_transform, color,
-                *torus_arc(r0, radius, n0, 20, angle))
+                *torus_arc(r0, radius, n0, 20, angle),
+                GL.GL_TRIANGLE_STRIP)
 
         else:
             return Object3D(
                 self.shader_program, transform, color,
-                *cylinder(l, r=radius, n1=20))
+                *cylinder(l, r=radius, n1=20),
+                GL.GL_TRIANGLE_STRIP)
 
     def create_shader_program(self):
         self.shader_program = create_shader_program([
             load_shader(GL.GL_VERTEX_SHADER, 'shader_vertex.glsl'),
             load_shader(GL.GL_FRAGMENT_SHADER, 'shader_fragment.glsl'),
         ])
-
-    def get_perspective_projection(self):
-        return perspective_projection(
-            self.fov, self.width()/self.height(), self.near, self.far)
 
     def minimumSizeHint(self):
         return QSize(50, 50)
@@ -327,66 +274,27 @@ class LatticeFloorPlan(QOpenGLWidget):
         # TODO: scale view area
         super().resizeEvent(event)
 
-    def zoom(self, scale):
-        """Scale the figure uniformly along both axes."""
-        self.fov = np.clip(self.fov - scale/5, 1.0, 180.0)
-        self.update()
-
-    def look_from(self, theta, phi, psi=0):
-        """Set camera position by rotating camera around its view target. The
-        angles are the coordinates of the camera relative to the target, at a
-        distance ``self.distance``."""
-        phi = np.clip(phi, -pi/2, pi/2)
-        rot = rotate(theta, phi, psi)
-        tra0 = translate(*self.center)
-        tra1 = translate(0, 0, self.distance)
-        goto_camera = tra0 @ rot.T @ tra1
-        self.camera_position = (goto_camera @ gl_array([0, 0, 0, 1]))[:3]
-        self.view = inverted(goto_camera)
-        self.theta, self.phi, self.psi = theta, phi, psi
-        self.update()
-
-    def look_toward(self, theta, phi, psi=0):
-        """Rotate camera at fixed position. The center of view is recalculated
-        to be at distance ``self.distance`` from the camera position in the
-        direction given by the angles."""
-        phi = np.clip(phi, -pi/2, pi/2)
-        rot = rotate(theta, phi, psi)
-        tra0 = translate(*self.camera_position)
-        tra1 = translate(0, 0, -self.distance)
-        self.center = (tra0 @ rot.T @ tra1 @ gl_array([0, 0, 0, 1]))[:3]
-        self.view = tra1 @ rot @ translate(*-self.center)
-        self.theta, self.phi, self.psi = theta, phi, psi
-        self.update()
-
-    def move_camera(self, dx, dy, dz):
-        rot = rotate(self.theta, self.phi, self.psi)
-        tra = translate(dx, dy, dz)
-        move = rot.T @ tra @ rot
-        self.center = (move @ gl_array([*self.center, 1]))[:3]
-        self.camera_position = (move @ gl_array([*self.camera_position, 1]))[:3]
-        self.look_toward(self.theta, self.phi, self.psi)
-
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
         delta = event.angleDelta().y()
-        self.zoom(delta/10.0)
+        self.camera.zoom(delta/10.0)
 
     def mousePressEvent(self, event):
         self.last_mouse_position = event.pos()
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        camera = self.camera
         delta = event.pos() - self.last_mouse_position
         if event.buttons() == Qt.RightButton:
             dx = delta.x()/100
             dy = delta.y()/100
             if event.modifiers() & Qt.ShiftModifier:
-                self.look_from(self.theta + dx, self.phi + dy, self.psi)
+                camera.look_from(camera.theta + dx, camera.phi + dy, camera.psi)
             else:
-                self.look_toward(self.theta + dx, self.phi - dy, self.psi)
+                camera.look_toward(camera.theta + dx, camera.phi - dy, camera.psi)
         elif event.buttons() == Qt.RightButton | Qt.LeftButton:
-            self.zoom(-delta.y())
+            camera.zoom(-delta.y())
         else:
             return super().mouseMoveEvent(event)
         self.last_mouse_position = event.pos()
@@ -421,104 +329,8 @@ class LatticeFloorPlan(QOpenGLWidget):
             speed = 3/1000  # m/ms
             direction = np.array([-leftward, upward, -forward])
             direction = direction / np.linalg.norm(direction)
-            move = direction * speed * ms_elapsed
-            self.move_camera(*move)
-
-
-class Object3D:
-
-    def __init__(self, program, transform, color,
-                 vertices, normals, triangles, mode=GL.GL_TRIANGLES):
-        self.program = program
-        self.deleted = False
-        self.transform = transform
-        self.color = color
-        self.mode = mode
-        ploc = GL.glGetAttribLocation(program, "position")
-        nloc = GL.glGetAttribLocation(program, "normal")
-        vao = GL.glGenVertexArrays(1)
-        GL.glBindVertexArray(vao)
-        self.vbo = setup_vertex_buffer(ploc, vertices)
-        self.ebo = setup_element_buffer(triangles)
-        self.nbo = setup_vertex_buffer(nloc, normals)
-        self.vao = vao
-        self.num = triangles.size
-
-    def draw(self):
-        GL.glUseProgram(self.program)
-        set_uniform_vector(self.program, "object_color", self.color)
-        set_uniform_matrix(self.program, "model", self.transform)
-        GL.glBindVertexArray(self.vao)
-        GL.glDrawElements(self.mode, self.num, GL.GL_UNSIGNED_INT, None)
-
-    def __del__(self):
-        self.delete()
-
-    def delete(self):
-        if not self.deleted:
-            self.deleted = True
-            GL.glDeleteBuffers(1, [self.vbo])
-            GL.glDeleteBuffers(1, [self.nbo])
-            GL.glDeleteBuffers(1, [self.ebo])
-            GL.glDeleteVertexArrays(1, [self.vao])
-
-
-def cylinder(l, r, n1, n0=2):
-    z0 = np.zeros(n0, dtype=np.float32)[:, None]
-    t0 = np.linspace(0, l,    n0, dtype=np.float32)[:, None]
-    t1 = np.linspace(0, 2*pi, n1, dtype=np.float32)[None, :]
-    centers = np.stack([z0, z0, t0])
-    normals = np.stack([
-        np.cos(t1),
-        np.sin(t1),
-        0 * t1,
-    ]) + z0
-    vertices = centers + r * normals
-    return _tube_strip(vertices, normals)
-
-
-def torus_arc(r0, r1, n0, n1, ang0=2*pi, ang1=2*pi):
-    """
-    Return (vertices, normals, draw indices, mode) of rounded pipe a.k.a. torus
-    with x-y plane symmetry centered at ``(0, 0, 0)``.
-
-    The returned vertices are generated by revolving a circular segment C1
-    about the coplanar z axis, with C1's center coordinates being described by
-    the circular segment C0. Both circular segments are desribed by triples:
-
-        (r, n, ang) = (radius, num_points, angle).
-    """
-    # e_phi = (cos(s0), sin(s0), 0)
-    # e_z   = (0, 0, 1)
-    # center = r * e_phi
-    # phi, z = cos(s1), sin(s1)
-    # result = center + phi * e_phi + z * e_z
-    z0 = np.zeros(n0, dtype=np.float32)[:, None]
-    t0 = np.linspace(0, ang0, n0, dtype=np.float32)[:, None]
-    t1 = np.linspace(0, ang1, n1, dtype=np.float32)[None, :]
-    c0, s0 = np.cos(t0), np.sin(t0)
-    c1, s1 = np.cos(t1), np.sin(t1)
-    centers = np.stack([c0, s0, z0]) * r0
-    normals = np.stack([
-        c1 * c0,
-        c1 * s0,
-        s1 + z0,
-    ])
-    vertices = centers + r1 * normals
-    return _tube_strip(vertices, normals)
-
-
-def _tube_strip(vertices, normals):
-    n0, n1 = vertices.shape[1:]
-    indices = np.arange(n0 * n1, dtype=np.uint32).reshape((n0, n1))
-    strips = np.stack((
-        indices[:-1, :],
-        indices[+1:, :],
-    ))
-    vertices = vertices.transpose((1, 2, 0)).reshape((-1, 3))
-    normals = normals.transpose((1, 2, 0)).reshape((-1, 3))
-    strips = strips.transpose((1, 2, 0)).reshape((-1,))
-    return vertices, normals, strips, GL.GL_TRIANGLE_STRIP
+            translate = direction * speed * ms_elapsed
+            self.camera.translate(*translate)
 
 
 def getElementColor(element, default='black'):
@@ -527,69 +339,6 @@ def getElementColor(element, default='black'):
 
 def getElementWidth(element, default=0.2):
     return ELEMENT_WIDTH.get(element.base_name.upper(), default)
-
-
-def compile_shader(type, source):
-    """Compile a OpenGL shader, and return its id."""
-    shader_id = GL.glCreateShader(type)
-    GL.glShaderSource(shader_id, source)
-    GL.glCompileShader(shader_id)
-    if not GL.glGetShaderiv(shader_id, GL.GL_COMPILE_STATUS):
-        info = GL.glGetShaderInfoLog(shader_id).decode('utf-8')
-        raise RuntimeError("OpenGL {} shader compilation error:\n{}".format(
-            type, textwrap.indent(info, "    ")))
-    return shader_id
-
-
-def load_shader(type, name):
-    return compile_shader(type, read_binary(__package__, name))
-
-
-def create_shader_program(shaders):
-    shader_program = GL.glCreateProgram()
-    for shader in shaders:
-        GL.glAttachShader(shader_program, shader)
-        GL.glDeleteShader(shader)
-    GL.glLinkProgram(shader_program)
-    if not GL.glGetProgramiv(shader_program, GL.GL_LINK_STATUS):
-        info = GL.glGetProgramInfoLog(shader_program).decode('utf-8')
-        raise RuntimeError("OpenGL program link error:\n{}".format(
-            textwrap.indent(info, "    ")))
-    return shader_program
-
-
-def setup_vertex_buffer(loc, data):
-    """Set program attribute from vertex buffer."""
-    num = data.shape[1]
-    flat = data.reshape(-1)
-    vbo = GL.glGenBuffers(1)
-    GL.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo)
-    GL.glBufferData(GL.GL_ARRAY_BUFFER, flat.nbytes, flat, GL.GL_STATIC_DRAW)
-    GL.glVertexAttribPointer(loc, num, GL.GL_FLOAT, GL.GL_FALSE, 0, None)
-    GL.glEnableVertexAttribArray(loc)
-    return vbo
-
-
-def setup_element_buffer(indices):
-    ebo = GL.glGenBuffers(1)
-    GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, ebo)
-    GL.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices,
-                    GL.GL_STATIC_DRAW)
-    # don't unbind EBO with active VAO:
-    # GL.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0)
-    return ebo
-
-
-def set_uniform_matrix(program, name, matrix):
-    GL.glUseProgram(program)
-    loc = GL.glGetUniformLocation(program, name)
-    GL.glUniformMatrix4fv(loc, 1, GL.GL_FALSE, matrix.ravel('F'))
-
-
-def set_uniform_vector(program, name, vector):
-    GL.glUseProgram(program)
-    loc = GL.glGetUniformLocation(program, name)
-    GL.glUniform3fv(loc, 1, vector)
 
 
 if __name__ == '__main__':
