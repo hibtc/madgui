@@ -53,6 +53,11 @@ ELEMENT_WIDTH = {
 }
 
 
+def gl_array(data):
+    """Create a PyOpenGL compatible numpy array from list data."""
+    return np.array(data, dtype=np.float32)
+
+
 def rotate(theta, phi, psi):
     """Return a rotation matrix for rotation angles as defined in MAD-X."""
     mat = QMatrix4x4()
@@ -85,7 +90,7 @@ def look_at(position, target, up):
 
 
 def qmatrix_to_numpy(qmatrix):
-    return np.array(qmatrix.data(), dtype=np.float32).reshape((4, 4)).T
+    return gl_array(qmatrix.data()).reshape((4, 4)).T
 
 
 def inverted(matrix):
@@ -141,12 +146,12 @@ class LatticeFloorPlan(QOpenGLWidget):
     near = 0.01
     far = 1000
 
-    center = np.array([0, 0, 0], dtype=np.float32)
+    center = gl_array([0, 0, 0])
 
-    background_color = np.array([1, 1, 1], dtype=np.float32) * 0.6
-    ambient_color = np.array([1, 1, 1], dtype=np.float32) * 0.1
-    diffuse_color = np.array([1, 1, 1], dtype=np.float32)
-    object_color = np.array([1.0, 0.5, 0.2], dtype=np.float32)
+    background_color = gl_array([1, 1, 1]) * 0.6
+    ambient_color = gl_array([1, 1, 1]) * 0.1
+    diffuse_color = gl_array([1, 1, 1])
+    object_color = gl_array([1.0, 0.5, 0.2])
 
     shader_program = None
     update_timer = None
@@ -272,7 +277,7 @@ class LatticeFloorPlan(QOpenGLWidget):
     def create_element_item(self, element, coords, color, width):
         start, end = coords
 
-        color = np.array(color.getRgbF(), dtype=np.float32)
+        color = gl_array(color.getRgbF())
         radius = width/2
 
         # TODO: sanitize rotation...
@@ -336,8 +341,7 @@ class LatticeFloorPlan(QOpenGLWidget):
         tra0 = translate(*self.center)
         tra1 = translate(0, 0, self.distance)
         goto_camera = tra0 @ rot.T @ tra1
-        self.camera_position = (
-            goto_camera @ np.array([0, 0, 0, 1], dtype=np.float32))[:3]
+        self.camera_position = (goto_camera @ gl_array([0, 0, 0, 1]))[:3]
         self.view = inverted(goto_camera)
         self.theta, self.phi, self.psi = theta, phi, psi
         self.update()
@@ -350,8 +354,7 @@ class LatticeFloorPlan(QOpenGLWidget):
         rot = rotate(theta, phi, psi)
         tra0 = translate(*self.camera_position)
         tra1 = translate(0, 0, -self.distance)
-        self.center = (
-            tra0 @ rot.T @ tra1 @ np.array([0, 0, 0, 1], dtype=np.float32))[:3]
+        self.center = (tra0 @ rot.T @ tra1 @ gl_array([0, 0, 0, 1]))[:3]
         self.view = tra1 @ rot @ translate(*-self.center)
         self.theta, self.phi, self.psi = theta, phi, psi
         self.update()
@@ -360,10 +363,8 @@ class LatticeFloorPlan(QOpenGLWidget):
         rot = rotate(self.theta, self.phi, self.psi)
         tra = translate(dx, dy, dz)
         move = rot.T @ tra @ rot
-        self.center = (
-            move @ np.array([*self.center, 1], dtype=np.float32))[:3]
-        self.camera_position = (
-            move @ np.array([*self.camera_position, 1], dtype=np.float32))[:3]
+        self.center = (move @ gl_array([*self.center, 1]))[:3]
+        self.camera_position = (move @ gl_array([*self.camera_position, 1]))[:3]
         self.look_toward(self.theta, self.phi, self.psi)
 
     def wheelEvent(self, event):
