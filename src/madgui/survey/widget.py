@@ -71,6 +71,11 @@ class FloorPlanWidget(QWidget):
                 self._button("Z|Y", -pi/2,     0),
             ],
         ]))
+        # Keep focus on the GL widget, prevent buttons from stealing focus:
+        for child in self.findChildren(QWidget):
+            child.setFocusPolicy(
+                Qt.ClickFocus if child is self.floorplan else Qt.NoFocus)
+        self.floorplan.setFocus()
 
     def _button(self, label, *args):
         button = QPushButton(label)
