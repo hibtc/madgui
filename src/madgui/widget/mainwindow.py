@@ -469,7 +469,8 @@ class MainWindow(QMainWindow):
         try:
             format(1.1, fmtspec)
         except ValueError:
-            # TODO: show warning
+            logging.warning(
+                "Invalid number format ignored: {!r}".format(fmtspec))
             return
         self.config.number.fmtspec = fmtspec
 
