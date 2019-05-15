@@ -7,6 +7,8 @@ __all__ = [
     'MatchWidget',
 ]
 
+import logging
+
 from PyQt5.QtWidgets import QAbstractItemView, QDialogButtonBox, QWidget
 
 from madgui.util.qt import load_ui
@@ -29,16 +31,22 @@ def parse_knob(model, text):
     elif text in model.globals:
         return text
     else:
-        return None     # TODO: logging
+        logging.warning("Ignoring invalid knob: {!r}".format(text))
+        return None
     elem = elem.strip()
     attr = attr.strip()
     try:
         knobs = model._get_knobs(model.elements[elem], attr)
     except KeyError:    # missing attribute
-        return None     # TODO: logging
+        logging.warning(
+            "Ignoring invalid knob (unknown element attribute): {!r}"
+            .format(text))
+        return None
     if knobs:
         return knobs[0]
-    return None         # TODO: logging
+    logging.warning(
+        "Ignoring invalid knob (not backed by knob): {!r}".format(text))
+    return None
 
 
 class MatchWidget(QWidget):
