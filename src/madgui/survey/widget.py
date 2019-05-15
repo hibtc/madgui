@@ -116,6 +116,11 @@ class LatticeFloorPlan(QOpenGLWidget):
         self.camera.updated.connect(self.update)
         if session is not None:
             self.set_session(session)
+        # Enable multisampling (for antialiasing):
+        # (must be set before initializeGL)
+        surface_format = self.format()
+        surface_format.setSamples(6)
+        self.setFormat(surface_format)
 
     def set_session(self, session):
         session.model.changed.connect(self._set_model)
@@ -169,6 +174,7 @@ class LatticeFloorPlan(QOpenGLWidget):
 
     def initializeGL(self):
         self.create_shader_program()
+
         # Activate wireframe:
         # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
         camera = self.camera
@@ -188,6 +194,7 @@ class LatticeFloorPlan(QOpenGLWidget):
 
         GL.glClearColor(*self.background_color, 0)
         GL.glEnable(GL.GL_DEPTH_TEST)
+        GL.glEnable(GL.GL_MULTISAMPLE)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
         for item in self.items:
             item.draw()
