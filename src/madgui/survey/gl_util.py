@@ -33,6 +33,16 @@ class Object3D:
     def __del__(self):
         self.delete()
 
+    def position(self):
+        """Return the local coordinate system's origin point in world
+        coordinates. The meaning of this coordinate depends on the shape and
+        transform used, but is usually at the center/start of the object."""
+        return self.transform[:3, 3]
+
+    def opaque(self):
+        """Return true if the object is opaque."""
+        return self.color[3] == 1
+
     def delete(self):
         if not self.deleted:
             self.deleted = True
@@ -102,4 +112,7 @@ def set_uniform_matrix(program, name, matrix):
 def set_uniform_vector(program, name, vector):
     GL.glUseProgram(program)
     loc = GL.glGetUniformLocation(program, name)
-    GL.glUniform3fv(loc, 1, vector)
+    if len(vector) == 3:
+        GL.glUniform3fv(loc, 1, vector)
+    elif len(vector) == 4:
+        GL.glUniform4fv(loc, 1, vector)

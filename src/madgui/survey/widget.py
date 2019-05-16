@@ -6,7 +6,6 @@ Components to draw a 3D floor plan of a given MAD-X lattice.
 # TODO: load styles from config + UI
 # TODO: add exporters for common 3D data formats (obj+mtl/collada/ply?)
 # TODO: customize settings via UI (wireframe etc)
-# TODO: show thin elements as disks (kicker/monitor)
 
 __all__ = [
     'FloorPlanWidget',
@@ -22,36 +21,32 @@ from PyQt5.QtWidgets import QWidget, QPushButton
 
 from madgui.util.layout import VBoxLayout
 
-import OpenGL.GL as GL
-
 from .transform import gl_array, rotate, translate
-from .shapes import cylinder, torus_arc
+from .shapes import cylinder, torus_arc, disc
 from .gl_util import Object3D
 from .gl_widget import GLWidget
 
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
+ObjectStyle = namedtuple('ObjectStyle', ['width', 'color', 'alpha'])
 
-
-ELEMENT_COLOR = {
-    'E_GUN':       'purple',
-    'SBEND':       'red',
-    'QUADRUPOLE':  'blue',
-    'DRIFT':       'black',
-    'LCAVITY':     'green',
-    'RFCAVITY':    'green',
-    'SEXTUPOLE':   'yellow',
-    'WIGGLER':     'orange',
-}
-
-ELEMENT_WIDTH = {
-    'E_GUN':       1.0,
-    'LCAVITY':     0.4,
-    'RFCAVITY':    0.4,
-    'SBEND':       0.6,
-    'QUADRUPOLE':  0.4,
-    'SEXTUPOLE':   0.5,
-    'DRIFT':       0.1,
+DEFAULT_STYLE = ObjectStyle(0.5, 'black', 0.2)
+ELEMENT_STYLE = {
+    'KICKER':      ObjectStyle(0.6, 'purple', 0.2),
+    'HKICKER':     ObjectStyle(0.6, 'purple', 0.2),
+    'VKICKER':     ObjectStyle(0.6, 'purple', 0.2),
+    'SBEND':       ObjectStyle(0.6, 'red',    0.2),
+    'QUADRUPOLE':  ObjectStyle(0.4, 'blue',   0.2),
+    'SEXTUPOLE':   ObjectStyle(0.5, 'yellow', 0.2),
+    'DRIFT':       ObjectStyle(0.1, 'black',  0.2),
+    'MARKER':      ObjectStyle(1.0, 'white',  0.8),
+    'RFCAVITY':    ObjectStyle(0.4, 'yellow', 0.2),
+    'MONITOR':     ObjectStyle(1.0, 'green',  0.2),
+    'INSTRUMENT':  ObjectStyle(1.0, 'green',  0.2),
+    'COLLIMATOR':  ObjectStyle(0.6, 'orange', 0.2),
+    'MULTIPOLE':   ObjectStyle(0.6, 'orange', 0.2),
+    'SOLENOID':    ObjectStyle(1.0, 'orange', 0.2),
+    'SROTATION':   ObjectStyle(2.0, 'pink',   0.1),
 }
 
 
@@ -59,11 +54,13 @@ class FloorPlanWidget(QWidget):
 
     """A widget that shows a 3D scene of the accelerator."""
 
+    thin_element_length = 0.005      # draw thin elements as 5mm long
+
     def __init__(self, session):
         super().__init__()
         self.setWindowTitle("3D floor plan")
         self.gl_widget = GLWidget(self.create_items)
-        self.gl_widget.camera_speed = 3
+        self.gl_widget.camera_speed = 10
         self.gl_widget.update_interval = 10
         self.setLayout(VBoxLayout([
             self.gl_widget, [
@@ -137,28 +134,26 @@ class FloorPlanWidget(QWidget):
         camera.distance = np.max(np.linalg.norm(points - center, axis=1)) + 1
         camera.look_from(camera.theta, camera.phi, camera.psi)
 
-        # Show continuous drift tubes through all elements:
-        drift_color = QColor(ELEMENT_COLOR['DRIFT'])
-        drift_width = ELEMENT_WIDTH['DRIFT']
-        drift_pipes = [
-            self.create_element_item(
-                element, coords, drift_color, drift_width)
+        return [
+            item
             for element, coords in zip(elements, zip(survey, survey[1:]))
-            if element.l > 0
+            for item in self.create_element_items(element, coords)
         ]
-        other_elements = [
-            self.create_element_item(
-                element, coords,
-                getElementColor(element),
-                getElementWidth(element))
-            for element, coords in zip(elements, zip(survey, survey[1:]))
-            if element.l > 0 and element.base_name != 'drift'
-        ]
-        return drift_pipes + other_elements
 
-    def create_element_item(self, element, coords, color, width):
+    def create_element_items(self, element, coords):
         """Create an ``Object3D`` for a single beam line element. Use the
         supplied color and tube diameter."""
+        thick = element.l > 0
+        if thick:
+            # Show continuous drift tubes through all elements:
+            yield from self.create_object(
+                element, coords, *getElementStyle(element, 'DRIFT'))
+
+        if element.base_name != 'drift':
+            yield from self.create_object(
+                element, coords, *getElementStyle(element))
+
+    def create_object(self, element, coords, color, width):
         start, end = coords
 
         color = gl_array(color.getRgbF())
@@ -173,31 +168,58 @@ class FloorPlanWidget(QWidget):
         l = element.l
 
         shader_program = self.gl_widget.shader_program
-        if angle:
+        if l == 0:
+            # Thin elements should appear as transparent discs. Internally, we
+            # draw very short tubes to improve the visual appearance:
+            # - need two opposite facing discs in order to have view-angle
+            #   independent overlapping
+            # - need tube to display an outline. GL_LINES does not work well!
+            l = self.thin_element_length
+
+            inner_radius = ELEMENT_STYLE['DRIFT'].width / 2 * 1.001
+            circle_color = gl_array([1, 1, 1, 1])
+
+            forth = translate(0, 0, l/2)
+            back = translate(0, 0, -l/2)
+
+            # outlines:
+            yield Object3D(
+                shader_program, transform @ back, circle_color,
+                *cylinder(l, r=inner_radius, n1=20))
+            yield Object3D(
+                shader_program, transform @ back, circle_color,
+                *cylinder(l, r=radius, n1=20))
+            # caps on each end:
+            yield Object3D(
+                shader_program, transform @ forth, color,
+                *disc(radius, n1=20, dir=+1))
+            yield Object3D(
+                shader_program, transform @ back, color,
+                *disc(radius, n1=20, dir=-1))
+
+        elif angle:
             # this works the same for negative angle!
             r0 = l / angle
             n0 = round(5 * l) + 1
             local_transform = rotate(0, -pi/2, 0) @ translate(-r0, 0, 0)
-            return Object3D(
+            yield Object3D(
                 shader_program, transform @ local_transform, color,
-                *torus_arc(r0, radius, n0, 20, angle),
-                GL.GL_TRIANGLE_STRIP)
+                *torus_arc(r0, radius, n0, 20, angle))
 
         else:
-            return Object3D(
+            yield Object3D(
                 shader_program, transform, color,
-                *cylinder(l, r=radius, n1=20),
-                GL.GL_TRIANGLE_STRIP)
+                *cylinder(l, r=radius, n1=20))
 
 
-def getElementColor(element, default='black'):
+def getElementStyle(element, base_name=None):
     """Lookup element color."""
-    return QColor(ELEMENT_COLOR.get(element.base_name.upper(), default))
-
-
-def getElementWidth(element, default=0.2):
-    """Lookup element tube size (in meters)."""
-    return ELEMENT_WIDTH.get(element.base_name.upper(), default)
+    style = ELEMENT_STYLE.get(
+        base_name or element.base_name.upper(), DEFAULT_STYLE)
+    color = QColor(style.color)
+    if element.l == 0:
+        color.setAlphaF(style.alpha)
+    return color, style.width
 
 
 if __name__ == '__main__':

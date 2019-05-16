@@ -29,7 +29,6 @@ class GLWidget(QOpenGLWidget):
     background_color = gl_array([1, 1, 1]) * 0.6
     ambient_color = gl_array([1, 1, 1]) * 0.1
     diffuse_color = gl_array([1, 1, 1])
-    object_color = gl_array([1.0, 0.5, 0.2])
 
     camera_speed = 1            # [m/s]
     zoom_speed = 1/10           # [1/deg]
@@ -116,15 +115,26 @@ class GLWidget(QOpenGLWidget):
         set_uniform_matrix(program, "projection", projection)
 
         set_uniform_vector(program, "ambient_color", self.ambient_color)
-        set_uniform_vector(program, "object_color", self.object_color)
         set_uniform_vector(program, "diffuse_color", self.diffuse_color)
         set_uniform_vector(program, "diffuse_position", self.camera.position)
 
         GL.glClearColor(*self.background_color, 0)
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glEnable(GL.GL_MULTISAMPLE)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-        for item in self.items:
+
+        # Draw transparent items after opaque ones, and sorted by distance to
+        # the observer (far to near). Note that this is only an approximation
+        # that is correct only for point-like items; a 100% correct blending
+        # order would have to be decided on the level of fragments (based on
+        # the interpolated depth value).
+        items = sorted(self.items, key=lambda item: (
+            item.opaque(),
+            np.linalg.norm(self.camera.position - item.position()),
+        ), reverse=True)
+        for item in items:
             item.draw()
 
     def create_shader_program(self):

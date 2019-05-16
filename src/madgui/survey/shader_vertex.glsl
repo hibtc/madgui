@@ -19,8 +19,7 @@ void main()
     // Note that to allow model transforms with scaling we would need:
     // FragNormal = mat3(transpose(inverse(model))) * normal
     FragNormal = mat3(model) * normal;
-    FragPosition = position;
+    FragPosition = vec3(model * vec4(position, 1.0));
 
-    gl_Position = projection * view * model *
-        vec4(position.x, position.y, position.z, 1.0);
+    gl_Position = projection * view * model * vec4(position, 1.0);
 }
