@@ -61,7 +61,8 @@ class FloorPlanWidget(QWidget):
 
     """A widget that shows a 3D scene of the accelerator."""
 
-    thin_element_length = 0.005      # draw thin elements as 5mm long
+    thin_element_length = 0.005     # draw thin elements as 5mm long
+    circle_points_per_m = 200.0
 
     def __init__(self, session):
         super().__init__()
@@ -174,6 +175,8 @@ class FloorPlanWidget(QWidget):
         angle = float(element.get('angle', 0.0))
         l = element.l
 
+        n1 = max(round(radius * self.circle_points_per_m), 20)
+
         shader_program = self.gl_widget.shader_program
         if l == 0:
             # Thin elements should appear as transparent discs. Internally, we
@@ -184,6 +187,7 @@ class FloorPlanWidget(QWidget):
             l = self.thin_element_length
 
             inner_radius = ELEMENT_STYLE['DRIFT'].width / 2 * 1.001
+            inner_points = max(round(inner_radius * self.circle_points_per_m), 20)
             circle_color = gl_array([1, 1, 1, 1])
 
             forth = translate(0, 0, l/2)
@@ -192,17 +196,17 @@ class FloorPlanWidget(QWidget):
             # outlines:
             yield Object3D(
                 shader_program, transform @ back, circle_color,
-                *cylinder(l, r=inner_radius, n1=20))
+                *cylinder(l, r=inner_radius, n1=inner_points))
             yield Object3D(
                 shader_program, transform @ back, circle_color,
-                *cylinder(l, r=radius, n1=20))
+                *cylinder(l, r=radius, n1=n1))
             # caps on each end:
             yield Object3D(
                 shader_program, transform @ forth, color,
-                *disc(radius, n1=20, dir=+1))
+                *disc(radius, n1=n1, dir=+1))
             yield Object3D(
                 shader_program, transform @ back, color,
-                *disc(radius, n1=20, dir=-1))
+                *disc(radius, n1=n1, dir=-1))
 
         elif angle:
             # this works the same for negative angle!
@@ -211,12 +215,12 @@ class FloorPlanWidget(QWidget):
             local_transform = rotate(0, -pi/2, 0) @ translate(-r0, 0, 0)
             yield Object3D(
                 shader_program, transform @ local_transform, color,
-                *torus_arc(r0, radius, n0, 20, angle))
+                *torus_arc(r0, radius, n0, n1, angle))
 
         else:
             yield Object3D(
                 shader_program, transform, color,
-                *cylinder(l, r=radius, n1=20))
+                *cylinder(l, r=radius, n1=n1))
 
 
 def getElementStyle(element, base_name=None):
