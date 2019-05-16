@@ -89,12 +89,13 @@ def init_stdio():
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 
-def main(argv=None):
+def main(argv=None, MainWindow=None):
     """Run madgui mainloop and exit process when finished."""
     import madgui.core.config as config
     from madgui.core.session import Session
-    from madgui.widget.mainwindow import MainWindow
     from docopt import docopt
+    if MainWindow is None:
+        from madgui.widget.mainwindow import MainWindow
     app = init_app(argv)
     # Filter arguments understood by Qt before doing our own processing:
     args = app.arguments()[1:]
