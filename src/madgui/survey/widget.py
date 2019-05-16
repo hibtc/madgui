@@ -6,6 +6,12 @@ Components to draw a 3D floor plan of a given MAD-X lattice.
 # TODO: load styles from config + UI
 # TODO: add exporters for common 3D data formats (obj+mtl/collada/ply?)
 # TODO: customize settings via UI (wireframe etc)
+# TODO: highlight selected elements
+# TODO: front-to-back highlighting animation (indicating direction)
+# TODO: draw axis cross + arrows
+# TODO: element-dependent shapes, e.g. SEXTUPOLES, QUADRUPOLES, DIPOLES should
+#       look these, and color-mapped according to polarization, KICKERS maybe
+#       as rectangles
 
 __all__ = [
     'FloorPlanWidget',
