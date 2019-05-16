@@ -1,4 +1,5 @@
-// fragment shader for lattice survey
+// Simple fragment shader that colorizes according to a simple diffuse+ambient
+// lighting model.
 #version 130
 
 in vec3 FragPosition;

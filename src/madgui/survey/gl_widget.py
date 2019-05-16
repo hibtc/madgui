@@ -40,6 +40,7 @@ class GLWidget(QOpenGLWidget):
     update_timer = None
 
     def __init__(self, create_items, *args, **kwargs):
+        """Create from a callable ``create_items: Camera -> [Object3D]``."""
         super().__init__(*args, **kwargs)
         self._create_items = create_items
         self.items = []
@@ -55,15 +56,18 @@ class GLWidget(QOpenGLWidget):
         self.setFormat(surface_format)
 
     def free(self):
+        """Free all items."""
         for item in self.items:
             item.delete()
         self.items.clear()
 
     def closeEvent(self, event):
+        """Free items."""
         self.free()
         super().closeEvent(event)
 
     def showEvent(self, event):
+        """Start scene updates (camera movement)."""
         super().showEvent(event)
         if self.update_timer is None:
             self.update_timer = QTimer(self)
@@ -73,6 +77,7 @@ class GLWidget(QOpenGLWidget):
             self._update_time.start()
 
     def hideEvent(self, event):
+        """Stop scene updates (camera movement)."""
         super().hideEvent(event)
         if self.update_timer is not None:
             self.update_timer.timeout.disconnect(self.update_event)
@@ -86,19 +91,25 @@ class GLWidget(QOpenGLWidget):
     #     return self.context().versionFunctions(version)
 
     def initializeGL(self):
+        """Called after first creating a valid OpenGL context. Creates shader
+        program, sets up camera and creates an initial scene."""
+        self.create_scene()
         self.create_shader_program()
         # Activate wireframe:
         # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
         camera = self.camera
         camera.look_from(camera.theta, camera.phi, camera.psi)
-        self.create_scene()
 
     def create_scene(self):
+        """Fetch new items from the given callable."""
         self.free()
         if self.shader_program is not None:
             self.items = self._create_items(self.camera)
+            self.update()
 
     def paintGL(self):
+        """Handle paint event by drawing the items returned by the creator
+        function."""
         program = self.shader_program
         projection = self.camera.projection(self.width(), self.height())
         set_uniform_matrix(program, "view", self.camera.view_matrix)
@@ -117,6 +128,8 @@ class GLWidget(QOpenGLWidget):
             item.draw()
 
     def create_shader_program(self):
+        """Create simple program with generic fragment/vertex shaders used to
+        render objects with a simple ambient+diffuse lighting model."""
         self.shader_program = create_shader_program([
             load_shader(GL.GL_VERTEX_SHADER, 'shader_vertex.glsl'),
             load_shader(GL.GL_FRAGMENT_SHADER, 'shader_fragment.glsl'),
@@ -128,21 +141,17 @@ class GLWidget(QOpenGLWidget):
     def sizeHint(self):
         return QSize(400, 400)
 
-    def resizeEvent(self, event):
-        """Maintain visible region on resize."""
-        # TODO: scale view area
-        super().resizeEvent(event)
-
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
-        delta = event.angleDelta().y()
-        self.camera.zoom(delta * self.zoom_speed)
+        self.camera.zoom(self.zoom_speed * event.angleDelta().y())
 
     def mousePressEvent(self, event):
+        """Handle camera look around."""
         self.last_mouse_position = event.pos()
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        """Handle camera look around."""
         camera = self.camera
         delta = event.pos() - self.last_mouse_position
         if event.buttons() == Qt.RightButton:
@@ -160,6 +169,7 @@ class GLWidget(QOpenGLWidget):
         event.accept()
 
     def keyPressEvent(self, event):
+        """Maintain a list of pressed keys for camera movement."""
         key = event.key()
         if key in (Qt.Key_Escape, Qt.Key_Q):
             self.window().close()
@@ -168,10 +178,12 @@ class GLWidget(QOpenGLWidget):
         super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
+        """Maintain a list of pressed keys for camera movement."""
         if not event.isAutoRepeat():
             self._key_state[event.key()] = False
 
     def update_event(self):
+        """Implement camera movement. Called regularly."""
         pressed = lambda k: self._key_state.get(k, 0)
         upward = pressed(Qt.Key_Space) - pressed(Qt.Key_Control)
         forward = ((pressed(Qt.Key_Up) or pressed(Qt.Key_W)) -

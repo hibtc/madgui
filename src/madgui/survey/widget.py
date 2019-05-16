@@ -57,6 +57,8 @@ ELEMENT_WIDTH = {
 
 class FloorPlanWidget(QWidget):
 
+    """A widget that shows a 3D scene of the accelerator."""
+
     def __init__(self, session):
         super().__init__()
         self.setWindowTitle("3D floor plan")
@@ -91,10 +93,12 @@ class FloorPlanWidget(QWidget):
         super().closeEvent(event)
 
     def set_session(self, session):
+        """Set session."""
         session.model.changed.connect(self._set_model)
         self._set_model(session.model())
 
     def _set_model(self, model):
+        """Recreates scene after model has changed."""
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
         if self.model:
             self.model.updated.disconnect(self._updateSurvey)
@@ -104,17 +108,21 @@ class FloorPlanWidget(QWidget):
             self._updateSurvey()
 
     def _updateSurvey(self):
+        """Recreate and update the scene."""
         survey = self.model.survey()
         array = np.array([survey[key] for key in FloorCoords._fields])
         floor = [FloorCoords(*row) for row in array.T]
         self.setElements(self.model.elements, floor)
 
     def setElements(self, elements, survey):
+        """Set scene using given elements and floor coordinates."""
         self.elements = elements
         self.survey = survey
         self.gl_widget.create_scene()
 
     def create_items(self, camera):
+        """Turn the MAD-X sequence of elements into a list of ``Object3D``
+        constituting the scene to be drawn."""
         if not self.model:
             return []
 
@@ -149,6 +157,8 @@ class FloorPlanWidget(QWidget):
         return drift_pipes + other_elements
 
     def create_element_item(self, element, coords, color, width):
+        """Create an ``Object3D`` for a single beam line element. Use the
+        supplied color and tube diameter."""
         start, end = coords
 
         color = gl_array(color.getRgbF())
@@ -181,10 +191,12 @@ class FloorPlanWidget(QWidget):
 
 
 def getElementColor(element, default='black'):
+    """Lookup element color."""
     return QColor(ELEMENT_COLOR.get(element.base_name.upper(), default))
 
 
 def getElementWidth(element, default=0.2):
+    """Lookup element tube size (in meters)."""
     return ELEMENT_WIDTH.get(element.base_name.upper(), default)
 
 
