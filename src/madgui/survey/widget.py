@@ -31,24 +31,39 @@ FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
 
 
 ELEMENT_COLOR = {
-    'E_GUN':       'purple',
+    'KICKER':      'purple',
+    'HKICKER':     'purple',
+    'VKICKER':     'purple',
     'SBEND':       'red',
     'QUADRUPOLE':  'blue',
-    'DRIFT':       'black',
-    'LCAVITY':     'green',
-    'RFCAVITY':    'green',
     'SEXTUPOLE':   'yellow',
-    'WIGGLER':     'orange',
+    'DRIFT':       'black',
+    'MARKER':      'white',
+    'RFCAVITY':    'yellow',
+    'MONITOR':     'green',
+    'INSTRUMENT':  'green',
+    'COLLIMATOR':  'orange',
+    'MULTIPOLE':   'orange',
+    'SOLENOID':    'orange',
+    'SROTATION':   'pink',
 }
 
 ELEMENT_WIDTH = {
-    'E_GUN':       1.0,
-    'LCAVITY':     0.4,
-    'RFCAVITY':    0.4,
+    'KICKER':      0.6,
+    'HKICKER':     0.6,
+    'VKICKER':     0.6,
     'SBEND':       0.6,
     'QUADRUPOLE':  0.4,
     'SEXTUPOLE':   0.5,
     'DRIFT':       0.1,
+    'MARKER':      1.0,
+    'RFCAVITY':    0.4,
+    'MONITOR':     1.0,
+    'INSTRUMENT':  1.0,
+    'COLLIMATOR':  0.6,
+    'MULTIPOLE':   0.6,
+    'SROTATION':   1.0,
+    'SOLENOID':    0.6,
 }
 
 
