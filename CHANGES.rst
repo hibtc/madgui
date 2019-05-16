@@ -1,6 +1,18 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.5.4
+~~~~~~
+Date: 16.05.2019
+
+- add true 3D OpenGL based survey widget (WIP)
+- fix exception in curvemanager tool when clicking snapshot button
+- fix TypeError when importing a table without a text column
+- show warning when entering invalid number format (instead of silently
+  ignoring the invalid input)
+- show warnings when ignoring invalid knob strings
+
+
 19.5.3
 ~~~~~~
 Date: 13.05.2019

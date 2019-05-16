@@ -30,11 +30,12 @@ package:
 :mod:`madgui.online` interface to the online accelerator control system (ACS)
 :mod:`madgui.plot`   utilities for plotting twiss functions and elements
 :mod:`madgui.util`   miscellaneous programming utilities used by other modules
+:mod:`madgui.survey` 3D model of the accelerator, allowing to move/look around
 :mod:`madgui.widget` definition of windows and widgets
 ==================== =========================================================
 """
 
-__version__ = '19.5.3'
+__version__ = '19.5.4'
 
 __title__ = 'madgui'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
