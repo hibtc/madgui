@@ -1,8 +1,28 @@
 from math import pi
 import numpy as np
+from .transform import gl_array
+
+import OpenGL.GL as GL
+
+
+def disc(r, n1, dir=1):
+    """Return ``(vertices, normals, indices, mode)`` of a disc in the X-Y
+    plane with center at Z=X=Y=0."""
+    t1 = np.linspace(0, 2*pi, n1, dtype=np.float32)
+    vertices = r * np.stack([
+        np.cos(t1),
+        np.sin(t1),
+        0 * t1,
+    ]).T
+    vertices = np.vstack((gl_array([0, 0, 0]), vertices))
+    normals = gl_array([0, 0, 1]) * np.ones((n1, 1), dtype=np.float32) * dir
+    indices = np.arange(n1 + 1, dtype=np.uint32)
+    return (vertices, normals, indices, GL.GL_TRIANGLE_FAN)
 
 
 def cylinder(l, r, n1, n0=2):
+    """Return ``(vertices, normals, indices, mode)`` of a cylinder with radius
+    ``r`` around the Z axis, starting at ``Z=0``, ending at ``Z=l``."""
     z0 = np.zeros(n0, dtype=np.float32)[:, None]
     t0 = np.linspace(0, l,    n0, dtype=np.float32)[:, None]
     t1 = np.linspace(0, 2*pi, n1, dtype=np.float32)[None, :]
@@ -57,4 +77,4 @@ def _tube_strip(vertices, normals):
     vertices = vertices.transpose((1, 2, 0)).reshape((-1, 3))
     normals = normals.transpose((1, 2, 0)).reshape((-1, 3))
     strips = strips.transpose((1, 2, 0)).reshape((-1,))
-    return vertices, normals, strips
+    return vertices, normals, strips, GL.GL_TRIANGLE_STRIP
