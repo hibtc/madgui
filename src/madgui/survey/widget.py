@@ -44,6 +44,7 @@ ELEMENT_STYLE = {
     'MONITOR':     ObjectStyle(1.0, 'green',  0.2),
     'INSTRUMENT':  ObjectStyle(1.0, 'green',  0.2),
     'COLLIMATOR':  ObjectStyle(0.6, 'orange', 0.2),
+    'RCOLLIMATOR': ObjectStyle(0.6, 'orange', 0.2),
     'MULTIPOLE':   ObjectStyle(0.6, 'orange', 0.2),
     'SOLENOID':    ObjectStyle(1.0, 'orange', 0.2),
     'SROTATION':   ObjectStyle(2.0, 'pink',   0.1),
