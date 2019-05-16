@@ -63,6 +63,8 @@ class FloorPlanWidget(QWidget):
         super().__init__()
         self.setWindowTitle("3D floor plan")
         self.floorplan = LatticeFloorPlan()
+        self.floorplan.camera_speed = 3
+        self.floorplan.update_interval = 10
         self.floorplan.set_session(session)
         self.setLayout(VBoxLayout([
             self.floorplan, [
@@ -103,6 +105,11 @@ class LatticeFloorPlan(QOpenGLWidget):
     diffuse_color = gl_array([1, 1, 1])
     object_color = gl_array([1.0, 0.5, 0.2])
 
+    camera_speed = 1            # [m/s]
+    zoom_speed = 1/10           # [1/deg]
+    mouse_sensitivity = 1/100   # [rad/px]
+    update_interval = 25        # [ms]
+
     shader_program = None
     update_timer = None
 
@@ -138,7 +145,7 @@ class LatticeFloorPlan(QOpenGLWidget):
         super().showEvent(event)
         if self.update_timer is None:
             self.update_timer = QTimer(self)
-            self.update_timer.setInterval(25)
+            self.update_timer.setInterval(self.update_interval)
             self.update_timer.timeout.connect(self.update_event)
             self.update_timer.start()
             self._update_time.start()
@@ -289,7 +296,7 @@ class LatticeFloorPlan(QOpenGLWidget):
     def wheelEvent(self, event):
         """Handle mouse wheel as zoom."""
         delta = event.angleDelta().y()
-        self.camera.zoom(delta/10.0)
+        self.camera.zoom(delta * self.zoom_speed)
 
     def mousePressEvent(self, event):
         self.last_mouse_position = event.pos()
@@ -299,8 +306,8 @@ class LatticeFloorPlan(QOpenGLWidget):
         camera = self.camera
         delta = event.pos() - self.last_mouse_position
         if event.buttons() == Qt.RightButton:
-            dx = delta.x()/100
-            dy = delta.y()/100
+            dx = delta.x() * self.mouse_sensitivity
+            dy = delta.y() * self.mouse_sensitivity
             if event.modifiers() & Qt.ShiftModifier:
                 camera.look_from(camera.theta + dx, camera.phi + dy, camera.psi)
             else:
@@ -338,10 +345,9 @@ class LatticeFloorPlan(QOpenGLWidget):
         self._update_time.start()
 
         if forward or upward or leftward:
-            speed = 3/1000  # m/ms
             direction = np.array([-leftward, upward, -forward])
             direction = direction / np.linalg.norm(direction)
-            translate = direction * speed * ms_elapsed
+            translate = direction * self.camera_speed * (ms_elapsed/1000)
             self.camera.translate(*translate)
 
 
