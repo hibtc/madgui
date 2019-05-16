@@ -217,8 +217,8 @@ class TwissFigure:
         self.element_style = self.config['element_style']
         self.monitors = []
         # scene
-        self.layout_el_names = [
-            elem.name for elem in self.model.elements
+        self.elem_ids = [
+            elem.index for elem in self.model.elements
             if elem.base_name in self.element_style]
         self.layout_elems = List()
         self.user_tables = List()
@@ -418,7 +418,7 @@ class TwissFigure:
 
     def _layout_elems(self):
         elems = self.model.elements
-        layout_elems = [elems[elem] for elem in self.layout_el_names]
+        layout_elems = [elems[elem] for elem in self.elem_ids]
         layout_params = [indicator_params(elem) for elem in layout_elems]
         return layout_elems, layout_params
 
