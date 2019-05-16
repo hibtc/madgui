@@ -92,8 +92,8 @@ class GLWidget(QOpenGLWidget):
     def initializeGL(self):
         """Called after first creating a valid OpenGL context. Creates shader
         program, sets up camera and creates an initial scene."""
-        self.create_scene()
         self.create_shader_program()
+        self.create_scene()
         # Activate wireframe:
         # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
         camera = self.camera
