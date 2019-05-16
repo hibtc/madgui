@@ -28,42 +28,25 @@ from .gl_widget import GLWidget
 
 
 FloorCoords = namedtuple('FloorCoords', ['x', 'y', 'z', 'theta', 'phi', 'psi'])
+ObjectStyle = namedtuple('ObjectStyle', ['width', 'color', 'alpha'])
 
-
-ELEMENT_COLOR = {
-    'KICKER':      'purple',
-    'HKICKER':     'purple',
-    'VKICKER':     'purple',
-    'SBEND':       'red',
-    'QUADRUPOLE':  'blue',
-    'SEXTUPOLE':   'yellow',
-    'DRIFT':       'black',
-    'MARKER':      'white',
-    'RFCAVITY':    'yellow',
-    'MONITOR':     'green',
-    'INSTRUMENT':  'green',
-    'COLLIMATOR':  'orange',
-    'MULTIPOLE':   'orange',
-    'SOLENOID':    'orange',
-    'SROTATION':   'pink',
-}
-
-ELEMENT_WIDTH = {
-    'KICKER':      0.6,
-    'HKICKER':     0.6,
-    'VKICKER':     0.6,
-    'SBEND':       0.6,
-    'QUADRUPOLE':  0.4,
-    'SEXTUPOLE':   0.5,
-    'DRIFT':       0.1,
-    'MARKER':      1.0,
-    'RFCAVITY':    0.4,
-    'MONITOR':     1.0,
-    'INSTRUMENT':  1.0,
-    'COLLIMATOR':  0.6,
-    'MULTIPOLE':   0.6,
-    'SROTATION':   1.0,
-    'SOLENOID':    0.6,
+DEFAULT_STYLE = ObjectStyle(0.5, 'black', 0.2)
+ELEMENT_STYLE = {
+    'KICKER':      ObjectStyle(0.6, 'purple', 0.2),
+    'HKICKER':     ObjectStyle(0.6, 'purple', 0.2),
+    'VKICKER':     ObjectStyle(0.6, 'purple', 0.2),
+    'SBEND':       ObjectStyle(0.6, 'red',    0.2),
+    'QUADRUPOLE':  ObjectStyle(0.4, 'blue',   0.2),
+    'SEXTUPOLE':   ObjectStyle(0.5, 'yellow', 0.2),
+    'DRIFT':       ObjectStyle(0.1, 'black',  0.2),
+    'MARKER':      ObjectStyle(1.0, 'white',  0.8),
+    'RFCAVITY':    ObjectStyle(0.4, 'yellow', 0.2),
+    'MONITOR':     ObjectStyle(1.0, 'green',  0.2),
+    'INSTRUMENT':  ObjectStyle(1.0, 'green',  0.2),
+    'COLLIMATOR':  ObjectStyle(0.6, 'orange', 0.2),
+    'MULTIPOLE':   ObjectStyle(0.6, 'orange', 0.2),
+    'SOLENOID':    ObjectStyle(1.0, 'orange', 0.2),
+    'SROTATION':   ObjectStyle(2.0, 'pink',   0.1),
 }
 
 
@@ -164,15 +147,11 @@ class FloorPlanWidget(QWidget):
         if thick:
             # Show continuous drift tubes through all elements:
             yield from self.create_object(
-                element, coords,
-                QColor(ELEMENT_COLOR['DRIFT']),
-                ELEMENT_WIDTH['DRIFT'])
+                element, coords, *getElementStyle(element, 'DRIFT'))
 
         if element.base_name != 'drift':
             yield from self.create_object(
-                element, coords,
-                getElementColor(element, alpha=1.0 if thick else 0.2),
-                getElementWidth(element, default=0.2 if thick else 0.5))
+                element, coords, *getElementStyle(element))
 
     def create_object(self, element, coords, color, width):
         start, end = coords
@@ -197,7 +176,7 @@ class FloorPlanWidget(QWidget):
             # - need tube to display an outline. GL_LINES does not work well!
             l = self.thin_element_length
 
-            inner_radius = ELEMENT_WIDTH['DRIFT'] / 2 * 1.001
+            inner_radius = ELEMENT_STYLE['DRIFT'].width / 2 * 1.001
             circle_color = gl_array([1, 1, 1, 1])
 
             forth = translate(0, 0, l/2)
@@ -233,16 +212,14 @@ class FloorPlanWidget(QWidget):
                 *cylinder(l, r=radius, n1=20))
 
 
-def getElementColor(element, default='black', alpha=1):
+def getElementStyle(element, base_name=None):
     """Lookup element color."""
-    color = QColor(ELEMENT_COLOR.get(element.base_name.upper(), default))
-    color.setAlphaF(alpha)
-    return color
-
-
-def getElementWidth(element, default=None):
-    """Lookup element tube size (in meters)."""
-    return ELEMENT_WIDTH.get(element.base_name.upper(), default)
+    style = ELEMENT_STYLE.get(
+        base_name or element.base_name.upper(), DEFAULT_STYLE)
+    color = QColor(style.color)
+    if element.l == 0:
+        color.setAlphaF(style.alpha)
+    return color, style.width
 
 
 if __name__ == '__main__':
