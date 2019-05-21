@@ -514,15 +514,3 @@ hit_acs
 
 - halbwertsbreiten -> RMS breiten
 - hit_acs.stub:  UI to sync beam/twiss_args
-
-
-pyqtconsole
-===========
-
-- ctrl+Z can revert into inconsistent state
-    -> set readonly, handle all events
-        - text insertion
-        - home/end
-        - left/right/up/down
-        - backspace/delete
-        - ctrl+Z, ctrl+Y, ctrl+A, ctrl+shift+C, ctrl+V
