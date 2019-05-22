@@ -14,8 +14,7 @@ from PyQt5.QtWidgets import QAbstractItemView, QDialogButtonBox, QWidget
 from madgui.util.qt import load_ui
 from madgui.widget.tableview import TableItem, delegates
 from madgui.widget.filedialog import getOpenFileName
-
-from madgui.plot.twissfigure import UserData
+from madgui.widget.twisswidget import UserData
 
 Button = QDialogButtonBox
 
