@@ -1,6 +1,22 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.5.5
+~~~~~~
+Date: 27.05.2019
+
+- fix drawing elements only once that occur multiple times in sequence
+- add more documentation
+- split twiss widget code from plotting module to allow using the plot
+  functions externally without importing GUI code
+
+3D survey widget:
+    - fix bug in diffuse lighting direction calculations
+    - show thin elements as discs
+    - show more element types, colorful crowd
+    - fix not drawing the initial model
+    - scale number of points on circles with radius
+
 19.5.4
 ~~~~~~
 Date: 16.05.2019
