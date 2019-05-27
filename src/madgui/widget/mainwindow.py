@@ -583,7 +583,7 @@ class MainWindow(QMainWindow):
         self.user_ns.twiss = self.model().twiss()
 
     def showTwiss(self, name=None):
-        from madgui.plot.twissfigure import TwissWidget
+        from madgui.widget.twisswidget import TwissWidget
         widget = TwissWidget.from_session(self.session, name)
         scene = widget.scene
         self.views.append(scene)
