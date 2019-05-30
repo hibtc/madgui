@@ -211,7 +211,8 @@ class TwissFigure:
                 'lattice_elements',
                 self.layout_elems,
                 plot_element_indicator,
-                elem_styles=self.element_style),
+                elem_styles=self.element_style,
+                alpha=0.35),
             ListView(
                 'selected_elements',
                 self.session.selected_elements.map(get_element),

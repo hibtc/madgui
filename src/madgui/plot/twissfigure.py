@@ -61,7 +61,8 @@ def draw_patch(ax, position, length, style):
 
 
 def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
-                           default_style=None, effects=None):
+                           default_style=None, effects=None,
+                           **defaults):
     """Return the element type name used for properties like coloring."""
     type_name = elem.base_name.lower()
     style = elem_styles.get(type_name, default_style)
@@ -72,7 +73,7 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
     # sigmoid flavor with convenient output domain [-1,+1]:
     sigmoid = math.tanh
 
-    style = dict(style, zorder=0)
+    style = dict(defaults, zorder=0, **style)
     styles = [(style, elem.position, elem.length)]
 
     if type_name == 'quadrupole':
