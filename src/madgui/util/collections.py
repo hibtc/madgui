@@ -102,19 +102,6 @@ class List:
         """Use the items object by reference."""
         self._items = list() if items is None else items
 
-    def mirror(self, other):
-        """Connect another list to be mirror of oneself."""
-        self.inserted.connect(other.insert)
-        self.removed.connect(other.__delitem__)
-        self.changed.connect(other.__setitem__)
-
-    def map(self, fn):
-        l = List([fn(x) for x in self])
-        self.inserted.connect(lambda i, x: l.insert(i, fn(x)))
-        self.changed.connect(lambda i, x: l.__setitem__(i, fn(x)))
-        self.removed.connect(l.__delitem__)
-        return l
-
     def touch(self):
         self[:] = self
 

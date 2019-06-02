@@ -205,7 +205,6 @@ class TwissFigure:
         self.user_tables = List()
         self.curve_info = List()
         self.hovered_elements = List()
-        get_element = self.model.elements.__getitem__
         self.scene_graph = SceneGraph('', [
             ListView(
                 'lattice_elements',
@@ -215,12 +214,12 @@ class TwissFigure:
                 alpha=0.35),
             ListView(
                 'selected_elements',
-                self.session.selected_elements.map(get_element),
+                self.session.selected_elements,
                 plot_selection_marker, self.model,
                 elem_styles=self.element_style),
             ListView(
                 'hovered_elements',
-                self.hovered_elements.map(get_element),
+                self.hovered_elements,
                 plot_selection_marker, self.model,
                 elem_styles=self.element_style, highlight=True),
             ListView(
