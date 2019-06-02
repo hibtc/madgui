@@ -135,13 +135,13 @@ class LatticeFloorPlan(QGraphicsView):
     model = None
 
     def set_session(self, session):
-        self.selection = session.selected_elements
         self.session = session
         self.session.model.changed.connect(self.set_model)
         self.set_model(session.model())
 
     def set_model(self, model):
         # TODO: only update when SBEND/MULTIPOLE/SROTATION etc changes?
+        self.selection = self.session.selected_elements
         if self.model:
             self.model.updated.disconnect(self._updateSurvey)
         self.model = model

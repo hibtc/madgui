@@ -54,6 +54,7 @@ class Session:
 
     def on_model_changed(self, old, new):
         self.selected_elements.clear()
+        self.selected_elements = Selection()
         if old:
             self.matcher = None
             old.destroy()
