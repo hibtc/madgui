@@ -1,6 +1,15 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.6.0
+~~~~~~
+Date: 02.06.2019
+
+- fix exception when using element info after opening new model
+- deal with issues of lingering signal handlers of the element Selection
+  after opening new model (by voiding the selection)
+- decrease alpha for element indicators
+
 19.5.5
 ~~~~~~
 Date: 27.05.2019
