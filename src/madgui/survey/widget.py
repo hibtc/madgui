@@ -94,11 +94,14 @@ class FloorPlanWidget(QWidget):
         return {}
 
     def closeEvent(self, event):
+        if self.session.user_ns.gl_widget is self.gl_widget:
+            self.session.user_ns.gl_widget = None
         self.gl_widget.free()
         super().closeEvent(event)
 
     def set_session(self, session):
         """Set session."""
+        session.user_ns.gl_widget = self.gl_widget
         session.model.changed.connect(self._set_model)
         self._set_model(session.model())
 
