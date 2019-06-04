@@ -114,7 +114,7 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
 
 def indicator_params(elem):
     base_name = elem.base_name
-    return (elem.position, elem.length,
+    return (elem.position, elem.length, base_name,
             (elem.angle, elem.k0) if base_name == 'sbend' else
             (elem.k1) if base_name == 'quadrupole' else
             (elem.kick) if base_name.endswith('kicker') else

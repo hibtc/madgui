@@ -198,9 +198,6 @@ class TwissFigure:
         self.element_style = self.config['element_style']
         self.monitors = []
         # scene
-        self.elem_ids = [
-            elem.index for elem in self.model.elements
-            if elem.base_name in self.element_style]
         self.layout_elems = List()
         self.user_tables = List()
         self.curve_info = List()
@@ -384,9 +381,12 @@ class TwissFigure:
         self.scene_graph.node('twiss_curves').invalidate()
         # Redraw changed elements:
         new_elems, new_params = self._layout_elems()
-        for i, (old, new) in enumerate(zip(self.layout_params, new_params)):
-            if old != new:
-                self.layout_elems[i] = new_elems[i]
+        if len(new_elems) == len(self.layout_elems):
+            for i, (old, new) in enumerate(zip(self.layout_params, new_params)):
+                if old != new:
+                    self.layout_elems[i] = new_elems[i]
+        else:
+            self.layout_elems[:] = new_elems
         self.layout_params = new_params
         self.draw_idle()
 
@@ -397,8 +397,10 @@ class TwissFigure:
             self.draw_idle()
 
     def _layout_elems(self):
-        elems = self.model.elements
-        layout_elems = [elems[elem] for elem in self.elem_ids]
+        layout_elems = [
+            elem for elem in self.model.elements
+            if elem.base_name in self.element_style
+        ]
         layout_params = [indicator_params(elem) for elem in layout_elems]
         return layout_elems, layout_params
 

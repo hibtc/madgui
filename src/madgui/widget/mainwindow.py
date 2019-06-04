@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
                      'Execute MAD-X file in current context.',
                      self.execFile),
                 Separator,
-                Item('&Revert sequence', None,
+                Item('&Reverse sequence', None,
                      'Reverse current sequence from back to front '
                      '(experimental). Does not work with all element types.',
                      self.reverseSequence),
