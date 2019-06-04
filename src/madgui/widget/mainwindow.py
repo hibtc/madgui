@@ -461,7 +461,7 @@ class MainWindow(QMainWindow):
             self, "Set number of data points", text,
             value=self.config.interpolate, min=0)
         if ok:
-            self.config.interpolate = number
+            self.session.set_interpolate(number)
 
     def refreshTwiss(self):
         """Redo twiss and redraw plot."""
