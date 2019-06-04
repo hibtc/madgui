@@ -6,6 +6,8 @@ __all__ = [
     'GLWidget',
 ]
 
+import logging
+
 import numpy as np
 from PyQt5.QtCore import Qt, QSize, QTimer, QTime
 from PyQt5.QtWidgets import QOpenGLWidget
@@ -92,12 +94,43 @@ class GLWidget(QOpenGLWidget):
     def initializeGL(self):
         """Called after first creating a valid OpenGL context. Creates shader
         program, sets up camera and creates an initial scene."""
+        logging.info('Initializing OpenGL')
+        self.show_gl_info(GL.GL_VERSION,  '  version:  ')
+        self.show_gl_info(GL.GL_VENDOR,   '  vendor:   ')
+        self.show_gl_info(GL.GL_RENDERER, '  renderer: ')
+        self.show_gl_info(GL.GL_SHADING_LANGUAGE_VERSION, '  shader:   ')
+        logging.info('  context:  {}.{}'.format(*self.gl_context_version()))
+        # We currently require modern OpenGL API for use of shaders etc. We
+        # could ship a fallback implementation based on the deprecated API
+        # (glBegin, etc) to be compatible with older devices, but that's
+        # probably overkill.
+        if not GL.glCreateShader or self.gl_context_version() < (3, 0):
+            logging.error(
+                "Cannot create shader with this version of OpenGL.\n"
+                "This implementation uses the modern OpenGL API (>=3.0).")
+            QTimer.singleShot(0, lambda: self.window().close())
+            return
         self.create_shader_program()
         self.create_scene()
         # Activate wireframe:
         # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
         camera = self.camera
         camera.look_from(camera.theta, camera.phi, camera.psi)
+
+    def gl_context_version(self):
+        """Return version of our OpenGL context as tuple (major, minor)."""
+        return self.context().format().version()
+
+    def show_gl_info(self, spec, text):
+        """Show GL version info."""
+        try:
+            string = GL.glGetString(spec).decode('utf-8')
+        except GL.GLError:
+            string = None
+        if string:
+            logging.info(text + string)
+        else:
+            logging.error(text + 'N/A')
 
     def create_scene(self):
         """Fetch new items from the given callable."""
@@ -109,6 +142,8 @@ class GLWidget(QOpenGLWidget):
     def paintGL(self):
         """Handle paint event by drawing the items returned by the creator
         function."""
+        if self.gl_context_version() < (3, 0):
+            return
         program = self.shader_program
         projection = self.camera.projection(self.width(), self.height())
         set_uniform_matrix(program, "view", self.camera.view_matrix)
