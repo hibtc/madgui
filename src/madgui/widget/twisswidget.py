@@ -453,6 +453,7 @@ class TwissFigure:
         self.monitors = [m.lower() for m in monitors]
         self.scene_graph.node('monitor_readouts').enable(True)
         self.scene_graph.node('monitor_readouts').invalidate()
+        self.draw_idle()
 
     def hide_monitor_readouts(self):
         self.scene_graph.node('monitor_readouts').enable(False)
