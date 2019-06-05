@@ -7,10 +7,12 @@ __all__ = [
 ]
 
 import logging
+from contextlib import contextmanager
 
 import numpy as np
 from PyQt5.QtCore import Qt, QSize, QTimer, QTime
 from PyQt5.QtWidgets import QOpenGLWidget
+from PyQt5.QtGui import QOffscreenSurface, QOpenGLContext, QSurfaceFormat
 
 import OpenGL.GL as GL
 
@@ -50,10 +52,15 @@ class GLWidget(QOpenGLWidget):
         self.resize(800, 600)
         self.camera = Camera()
         self.camera.updated.connect(self.update)
+        surface_format = self.format()
         # Enable multisampling (for antialiasing):
         # (must be set before initializeGL)
-        surface_format = self.format()
         surface_format.setSamples(6)
+        # Technically, we require only 3.0, but we request 3.2 because that
+        # allows enforcing CoreProfile. Note that there is no guarantee that
+        # we get the requested version, but let's at least improve our chances:
+        surface_format.setVersion(3, 2)
+        surface_format.setProfile(QSurfaceFormat.CoreProfile)
         self.setFormat(surface_format)
 
     def free(self):
@@ -99,12 +106,13 @@ class GLWidget(QOpenGLWidget):
         self.show_gl_info(GL.GL_VENDOR,   '  vendor:   ')
         self.show_gl_info(GL.GL_RENDERER, '  renderer: ')
         self.show_gl_info(GL.GL_SHADING_LANGUAGE_VERSION, '  shader:   ')
-        logging.info('  context:  {}.{}'.format(*self.gl_context_version()))
+        logging.info('  context:  {}.{}'.format(
+            *self.context().format().version()))
         # We currently require modern OpenGL API for use of shaders etc. We
         # could ship a fallback implementation based on the deprecated API
         # (glBegin, etc) to be compatible with older devices, but that's
         # probably overkill.
-        if not GL.glCreateShader or self.gl_context_version() < (3, 0):
+        if not check_opengl_context(self.context(), (3, 0)):
             logging.error(
                 "Cannot create shader with this version of OpenGL.\n"
                 "This implementation uses the modern OpenGL API (>=3.0).")
@@ -117,10 +125,6 @@ class GLWidget(QOpenGLWidget):
         camera = self.camera
         camera.look_from(camera.theta, camera.phi, camera.psi)
 
-    def gl_context_version(self):
-        """Return version of our OpenGL context as tuple (major, minor)."""
-        return self.context().format().version()
-
     def show_gl_info(self, spec, text):
         """Show GL version info."""
         try:
@@ -131,6 +135,7 @@ class GLWidget(QOpenGLWidget):
             logging.info(text + string)
         else:
             logging.error(text + 'N/A')
+        return string
 
     def create_scene(self):
         """Fetch new items from the given callable."""
@@ -142,7 +147,7 @@ class GLWidget(QOpenGLWidget):
     def paintGL(self):
         """Handle paint event by drawing the items returned by the creator
         function."""
-        if self.gl_context_version() < (3, 0):
+        if not check_opengl_context(self.context(), (3, 0)):
             return
         program = self.shader_program
         projection = self.camera.projection(self.width(), self.height())
@@ -246,3 +251,44 @@ class GLWidget(QOpenGLWidget):
             direction = direction / np.linalg.norm(direction)
             translate = direction * self.camera_speed * (ms_elapsed/1000)
             self.camera.translate(*translate)
+
+
+@contextmanager
+def offscreen_context(format):
+    """Provide a temporary QOpenGLContext with the given QSurfaceFormat on an
+    QOffscreenSurface."""
+    surface = QOffscreenSurface()
+    surface.create()
+    context = QOpenGLContext()
+    context.setFormat(format)
+    context.create()
+    context.makeCurrent(surface)
+    try:
+        yield context
+    finally:
+        context.doneCurrent()
+
+
+def check_opengl_context(context, version):
+    """Check whether the active OpenGL context suffices our requirements."""
+    # Note that in some cases `context.format().version()` is not updated to
+    # hold the actual OpenGL version, which is why we need additional checks
+    # like the availability of glCreateShader and the glGetString based
+    # version detection:
+    return (
+        context and
+        context.isValid() and
+        context.format().version() >= version and
+        bool(GL.glCreateShader) and
+        gl_version() >= version)
+
+
+def gl_version():
+    """Return active OpenGL version as determined by glGetString."""
+    try:
+        version_string = GL.glGetString(GL.GL_VERSION).decode('utf-8')
+    except GL.GLError:
+        # This fails on control system PCs:
+        version_string = '0.0'
+    major, minor = version_string.split(' ')[0].split('.')[:2]
+    return (int(major), int(minor))
