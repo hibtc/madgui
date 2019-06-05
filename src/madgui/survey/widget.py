@@ -94,8 +94,6 @@ class FloorPlanWidget(QWidget):
         return {}
 
     def closeEvent(self, event):
-        if self.session.user_ns.gl_widget is self.gl_widget:
-            self.session.user_ns.gl_widget = None
         self.gl_widget.free()
         super().closeEvent(event)
 
