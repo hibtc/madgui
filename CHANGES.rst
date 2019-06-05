@@ -1,6 +1,16 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.6.2
+~~~~~~
+Date: 05.06.2019
+
+- fix exception in GLWidget.closeEvent
+- explicitly request OpenGL version to improve chances of getting a 3.0 context
+- request OpenGL 3.2 core profile (disallow deprecated features) to avoid
+  running into backward incompatibilities later on
+
+
 19.6.1
 ~~~~~~
 Date: 05.06.2019
