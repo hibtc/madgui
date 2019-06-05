@@ -128,10 +128,11 @@ class List:
         num_new = len(new_values)
         num_ins = num_new - num_old
         old_len = len(self) - num_ins
-        indices = list(range(old_len))[slice]
+        indices = range(old_len)[slice]
         # TODO: verify correctness...:
         for idx, old, new in zip(indices, old_values, new_values):
-            self.changed.emit(idx, new)
+            if self.emit_changed_if(old, new):
+                self.changed.emit(idx, new)
         if num_old > num_new:
             for idx in indices[num_new:][::-1]:
                 self.removed.emit(idx)
@@ -139,6 +140,12 @@ class List:
             start = (slice.start or 0) + num_old
             for idx, val in enumerate(new_values[num_old:]):
                 self.inserted.emit(start+idx, val)
+
+    def emit_changed_if(self, old, new):
+        """Decide when self.changed should be emitted upon assigning a new
+        value into an existing index. Can be overridden by the user to change
+        our behaviour."""
+        return True
 
     # Sized
 
@@ -173,7 +180,7 @@ class List:
 
     def __setitem__(self, index, value):
         if isinstance(index, slice):
-            value = list(value)
+            value = tuple(value)
         else:
             index = slice(index, index+1)
             value = (value,)

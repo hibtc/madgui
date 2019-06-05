@@ -199,6 +199,7 @@ class TwissFigure:
         self.monitors = []
         # scene
         self.layout_elems = List()
+        self.layout_elems.emit_changed_if = lambda old, new: old != new
         self.user_tables = List()
         self.curve_info = List()
         self.hovered_elements = List()
@@ -289,7 +290,7 @@ class TwissFigure:
         self.scene_graph.on_clear_figure()
         self.scene_graph.enable(False)
         self.curve_info[:] = self.graph_info.curves
-        self.layout_elems[:], self.layout_params = self._layout_elems()
+        self.layout_elems[:] = self._layout_elems()
         num_curves = len(self.curve_info)
         if num_curves == 0:
             return
@@ -380,14 +381,7 @@ class TwissFigure:
         """Update existing plot after TWISS recomputation."""
         self.scene_graph.node('twiss_curves').invalidate()
         # Redraw changed elements:
-        new_elems, new_params = self._layout_elems()
-        if len(new_elems) == len(self.layout_elems):
-            for i, (old, new) in enumerate(zip(self.layout_params, new_params)):
-                if old != new:
-                    self.layout_elems[i] = new_elems[i]
-        else:
-            self.layout_elems[:] = new_elems
-        self.layout_params = new_params
+        self.layout_elems[:] = self._layout_elems()
         self.draw_idle()
 
     def on_readouts_updated(self, *_):
@@ -397,12 +391,11 @@ class TwissFigure:
             self.draw_idle()
 
     def _layout_elems(self):
-        layout_elems = [
-            elem for elem in self.model.elements
+        return [
+            indicator_params(elem)
+            for elem in self.model.elements
             if elem.base_name in self.element_style
         ]
-        layout_params = [indicator_params(elem) for elem in layout_elems]
-        return layout_elems, layout_params
 
     def get_curve_by_name(self, name):
         return next((c for c in self.curve_info if c.name == name), None)

@@ -17,6 +17,7 @@ __all__ = [
 
 import math
 import logging
+from types import SimpleNamespace
 
 from madgui.util.yaml import load_resource
 
@@ -113,12 +114,23 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
 
 
 def indicator_params(elem):
+    """Return the parameters used by ``plot_element_indicator``. This is
+    useful for caching a reduced set of parameters that is faster to compare
+    for changes."""
     base_name = elem.base_name
-    return (elem.position, elem.length, base_name,
-            (elem.angle, elem.k0) if base_name == 'sbend' else
-            (elem.k1) if base_name == 'quadrupole' else
-            (elem.kick) if base_name.endswith('kicker') else
-            None)
+    ns = SimpleNamespace(
+        position=elem.position,
+        length=elem.length,
+        base_name=elem.base_name)
+    if base_name == 'sbend':
+        ns.angle = elem.angle
+        ns.k0 = elem.k0
+        ns.kick = elem.kick
+    elif base_name == 'quadrupole':
+        ns.k1 = elem.k1
+    elif base_name.endswith('kicker'):
+        ns.kick = elem.kick
+    return ns
 
 
 def plot_constraint(ax, scene, constraint):
