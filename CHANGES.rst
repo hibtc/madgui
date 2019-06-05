@@ -1,6 +1,18 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.6.1
+~~~~~~
+Date: 05.06.2019
+
+- fix menuitem "Interpolation points" not updating the plot
+- fix monitor indicators not being updated after de-/selecting monitors
+- fix 3D survey widget by adding missing shaders to the installation
+- log OpenGL version and show a nicer error message for incompatible version
+- fix incorrect display of element indicators after sequence reversal
+- cpymad 1.2.1 fixes deadlock that occurs when clicking "About MAD-X" menuitem
+  in application context without stdin (e.g. windows GUI)
+
 19.6.0
 ~~~~~~
 Date: 02.06.2019
