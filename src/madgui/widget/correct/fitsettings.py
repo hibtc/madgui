@@ -13,6 +13,16 @@ class FitSettingsWidget(QWidget):
     def set_corrector(self, corrector):
         self.corrector = corrector
         self.corrector.setup_changed.connect(self.on_setup_changed)
+        self.update_strategy(corrector.strategy())
+
+    def update_strategy(self, strategy):
+        buttons = {
+            'match': self.methodMatchButton,
+            'orm': self.methodORMButton,
+            'tm': self.methodSectormapButton,
+        }
+        if not buttons[strategy].isChecked():
+            buttons[strategy].setChecked(True)
 
     # button events
 

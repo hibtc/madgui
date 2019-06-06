@@ -72,7 +72,7 @@ class Corrector(Matcher):
         self.objective_values = {}
         self._offsets = session.config['online_control']['offsets']
         self.optics = List()
-        self.strategy = Boxed('match')
+        self.strategy = Boxed('orm')
         self.saved_optics = History()
         self.online_optic = {}
         # for ORM
