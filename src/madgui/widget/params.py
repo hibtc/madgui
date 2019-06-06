@@ -327,12 +327,13 @@ class TabParamTables(QTabWidget):
     TabWidget that manages multiple ParamTables inside.
     """
 
-    def __init__(self, tabWidget=()):
+    def __init__(self, tabs=()):
         super().__init__()
         self.kw = {}
         self.setTabsClosable(False)
-        for name, page in tabWidget:
+        for index, (name, description, page) in enumerate(tabs):
             self.addTab(page, name)
+            self.setTabToolTip(index, description)
         self.currentChanged.connect(self.update)
 
     def update(self):
@@ -351,12 +352,14 @@ def model_params_dialog(model, parent=None, folder='.'):
     from madgui.widget.dialog import Dialog
 
     widget = TabParamTables([
-        ('Twiss', ParamTable(model.fetch_twiss, model.update_twiss_args,
-                             data_key='twiss')),
-        ('Beam', ParamTable(model.fetch_beam, model.update_beam,
-                            data_key='beam')),
-        ('Globals', GlobalsEdit(model, data_key='globals')),
-        ('Ellipse', EllipseWidget(model)),
+        ('Twiss', 'Initial TWISS parameters and beam coordinates',
+         ParamTable(model.fetch_twiss, model.update_twiss_args, data_key='twiss')),
+        ('Beam', 'Beam particle type and further parameters to BEAM command',
+         ParamTable(model.fetch_beam, model.update_beam, data_key='beam')),
+        ('Globals', 'Global variables and ACS parameters',
+         GlobalsEdit(model, data_key='globals')),
+        ('Ellipse', 'Initial beam ellipse',
+         EllipseWidget(model)),
     ])
     widget.update()
     # NOTE: Ideally, we'd like to update after changing initial conditions

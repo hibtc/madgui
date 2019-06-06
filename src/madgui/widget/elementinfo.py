@@ -37,16 +37,19 @@ class ElementInfoBox(QWidget):
         self.summary = summary
 
         self.notebook = TabParamTables([
-            ('Summary', ParamTable(self._fetch_summary, self._update_element,
-                                   model=model)),
-            ('Params', CommandEdit(self._fetch_cmdpar, self._update_element,
-                                   model=model)),
-            ('Twiss', ParamTable(self._fetch_twiss)),
-            ('Sigma', MatrixTable(self._fetch_sigma, shape=(6, 6),
-                                  get_name=sigmat_title)),
-            ('Ellipse', EllipseWidget(model)),
-            ('Sector', MatrixTable(self._fetch_sector, shape=(6, 7),
-                                   get_name=secmap_title, units=False)),
+            ('Summary', 'Summary of most important parameters',
+             ParamTable(self._fetch_summary, self._update_element, model=model)),
+            ('Params', 'Complete list of all MAD-X element attributes',
+             CommandEdit(self._fetch_cmdpar, self._update_element, model=model)),
+            ('Twiss', 'Computed TWISS parameters at the element exit end',
+             ParamTable(self._fetch_twiss)),
+            ('Sigma', 'Beam SIGMA matrix at the element exit end',
+             MatrixTable(self._fetch_sigma, shape=(6, 6), get_name=sigmat_title)),
+            ('Ellipse', 'Beam ellipses at the element exit end',
+             EllipseWidget(model)),
+            ('Sector', 'Transfermap of the element',
+             MatrixTable(self._fetch_sector, shape=(6, 7), get_name=secmap_title,
+                         units=False)),
         ])
 
         # navigation
