@@ -1,6 +1,14 @@
 CHANGELOG
 ~~~~~~~~~
 
+19.6.3
+~~~~~~
+Date: 06.06.2019
+
+- use the ORM orbit correction method by default
+- add tooltips for the elementinfo tabs
+
+
 19.6.2
 ~~~~~~
 Date: 05.06.2019
