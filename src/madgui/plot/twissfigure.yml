@@ -13,6 +13,8 @@ element_style:
                  linestyle: dashed, linewidth: 1}
   vmonitor:     {color: "#00bb00", ymin: 0.0, ymax: 1.0,
                  linestyle: dashed, linewidth: 1}
+  srotation:    {color: "#000000", ymin: 0.0, ymax: 1.0,
+                 linestyle: solid, linewidth: 1, alpha: 1}
 
 # Style for the constraint markers. Can contain any keyword arguments to
 # ``matplotlib.axes.Axes.plot()``:
