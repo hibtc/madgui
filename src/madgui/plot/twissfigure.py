@@ -44,10 +44,11 @@ def plot_curve(axes, data, x_name, y_name, style, label=None):
 
 
 def plot_element_indicators(ax, elements, elem_styles=ELEM_STYLES,
-                            default_style=None, effects=None):
+                            default_style=None, effects=None, **defaults):
     """Plot element indicators, i.e. create lattice layout plot."""
     return LineBundle([
-        plot_element_indicator(ax, elem, elem_styles, default_style, effects)
+        plot_element_indicator(
+            ax, elem, elem_styles, default_style, effects, **defaults)
         for elem in elements
     ])
 
