@@ -92,8 +92,8 @@ def plot_element_indicator(ax, elem, elem_styles=ELEM_STYLES,
         # should be used (against my recommendations, and even though that
         # means you can never have a kick that exactlycounteracts the
         # bending angle):
-        if elem.k0 != 0:
-            style = dict(elem_styles.get('hkicker'),
+        if elem.k0 != 0 and 'hkicker' in elem_styles:
+            style = dict(elem_styles['hkicker'],
                          ymin=style['ymin'], ymax=style['ymax'])
             styles.append((style, elem.position+elem.length/2, 0))
             type_name = 'hkicker'
