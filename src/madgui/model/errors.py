@@ -141,6 +141,10 @@ class BaseError:
         else:
             return value + step
 
+    def is_defined_for(self, model):
+        """Check whether this error is relevant for the given model."""
+        return True
+
 
 class Param(BaseError):
 
@@ -151,6 +155,9 @@ class Param(BaseError):
 
     def set(self, model, value):
         model.globals[self.name] = value
+
+    def is_defined_for(self, model):
+        return self.name in model.globals
 
 
 class Ealign(BaseError):
@@ -173,6 +180,10 @@ class Ealign(BaseError):
 
     def tinker(self, value, step):
         return -value
+
+    def is_defined_for(self, model):
+        elem = self.select.get('range')
+        return elem and elem in model.elements
 
 
 class Efcomp(BaseError):
@@ -203,6 +214,10 @@ class Efcomp(BaseError):
     def tinker(self, value, step):
         return -value
 
+    def is_defined_for(self, model):
+        elem = self.select.get('range')
+        return elem and elem in model.elements
+
 
 class ElemAttr(BaseError):
 
@@ -218,6 +233,9 @@ class ElemAttr(BaseError):
 
     def set(self, model, value):
         model.elements[self.elem][self.attr] = value
+
+    def is_defined_for(self, model):
+        return self.elem in model.elements
 
 
 class InitTwiss(BaseError):
