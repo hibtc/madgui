@@ -765,7 +765,10 @@ class ElementList(ExpandedElementList):
                     return 0
                 elif name == '#e':
                     return len(self) - 1
-            return self._indices[key.lower()]
+            try:
+                return self._indices[key.lower()]
+            except KeyError as e:
+                raise ValueError(key) from e
         elif hasattr(key, 'index'):
             return key.index
         raise TypeError(
