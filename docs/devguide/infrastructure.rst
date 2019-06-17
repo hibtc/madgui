@@ -11,6 +11,66 @@ the following is done with all supported python versions:
 - update and upload documentation, if on master
 - upload new releases, if a tag was pushed
 
+.. graphviz::
+    :align: center
+
+    digraph {
+        rankdir=LR;
+        node [
+            shape=rectangle,
+            fontsize=10,
+            style=rounded,
+        ];
+        edge [
+            fontsize=10
+        ];
+
+        // action nodes:
+        {
+            node [
+                shape=diamond,
+                width=0.7,
+                height=0.5,
+                fontsize=9,
+                fixedsize=true,
+                fillcolor="#eeeeee",
+                style=filled,
+            ];
+            build; test; upload;
+        }
+
+        User -> github [label="push"];
+        github -> ci [label="notify"];
+        ci -> github [label="pull"; style=dashed, color=gray, constraint=false];
+
+        ci -> build -> test;
+
+        test -> coveralls [label="report"];
+
+        test -> upload [
+            headlabel="tags   on success",
+            labeldistance=3.0,
+            labelangle=-40,
+        ];
+
+        upload -> pypi [label="release"];
+        upload -> github2 [
+            headlabel="doc",
+            labeldistance=6,
+            labelangle=10,
+            constraint=false,
+        ];
+
+        {rank = same; github2; pypi;}
+
+        {rank = same; ci; build; test; upload;}
+
+        ci [label = "CI"];
+        pypi [label = "PyPI"];
+        github2 [label = "github"];
+    }
+
+
 The following platforms are used:
 
 - `Travis CI`_: executes `linux tests`_ and builds documentation
