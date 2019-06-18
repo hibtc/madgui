@@ -107,14 +107,19 @@ In order to create a new version the following should be done:
             notify;
             notify2;
 
-            label="Github";
-            color=gray;
-
             {
                 node [shape=none, label=""];
                 G0;
                 G9;
             }
+
+            {
+                node [shape=point, label="", height=0, width=0];
+                G5;
+            }
+
+            label="Github";
+            color=gray;
         };
 
         subgraph cluster_2 {
@@ -138,7 +143,12 @@ In order to create a new version the following should be done:
 
             {
                 node [shape=none, label=""];
-                V0;
+                C0;
+            }
+
+            {
+                node [shape=point, label="", height=0, width=0];
+                C5;
             }
 
             label="CI";
@@ -175,14 +185,17 @@ In order to create a new version the following should be done:
 
         W8 -> build2 [constraint=false];
 
-        // wait -> W5 [constraint=false, style=dashed];
+        // For some reason, we need C5/G5 as intermediate nodes to avoid an
+        // error in graphviz (triangulation failed):
+        W5 -> C5 -> G5 [constraint=false, dir=none];
+        G5 -> wait [constraint=false];
 
-        {rank = same; l0; madgui; G0; V0; W0;}
+        {rank = same; l0; madgui; G0; C0; W0;}
         {rank = same; l1; tag;}
         {rank = same; l2; push; notify; build;}
         {rank = same; l3; test;}
         {rank = same; l4; upload; pypi;}
-        {rank = same; l5; wait; W5;}
+        {rank = same; l5; wait; G5; C5; W5;}
 
         {rank = same; l6; installer;}
         {rank = same; l7; tag2;}
