@@ -26,6 +26,11 @@ script:
   - flake8
   - pytest tests
 
+addons:
+  apt:
+    packages:
+      - graphviz
+
 jobs:
   include:
     - stage: deploy
