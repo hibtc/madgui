@@ -152,8 +152,13 @@ In order to create a new version the following should be done:
             }
 
             {
+                node [shape=none, label=""];
+                W0;
+            }
+
+            {
                 node [shape=point, label="", height=0, width=0];
-                W0; W5; W8;
+                W5; W8;
             }
 
             pypi -> W5 -> W8 [arrowhead=none];
