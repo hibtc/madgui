@@ -3,6 +3,47 @@ Related projects
 
 This is a short overview over the components involved in madgui development:
 
+.. graphviz::
+    :align: center
+
+    digraph {
+        node [fontsize=11];
+
+        subgraph cluster_0 {
+            madgui -> pyqt;
+            madgui -> hit_acs;
+            madgui -> cpymad;
+
+            madgui [label = "madgui"];
+            pyqt [label = "PyQt5"];
+            hit_acs [label = "hit_acs"];
+            cpymad [label = "cpymad"];
+
+            { rank = same; pyqt; hit_acs; cpymad; }
+
+            label="python";
+            fontsize=10;
+            fontcolor=gray;
+            color=gray;
+        }
+
+        madgui -> hit_models;
+        hit_models [label = "hit_models"];
+
+        hit_acs -> beam;
+        cpymad -> madx;
+        pyqt -> user;
+
+        { rank = same; madx; beam; }
+
+        // hit_models -> cpymad [style=dashed, color=gray];
+        hit_models -> madx [style=dashed, color=gray, constraint=false];
+
+        madx [shape=rectangle, label="MAD-X"];
+        beam [shape=rectangle, label="BeamOptikDLL"];
+        user [shape=rectangle, label="User"];
+    }
+
 - madgui_: main application repository that contains GUI code and orchestrates
   the interaction between different parts
 - cpymad_: python binding for MAD-X_. It allows to start, access and control

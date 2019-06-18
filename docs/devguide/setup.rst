@@ -3,7 +3,9 @@
 Development setup for madgui
 ============================
 
-This section describes how to setup a development environment for madgui.
+This section describes how to setup a development environment for madgui. This
+section is relevant only for those who are planning to modify the madgui
+source code or check out an unreleased version from github.
 
 If you are behind a firewall or proxy like at HIT, please take a look at the
 proxy-settings_ documentation first and then come back here.
@@ -14,15 +16,17 @@ proxy-settings_ documentation first and then come back here.
 Environment
 ~~~~~~~~~~~
 
-Whenever developing python software like madgui, it is best to run each
-application in a separate environment. This prevents version conflicts between
-the package dependencies of each application and makes it clearer which
-package depends on which packages.
+When developing a python application or package, it is best to have a separate
+environment in which the application is installed. This prevents version
+conflicts with other applications and makes it clearer what dependencies the
+program has.
 
 If you already have experience with venvs or virtualenvs and
 virtualenvwrapper, you can use these. **Otherwise,** I highly recommend using
-either Miniconda_ or Anaconda_. Personally, I use miniconda on windows. In the
-following we give a quick introduction on how to work with conda environments.
+either Miniconda_ or Anaconda_. Personally, I use miniconda on windows.
+
+**conda:** In the following we give a quick introduction on how to work with
+conda environments.
 
 .. _Miniconda: https://docs.conda.io/en/latest/miniconda.html
 .. _Anaconda: https://www.anaconda.com/distribution/#download-section

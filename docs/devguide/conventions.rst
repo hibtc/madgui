@@ -33,9 +33,13 @@ often. It is best to configure your text editor to take care of the following:
 - unix line endings
 - no more than 80 columns line length (reading becomes hard at about 60)
 
-These rules are designed to avoid ambiguity and some of the number one reasons
-to add noise in commit diffs due to incidental whitespace changes that have
-nothing to do with what the commit is actually trying to do.
+These rules are designed to **avoid ambiguity** and some of the most common
+reasons to add noise in commit diffs due to incidental whitespace changes that
+have nothing to do with what the commit is actually trying to do.
+
+    In the face of ambiguity, refuse the temptation to guess.
+
+    There should be one-- and preferably only one --obvious way to do it.
 
 
 **Naming:**
