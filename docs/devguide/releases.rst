@@ -36,20 +36,16 @@ In order to create a new version the following should be done:
 
         // fake levels for structuring:
         subgraph {
-            node [shape=none, fontcolor=gray, label=""];
+            node [
+                shape=none,
+                fontcolor=gray,
+                label="",
+                height=0,
+                width=0,
+                fixedsize=true
+            ];
             edge [color=none];
             l0 -> l1 -> l2 -> l3 -> l4 -> l5 -> l6 -> l7 -> l8 -> l9 -> l10;
-            // l0 [label="0"];
-            // l1 [label="1"];
-            // l2 [label="2"];
-            // l3 [label="3"];
-            // l4 [label="4"];
-            // l5 [label="5"];
-            // l6 [label="6"];
-            // l7 [label="7"];
-            // l8 [label="8"];
-            // l9 [label="9"];
-            // l10 [label="10"];
             label="";
             color=none;
         }
