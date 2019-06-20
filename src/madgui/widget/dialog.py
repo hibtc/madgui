@@ -113,9 +113,14 @@ class Dialog(QDialog):
         self.setSizeGripEnabled(True)
         self.finished.connect(self.close)
         self.event_filter = owner and notifyEvent(owner, 'Close', self.close)
+        if owner:
+            self.setFontSize(owner.font().pointSize())
         if widget is not None:
             self.setWidget(widget, VBoxLayout([widget], tight=tight))
             self.show()
+
+    def setFontSize(self, pointsize):
+        self.setStyleSheet("font-size:{}pt;".format(pointsize))
 
     def setWidget(self, widget, layout):
         if widget.windowTitle():
