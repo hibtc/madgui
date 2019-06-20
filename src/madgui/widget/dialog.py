@@ -120,6 +120,8 @@ class Dialog(QDialog):
             self.show()
 
     def setFontSize(self, pointsize):
+        # Note that setStyleSheet is used because it propagates the change to
+        # subwidgets better than setFont.
         self.setStyleSheet("font-size:{}pt;".format(pointsize))
 
     def setWidget(self, widget, layout):
