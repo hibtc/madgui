@@ -61,9 +61,13 @@ class Control:
         mod = import_module(modname)
         cls = getattr(mod, clsname)
         self.backend = cls(self.session, self._settings)
-        self.backend.connect()
+        try:
+            self.backend.connect()
+        except:
+            logging.error('No connection to backend was possible')
         self.session.user_ns.acs = self.backend
         self.is_connected.set(True)
+        self.session.load_model(self.backend.vAcc_to_model())
         self.model.changed.connect(self._on_model_changed)
         self._on_model_changed()
 
