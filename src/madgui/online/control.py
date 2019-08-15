@@ -67,9 +67,19 @@ class Control:
             logging.error('No connection to backend was possible')
         self.session.user_ns.acs = self.backend
         self.is_connected.set(True)
-        self.session.load_model(self.backend.vAcc_to_model())
+        
+        sequence = self.model().model_data()['sequence']
+        same_model = sequence in self.backend.vAcc_to_model()
+        if (not same_model): self._auto_load_model()
+
         self.model.changed.connect(self._on_model_changed)
         self._on_model_changed()
+
+    def _auto_load_model(self):
+        # TODO: Implement dialog window that asks the user
+        # if the model should be loaded
+        logging.info('Changing model since it doesnt matches the vAcc')
+        self.session.load_model(self.backend.vAcc_to_model())
 
     def disconnect(self):
         self._settings = self.export_settings()
