@@ -70,15 +70,16 @@ class Control:
         
         sequence = self.model().model_data()['sequence']
         same_model = sequence in self.backend.vAcc_to_model()
-        if (not same_model): self._auto_load_model()
+        if (not same_model): self.auto_load_model()
 
         self.model.changed.connect(self._on_model_changed)
         self._on_model_changed()
 
-    def _auto_load_model(self):
+    def auto_load_model(self):
         # TODO: Implement dialog window that asks the user
         # if the model should be loaded
-        logging.info('Changing model since it doesnt matches the vAcc')
+        from madgui.online.dialogs import ShowAutoLoadAlertButton
+        ShowAutoLoadAlertButton()
         self.session.load_model(self.backend.vAcc_to_model())
 
     def disconnect(self):
