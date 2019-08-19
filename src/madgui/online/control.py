@@ -67,10 +67,10 @@ class Control:
             self.session.user_ns.acs = self.backend
             sequence = self.model().model_data()['sequence']
             same_model = sequence in self.backend.vAcc_to_model()
-            if (not same_model): self.auto_load_model()
+            if(not same_model): self.auto_load_model()
             self.model.changed.connect(self._on_model_changed)
             self._on_model_changed()
-        except:
+        except RuntimeError:
             logging.error('No connection to backend was possible')
             logging.error('Try to connect again')
             # Implemented since there has been reports of madgui
