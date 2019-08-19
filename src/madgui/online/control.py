@@ -65,6 +65,7 @@ class Control:
             self.backend.connect()
         except:
             logging.error('No connection to backend was possible')
+            logging.error('Try to connect again')
         self.session.user_ns.acs = self.backend
         self.is_connected.set(True)
         
