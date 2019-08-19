@@ -61,11 +61,29 @@ class Control:
         mod = import_module(modname)
         cls = getattr(mod, clsname)
         self.backend = cls(self.session, self._settings)
-        self.backend.connect()
-        self.session.user_ns.acs = self.backend
-        self.is_connected.set(True)
-        self.model.changed.connect(self._on_model_changed)
-        self._on_model_changed()
+        try:
+            self.backend.connect()
+            self.is_connected.set(True)
+            self.session.user_ns.acs = self.backend
+            sequence = self.model().model_data()['sequence']
+            same_model = sequence in self.backend.vAcc_to_model()
+            if(not same_model):
+                self.auto_load_model()
+            self.model.changed.connect(self._on_model_changed)
+            self._on_model_changed()
+        except RuntimeError:
+            logging.error('No connection to backend was possible')
+            logging.error('Try to connect again')
+            # Implemented since there has been reports of madgui
+            # crashing after connecting and disconnecting from
+            # beamOptikDLL. Should we try here to disconnect again
+            # and implement a loop to try multiple times to connect?
+            self.is_connected.set(False)
+
+    def auto_load_model(self):
+        from madgui.online.dialogs import ShowAutoLoadAlertButton
+        ShowAutoLoadAlertButton()
+        self.session.load_model(self.backend.vAcc_to_model())
 
     def disconnect(self):
         self._settings = self.export_settings()

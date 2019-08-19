@@ -11,7 +11,7 @@ __all__ = [
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QLabel, QWidget
+from PyQt5.QtWidgets import QLabel, QWidget, QMessageBox
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
@@ -92,3 +92,14 @@ def ExportParamWidget():
     return SyncParamWidget(
         'Set values in ACS from current sequence',
         'Overwrite selected ACS parameters.', 'mad')
+
+
+def ShowAlertButton(message=''):
+    alert = QMessageBox()
+    alert.setText(message)
+    alert.exec_()
+
+
+def ShowAutoLoadAlertButton():
+    m = 'Model will be auto loaded to fit the actual vAcc'
+    ShowAlertButton(m)
