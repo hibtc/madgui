@@ -98,7 +98,7 @@ def ShowAlertButton(message=''):
     alert = QMessageBox()
     alert.setText(message)
     alert.exec_()
-    
+
 
 def ShowAutoLoadAlertButton():
     m = 'Model will be auto loaded to fit the actual vAcc'
