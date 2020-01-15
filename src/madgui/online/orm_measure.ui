@@ -113,7 +113,7 @@
      <item row="2" column="0">
       <widget class="QLabel">
        <property name="text">
-        <string>Default step:</string>
+        <string>Default step [rad]:</string>
        </property>
       </widget>
      </item>
@@ -123,7 +123,7 @@
         <number>5</number>
        </property>
        <property name="singleStep">
-        <double>0.000100000000000</double>
+        <double>0.0001</double>
        </property>
        <property name="minimum">
         <number>-1000</number>
