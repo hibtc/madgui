@@ -1,3 +1,4 @@
+
 """
 Plugin that integrates a beamoptikdll UI into MadGUI.
 """
@@ -20,7 +21,6 @@ from madgui.util.qt import SingleWindow
 from madgui.util.collections import Bool, List
 
 # TODO: catch exceptions and display error messages
-# TODO: automate loading ACS parameters via model and/or named hook
 
 
 class Control:
@@ -66,9 +66,6 @@ class Control:
             self.is_connected.set(True)
             self.session.user_ns.acs = self.backend
             sequence = self.model().model_data()['sequence']
-            same_model = sequence in self.backend.vAcc_to_model()
-            if(not same_model):
-                self.auto_load_model()
             self.model.changed.connect(self._on_model_changed)
             self._on_model_changed()
         except RuntimeError:
@@ -78,7 +75,7 @@ class Control:
             # crashing after connecting and disconnecting from
             # beamOptikDLL. Should we try here to disconnect again
             # and implement a loop to try multiple times to connect?
-            self.is_connected.set(False)
+            self.disconnect()
 
     def auto_load_model(self):
         from madgui.online.dialogs import ShowAutoLoadAlertButton
