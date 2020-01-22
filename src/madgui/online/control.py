@@ -65,7 +65,6 @@ class Control:
             self.backend.connect()
             self.is_connected.set(True)
             self.session.user_ns.acs = self.backend
-            sequence = self.model().model_data()['sequence']
             self.model.changed.connect(self._on_model_changed)
             self._on_model_changed()
         except RuntimeError:
@@ -76,11 +75,6 @@ class Control:
             # beamOptikDLL. Should we try here to disconnect again
             # and implement a loop to try multiple times to connect?
             self.disconnect()
-
-    def auto_load_model(self):
-        from madgui.online.dialogs import ShowAutoLoadAlertButton
-        ShowAutoLoadAlertButton()
-        self.session.load_model(self.backend.vAcc_to_model())
 
     def disconnect(self):
         self._settings = self.export_settings()
@@ -141,11 +135,19 @@ class Control:
         widget.data_key = 'acs_parameters'
         dialog = Dialog(self.session.window())
         dialog.setExportWidget(widget, self.session.folder)
+        dialog.serious.addCustomButton('Sync Model', self.onSyncModel)
         dialog.serious.updateButtons()
         dialog.accepted.connect(apply)
         dialog.show()
         return dialog
 
+    def onSyncModel(self):
+        if self.backend.hasChangedvAcc():
+            self.session.load_model(self.backend.vAcc_to_model())
+            self._on_model_changed()
+        else:
+            logging.warning('vAcc has not changed.')
+            
     def read_all(self, knobs=None):
         live = self.backend
         self.model().write_params([
