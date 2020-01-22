@@ -92,14 +92,3 @@ def ExportParamWidget():
     return SyncParamWidget(
         'Set values in ACS from current sequence',
         'Overwrite selected ACS parameters.', 'mad')
-
-
-def ShowAlertButton(message=''):
-    alert = QMessageBox()
-    alert.setText(message)
-    alert.exec_()
-
-
-def ShowAutoLoadAlertButton():
-    m = 'Model will be auto loaded to fit the actual vAcc'
-    ShowAlertButton(m)
