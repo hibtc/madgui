@@ -1,6 +1,14 @@
 CHANGELOG
 ~~~~~~~~~
 
+20.1.0
+~~~~~~
+Date: 25.01.2020
+
+- revisit auto load model feature
+- auto loading was subtituted by a button in the read strengths dialog
+- updating pyqtconsole dependency to 1.1.5
+
 19.8.0
 ~~~~~~
 Date: 19.08.2019
