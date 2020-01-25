@@ -43,7 +43,7 @@ class MeasureWidget(QWidget):
         self.connect_signals()
 
     def sizeHint(self):
-        return QSize(600, 400)
+        return QSize(600, 600)
 
     def init_controls(self):
         self.opticsTable.set_viewmodel(self.get_corrector_row)
@@ -74,7 +74,7 @@ class MeasureWidget(QWidget):
             TableItem(m),
         ]
 
-    def get_corrector_row(self, i, c) -> ("Param", "Δ"):
+    def get_corrector_row(self, i, c) -> ("Param", "Δ [rad]"):
         default = self.defaultSpinBox.value() or None
         return [
             TableItem(c.name),
