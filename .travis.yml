@@ -40,7 +40,7 @@ jobs:
       deploy:
         - provider: pages
           local-dir: docs/_build/html
-          skip-cleanup: true
+          cleanup: true
           github-token: $GITHUB_TOKEN
           on:
             branch: master
