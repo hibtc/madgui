@@ -95,6 +95,7 @@ class SerializeButtons(QDialogButtonBox):
         custom = self.addButton(buttonTag, Button.ActionRole)
         custom.clicked.connect(apply)
 
+
 class Dialog(QDialog):
 
     """

@@ -146,17 +146,17 @@ class Control:
         def __init__(self, parent, widget):
             self.parent = parent
             self.widget = widget
-            
+
         def __call__(self):
             self.onSyncModel()
-            
+
         def onSyncModel(self):
             model = self.parent.backend.vAcc_to_model()
             self.parent.session.load_model(model)
             self.parent._on_model_changed()
             self.parent.on_read_all()
             self.widget.close()
-            
+
     def read_all(self, knobs=None):
         live = self.backend
         self.model().write_params([
