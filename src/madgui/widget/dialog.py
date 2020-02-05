@@ -47,7 +47,6 @@ class SerializeButtons(QDialogButtonBox):
         self.addButton(Button.Open).clicked.connect(self.onImport)
         self.addButton(Button.Save).clicked.connect(self.onExport)
         self.addButton(Button.Ok).clicked.connect(self.onAccept)
-        self.addCustomButton('Refresh', self.onRefresh)
         self.button(Button.Open).setAutoDefault(False)
         self.button(Button.Save).setAutoDefault(False)
         self.button(Button.Ok).setDefault(True)
@@ -87,9 +86,6 @@ class SerializeButtons(QDialogButtonBox):
     def onAccept(self):
         self.window().accept()
 
-    def onRefresh(self):
-        self.widget.update()
-
     def addCustomButton(self, buttonTag, apply):
         """
         Add a custom button
@@ -98,6 +94,7 @@ class SerializeButtons(QDialogButtonBox):
         """
         custom = self.addButton(buttonTag, Button.ActionRole)
         custom.clicked.connect(apply)
+
 
 class Dialog(QDialog):
 

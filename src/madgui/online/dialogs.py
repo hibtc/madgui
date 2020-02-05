@@ -11,7 +11,7 @@ __all__ = [
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QLabel, QWidget, QMessageBox
+from PyQt5.QtWidgets import QLabel, QWidget
 
 from madgui.util.unit import change_unit, get_raw_label
 from madgui.util.layout import VBoxLayout
