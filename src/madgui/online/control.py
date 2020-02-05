@@ -135,18 +135,15 @@ class Control:
         widget.data_key = 'acs_parameters'
         dialog = Dialog(self.session.window())
         dialog.setExportWidget(widget, self.session.folder)
-        dialog.serious.addCustomButton('Sync Model', self.onSyncModel)
+        dialog.serious.addCustomButton('Sync Model', self.on_sync_model)
         dialog.serious.updateButtons()
         dialog.accepted.connect(apply)
         dialog.show()
         return dialog
 
-    def onSyncModel(self):
-        if self.backend.hasChangedvAcc():
-            self.session.load_model(self.backend.vAcc_to_model())
-            self._on_model_changed()
-        else:
-            logging.warning('vAcc has not changed.')
+    def on_sync_model(self):
+        self.session.load_model(self.backend.vAcc_to_model())
+        self._on_model_changed()
             
     def read_all(self, knobs=None):
         live = self.backend
