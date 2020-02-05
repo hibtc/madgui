@@ -354,11 +354,14 @@ class MainWindow(QMainWindow):
         ], self.model().update_globals, data_key='globals')
 
     def loadBeam(self):
-        self._import("Import beam parameters", [
-            ("YAML files", "*.yml", "*.yaml"),
-            ("All files", "*"),
-        ], self.model().update_beam, data_key='beam')
-
+        try:
+            self._import("Import beam parameters", [
+                ("YAML files", "*.yml", "*.yaml"),
+                ("All files", "*"),
+            ], self.model().update_beam, data_key='beam')
+        except:
+            logging.warning('Could not load beam file. Please check input file.')
+            
     def loadTwiss(self):
         self._import("Import initial twiss parameters", [
             ("YAML files", "*.yml", "*.yaml"),
