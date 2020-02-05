@@ -359,7 +359,7 @@ class MainWindow(QMainWindow):
                 ("YAML files", "*.yml", "*.yaml"),
                 ("All files", "*"),
             ], self.model().update_beam, data_key='beam')
-        except RuntimeError: 
+        except KeyError: 
             logging.warning('Could not load beam file. Please check input file.')
 
     def loadTwiss(self):
