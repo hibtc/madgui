@@ -4,6 +4,7 @@ priority
 - extend documentation
 - write report on problems with gantry model
 - generate import dependency graph
+- update and check dependencies
 
 
 madgui
