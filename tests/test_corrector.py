@@ -34,7 +34,7 @@ def session(app):
 
 
 def test_simple_procedure(session):
-    session.load_model('hit_models/hht3')
+    session.load_model('sample_model/sample')
     session.control.set_backend('hit_acs.plugin:TestACS')
     session.control.connect()
 
@@ -44,21 +44,20 @@ def test_simple_procedure(session):
 
 @pytest.fixture
 def corrector(session):
-    session.load_model('hit_models/hht3')
+    session.load_model('sample_model/sample')
     session.control.set_backend('hit_acs.plugin:TestACS')
     session.control.connect()
     corrector = Corrector(session)
     corrector.setup({
         'monitors': [
-            't3dg2g',
-            't3dg1g',
-            't3df1',
+            'monitor1',
+            'monitor2',
         ],
         'optics':   [
-            'ax_g3mw2',
-            'ax_g3ms2',
-            'ay_g3mw1',
-            'ay_g3ms1',
+            'kL_q31',
+            'kL_q32',
+            'ax_K1',
+            'ay_K1',
         ],
     })
     return corrector

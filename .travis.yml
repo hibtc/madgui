@@ -19,7 +19,7 @@ install:
 
   - pip install flake8 docutils pygments pytest twine
   - pip install git+https://github.com/hibtc/hit_acs@master
-  - git clone git://github.com/hibtc/hit_models
+  - git clone git://github.com/hibtc/sample_model
 
 script:
   - twine check dist/*

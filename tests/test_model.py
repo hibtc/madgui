@@ -7,13 +7,13 @@ from madgui.model.madx import Model
 
 def test_load_model():
     model = Model.load_file(
-        'hit_models/hht3.cpymad.yml',
+        'sample_model/sample.cpymad.yml',
         undo_stack=mock.Mock())
-    assert model.seq_name == 'hht3'
+    assert model.seq_name == 'beamline1'
 
 
 def test_load_model_without_def():
     model = Model.load_file(
-        'hit_models/hht3/run.madx',
+        'sample_model/sample.cpymad.yml',
         undo_stack=mock.Mock())
-    assert model.seq_name == 'hht3'
+    assert model.seq_name == 'beamline1'
