@@ -2,8 +2,8 @@ Getting started
 ###############
 
 The best way to get started is to try right away to load an example model. You
-should also try your own MAD-X models. To run the model in madgui you just must
-have your sequence defined, a beam and the twiss command in the input file.
+should also try your own MAD-X models. To run the model in madgui you must
+have a sequence defined, a beam and the twiss command in the input file.
 The model won't work in madgui if it does not work in MAD-X.
 To make full use of the madgui features we insist to (re-)build your model with
 the same structure as in the following example.
@@ -22,13 +22,20 @@ To start madgui in the console run the sample model by typing, e.g.::
     madgui sample_model/sample
 
 If you used the madgui installer, open madgui and press CTRL + O and search for the
-file sample.cpymad.yml. A new dialog window will appear displaying a 2D representation
-of the lattice in front of you with the beam envelope along it.
+file sample.cpymad.yml.
+
+A new dialog window will appear displaying a 2D representation of the lattice
+in front of you with the beam envelope along it.
 This simple example contains most of the elements that play an important
-role in ion beam transport. You can see the bending magnets in gray, the focussing
-(defocussing) quadrupoles in red (blue), the monitors as green dashed lines and
-lastly the corrector kicker magnets as purple lines. Note, that the colors might vary
-depending on the OS you are using. 
+role in ion beam transport.
+You can see
+
+- bending magnets in gray,
+- focussing (defocussing) quadrupoles in red (blue),
+- monitors as green dashed lines,
+- corrector kicker magnets as purple lines.
+
+Note, that the colors might vary depending on the OS you are using. 
 We recommend to play around with the interface and see it's capabilities.
 For instance you can click on "beam envelope" and see
 the different quantities that you can choose. You should also try to click on
@@ -48,6 +55,6 @@ Clone the directory and play around::
   git clone https://github.com/MethodicalAcceleratorDesign/madx-examples
 
 Note that madgui has only been tested for transfer lines. Running an
-accelerator model might not work (yet) optimal.
+accelerator model might not work (yet) optimally.
 
 .. _madx-examples: https://github.com/MethodicalAcceleratorDesign/madx-examples

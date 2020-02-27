@@ -1,5 +1,5 @@
 Scaling
--------
+=======
 
 On high- or low-resolution displays, applications often need to be rescaled
 for best experience. You have two options to increase or decrease madgui's
@@ -7,7 +7,7 @@ font and widget sizes:
 
 
 Font sizes
-~~~~~~~~~~
+----------
 
 The font sizes can be changed at runtime by pressing ``Ctrl +`` or ``Ctrl -``.
 These actions are also accessible via the ``Settings`` menu. If there is a
@@ -19,7 +19,7 @@ windows. However, it is possible that the change is not propagated to all
 child windows if these are using custom fonts.
 
 Scale factor
-~~~~~~~~~~~~
+------------
 
 Qt allows setting a global scale factor for all widgets via the environment
 variable ``QT_SCALE_FACTOR``. This should work for any Qt application without
