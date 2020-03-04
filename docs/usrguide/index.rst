@@ -70,7 +70,9 @@ The following is an example that you can find in `sample model`_::
 
 Note that the name of the folder containing the beam line is **beamLine**,
 the sequence name is **beamline1** and the beam file is in a folder called
-**shared**, but we will come to that later. Save this file as **"sample.cpymad.yml"**.
+**shared**, but we will come to that later. The file containing the beam line
+definition must in fact be called **"sequence.madx"**. 
+Save this file as **"sample.cpymad.yml"**.
 The file extension **'.cpymad.yml'** will be recognized automatically by madgui, but you might
 as well use any extension of your choice.
 Note that all the file paths will be relative to the path of **beamLine** folder.
@@ -79,7 +81,7 @@ Beam file
 #########
 
 As we can see from the set up file, the beam definition is in a file called
-**'beamSample.yml'** inside a folder called **'shared'**. The beam file should look
+**"beamSample.yml"** inside a folder called **shared**. The beam file should look
 as follows::
 
   particle: C
@@ -92,7 +94,7 @@ as follows::
   sige: 0.001
   radiate: false
 
-Notice that we defined a Carbon Ion beam with 430MeV. 
+Notice that we defined a Carbon Ion beam with 430MeV.
   
 Reformating the sequence
 ########################
@@ -100,7 +102,7 @@ Reformating the sequence
 The next step is to reformat your sequence for madgui to understand it better.
 The parameters of the elements in the sequence that are to be tuned, for
 example, the quadrupole strengths or the kick angle of orbit corrector magnets
-will be in **'strengths.str'** file, whereas the static parameters such as the
+will be in the **"strengths.str"** file, whereas the static parameters such as the
 length of the magnets and drifts or the bending angles of the dipoles,
 will be written directly on the definition of the beam line sequence.
 
