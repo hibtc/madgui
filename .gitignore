@@ -33,3 +33,5 @@ nosetests.xml
 # Ignore local config files
 madgui.yml
 madgui.session.yml
+
+docs/build-doc/*
