@@ -9,7 +9,8 @@ __all__ = [
 
 import logging
 
-from PyQt5.QtWidgets import QAbstractItemView, QDialogButtonBox, QWidget
+from PyQt5.QtWidgets import (QAbstractItemView, QDialogButtonBox,
+                             QWidget, QPushButton)
 
 from madgui.util.qt import load_ui
 from madgui.util.unit import ui_units
@@ -53,10 +54,11 @@ class MatchWidget(QWidget):
 
     ui_file = 'match.ui'
 
-    def __init__(self, matcher):
+    def __init__(self, matcher, control):
         super().__init__()
         load_ui(self, __package__, self.ui_file)
         self.matcher = matcher
+        self.control = control
         self.model = model = matcher.model
         local_constraints = ['envx', 'envy'] + [
             cmdpar.name
@@ -140,7 +142,15 @@ class MatchWidget(QWidget):
         self.buttonBox.button(Button.Reset).clicked.connect(self.matcher.reset)
         self.matchButton.clicked.connect(self.matcher.match)
         self.mirrorConstraintsCheckBox.clicked.connect(self.on_change_mirror)
-        # TODO: connect self.matcher.finished?
+        self.connect_execute_button()
+
+    def connect_execute_button(self):
+        """
+        Enables the execute button if madgui has an online backend
+        """
+        execButton = self.findChild(QPushButton, 'ExecuteButton')
+        execButton.setEnabled(self.control.is_connected())
+        execButton.clicked.connect(self.control.on_write_all)
 
     def on_update_constraints(self, *args):
         self.targetsTable.resizeColumnToContents(1)
