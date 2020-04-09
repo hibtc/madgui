@@ -19,7 +19,7 @@ install:
 
   - pip install flake8 docutils pygments pytest twine
   - pip install git+https://github.com/hibtc/hit_acs@master
-  - git clone git://github.com/hibtc/hit_models
+  - git clone git://github.com/hibtc/sample_model
 
 script:
   - twine check dist/*
@@ -35,7 +35,7 @@ jobs:
   include:
     - stage: deploy
       name: Upload Documentation
-      install: pip install . sphinx sphinx_rtd_theme autodocsumm
+      install: pip install . sphinx==2.3.1 sphinx_rtd_theme autodocsumm
       script: make -C docs html
       deploy:
         - provider: pages
