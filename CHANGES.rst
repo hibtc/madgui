@@ -1,6 +1,14 @@
 CHANGELOG
 ~~~~~~~~~
 
+20.4.0
+~~~~~~
+Date: 08.04.2020
+
+- Add execute button to match widget
+- Downgrade pyqtconsole to 1.1.3
+- Add sample_model dependency
+
 20.1.0
 ~~~~~~
 Date: 25.01.2020
