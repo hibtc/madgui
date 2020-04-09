@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>698</width>
-    <height>397</height>
+    <height>496</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout">
    <item>
-    <widget class="QGroupBox">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Constraints</string>
      </property>
@@ -71,7 +71,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Variables</string>
      </property>
@@ -127,14 +127,14 @@
     </widget>
    </item>
    <item>
-    <widget class="Line">
+    <widget class="Line" name="line">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>General</string>
      </property>
@@ -160,7 +160,7 @@
        </spacer>
       </item>
       <item row="0" column="2">
-       <widget class="QLabel">
+       <widget class="QLabel" name="label">
         <property name="text">
          <string>Method:</string>
         </property>
@@ -190,7 +190,17 @@
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="standardButtons">
-        <set>QDialogButtonBox::Reset|QDialogButtonBox::Ok</set>
+        <set>QDialogButtonBox::Ok|QDialogButtonBox::Reset</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ExecuteButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>Execute</string>
        </property>
       </widget>
      </item>

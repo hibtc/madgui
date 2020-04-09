@@ -447,7 +447,7 @@ class MainWindow(QMainWindow):
     @SingleWindow.factory
     def viewMatchDialog(self):
         from madgui.widget.match import MatchWidget
-        widget = MatchWidget(self.session.matcher)
+        widget = MatchWidget(self.session.matcher, self.control)
         return Dialog(self, widget)
 
     def setLogSize(self):
