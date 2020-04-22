@@ -1,6 +1,13 @@
 CHANGELOG
 ~~~~~~~~~
 
+20.4.1
+~~~~~~
+Date: 22.04.2020
+
+- Add constrain to the match feature. If the residual is too high, then the
+  optics are not changed
+
 20.4.0
 ~~~~~~
 Date: 08.04.2020
