@@ -717,7 +717,7 @@ class Model:
             isGoodFit = (fitResidual < 1e-6)
             if isGoodFit:
                 self._update(old_values, new_values,
-                         self._update_globals, "Match: {}")
+                             self._update_globals, "Match: {}")
             else:
                 logging.warning('Fit Residual too high!!!')
 
