@@ -34,5 +34,4 @@ nosetests.xml
 madgui.yml
 madgui.session.yml
 
-# Documentation
 docs/build-doc/*

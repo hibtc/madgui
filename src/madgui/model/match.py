@@ -79,7 +79,7 @@ class Matcher:
             logging.warning(
                 "Aborted due to invalid number of constraints or variables.")
             return
-        match_results = self.model.match(variables, constraints)
+        match_results = self.model.match(variables, constraints, self.mirror_mode)
         self.match_results = {k.lower(): v for k, v in match_results.items()}
         self.variables.touch()
 

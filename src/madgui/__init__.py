@@ -35,7 +35,7 @@ package:
 ==================== =========================================================
 """
 
-__version__ = '20.2.1'
+__version__ = '20.4.1'
 
 __title__ = 'madgui'
 __summary__ = 'GUI for accelerator simulations using MAD-X.'
@@ -47,6 +47,10 @@ madgui is developed for HIT Betriebs GmbH.
 Created by:
 
 - Thomas Gläßle <t_glaessle@gmx.de>
+
+Maintainer:
+
+- Cris Cortes <Cristopher.CortesGarcia@med.uni-heidelberg.de>
 
 Special thanks to my supervisors for their help and support:
 
