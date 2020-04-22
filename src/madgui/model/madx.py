@@ -656,7 +656,7 @@ class Model:
             twiss_args={'betx': 1, 'bety': 1},
         )
 
-    def match(self, vary, constraints, **kwargs):
+    def match(self, vary, constraints, mirror_mode=True, **kwargs):
 
         # list intermediate positions
         # NOTE: need list instead of set, because quantity is unhashable:
@@ -688,6 +688,8 @@ class Model:
             for (name, pos), c in cons.items()]
 
         # FIXME TODO: use position-dependent emittances…
+        # NOTE: Not sure we can measure or if there is a relevant
+        # emittance dilution in the HEBT
         ex = self.ex()
         ey = self.ey()
         weights = {
@@ -705,9 +707,23 @@ class Model:
                         vary=vary,
                         constraints=madx_constraints,
                         weight=weights,
+                        method=('lmdif', {'calls': 2000, 'tolerance': 1e-8}),
                         **twiss_args)
+
         new_values = {v: self.read_param(v) for v in vary}
-        self._update(old_values, new_values, self._update_globals, "Match: {}")
+
+        if mirror_mode:
+            fitResidual = self.madx.globals['TAR']
+            isGoodFit = (fitResidual < 1e-6)
+            if isGoodFit:
+                self._update(old_values, new_values,
+                             self._update_globals, "Match: {}")
+            else:
+                logging.warning('Fit Residual too high!!!')
+
+        else:
+            self._update(old_values, new_values,
+                         self._update_globals, "Match: {}")
 
         # return corrections
         return new_values
