@@ -36,12 +36,12 @@ jobs:
     - stage: deploy
       name: Upload Documentation
       install:
-        - pip install . sphinx==2.1.2 sphinx_rtd_theme autodocsumm
+        - pip install . sphinx sphinx_rtd_theme autodocsumm
       script: make -C docs html
       deploy:
         - provider: pages
           local_dir: docs/_build/html
-          cleanup: false
+          skip-cleanup: true
           github-token: $GITHUB_TOKEN
           on:
             branch: master
