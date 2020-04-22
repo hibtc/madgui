@@ -707,7 +707,7 @@ class Model:
                         vary=vary,
                         constraints=madx_constraints,
                         weight=weights,
-                        method=('lmdif',{'calls':2000,'tolerance':1e-8}),
+                        method=('lmdif', {'calls': 2000, 'tolerance': 1e-8}),
                         **twiss_args)
 
         new_values = {v: self.read_param(v) for v in vary}
