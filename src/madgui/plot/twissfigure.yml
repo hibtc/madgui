@@ -36,7 +36,8 @@ select_style:
 # ``matplotlib.axes.Axes.plot()``
 reference_style:
   linestyle: "-"
-  color: "black"
+  color: "C0"
+  alpha: 0.5
 
 # Style for monitor markers:
 readouts_style:
