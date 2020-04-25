@@ -1,6 +1,13 @@
 CHANGELOG
 ~~~~~~~~~
 
+20.4.2
+~~~~~~
+Date: 25.04.2020
+
+- Update the User Guide. Work in progress
+- Add dynamical color to snapshots
+
 20.4.1
 ~~~~~~
 Date: 22.04.2020
