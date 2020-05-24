@@ -65,6 +65,9 @@ class CurveManager(QWidget):
         return self.curveTable.rows
 
     def on_btn_save(self):
+        """
+        Add a Snapshot of the current twiss figure
+        """
         scene = self.scene
         twiss = scene.model.twiss()
         data = {
@@ -75,6 +78,7 @@ class CurveManager(QWidget):
         style = scene.config['reference_style']
         scene.snapshot_num += 1
         name = "snapshot {}".format(scene.snapshot_num)
+        style['color'] = 'C{}'.format(scene.snapshot_num)
         scene.add_curve(name, data, style)
         self.curveTable.edit(
             self.curveTable.model().index(len(self.available)-1, 0))
