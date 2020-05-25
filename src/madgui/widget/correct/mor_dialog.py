@@ -1,5 +1,5 @@
 """
-Multi grid correction method.
+Measured orbit correction method.
 """
 
 import numpy as np
