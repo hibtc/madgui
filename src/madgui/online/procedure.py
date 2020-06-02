@@ -39,10 +39,12 @@ class OrbitRecord:
 
 class Target:
 
-    def __init__(self, elem, x, y):
+    def __init__(self, elem, x, y, px=0., py=0.):
         self.elem = elem
         self.x = x
         self.y = y
+        self.px = px
+        self.py = py
 
 
 class Corrector(Matcher):
@@ -287,8 +289,9 @@ class Corrector(Matcher):
             self.compute_sectormap())
 
     def _compute_steerer_corrections_orm_ndiff1(self):
+        knowsReadouts = self.knows_targets_readouts()
         return self._compute_steerer_corrections_orm(
-            self.compute_orbit_response_matrix())
+            self.compute_orbit_response_matrix(knowsReadouts))
 
     def _get_objective_deltas(self):
         if self.knows_targets_readouts():
@@ -301,7 +304,8 @@ class Corrector(Matcher):
             logging.warning(
                 "Matching absolute orbit (more sensitive to inaccurate "
                 "backtracking)!")
-
+            logging.warning(
+                "Make sure to use as many shots as possible")
             offsets = self._offsets
             elem_twiss = self.model.get_elem_twiss
             measured = {
@@ -310,6 +314,7 @@ class Corrector(Matcher):
                 for el in [t.elem.lower()]
                 for ax, offset in zip("xy", offsets.get(el, (0, 0)))
             }
+
         return [
             (el, ax, objective_value - measured_value)
             for el, ax, objective_value in self._get_objectives()
@@ -323,13 +328,23 @@ class Corrector(Matcher):
             i for i, (elem, axis) in enumerate(product(self.monitors, 'xy'))
             if (elem.lower(), axis) in targets
         ]
-        dvar = np.linalg.lstsq(
-            orm[S, :], deltas, rcond=1e-10)[0]
         globals_ = self.model.globals
-        return {
-            var.lower(): globals_[var] + delta
-            for var, delta in zip(self.variables, dvar)
-        }
+        try:
+            if not self.knows_targets_readouts():
+                # Sidenote: I am not sure if the ordering is kept
+                # in a few tests it appears to be the case
+                dvar = np.linalg.lstsq(orm, deltas, rcond=1e-10)[0]
+            else:
+                dvar = np.linalg.lstsq(
+                    orm[S, :], deltas, rcond=1e-10)[0]
+            return {
+                var.lower(): globals_[var] + delta
+                for var, delta in zip(self.variables, dvar)
+            }
+        except np.linalg.LinAlgError:
+            logging.error('Unable to correct the orbit with this method')
+            logging.warning('Please try another configuration or another method')
+            return {}
 
     def _get_constraints(self):
         model = self.model
@@ -375,7 +390,13 @@ class Corrector(Matcher):
             ]).T
 
     # TODO: share implementation with `madgui.model.orm.NumericalORM`!!
-    def compute_orbit_response_matrix(self):
+    def compute_orbit_response_matrix(self, knowsReadouts=True):
+        if not knowsReadouts:
+            # In case we have targets that are not monitors or input data
+            # cannot be reached
+            targets = [t.elem for t in self.targets]
+            return self.model.get_orbit_response_matrix(
+                targets, self.variables).reshape((-1, len(self.variables)))
         return self.model.get_orbit_response_matrix(
             self.monitors, self.variables).reshape((-1, len(self.variables)))
 
