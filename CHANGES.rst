@@ -1,6 +1,13 @@
 CHANGELOG
 ~~~~~~~~~
 
+20.6.0
+~~~~~~
+Date: 03.06.2020
+
+- Fix bugs in optic variation method
+- Downgrade PyQt Version to 5.12.3
+
 20.4.2
 ~~~~~~
 Date: 25.04.2020
