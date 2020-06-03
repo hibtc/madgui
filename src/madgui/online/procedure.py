@@ -478,6 +478,9 @@ class ProcBot:
     def finish(self):
         self.stop()
         self.widget.update_fit()
+        self.widget.log(
+                "Set initial optic: {}", self.corrector.optics[0])
+        self.corrector.set_optic(0)
         self.widget.log("Finished\n")
 
     def cancel(self):
