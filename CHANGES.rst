@@ -1,5 +1,10 @@
 CHANGELOG
 ~~~~~~~~~
+20.7.0
+~~~~~~
+Date: 28.07.2020
+
+- Change Pyqtconsole v1.2.1
 
 20.6.0
 ~~~~~~
